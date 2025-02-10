@@ -2175,6 +2175,10 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "pcsx2_enable_cheats", "lrps2_enable_cheats", "enabled", "disabled");
             // pcsx2_hint_language_unlock
             BindFeature(coreSettings, "pcsx2_renderer", "lrps2_renderer", "Auto");
+
+            if (SystemConfig["lrps2_renderer"] == "paraLLEl-GS")
+                retroarchConfig["video_driver"] = "vulkan";
+
             BindFeatureSlider(coreSettings, "pcsx2_upscale_multiplier", "lrps2_upscale_multiplier", "1");
             BindFeature(coreSettings, "pcsx2_deinterlace_mode", "lrps2_deinterlace_mode", "Automatic");
             BindBoolFeatureOn(coreSettings, "pcsx2_nointerlacing_hint", "lrps2_nointerlacing_hint", "enabled", "disabled");
@@ -2187,6 +2191,13 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "pcsx2_pcrtc_antiblur", "lrps2_pcrtc_antiblur", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "pcsx2_game_enhancements_hint", "lrps2_game_enhancements_hint", "enabled", "disabled");
             BindFeature(coreSettings, "pcsx2_uncapped_framerate_hint", "lrps2_uncapped_framerate_hint", "disabled");
+
+            // Parallel options
+            BindFeature(coreSettings, "pcsx2_pgs_ssaa", "lrps2_pgs_ssaa", "Native");
+            BindBoolFeature(coreSettings, "pcsx2_pgs_high_res_scanout", "lrps2_pgs_high_res_scanout", "enabled", "disabled");
+
+            if (SystemConfig.getOptBoolean("lrps2_pgs_high_res_scanout") && SystemConfig.isOptSet("lrps2_pgs_ssaa") && !SystemConfig["lrps2_pgs_ssaa"].Contains("can high-res"))
+                coreSettings["pcsx2_pgs_high_res_scanout"] = "disabled";
 
             // CONTROLS
             if (SystemConfig.isOptSet("lrps2_axis_scale") && !string.IsNullOrEmpty(SystemConfig["lrps2_axis_scale"]))
@@ -4731,6 +4742,8 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "X1_RESOLUTE", "x1_resolute", "LOW");
+            BindFeature(coreSettings, "X1_ROMTYPE", "x1_romtype", "X1");
+            BindFeature(coreSettings, "X1_KEY_MODE", "x1_keymode", "Keyboard");
         }
 
         private void ConfigureYabause(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

@@ -280,17 +280,30 @@ namespace EmulatorLauncher
             //Get SDL controller index
             string techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
             if (ctrl.IsXInputDevice && !_forceSDL)
-                techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";                
+                techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
+
+            bool stickasDpad = SystemConfig.getOptBoolean("pcsx2_stick_dpad");
 
             if (tech == "DInput")
             {
                 techPadNumber = "DInput-" + ctrl.DirectInput.DeviceIndex + "/";
 
                 //Write button mapping
-                pcsx2ini.WriteValue(padNumber, "Up", techPadNumber + GetDInputKeyName(dinputController, "buttonup", 0, isXinput));
-                pcsx2ini.WriteValue(padNumber, "Right", techPadNumber + GetDInputKeyName(dinputController, "buttonright", 0, isXinput));
-                pcsx2ini.WriteValue(padNumber, "Down", techPadNumber + GetDInputKeyName(dinputController, "buttondown", 0, isXinput));
-                pcsx2ini.WriteValue(padNumber, "Left", techPadNumber + GetDInputKeyName(dinputController, "buttonleft", 0, isXinput));
+                if (stickasDpad)
+                {
+                    pcsx2ini.WriteValue(padNumber, "Up", techPadNumber + GetDInputKeyName(dinputController, "lefty", -1));
+                    pcsx2ini.WriteValue(padNumber, "Right", techPadNumber + GetDInputKeyName(dinputController, "leftx", 1));
+                    pcsx2ini.WriteValue(padNumber, "Down", techPadNumber + GetDInputKeyName(dinputController, "lefty", 1));
+                    pcsx2ini.WriteValue(padNumber, "Left", techPadNumber + GetDInputKeyName(dinputController, "leftx", -1));
+                }
+                else
+                {
+                    pcsx2ini.WriteValue(padNumber, "Up", techPadNumber + GetDInputKeyName(dinputController, "buttonup", 0, isXinput));
+                    pcsx2ini.WriteValue(padNumber, "Right", techPadNumber + GetDInputKeyName(dinputController, "buttonright", 0, isXinput));
+                    pcsx2ini.WriteValue(padNumber, "Down", techPadNumber + GetDInputKeyName(dinputController, "buttondown", 0, isXinput));
+                    pcsx2ini.WriteValue(padNumber, "Left", techPadNumber + GetDInputKeyName(dinputController, "buttonleft", 0, isXinput));
+                }
+
                 pcsx2ini.WriteValue(padNumber, "Triangle", techPadNumber + GetDInputKeyName(dinputController, "y"));
                 pcsx2ini.WriteValue(padNumber, "Circle", techPadNumber + GetDInputKeyName(dinputController, "b"));
                 pcsx2ini.WriteValue(padNumber, "Cross", techPadNumber + GetDInputKeyName(dinputController, "a"));
@@ -304,10 +317,10 @@ namespace EmulatorLauncher
                 pcsx2ini.WriteValue(padNumber, "L3", techPadNumber + GetDInputKeyName(dinputController, "leftstick"));
                 pcsx2ini.WriteValue(padNumber, "R3", techPadNumber + GetDInputKeyName(dinputController, "rightstick"));
                 pcsx2ini.WriteValue(padNumber, "Analog", techPadNumber + GetDInputKeyName(dinputController, "misc1"));
-                pcsx2ini.WriteValue(padNumber, "LUp", techPadNumber + GetDInputKeyName(dinputController, "lefty", -1));
-                pcsx2ini.WriteValue(padNumber, "LRight", techPadNumber + GetDInputKeyName(dinputController, "leftx", 1));
-                pcsx2ini.WriteValue(padNumber, "LDown", techPadNumber + GetDInputKeyName(dinputController, "lefty", 1));
-                pcsx2ini.WriteValue(padNumber, "LLeft", techPadNumber + GetDInputKeyName(dinputController, "leftx", -1));
+                pcsx2ini.WriteValue(padNumber, "LUp", stickasDpad ? "None" : techPadNumber + GetDInputKeyName(dinputController, "lefty", -1));
+                pcsx2ini.WriteValue(padNumber, "LRight", stickasDpad ? "None" : techPadNumber + GetDInputKeyName(dinputController, "leftx", 1));
+                pcsx2ini.WriteValue(padNumber, "LDown", stickasDpad ? "None" : techPadNumber + GetDInputKeyName(dinputController, "lefty", 1));
+                pcsx2ini.WriteValue(padNumber, "LLeft", stickasDpad ? "None" : techPadNumber + GetDInputKeyName(dinputController, "leftx", -1));
                 pcsx2ini.WriteValue(padNumber, "RUp", techPadNumber + GetDInputKeyName(dinputController, "righty", -1));
                 pcsx2ini.WriteValue(padNumber, "RRight", techPadNumber + GetDInputKeyName(dinputController, "rightx", 1));
                 pcsx2ini.WriteValue(padNumber, "RDown", techPadNumber + GetDInputKeyName(dinputController, "righty", 1));
@@ -411,10 +424,21 @@ namespace EmulatorLauncher
             else
             {
                 //Write button mapping
-                pcsx2ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
-                pcsx2ini.WriteValue(padNumber, "Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
-                pcsx2ini.WriteValue(padNumber, "Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down, tech));
-                pcsx2ini.WriteValue(padNumber, "Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
+                if (stickasDpad)
+                {
+                    pcsx2ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogup, tech));
+                    pcsx2ini.WriteValue(padNumber, "Right", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogright, tech));
+                    pcsx2ini.WriteValue(padNumber, "Down", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogdown, tech));
+                    pcsx2ini.WriteValue(padNumber, "Left", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogleft, tech));
+                }
+                else
+                {
+                    pcsx2ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
+                    pcsx2ini.WriteValue(padNumber, "Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
+                    pcsx2ini.WriteValue(padNumber, "Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down, tech));
+                    pcsx2ini.WriteValue(padNumber, "Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
+                }
+
                 pcsx2ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
                 pcsx2ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
                 pcsx2ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
@@ -428,10 +452,10 @@ namespace EmulatorLauncher
                 pcsx2ini.WriteValue(padNumber, "L3", techPadNumber + GetInputKeyName(ctrl, InputKey.l3, tech));
                 pcsx2ini.WriteValue(padNumber, "R3", techPadNumber + GetInputKeyName(ctrl, InputKey.r3, tech));
                 pcsx2ini.WriteValue(padNumber, "Analog", techPadNumber + "Guide");
-                pcsx2ini.WriteValue(padNumber, "LUp", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogup, tech));
-                pcsx2ini.WriteValue(padNumber, "LRight", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogright, tech));
-                pcsx2ini.WriteValue(padNumber, "LDown", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogdown, tech));
-                pcsx2ini.WriteValue(padNumber, "LLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogleft, tech));
+                pcsx2ini.WriteValue(padNumber, "LUp", stickasDpad ? "None" : techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogup, tech));
+                pcsx2ini.WriteValue(padNumber, "LRight", stickasDpad ? "None" : techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogright, tech));
+                pcsx2ini.WriteValue(padNumber, "LDown", stickasDpad ? "None" : techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogdown, tech));
+                pcsx2ini.WriteValue(padNumber, "LLeft", stickasDpad ? "None" : techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogleft, tech));
                 pcsx2ini.WriteValue(padNumber, "RUp", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogup, tech));
                 pcsx2ini.WriteValue(padNumber, "RRight", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogright, tech));
                 pcsx2ini.WriteValue(padNumber, "RDown", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogdown, tech));
