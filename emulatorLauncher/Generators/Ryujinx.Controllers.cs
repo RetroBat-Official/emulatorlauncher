@@ -345,10 +345,16 @@ namespace EmulatorLauncher
             }
 
             var newGuid = SdlJoystickGuidManager.FromSdlGuidString(guid);
+            string ryuGuidString = newGuid.ToString();
+
+            string overrideGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+            string overrideGuid = SdlJoystickGuid.GetGuidFromFile(overrideGuidPath, c.Guid, "ryujinx");
+            if (overrideGuid != null)
+                ryuGuidString = overrideGuid;
 
             input_config["version"] = "1";
             input_config["backend"] = "GamepadSDL2";
-            input_config["id"] = index + "-" + newGuid.ToString();
+            input_config["id"] = index + "-" + ryuGuidString;
             input_config["controller_type"] = playerType;
             input_config["player_index"] = handheld ? "Handheld" : "Player" + playerIndex;
 
