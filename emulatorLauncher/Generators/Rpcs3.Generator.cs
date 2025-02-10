@@ -275,6 +275,7 @@ namespace EmulatorLauncher
             BindBoolFeature(core, "SPU loop detection", "spuloopdetect", "true", "false");
             BindFeature(core, "SPU Block Size", "spublocksize", "Safe");
             BindBoolFeature(core, "Accurate RSX reservation access", "accuratersx", "true", "false");
+            BindFeature(core, "RSX FIFO Accuracy", "rpcs3_rsxfifoaccuracy", "Fast");
             BindBoolFeature(core, "PPU Accurate Vector NaN Values", "vectornan", "true", "false");
             BindBoolFeature(core, "Full Width AVX-512", "fullavx", "true", "false");
             BindFeature(core, "XFloat Accuracy", "rpcs3_xfloat", "Accurate");
