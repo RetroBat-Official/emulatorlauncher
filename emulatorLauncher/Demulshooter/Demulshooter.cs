@@ -165,6 +165,13 @@ namespace EmulatorLauncher
             if (GetDemulshooterExecutable(emulator, rom, out string executable, out string dsPath))
             {
                 string exe = Path.Combine(dsPath, executable);
+
+                if (!File.Exists(exe))
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] Demulshooter exe does not exist.");
+                    return;
+                }
+
                 var commandArray = new List<string>();
 
                 if (GetDemulshooterTarget(emulator, rom, out string target))
