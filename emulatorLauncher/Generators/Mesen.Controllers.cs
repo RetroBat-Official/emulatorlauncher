@@ -16,8 +16,6 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Mesen");
 
-            bool p1Only = SystemConfig.getOptBoolean("force1pOnly");
-
             // clear existing mapping sections of json file
             var portList = nesPorts;
             if (mesenSystem == "Snes")
@@ -56,7 +54,7 @@ namespace EmulatorLauncher
             ConfigureMultitap(systemSection, mesenSystem);
 
             // Inject controllers                
-            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(p1Only ? 1 : maxPad))
+            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
                 ConfigureInput(pref, systemSection, controller, mesenSystem);
         }
 
