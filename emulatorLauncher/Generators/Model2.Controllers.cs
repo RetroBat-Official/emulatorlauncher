@@ -23,7 +23,7 @@ namespace EmulatorLauncher
 
             CleanupInputFile(bytes);
 
-            if (SystemConfig.isOptSet("use_guns") && shooters.Contains(parentRom))
+            if (SystemConfig["use_guns"] == "true" && shooters.Contains(parentRom))
                 ConfigureModel2Guns(ini, bytes, parentRom);
 
             else if (Program.Controllers.Count > 1)

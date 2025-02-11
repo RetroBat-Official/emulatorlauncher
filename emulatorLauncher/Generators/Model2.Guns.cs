@@ -13,6 +13,9 @@ namespace EmulatorLauncher
 
         private void ConfigureModel2Guns(IniFile ini, byte[] bytes, string parentRom)
         {
+            if (SystemConfig["use_guns"] == "false")
+                return;
+
             var guns = RawLightgun.GetRawLightguns();
             int realGunsCount = RawLightgun.GetUsableLightGunCount();
             bool trueLightgun = realGunsCount > 0;

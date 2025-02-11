@@ -105,8 +105,8 @@ namespace EmulatorLauncher
             }
 
             string controllerType = "None";
-            if (SystemConfig.isOptSet("mesen_controller" + playerIndex) && !string.IsNullOrEmpty(SystemConfig["mesen_controller" + playerIndex]))
-                controllerType = SystemConfig["mesen_controller" + playerIndex];
+            if (SystemConfig.isOptSet("mesen_controllertype" + playerIndex) && !string.IsNullOrEmpty(SystemConfig["mesen_controllertype" + playerIndex]))
+                controllerType = SystemConfig["mesen_controllertype" + playerIndex];
             else if (systemDefaultController.ContainsKey(mesenSystem))
                 controllerType = systemDefaultController[mesenSystem];
 
@@ -258,8 +258,8 @@ namespace EmulatorLauncher
             var mapping = port.GetOrCreateContainer("Mapping2");
 
             string controllerType = "None";
-            if (SystemConfig.isOptSet("mesen_controller1") && !string.IsNullOrEmpty(SystemConfig["mesen_controller1"]))
-                controllerType = SystemConfig["mesen_controller1"];
+            if (SystemConfig.isOptSet("mesen_controllertype1") && !string.IsNullOrEmpty(SystemConfig["mesen_controllertype1"]))
+                controllerType = SystemConfig["mesen_controllertype1"];
             else if (systemDefaultController.ContainsKey(mesenSystem))
                 controllerType = systemDefaultController[mesenSystem];
 

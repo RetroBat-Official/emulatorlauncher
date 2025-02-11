@@ -4,6 +4,8 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace EmulatorLauncher
 {
