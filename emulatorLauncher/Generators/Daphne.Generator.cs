@@ -103,13 +103,44 @@ namespace EmulatorLauncher
         {
             SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
 
-            rom = this.TryUnZipGameIfNeeded(system, rom);
+            // Manage new launch from zip files with hypseus (do not unzip these)
+            string zipSinge = null;
+            bool zipHypseus = false;
+            if (Path.GetDirectoryName(rom).EndsWith("roms"))
+            {
+                zipSinge = rom;
+                zipHypseus = true;
+                _executableName = "hypseus";
+            }
+            else
+                rom = this.TryUnZipGameIfNeeded(system, rom);
 
             string romName = Path.GetFileNameWithoutExtension(rom);
+            bool useAlt = false;
+            
+            string singeFile = null;
+            string frameFile = null;
+
+            string romPath = Path.GetDirectoryName(rom);
+            string[] romPathdirectories = romPath.Split(Path.DirectorySeparatorChar);
+            if (romPathdirectories.Length >= 2)
+            {
+                string secondFromRight = romPathdirectories[romPathdirectories.Length - 2];
+                if (secondFromRight == "vldp" && (Path.GetExtension(rom) == ".actionmax" || Path.GetExtension(rom) == ".singe"))
+                {
+                    string romNameAlt = Path.GetFileNameWithoutExtension(romPath);
+                    zipSinge = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(romPath)), "roms", romNameAlt + ".zip");
+                    if (zipSinge != null && File.Exists(zipSinge))
+                    {
+                        useAlt = true;
+                        _executableName = "hypseus";
+                    }
+                }
+            }
 
             // Special Treatment for actionmax games
             var ext = Path.GetExtension(rom).Replace(".", "").ToLower();
-            if (ext == "actionmax")
+            if (ext == "actionmax" && !useAlt)
             {
                 string expectedSingeFile = Path.Combine(Path.GetDirectoryName(rom), ext, romName + ".singe");
                 if (!File.Exists(expectedSingeFile))
@@ -120,21 +151,40 @@ namespace EmulatorLauncher
 
             string commandsFile = rom + "\\" + romName + ".commands";
 
-            string singeFile = rom + "\\" + romName + ".singe";
-            if (!File.Exists(singeFile))
-                singeFile = FindFile(rom, "*.singe", f => Path.GetFileNameWithoutExtension(f).StartsWith(romName));
-
-            string frameFile = rom + "\\" + romName + ".txt";
-            if (File.Exists(singeFile))
+            if (!useAlt && !zipHypseus)
             {
-                _executableName = "hypseus";
-                if (!File.Exists(frameFile))
+                singeFile = rom + "\\" + romName + ".singe";
+                if (!File.Exists(singeFile))
+                    singeFile = FindFile(rom, "*.singe", f => Path.GetFileNameWithoutExtension(f).StartsWith(romName));
+
+                frameFile = rom + "\\" + romName + ".txt";
+                if (File.Exists(singeFile))
                 {
-                    frameFile = FindFile(rom, "*.txt", f => Path.GetFileNameWithoutExtension(f).StartsWith(romName));
-                    if (frameFile == null)
-                        frameFile = FindFile(rom, "*.mp4", f => Path.GetFileNameWithoutExtension(f).StartsWith(romName));
+                    _executableName = "hypseus";
+                    if (!File.Exists(frameFile))
+                    {
+                        frameFile = FindFile(rom, "*.txt", f => Path.GetFileNameWithoutExtension(f).StartsWith(romName));
+                        if (frameFile == null)
+                            frameFile = FindFile(rom, "*.mp4", f => Path.GetFileNameWithoutExtension(f).StartsWith(romName));
+                    }
                 }
-            }                        
+            }
+            else
+            {
+                if (zipHypseus)
+                {
+                    string basePath = Path.GetDirectoryName(romPath);
+                    frameFile = Path.Combine(basePath, "vldp", romName, romName + ".txt");
+                }
+                else
+                {
+                    singeFile = null;
+                    frameFile = rom.Replace(".singe", ".txt").Replace(".actionmax", ".txt");
+                }
+
+                if (!File.Exists(frameFile))
+                    throw new Exception("[ERROR] Framefile (.txt) does not exist in vldp/<game> subfolder.");
+            }
 
             string emulatorPath = AppConfig.GetFullPath(_executableName);
             string exe = Path.Combine(emulatorPath, _executableName + ".exe");
@@ -156,21 +206,53 @@ namespace EmulatorLauncher
             string daphneDatadir = emulatorPath;
             _daphneHomedir = Path.GetDirectoryName(rom);
 
-            if (File.Exists(singeFile) && _executableName == "hypseus")
+            if ((File.Exists(singeFile) || useAlt || zipHypseus) && _executableName == "hypseus")
             {
                 _daphneHomedir = emulatorPath;
 
-                commandArray.AddRange(new string[]                       
-                   {                        
-                        "singe", 
-                        "vldp", 
+                if (zipHypseus)
+                {
+                    commandArray.AddRange(new string[]
+                                           {
+                        "singe",
+                        "vldp",
                         "-retropath", // Requires the CreateSymbolicLink
-                        "-framefile", frameFile, 
-                        "-script", singeFile, 
-                        "-manymouse", 
+                        "-zlua", zipSinge,
+                        "-framefile", frameFile,
+                        "-manymouse",
                         "-datadir", _daphneHomedir,
                         "-homedir", _daphneHomedir
-                    });
+                                            });
+                }
+                else if (useAlt)
+                {
+                    commandArray.AddRange(new string[]
+                       {
+                        "singe",
+                        "vldp",
+                        "-retropath", // Requires the CreateSymbolicLink
+                        "-zlua", zipSinge,
+                        "-usealt", romName,
+                        "-framefile", frameFile,
+                        "-manymouse",
+                        "-datadir", _daphneHomedir,
+                        "-homedir", _daphneHomedir
+                        });
+                }
+                else
+                {
+                    commandArray.AddRange(new string[]
+                       {
+                        "singe",
+                        "vldp",
+                        "-retropath", // Requires the CreateSymbolicLink
+                        "-framefile", frameFile,
+                        "-script", singeFile,
+                        "-manymouse",
+                        "-datadir", _daphneHomedir,
+                        "-homedir", _daphneHomedir
+                        });
+                }
 
                 if (RawLightgun.GetRawLightguns().Any(gun => gun.Type == RawLighGunType.SindenLightgun))
                 {
@@ -178,7 +260,7 @@ namespace EmulatorLauncher
                     Guns.StartSindenSoftware();
                 }
 
-                    string directoryName = Path.GetFileName(rom);
+                string directoryName = Path.GetFileName(rom);
 
                 if (directoryName == "actionmax")
                     directoryName = Path.ChangeExtension(directoryName, ".daphne");
