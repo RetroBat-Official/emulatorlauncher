@@ -21,6 +21,7 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
 
         private static int _playerCount = 1;
+        private static int _maxCount = 2;
 
         public static void GenerateCoreInputRemap(string system, string core, Dictionary<string, string> inputremap)
         {
@@ -28,6 +29,21 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             _playerCount = Program.Controllers.Count;
+            _maxCount = _playerCount + 2;
+
+            if (Program.SystemConfig.getOptBoolean("force1pOnly"))
+            {
+                if (coreToP2Device.ContainsKey(core))
+                {
+                    for (int i = 3; i < _maxCount + 1; i++)
+                        inputremap["input_libretro_device_p" + i] = "0";
+                }
+                else
+                {
+                    for (int i = 2; i < _maxCount + 1; i++)
+                        inputremap["input_libretro_device_p" + i] = "0";
+                }
+            }
 
             if (_playerCount == 0)
                 return;
