@@ -158,6 +158,9 @@ namespace EmulatorLauncher
 
         public static void KillSindenSoftware()
         {
+            if (!Program.SystemConfig.getOptBoolean("sindenKill"))
+                return;
+
             var px = Process.GetProcessesByName("Lightgun").FirstOrDefault();
             if (px == null)
                 return;
