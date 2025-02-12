@@ -9,6 +9,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using System.Reflection;
 using System.Diagnostics.Eventing.Reader;
+using EmulatorLauncher.Common.Lightguns;
 
 namespace EmulatorLauncher
 {
@@ -29,8 +30,10 @@ namespace EmulatorLauncher
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }
 
-        public static bool WriteControllersConfig(string path, string system, bool triforce)
+        public static bool WriteControllersConfig(string path, string system, bool triforce, out bool sindenSoft)
         {
+            sindenSoft = false;
+
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return false;
 
@@ -43,7 +46,7 @@ namespace EmulatorLauncher
                 // Guns
                 if (Program.SystemConfig.getOptBoolean("use_guns"))
                 {
-                    GenerateControllerConfig_wiilightgun(path, "WiimoteNew.ini", "Wiimote");
+                    GenerateControllerConfig_wiilightgun(path, "WiimoteNew.ini", "Wiimote", sindenSoft);
                     return true;
                 }
 
@@ -555,7 +558,7 @@ namespace EmulatorLauncher
             { "ir_right", "IR/Right" }
         };
 
-        private static void GenerateControllerConfig_wiilightgun(string path, string filename, string anyDefKey)
+        private static void GenerateControllerConfig_wiilightgun(string path, string filename, string anyDefKey, bool sindenSoft)
         {
             string iniFile = Path.Combine(path, "User", "Config", filename);
 
@@ -563,6 +566,14 @@ namespace EmulatorLauncher
 
             string rom = Program.SystemConfig["rom"];
             var mappingToUse = defaultGunMapping;
+            
+            var guns = RawLightgun.GetRawLightguns();
+
+            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+            {
+                Guns.StartSindenSoftware();
+                sindenSoft = true;
+            }
 
             // Search gun game in gamesDB.xml file
             var game = Program.GunGames.FindGunGame("wii", rom);

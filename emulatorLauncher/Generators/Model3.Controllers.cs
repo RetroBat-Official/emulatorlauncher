@@ -10,6 +10,7 @@ namespace EmulatorLauncher
 {
     partial class Model3Generator : Generator
     {
+        private bool _sindenSoft = false;
 
         /// <summary>
         /// Cf. https://github.com/trzy/Supermodel
@@ -153,7 +154,10 @@ namespace EmulatorLauncher
                     mouseIndex2 = (guns[1].Index + 1).ToString();
 
                 if (SystemConfig.isOptSet("use_guns") && guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+                {
                     Guns.StartSindenSoftware();
+                    _sindenSoft = true;
+                }
             }
 
             if (SystemConfig.isOptSet("supermodel_gun1") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun1"]))
@@ -1435,7 +1439,10 @@ namespace EmulatorLauncher
                     mouseIndex2 = (guns[1].Index + 1).ToString();
 
                 if (SystemConfig.isOptSet("use_guns") && guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+                {
                     Guns.StartSindenSoftware();
+                    _sindenSoft = true;
+                }
             }
 
             if (SystemConfig.isOptSet("supermodel_gun1") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun1"]))

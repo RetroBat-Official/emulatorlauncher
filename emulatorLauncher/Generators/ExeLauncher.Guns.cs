@@ -8,6 +8,7 @@ namespace EmulatorLauncher
     partial class ExeLauncherGenerator : Generator
     {
         private bool _demulshooter;
+        private bool _sindenSoft = false;
 
         private void ConfigureExeLauncherGuns(string system, string rom)
         {
@@ -18,6 +19,12 @@ namespace EmulatorLauncher
             var guns = RawLightgun.GetRawLightguns();
             if (guns.Length == 0)
                 return;
+
+            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+            {
+                Guns.StartSindenSoftware();
+                _sindenSoft = true;
+            }
 
             string gameName = Path.GetFileNameWithoutExtension(rom).Replace(" ", "").Replace("_", "").ToLowerInvariant();
             SimpleLogger.Instance.Info("[GUNS] Searching game compatibility with name " + gameName);
@@ -49,6 +56,9 @@ namespace EmulatorLauncher
         {
             if (_demulshooter)
                 Demulshooter.KillDemulShooter();
+
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
 
             base.Cleanup();
         }

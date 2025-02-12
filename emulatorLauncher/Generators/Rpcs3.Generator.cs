@@ -168,6 +168,9 @@ namespace EmulatorLauncher
             Process process = Process.Start(path);
             process.WaitForExit();
 
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
+
             // In some cases, the process seems to be launched again by the main one
             process = Process.GetProcessesByName("rpcs3").FirstOrDefault();
             process?.WaitForExit();

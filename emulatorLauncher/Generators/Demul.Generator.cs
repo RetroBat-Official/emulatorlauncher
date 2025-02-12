@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Lightguns;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -16,6 +17,7 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private bool _demulshooter = false;
+        private bool _sindenSoft = false;
 
         public DemulGenerator()
         {
@@ -321,6 +323,9 @@ namespace EmulatorLauncher
                 if (_demulshooter)
                     Demulshooter.KillDemulShooter();
 
+                if (_sindenSoft)
+                    Guns.KillSindenSoftware();
+
                 try { return process.ExitCode; }
                 catch { }
             }
@@ -329,6 +334,9 @@ namespace EmulatorLauncher
             
             if (_demulshooter)
                 Demulshooter.KillDemulShooter();
+
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
 
             return -1;
         }
@@ -342,6 +350,12 @@ namespace EmulatorLauncher
 
             if (guns.Length == 0)
                 return;
+
+            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+            {
+                Guns.StartSindenSoftware();
+                _sindenSoft = true;
+            }
 
             // Get first gun
             var gun1 = guns.Length > 0 ? guns[0] : null;

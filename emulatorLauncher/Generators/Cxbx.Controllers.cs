@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.Lightguns;
 
 namespace EmulatorLauncher
 {
     partial class CxbxGenerator : Generator
     {
+        private bool _sindenSoft = false;
         private void ConfigureControllers(IniFile ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -260,6 +262,13 @@ namespace EmulatorLauncher
         // Configure ems topgun, only for player 1 and hardmapping to keyboard/mouse
         private void ConfigureGun(IniFile ini, int playerIndex)
         {
+            var guns = RawLightgun.GetRawLightguns();
+            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+            {
+                Guns.StartSindenSoftware();
+                _sindenSoft = true;
+            }
+
             string profileSection = "input-profile-" + (playerIndex - 1);
             string inputSection = "input-port-" + (playerIndex - 1);
             

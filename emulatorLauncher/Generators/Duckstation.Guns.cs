@@ -4,11 +4,14 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
 using System.Configuration;
+using EmulatorLauncher.Common.Lightguns;
 
 namespace EmulatorLauncher
 {
     partial class DuckstationGenerator : Generator
     {
+        private bool _sindenSoft = false;
+
         private void CreateGunConfiguration(IniFile ini)
         {
             bool gun = (SystemConfig["use_guns"] == "1" || SystemConfig["duck_controller1"] == "GunCon");
@@ -26,6 +29,14 @@ namespace EmulatorLauncher
             InputConfig joy = ctrl.Config;
             if (joy == null)
                 return;
+
+            // Start Sinden Soft if required
+            var guns = RawLightgun.GetRawLightguns();
+            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+            {
+                Guns.StartSindenSoftware();
+                _sindenSoft = true;
+            }
 
             if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
                 _forceSDL = true;

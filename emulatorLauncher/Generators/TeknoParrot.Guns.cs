@@ -14,6 +14,8 @@ namespace EmulatorLauncher
     partial class TeknoParrotGenerator : Generator
     {
         private static bool _demulshooter = false;
+        private static bool _sindenSoft = false;
+
         private static bool ConfigureTPGuns(GameProfile userProfile, string rom)
         {
             if (!Program.SystemConfig.getOptBoolean("use_guns"))
@@ -39,7 +41,10 @@ namespace EmulatorLauncher
             int gunCount = RawLightgun.GetUsableLightGunCount();
             var guns = RawLightgun.GetRawLightguns();
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+            {
                 Guns.StartSindenSoftware();
+                _sindenSoft = true;
+            }
             
             RawLightgun gun1 = null;
             RawLightgun gun2 = null;

@@ -10,6 +10,8 @@ namespace EmulatorLauncher
 {
     partial class Mame64Generator
     {
+        private bool _sindenSoft = false;
+
         private void UpdateSdlControllersWithHints()
         {
             var hints = new List<string>
@@ -30,6 +32,11 @@ namespace EmulatorLauncher
 
             int gunCount = RawLightgun.GetUsableLightGunCount();
             var guns = RawLightgun.GetRawLightguns();
+            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+            {
+                Guns.StartSindenSoftware();
+                _sindenSoft = true;
+            }
 
             if (Controllers.Count == 0 && gunCount == 0)
                 return false;

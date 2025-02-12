@@ -1633,6 +1633,9 @@ namespace EmulatorLauncher.Libretro
                 _stateFileManager = null;
             }
 
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
+
             base.Cleanup();
         }
 
@@ -1769,7 +1772,7 @@ namespace EmulatorLauncher.Libretro
         static List<string> capsimgCore = new List<string>() { "hatari", "hatarib", "puae" };
         static List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
         static List<string> coreNoGL = new List<string>() { "citra", "kronos", "mednafen_psx", "mednafen_psx_hw", "pcsx2", "swanstation" };
-        static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "81", "257" }, { "fuse", "513" } };
+        static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>() 
         { 

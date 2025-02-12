@@ -1,4 +1,6 @@
 ﻿using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Lightguns;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -15,6 +17,13 @@ namespace EmulatorLauncher
         {
             if (!SystemConfig.getOptBoolean("use_guns"))
                 return;
+
+            var guns = RawLightgun.GetRawLightguns();
+            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+            {
+                Guns.StartSindenSoftware();
+                _sindenSoft = true;
+            }
 
             var trollers = json.GetOrCreateContainer("AllTrollers");
             var analogtrollers = json.GetOrCreateContainer("AllTrollersAnalog");
