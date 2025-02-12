@@ -952,6 +952,9 @@ namespace EmulatorLauncher
             KillProcessTree("OpenParrotKonamiLoader");
             KillIDZ();
 
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
+
             if (_demulshooter)
                 Demulshooter.KillDemulShooter();
 

@@ -27,6 +27,9 @@ namespace EmulatorLauncher
                 _saveStatesWatcher = null;
             }
 
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
+
             base.Cleanup();
         }
 

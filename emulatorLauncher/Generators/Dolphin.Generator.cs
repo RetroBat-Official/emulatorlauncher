@@ -26,6 +26,9 @@ namespace EmulatorLauncher
                 _saveStatesWatcher = null;
             }
 
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
+
             base.Cleanup();
         }
 
@@ -34,6 +37,7 @@ namespace EmulatorLauncher
         private bool _triforce = false;
         private Rectangle _windowRect = Rectangle.Empty;
         private bool _runWiiMenu = false;
+        private bool _sindenSoft = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -85,7 +89,7 @@ namespace EmulatorLauncher
             SetupStateSlotConfig(path);
             SetupCheevos(path);
 
-            DolphinControllers.WriteControllersConfig(path, system, _triforce);
+            DolphinControllers.WriteControllersConfig(path, system, _triforce, out _sindenSoft);
 
             if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
                 rom = rom.Replace("\\", "/");

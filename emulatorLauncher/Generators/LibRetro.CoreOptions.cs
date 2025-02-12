@@ -502,9 +502,11 @@ namespace EmulatorLauncher.Libretro
             if (core != "81")
                 return;
 
+            BindBoolFeatureOn(coreSettings, "81_fast_load", "81_fast_load", "enabled", "disabled");
             BindBoolFeatureAuto(coreSettings, "81_highres", "81_highres", "WRX", "none", "auto");
-            BindBoolFeatureAuto(coreSettings, "81_chroma_81", "81_chroma_81", "On", "Off", "auto");
+            BindBoolFeatureAuto(coreSettings, "81_chroma_81", "81_chroma_81", "enabled", "disabled", "auto");
             BindFeature(coreSettings, "81_video_presets", "81_video_presets", "clean");
+            BindFeature(coreSettings, "81_sound", "81_sound", "auto");
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "zx81_controller1", "257");

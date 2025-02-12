@@ -78,6 +78,7 @@ namespace EmulatorLauncher
         private string _daphneHomedir;
         private string _symLink;
         private string _daphnePath;
+        private bool _sindenSoft = false;
 
         static string FindFile(string dir, string pattern, Predicate<string> predicate)
         {
@@ -258,6 +259,7 @@ namespace EmulatorLauncher
                 {
                     commandArray.AddRange(new string[] { "-sinden", "2", "w" });
                     Guns.StartSindenSoftware();
+                    _sindenSoft = true;
                 }
 
                 string directoryName = Path.GetFileName(rom);
@@ -457,6 +459,9 @@ namespace EmulatorLauncher
 
             try
             {
+                if (_sindenSoft)
+                    Guns.KillSindenSoftware();
+
                 if (!string.IsNullOrEmpty(_symLink) && Directory.Exists(_symLink))
                     Directory.Delete(_symLink);
 

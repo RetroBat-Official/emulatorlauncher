@@ -10,6 +10,8 @@ namespace EmulatorLauncher.Libretro
 {
     partial class LibRetroGenerator : Generator
     {
+        private bool _sindenSoft = false;
+
         public bool HasMultipleGuns()
         {
             if (!SystemConfig.getOptBoolean("use_guns"))
@@ -51,7 +53,10 @@ namespace EmulatorLauncher.Libretro
             SimpleLogger.Instance.Info("[LightGun] Found " + gunCount + " usable guns.");
 
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+            {
                 Guns.StartSindenSoftware();
+                _sindenSoft = true;
+            }
 
             // Set multigun to true in some cases
             // Case 1 = multiple guns are connected, playerindex is 1 and user did not force 'one gun only'

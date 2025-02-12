@@ -356,6 +356,9 @@ namespace EmulatorLauncher
 
             process?.WaitForExit();
 
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
+
             bezel?.Dispose();
 
             if (process != null)

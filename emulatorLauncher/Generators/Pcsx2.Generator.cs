@@ -23,6 +23,7 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private bool _isPcsxqt;
         private bool _fullscreen;
+        private bool _sindenSoft = false;
 
         public override void Cleanup()
         {
@@ -31,6 +32,9 @@ namespace EmulatorLauncher
                 _saveStatesWatcher.Dispose();
                 _saveStatesWatcher = null;
             }
+
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
 
             base.Cleanup();
         }

@@ -34,7 +34,10 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[GUNS] Found " + guns.Length + " usable guns.");
 
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+            {
                 Guns.StartSindenSoftware();
+                _sindenSoft = true;
+            }
 
             // If DemulShooter is enabled, configure it
             if (SystemConfig.getOptBoolean("use_demulshooter"))
@@ -61,379 +64,383 @@ namespace EmulatorLauncher
             YmlContainer game = null;
             var buttonMap = new Dictionary<string, string>();
 
-            if (_isArcade)
+            string flycastMapping = null;
+
+            foreach (var path in mappingPaths)
             {
-                string flycastMapping = null;
+                string result = path
+                    .Replace("{systempath}", "system")
+                    .Replace("{userpath}", "inputmapping");
 
-                foreach (var path in mappingPaths)
-                {
-                    string result = path
-                        .Replace("{systempath}", "system")
-                        .Replace("{userpath}", "inputmapping");
-
-                    flycastMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
-
-                    if (File.Exists(flycastMapping))
-                        break;
-                }
+                flycastMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
 
                 if (File.Exists(flycastMapping))
+                    break;
+            }
+
+            if (File.Exists(flycastMapping))
+            {
+                YmlFile ymlFile = YmlFile.Load(flycastMapping);
+
+                game = ymlFile.Elements.Where(c => c.Name == _romName).FirstOrDefault() as YmlContainer;
+
+                if (game == null)
+                    game = ymlFile.Elements.Where(g => _romName.StartsWith(g.Name)).FirstOrDefault() as YmlContainer;
+
+                if (game == null)
+                    game = ymlFile.Elements.Where(g => g.Name == "default_" + system).FirstOrDefault() as YmlContainer;
+
+                if (game == null)
+                    game = ymlFile.Elements.Where(g => g.Name == "default").FirstOrDefault() as YmlContainer;
+
+                if (game != null)
                 {
-                    YmlFile ymlFile = YmlFile.Load(flycastMapping);
+                    var gameName = game.Name;
 
-                    game = ymlFile.Elements.Where(c => c.Name == _romName).FirstOrDefault() as YmlContainer;
 
-                    if (game == null)
-                        game = ymlFile.Elements.Where(g => _romName.StartsWith(g.Name)).FirstOrDefault() as YmlContainer;
-
-                    if (game == null)
-                        game = ymlFile.Elements.Where(g => g.Name == "default_" + system).FirstOrDefault() as YmlContainer;
-
-                    if (game == null)
-                        game = ymlFile.Elements.Where(g => g.Name == "default").FirstOrDefault() as YmlContainer;
-
-                    if (game != null)
+                    foreach (var buttonEntry in game.Elements)
                     {
-                        var gameName = game.Name;
-                        
-
-                        foreach (var buttonEntry in game.Elements)
-                        {
-                            if (buttonEntry is YmlElement button)
-                                buttonMap.Add(button.Name, button.Value);
-                        }
+                        if (buttonEntry is YmlElement button)
+                            buttonMap.Add(button.Name, button.Value);
                     }
                 }
-                bool useFileMapping = buttonMap != null && buttonMap.Count > 0;
+            }
+            bool useFileMapping = buttonMap != null && buttonMap.Count > 0;
+                
+            // Get keyboards
+            RawInputDevice keyboard = null;
+            var hidDevices = RawInputDevice.GetRawInputDevices();
+            var keyboards = hidDevices.Where(t => t.Type == RawInputDeviceType.Keyboard).OrderBy(u => u.DevicePath).ToList();
+            if (keyboards.Count > 0)
+            {
+                int kbCount = keyboards.Count;
+                SimpleLogger.Instance.Info("[GUNS] Found " + kbCount + " keyboards.");
+                keyboard = keyboards[0];
+            }
 
-                // Get keyboards
-                RawInputDevice keyboard = null;
-                var hidDevices = RawInputDevice.GetRawInputDevices();
-                var keyboards = hidDevices.Where(t => t.Type == RawInputDeviceType.Keyboard).OrderBy(u => u.DevicePath).ToList();
-                if (keyboards.Count > 0)
+            if (guns.Length > 1 && !useOneGun)
+                multigun = true;
+
+            ini.WriteValue("input", "maple_sdl_mouse", "0");
+
+            string mappingFile = Path.Combine(mappingPath, "SDL_Default Mouse.cfg");
+
+            if (File.Exists(mappingFile))
+                File.Delete(mappingFile);
+
+            // SDL region (only 1 gun)
+            using (var ctrlini = new IniFile(mappingFile, IniOptions.UseSpaces))
+            {
+                if (useXandB.Contains(_romName))
                 {
-                    int kbCount = keyboards.Count;
-                    SimpleLogger.Instance.Info("[GUNS] Found " + kbCount + " keyboards.");
-                    keyboard = keyboards[0];
+                    ctrlini.WriteValue("digital", "bind0", "1:btn_x");
+                    ctrlini.WriteValue("digital", "bind1", "2:btn_start");
+                    ctrlini.WriteValue("digital", "bind2", "3:btn_b");
                 }
-
-                if (guns.Length > 1 && !useOneGun)
-                    multigun = true;
-
-                ini.WriteValue("input", "maple_sdl_mouse", "0");
-
-                string mappingFile = Path.Combine(mappingPath, "SDL_Default Mouse.cfg");
-
-                if (File.Exists(mappingFile))
-                    File.Delete(mappingFile);
-
-                // SDL region (only 1 gun)
-                using (var ctrlini = new IniFile(mappingFile, IniOptions.UseSpaces))
+                else if (useXandA.Contains(_romName))
                 {
-                    if (useXandB.Contains(_romName))
+                    ctrlini.WriteValue("digital", "bind0", "1:btn_a");
+                    ctrlini.WriteValue("digital", "bind1", "2:btn_x");
+                    ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                }
+                else
+                {
+                    if (reloadWithButtonB.Contains(_romName))
                     {
-                        ctrlini.WriteValue("digital", "bind0", "1:btn_x");
-                        ctrlini.WriteValue("digital", "bind1", "2:btn_start");
-                        ctrlini.WriteValue("digital", "bind2", "3:btn_b");
-                    }
-                    else if (useXandA.Contains(_romName))
-                    {
-                        ctrlini.WriteValue("digital", "bind0", "1:btn_a");
-                        ctrlini.WriteValue("digital", "bind1", "2:btn_x");
-                        ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
+                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:btn_b" : "2:btn_a");
                     }
                     else
                     {
-                        if (reloadWithButtonB.Contains(_romName))
-                        {
-                            ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
-                            ctrlini.WriteValue("digital", "bind1", guninvert ? "2:btn_b" : "2:btn_a");
-                        }
-                        else
-                        {
-                            ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
-                            ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
-                        }
-
-                        ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
+                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
                     }
 
-                    ctrlini.WriteValue("emulator", "dead_zone", "10");
-                    ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
-                    ctrlini.WriteValue("emulator", "rumble_power", "100");
-                    ctrlini.WriteValue("emulator", "version", "3");
-                    ctrlini.Save();
+                    ctrlini.WriteValue("digital", "bind2", "3:btn_start");
                 }
 
-                // Multigun : raw input
-                if (multigun)
-                {
+                ctrlini.WriteValue("emulator", "dead_zone", "10");
+                ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
+                ctrlini.WriteValue("emulator", "rumble_power", "100");
+                ctrlini.WriteValue("emulator", "version", "3");
+                ctrlini.Save();
+            }
+
+            // Multigun : raw input
+            if (multigun)
+            {
                     
-                    RawLightgun lightgun1 = gunindexrevert ? guns[1] : guns[0];
-                    RawLightgun lightgun2 = gunindexrevert ? guns[0] : guns[1];
+                RawLightgun lightgun1 = gunindexrevert ? guns[1] : guns[0];
+                RawLightgun lightgun2 = gunindexrevert ? guns[0] : guns[1];
 
-                    RawInputDevice kb1 = null;
-                    RawInputDevice kb2 = null;
+                RawInputDevice kb1 = null;
+                RawInputDevice kb2 = null;
 
-                    if (lightgun1.Type == RawLighGunType.MayFlashWiimote)
-                        kb1 = FindAssociatedKeyboardWiimote(lightgun1.DevicePath, keyboards, keyboard);
-                    else
-                        kb1 = FindAssociatedKeyboard(keyboards, lightgun1);
+                if (lightgun1.Type == RawLighGunType.MayFlashWiimote)
+                    kb1 = FindAssociatedKeyboardWiimote(lightgun1.DevicePath, keyboards, keyboard);
+                else
+                    kb1 = FindAssociatedKeyboard(keyboards, lightgun1);
 
-                    if (lightgun2.Type == RawLighGunType.MayFlashWiimote)
-                        kb2 = FindAssociatedKeyboardWiimote(lightgun2.DevicePath, keyboards, keyboard);
-                    else
-                        kb2 = FindAssociatedKeyboard(keyboards, lightgun2);
+                if (lightgun2.Type == RawLighGunType.MayFlashWiimote)
+                    kb2 = FindAssociatedKeyboardWiimote(lightgun2.DevicePath, keyboards, keyboard);
+                else
+                    kb2 = FindAssociatedKeyboard(keyboards, lightgun2);
 
-                    List<RawInputDevice> kbdevices = new List<RawInputDevice>
+                List<RawInputDevice> kbdevices = new List<RawInputDevice>
+                {
+                    kb1,
+                    kb2
+                };
+                List<RawLightgun> mousedevices = new List<RawLightgun>
+                {
+                    lightgun1,
+                    lightgun2
+                };
+
+                string cleanPath1 = "";
+                string cleanPath2 = "";
+                string cleanPath3 = "";
+                string cleanPath4 = "";
+
+                Dictionary<RawLightgun, string> MouseDic = new Dictionary<RawLightgun, string>();
+                Dictionary<RawInputDevice, string> kbDic = new Dictionary<RawInputDevice, string>();
+
+                string devicepathHID1 = lightgun1.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
+                if (devicepathHID1.Length > 39)
+                    cleanPath1 = devicepathHID1.Substring(0, devicepathHID1.Length - 39);
+                string devicepathHID2 = lightgun2.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
+                if (devicepathHID2.Length > 39)
+                    cleanPath2 = devicepathHID2.Substring(0, devicepathHID2.Length - 39);
+                string devicepathHID3 = kb1.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
+                if (devicepathHID3.Length > 39)
+                    cleanPath3 = devicepathHID3.Substring(0, devicepathHID3.Length - 39);
+                string devicepathHID4 = kb2.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
+                if (devicepathHID4.Length > 39)
+                    cleanPath4 = devicepathHID4.Substring(0, devicepathHID4.Length - 39);
+
+                string query1 = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath1 + "'").Replace("\\", "\\\\");
+                ManagementObjectSearcher moSearch1 = new ManagementObjectSearcher(query1);
+                ManagementObjectCollection moCollection1 = moSearch1.Get();
+                foreach (ManagementObject mo in moCollection1.Cast<ManagementObject>())
+                {
+                    string lightgun1desc = mo["Description"].ToString();
+                    MouseDic.Add(lightgun1, lightgun1desc);
+                }
+
+                string query2 = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath2 + "'").Replace("\\", "\\\\");
+                ManagementObjectSearcher moSearch2 = new ManagementObjectSearcher(query2);
+                ManagementObjectCollection moCollection2 = moSearch2.Get();
+                foreach (ManagementObject mo in moCollection2.Cast<ManagementObject>())
+                {
+                    string lightgun2desc = mo["Description"].ToString();
+                    MouseDic.Add(lightgun2, lightgun2desc);
+                }
+
+                string query3 = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath3 + "'").Replace("\\", "\\\\");
+                ManagementObjectSearcher moSearch3 = new ManagementObjectSearcher(query3);
+                ManagementObjectCollection moCollection3 = moSearch3.Get();
+                foreach (ManagementObject mo in moCollection3.Cast<ManagementObject>())
+                {
+                    string kb1desc = mo["Description"].ToString();
+                    kbDic.Add(kb1, kb1desc);
+                }
+
+                string query4 = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath4 + "'").Replace("\\", "\\\\");
+                ManagementObjectSearcher moSearch4 = new ManagementObjectSearcher(query4);
+                ManagementObjectCollection moCollection4 = moSearch4.Get();
+                foreach (ManagementObject mo in moCollection4.Cast<ManagementObject>())
+                {
+                    string kb2desc = mo["Description"].ToString();
+                    kbDic.Add(kb2, kb2desc);
+                }
+
+                ini.WriteValue("input", "RawInput", "yes");
+                ini.WriteValue("input", "maple_raw_keyboard_" + kb1.DevicePath.Substring(8), "0");
+                ini.WriteValue("input", "maple_raw_keyboard_" + kb2.DevicePath.Substring(8), "1");
+                ini.WriteValue("input", "maple_raw_mouse_" + lightgun1.DevicePath.Substring(8), "0");
+                ini.WriteValue("input", "maple_raw_mouse_" + lightgun2.DevicePath.Substring(8), "1");
+
+                if (!SystemConfig.isOptSet("flycast_controller1"))
+                    ini.WriteValue("input", "device1", "7");
+                if (!SystemConfig.isOptSet("flycast_controller2"))
+                    ini.WriteValue("input", "device2", "7");
+
+                ini.Remove("input", "maple_sdl_keyboard");
+                ini.Remove("input", "maple_sdl_mouse");
+
+                foreach (var mouse in MouseDic)
+                {
+                    string devicePath = mouse.Key.DevicePath;
+                    string vidpid = GetVIDPID(devicePath);
+
+                    string mouseMapping = Path.Combine(mappingPath, "RAW_" + mouse.Value + " [" + vidpid + "]" + ".cfg");
+                    if (_isArcade)
+                        mouseMapping = Path.Combine(mappingPath, "RAW_" + mouse.Value + " [" + vidpid + "]_arcade" + ".cfg");
+
+                    using (var ctrlini = new IniFile(mouseMapping, IniOptions.UseSpaces))
                     {
-                        kb1,
-                        kb2
-                    };
-                    List<RawLightgun> mousedevices = new List<RawLightgun>
-                    {
-                        lightgun1,
-                        lightgun2
-                    };
-
-                    string cleanPath1 = "";
-                    string cleanPath2 = "";
-                    string cleanPath3 = "";
-                    string cleanPath4 = "";
-
-                    Dictionary<RawLightgun, string> MouseDic = new Dictionary<RawLightgun, string>();
-                    Dictionary<RawInputDevice, string> kbDic = new Dictionary<RawInputDevice, string>();
-
-                    string devicepathHID1 = lightgun1.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
-                    if (devicepathHID1.Length > 39)
-                        cleanPath1 = devicepathHID1.Substring(0, devicepathHID1.Length - 39);
-                    string devicepathHID2 = lightgun2.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
-                    if (devicepathHID2.Length > 39)
-                        cleanPath2 = devicepathHID2.Substring(0, devicepathHID2.Length - 39);
-                    string devicepathHID3 = kb1.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
-                    if (devicepathHID3.Length > 39)
-                        cleanPath3 = devicepathHID3.Substring(0, devicepathHID3.Length - 39);
-                    string devicepathHID4 = kb2.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
-                    if (devicepathHID4.Length > 39)
-                        cleanPath4 = devicepathHID4.Substring(0, devicepathHID4.Length - 39);
-
-                    string query1 = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath1 + "'").Replace("\\", "\\\\");
-                    ManagementObjectSearcher moSearch1 = new ManagementObjectSearcher(query1);
-                    ManagementObjectCollection moCollection1 = moSearch1.Get();
-                    foreach (ManagementObject mo in moCollection1.Cast<ManagementObject>())
-                    {
-                        string lightgun1desc = mo["Description"].ToString();
-                        MouseDic.Add(lightgun1, lightgun1desc);
-                    }
-
-                    string query2 = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath2 + "'").Replace("\\", "\\\\");
-                    ManagementObjectSearcher moSearch2 = new ManagementObjectSearcher(query2);
-                    ManagementObjectCollection moCollection2 = moSearch2.Get();
-                    foreach (ManagementObject mo in moCollection2.Cast<ManagementObject>())
-                    {
-                        string lightgun2desc = mo["Description"].ToString();
-                        MouseDic.Add(lightgun2, lightgun2desc);
-                    }
-
-                    string query3 = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath3 + "'").Replace("\\", "\\\\");
-                    ManagementObjectSearcher moSearch3 = new ManagementObjectSearcher(query3);
-                    ManagementObjectCollection moCollection3 = moSearch3.Get();
-                    foreach (ManagementObject mo in moCollection3.Cast<ManagementObject>())
-                    {
-                        string kb1desc = mo["Description"].ToString();
-                        kbDic.Add(kb1, kb1desc);
-                    }
-
-                    string query4 = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath4 + "'").Replace("\\", "\\\\");
-                    ManagementObjectSearcher moSearch4 = new ManagementObjectSearcher(query4);
-                    ManagementObjectCollection moCollection4 = moSearch4.Get();
-                    foreach (ManagementObject mo in moCollection4.Cast<ManagementObject>())
-                    {
-                        string kb2desc = mo["Description"].ToString();
-                        kbDic.Add(kb2, kb2desc);
-                    }
-
-                    ini.WriteValue("input", "RawInput", "yes");
-                    ini.WriteValue("input", "maple_raw_keyboard_" + kb1.DevicePath.Substring(8), "0");
-                    ini.WriteValue("input", "maple_raw_keyboard_" + kb2.DevicePath.Substring(8), "1");
-                    ini.WriteValue("input", "maple_raw_mouse_" + lightgun1.DevicePath.Substring(8), "0");
-                    ini.WriteValue("input", "maple_raw_mouse_" + lightgun2.DevicePath.Substring(8), "1");
-                    ini.Remove("input", "maple_sdl_keyboard");
-                    ini.Remove("input", "maple_sdl_mouse");
-
-                    foreach (var mouse in MouseDic)
-                    {
-                        string devicePath = mouse.Key.DevicePath;
-                        string vidpid = GetVIDPID(devicePath);
-
-                        string mouseMapping = Path.Combine(mappingPath, "RAW_" + mouse.Value + " [" + vidpid + "]" + ".cfg");
                         if (_isArcade)
-                            mouseMapping = Path.Combine(mappingPath, "RAW_" + mouse.Value + " [" + vidpid + "]_arcade" + ".cfg");
-
-                        using (var ctrlini = new IniFile(mouseMapping, IniOptions.UseSpaces))
                         {
-                            if (_isArcade)
+                            if (useFileMapping)
                             {
-                                if (useFileMapping)
-                                {
-                                    string MouseRight1 = guninvert ? "1:btn_a" : "1:btn_b";
-                                    string MouseLeft1 = guninvert ? "2:btn_b" : "2:btn_a";
+                                string MouseRight1 = guninvert ? "1:btn_a" : "1:btn_b";
+                                string MouseLeft1 = guninvert ? "2:btn_b" : "2:btn_a";
                                     
-                                    if (buttonMap.TryGetValue("south", out string MouseLeft))
-                                        ctrlini.WriteValue("digital", "bind1", "2:" + MouseLeft);
-                                    else
-                                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:btn_b" : "2:btn_a");
-
-                                    if (buttonMap.TryGetValue("west", out string MouseRight))
-                                        ctrlini.WriteValue("digital", "bind0", "1:" + MouseRight);
-                                    else
-                                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
-
-                                    ctrlini.WriteValue("digital", "bind2", "3:btn_start");
-                                }
+                                if (buttonMap.TryGetValue("south", out string MouseLeft))
+                                    ctrlini.WriteValue("digital", "bind1", "2:" + MouseLeft);
                                 else
-                                {
-                                    ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
                                     ctrlini.WriteValue("digital", "bind1", guninvert ? "2:btn_b" : "2:btn_a");
-                                    ctrlini.WriteValue("digital", "bind2", "3:btn_start");
-                                }
+
+                                if (buttonMap.TryGetValue("west", out string MouseRight))
+                                    ctrlini.WriteValue("digital", "bind0", "1:" + MouseRight);
+                                else
+                                    ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
+
+                                ctrlini.WriteValue("digital", "bind2", "3:btn_start");
                             }
                             else
                             {
-                                if (useXandB.Contains(_romName))
-                                {
-                                    ctrlini.WriteValue("digital", "bind0", "1:btn_x");
-                                    ctrlini.WriteValue("digital", "bind1", "2:btn_start");
-                                    ctrlini.WriteValue("digital", "bind2", "3:btn_b");
-                                }
-                                else if (useXandA.Contains(_romName))
-                                {
-                                    ctrlini.WriteValue("digital", "bind0", "1:btn_a");
-                                    ctrlini.WriteValue("digital", "bind1", "2:btn_x");
-                                    ctrlini.WriteValue("digital", "bind2", "3:btn_start");
-                                }
-                                else
-                                {
-                                    if (reloadWithButtonB.Contains(_romName))
-                                    {
-                                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
-                                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:btn_b" : "2:btn_a");
-                                    }
-                                    else
-                                    {
-                                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
-                                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
-                                    }
-                                    ctrlini.WriteValue("digital", "bind2", "3:btn_start");
-                                }
+                                ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
+                                ctrlini.WriteValue("digital", "bind1", guninvert ? "2:btn_b" : "2:btn_a");
+                                ctrlini.WriteValue("digital", "bind2", "3:btn_start");
                             }
-                            ctrlini.WriteValue("emulator", "dead_zone", "10");
-                            ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
-                            ctrlini.WriteValue("emulator", "rumble_power", "100");
-                            ctrlini.WriteValue("emulator", "saturation", "100");
-                            ctrlini.WriteValue("emulator", "version", "3");
                         }
-                    }
-
-                    foreach (var kb in kbDic)
-                    {
-                        string devicePath = kb.Key.DevicePath;
-                        string vidpid = GetVIDPID(devicePath);
-
-                        string kbMapping = Path.Combine(mappingPath, "RAW_" + kb.Value + " [" + vidpid + "]" + ".cfg");
-                        if (_isArcade)
-                            kbMapping = Path.Combine(mappingPath, "RAW_" + kb.Value + " [" + vidpid + "]_arcade" + ".cfg");
-
-                        using (var ctrlini = new IniFile(kbMapping, IniOptions.UseSpaces))
+                        else
                         {
-                            string vidPid = GetVIDPID(devicePath);
-                            bool isWiimote = vidpid.Contains("VID_0079&PID_18");
-                            if (_isArcade)
+                            if (useXandB.Contains(_romName))
                             {
-                                if (isWiimote)
+                                ctrlini.WriteValue("digital", "bind0", "1:btn_x");
+                                ctrlini.WriteValue("digital", "bind1", "2:btn_start");
+                                ctrlini.WriteValue("digital", "bind2", "3:btn_b");
+                            }
+                            else if (useXandA.Contains(_romName))
+                            {
+                                ctrlini.WriteValue("digital", "bind0", "1:btn_a");
+                                ctrlini.WriteValue("digital", "bind1", "2:btn_x");
+                                ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                            }
+                            else
+                            {
+                                if (reloadWithButtonB.Contains(_romName))
                                 {
-                                    ctrlini.ClearSection("digital");
-                                    ctrlini.WriteValue("digital", "bind0", "40:btn_start");
-                                    ctrlini.WriteValue("digital", "bind1", "79:btn_dpad1_right");
-                                    ctrlini.WriteValue("digital", "bind2", "80:btn_dpad1_left");
-                                    ctrlini.WriteValue("digital", "bind3", "81:btn_dpad1_down");
-                                    ctrlini.WriteValue("digital", "bind4", "82:btn_d");
+                                    ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
+                                    ctrlini.WriteValue("digital", "bind1", guninvert ? "2:btn_b" : "2:btn_a");
                                 }
                                 else
                                 {
-                                    ctrlini.ClearSection("digital");
-                                    ctrlini.WriteValue("digital", "bind0", "6:insert_card");
-                                    ctrlini.WriteValue("digital", "bind1", "22:btn_dpad2_up");
-                                    ctrlini.WriteValue("digital", "bind10", "59:btn_jump_state");
-                                    ctrlini.WriteValue("digital", "bind11", "69:btn_screenshot");
-                                    ctrlini.WriteValue("digital", "bind12", "79:btn_dpad1_right");
-                                    ctrlini.WriteValue("digital", "bind13", "80:btn_dpad1_left");
-                                    ctrlini.WriteValue("digital", "bind14", "81:btn_dpad1_down");
-                                    ctrlini.WriteValue("digital", "bind15", "82:btn_dpad1_up");
-                                    ctrlini.WriteValue("digital", "bind2", "23:btn_dpad2_down");
-                                    ctrlini.WriteValue("digital", "bind3", "27:btn_a");
-                                    ctrlini.WriteValue("digital", "bind4", "29:btn_b");
-                                    ctrlini.WriteValue("digital", "bind5", "30:btn_d");
-                                    ctrlini.WriteValue("digital", "bind6", "33:btn_start");
-                                    ctrlini.WriteValue("digital", "bind7", "43:btn_menu");
-                                    ctrlini.WriteValue("digital", "bind8", "44:btn_fforward");
-                                    ctrlini.WriteValue("digital", "bind9", "58:btn_quick_save");
+                                    ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
+                                    ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
                                 }
+                                ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                            }
+                        }
+                        ctrlini.WriteValue("emulator", "dead_zone", "10");
+                        ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
+                        ctrlini.WriteValue("emulator", "rumble_power", "100");
+                        ctrlini.WriteValue("emulator", "saturation", "100");
+                        ctrlini.WriteValue("emulator", "version", "3");
+                    }
+                }
+
+                foreach (var kb in kbDic)
+                {
+                    string devicePath = kb.Key.DevicePath;
+                    string vidpid = GetVIDPID(devicePath);
+
+                    string kbMapping = Path.Combine(mappingPath, "RAW_" + kb.Value + " [" + vidpid + "]" + ".cfg");
+                    if (_isArcade)
+                        kbMapping = Path.Combine(mappingPath, "RAW_" + kb.Value + " [" + vidpid + "]_arcade" + ".cfg");
+
+                    using (var ctrlini = new IniFile(kbMapping, IniOptions.UseSpaces))
+                    {
+                        string vidPid = GetVIDPID(devicePath);
+                        bool isWiimote = vidpid.Contains("VID_0079&PID_18");
+                        if (_isArcade)
+                        {
+                            if (isWiimote)
+                            {
+                                ctrlini.ClearSection("digital");
+                                ctrlini.WriteValue("digital", "bind0", "40:btn_start");
+                                ctrlini.WriteValue("digital", "bind1", "79:btn_dpad1_right");
+                                ctrlini.WriteValue("digital", "bind2", "80:btn_dpad1_left");
+                                ctrlini.WriteValue("digital", "bind3", "81:btn_dpad1_down");
+                                ctrlini.WriteValue("digital", "bind4", "82:btn_d");
                             }
                             else
                             {
                                 ctrlini.ClearSection("digital");
-                                ctrlini.WriteValue("digital", "bind0", "4:btn_trigger_left");
-                                ctrlini.WriteValue("digital", "bind1", "6:reload");
-                                ctrlini.WriteValue("digital", "bind10", "27:btn_a");
-                                ctrlini.WriteValue("digital", "bind11", "29:btn_x");
-                                ctrlini.WriteValue("digital", "bind12", "40:btn_start");
-                                ctrlini.WriteValue("digital", "bind13", "43:btn_menu");
-                                ctrlini.WriteValue("digital", "bind14", "44:btn_fforward");
-                                ctrlini.WriteValue("digital", "bind15", "58:btn_quick_save");
-                                ctrlini.WriteValue("digital", "bind16", "59:btn_jump_state");
-                                ctrlini.WriteValue("digital", "bind17", "69:btn_screenshot");
-                                ctrlini.WriteValue("digital", "bind18", "79:btn_dpad1_right");
-                                ctrlini.WriteValue("digital", "bind19", "80:btn_dpad1_left");
-                                ctrlini.WriteValue("digital", "bind2", "7:btn_trigger_right");
-                                ctrlini.WriteValue("digital", "bind20", "81:btn_dpad1_down");
-                                ctrlini.WriteValue("digital", "bind21", "82:btn_dpad1_up");
-                                ctrlini.WriteValue("digital", "bind3", "8:btn_trigger2_right");
-                                ctrlini.WriteValue("digital", "bind4", "12:btn_analog_up");
-                                ctrlini.WriteValue("digital", "bind5", "13:btn_analog_left");
-                                ctrlini.WriteValue("digital", "bind6", "14:btn_analog_down");
-                                ctrlini.WriteValue("digital", "bind7", "15:btn_analog_right");
-                                ctrlini.WriteValue("digital", "bind8", "20:btn_trigger2_left");
-                                ctrlini.WriteValue("digital", "bind9", "22:btn_y");
+                                ctrlini.WriteValue("digital", "bind0", "6:insert_card");
+                                ctrlini.WriteValue("digital", "bind1", "22:btn_dpad2_up");
+                                ctrlini.WriteValue("digital", "bind10", "59:btn_jump_state");
+                                ctrlini.WriteValue("digital", "bind11", "69:btn_screenshot");
+                                ctrlini.WriteValue("digital", "bind12", "79:btn_dpad1_right");
+                                ctrlini.WriteValue("digital", "bind13", "80:btn_dpad1_left");
+                                ctrlini.WriteValue("digital", "bind14", "81:btn_dpad1_down");
+                                ctrlini.WriteValue("digital", "bind15", "82:btn_dpad1_up");
+                                ctrlini.WriteValue("digital", "bind2", "23:btn_dpad2_down");
+                                ctrlini.WriteValue("digital", "bind3", "27:btn_a");
+                                ctrlini.WriteValue("digital", "bind4", "29:btn_b");
+                                ctrlini.WriteValue("digital", "bind5", "30:btn_d");
+                                ctrlini.WriteValue("digital", "bind6", "33:btn_start");
+                                ctrlini.WriteValue("digital", "bind7", "43:btn_menu");
+                                ctrlini.WriteValue("digital", "bind8", "44:btn_fforward");
+                                ctrlini.WriteValue("digital", "bind9", "58:btn_quick_save");
                             }
-
-                            ctrlini.WriteValue("emulator", "dead_zone", "10");
-                            ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
-                            ctrlini.WriteValue("emulator", "rumble_power", "100");
-                            ctrlini.WriteValue("emulator", "saturation", "100");
-                            ctrlini.WriteValue("emulator", "version", "3");
                         }
+                        else
+                        {
+                            ctrlini.ClearSection("digital");
+                            ctrlini.WriteValue("digital", "bind0", "4:btn_trigger_left");
+                            ctrlini.WriteValue("digital", "bind1", "6:reload");
+                            ctrlini.WriteValue("digital", "bind10", "34:btn_a");
+                            ctrlini.WriteValue("digital", "bind11", "29:btn_x");
+                            ctrlini.WriteValue("digital", "bind12", "40:btn_start");
+                            ctrlini.WriteValue("digital", "bind13", "43:btn_menu");
+                            ctrlini.WriteValue("digital", "bind14", "44:btn_fforward");
+                            ctrlini.WriteValue("digital", "bind15", "58:btn_quick_save");
+                            ctrlini.WriteValue("digital", "bind16", "59:btn_jump_state");
+                            ctrlini.WriteValue("digital", "bind17", "69:btn_screenshot");
+                            ctrlini.WriteValue("digital", "bind18", "79:btn_dpad1_right");
+                            ctrlini.WriteValue("digital", "bind19", "80:btn_dpad1_left");
+                            ctrlini.WriteValue("digital", "bind2", "7:btn_trigger_right");
+                            ctrlini.WriteValue("digital", "bind20", "81:btn_dpad1_down");
+                            ctrlini.WriteValue("digital", "bind21", "82:btn_dpad1_up");
+                            ctrlini.WriteValue("digital", "bind22", "30:btn_b");
+                            ctrlini.WriteValue("digital", "bind3", "8:btn_trigger2_right");
+                            ctrlini.WriteValue("digital", "bind4", "12:btn_analog_up");
+                            ctrlini.WriteValue("digital", "bind5", "13:btn_analog_left");
+                            ctrlini.WriteValue("digital", "bind6", "14:btn_analog_down");
+                            ctrlini.WriteValue("digital", "bind7", "15:btn_analog_right");
+                            ctrlini.WriteValue("digital", "bind8", "20:btn_trigger2_left");
+                            ctrlini.WriteValue("digital", "bind9", "22:btn_y");
+                        }
+
+                        ctrlini.WriteValue("emulator", "dead_zone", "10");
+                        ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
+                        ctrlini.WriteValue("emulator", "rumble_power", "100");
+                        ctrlini.WriteValue("emulator", "saturation", "100");
+                        ctrlini.WriteValue("emulator", "version", "3");
                     }
                 }
+            }
 
-                if (SystemConfig.isOptSet("flycast_crosshair") && SystemConfig.getOptBoolean("flycast_crosshair"))
+            if (SystemConfig.isOptSet("flycast_crosshair") && SystemConfig.getOptBoolean("flycast_crosshair"))
+            {
+                if (multigun)
                 {
-                    if (multigun)
-                    {
-                        ini.WriteValue("config", "rend.CrossHairColor1", "-1073675782");
-                        ini.WriteValue("config", "rend.CrossHairColor2", "-1073547006");
-                    }
-                    else
-                    {
-                        ini.WriteValue("config", "rend.CrossHairColor1", "-1073675782");
-                        ini.WriteValue("config", "rend.CrossHairColor2", "0");
-                    }
+                    ini.WriteValue("config", "rend.CrossHairColor1", "-1073675782");
+                    ini.WriteValue("config", "rend.CrossHairColor2", "-1073547006");
                 }
                 else
                 {
-                    ini.WriteValue("config", "rend.CrossHairColor1", "0");
+                    ini.WriteValue("config", "rend.CrossHairColor1", "-1073675782");
                     ini.WriteValue("config", "rend.CrossHairColor2", "0");
                 }
+            }
+            else
+            {
+                ini.WriteValue("config", "rend.CrossHairColor1", "0");
+                ini.WriteValue("config", "rend.CrossHairColor2", "0");
             }
         }
         private RawInputDevice FindAssociatedKeyboardWiimote(string gunPath, List<RawInputDevice> keyboards, RawInputDevice keyboard)

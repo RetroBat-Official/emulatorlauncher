@@ -226,5 +226,13 @@ namespace EmulatorLauncher
             }
             catch { }
         }
+
+        public override void Cleanup()
+        {
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
+
+            base.Cleanup();
+        }
     }
 }

@@ -5,6 +5,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
 using ValveKeyValue;
+using EmulatorLauncher.Common.Lightguns;
 
 namespace EmulatorLauncher
 {
@@ -43,7 +44,15 @@ namespace EmulatorLauncher
             string techPadNumber = null;
             string tech = "";
             bool guninvert = SystemConfig.isOptSet("gun_invert") && SystemConfig.getOptBoolean("gun_invert");
-            
+
+            var guns = RawLightgun.GetRawLightguns();
+
+            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+            {
+                Guns.StartSindenSoftware();
+                _sindenSoft = true;
+            }
+
             if (!ctrl.IsKeyboard && _forceDInput)
             {
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");

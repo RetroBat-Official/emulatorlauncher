@@ -154,7 +154,7 @@ namespace EmulatorLauncher.Common.Lightguns
                         SimpleLogger.Instance.Error("[SindenLightgunConfiguration] Can't parse command line");
                 }
                 else
-                    SimpleLogger.Instance.Error("[SindenLightgunConfiguration] Lightgun.exe not found");
+                    SimpleLogger.Instance.Error("[SindenLightgunConfiguration] Lightgun.exe not running");
             }
             catch (Exception ex)
             {
