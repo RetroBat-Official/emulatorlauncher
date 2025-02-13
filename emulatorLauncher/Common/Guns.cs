@@ -13,11 +13,8 @@ namespace EmulatorLauncher
         {
             List<string> mouse_left = new List<string>() { "cbButtonTrigger", "cbButtonTriggerB" };
             List<string> mouse_right = new List<string>() 
-            { 
-                "cbButtonPumpAction", "cbButtonFrontLeft", "cbButtonTriggerOffscreen", "cbButtonPumpActionOffscreen", "cbButtonFrontLeftOffscreen",
-                "cbButtonPumpActionB", "cbButtonFrontLeftB", "cbButtonTriggerOffscreenB", "cbButtonPumpActionOffscreenB", "cbButtonFrontLeftOffscreenB"
-            };
-            List<string> mouse_middle = new List<string>() { "cbButtonRearLeft", "cbButtonRearLeftOffscreen", "cbButtonRearLeftB", "cbButtonRearLeftOffscreenB" };
+            { "cbButtonPumpAction", "cbButtonTriggerOffscreen", "cbButtonPumpActionOffscreen", "cbButtonPumpActionB", "cbButtonTriggerOffscreenB", "cbButtonPumpActionOffscreenB" };
+            List<string> mouse_middle = new List<string>() { "cbButtonFrontRight", "cbButtonFrontRightOffscreen", "cbButtonFrontRightB", "cbButtonFrontRightOffscreenB" };
             List<string> joy_1 = new List<string>() { "cbButtonTrigger", "cbButtonTriggerB" };
             List<string> joy_2 = new List<string>() { "cbButtonPumpAction", "cbButtonTriggerOffscreen", "cbButtonPumpActionOffscreen", "cbButtonPumpActionB", "cbButtonTriggerOffscreenB", "cbButtonPumpActionOffscreenB" };
             List<string> joy_3 = new List<string>() { "cbButtonFrontLeft", "cbButtonFrontLeftOffscreen", "cbButtonFrontLeftB", "cbButtonFrontLeftOffscreenB" };
@@ -72,7 +69,11 @@ namespace EmulatorLauncher
                             SetElementValue(appSettings, "chkAutoStart", "1");
                             SetElementValue(appSettings, "chkStartInTray", "1");
 
-                            if (Program.SystemConfig.getOptBoolean("sindenJoyMode"))
+                            string sindenConfig = "standard";
+                            if (Program.SystemConfig.isOptSet("sindenJoyMode") && !string.IsNullOrEmpty(Program.SystemConfig["sindenJoyMode"]))
+                                sindenConfig = Program.SystemConfig["sindenJoyMode"];
+
+                            if (sindenConfig == "joypad")
                             {
                                 foreach (string button in joy_1)
                                     SetElementValue(appSettings, button, "94");
@@ -97,7 +98,8 @@ namespace EmulatorLauncher
 
                                 SetElementValue(appSettings, "chkEnableJoystick", "1");
                             }
-                            else if (Program.Features.IsSupported("sindenJoyMode"))
+
+                            else if (sindenConfig == "standard")
                             {
                                 foreach (string button in mouse_left)
                                     SetElementValue(appSettings, button, "1");
@@ -105,23 +107,36 @@ namespace EmulatorLauncher
                                     SetElementValue(appSettings, button, "3");
                                 foreach (string button in mouse_middle)
                                     SetElementValue(appSettings, button, "2");
-                                foreach (string button in joy_7)
-                                    SetElementValue(appSettings, button, "74");
-                                foreach (string button in joy_8)
-                                    SetElementValue(appSettings, button, "75");
-                                foreach (string button in joy_9)
-                                    SetElementValue(appSettings, button, "76");
-                                foreach (string button in joy_10)
-                                    SetElementValue(appSettings, button, "77");
 
-                                SetElementValue(appSettings, "cbButtonFrontRight", "9");
-                                SetElementValue(appSettings, "cbButtonFrontRightB", "10");
-                                SetElementValue(appSettings, "cbButtonFrontRightOffscreen", "13");
-                                SetElementValue(appSettings, "cbButtonFrontRightOffscreenB", "14");
-                                SetElementValue(appSettings, "cbButtonRearRight", "7");
-                                SetElementValue(appSettings, "cbButtonRearRightB", "7");
-                                SetElementValue(appSettings, "cbButtonRearRightOffscreen", "7");
-                                SetElementValue(appSettings, "cbButtonRearRightOffscreenB", "7");
+                                SetElementValue(appSettings, "cbButtonUp", "74");                   //Up
+                                SetElementValue(appSettings, "cbButtonUpOffscreen", "74");          //Up
+                                SetElementValue(appSettings, "cbButtonUpB", "38");                  //U
+                                SetElementValue(appSettings, "cbButtonUpOffscreenB", "38");         //U
+                                SetElementValue(appSettings, "cbButtonDown", "75");                   //Down
+                                SetElementValue(appSettings, "cbButtonDownOffscreen", "75");          //Down
+                                SetElementValue(appSettings, "cbButtonDownB", "39");                  //V
+                                SetElementValue(appSettings, "cbButtonDownOffscreenB", "39");         //V
+                                SetElementValue(appSettings, "cbButtonLeft", "76");                   //Left
+                                SetElementValue(appSettings, "cbButtonLeftOffscreen", "76");          //Left
+                                SetElementValue(appSettings, "cbButtonLeftB", "40");                  //W
+                                SetElementValue(appSettings, "cbButtonLeftOffscreenB", "40");         //W
+                                SetElementValue(appSettings, "cbButtonLeft", "77");                   //Right
+                                SetElementValue(appSettings, "cbButtonLeftOffscreen", "77");          //Right
+                                SetElementValue(appSettings, "cbButtonLeftB", "41");                  //X
+                                SetElementValue(appSettings, "cbButtonLeftOffscreenB", "41");         //X
+
+                                SetElementValue(appSettings, "cbButtonFrontLeft", "9");             //1
+                                SetElementValue(appSettings, "cbButtonFrontLeftB", "10");           //2
+                                SetElementValue(appSettings, "cbButtonFrontLeftOffscreen", "9");    //1
+                                SetElementValue(appSettings, "cbButtonFrontLeftOffscreenB", "10");  //2
+                                SetElementValue(appSettings, "cbButtonRearLeft", "13");             //5
+                                SetElementValue(appSettings, "cbButtonRearLeftB", "14");            //6
+                                SetElementValue(appSettings, "cbButtonRearLeftOffscreen", "13");    //5
+                                SetElementValue(appSettings, "cbButtonRearLeftOffscreenB", "14");   //6
+                                SetElementValue(appSettings, "cbButtonRearRight", "34");            //Q
+                                SetElementValue(appSettings, "cbButtonRearRightB", "36");           //S
+                                SetElementValue(appSettings, "cbButtonRearRightOffscreen", "7");    // border
+                                SetElementValue(appSettings, "cbButtonRearRightOffscreenB", "7");   // border
 
                                 SetElementValue(appSettings, "chkEnableJoystick", "0");
                             }

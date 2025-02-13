@@ -278,21 +278,10 @@ namespace EmulatorLauncher
                 bytes[20] = dinput1 ? GetInputCode(InputKey.b, c1, tech1, vendor1, ctrl1) : (byte)0x40;
                 bytes[24] = dinput1 ? GetInputCode(InputKey.y, c1, tech1, vendor1, ctrl1) : (byte)0x10;
                 bytes[28] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
-
-                if (SystemConfig.getOptBoolean("m2_gun_usecontroller"))
-                {
-                    bytes[32] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
-                    bytes[33] = Convert.ToByte(j1index);
-                    bytes[36] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
-                    bytes[37] = Convert.ToByte(j1index);
-                }
-                else
-                {
-                    bytes[32] = (byte)0x02;
-                    bytes[33] = (byte)0x00;
-                    bytes[36] = (byte)0x04;
-                    bytes[37] = (byte)0x00;
-                }
+                bytes[32] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
+                bytes[33] = Convert.ToByte(j1index);
+                bytes[36] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
+                bytes[37] = Convert.ToByte(j1index);
 
                 for (int i = 0; i < 37; i += 4)
                 {
@@ -318,8 +307,12 @@ namespace EmulatorLauncher
                     bytes[60] = dinput2 ? GetInputCode(InputKey.b, c2, tech2, vendor2, ctrl2) : (byte)0x40;
                     bytes[64] = dinput2 ? GetInputCode(InputKey.y, c2, tech2, vendor2, ctrl2) : (byte)0x10;
                     bytes[68] = dinput2 ? GetInputCode(InputKey.x, c2, tech2, vendor2, ctrl2) : (byte)0x20;
+                    bytes[72] = dinput2 ? GetInputCode(InputKey.start, c2, tech2, vendor2, ctrl2) : (byte)0xB0;
+                    bytes[73] = Convert.ToByte(j2index);
+                    bytes[76] = dinput2 ? GetInputCode(InputKey.select, c2, tech2, vendor2, ctrl2) : (byte)0xC0;
+                    bytes[77] = Convert.ToByte(j2index);
 
-                    for (int i = 40; i < 69; i += 4)
+                    for (int i = 40; i < 77; i += 4)
                     {
                         if (highButtonMapping.ContainsKey(bytes[i]))
                         {
@@ -343,36 +336,9 @@ namespace EmulatorLauncher
                     bytes[60] = (byte)0x00;
                     bytes[64] = (byte)0x00;
                     bytes[68] = (byte)0x00;
-                }
-
-                if (SystemConfig.getOptBoolean("m2_gun_usecontroller") && c2 != null && !c2.IsKeyboard)
-                {
-                    bytes[72] = dinput2 ? GetInputCode(InputKey.start, c2, tech2, vendor2, ctrl2) : (byte)0xB0;
-                    bytes[73] = Convert.ToByte(j2index);
-                    bytes[76] = dinput2 ? GetInputCode(InputKey.select, c2, tech2, vendor2, ctrl2) : (byte)0xC0;
-                    bytes[77] = Convert.ToByte(j2index);
-
-                    for (int i = 72; i < 77; i += 4)
-                    {
-                        if (highButtonMapping.ContainsKey(bytes[i]))
-                        {
-                            bytes[i] = highButtonMapping[bytes[i]];
-                            bytes[i + 1] = Convert.ToByte(j1index + 16);
-                        }
-                        else if (highButtonMappingPlus.ContainsKey(bytes[i]))
-                        {
-                            bytes[i] = highButtonMappingPlus[bytes[i]];
-                            bytes[i + 1] = Convert.ToByte(j1index + 16 + 16);
-                        }
-                    }
-                }
-                else
-                {
-                    bytes[72] = (byte)0x03;
-                    bytes[73] = (byte)0x00;
-                    bytes[76] = (byte)0x05;
-                    bytes[77] = (byte)0x00;
-                }
+                    bytes[72] = (byte)0x00;
+                    bytes[76] = (byte)0x00;
+                }  
             }
             #endregion
 
@@ -1502,108 +1468,6 @@ namespace EmulatorLauncher
             return 0x00;
         }
 
-        private static byte GetWheelInputCode(string buttonKey, Wheel wheel, SdlToDirectInput ctrl, bool invertedAxis)
-        {
-            if (wheel == null)
-                return 0x00;
-
-            byte ret = 0x00;
-
-            if (buttonKey.StartsWith("button_"))
-            {
-                int buttonID = (buttonKey.Substring(7).ToInteger()) + 1;
-                if (buttonID > 15)
-                {
-                    switch (buttonID)
-                    {
-                        case 16: return 0xF4;
-                        case 17: return 0x15;
-                        case 18: return 0x25;
-                        case 19: return 0x35;
-                        case 20: return 0x45;
-                        case 21: return 0x55;
-                        case 22: return 0x65;
-                        case 23: return 0x75;
-                        case 24: return 0x85;
-                        case 25: return 0x95;
-                        case 26: return 0xA5;
-                        case 27: return 0xB5;
-                        case 28: return 0xC5;
-                        case 29: return 0xD5;
-                        case 30: return 0xE5;
-                        case 31: return 0xF5;
-                        case 32: return 0xF6;
-                        case 33: return 0x17;
-                        case 34: return 0x27;
-                        case 35: return 0x37;
-                        case 36: return 0x47;
-                        case 37: return 0x57;
-                        case 38: return 0x67;
-                        case 39: return 0x77;
-                        case 40: return 0x87;
-                        case 41: return 0x97;
-                        case 42: return 0xA7;
-                        case 43: return 0xB7;
-                        case 44: return 0xC7;
-                        case 45: return 0xD7;
-                        case 46: return 0xE7;
-                        case 47: return 0xF7;
-                    };
-                }
-                else
-                    ret = (byte)(0x10 * buttonID);
-            }
-
-            else if (ctrl.ButtonMappings.ContainsKey(buttonKey))
-            {
-                string value = ctrl.ButtonMappings[buttonKey];
-
-                if (value.StartsWith("b"))
-                {
-                    int buttonID = (value.Substring(1).ToInteger()) + 1;
-                    ret = (byte)(0x10 * buttonID);
-                }
-
-                else if (value.StartsWith("h"))
-                {
-                    int hatID = value.Substring(3).ToInteger();
-                    switch (hatID)
-                    {
-                        case 1:
-                            ret = 0x0E;
-                            break;
-                        case 2:
-                            ret = 0x0D;
-                            break;
-                        case 4:
-                            ret = 0x0F;
-                            break;
-                        case 8:
-                            ret = 0x0C;
-                            break;
-                    };
-                }
-
-                else if (value.StartsWith("a") || value.StartsWith("-a") || value.StartsWith("+a"))
-                {
-                    int axisID = value.Substring(1).ToInteger();
-
-                    if (value.StartsWith("-a") || value.StartsWith("+a"))
-                        axisID = value.Substring(2).ToInteger();
-
-                    if (axisID == 2 || axisID == 3 || axisID == 4)
-                        axisID++;
-                    else if (axisID == 5)
-                        axisID = 2;
-
-                    ret = Convert.ToByte(axisID);
-                }
-            }
-            SimpleLogger.Instance.Info("[WHEELS] Wheel input " + buttonKey + " mapped to hexkey " + ret.ToString());
-
-            return ret;
-        }
-
         private void WriteServiceBytes(byte[] bytes, int index, Controller c, string tech, string brand, int startByte, SdlToDirectInput ctrl, bool useWheel, Dictionary<string,string> wheelbuttonMap)
         {
             bool dinput = tech == "dinput";
@@ -1874,25 +1738,5 @@ namespace EmulatorLauncher
                 }
             }
         }
-
-        private static readonly Dictionary<string, byte> GetFirstByte = new Dictionary<string, byte>()
-        {
-            { "0", 0x00 },
-            { "1", 0x10 },
-            { "2", 0x20 },
-            { "3", 0x30 },
-            { "4", 0x40 },
-            { "5", 0x50 },
-            { "6", 0x60 },
-            { "7", 0x70 },
-            { "8", 0x80 },
-            { "9", 0x90 },
-            { "10", 0xA0 },
-            { "11", 0xB0 },
-            { "12", 0xC0 },
-            { "13", 0xD0 },
-            { "14", 0xE0 },
-            { "15", 0xF0 },
-        };
     }
 }
