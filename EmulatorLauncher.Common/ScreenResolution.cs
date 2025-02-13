@@ -36,7 +36,7 @@ namespace EmulatorLauncher.Common
             {
                 DEVMODE mode = new DEVMODE();
                 EnumDisplaySettings(null, ENUM_CURRENT_SETTINGS, ref mode);
-                return new ScreenResolution(mode.dmPelsWidth, mode.dmPelsHeight, mode.dmBitsPerPel, mode.dmDisplayFrequency);
+                return new ScreenResolution(mode.dmPelsWidth, mode.dmPelsHeight, mode.dmBitsPerPel, mode.dmDisplayFrequency, (mode.dmDisplayFlags & 2) == 2);
             }
         }
 
@@ -51,7 +51,7 @@ namespace EmulatorLauncher.Common
 
         public static ScreenResolution FromSize(int width, int height)
         {
-            return new ScreenResolution(width, height, 32, 60);
+            return new ScreenResolution(width, height, 32, 60, false);
         }
 
         public static ScreenResolution Parse(string gameResolution)
@@ -75,22 +75,30 @@ namespace EmulatorLauncher.Common
             if (!int.TryParse(values[2], out bitCount))
                 return null;
 
+            bool interlaced = false;
+            if (values[3].EndsWith("i"))
+            {
+                interlaced = true;
+                values[3] = values[3].Substring(0, values[3].Length - 1);
+            }
+
             int frequency;
             if (!int.TryParse(values[3], out frequency))
                 return null;
 
-            return new ScreenResolution(width, height, bitCount, frequency);
+            return new ScreenResolution(width, height, bitCount, frequency, interlaced);
         }
 
         public int Width { get; private set; }
         public int Height { get; private set; }
         public int BitsPerPel { get; private set; }
         public int DisplayFrequency { get; private set; }
+        public bool Interlaced { get; set; }
 
         DEVMODE originalMode = new DEVMODE();
         bool changed = false;
 
-        private ScreenResolution(int width, int height, int bitCount, int frequency)
+        private ScreenResolution(int width, int height, int bitCount, int frequency, bool interlaced)
         {
             changed = false;
             
@@ -98,6 +106,7 @@ namespace EmulatorLauncher.Common
             Height = height;
             BitsPerPel = bitCount;
             DisplayFrequency = frequency;
+            Interlaced = interlaced;
         }
 
         /// <summary>
@@ -124,8 +133,9 @@ namespace EmulatorLauncher.Common
             newMode.dmPelsHeight = Height;
             newMode.dmBitsPerPel = BitsPerPel;
             newMode.dmDisplayFrequency = DisplayFrequency;
+            newMode.dmDisplayFlags = Interlaced ? 2 : 0;
 
-            SimpleLogger.Instance.Info("[ScreenResolution] Setting resolution to " + newMode.dmPelsWidth + "x" + newMode.dmPelsHeight + "x" + newMode.dmBitsPerPel + " " + newMode.dmDisplayFrequency + "Hz");
+            SimpleLogger.Instance.Info("[ScreenResolution] Setting resolution to " + newMode.dmPelsWidth + "x" + newMode.dmPelsHeight + "x" + newMode.dmBitsPerPel + " " + newMode.dmDisplayFrequency + "Hz" + (newMode.dmDisplayFlags == 2 ? " (Interlaced)" : ""));
             
             changed = ChangeDisplaySettings(ref newMode, 0) == DISP_CHANGE_SUCCESSFUL;
         }
