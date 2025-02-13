@@ -7,8 +7,6 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
-using System.Reflection;
-using System.Diagnostics.Eventing.Reader;
 using EmulatorLauncher.Common.Lightguns;
 
 namespace EmulatorLauncher
@@ -807,7 +805,7 @@ namespace EmulatorLauncher
                     bool revertXY = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "reverse_ab";
                     bool rumble = !Program.SystemConfig.isOptSet("input_rumble") || Program.SystemConfig.getOptBoolean("input_rumble");
 
-                    if (isNintendo)
+                    if (isNintendo && pad.PlayerIndex == 1)
                     {
                         string tempMapA = anyMapping[InputKey.a];
                         string tempMapB = anyMapping[InputKey.b];

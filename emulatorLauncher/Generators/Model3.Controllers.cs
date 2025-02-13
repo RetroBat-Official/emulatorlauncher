@@ -335,15 +335,15 @@ namespace EmulatorLauncher
                 //common - start to start and select to input coins
                 //service menu and test menu can be accessed via L3 and R3 buttons if option is enabled
 
-                ini.WriteValue(" Global ", "InputStart1", "\"KEY_1,JOY" + j1index + "_BUTTON7\"");
-                ini.WriteValue(" Global ", "InputCoin1", "\"KEY_3,JOY" + j1index + "_BUTTON5\"");
-                ini.WriteValue(" Global ", "InputServiceA", enableServiceMenu ? "\"KEY_5,JOY" + j1index + "_BUTTON8\"" : "\"KEY_5\"");
-                ini.WriteValue(" Global ", "InputTestA", enableServiceMenu ? "\"KEY_6,JOY" + j1index + "_BUTTON9\"" : "\"KEY_6\"");
+                ini.WriteValue(" Global ", "InputStart1", "\"KEY_1,KEY_RETURN,KEY_PGDN,JOY" + j1index + "_BUTTON7\"");
+                ini.WriteValue(" Global ", "InputCoin1", "\"KEY_5,KEY_LEFTCTRL,KEY_PGUP,KEY_BACKSPACE,JOY" + j1index + "_BUTTON5\"");
+                ini.WriteValue(" Global ", "InputServiceA", enableServiceMenu ? "\"KEY_3,JOY" + j1index + "_BUTTON8\"" : "\"KEY_3\"");
+                ini.WriteValue(" Global ", "InputTestA", enableServiceMenu ? "\"KEY_4,JOY" + j1index + "_BUTTON9\"" : "\"KEY_4\"");
 
                 if (multiplayer)
                 {
                     ini.WriteValue(" Global ", "InputStart2", "\"KEY_2,JOY" + j2index + "_BUTTON7\"");
-                    ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4,JOY" + j2index + "_BUTTON5\"");
+                    ini.WriteValue(" Global ", "InputCoin2", "\"KEY_6,JOY" + j2index + "_BUTTON5\"");
                     ini.WriteValue(" Global ", "InputServiceB", enableServiceMenu ? "\"KEY_7,JOY" + j2index + "_BUTTON8\"" : "\"KEY_7\"");
                     ini.WriteValue(" Global ", "InputTestB", enableServiceMenu ? "\"KEY_8,JOY" + j2index + "_BUTTON9\"" : "\"KEY_8\"");
                 }
@@ -689,10 +689,10 @@ namespace EmulatorLauncher
 
                     if (!useWheel)
                     {
-                        ini.WriteValue(" Global ", "InputStart1", "\"KEY_1," + GetDinputMapping(j1index, ctrl1, "start") + "\"");
-                        ini.WriteValue(" Global ", "InputCoin1", "\"KEY_5," + GetDinputMapping(j1index, ctrl1, "back") + "\"");
-                        ini.WriteValue(" Global ", "InputServiceA", enableServiceMenu ? "\"KEY_8," + GetDinputMapping(j1index, ctrl1, "leftstick") + "\"" : "\"KEY_8\"");
-                        ini.WriteValue(" Global ", "InputTestA", enableServiceMenu ? "\"KEY_9," + GetDinputMapping(j1index, ctrl1, "rightstick") + "\"" : "\"KEY_9\"");
+                        ini.WriteValue(" Global ", "InputStart1", "\"KEY_1,KEY_RETURN,KEY_PGDN," + GetDinputMapping(j1index, ctrl1, "start") + "\"");
+                        ini.WriteValue(" Global ", "InputCoin1", "\"KEY_5,KEY_LEFTCTRL,KEY_PGUP,KEY_BACKSPACE," + GetDinputMapping(j1index, ctrl1, "back") + "\"");
+                        ini.WriteValue(" Global ", "InputServiceA", enableServiceMenu ? "\"KEY_3," + GetDinputMapping(j1index, ctrl1, "leftstick") + "\"" : "\"KEY_3\"");
+                        ini.WriteValue(" Global ", "InputTestA", enableServiceMenu ? "\"KEY_4," + GetDinputMapping(j1index, ctrl1, "rightstick") + "\"" : "\"KEY_4\"");
                     }
                     else
                     {
@@ -1046,7 +1046,7 @@ namespace EmulatorLauncher
                         if (ctrl2 != null)
                         {
                             ini.WriteValue(" Global ", "InputStart2", "\"KEY_2," + GetDinputMapping(j2index, ctrl2, "start") + "\"");
-                            ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4," + GetDinputMapping(j2index, ctrl2, "back") + "\"");
+                            ini.WriteValue(" Global ", "InputCoin2", "\"KEY_6," + GetDinputMapping(j2index, ctrl2, "back") + "\"");
                             ini.WriteValue(" Global ", "InputServiceB", enableServiceMenu ? "\"KEY_7," + GetDinputMapping(j2index, ctrl2, "leftstick") + "\"" : "\"KEY_7\"");
                             ini.WriteValue(" Global ", "InputTestB", enableServiceMenu ? "\"KEY_8," + GetDinputMapping(j2index, ctrl2, "rightstick") + "\"" : "\"KEY_8\"");
                             ini.WriteValue(" Global ", "InputJoyUp2", "\"" + GetDinputMapping(j2index, ctrl2, "lefty", -1) + "," + GetDinputMapping(j2index, ctrl2, "dpup") + "\"");
@@ -1102,15 +1102,15 @@ namespace EmulatorLauncher
                     ini.WriteValue(" Global ", "InputSystem", "xinput");
 
                 //common - L3 and R3 will be used to navigate service menu
-                ini.WriteValue(" Global ", "InputStart1", "\"KEY_1,JOY" + j1index + "_BUTTON8\"");
-                ini.WriteValue(" Global ", "InputCoin1", "\"KEY_3,JOY" + j1index + "_BUTTON7\"");
-                ini.WriteValue(" Global ", "InputServiceA", enableServiceMenu ? "\"KEY_5,JOY" + j1index + "_BUTTON9\"" : "\"KEY_5\"");
-                ini.WriteValue(" Global ", "InputTestA", enableServiceMenu ? "\"KEY_6,JOY" + j1index + "_BUTTON10\"" : "\"KEY_6\"");
+                ini.WriteValue(" Global ", "InputStart1", "\"KEY_1,KEY_RETURN,KEY_PGDN,JOY" + j1index + "_BUTTON8\"");
+                ini.WriteValue(" Global ", "InputCoin1", "\"KEY_5,KEY_LEFTCTRL,KEY_PGUP,KEY_BACKSPACE,JOY" + j1index + "_BUTTON7\"");
+                ini.WriteValue(" Global ", "InputServiceA", enableServiceMenu ? "\"KEY_3,JOY" + j1index + "_BUTTON9\"" : "\"KEY_3\"");
+                ini.WriteValue(" Global ", "InputTestA", enableServiceMenu ? "\"KEY_4,JOY" + j1index + "_BUTTON10\"" : "\"KEY_4\"");
 
                 if (multiplayer)
                 {
                     ini.WriteValue(" Global ", "InputStart2", "\"KEY_2,JOY" + j2index + "_BUTTON8\"");
-                    ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4,JOY" + j2index + "_BUTTON7\"");
+                    ini.WriteValue(" Global ", "InputCoin2", "\"KEY_6,JOY" + j2index + "_BUTTON7\"");
                     ini.WriteValue(" Global ", "InputServiceB", enableServiceMenu ? "\"KEY_7,JOY" + j2index + "_BUTTON9\"" : "\"KEY_7\"");
                     ini.WriteValue(" Global ", "InputTestB", enableServiceMenu ? "\"KEY_8,JOY" + j2index + "_BUTTON10\"" : "\"KEY_8\"");
                 }
@@ -1467,13 +1467,13 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "Crosshairs", "3");
 
             //common
-            ini.WriteValue(" Global ", "InputStart1", "\"KEY_1\"");
+            ini.WriteValue(" Global ", "InputStart1", "\"KEY_1,KEY_RETURN,KEY_PGDN\"");
             ini.WriteValue(" Global ", "InputStart2", "\"KEY_2\"");
-            ini.WriteValue(" Global ", "InputCoin1", "\"KEY_3\"");
-            ini.WriteValue(" Global ", "InputCoin2", "\"KEY_4\"");
-            ini.WriteValue(" Global ", "InputServiceA", "\"KEY_5\"");
+            ini.WriteValue(" Global ", "InputCoin1", "\"KEY_5,KEY_LEFTCTRL,KEY_PGUP,KEY_BACKSPACE\"");
+            ini.WriteValue(" Global ", "InputCoin2", "\"KEY_6\"");
+            ini.WriteValue(" Global ", "InputServiceA", "\"KEY_3\"");
             ini.WriteValue(" Global ", "InputServiceB", "\"KEY_7\"");
-            ini.WriteValue(" Global ", "InputTestA", "\"KEY_6\"");
+            ini.WriteValue(" Global ", "InputTestA", "\"KEY_4\"");
             ini.WriteValue(" Global ", "InputTestB", "\"KEY_8\"");
 
             //4-way digital joysticks

@@ -145,15 +145,38 @@ namespace EmulatorLauncher
             bytes[4] = (byte)0xD0;      // down
             bytes[8] = (byte)0xCB;      // left
             bytes[12] = (byte)0xCD;     // right
-            bytes[16] = (byte)0x11;     // Z
-            bytes[20] = (byte)0x2D;     // X
+            bytes[16] = (byte)0x1E;     // Q
+            bytes[20] = (byte)0x2A;     // Shift
             bytes[24] = (byte)0x1C;     // Return
-            bytes[28] = (byte)0x2F;     // V
+            bytes[28] = (byte)0x0E;     // Backspace
 
-            if (gun1.Type == RawLighGunType.MayFlashWiimote)
+            if (SystemConfig.getOptBoolean("m2_gun_kb"))
             {
-                bytes[32] = (byte)0xC8;     // up
-                bytes[36] = (byte)0xD0;     // down
+                bytes[32] = (byte)0x02;     // 1
+                bytes[36] = (byte)0x06;     // 5
+            }
+            else if (gun1.Type == RawLighGunType.MayFlashWiimote)
+            {
+                if (SystemConfig.isOptSet("WiimoteMode") && SystemConfig["WiimoteMode"] == "game")
+                {
+                    bytes[32] = (byte)0x1C;     // Return
+                    bytes[36] = (byte)0x0E;     // Esc / Backspace
+                }
+                else if (SystemConfig.isOptSet("WiimoteMode") && SystemConfig["WiimoteMode"] == "normal")
+                {
+                    bytes[32] = (byte)0xC9;     // PageUp
+                    bytes[36] = (byte)0xD1;     // PageDown
+                }
+                else
+                {
+                    bytes[32] = (byte)0xC8;     // up
+                    bytes[36] = (byte)0xD0;     // down
+                }
+            }
+            else if (gun1.Type == RawLighGunType.Mouse && SystemConfig.isOptSet("WiimoteMode") && SystemConfig["WiimoteMode"] == "wiimotegun")
+            {
+                bytes[32] = (byte)0x1C;     // Return
+                bytes[36] = (byte)0x1D;     // Ctrl
             }
             else
             {
@@ -161,16 +184,21 @@ namespace EmulatorLauncher
                 bytes[36] = (byte)0x06;     // 5
             }
 
-            bytes[40] = (byte)0xC8;     // up
-            bytes[44] = (byte)0xD0;     // down
-            bytes[48] = (byte)0xCB;     // left
-            bytes[52] = (byte)0xCD;     // right
-            bytes[56] = (byte)0x2A;     // maj
+            bytes[40] = (byte)0x16;     // U
+            bytes[44] = (byte)0x2F;     // V
+            bytes[48] = (byte)0x2C;     // W
+            bytes[52] = (byte)0x2D;     // X
+            bytes[56] = (byte)0x1F;     // S
             bytes[60] = (byte)0x1D;     // CTRL
             bytes[64] = (byte)0x38;     // ALT
             bytes[68] = (byte)0x39;     // SPACE
 
-            if (gun2.Type == RawLighGunType.MayFlashWiimote)
+            if (SystemConfig.getOptBoolean("m2_gun_kb"))
+            {
+                bytes[72] = (byte)0x03;     // 2
+                bytes[76] = (byte)0x07;     // 6
+            }
+            else if (gun2.Type == RawLighGunType.MayFlashWiimote)
             {
                 bytes[72] = (byte)0xCB;     // left
                 bytes[76] = (byte)0xCD;     // right

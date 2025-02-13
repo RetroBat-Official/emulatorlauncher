@@ -112,7 +112,7 @@ namespace EmulatorLauncher.Common.Lightguns
                  index++;
             }
 
-            // Sort by, gun4IR, thenby (sinden) lightgun, thenby wiimotes, then by physical index
+            // Sort by, gun4IR, then by Blamcon, then by (sinden) lightgun, then by retroshooters, thenby wiimotes, then by physical index
             mouseNames.Sort((x, y) => x.GetGunPriority().CompareTo(y.GetGunPriority()));
 
             return mouseNames.ToArray();

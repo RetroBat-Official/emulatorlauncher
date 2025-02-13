@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management;
 using System.IO;
-using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher.Common.Lightguns
 {

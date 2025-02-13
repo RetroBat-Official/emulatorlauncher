@@ -30,7 +30,7 @@ namespace EmulatorLauncher.Libretro
                 { "bluemsx", "blueMSX" },
                 { "bnes", "bnes/higan" },
                 { "boom3", "boom3" },
-                { "boom3_xp", "boom3_xp" },
+                { "boom3_xp", "boom3" },
                 { "bsnes2014_accuracy", "bsnes 2014 Accuracy" },
                 { "bsnes2014_balanced", "bsnes 2014 Balanced" },
                 { "bsnes2014_performance", "bsnes 2014 Performance" },
@@ -548,6 +548,8 @@ namespace EmulatorLauncher.Libretro
             bool atari800 = (system == "atari800");
             bool atariXE = !atari800 && system.IndexOf("xe", StringComparison.InvariantCultureIgnoreCase) >= 0;
 
+            coreSettings["atari800_cfg"] = "enabled";
+
             BindFeature(coreSettings, "atari800_artifacting_mode", "atari800_artifacting", "none");
             BindFeature(coreSettings, "atari800_ntscpal", "atari800_ntscpal", "NTSC");
             BindFeature(coreSettings, "atari800_resolution", "atari800_resolution", "336x240");
@@ -582,7 +584,13 @@ namespace EmulatorLauncher.Libretro
                 BindBoolFeature(coreSettings, "atari800_opt2", "atari800_opt2", "enabled", "disabled");    // Robotron joystick hack
             }
 
+            if (SystemConfig.isOptSet("atari800_system") && !string.IsNullOrEmpty(SystemConfig["atari800_system"]))
+                coreSettings["atari800_system"] = SystemConfig["atari800_system"];
+
             // Controls
+            BindFeature(coreSettings, "atari800_opt2", "a800_control_hacks", "none");
+            BindBoolFeature(coreSettings, "paddle_active", "a800_paddle", "enabled", "disabled");
+
             if (system == "atari5200")
             {
                 BindFeature(retroarchConfig, "input_libretro_device_p1", "a800_controller1", "769");
@@ -669,6 +677,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "b2")
                 return;
 
+            coreSettings["b2_autoboot"] = "true";
             BindFeature(coreSettings, "b2_model", "b2_model", "B/Acorn 1770");
         }
 
@@ -677,6 +686,9 @@ namespace EmulatorLauncher.Libretro
             if (core != "boom3" && core != "boom3_xp")
                 return;
 
+            BindFeature(retroarchConfig, "doom_resolution", "boom3_resolution", "960x544");
+            BindBoolFeatureOn(retroarchConfig, "doom_invert_y_axis", "boom3_invert_axis", "enabled", "disabled");
+            BindBoolFeature(retroarchConfig, "doom_fps", "boom3_fps", "enabled", "disabled");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "Doom3ControllerP1", "1");
         }
 
@@ -704,15 +716,6 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(coreSettings, "bluemsx_vdp_synctype", "bluemsx_vdp_synctype", "Auto");
             BindBoolFeature(coreSettings, "bluemsx_nospritelimits", "bluemsx_nospritelimits", "ON", "OFF");
-
-            // Controls (257 does not exist for BlueMSX core, it's either Retropad "1" or RetroKeyboard "3"
-            /*var sysDevices = new Dictionary<string, string>() { { "msx", "257" }, { "msx1", "257" }, { "msx2", "257" }, { "colecovision", "1" } };
-
-            if (sysDevices.ContainsKey(system))
-                retroarchConfig["input_libretro_device_p1"] = sysDevices[system];
-
-            if (sysDevices.ContainsKey(system))
-                retroarchConfig["input_libretro_device_p2"] = sysDevices[system];*/
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "bluemsx_controller1", "1");

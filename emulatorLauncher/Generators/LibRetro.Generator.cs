@@ -121,13 +121,16 @@ namespace EmulatorLauncher.Libretro
                 string croftSubPath = croftSubFile[0];
                 rom = Path.Combine(Path.GetDirectoryName(rom), croftSubPath);
             }
-            else if (Path.GetExtension(rom).ToLowerInvariant() == ".boom3")
+            else if (core == "boom3")
             {
-                string[] pakFile = File.ReadAllLines(rom);
-                string pakSubPath = pakFile[0];
-                if (pakSubPath.StartsWith("d3xp"))
-                    core = "boom3_xp";
-                rom = Path.Combine(Path.GetDirectoryName(rom), pakSubPath);
+                if (Path.GetExtension(rom).ToLowerInvariant() == ".boom3" || Path.GetExtension(rom).ToLowerInvariant() == ".game")
+                {
+                    string[] pakFile = File.ReadAllLines(rom);
+                    string pakSubPath = pakFile[0];
+                    if (pakSubPath.StartsWith("d3xp"))
+                        core = "boom3_xp";
+                    rom = Path.Combine(Path.GetDirectoryName(rom), pakSubPath);
+                }
             }
             else if (core == "vitaquake2")
             {
