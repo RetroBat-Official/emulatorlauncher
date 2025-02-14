@@ -456,8 +456,8 @@ namespace EmulatorLauncher.Libretro
                         cfg[remap.Key] = remap.Value;
                 });
             }
-            else
-                DeleteInputRemap(GetCoreName(core));
+            //else
+            //    DeleteInputRemap(GetCoreName(core));
         }
 
         #region Core configuration
@@ -4816,51 +4816,6 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["input_libretro_device_p" + i] = "1";
                 }
             }
-        }
-        #endregion
-
-        #region Input remaps
-        private Dictionary<string, string> InputRemap = new Dictionary<string, string>();
-
-        private void CreateInputRemap(string cleanSystemName, Action<ConfigFile> createRemap)
-        {
-            if (string.IsNullOrEmpty(cleanSystemName))
-                return;
-
-            DeleteInputRemap(cleanSystemName);
-            if (createRemap == null)
-                return;
-
-            string dir = Path.Combine(RetroarchPath, "config", "remaps", cleanSystemName);
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-
-            string path = Path.Combine(dir, cleanSystemName + ".rmp");
-
-            this.AddFileForRestoration(path);
-
-            var cfg = ConfigFile.FromFile(path, new ConfigFileOptions() { CaseSensitive = true });
-            createRemap(cfg);
-            cfg.Save(path, true);
-        }
-
-        private void DeleteInputRemap(string cleanSystemName)
-        {
-            if (string.IsNullOrEmpty(cleanSystemName))
-                return;
-
-            string dir = Path.Combine(RetroarchPath, "config", "remaps", cleanSystemName);
-            string path = Path.Combine(dir, cleanSystemName + ".rmp");
-
-            try
-            {
-                if (File.Exists(path))
-                    File.Delete(path);
-
-                if (Directory.Exists(dir) && Directory.GetFiles(dir).Length == 0)
-                    Directory.Delete(dir);
-            }
-            catch { }
         }
         #endregion
     }
