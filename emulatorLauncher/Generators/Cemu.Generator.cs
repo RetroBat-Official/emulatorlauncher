@@ -18,7 +18,6 @@ namespace EmulatorLauncher
 
         private SdlVersion _sdlVersion = SdlVersion.SDL2_0_X;
         private string _sdl2dll;
-        private bool _cemu21;
         private bool _gameProfileRename = false;
         private string _gameProfilePath;
 
@@ -41,7 +40,6 @@ namespace EmulatorLauncher
                 catch { }
 
             var versionInfo = FileVersionInfo.GetVersionInfo(exe);
-            _cemu21 = versionInfo.ProductMajorPart >= 2 && versionInfo.ProductMinorPart >= 1;
 
             rom = TryUnZipGameIfNeeded(system, rom);
 
@@ -174,11 +172,7 @@ namespace EmulatorLauncher
         /// <param name="path"></param>
         private void SetupConfiguration(string path, string rom, bool fullscreen = true)
         {
-            string settingsFile = Path.Combine(path, "settings.xml");
-
-            if (_cemu21)
-                settingsFile = Path.Combine(path, "portable", "settings.xml");
-
+            string settingsFile = Path.Combine(path, "portable", "settings.xml");
             var xdoc = File.Exists(settingsFile) ? XElement.Load(settingsFile) : new XElement("content");
 
             string mlcPath = Path.Combine(AppConfig.GetFullPath("saves"), "wiiu", "cemu", "mlc01");

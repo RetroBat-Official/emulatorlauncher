@@ -786,7 +786,7 @@ namespace EmulatorLauncher.Libretro
                     }
                 }
             }
-            else if (core == "tgbdual" || system == "wii" || system == "fbneo")
+            else if (core == "tgbdual" || system == "wii" || system == "fbneo" || system == "nds")
             {
                 retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
             }
@@ -1575,8 +1575,16 @@ namespace EmulatorLauncher.Libretro
             }
             else
             {
-                retroarchConfig["video_viewport_bias_x"] = "0.000000";
-                retroarchConfig["video_viewport_bias_y"] = "0.000000";
+                if (systemBias.Contains(systemName))
+                {
+                    retroarchConfig["video_viewport_bias_x"] = "0.000000";
+                    retroarchConfig["video_viewport_bias_y"] = "1.000000";
+                }
+                else
+                {
+                    retroarchConfig["video_viewport_bias_x"] = "0.000000";
+                    retroarchConfig["video_viewport_bias_y"] = "0.000000";
+                }
             }
         }
 
@@ -1775,6 +1783,7 @@ namespace EmulatorLauncher.Libretro
         static List<string> capsimgCore = new List<string>() { "hatari", "hatarib", "puae" };
         static List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
         static List<string> coreNoGL = new List<string>() { "citra", "kronos", "mednafen_psx", "mednafen_psx_hw", "pcsx2", "swanstation" };
+        static List<string> systemBias = new List<string>() { "nds", "gb", "gbc", "gb2players", "gb2cplayers" };
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>() 
