@@ -311,6 +311,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
             Configurebsnesjg(retroarchConfig, coreSettings, system, core);
+            ConfigureCannonball(retroarchConfig, coreSettings, system, core);
             ConfigureCap32(retroarchConfig, coreSettings, system, core);
             ConfigureCitra(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
@@ -735,17 +736,21 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["bsnes_mode7_scale"] = SystemConfig["bsnes_mode7_scale"].ToIntegerString() + "x";
             }
             else
-                coreSettings["bsnes_mode7_scale"] = "2x";
+                coreSettings["bsnes_mode7_scale"] = "1x";
 
+            //bsnes only
             if (core == "bsnes")
+            {
                 BindBoolFeature(coreSettings, "bsnes_mode7_perspective", "bsnes_mode7_perspective", "OFF", "ON");
-            else
-                BindFeature(coreSettings, "bsnes_mode7_perspective", "bsnes_mode7_perspective", "auto (wide)");
-
-            if (core == "bsnes")
                 BindBoolFeature(coreSettings, "bsnes_mode7_supersample", "bsnes_mode7_supersample", "ON", "OFF");
+                BindFeature(coreSettings, "bsnes_aspect_ratio", "bsnes_aspect_ratio", "Auto");
+                BindFeature(coreSettings, "bsnes_video_filter", "bsnes_video_filter", "None");
+            }
+            //bsnes-hd-beta
             else
             {
+                BindFeature(coreSettings, "bsnes_mode7_perspective", "bsnes_mode7_perspective", "auto (wide)");
+                BindBoolFeature(coreSettings, "bsnes_ppu_show_overscan", "bsnes_ppu_show_overscan", "ON", "OFF");
                 if (SystemConfig.isOptSet("bsnes_mode7_supersample") && !string.IsNullOrEmpty(SystemConfig["bsnes_mode7_supersample"]))
                 {
                     if (SystemConfig["bsnes_mode7_supersample"].ToIntegerString() == "0")
@@ -757,7 +762,6 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["bsnes_mode7_supersample"] = "2x";
             }
 
-            BindBoolFeature(coreSettings, "bsnes_ppu_show_overscan", "bsnes_ppu_show_overscan", "ON", "OFF");
             BindBoolFeature(coreSettings, "bsnes_blur_emulation", "bsnes_blur_emulation", "ON", "OFF");
             BindBoolFeature(coreSettings, "bsnes_hotfixes", "bsnes_hotfixes", "ON", "OFF");
             BindBoolFeature(coreSettings, "bsnes_cpu_fastmath", "bsnes_cpu_fastmath", "ON", "OFF");
@@ -786,13 +790,6 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["bsnes_cpu_overclock"] = "100";
                 coreSettings["bsnes_cpu_sa1_overclock"] = "100";
                 coreSettings["bsnes_cpu_sfx_overclock"] = "100";
-            }
-
-            // bsnes only features
-            if (core == "bsnes")
-            {
-                BindFeature(coreSettings, "bsnes_aspect_ratio", "bsnes_aspect_ratio", "Auto");
-                BindFeature(coreSettings, "bsnes_video_filter", "bsnes_video_filter", "None");
             }
 
             // Controls
@@ -839,6 +836,17 @@ namespace EmulatorLauncher.Libretro
 
                 SetupLightGuns(retroarchConfig, gunId, core, 2);
             }
+        }
+
+        private void ConfigureCannonball(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "cannonball")
+                return;
+
+            BindBoolFeatureOn(coreSettings, "cannonball_analog", "cannonball_analog", "ON", "OFF");
+            BindFeature(coreSettings, "cannonball_gear", "cannonball_gear", "Automatic");
+            BindBoolFeatureOn(coreSettings, "cannonball_video_hires", "cannonball_video_hires", "ON", "OFF");
+            BindBoolFeatureOn(coreSettings, "cannonball_video_widescreen", "cannonball_video_widescreen", "ON", "OFF");
         }
 
         private void ConfigureCap32(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
