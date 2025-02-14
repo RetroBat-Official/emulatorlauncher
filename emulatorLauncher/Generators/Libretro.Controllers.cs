@@ -7,7 +7,6 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
-using System.Drawing;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -243,6 +242,9 @@ namespace EmulatorLauncher.Libretro
 
         private static string GetAnalogMode(Controller controller, string system)
         {
+            if (Program.SystemConfig.isOptSet("analogToDpad") && !string.IsNullOrEmpty(Program.SystemConfig["analogToDpad"]))
+                return Program.SystemConfig["analogToDpad"];
+
             if (disabledAnalogModeSystems.Contains(system))
                 return "0";
            
