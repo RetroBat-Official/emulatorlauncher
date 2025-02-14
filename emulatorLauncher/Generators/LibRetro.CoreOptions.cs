@@ -64,7 +64,7 @@ namespace EmulatorLauncher.Libretro
                 { "dosbox_svn_ce", "DOSBox-SVN CE" },
                 { "dosbox_svn", "DOSBox-SVN" },
                 { "DoubleCherryGB", "Doublecherrygb" },
-                { "doukutsu_rs", "Doukutsu Rs" },
+                { "doukutsu_rs", "d-rs" },
                 { "duckstation", "DuckStation" },
                 { "easyrpg", "EasyRPG Player" },
                 { "ecwolf", "ECWolf" },
@@ -877,7 +877,7 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(coreSettings, "cap32_lang_layout", "cap32_lang_layout", "english");
             BindFeature(coreSettings, "cap32_ram", "cap32_ram", "128");
-            BindBoolFeature(coreSettings, "cap32_floppy_sound", "cap32_floppy_sound", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "cap32_floppy_sound", "cap32_floppy_sound", "disabled", "enabled");
             BindFeature(coreSettings, "cap32_gfx_colors", "cap32_gfx_colors", "16bit");
             BindFeature(coreSettings, "cap32_scr_tube", "cap32_scr_tube", "color");
             BindFeatureSlider(coreSettings, "cap32_scr_intensity", "cap32_scr_intensity", "8");
@@ -900,20 +900,20 @@ namespace EmulatorLauncher.Libretro
             coreSettings["citra_use_libretro_save_path"] = "LibRetro Default";
             coreSettings["citra_is_new_3ds"] = "New 3DS";
 
-            if (SystemConfig.isOptSet("citra_layout_option"))
+            if (SystemConfig.isOptSet("citralr_layout_option"))
             {
-                coreSettings["citra_layout_option"] = SystemConfig["citra_layout_option"];
-                if ((SystemConfig["citra_layout_option"] == "Large Screen, Small Screen") && !SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
+                coreSettings["citra_layout_option"] = SystemConfig["citralr_layout_option"];
+                if ((SystemConfig["citralr_layout_option"] == "Large Screen, Small Screen") && !SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
                 {
                     retroarchConfig["aspect_ratio_index"] = "1";
                     SystemConfig["bezel"] = "none";
                 }
-                else if ((SystemConfig["citra_layout_option"] == "Single Screen Only") && !SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
+                else if ((SystemConfig["citralr_layout_option"] == "Single Screen Only") && !SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
                 {
                     retroarchConfig["aspect_ratio_index"] = "2";
                     SystemConfig["bezel"] = "none";
                 }
-                else if ((SystemConfig["citra_layout_option"] == "Side by Side") && !SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
+                else if ((SystemConfig["citralr_layout_option"] == "Side by Side") && !SystemConfig.isOptSet("ratio") && !SystemConfig.isOptSet("bezel"))
                 {
                     retroarchConfig["aspect_ratio_index"] = "4";
                     SystemConfig["bezel"] = "none";
@@ -927,19 +927,20 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "citra_region_value", "citra_region_value", "Auto");
             BindFeature(coreSettings, "citra_language", "citra_language", "English");
 
-            if (SystemConfig.isOptSet("citra_resolution_factor") && !string.IsNullOrEmpty(SystemConfig["citra_resolution_factor"]))
+            if (SystemConfig.isOptSet("citralr_resolution_factor") && !string.IsNullOrEmpty(SystemConfig["citralr_resolution_factor"]))
             {
-                if (SystemConfig["citra_resolution_factor"].ToIntegerString() == "1")
+                if (SystemConfig["citralr_resolution_factor"].ToIntegerString() == "1")
                     coreSettings["citra_resolution_factor"] = "1x (Native)";
                 else
-                    coreSettings["citra_resolution_factor"] = SystemConfig["citra_resolution_factor"].ToIntegerString() + "x";
+                    coreSettings["citra_resolution_factor"] = SystemConfig["citralr_resolution_factor"].ToIntegerString() + "x";
             }
             else
                 coreSettings["citra_resolution_factor"] = "1x (Native)";
-            
+
+            BindFeature(coreSettings, "citra_texture_filter", "citralr_texture_filter", "none");
             BindBoolFeature(coreSettings, "citra_swap_screen", "citra_swap_screen", "Bottom", "Top");
             BindBoolFeature(coreSettings, "citra_custom_textures", "citra_custom_textures", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "citra_use_hw_renderer", "citra_use_hw_renderer", "disabled", "enabled");
+            BindBoolFeature(coreSettings, "citra_use_hw_shaders", "citra_use_hw_shaders", "disabled", "enabled");
             BindBoolFeature(coreSettings, "citra_use_virtual_sd", "citra_use_virtual_sd", "disabled", "enabled");
 
             BindFeature(coreSettings, "citra_analog_function", "citra_analog_function", "C-Stick and Touchscreen Pointer");
@@ -1029,7 +1030,9 @@ namespace EmulatorLauncher.Libretro
             if (core != "dolphin")
                 return;
 
-            if (!SystemConfig.isOptSet("input_driver"))
+            // Force xinput driver in case of xinput controller
+            var c1 = Program.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
+            if (c1 != null && c1.IsXInputDevice && !SystemConfig.isOptSet("input_driver"))
                 retroarchConfig["input_driver"] = "xinput";
 
             retroarchConfig["driver_switch_enable"] = "false";
@@ -1102,7 +1105,6 @@ namespace EmulatorLauncher.Libretro
             if (core != "dosbox_pure")
                 return;
 
-            coreSettings["dosbox_pure_advanced"] = "true";
             coreSettings["dosbox_pure_savestate"] = "on";
             retroarchConfig["video_font_enable"] = "false"; // Disable OSD for dosbox_pure
 
@@ -1127,11 +1129,10 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "dosbox_pure_perfstats", "dosbox_pure_perfstats", "none");
             BindFeature(coreSettings, "dosbox_pure_conf", "dosbox_pure_conf", "false");
             BindFeature(coreSettings, "dosbox_pure_voodoo", "dosbox_pure_voodoo", "off");
-            BindFeature(coreSettings, "dosbox_pure_voodoo_perf", "dosbox_pure_voodoo_perf", "1");
+            BindFeature(coreSettings, "dosbox_pure_voodoo_perf", "dosbox_pure_voodoo_perf", "auto");
             BindBoolFeature(coreSettings, "dosbox_pure_bootos_ramdisk", "dosbox_pure_bootos_ramdisk", "true", "false");
             BindBoolFeature(coreSettings, "dosbox_pure_bootos_forcenormal", "dosbox_pure_bootos_forcenormal", "true", "false");
             BindBoolFeature(coreSettings, "dosbox_pure_auto_mapping", "dosbox_pure_auto_mapping", "true", "false");
-            BindBoolFeature(coreSettings, "dosbox_pure_bind_unused", "dosbox_pure_bind_unused", "true", "false");
 
             if (!SystemConfig.isOptSet("dosbox_pure_on_screen_keyboard") || SystemConfig.getOptBoolean("dosbox_pure_on_screen_keyboard"))
                 coreSettings["dosbox_pure_on_screen_keyboard"] = "true";
@@ -1169,6 +1170,7 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "d-rs_internal_upscale_factor", "drs_internal_upscale_factor", "2x (CS+, default)");
+            BindFeature(coreSettings, "d-rs_screen_ratio", "drs_screen_ratio", "4:3 (original)");
             BindBoolFeature(coreSettings, "d-rs_show_fps", "drs_show_fps", "enabled", "disabled");
         }
         private void Configureecwolf(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
