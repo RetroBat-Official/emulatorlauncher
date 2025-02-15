@@ -1209,7 +1209,6 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["ecwolf-analog-turn-sensitivity"] = "10";
 
             BindBoolFeature(coreSettings, "ecwolf-alwaysrun", "ecwolf_run", "enabled", "disabled");
-
         }
 
         private void ConfigureEmuscv(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

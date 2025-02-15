@@ -527,7 +527,8 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["rgui_extended_ascii"] = "true";
             retroarchConfig["rgui_show_start_screen"] = "false";
             retroarchConfig["rgui_browser_directory"] = AppConfig.GetFullPath("roms") ?? "default";
-            
+            retroarchConfig["input_overlay_enable_autopreferred"] = "false";
+
             // input driver set to raw if multigun is enabled
             if (SystemConfig.getOptBoolean("use_guns") && !SystemConfig.getOptBoolean("one_gun"))
             {
@@ -907,7 +908,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureAIService(retroarchConfig);
             ConfigureRunahead(system, core, retroarchConfig);
             ConfigureCoreOptions(retroarchConfig, system, core);
-            ConfigureBezels(retroarchConfig, system, rom, resolution);
+            ConfigureBezels(retroarchConfig, system, rom, core, resolution);
 
             // Video driver
             ConfigureVideoDriver(core, retroarchConfig);
@@ -1388,7 +1389,7 @@ namespace EmulatorLauncher.Libretro
         /// <param name="systemName"></param>
         /// <param name="rom"></param>
         /// <param name="resolution"></param>
-        private void ConfigureBezels(ConfigFile retroarchConfig, string systemName, string rom, ScreenResolution resolution)
+        private void ConfigureBezels(ConfigFile retroarchConfig, string systemName, string rom, string core, ScreenResolution resolution)
         {
             retroarchConfig["input_overlay_hide_in_menu"] = "false";
             retroarchConfig["input_overlay_enable"] = "false";
@@ -1575,16 +1576,8 @@ namespace EmulatorLauncher.Libretro
             }
             else
             {
-                if (systemBias.Contains(systemName))
-                {
-                    retroarchConfig["video_viewport_bias_x"] = "0.000000";
-                    retroarchConfig["video_viewport_bias_y"] = "1.000000";
-                }
-                else
-                {
-                    retroarchConfig["video_viewport_bias_x"] = "0.000000";
-                    retroarchConfig["video_viewport_bias_y"] = "0.000000";
-                }
+                retroarchConfig["video_viewport_bias_x"] = "0.000000";
+                retroarchConfig["video_viewport_bias_y"] = "1.000000";
             }
         }
 
@@ -1783,7 +1776,6 @@ namespace EmulatorLauncher.Libretro
         static List<string> capsimgCore = new List<string>() { "hatari", "hatarib", "puae" };
         static List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
         static List<string> coreNoGL = new List<string>() { "citra", "kronos", "mednafen_psx", "mednafen_psx_hw", "pcsx2", "swanstation" };
-        static List<string> systemBias = new List<string>() { "nds", "gb", "gbc", "gb2players", "gb2cplayers" };
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>() 

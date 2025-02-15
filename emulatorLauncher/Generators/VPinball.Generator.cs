@@ -14,7 +14,6 @@ using EmulatorLauncher.PadToKeyboard;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using System.Drawing.Imaging;
-using Steam_Library_Manager.Framework;
 using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher
@@ -899,21 +898,23 @@ namespace EmulatorLauncher
                 string UDAxis = "2";
                 string PlungerAxis = "4";
 
-                if (Controllers.Count > 0)
+                if (Controllers != null && Controllers.Count > 0)
                 {
                     controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
-                    if (controller.IsXInputDevice)
+                    if (controller != null && controller.IsXInputDevice)
                         isXinput = true;
-                    else
+                    else if (controller != null)
                     {
                         SdlToDirectInput dinputController = getDInputController(controller);
-                        if (dinputController.ButtonMappings.ContainsKey("leftx"))
-                            LRAxis = getDinputID(dinputController.ButtonMappings, "leftx");
-                        if (dinputController.ButtonMappings.ContainsKey("lefty"))
-                            UDAxis = getDinputID(dinputController.ButtonMappings, "lefty");
-                        if (dinputController.ButtonMappings.ContainsKey("righty"))
-                            PlungerAxis = getDinputID(dinputController.ButtonMappings, "righty");
-
+                        if (dinputController != null)
+                        {
+                            if (dinputController.ButtonMappings.ContainsKey("leftx"))
+                                LRAxis = getDinputID(dinputController.ButtonMappings, "leftx");
+                            if (dinputController.ButtonMappings.ContainsKey("lefty"))
+                                UDAxis = getDinputID(dinputController.ButtonMappings, "lefty");
+                            if (dinputController.ButtonMappings.ContainsKey("righty"))
+                                PlungerAxis = getDinputID(dinputController.ButtonMappings, "righty");
+                        }
                         if (LRAxis == null)
                             LRAxis = "1";
                         if (UDAxis == null)
