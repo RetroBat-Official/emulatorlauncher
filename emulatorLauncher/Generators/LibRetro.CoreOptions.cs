@@ -6,11 +6,14 @@ using System.IO;
 using System.Xml.Linq;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using static EmulatorLauncher.Mame64Generator;
 
 namespace EmulatorLauncher.Libretro
 {
     partial class LibRetroGenerator : Generator
     {
+        private bool _coreVideoDriverForce = false;
+
         public static string GetCoreName(string core)
         {
             var coreNames = new Dictionary<string, string>()
@@ -1534,20 +1537,20 @@ namespace EmulatorLauncher.Libretro
 
             // Crosshair
             if (SystemConfig.isOptSet("fbneo-lightgun-hide-crosshair") && SystemConfig.getOptBoolean("fbneo-lightgun-hide-crosshair"))
-            {
                 coreSettings["fbneo-lightgun-crosshair-emulation"] = "always show";
-                coreSettings["fbneo-lightgun-hide-crosshair"] = "disabled";
-            }
             else if (SystemConfig.isOptSet("fbneo-lightgun-hide-crosshair") && !SystemConfig.getOptBoolean("fbneo-lightgun-hide-crosshair"))
-            {
                 coreSettings["fbneo-lightgun-crosshair-emulation"] = "always hide";
-                coreSettings["fbneo-lightgun-hide-crosshair"] = "enabled";
-            }
             else
-            {
                 coreSettings["fbneo-lightgun-crosshair-emulation"] = "hide with lightgun device";
-            }
 
+            // Set ratio to 22 if game is vertical
+            var romInfo = MameGameInfo.GetGameInfo(Path.GetFileNameWithoutExtension(rom));
+            if (romInfo != null && romInfo.Vertical && !SystemConfig.isOptSet("ratio"))
+            {
+                retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
+                retroarchConfig["video_allow_rotate "] = "true";
+            }
+            
             // Controls
             if (SystemConfig.isOptSet("fbneo_controller") && !string.IsNullOrEmpty(SystemConfig["fbneo_controller"]))
             {
@@ -2199,7 +2202,12 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "pcsx2_renderer", "lrps2_renderer", "Auto");
 
             if (SystemConfig["lrps2_renderer"] == "paraLLEl-GS")
+            {
                 retroarchConfig["video_driver"] = "vulkan";
+                _coreVideoDriverForce = true;
+                if (!_bias)
+                    retroarchConfig["video_viewport_bias_y"] = "0.000000";
+            }
 
             BindFeatureSlider(coreSettings, "pcsx2_upscale_multiplier", "lrps2_upscale_multiplier", "1");
             BindFeature(coreSettings, "pcsx2_deinterlace_mode", "lrps2_deinterlace_mode", "Automatic");

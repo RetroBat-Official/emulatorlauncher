@@ -38,6 +38,7 @@ namespace EmulatorLauncher.Libretro
         private bool _noHotkey = false;
         private string _video_driver;
         private string _dosBoxTempRom;
+        private bool _bias = true;
 
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -201,6 +202,15 @@ namespace EmulatorLauncher.Libretro
 
                 //romName = os.path.splitext(os.path.basename(rom))[0]
                 rom = Path.GetFullPath(datadir + "/roms/" + romName + ".zip");
+            }
+
+            // unzip 7z for some cores
+            if (Path.GetExtension(rom).ToLower() == ".7z")
+            {
+                string newRom = GetUnzippedRomForSystem(rom, core, system);
+
+                if (newRom != null)
+                    rom = newRom;
             }
 
             // dosbox core specifics
@@ -514,6 +524,7 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["video_window_save_positions"] = "false";
             retroarchConfig.DisableAll("video_viewport_bias_x");
             retroarchConfig.DisableAll("video_viewport_bias_y");
+            retroarchConfig["video_allow_rotate "] = "true";
             retroarchConfig["notification_show_autoconfig"] = "false";
             retroarchConfig["notification_show_config_override_load"] = "false";            
             retroarchConfig["notification_show_remap_load"] = "false";
@@ -908,12 +919,14 @@ namespace EmulatorLauncher.Libretro
             ConfigureAIService(retroarchConfig);
             ConfigureRunahead(system, core, retroarchConfig);
             ConfigureCoreOptions(retroarchConfig, system, core);
-            ConfigureBezels(retroarchConfig, system, rom, core, resolution);
-
+            
             // Video driver
             ConfigureVideoDriver(core, retroarchConfig);
             ConfigureGPUIndex(retroarchConfig);
             ConfigureVSync(retroarchConfig);
+
+            // Bezels
+            ConfigureBezels(retroarchConfig, system, rom, core, resolution);
 
             // Language
             SetLanguage(retroarchConfig);
@@ -978,25 +991,38 @@ namespace EmulatorLauncher.Libretro
             if (!Features.IsSupported("video_driver"))
                 return;
 
+            // Return if driver was forced in core settings
+            if (_coreVideoDriverForce)
+            {
+                _video_driver = retroarchConfig["video_driver"];
+                return;
+            }
+
+            // general, assigned selected core
             if (SystemConfig.isOptSet("video_driver"))
             {
-                _video_driver = retroarchConfig["video_driver"];
+                _video_driver = SystemConfig["video_driver"];
                 retroarchConfig["video_driver"] = SystemConfig["video_driver"];
             }
-            else if (core == "dolphin" && retroarchConfig["video_driver"] != "d3d11" && retroarchConfig["video_driver"] != "vulkan" && retroarchConfig["video_driver"] != "gl" && retroarchConfig["video_driver"] != "glcore")
+            
+            // core stuff
+            if (core == "dolphin" && retroarchConfig["video_driver"] != "d3d11" && retroarchConfig["video_driver"] != "vulkan" && retroarchConfig["video_driver"] != "gl" && retroarchConfig["video_driver"] != "glcore")
             {
-                _video_driver = retroarchConfig["video_driver"];
+                _video_driver = "d3d11";
                 retroarchConfig["video_driver"] = "d3d11";
+                return;
             }
             if (core.StartsWith("mupen64") && SystemConfig["RDP_Plugin"] == "parallel")
             {
                 _video_driver = "vulkan";
                 retroarchConfig["video_driver"] = "vulkan";
+                return;
             }
-            else if (core == "pcsx2" && retroarchConfig["video_driver"] == "gl")
+            if (core == "pcsx2" && retroarchConfig["video_driver"] == "gl")
             {
                 _video_driver = "glcore";
                 retroarchConfig["video_driver"] = "glcore";
+                return;
             }
 
             // Set default video driver per core
@@ -1005,7 +1031,6 @@ namespace EmulatorLauncher.Libretro
                 _video_driver = defaultVideoDriver[core];
                 retroarchConfig["video_driver"] = defaultVideoDriver[core];
             }
-            
         }
 
         /// <summary>
@@ -1565,11 +1590,10 @@ namespace EmulatorLauncher.Libretro
             fd.AppendLine("overlay0_descs = 0");
             File.WriteAllText(overlay_cfg_file, fd.ToString());
 
-            bool bias = true;
             if (retroarchConfig["aspect_ratio_index"] == ratioIndexes.IndexOf("custom").ToString())
-                bias = false;
+                _bias = false;
 
-            if (bias)
+            if (_bias)
             {
                 retroarchConfig["video_viewport_bias_x"] = "0.500000";
                 retroarchConfig["video_viewport_bias_y"] = "0.500000";
@@ -1577,7 +1601,11 @@ namespace EmulatorLauncher.Libretro
             else
             {
                 retroarchConfig["video_viewport_bias_x"] = "0.000000";
-                retroarchConfig["video_viewport_bias_y"] = "1.000000";
+
+                if (driverYBias.Contains(_video_driver))
+                    retroarchConfig["video_viewport_bias_y"] = "1.000000";
+                else
+                    retroarchConfig["video_viewport_bias_y"] = "0.000000";
             }
         }
 
@@ -1617,13 +1645,6 @@ namespace EmulatorLauncher.Libretro
 
             if (_dosBoxTempRom != null && File.Exists(_dosBoxTempRom))
                 File.Delete(_dosBoxTempRom);
-
-            if (!string.IsNullOrEmpty(_video_driver))
-            {
-                var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
-                retroarchConfig["video_driver"] = _video_driver;
-                retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
-            }
 
             if (_screenShotWatcher != null)
             {
@@ -1776,6 +1797,7 @@ namespace EmulatorLauncher.Libretro
         static List<string> capsimgCore = new List<string>() { "hatari", "hatarib", "puae" };
         static List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
         static List<string> coreNoGL = new List<string>() { "citra", "kronos", "mednafen_psx", "mednafen_psx_hw", "pcsx2", "swanstation" };
+        static List<string> driverYBias = new List<string>() { "gl", "glcore" };
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>() 
