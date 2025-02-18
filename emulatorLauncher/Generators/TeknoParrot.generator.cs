@@ -180,7 +180,7 @@ namespace EmulatorLauncher
             if (profile == null)
             {
                 SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable to find gameprofile for " + rom);
-                return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to find game profile.\r\nPlease make sure the game folder is named like the xml file in emulators/teknoparrot/GameProfiles folder or like the <GameName> element in the xml" };
+                return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to find game profile.\r\nPlease make sure the game folder is named like the GameProfile file in emulators/teknoparrot/GameProfiles folder." };
             }
 
             SetupParrotData(path);
