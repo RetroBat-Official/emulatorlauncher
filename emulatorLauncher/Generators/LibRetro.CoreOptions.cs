@@ -1526,11 +1526,11 @@ namespace EmulatorLauncher.Libretro
 
             // Dispwitches
             if (SystemConfig.isOptSet("fbneo_freeplay") && SystemConfig.getOptBoolean("fbneo_freeplay"))
-                coreSettings["fbneo-dipswitch-" + gameName + "-Free_play"] = "On";
+                coreSettings["fbneo-dipswitch-" + gameName + "-Free_Play"] = "On";
             else if (SystemConfig.isOptSet("fbneo_freeplay") && !SystemConfig.getOptBoolean("fbneo_freeplay"))
-                coreSettings["fbneo-dipswitch-" + gameName + "-Free_play"] = "Off";
-            else if (coreSettings["fbneo-dipswitch-" + gameName + "-Free_play"] != null)
-                coreSettings["fbneo-dipswitch-" + gameName + "-Free_play"] = "Off";
+                coreSettings["fbneo-dipswitch-" + gameName + "-Free_Play"] = "Off";
+            else
+                coreSettings["fbneo-dipswitch-" + gameName + "-Free_Play"] = "Off";
 
             // Crosshair
             if (SystemConfig.isOptSet("fbneo-lightgun-hide-crosshair") && SystemConfig.getOptBoolean("fbneo-lightgun-hide-crosshair"))
@@ -1538,10 +1538,14 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["fbneo-lightgun-crosshair-emulation"] = "always show";
                 coreSettings["fbneo-lightgun-hide-crosshair"] = "disabled";
             }
-            else
+            else if (SystemConfig.isOptSet("fbneo-lightgun-hide-crosshair") && !SystemConfig.getOptBoolean("fbneo-lightgun-hide-crosshair"))
             {
                 coreSettings["fbneo-lightgun-crosshair-emulation"] = "always hide";
                 coreSettings["fbneo-lightgun-hide-crosshair"] = "enabled";
+            }
+            else
+            {
+                coreSettings["fbneo-lightgun-crosshair-emulation"] = "hide with lightgun device";
             }
 
             // Controls
@@ -1619,10 +1623,8 @@ namespace EmulatorLauncher.Libretro
             if (core != "flycast")
                 return;
 
-            coreSettings["reicast_system"] = "auto";
             coreSettings["reicast_show_lightgun_settings"] = "enabled";
-            coreSettings["reicast_threaded_rendering"] = "enabled";
-            coreSettings["reicast_enable_purupuru"] = "enabled"; // Enable controller force feedback
+            coreSettings["reicast_network_output"] = "enabled"; // Enable controller force feedback
 
             BindBoolFeature(coreSettings, "reicast_widescreen_hack", "widescreen_hack", "enabled", "disabled");
             BindBoolFeature(coreSettings, "reicast_widescreen_cheats", "widescreen_cheats", "enabled", "disabled");
@@ -1637,7 +1639,6 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "reicast_texture_filtering", "reicast_texture_filtering", "0");
             BindFeature(coreSettings, "reicast_anisotropic_filtering", "anisotropic_filtering", "off");
             BindFeatureSlider(coreSettings, "reicast_texupscale", "texture_upscaling", "1");
-            BindBoolFeature(coreSettings, "reicast_force_wince", "force_wince", "enabled", "disabled");
             BindFeature(coreSettings, "reicast_cable_type", "cable_type", "TV (RGB)");
             BindFeature(coreSettings, "reicast_broadcast", "reicast_broadcast", "Default");
             BindFeature(coreSettings, "reicast_internal_resolution", "internal_resolution", "640x480");
@@ -1648,7 +1649,6 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "reicast_per_content_vmus", "reicast_per_content_vmus", "disabled");
             BindFeature(coreSettings, "reicast_language", "reicast_language", "English");
             BindFeature(coreSettings, "reicast_region", "reicast_region", "Default");
-            BindBoolFeature(coreSettings, "reicast_dump_textures", "reicast_dump_textures", "enabled", "disabled");
             BindBoolFeature(coreSettings, "reicast_custom_textures", "reicast_custom_textures", "enabled", "disabled");
             BindFeature(coreSettings, "reicast_alpha_sorting", "reicast_alpha_sorting", "per-triangle (normal)");
             BindBoolFeature(coreSettings, "reicast_enable_rttb", "reicast_enable_rttb", "enabled", "disabled");
@@ -1699,6 +1699,12 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(coreSettings, "reicast_lightgun1_crosshair", "reicast_lightgun1_crosshair", "disabled");
             BindFeature(coreSettings, "reicast_lightgun2_crosshair", "reicast_lightgun2_crosshair", "disabled");
+
+            for (int i = 1; i < 5; i++)
+            {
+                coreSettings["reicast_device_port" + i + "_slot1"] = "VMU";
+                coreSettings["reicast_device_port" + i + "_slot2"] = "Purupuru";
+            }
 
             SetupLightGuns(retroarchConfig, "4", core);
 
@@ -1801,6 +1807,8 @@ namespace EmulatorLauncher.Libretro
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "gearcoleco_controller", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "gearcoleco_controller", "1");
+
+            SetupLightGuns(retroarchConfig, "260", core);
         }
 
         private void ConfigureGenesisPlusGX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
