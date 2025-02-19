@@ -534,6 +534,7 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["notification_show_disk_control"] = "true";
             retroarchConfig["notification_show_save_state"] = "true";
             retroarchConfig["notification_show_screenshot"] = "true";
+            retroarchConfig["notification_show_when_menu_is_alive"] = "false";
             retroarchConfig["driver_switch_enable"] = "true";
             retroarchConfig["rgui_extended_ascii"] = "true";
             retroarchConfig["rgui_show_start_screen"] = "false";
@@ -990,6 +991,8 @@ namespace EmulatorLauncher.Libretro
         {
             if (!Features.IsSupported("video_driver"))
                 return;
+            
+            _video_driver = retroarchConfig["video_driver"];
 
             // Return if driver was forced in core settings
             if (_coreVideoDriverForce)
