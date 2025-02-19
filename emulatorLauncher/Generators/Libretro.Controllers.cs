@@ -20,6 +20,7 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> mdSystems = new List<string>() { "megadrive", "genesis", "megadrive-msu", "genesis-msu", "segacd", "megacd", "sega32x", "mega32x" };
         static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
+        static readonly List<string> arcadeSystems = new List<string>() { "arcade", "mame", "hbmame", "fbneo", "cave", "cps1", "cps2", "cps3", "atomiswave", "naomi", "naomi2", "gaelco", "segastv", "neogeo64" };
 
 
         public static bool WriteControllersConfig(ConfigFile retroconfig, string system, string core)
@@ -179,7 +180,7 @@ namespace EmulatorLauncher.Libretro
                         {
                             foreach (var kbHotkey in kbHotkeys)
                             {
-                                var hotkey = kbHotkey as YmlElement;
+                                YmlElement hotkey = kbHotkey as YmlElement;
 
                                 if (hotkey != null && hotkey.Name.StartsWith("input_") && !hotkey.Name.EndsWith("_btn") && !hotkey.Name.EndsWith("_mbtn") && !hotkey.Name.EndsWith("_axis"))
                                     config[hotkey.Name] = hotkey.Value;
@@ -263,7 +264,7 @@ namespace EmulatorLauncher.Libretro
             Dictionary<InputKey, string> retroarchbtns = new Dictionary<InputKey, string>()
             {
                 { InputKey.b, "a" },
-                { InputKey.a, "b" }, // A et B inversés par rapport à batocera
+                { InputKey.a, "b" }, // A and B reverted for RetroBat
                 { InputKey.x, "x" }, 
                 { InputKey.y, "y" },
                 { InputKey.pageup, "l" },
@@ -318,9 +319,33 @@ namespace EmulatorLauncher.Libretro
 
                 if (input.Type == "key")
                 {
-                    string value = GetConfigValue(input);
-                    config[string.Format("input_player{0}_{1}", controller.PlayerIndex, btnkey.Value)] = value;
-                    conflicts.AddRange(retroconfig.Where(i => i.Value == value).Select(i => i.Name));
+                    // For arcade systems, when using keyboard, set 1 and 5.... as select and start
+                    if (arcadeSystems.Contains(system) && controller.IsKeyboard && controller.PlayerIndex < 5 && (btnkey.Value == "start" || btnkey.Value == "select"))
+                    {
+                        int index = controller.PlayerIndex;
+                        string value = btnkey.Value;
+                        switch (value)
+                        {
+                            case "select":
+                                int selectNumValue = index + 4;
+                                value = "num" + selectNumValue.ToString();
+                                break;
+                            case "start":
+                                int startNumValue = index;
+                                value = "num" + startNumValue.ToString();
+                                break;
+                        }
+
+                        config[string.Format("input_player{0}_{1}", controller.PlayerIndex, btnkey.Value)] = value;
+                        conflicts.AddRange(retroconfig.Where(i => i.Value == value).Select(i => i.Name));
+                    }
+
+                    else
+                    {
+                        string value = GetConfigValue(input);
+                        config[string.Format("input_player{0}_{1}", controller.PlayerIndex, btnkey.Value)] = value;
+                        conflicts.AddRange(retroconfig.Where(i => i.Value == value).Select(i => i.Name));
+                    }
                 }
                 else
                     config[string.Format("input_player{0}_{1}_{2}", controller.PlayerIndex, btnkey.Value, typetoname[input.Type])] = GetConfigValue(input);
@@ -365,15 +390,56 @@ namespace EmulatorLauncher.Libretro
             
             if (controller.PlayerIndex == 1 && !_noHotkey)
             {
+                bool toggleff = false;
+                
                 if (Program.SystemConfig.getOptBoolean("fastforward_toggle"))
                 {
                     retroarchspecials[InputKey.right] = "toggle_fast_forward";
                     retroarchspecialsALT[InputKey.r2] = "toggle_fast_forward";
+                    toggleff = true;
                 }
 
                 var hotkeyList = retroarchspecials;
                 if (Program.SystemConfig.getOptBoolean("alt_hotkeys"))
                     hotkeyList = retroarchspecialsALT;
+
+                // override shortcuts from file
+                string cHotkeyFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "retroarch_controller_hotkeys.yml");
+
+                if (File.Exists(cHotkeyFile))
+                {
+                    YmlFile ymlFile = YmlFile.Load(cHotkeyFile);
+                    if (ymlFile != null)
+                    {
+                        YmlContainer cHotkeyList = ymlFile.Elements.Where(c => c.Name == core).FirstOrDefault() as YmlContainer;
+
+                        if (cHotkeyList == null)
+                            cHotkeyList = ymlFile.Elements.Where(c => c.Name == "default").FirstOrDefault() as YmlContainer;
+
+                        if (cHotkeyList != null)
+                        {
+                            SimpleLogger.Instance.Info("[GENERATOR] Overwriting controller hotkeys with values from : " + cHotkeyFile);
+
+                            var cHotkeys = cHotkeyList.Elements;
+
+                            if (cHotkeys != null & cHotkeys.Count > 0)
+                            {
+                                hotkeyList.Clear();
+                                foreach (var cHotkey in cHotkeys)
+                                {
+                                    YmlElement hotkey = cHotkey as YmlElement;
+                                    string value = hotkey.Value;
+
+                                    if (Program.SystemConfig.getOptBoolean("fastforward_toggle") && hotkey.Value == "hold_fast_forward")
+                                        value = "toggle_fast_forward";
+                                    
+                                    if (Enum.TryParse(hotkey.Name, true, out InputKey key) && value != null)
+                                        hotkeyList[key] = value;
+                                }
+                            }
+                        }
+                    }
+                }
 
                 foreach (var specialkey in hotkeyList)
                 {

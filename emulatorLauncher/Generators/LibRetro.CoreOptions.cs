@@ -1819,7 +1819,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "genesis_plus_gx")
                 return;
 
-            coreSettings["genesis_plus_gx_bram"] = "per game";
+            coreSettings["genesis_plus_gx_system_bram"] = "per game";
 
             if (SystemConfig.isOptSet("gen_ym2413") && !string.IsNullOrEmpty(SystemConfig["gen_ym2413"]))
                 BindBoolFeature(coreSettings, "genesis_plus_gx_ym2413", "gen_ym2413", "enabled", "disabled");
@@ -1914,7 +1914,7 @@ namespace EmulatorLauncher.Libretro
                 SystemConfig["bezel"] = "none";
             }
 
-            coreSettings["genesis_plus_gx_wide_bram"] = "per game";
+            coreSettings["genesis_plus_gx_wide_system_bram"] = "per game";
 
             if (SystemConfig.isOptSet("gen_ym2413") && !string.IsNullOrEmpty(SystemConfig["gen_ym2413"]))
                 BindBoolFeature(coreSettings, "genesis_plus_gx_wide_ym2413", "gen_ym2413", "enabled", "disabled");
