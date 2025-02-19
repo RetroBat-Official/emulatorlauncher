@@ -291,6 +291,28 @@ namespace EmulatorLauncher
 
         }
 
+        public string GetUnzippedRomForSystem(string rom, string core, string system)
+        {
+            string[] psxExtensions = new string[] { ".m3u", ".cue", ".img", ".mdf", ".pbp", ".toc", ".cbn", ".ccd", ".iso", ".cso" };
+            string[] extensions = new string[] { };
+
+            if (system == "psx")
+                extensions = psxExtensions;
+            else
+                return null;
+
+            string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+            if (Directory.Exists(uncompressedRomPath))
+            {
+                string[] romFiles = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories).OrderBy(file => Array.IndexOf(extensions, Path.GetExtension(file).ToLowerInvariant())).ToArray();
+                rom = romFiles.FirstOrDefault(file => extensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
+                ValidateUncompressedGame();
+                return rom;
+            }
+            
+            return null;
+        }
+
         #endregion
 
         #region Error
