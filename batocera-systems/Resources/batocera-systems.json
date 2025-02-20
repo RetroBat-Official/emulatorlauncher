@@ -290,7 +290,7 @@
       }
     ]
   },
-  
+
   "arcadia": {
     "name": "Arcadia 2001",
     "biosFiles": [
@@ -951,6 +951,16 @@
       {
         "md5": "0cd5946c6473e42e8e4c2137785e427f",
         "file": "bios/grom.bin"
+      }
+    ]
+  },
+
+  "j2me": {
+    "name": "Java",
+    "biosFiles": [
+      {
+        "md5": "c575f2dd51217ce82fd925b2a27a857c",
+        "file": "bios/freej2me-lr.jar"
       }
     ]
   },
@@ -1812,7 +1822,7 @@
       }
     ]
   },
-  
+
   "vsmile": {
     "name": "V. Smile",
     "biosFiles": [
