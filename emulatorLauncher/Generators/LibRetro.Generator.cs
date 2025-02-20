@@ -205,7 +205,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             // unzip 7z for some cores
-            if (Path.GetExtension(rom).ToLower() == ".7z")
+            if (rom != null && core!=null && Path.GetExtension(rom).ToLower() == ".7z")
             {
                 string newRom = GetUnzippedRomForSystem(rom, core, system);
 
@@ -250,7 +250,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             // When using .ipf extension, ensure capsimg.dll is present in RetroArch folder
-            if (capsimgCore.Contains(core) && Path.GetExtension(rom).ToLowerInvariant() == ".ipf")
+            if (core != null && rom != null && capsimgCore.Contains(core) && Path.GetExtension(rom).ToLowerInvariant() == ".ipf")
             {
                 string sourceDll = Path.Combine(AppConfig.GetFullPath("bios"), "capsimg.dll");
                 string targetDll = Path.Combine(AppConfig.GetFullPath("retroarch"), "capsimg.dll");
@@ -525,6 +525,7 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig.DisableAll("video_viewport_bias_x");
             retroarchConfig.DisableAll("video_viewport_bias_y");
             retroarchConfig["video_allow_rotate "] = "true";
+            retroarchConfig["menu_show_load_content_animation"] = "false";
             retroarchConfig["notification_show_autoconfig"] = "false";
             retroarchConfig["notification_show_config_override_load"] = "false";            
             retroarchConfig["notification_show_remap_load"] = "false";
@@ -562,6 +563,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_analog_sensitivity", "analog_sensitivity", "1.000000");
             BindFeatureSlider(retroarchConfig, "fastforward_ratio", "fastforward_ratio", "0.000000");
             retroarchConfig["input_remap_binds_enable"] = "true";
+            retroarchConfig["input_remap_sort_by_controller_enable"] = "false";
             retroarchConfig["input_remapping_directory"] = ":\\config\\remaps";
 
             SetupUIMode(retroarchConfig);
@@ -1513,7 +1515,8 @@ namespace EmulatorLauncher.Libretro
             string overlay_cfg_file = Path.Combine(RetroarchPath, "custom-overlay.cfg");
 
             retroarchConfig["input_overlay_enable"] = "true";
-            retroarchConfig["input_overlay_scale"] = "1.0";
+            retroarchConfig["input_overlay_scale_landscape"] = "1.0";
+            retroarchConfig["input_overlay_scale_portrait"] = "1.0";
             retroarchConfig["input_overlay"] = animatedBezel ? animatedBezelPath : overlay_cfg_file;
             retroarchConfig["input_overlay_hide_in_menu"] = "true";
 
@@ -1707,7 +1710,6 @@ namespace EmulatorLauncher.Libretro
             new UIModeSetting("content_show_add", "false", "false", "true"),
             new UIModeSetting("content_show_contentless_cores", "0", "0", "1"),
             new UIModeSetting("content_show_explore", "false", "false", "true"),
-            new UIModeSetting("content_show_favorite", "false", "false", "true"),
             new UIModeSetting("content_show_favorites", "false", "false", "true"),
             new UIModeSetting("content_show_history", "false", "true", "true"),
             new UIModeSetting("content_show_images", "false", "false", "true"),
@@ -1732,16 +1734,13 @@ namespace EmulatorLauncher.Libretro
             new UIModeSetting("menu_show_restart_retroarch", "false", "false", "true"),
             new UIModeSetting("menu_show_rewind", "false", "true", "true"),
             new UIModeSetting("menu_show_shutdown", "false", "true", "true"),
-            new UIModeSetting("menu_show_video_layout", "false", "false", "true"),
             new UIModeSetting("quick_menu_show_add_to_favorites", "false", "false", "true"),
             new UIModeSetting("quick_menu_show_cheats", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_close_content", "false", "false", "true"),
-            new UIModeSetting("settings_show_video", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_controls", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_core_options_flush", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_download_thumbnails", "false", "false", "true"),
-            new UIModeSetting("quick_menu_show_options", "false", "true", "true"),
-            new UIModeSetting("quick_menu_show_recording", "false", "true", "true"),           
+            new UIModeSetting("quick_menu_show_options", "false", "true", "true"),          
             new UIModeSetting("quick_menu_show_reset_core_association", "false", "false", "true"),
             new UIModeSetting("quick_menu_show_restart_content", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_save_content_dir_overrides", "false", "false", "true"),
@@ -1751,10 +1750,8 @@ namespace EmulatorLauncher.Libretro
             new UIModeSetting("quick_menu_show_shaders", "false", "false", "true"),
             new UIModeSetting("quick_menu_show_start_recording", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_start_streaming", "false", "false", "true"),
-            new UIModeSetting("quick_menu_show_streaming", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_take_screenshot", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_undo_save_load_state", "false", "false", "true"),
-            // quick_menu_show_save_load_state always true
             new UIModeSetting("settings_show_ai_service", "false", "true", "true"),
             new UIModeSetting("settings_show_audio", "false", "true", "true"),
             new UIModeSetting("settings_show_configuration", "false", "true", "true"),
