@@ -359,9 +359,9 @@ namespace EmulatorLauncher.Libretro
             ConfigureMame2010(retroarchConfig, coreSettings, system, core);
             ConfigureMame2014(retroarchConfig, coreSettings, system, core);
             ConfigureMame2016(retroarchConfig, coreSettings, system, core);
-            ConfigureMednafenPCFX(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPceFast(retroarchConfig, coreSettings, system, core);
+            ConfigureMednafenPCFX(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPsxHW(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenSaturn(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenSuperGrafx(retroarchConfig, coreSettings, system, core);
@@ -690,9 +690,9 @@ namespace EmulatorLauncher.Libretro
             if (core != "boom3" && core != "boom3_xp")
                 return;
 
-            BindFeature(retroarchConfig, "doom_resolution", "boom3_resolution", "960x544");
-            BindBoolFeatureOn(retroarchConfig, "doom_invert_y_axis", "boom3_invert_axis", "enabled", "disabled");
-            BindBoolFeature(retroarchConfig, "doom_fps", "boom3_fps", "enabled", "disabled");
+            BindFeature(coreSettings, "doom_resolution", "boom3_resolution", "960x544");
+            BindBoolFeatureOn(coreSettings, "doom_invert_y_axis", "boom3_invert_axis", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "doom_fps", "boom3_fps", "enabled", "disabled");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "Doom3ControllerP1", "1");
         }
 
@@ -2109,7 +2109,6 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             coreSettings["kronos_use_beetle_saves"] = "enabled";
-            coreSettings["kronos_sh2coretype"] = "kronos";
 
             coreSettings["kronos_multitap_port1"] = "disabled";
             coreSettings["kronos_multitap_port2"] = "disabled";
@@ -2136,14 +2135,12 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            BindFeature(coreSettings, "kronos_addon_cartridge", "kronos_addon_cartridge", "none");
+            BindFeature(coreSettings, "kronos_addon_cartridge", "kronos_addon_cartridge", "512K_backup_ram");
             BindBoolFeature(coreSettings, "kronos_bandingmode", "kronos_bandingmode", "enabled", "disabled");
             BindBoolFeature(coreSettings, "kronos_force_downsampling", "kronos_force_downsampling", "enabled", "disabled");
             BindFeature(coreSettings, "kronos_language_id", "kronos_language_id", "English");
             BindBoolFeature(coreSettings, "kronos_meshmode", "kronos_meshmode", "enabled", "disabled");
-            BindFeature(coreSettings, "kronos_polygon_mode", "kronos_polygon_mode", "cpu_tesselation");
             BindFeature(coreSettings, "kronos_resolution_mode", "kronos_resolution_mode", "original");
-            BindFeature(coreSettings, "kronos_videocoretype", "kronos_videocoretype", "opengl");
             BindFeature(coreSettings, "kronos_videoformattype", "kronos_videoformattype", "auto");
             BindFeatureSlider(coreSettings, "kronos_skipframe", "kronos_skipframe", "0");
 
@@ -2209,7 +2206,7 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["video_viewport_bias_y"] = "0.000000";
             }
 
-            BindFeatureSlider(coreSettings, "pcsx2_upscale_multiplier", "lrps2_upscale_multiplier", "1");
+            BindFeatureSlider(coreSettings, "pcsx2_upscale_multiplier", "lrps2_upscale_multiplier", "1x Native (PS2)");
             BindFeature(coreSettings, "pcsx2_deinterlace_mode", "lrps2_deinterlace_mode", "Automatic");
             BindBoolFeatureOn(coreSettings, "pcsx2_nointerlacing_hint", "lrps2_nointerlacing_hint", "enabled", "disabled");
             BindFeature(coreSettings, "pcsx2_texture_filtering", "lrps2_texture_filtering", "Bilinear (PS2)");
@@ -2419,7 +2416,6 @@ namespace EmulatorLauncher.Libretro
 
             BindBoolFeature(coreSettings, "mame2003_tate_mode", "mame2003_tate_mode", "enabled", "disabled");
             BindFeature(coreSettings, "mame2003_input_interface", "mame2003_input_interface", "retropad");
-            BindBoolFeature(coreSettings, "mame2003_four_way_emulation", "mame2003_four_way_emulation", "enabled", "disabled");
 
             BindFeature(coreSettings, "mame2003_frameskip", "mame2003_frameskip", "disabled");
             BindBoolFeatureOn(coreSettings, "mame2003_mame_remapping", "mame2003_mame_remapping", "enabled", "disabled");
@@ -2434,12 +2430,9 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["mame2003-plus_skip_disclaimer"] = "enabled";
             coreSettings["mame2003-plus_skip_warnings"] = "enabled";
-            coreSettings["mame2003-plus_mouse_device"] = "mouse";
 
             BindBoolFeature(coreSettings, "mame2003-plus_tate_mode", "mame2003-plus_tate_mode", "enabled", "disabled");
             BindFeature(coreSettings, "mame2003-plus_input_interface", "mame2003-plus_input_interface", "retropad");
-            BindBoolFeature(coreSettings, "mame2003-plus_four_way_emulation", "mame2003-plus_four_way_emulation", "enabled", "disabled");
-            BindFeature(coreSettings, "mame2003-plus_analog", "mame2003-plus_analog", "digital");
             BindFeature(coreSettings, "mame2003-plus_frameskip", "mame2003-plus_frameskip", "disabled");
             BindFeature(coreSettings, "mame2003-plus_neogeo_bios", "mame2003-plus_neogeo_bios", "unibios33");
 
@@ -2509,17 +2502,6 @@ namespace EmulatorLauncher.Libretro
             SetupLightGuns(retroarchConfig, "1", core);
         }
 
-        private void ConfigureMednafenPCFX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
-        {
-            if (core != "mednafen_pcfx")
-                return;
-
-            BindBoolFeature(coreSettings, "sgx_nospritelimit", "sgx_nospritelimit", "enabled", "disabled");
-
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "pcfx_controller1", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "pcfx_controller2", "1");
-        }
-
         private void ConfigureMednafenPce(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "mednafen_pce")
@@ -2556,7 +2538,7 @@ namespace EmulatorLauncher.Libretro
             BindFeatureSlider(coreSettings, "pce_cdpsgvolume", "pcecdpsvolume", "100");
 
             // Controls
-            BindBoolFeature(retroarchConfig, "pce_multitap", "pce_multitap", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pce_multitap", "pce_multitap", "enabled", "disabled");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pce_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "pce_controller2", "1");
 
@@ -2604,6 +2586,17 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["pce_fast_default_joypad_type_p" + i] = "2 Buttons";
                 }
             }
+        }
+
+        private void ConfigureMednafenPCFX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mednafen_pcfx")
+                return;
+
+            BindBoolFeature(coreSettings, "pcfx_nospritelimit", "pcfx_nospritelimit", "enabled", "disabled");
+
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "pcfx_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "pcfx_controller2", "1");
         }
 
         private void ConfigureMednafenPsxHW(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -3310,7 +3303,7 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "mgba_force_gbp", "mgba_force_gbp", "ON", "OFF");
             BindFeature(coreSettings, "mgba_gb_colors", "mgba_gb_colors", "Grayscale");
             BindFeature(coreSettings, "mgba_interframe_blending", "mgba_interframe_blending", "OFF");
-            BindFeature(coreSettings, "mgba_color_correction", "mgba_color_correction", "Auto");
+            BindFeature(coreSettings, "mgba_color_correction", "mgba_color_correction", "OFF");
 
             if (system == "sgb")
                 BindBoolFeatureOn(coreSettings, "mgba_sgb_borders", "mgba_sgb_borders", "ON", "OFF");
@@ -3649,7 +3642,7 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            BindBoolFeature(coreSettings, "pcsx_rearmed_display_internal_fps", "display_internal_fps", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx_rearmed_display_fps_v2", "display_internal_fps", "enabled", "disabled");
             BindBoolFeature(coreSettings, "pcsx_rearmed_dithering", "pcsx_rearmed_dithering", "disabled", "enabled");
             BindFeatureSlider(coreSettings, "pcsx_rearmed_psxclock", "pcsx_rearmed_psxclock", "57");
             BindFeature(coreSettings, "pcsx_rearmed_region", "pcsx_rearmed_region", "auto");
@@ -3658,7 +3651,6 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "pcsx_rearmed_icache_emulation", "pcsx_rearmed_icache_emulation", "enabled", "disabled");
 
             // Game fixes
-
             coreSettings["pcsx_rearmed_idiablofix"] = "disabled";
             coreSettings["pcsx_rearmed_pe2_fix"] = "disabled";
             coreSettings["pcsx_rearmed_inuyasha_fix"] = "disabled";
@@ -3723,7 +3715,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "picodrive_overclk68k", "overclk68k", "disabled");
             BindFeature(coreSettings, "picodrive_region", "region", "Auto");
             BindFeature(coreSettings, "picodrive_renderer", "renderer", "accurate");
-            BindBoolFeature(coreSettings, "picodrive_drc", "dynamic_recompiler", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "picodrive_drc", "dynamic_recompiler", "enabled", "disabled");
             BindBoolFeature(coreSettings, "picodrive_input1", "md_3buttons", "3 button pad", "6 button pad");
             BindBoolFeature(coreSettings, "picodrive_input2", "md_3buttons", "3 button pad", "6 button pad");
             BindBoolFeature(coreSettings, "picodrive_smsfm", "picodrive_smsfm", "on", "off");
@@ -3757,7 +3749,6 @@ namespace EmulatorLauncher.Libretro
         {
             if (core != "pocketcpg")
                 return;
-
         }
 
         private void ConfigurePokeMini(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -3776,7 +3767,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "pokemini_palette", "pokemini_palette", "Default");
             BindFeatureSlider(coreSettings, "pokemini_lcdcontrast", "pokemini_lcdcontrast", "64");
             BindFeatureSlider(coreSettings, "pokemini_lcdbright", "pokemini_lcdbright", "0");
-            BindBoolFeature(coreSettings, "pokemini_60hz_mode", "pokemini_60hz_mode", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "pokemini_60hz_mode", "pokemini_60hz_mode", "enabled", "disabled");
 
             // Audio Filter
             if (Features.IsSupported("pokemini_lowpass_filter"))
@@ -3945,7 +3936,7 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(retroarchConfig, "input_libretro_device_p1", "DoomControllerP1", "1");
             BindFeature(coreSettings, "prboom-resolution", "prboom_resolution", "320x200");
-            BindBoolFeature(coreSettings, "prboom-mouse_on", "prboom_mouse", "disabled", "enabled");
+            BindBoolFeature(coreSettings, "prboom-mouse_on", "prboom_mouse", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "prboom-find_recursive_on", "prboom_recursive", "enabled", "disabled");
         }
 
@@ -4544,9 +4535,9 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "swanstation_GPU_ForceNTSCTimings", "force_ntsc_timings", "true", "false");
             BindBoolFeature(coreSettings, "swanstation_GPU_WidescreenHack", "widescreen_hack", "true", "false");
             BindFeature(coreSettings, "swanstation_GPU_MSAA", "msaa", "1");
-            BindBoolFeatureOn(coreSettings, "swanstation_GPU_ScaledDithering", "scaled_dithering", "false", "true");
+            BindBoolFeatureOn(coreSettings, "swanstation_GPU_ScaledDithering", "scaled_dithering", "true", "false");
             BindBoolFeature(coreSettings, "swanstation_GPU_TrueColor", "truecolor", "true", "false");
-            BindBoolFeatureOn(coreSettings, "swanstation_BIOS_PatchFastBoot", "skip_bios", "false", "true");
+            BindBoolFeatureOn(coreSettings, "swanstation_BIOS_PatchFastBoot", "skip_bios", "true", "false");
             BindFeature(coreSettings, "swanstation_CPU_ExecutionMode", "swanstation_cpucore", "Interpreter");
             BindFeature(coreSettings, "swanstation_MemoryCards_Card1Type", "swanstation_memcard1", "Libretro");
             BindFeature(coreSettings, "swanstation_MemoryCards_Card2Type", "swanstation_memcard2", "None");
@@ -4611,7 +4602,7 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            BindFeature(retroarchConfig, "swanstation_Controller_AnalogCombo", "swanstation_Controller_AnalogCombo", "4");
+            BindFeature(coreSettings, "swanstation_Controller_AnalogCombo", "swanstation_Controller_AnalogCombo", "4");
 
             if (Controllers.Count > 5)
                 coreSettings["swanstation_ControllerPorts_MultitapMode"] = "BothPorts";
