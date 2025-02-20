@@ -16,6 +16,7 @@ namespace EmulatorLauncher.Common.FileFormats
         AllowDuplicateValues = 4,
         KeepEmptyLines = 8,
         UseDoubleEqual = 16,  // nosgba inifile uses double equals as separator !
+        ManageKeysWithQuotes = 32   // manage ini files where key are between quotes
     }
 
     public class IniFile : IDisposable
@@ -74,7 +75,19 @@ namespace EmulatorLauncher.Common.FileFormats
                                 }
 
                                 var key = new Key();
-                                key.Name = keyPair[0].Trim();
+                                
+                                string keyName = keyPair[0].Trim();
+
+                                if (_options.HasFlag(IniOptions.ManageKeysWithQuotes))
+                                {
+                                    // If the key is surrounded by quotes, remove them
+                                    if (keyName.StartsWith("\"") && keyName.EndsWith("\""))
+                                    {
+                                        keyName = keyName.Substring(1, keyName.Length - 2);  // Remove quotes
+                                    }
+                                }
+
+                                key.Name = keyName;
 
                                 if (!key.IsComment && !_options.HasFlag(IniOptions.AllowDuplicateValues) && namesInSection.Contains(key.Name))
                                 {
@@ -224,7 +237,6 @@ namespace EmulatorLauncher.Common.FileFormats
         public override string ToString()
         {
             ArrayList sections = new ArrayList();
-
             StringBuilder sb = new StringBuilder();
 
             foreach (var section in _sections)
@@ -256,7 +268,15 @@ namespace EmulatorLauncher.Common.FileFormats
                     if (string.IsNullOrEmpty(entry.Name))
                         continue;
 
-                    sb.Append(entry.Name);
+                    if (_options.HasFlag(IniOptions.ManageKeysWithQuotes))
+                    {
+                        sb.Append("\"" + entry.Name + "\"");  // Add quotes around the key
+                    }
+
+                    else
+                    {
+                        sb.Append(entry.Name);
+                    }
 
                     if (_options.HasFlag(IniOptions.UseSpaces))
                         sb.Append(" ");
