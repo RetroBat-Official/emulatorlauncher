@@ -93,7 +93,7 @@ namespace EmulatorLauncher.Libretro
                 { "fmsx", "fMSX" },
                 { "freechaf", "FreeChaF" },
                 { "freeintv", "FreeIntv" },
-                { "freej2me", "FreeJ2ME" },
+                { "freej2me", "FreeJ2ME-Plus" },
                 { "frodo", "Frodo" },
                 { "fsuae", "FS-UAE" },
                 { "fuse", "Fuse" },
@@ -336,6 +336,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureFbneo(retroarchConfig, coreSettings, system, core);
             ConfigureFCEumm(retroarchConfig, coreSettings, system, core);
             ConfigureFlycast(retroarchConfig, coreSettings, system, core);
+            ConfigureFreej2me(retroarchConfig, coreSettings, system, core);
             ConfigureFrodo(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureGambatte(retroarchConfig, coreSettings, system, core);
@@ -1718,6 +1719,16 @@ namespace EmulatorLauncher.Libretro
             }
 
             SetupWheels(retroarchConfig, "2049", "1", core);
+        }
+
+        private void ConfigureFreej2me(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "freej2me")
+                return;
+
+            BindFeature(coreSettings, "freej2me_resolution", "freej2me_resolution", "240x320");
+            BindBoolFeature(coreSettings, "freej2me_rotate", "freej2me_rotate", "on", "off");
+            BindBoolFeature(coreSettings, "freej2me_analogasentirekeypad", "freej2me_analogasentirekeypad", "on", "off");
         }
 
         private void ConfigureFrodo(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

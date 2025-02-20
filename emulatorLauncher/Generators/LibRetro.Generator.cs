@@ -12,6 +12,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.PadToKeyboard;
+using System.Text.RegularExpressions;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -193,6 +194,46 @@ namespace EmulatorLauncher.Libretro
                         return null;
                     }
                 }
+            }
+
+            // For j2me, check if java is installed
+            if (core != null && core == "freej2me")
+            {
+                try
+                {
+                    ProcessStartInfo psi = new ProcessStartInfo
+                    {
+                        FileName = "java",
+                        Arguments = "-version",
+                        RedirectStandardError = true, // Java outputs version info to stderr
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (Process process = Process.Start(psi))
+                    {
+                        using (System.IO.StreamReader reader = process.StandardError)
+                        {
+                            string output = reader.ReadToEnd();
+
+                            if (!string.IsNullOrEmpty(output))
+                            {
+                                string version = "nul";
+                                Match match = Regex.Match(output, @"\b(\d+\.\d+\.\d+(_\d+)?)\b");
+
+                                if (match != null)
+                                    version = match.Value;
+                                
+                                SimpleLogger.Instance.Info("[INFO] Java is installed, version is: " + version);
+                            }
+                            else
+                            {
+                                throw new ApplicationException("[ERROR] Java is not installed.");
+                            }
+                        }
+                    }
+                }
+                catch { }
             }
 
             // Extension used by hypseus .daphne but lr-daphne starts with .zip
