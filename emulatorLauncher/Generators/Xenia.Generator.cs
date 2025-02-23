@@ -368,10 +368,18 @@ namespace EmulatorLauncher
             string cfgFile = foundGame.FileLocations.ConfigLocation;
 
             if (cfgFile == null)
+            {
+                SimpleLogger.Instance.Info("[WARNING] Config file reference not found in games.json.");
                 return false;
-            
+            }
+
             if (!File.Exists(cfgFile))
+                cfgFile = Path.Combine(path, cfgFile);
+            if (!File.Exists(cfgFile))
+            {
+                SimpleLogger.Instance.Info("[WARNING] Config file does not exist in location: " + cfgFile);
                 return false;
+            }
 
             _xeniaManagerConfigFile = cfgFile;
             SimpleLogger.Instance.Info("[INFO] Using config file: " + cfgFile);
