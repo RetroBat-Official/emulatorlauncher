@@ -20,6 +20,7 @@ namespace EmulatorLauncher
         {            
             // emulator / installation folder(s) / executable(s)
             // the 7z filename on the website must be the first installation folder name
+            { new Installer("altirra", "altirra", "Altirra64.exe") },
             { new Installer("angle", "retroarch" ) },
             { new Installer("apple2", "applewin") },
             { new Installer("apple2gs", "gsplus") },
