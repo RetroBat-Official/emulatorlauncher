@@ -707,7 +707,6 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Writing controller configuration in : " + iniFile);
 
-            
             bool forceSDL = false;
             if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
                 forceSDL = true;
@@ -724,7 +723,8 @@ namespace EmulatorLauncher
                     bool xinputAsSdl = false;
                     bool isNintendo = pad.VendorID == USB_VENDOR.NINTENDO;
                     string gcpad = anyDefKey + pad.PlayerIndex;
-                    ini.ClearSection(gcpad);
+                    if (gcpad != null)
+                        ini.ClearSection(gcpad);
 
                     if (pad.Config == null)
                         continue;
@@ -764,7 +764,7 @@ namespace EmulatorLauncher
                             tech = "XInput";
                         }
 
-                        deviceName = pad.Name;
+                        deviceName = pad.Name != null ? pad.Name : "";
 
                         string newNamePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
                         if (File.Exists(newNamePath))
@@ -812,10 +812,14 @@ namespace EmulatorLauncher
                         string tempMapX = anyMapping[InputKey.x];
                         string tempMapY = anyMapping[InputKey.y];
 
-                        anyMapping[InputKey.a] = tempMapB;
-                        anyMapping[InputKey.b] = tempMapA;
-                        anyMapping[InputKey.x] = tempMapY;
-                        anyMapping[InputKey.y] = tempMapX;
+                        if (tempMapB != null)
+                            anyMapping[InputKey.a] = tempMapB;
+                        if (tempMapA != null)
+                            anyMapping[InputKey.b] = tempMapA;
+                        if (tempMapY != null)
+                            anyMapping[InputKey.x] = tempMapY;
+                        if (tempMapX != null)
+                            anyMapping[InputKey.y] = tempMapX;
                     }
 
                     foreach (var x in anyMapping)
