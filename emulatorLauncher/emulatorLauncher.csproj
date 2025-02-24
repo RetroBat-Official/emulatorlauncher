@@ -110,6 +110,10 @@
     <Compile Include="MameHooker\MameHooker.Demul.cs" />
     <Compile Include="MameHooker\MameHooker.Flycast.cs" />
     <Compile Include="MameHooker\MameHooker.Mame64.cs" />
+    <Compile Include="Generators\Altirra.Generator.cs" />
+    <Compile Include="Generators\Altirra.Controllers.cs">
+      <DependentUpon>Altirra.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\AmigaForever.Generator.cs" />
     <Compile Include="Generators\AppleWin.Generator.cs" />
     <Compile Include="Generators\ArcadeFlashWeb.Generator.cs" />

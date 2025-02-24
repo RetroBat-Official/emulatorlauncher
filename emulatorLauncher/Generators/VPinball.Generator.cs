@@ -28,7 +28,8 @@ namespace EmulatorLauncher
         private LoadingForm _splash;       
         private Version _version;
         private string _processName;
-        private string _exe;        
+        private string _exe;
+        private string _gamePath;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -45,6 +46,7 @@ namespace EmulatorLauncher
             _exe = exe;
             _processName = Path.GetFileNameWithoutExtension(exe);
             _version = new Version(10, 0, 0, 0);
+            _gamePath = Path.GetDirectoryName(rom);
 
             // Get version from executable
             var versionInfo = FileVersionInfo.GetVersionInfo(exe);
@@ -69,7 +71,6 @@ namespace EmulatorLauncher
             EnsurePinupDOFRegistered(path);
             EnsurePupServerRegistered(path);
             EnsurePupDMDControlRegistered(path);
-            //WritePinUPPopperOptions(path);
 
             string romPath = Path.Combine(Path.GetDirectoryName(rom), "roms");
             if (!Directory.Exists(romPath))
@@ -890,6 +891,7 @@ namespace EmulatorLauncher
 
                 // Audio
                 ini.WriteValue("Player", "PlayMusic", SystemConfig.getOptBoolean("vp_music_off") ? "0" : "1");
+                BindIniFeature(ini, "Player", "Sound3D", "vp_audiochannels", "0");
 
                 // Controls
                 Controller controller = null;
@@ -1263,8 +1265,9 @@ namespace EmulatorLauncher
         private void SetupB2STableSettings(string path)
         {
             string b2STableSettingsPath = Path.Combine(path, "BackglassServer", "B2STableSettings.xml");
+            string b2STableSettingsPathRom = Path.Combine(_gamePath, "B2STableSettings.xml");
 
-            if (!File.Exists(b2STableSettingsPath))
+            if (!File.Exists(b2STableSettingsPathRom))
             {
                 try
                 {
@@ -1273,6 +1276,7 @@ namespace EmulatorLauncher
                     new XElement("ArePluginsOn", 1),
                     new XElement("DefaultStartMode", 2),
                     new XElement("DisableFuzzyMatching", 1),
+                    new XElement("HideGrill", SystemConfig.getOptBoolean("vpbg_hidegrill") ? 1 : 0),
                     new XElement("LogPath", ""),  // Empty value
                     new XElement("IsLampsStateLogOn", 0),
                     new XElement("IsSolenoidsStateLogOn", 0),
@@ -1286,6 +1290,7 @@ namespace EmulatorLauncher
                     new XElement("ScreenshotFileType", 0)
                     ));
 
+                    xmlDoc.Save(b2STableSettingsPathRom);
                     xmlDoc.Save(b2STableSettingsPath);
                 }
                 catch { }
@@ -1294,11 +1299,12 @@ namespace EmulatorLauncher
             {
                 try
                 {
-                    XDocument xmlDoc = XDocument.Load(b2STableSettingsPath);
+                    XDocument xmlDoc = XDocument.Load(b2STableSettingsPathRom);
                     XElement root = xmlDoc.Element("B2STableSettings");
 
                     if (root != null)
                     {
+                        // Plugins
                         XElement element = root.Element("ArePluginsOn");
 
                         if (element != null)
@@ -1306,6 +1312,15 @@ namespace EmulatorLauncher
                         else
                             root.Add(new XElement("ArePluginsOn", "1"));
 
+                        // Hide grill
+                        XElement hidegrill = root.Element("HideGrill");
+
+                        if (element != null)
+                            element.Value = SystemConfig.getOptBoolean("vpbg_hidegrill") ? "1" : "0";
+                        else
+                            root.Add(new XElement("HideGrill", SystemConfig.getOptBoolean("vpbg_hidegrill") ? "1" : "0"));
+
+                        xmlDoc.Save(b2STableSettingsPathRom);
                         xmlDoc.Save(b2STableSettingsPath);
                     }
                     else
