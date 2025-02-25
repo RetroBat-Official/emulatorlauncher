@@ -15,6 +15,7 @@ using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using System.Drawing.Imaging;
 using EmulatorLauncher.Common.Joysticks;
+using System.Configuration;
 
 namespace EmulatorLauncher
 {
@@ -657,52 +658,6 @@ namespace EmulatorLauncher
             catch { }
         }
 
-        /*private void WritePinUPPopperOptions(string path)
-        {
-            string PopperPath = "PopperPath";
-            string VPINMamePath = "VPINMamePath";
-            string VPXPath = "VPXPath";
-
-            string targetPopperPath = Path.Combine(path, "PinUPSystem");
-            string targetVPINMamePath = Path.Combine(path, "VPinMAME");
-            string targetVPXPath = path;
-
-            try
-            {
-                var softwareKey = Registry.CurrentUser.OpenSubKey(@"Software\PinUPPopper\Settings", true);
-                {
-                    if (softwareKey != null)
-                    {
-                        string PopperPathvalue = softwareKey.GetValue(PopperPath) as string;
-
-                        if (PopperPathvalue != null)
-                        {
-                            if (PopperPathvalue != targetPopperPath)
-                                SetOption(softwareKey, "PopperPath", targetPopperPath);
-                        }
-
-                        string VPINMamePathvalue = softwareKey.GetValue(VPINMamePath) as string;
-
-                        if (VPINMamePathvalue != null)
-                        {
-                            if (VPINMamePathvalue != targetVPINMamePath)
-                                SetOption(softwareKey, "VPINMamePath", targetVPINMamePath);
-                        }
-
-                        string VPXPathvalue = softwareKey.GetValue(VPXPath) as string;
-
-                        if (VPXPathvalue != null)
-                        {
-                            if (VPXPathvalue != targetVPINMamePath)
-                                SetOption(softwareKey, "VPXPath", targetVPINMamePath);
-                        }
-                    }  
-                }
-            }
-            catch
-            { }
-        }*/
-
         private static string GetRegAsmPath(RegistryViewEx view = RegistryViewEx.Registry32)
         {
             string installRoot = string.Empty;
@@ -1140,6 +1095,7 @@ namespace EmulatorLauncher
                 var globalKey = visualPinMame.CreateSubKey("globals");
                 var defaultKey = visualPinMame.CreateSubKey("default");
 
+                // global key
                 if (globalKey != null)
                 {
                     string vPinMamePath = Path.Combine(path, "VPinMAME");
@@ -1171,6 +1127,7 @@ namespace EmulatorLauncher
                     globalKey.Close();
                 }
 
+                // default key
                 if (defaultKey != null)
                 {
                     if (Program.SystemConfig.getOptBoolean("vpmame_dmd"))
@@ -1184,9 +1141,13 @@ namespace EmulatorLauncher
                         SetOption(defaultKey, "showwindmd", 1);
                     }
 
+                    BindBoolRegistryFeature(defaultKey, "cabinet_mode", "vpmame_cabinet", 1, 0, true);
+                    BindBoolRegistryFeature(defaultKey, "dmd_colorize", "vpmame_colordmd", 1, 0, false);
+
                     defaultKey.Close();
                 }
 
+                // per rom config
                 if (romPath != null)
                 {
                     string[] romList = Directory.GetFiles(romPath, "*.zip").Select(r => Path.GetFileNameWithoutExtension(r)).Distinct().ToArray();
@@ -1207,6 +1168,9 @@ namespace EmulatorLauncher
                             SetOption(romKey, "showpindmd", 0);
                             SetOption(romKey, "showwindmd", 1);
                         }
+
+                        BindBoolRegistryFeature(romKey, "cabinet_mode", "vpmame_cabinet", 1, 0, true);
+                        BindBoolRegistryFeature(romKey, "dmd_colorize", "vpmame_colordmd", 1, 0, false);
 
                         romKey.Close();
                     }
@@ -1368,6 +1332,24 @@ namespace EmulatorLauncher
             }
 
             return null;
+        }
+
+        private static void BindBoolRegistryFeature(RegistryKey key, string name, string featureName, object truevalue, object falsevalue, bool defaultOn)
+        {
+            if (Program.Features.IsSupported(featureName))
+            {
+                if (Program.SystemConfig.isOptSet(featureName) && Program.SystemConfig.getOptBoolean(featureName))
+                    SetOption(key, name, truevalue);
+                else
+                {
+                    if (Program.SystemConfig.isOptSet(featureName) && !Program.SystemConfig.getOptBoolean(featureName))
+                        SetOption(key, name, falsevalue);
+                    else if (defaultOn)
+                        SetOption(key, name, truevalue);
+                    else
+                        SetOption(key, name, falsevalue);
+                }
+            }
         }
 
         class DirectB2sData
