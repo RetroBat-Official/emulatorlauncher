@@ -122,14 +122,11 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] setting " + tech + " inputdriver in SuperModel.");
 
-            // Not sure about the index used by supermodel but it seems to be dinput
-            if (tech != "sdl")
-            {
-                j1index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex + 1 : c1.DeviceIndex + 1;
+            // Input indexes in supermodel seem to always be DirectInput + 1, regardless of actual input system used
+            j1index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex + 1 : c1.DeviceIndex + 1;
 
-                if (c2 != null && c2.Config != null)
-                    j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
-            }
+            if (c2 != null && c2.Config != null)
+                j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
 
             SimpleLogger.Instance.Info("[INFO] setting index of joystick 1 to " + j1index.ToString());
             SimpleLogger.Instance.Info("[INFO] setting index of joystick 2 to " + j2index.ToString());
@@ -140,7 +137,10 @@ namespace EmulatorLauncher
 
             var guns = RawLightgun.GetRawLightguns();
 
-            bool multigun = SystemConfig.isOptSet("multigun") && SystemConfig.getOptBoolean("multigun");
+            // default to multigun if we have more than one usable gun.
+            bool multigun = gunCount > 1 && guns.Length > 1;
+            if (SystemConfig.isOptSet("multigun"))
+                multigun = SystemConfig.getOptBoolean("multigun");
             if (multigun)
                 SimpleLogger.Instance.Info("[GUNS] Using multigun.");
 
