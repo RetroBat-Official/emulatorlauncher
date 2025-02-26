@@ -763,6 +763,7 @@ namespace EmulatorLauncher
                 SetupOptionsRegistry(resolution);
 
             SetupVPinMameOptions(path, romPath);
+            SetupDmdDevice(path);
         }
 
         private void SetupOptionsIniFile(string path, ScreenResolution resolution)
@@ -942,6 +943,7 @@ namespace EmulatorLauncher
             ini.WriteValue("Player", "JoyCustom3Key", "203");
             ini.WriteValue("Player", "JoyCustom4Key", "205");
         }
+
         private void SetupOptionsRegistry(ScreenResolution resolution)
         {
             //HKEY_CURRENT_USER\Software\Visual Pinball\VP10\Player
@@ -1178,6 +1180,19 @@ namespace EmulatorLauncher
             }
 
             softwareKey.Close();
+        }
+
+        private void SetupDmdDevice(string path)
+        {
+            string iniFile = Path.Combine(path, "VPinMAME", "DmdDevice.ini");
+
+            using (var ini = new IniFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
+            {
+                BindBoolIniFeatureOn(ini, "virtualdmd", "enabled", "vpmame_virtualdmd", "true", "false");
+                BindBoolIniFeature(ini, "zedmd", "enabled", "vpmame_zedmd", "true", "false");
+
+                ini.Save();
+            }
         }
 
         private static void DisableVPinMameLicenceDialogs(string romPath, RegistryKey visualPinMame)
