@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using EmulatorLauncher.Common;
@@ -149,9 +149,10 @@ namespace EmulatorLauncher
 
             if (gunCount > 0 && guns.Length > 0)
             {
-                mouseIndex1 = (guns[0].Index + 1).ToString();
+                // Adjust for Supermodel using a reverse iteration order: https://github.com/trzy/Supermodel/blob/master/Src/OSD/Windows/DirectInputSystem.cpp#L610
+                mouseIndex1 = (guns.Length - guns[0].Index).ToString();
                 if (gunCount > 1 && guns.Length > 1)
-                    mouseIndex2 = (guns[1].Index + 1).ToString();
+                    mouseIndex2 = (guns.Length - guns[1].Index).ToString();
 
                 if (SystemConfig.isOptSet("use_guns") && guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
                 {
