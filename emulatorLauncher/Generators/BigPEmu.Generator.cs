@@ -5,6 +5,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using System.Linq;
 using System;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher
 {
@@ -15,6 +16,7 @@ namespace EmulatorLauncher
         private string _path;
         private SaveStatesWatcher _saveStatesWatcher;
         private int _saveStateSlot = 0;
+        private SdlVersion _sdlVersion = SdlVersion.SDL2_30;
 
         public override void Cleanup()
         {
@@ -38,6 +40,10 @@ namespace EmulatorLauncher
             string exe = Path.Combine(path, "BigPEmu.exe");
             if (!File.Exists(exe))
                 return null;
+
+            string sdl2 = Path.Combine(path, "Data", "ThirdParty", "bin", "SDL2.dll");
+            if (File.Exists(sdl2))
+                _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
 
             string[] extensions = new string[] { ".cue", ".cdi", ".j64",".jag", ".rom", ".bin", ".prg", ".cof", ".abs" };
             if (Path.GetExtension(rom).ToLowerInvariant() == ".zip" || Path.GetExtension(rom).ToLowerInvariant() == ".7z" || Path.GetExtension(rom).ToLowerInvariant() == ".squashfs")
