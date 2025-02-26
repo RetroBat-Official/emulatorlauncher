@@ -110,15 +110,17 @@ namespace EmulatorLauncher
                 return;
 
             if (controller.IsKeyboard)
-                ConfigureKeyboard(controller.Config);
+                ConfigureKeyboard(ini, controller.Config);
             else
                 ConfigureJoystick(ini, controller, controller.PlayerIndex);
         }
 
-        private void ConfigureKeyboard(InputConfig keyboard)
+        private void ConfigureKeyboard(IniFile ini, InputConfig keyboard)
         {
             if (keyboard == null)
                 return;
+
+            ini.WriteValue("Controls\\Win", "Joypad1:Enabled", "TRUE");
 
             return; 
             // TODO
