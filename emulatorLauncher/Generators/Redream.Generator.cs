@@ -50,6 +50,13 @@ namespace EmulatorLauncher
             {
                 ini.WriteValue("", "fullmode", fullscreen ? "borderless fullscreen" : "windowed");
                 ini.WriteValue("", "mode", fullscreen ? "borderless fullscreen" : "windowed");
+
+                if (fullscreen && SystemConfig.getOptBoolean("exclusivefs"))
+                {
+                    ini.WriteValue("", "fullmode", "exclusive fullscreen");
+                    ini.WriteValue("", "mode", "exclusive fullscreen");
+                }
+
                 ini.WriteValue("", "gamedir", "./../../roms/dreamcast");
 
                 BindIniFeatureSlider(ini, "", "res", "redream_res", "2");

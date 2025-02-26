@@ -149,7 +149,17 @@ namespace EmulatorLauncher
 
                 //video part
                 var video = bigpemucore.GetOrCreateContainer("Video");
-                BindFeature(video, "DisplayMode", "displaymode", fullscreen ? "0" : "1");      //0 for borderless windows, 1 for windowed, 2 for fullscreen
+
+                if (fullscreen)                             //0 for borderless windows, 1 for windowed, 2 for fullscreen
+                {
+                    if (SystemConfig.getOptBoolean("exclusivefs"))
+                        video["DisplayMode"] = "2";
+                    else
+                        video["DisplayMode"] = "0";
+                }
+                else
+                    video["DisplayMode"] = "1";
+
                 BindBoolFeatureOn(video, "VSync", "vsync", "1", "0");                  // vsync on as default setting
                 BindFeature(video, "HDROutput", "enable_hdr", "0");
                 video["ShittyFreqWarn"] = "0";

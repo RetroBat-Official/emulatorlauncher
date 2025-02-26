@@ -48,17 +48,9 @@ namespace EmulatorLauncher
 
                 if (SystemConfig.isOptSet("hypseus_scalefactor") && !string.IsNullOrEmpty(SystemConfig["hypseus_scalefactor"]) && SystemConfig["hypseus_scalefactor"].Substring(0, 3) != "100")
                 {
-                    string xString = SystemConfig["hypseus_scalefactor"].Substring(0, 3);
-                    int x;
-                    if (int.TryParse(xString, out x))
-                    {
-                        if (x != 0)
-                        {
-                            int result = (int)Math.Round((100.0 * 100.0) / x);
-                            commandArray.Add("-scalefactor");
-                            commandArray.Add(result.ToString());
-                        }
-                    }
+                    string xString = SystemConfig["hypseus_scalefactor"].ToIntegerString();
+                    commandArray.Add("-scalefactor");
+                    commandArray.Add(xString);
                 }
 
                 if (SystemConfig.isOptSet("hypseus_renderer") && SystemConfig["hypseus_renderer"] == "vulkan")

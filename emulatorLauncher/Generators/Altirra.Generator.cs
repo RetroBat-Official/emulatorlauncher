@@ -150,6 +150,8 @@ namespace EmulatorLauncher
 
             using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces | IniOptions.ManageKeysWithQuotes))
             {
+                ini.WriteValue("User\\Software\\virtualdub.org\\Altirra\\Settings", "Display: Borderless mode", SystemConfig.getOptBoolean("exclusivefs") ? "0" : "1");
+
                 ini.WriteValue("User\\Software\\virtualdub.org\\Altirra", "ShownSetupWizard", "1");
                 ini.WriteValue("User\\Software\\virtualdub.org\\Altirra\\DialogDefaults", "DiscardMemory", "\"ok\"");
                 if (p != null)
