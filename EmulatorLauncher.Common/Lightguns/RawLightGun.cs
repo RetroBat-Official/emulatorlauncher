@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -112,7 +112,7 @@ namespace EmulatorLauncher.Common.Lightguns
                  index++;
             }
 
-            // Sort by, gun4IR, then by Blamcon, then by (sinden) lightgun, then by retroshooters, thenby wiimotes, then by physical index
+            // Sort known lightguns first, then by physical index.
             mouseNames.Sort((x, y) => x.GetGunPriority().CompareTo(y.GetGunPriority()));
 
             return mouseNames.ToArray();
@@ -205,6 +205,16 @@ namespace EmulatorLauncher.Common.Lightguns
                         return 113;
                     else
                         return 114 + Index;
+
+                case RawLighGunType.Aimtrak:
+                    if (DevicePath != null && DevicePath.Contains("VID_D209&PID_1601"))
+                        return 120;
+                    else if (DevicePath != null && DevicePath.Contains("VID_D209&PID_1602"))
+                        return 121;
+                    else if (DevicePath != null && DevicePath.Contains("VID_D209&PID_1603"))
+                        return 122;
+                    else
+                        return 123 + Index;
 
                 case RawLighGunType.MayFlashWiimote:
                     return 200 + Index;
