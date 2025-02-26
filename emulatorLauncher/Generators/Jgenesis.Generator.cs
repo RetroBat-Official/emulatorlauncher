@@ -129,6 +129,8 @@ namespace EmulatorLauncher
 
                 ini.DeleteSection("game_boy");
 
+                ini.WriteValue("common", "fullscreen_mode", SystemConfig.getOptBoolean("exclusivefs") ? "\"Exclusive\"" : "\"Borderless\"");
+
                 ini.WriteValue("common", "save_path", "\"Custom\"");
 
                 ini.WriteValue("common", "custom_save_path", "'" + savesPath + "'");

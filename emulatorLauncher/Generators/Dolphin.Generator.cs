@@ -183,6 +183,10 @@ namespace EmulatorLauncher
                     // Fullscreen
                     if (_bezelFileInfo != null)
                         ini.WriteValue("Settings", "BorderlessFullscreen", "True");
+                    else if (SystemConfig.getOptBoolean("exclusivefs"))
+                        ini.WriteValue("Settings", "BorderlessFullscreen", "False");
+                    else
+                        ini.WriteValue("Settings", "BorderlessFullscreen", "True");
 
                     // Ratio
                     if (SystemConfig.isOptSet("ratio"))

@@ -160,6 +160,7 @@ namespace EmulatorLauncher
             BindBoolFeatureOn(video, "VerticalSync", "mesen_vsync", "true", "false");
             BindFeatureSlider(video, "ScanlineIntensity", "mesen_scanlines", "0");
             BindBoolFeature(video, "FullscreenForceIntegerScale", "integerscale", "true", "false");
+            BindBoolFeature(video, "UseExclusiveFullscreen", "exclusivefs", "true", "false");
 
             // Emulation menu
             var emulation = json.GetOrCreateContainer("Emulation");

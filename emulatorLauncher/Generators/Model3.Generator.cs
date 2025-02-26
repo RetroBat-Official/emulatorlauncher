@@ -187,7 +187,7 @@ namespace EmulatorLauncher
                 using (IniFile ini = new IniFile(iniPath, IniOptions.UseSpaces))
                 {
                     //Fullscreen and widescreen values (should we keep these as commandline take precedent ?
-                    ini.WriteValue(" Global ", "BorderlessWindow", "True");
+                    ini.WriteValue(" Global ", "BorderlessWindow", SystemConfig.getOptBoolean("exclusivefs") ? "False" : "True");
                     if ((fullscreen && !SystemConfig.isOptSet("videomode")) || SystemConfig.getOptBoolean("forcefullscreen"))
                         ini.WriteValue(" Global ", "FullScreen", "1");
                     else

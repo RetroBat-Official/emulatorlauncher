@@ -103,6 +103,11 @@ namespace EmulatorLauncher
                 else
                     toml.WriteValue("General", "Fullscreen", "false");
 
+                if (SystemConfig.getOptBoolean("exclusivefs"))
+                    toml.WriteValue("General", "FullscreenMode", "True");
+                else
+                    toml.WriteValue("General", "FullscreenMode", "Borderless");
+
                 toml.WriteValue("General", "autoUpdate", "false");
                 toml.WriteValue("General", "showSplash", "false");
 

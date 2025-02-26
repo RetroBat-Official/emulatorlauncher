@@ -190,6 +190,9 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "fullscreen\\default", fullscreen ? "false" : "true");
                 ini.WriteValue("UI", "fullscreen", fullscreen ? "true" : "false");
 
+                ini.WriteValue("Renderer", "fullscreen_mode\\default", SystemConfig.getOptBoolean("exclusivefs") ? "false" : "true");
+                ini.WriteValue("Renderer", "fullscreen_mode", SystemConfig.getOptBoolean("exclusivefs") ? "1" : "0");
+
                 //Hide mouse when inactive
                 ini.WriteValue("UI", "hideInactiveMouse\\default", "true");
                 ini.WriteValue("UI", "hideInactiveMouse", "true");

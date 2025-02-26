@@ -331,7 +331,11 @@ namespace EmulatorLauncher
             // Handle Vulkan part of yml file
             YmlContainer vulkan = video.GetOrCreateContainer("Vulkan");
             BindBoolFeature(vulkan, "Asynchronous Texture Streaming 2", "asynctexturestream", "true", "false");
-            BindFeature(vulkan, "Exclusive Fullscreen Mode", "rpcs3_fullscreen_mode", "Automatic");
+            
+            if (SystemConfig.getOptBoolean("exclusivefs"))
+                vulkan["Exclusive Fullscreen Mode"] = "Enable";
+
+            BindFeature(vulkan, "Exclusive Fullscreen Mode", "rpcs3_fullscreen_mode", "Automatic");            
 
             // Handle Performance Overlay part of yml file
             YmlContainer performance = video.GetOrCreateContainer("Performance Overlay");
