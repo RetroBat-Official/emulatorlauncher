@@ -216,7 +216,7 @@ namespace EmulatorLauncher
             byte[] bytes = tempGuid.ToByteArray();
             string guid = BitConverter.ToString(bytes).Replace("-", "").ToUpperInvariant();
 
-            if (_useSdl)
+            if (_useSdl && ctrl.SdlController != null)
             {
                 Dictionary<string, int> double_pads = new Dictionary<string, int>();
 
@@ -239,7 +239,7 @@ namespace EmulatorLauncher
                     nsamePad = samePadList.IndexOf(ctrl);
                 }
 
-                guid = ctrl.GetSdlGuid(SdlVersion.SDL2_30, true);
+                guid = ctrl.SdlController.Guid.ToString().ToUpperInvariant();
 
                 string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
                 string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, ctrl.Guid, "bigpemu");
