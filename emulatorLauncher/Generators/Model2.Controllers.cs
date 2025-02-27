@@ -1297,7 +1297,12 @@ namespace EmulatorLauncher
         {
             key = key.GetRevertedAxis(out bool revertAxis);
 
-            string esName = (c.Config[key].Name).ToString();
+            var keyConfig = c.Config[key];
+            if (keyConfig == null)
+            {
+                return 0x00;
+            }
+            string esName = keyConfig.Name.ToString();
 
             // Nintendo has no analog triggers : use right stick
             if (brand == "nintendo")
