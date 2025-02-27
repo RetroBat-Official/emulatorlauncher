@@ -330,8 +330,10 @@ namespace EmulatorLauncher
                 }
             }
 
-            SimpleLogger.Instance.Info("[INFO] setting index of joystick 1 to " + j1index.ToString() + " (" + c1.ToString()+")");
-            SimpleLogger.Instance.Info("[INFO] setting index of joystick 2 to " + j2index.ToString() + " (" + c2.ToString()+")");
+            if (c1 != null)
+                SimpleLogger.Instance.Info("[INFO] setting index of joystick 1 to " + j1index.ToString() + " (" + c1.ToString()+")");
+            if (c2 != null)
+                SimpleLogger.Instance.Info("[INFO] setting index of joystick 2 to " + j2index.ToString() + " (" + c2.ToString()+")");
 
             SimpleLogger.Instance.Info("[INFO] Writing controls to emulator .ini file.");
 
