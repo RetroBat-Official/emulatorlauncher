@@ -76,15 +76,11 @@ namespace EmulatorLauncher
             if (c1 == null || c1.Config == null)
                 return;
 
-            //initialize controller index, supermodel uses directinput controller index (+1)
-            //only index of player 1 is initialized as there might be only 1 controller at that point
-            int j2index = -1;
-            int j1index = c1.SdlController !=null ? c1.SdlController.Index + 1 : c1.DeviceIndex + 1;
-
-            //If a secod controller is connected, get controller index of player 2, if there is no 2nd controller, just increment the index
-            if (c2 != null && c2.Config != null)
+            // We clear the InputSystem key for all sections because we're controlling the input system and
+            // don't want to have a game-specific override in the existing configuration take presedence over our value.
+            foreach (var section in ini.EnumerateSections())
             {
-                j2index = c2.SdlController != null ? c2.SdlController.Index + 1 : c2.DeviceIndex + 1;
+                ini.Remove(section, "InputSystem");
             }
 
             //initialize tech : as default we will use sdl instead of dinput, as there are less differences in button mappings in sdl !
@@ -122,27 +118,24 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] setting " + tech + " inputdriver in SuperModel.");
 
-            // Input indexes in supermodel seem to always be DirectInput + 1, regardless of actual input system used
-            j1index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex + 1 : c1.DeviceIndex + 1;
-
-            if (c2 != null && c2.Config != null)
-                j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
-
-            SimpleLogger.Instance.Info("[INFO] setting index of joystick 1 to " + j1index.ToString());
-            SimpleLogger.Instance.Info("[INFO] setting index of joystick 2 to " + j2index.ToString());
-
             // Guns
             int gunCount = RawLightgun.GetUsableLightGunCount();
             SimpleLogger.Instance.Info("[GUNS] Found " + gunCount + " usable guns.");
 
             var guns = RawLightgun.GetRawLightguns();
 
-            // default to multigun if we have more than one usable gun.
-            bool multigun = gunCount > 1 && guns.Length > 1;
+            // default to multigun if we have more than one usable gun and the inputdriver is not set to sdl (which do not support multigun)
+            bool hasSdlInputDriverConfigured = SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"] == "sdl";
+            bool multigun = gunCount > 1 && guns.Length > 1 && !hasSdlInputDriverConfigured;
             if (SystemConfig.isOptSet("multigun"))
                 multigun = SystemConfig.getOptBoolean("multigun");
             if (multigun)
-                SimpleLogger.Instance.Info("[GUNS] Using multigun.");
+            {
+                // multigun and sdl are incompatible, so change our input mapping to dinput by default.
+                if (tech == "sdl") tech = "dinput";
+                SimpleLogger.Instance.Info("[GUNS] Using multigun with input mappings from " + tech + ".");
+            }
+            else SimpleLogger.Instance.Info("[GUNS] Not using multigun.");
 
             string mouseIndex1 = "1";
             string mouseIndex2 = "2";
@@ -273,9 +266,7 @@ namespace EmulatorLauncher
                     if (wheel != null)
                     {
                         tech = "dinput";
-                        j1index = wheel.DinputIndex + 1;
-
-                        SimpleLogger.Instance.Info("[WHEELS] Wheel " + tech + " index : " + j1index);
+                        SimpleLogger.Instance.Info("[WHEELS] Wheel " + tech + " index : " + (wheel.DinputIndex + 1));
                     }
                     else
                         SimpleLogger.Instance.Info("[WHEELS] Wheel " + wheel.DevicePath.ToString() + " not found as Gamepad.");
@@ -286,6 +277,26 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue(" Global ", "ForceFeedback", "1");
                 }
+            }
+
+            // Input indexes in supermodel are either sdl+1 or DirectInput + 1 (also includes xinput, rawinput)
+            int j1index, j2index = -1;
+
+            if (tech == "sdl")
+            {
+                j1index = c1.SdlController != null ? c1.SdlController.Index + 1 : c1.DeviceIndex + 1;
+
+                if (c2 != null && c2.Config != null)
+                {
+                    j2index = c2.SdlController != null ? c2.SdlController.Index + 1 : c2.DeviceIndex + 1;
+                }
+            }
+            else
+            {
+                j1index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex + 1 : c1.DeviceIndex + 1;
+
+                if (c2 != null && c2.Config != null)
+                    j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
             }
 
             // Force index if option is set in es_features
@@ -308,8 +319,6 @@ namespace EmulatorLauncher
             bool multiplayer = j2index != -1;
             bool enableServiceMenu = SystemConfig.isOptSet("m3_service") && SystemConfig.getOptBoolean("m3_service");
 
-            SimpleLogger.Instance.Info("[INFO] Writing controls to emulator .ini file.");
-
             // Invert indexes option
             if (multiplayer && tech == "xinput")
             {
@@ -321,17 +330,16 @@ namespace EmulatorLauncher
                 }
             }
 
+            SimpleLogger.Instance.Info("[INFO] setting index of joystick 1 to " + j1index.ToString() + " (" + c1.ToString()+")");
+            SimpleLogger.Instance.Info("[INFO] setting index of joystick 2 to " + j2index.ToString() + " (" + c2.ToString()+")");
+
+            SimpleLogger.Instance.Info("[INFO] Writing controls to emulator .ini file.");
+
             #region sdl
             //Now write buttons mapping for generic sdl case (when player 1 controller is NOT XINPUT)
             if (tech == "sdl")
             {
-                if (multigun)
-                {
-                    ini.WriteValue(" Global ", "InputSystem", "rawinput");
-                    SimpleLogger.Instance.Info("[GUNS] Overriding emulator input driver : rawinput");
-                }
-                else
-                    ini.WriteValue(" Global ", "InputSystem", "sdl");
+                ini.WriteValue(" Global ", "InputSystem", "sdl");
 
                 //common - start to start and select to input coins
                 //service menu and test menu can be accessed via L3 and R3 buttons if option is enabled
@@ -533,22 +541,12 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "InputGunUp2", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputGunDown2", "\"NONE\"");
                 
-                if (multigun)
-                {
-                    ini.WriteValue(" Global ", "InputGunX2", "\"" + mouse2 + "_XAXIS\"");
-                    ini.WriteValue(" Global ", "InputGunY2", "\"" + mouse2 + "_YAXIS\"");
-                    ini.WriteValue(" Global ", "InputTrigger2", "\"" + mouse2 + "_LEFT_BUTTON\"");
-                    ini.WriteValue(" Global ", "InputOffscreen2", "\"" + mouse2 + "_RIGHT_BUTTON\"");
-                    ini.WriteValue(" Global ", "InputAutoTrigger2", "1");
-                }
-                else
-                {
-                    ini.WriteValue(" Global ", "InputGunX2", "\"NONE\"");
-                    ini.WriteValue(" Global ", "InputGunY2", "\"NONE\"");
-                    ini.WriteValue(" Global ", "InputTrigger2", "\"NONE\"");
-                    ini.WriteValue(" Global ", "InputOffscreen2", "\"NONE\"");
-                    ini.WriteValue(" Global ", "InputAutoTrigger2", "1");
-                }
+                // no multigun support in sdl, disable second mouse input
+                ini.WriteValue(" Global ", "InputGunX2", "\"NONE\"");
+                ini.WriteValue(" Global ", "InputGunY2", "\"NONE\"");
+                ini.WriteValue(" Global ", "InputTrigger2", "\"NONE\"");
+                ini.WriteValue(" Global ", "InputOffscreen2", "\"NONE\"");
+                ini.WriteValue(" Global ", "InputAutoTrigger2", "1");
 
                 //Analog guns (Ocean Hunter, LA Machineguns) - MOUSE
                 ini.WriteValue(" Global ", "InputAnalogGunLeft", "\"NONE\"");
@@ -564,20 +562,11 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "InputAnalogGunUp2", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogGunDown2", "\"NONE\"");
 
-                if (multigun)
-                {
-                    ini.WriteValue(" Global ", "InputAnalogGunX2", "\"" + mouse2 + "_XAXIS\"");
-                    ini.WriteValue(" Global ", "InputAnalogGunY2", "\"" + mouse2 + "_YAXIS\"");
-                    ini.WriteValue(" Global ", "InputAnalogTriggerLeft2", "\"" + mouse2 + "_LEFT_BUTTON\"");
-                    ini.WriteValue(" Global ", "InputAnalogTriggerRight2", "\"" + mouse2 + "_RIGHT_BUTTON\"");
-                }
-                else
-                {
-                    ini.WriteValue(" Global ", "InputAnalogGunX2", "\"NONE\"");
-                    ini.WriteValue(" Global ", "InputAnalogGunY2", "\"NONE\"");
-                    ini.WriteValue(" Global ", "InputAnalogTriggerLeft2", "\"NONE\"");
-                    ini.WriteValue(" Global ", "InputAnalogTriggerRight2", "\"NONE\"");
-                }
+                // no multigun support in sdl, disable second mouse input
+                ini.WriteValue(" Global ", "InputAnalogGunX2", "\"NONE\"");
+                ini.WriteValue(" Global ", "InputAnalogGunY2", "\"NONE\"");
+                ini.WriteValue(" Global ", "InputAnalogTriggerLeft2", "\"NONE\"");
+                ini.WriteValue(" Global ", "InputAnalogTriggerRight2", "\"NONE\"");
 
                 //Ski Champ controls
                 ini.WriteValue(" Global ", "InputSkiLeft", "\"NONE\"");
