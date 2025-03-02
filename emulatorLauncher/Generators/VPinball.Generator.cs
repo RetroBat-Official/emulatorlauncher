@@ -14,12 +14,10 @@ using EmulatorLauncher.PadToKeyboard;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using System.Drawing.Imaging;
-using EmulatorLauncher.Common.Joysticks;
-using System.Configuration;
 
 namespace EmulatorLauncher
 {
-    class VPinballGenerator : Generator
+    partial class VPinballGenerator : Generator
     {
         public VPinballGenerator()
         {
@@ -135,105 +133,6 @@ namespace EmulatorLauncher
             };
         }
 
-        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
-        {
-            return PadToKey.AddOrUpdateKeyMapping(mapping, _processName, InputKey.hotkey | InputKey.r3, () => SaveScreenshot());
-        }
-         
-        public override int RunAndWait(ProcessStartInfo path)
-        {
-            try
-            {
-                var px = Process.Start(path);
-
-                using (var kb = new KeyboardManager(() => KillProcess(px)))
-                {
-                    kb.RegisterKeyboardAction(() => SaveScreenshot(), (vkCode, scanCode) => vkCode == 44 && scanCode == 55);
-
-                    while (!px.HasExited)
-                    {
-                        if (px.WaitForExit(10))
-                            break;
-
-                        Application.DoEvents();
-                    }
-                }
-                
-                try
-                {
-                    Process[] backGlasses = Process.GetProcessesByName("B2SBackglassServerEXE");
-                    foreach (Process backGlass in backGlasses)
-                        backGlass.Kill();
-
-                    Process[] ultraDMDs = Process.GetProcessesByName("UltraDMD");
-                    foreach (Process ultraDMD in ultraDMDs)
-                        ultraDMD.Kill();
-
-                    Process[] pupDisplays = Process.GetProcessesByName("PinUpDisplay");
-                    foreach (Process pupDisplay in pupDisplays)
-                        pupDisplay.Kill();
-
-                    Process[] pupPlayers = Process.GetProcessesByName("PinUpPlayer");
-                    foreach (Process pupPlayer in pupPlayers)
-                        pupPlayer.Kill();
-                }
-                catch { }
-
-                int exitCode = px.ExitCode;
-
-                // vpinball always returns -1 when exiting
-                if (exitCode == -1)
-                    return 0;
-
-                return exitCode;
-            }
-            catch 
-            { 
-
-            }
-
-            return -1;
-        }
-
-        public override void Cleanup()
-        {
-            if (_splash != null)
-            {
-                _splash.Dispose();
-                _splash = null;
-            }
-
-            base.Cleanup();
-        }
-
-        private static void SaveScreenshot()
-        {
-            if (!ScreenCapture.AddScreenCaptureToGameList(Program.SystemConfig["system"], Program.SystemConfig["rom"]))
-            {
-                string path = Program.AppConfig.GetFullPath("screenshots");
-                if (!Directory.Exists(path))
-                    return;
-
-                int index = 0;
-                string fn;
-
-                do
-                {
-                    fn = Path.Combine(path, Path.GetFileNameWithoutExtension(Program.SystemConfig["rom"]) + (index == 0 ? "" : "_" + index.ToString()) + ".jpg");
-                    index++;
-                } 
-                while (File.Exists(fn));
-
-                ScreenCapture.CaptureScreen(fn);
-            }
-        }
-
-        private static void KillProcess(Process px)
-        {
-            try { px.Kill(); }
-            catch { }
-        }
-
         private static LoadingForm ShowSplash(string rom)
         {
             if (rom == null)
@@ -274,487 +173,6 @@ namespace EmulatorLauncher
             return null;
         }
 
-        private static bool FileUrlValueExists(object value)
-        {
-            if (value == null)
-                return false;
-
-            try
-            {
-                string localPath = new Uri(value.ToString()).LocalPath;
-                if (File.Exists(localPath))
-                    return true;
-            }
-            catch { }
-
-            return false;
-        }
-
-        private static bool IsComServerAvailable(string name)
-        {
-            RegistryKey key = Registry.ClassesRoot.OpenSubKey(name, false);
-            if (key == null)
-                return false;
-
-            object defaultValue = key.GetValue(null);
-
-            if (!"mscoree.dll".Equals(defaultValue) && FileUrlValueExists(key.GetValue(null)))
-            {
-                key.Close();
-                return true;
-            }
-
-            if ("mscoree.dll".Equals(defaultValue) && FileUrlValueExists(key.GetValue("CodeBase")))
-            {
-                key.Close();
-                return true;
-            }
-
-            key.Close();
-            return false;
-        }
-
-        private static void EnsureUltraDMDRegistered(string path)
-        {
-            try
-            {
-                SimpleLogger.Instance.Info("[Generator] Ensuring UltraDMD is registered.");
-
-                // Check for valid out-of-process COM server ( UltraDMD ) 
-                if (IsComServerAvailable(@"CLSID\{E1612654-304A-4E07-A236-EB64D6D4F511}\LocalServer32"))
-                    return;
-
-                // Check for valid in-process COM server ( FlexDMD )
-                if (IsComServerAvailable(@"CLSID\{E1612654-304A-4E07-A236-EB64D6D4F511}\InprocServer32"))
-                    return;
-                
-                string ultraDMD = Path.Combine(path, "UltraDMD", "UltraDMD.exe");
-                if (!File.Exists(ultraDMD))
-                    ultraDMD = Path.Combine(path, "XDMD", "UltraDMD.exe");
-
-                if (File.Exists(ultraDMD))
-                {
-                    Process px = new Process
-                    {
-                        EnableRaisingEvents = true
-                    };
-                    px.StartInfo.Verb = "RunAs";
-                    px.StartInfo.FileName = ultraDMD;
-                    px.StartInfo.Arguments = " /i";
-                    px.StartInfo.UseShellExecute = true;
-                    px.StartInfo.CreateNoWindow = true;
-                    px.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                    px.Start();
-                    px.WaitForExit();
-                }
-            }
-            catch { }
-        }
-
-        private static string ReadRegistryValue(RegistryKeyEx key, string path, string value, RegistryViewEx view = RegistryViewEx.Registry32)
-        {
-            var regKeyc = key.OpenSubKey(path, view);
-            if (regKeyc != null)
-            {
-                object pth = regKeyc.GetValue(value);
-                    if (pth != null)
-                        return pth.ToString();
-
-                regKeyc.Close();
-            }
-
-            return null;
-        }
-
-        private bool ShouldRegisterBackglassServer(string path, RegistryViewEx view)
-        {
-            try            
-            {
-                var clsid = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"B2S.B2SPlayer\CLSID", null);
-                if (string.IsNullOrEmpty(clsid))
-                    return true;
-
-                var codeBase = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"CLSID\" + clsid + @"\InprocServer32", "CodeBase", view);
-                if (string.IsNullOrEmpty(codeBase))
-                    return true;
-                
-                string localPath = new Uri(codeBase).LocalPath;
-                if (!File.Exists(localPath))
-                    return true;
-
-                // Path has changed ?
-                if (!localPath.Equals(path, StringComparison.InvariantCultureIgnoreCase))
-                    return true;
-
-                // Version changed ?
-                var assembly = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"CLSID\" + clsid + @"\InprocServer32", "Assembly", view);
-                var assemblyName = System.Reflection.AssemblyName.GetAssemblyName(localPath).FullName;
-
-                return assembly != assemblyName;
-            }
-            catch
-            {
-                return true;
-            }
-        }
-
-        private void EnsureBackglassServerRegistered(string path)
-        {
-            var view = Kernel32.IsX64(_exe) ? RegistryViewEx.Registry64 : RegistryViewEx.Registry32;
-
-            string dllPath = Path.Combine(path, "BackglassServer", "B2SBackglassServer.dll");
-            if (!ShouldRegisterBackglassServer(dllPath, view))
-                return;
-
-            try
-            {
-                SimpleLogger.Instance.Info("[Generator] Ensuring BackGlass Server is registered.");
-
-                Process px = new Process
-                {
-                    EnableRaisingEvents = true
-                };
-                px.StartInfo.Verb = "RunAs";
-                px.StartInfo.FileName = Path.Combine(GetRegAsmPath(view), "regasm.exe");
-                px.StartInfo.Arguments = "\"" + dllPath + "\" /codebase";
-                px.StartInfo.UseShellExecute = true;
-                px.StartInfo.CreateNoWindow = true;
-                px.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                px.Start();
-                px.WaitForExit();
-            }
-            catch { }
-        }
-
-        private void EnsurePinupPlayerRegistered(string path)
-        {
-            string keyPath = @"TypeLib\{D50F2477-84E8-4CED-9409-3735CA67FDE3}\1.0\0\win32";
-            string PinupPlayerPath = Path.Combine(path, "PinUPSystem", "PinUpPlayer.exe");
-
-            try
-            {
-                using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(keyPath))
-                {
-                    if (key != null)
-                    {
-                        string value = key.GetValue(null) as string;
-                        if (value != null)
-                        {
-                            if (value != PinupPlayerPath)
-                                RegisterPinupPlayer(PinupPlayerPath);
-                            else
-                                return;
-                        }
-                        else
-                            RegisterPinupPlayer(PinupPlayerPath);
-                    }
-                    else
-                        RegisterPinupPlayer(PinupPlayerPath);
-                }
-            }
-            catch
-            { }
-        }
-
-        private void RegisterPinupPlayer(string path)
-        {
-            if (!File.Exists(path))
-            {
-                SimpleLogger.Instance.Warning("[WARNING] PinUpPlayer.exe not found.");
-                return;
-            }
-
-            try
-            {
-                SimpleLogger.Instance.Info("[Generator] Ensuring PinupPlayer is registered.");
-
-                Process px = new Process
-                {
-                    EnableRaisingEvents = true
-                };
-                px.StartInfo.Verb = "RunAs";
-                px.StartInfo.FileName = path;
-                px.StartInfo.Arguments = "/regserver";
-                px.StartInfo.UseShellExecute = true;
-                px.StartInfo.CreateNoWindow = true;
-                px.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                px.Start();
-                px.WaitForExit();
-            }
-            catch { }
-        }
-
-        private void EnsurePinupDOFRegistered(string path)
-        {
-            string keyPath = @"TypeLib\{02B4C318-12D3-48C6-AA69-CEE342FF9D15}\1.0\0\win32";
-            string PinupDOFPath = Path.Combine(path, "PinUPSystem", "PinUpDOF.exe");
-
-            try
-            {
-                using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(keyPath))
-                {
-                    if (key != null)
-                    {
-                        string value = key.GetValue(null) as string;
-                        if (value != null)
-                        {
-                            if (value != PinupDOFPath)
-                                RegisterPinupDOF(PinupDOFPath);
-                            else
-                                return;
-                        }
-                        else
-                            RegisterPinupDOF(PinupDOFPath);
-                    }
-                    else
-                        RegisterPinupDOF(PinupDOFPath);
-                }
-            }
-            catch
-            { }
-        }
-
-        private void RegisterPinupDOF(string path)
-        {
-            if (!File.Exists(path))
-            {
-                SimpleLogger.Instance.Warning("[WARNING] PinUpDOF.exe not found.");
-                return;
-            }
-
-            try
-            {
-                SimpleLogger.Instance.Info("[Generator] Ensuring PinUpDOF is registered.");
-
-                Process px = new Process
-                {
-                    EnableRaisingEvents = true
-                };
-                px.StartInfo.Verb = "RunAs";
-                px.StartInfo.FileName = path;
-                px.StartInfo.Arguments = "/regserver";
-                px.StartInfo.UseShellExecute = true;
-                px.StartInfo.CreateNoWindow = true;
-                px.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                px.Start();
-                px.WaitForExit();
-            }
-            catch { }
-        }
-
-        private void EnsurePupServerRegistered(string path)
-        {
-            string keyPath = @"TypeLib\{5EC048E8-EF55-40B8-902D-D6ECD1C8FF4E}\1.0\0\win32";
-            string PinupDOFPath = Path.Combine(path, "PinUPSystem", "PuPServer.exe");
-
-            try
-            {
-                using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(keyPath))
-                {
-                    if (key != null)
-                    {
-                        string value = key.GetValue(null) as string;
-                        if (value != null)
-                        {
-                            if (value != PinupDOFPath)
-                                RegisterPupServer(PinupDOFPath);
-                            else
-                                return;
-                        }
-                        else
-                            RegisterPupServer(PinupDOFPath);
-                    }
-                    else
-                        RegisterPupServer(PinupDOFPath);
-                }
-            }
-            catch
-            { }
-        }
-
-        private void RegisterPupServer(string path)
-        {
-            if (!File.Exists(path))
-            {
-                SimpleLogger.Instance.Warning("[WARNING] PuPServer.exe not found.");
-                return;
-            }
-
-            try
-            {
-                SimpleLogger.Instance.Info("[Generator] Ensuring PuPServer is registered.");
-
-                Process px = new Process
-                {
-                    EnableRaisingEvents = true
-                };
-                px.StartInfo.Verb = "RunAs";
-                px.StartInfo.FileName = path;
-                px.StartInfo.Arguments = "/regserver";
-                px.StartInfo.UseShellExecute = true;
-                px.StartInfo.CreateNoWindow = true;
-                px.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                px.Start();
-                px.WaitForExit();
-            }
-            catch { }
-        }
-
-        private void EnsurePupDMDControlRegistered(string path)
-        {
-            string keyPath = @"TypeLib\{5049E487-2802-46B0-A511-8B198B274E1B}\1.0\0\win32";
-            string PUPDMDControl = Path.Combine(path, "VPinMAME", "PUPDMDControl.exe");
-
-            try
-            {
-                using (RegistryKey key = Registry.ClassesRoot.OpenSubKey(keyPath))
-                {
-                    if (key != null)
-                    {
-                        string value = key.GetValue(null) as string;
-                        if (value != null)
-                        {
-                            if (value != PUPDMDControl)
-                                RegisterPupDMDControl(PUPDMDControl);
-                            else
-                                return;
-                        }
-                        else
-                            RegisterPupDMDControl(PUPDMDControl);
-                    }
-                    else
-                        RegisterPupDMDControl(PUPDMDControl);
-                }
-            }
-            catch
-            { }
-        }
-
-        private void RegisterPupDMDControl(string path)
-        {
-            if (!File.Exists(path))
-            {
-                SimpleLogger.Instance.Warning("[WARNING] PUPDMDControl.exe not found.");
-                return;
-            }
-
-            try
-            {
-                SimpleLogger.Instance.Info("[Generator] Ensuring PUPDMDControl is registered.");
-
-                Process px = new Process
-                {
-                    EnableRaisingEvents = true
-                };
-                px.StartInfo.Verb = "RunAs";
-                px.StartInfo.FileName = path;
-                px.StartInfo.Arguments = "/regserver";
-                px.StartInfo.UseShellExecute = true;
-                px.StartInfo.CreateNoWindow = true;
-                px.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                px.Start();
-                px.WaitForExit();
-            }
-            catch { }
-        }
-
-        private static string GetRegAsmPath(RegistryViewEx view = RegistryViewEx.Registry32)
-        {
-            string installRoot = string.Empty;
-            string str2 = null;
-
-            var key = RegistryKeyEx.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\.NetFramework", view);
-            if (key != null)
-            {
-                object oInstallRoot = key.GetValue("InstallRoot");
-                if (oInstallRoot != null)
-                    installRoot = oInstallRoot.ToString();
-
-                key.Close();
-            }
-
-            if (string.IsNullOrEmpty(installRoot))
-                return null;
-
-            key = RegistryKeyEx.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\.NetFramework\Policy\v4.0", view);
-            if (key != null)
-            {
-                string str3 = "v4.0";
-                foreach (string str4 in key.GetValueNames())
-                {
-                    string path = Path.Combine(installRoot, str3 + "." + str4);
-                    if (Directory.Exists(path))
-                    {
-                        str2 = path;
-                        break;
-                    }
-                }
-
-                key.Close();
-            }
-
-            return str2;
-        }
-
-        private static bool ShouldRegisterVPinMame(string path, RegistryViewEx view)
-        {
-            try
-            {
-                var dll = RegistryKeyEx.GetRegistryValue( 
-                    view == RegistryViewEx.Registry64 ?
-                    @"HKEY_CLASSES_ROOT\TypeLib\{57270B76-C846-4B1E-88D4-53C8337A0623}\1.0\0\win64" :
-                    @"HKEY_CLASSES_ROOT\TypeLib\{57270B76-C846-4B1E-88D4-53C8337A0623}\1.0\0\win32", null, view);
-
-                if (dll == null)
-                    return true;
-
-                var dllPath = dll.ToString();
-                if (string.IsNullOrEmpty(dllPath))
-                    return true;
-
-                string localPath = new Uri(dllPath).LocalPath;
-                if (!File.Exists(localPath))
-                    return true;
-
-                // Path has changed ?
-                if (!localPath.Equals(path, StringComparison.InvariantCultureIgnoreCase))
-                    return true;
-
-                return false;
-            }
-            catch
-            {
-                return true;
-            }
-        }
-
-        private void EnsureVPinMameRegistered(string path)
-        {
-            RegistryViewEx view = Kernel32.IsX64(_exe) ? RegistryViewEx.Registry64 : RegistryViewEx.Registry32;
-
-            string dllPath = Path.Combine(path, "VPinMame", view == RegistryViewEx.Registry64 ? "VPinMAME64.dll" : "VPinMAME.dll");
-            if (!ShouldRegisterVPinMame(dllPath, view))
-                return;
-
-            try
-            {
-                SimpleLogger.Instance.Info("[Generator] Ensuring VpinMame is registered.");
-
-                Process px = new Process
-                {
-                    EnableRaisingEvents = true
-                };
-                px.StartInfo.Verb = "RunAs";
-                px.StartInfo.FileName = Path.Combine(FileTools.GetSystemDirectory(view), "regsvr32.exe");
-                px.StartInfo.Arguments = "/s \"" + dllPath + "\"";
-                px.StartInfo.UseShellExecute = true;
-                px.StartInfo.CreateNoWindow = true;
-                px.Start();
-                px.WaitForExit();
-            }
-            catch { }
-        }
-
         private void SetupOptions(string path, string romPath, ScreenResolution resolution)
         {
             if (_version >= new Version(10, 8, 0, 0))
@@ -779,18 +197,15 @@ namespace EmulatorLauncher
                 else
                     ini.WriteValue("Controller", "ForceDisableB2S", "0");
 
-                if (string.IsNullOrEmpty(ini.GetValue("Controller", "DOFContactors")))
-                {
-                    ini.WriteValue("Controller", "DOFContactors", "2");
-                    ini.WriteValue("Controller", "DOFKnocker", "2");
-                    ini.WriteValue("Controller", "DOFChimes", "2");
-                    ini.WriteValue("Controller", "DOFBell", "2");
-                    ini.WriteValue("Controller", "DOFGear", "2");
-                    ini.WriteValue("Controller", "DOFShaker", "2");
-                    ini.WriteValue("Controller", "DOFFlippers", "2");
-                    ini.WriteValue("Controller", "DOFTargets", "2");
-                    ini.WriteValue("Controller", "DOFDropTargets", "2");
-                }
+                BindIniFeature(ini, "Controller", "DOFContactors", "vpdof_contractors", "2");
+                BindIniFeature(ini, "Controller", "DOFKnocker", "vpdof_knocker", "2");
+                BindIniFeature(ini, "Controller", "DOFChimes", "vpdof_chimes", "2");
+                BindIniFeature(ini, "Controller", "DOFBell", "vpdof_bell", "2");
+                BindIniFeature(ini, "Controller", "DOFGear", "vpdof_gear", "2");
+                BindIniFeature(ini, "Controller", "DOFShaker", "vpdof_shaker", "2");
+                BindIniFeature(ini, "Controller", "DOFFlippers", "vpdof_flippers", "2");
+                BindIniFeature(ini, "Controller", "DOFTargets", "vpdof_targets", "2");
+                BindIniFeature(ini, "Controller", "DOFDropTargets", "vpdof_droptargets", "2");
 
                 ini.WriteValue("Player", "DisableESC", "1");
 
@@ -850,235 +265,10 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "Player", "Sound3D", "vp_audiochannels", "0");
 
                 // Controls
-                Controller controller = null;
-                bool isXinput = false;
-                string LRAxis = "1";
-                string UDAxis = "2";
-                string PlungerAxis = "4";
+                SetupVPinballControls(ini);
 
-                if (Controllers != null && Controllers.Count > 0)
-                {
-                    controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
-                    if (controller != null && controller.IsXInputDevice)
-                        isXinput = true;
-                    else if (controller != null)
-                    {
-                        SdlToDirectInput dinputController = getDInputController(controller);
-                        if (dinputController != null)
-                        {
-                            if (dinputController.ButtonMappings.ContainsKey("leftx"))
-                                LRAxis = getDinputID(dinputController.ButtonMappings, "leftx");
-                            if (dinputController.ButtonMappings.ContainsKey("lefty"))
-                                UDAxis = getDinputID(dinputController.ButtonMappings, "lefty");
-                            if (dinputController.ButtonMappings.ContainsKey("righty"))
-                                PlungerAxis = getDinputID(dinputController.ButtonMappings, "righty");
-                        }
-                        if (LRAxis == null)
-                            LRAxis = "1";
-                        if (UDAxis == null)
-                            UDAxis = "2";
-                        if (PlungerAxis == null)
-                            PlungerAxis = "4";
-                    }
-                }
-
-                if (SystemConfig.isOptSet("vp_inputdriver") && !string.IsNullOrEmpty(SystemConfig["vp_inputdriver"]))
-                    ini.WriteValue("Player", "InputApi", SystemConfig["vp_inputdriver"]);
-                else
-                    ini.WriteValue("Player", "InputApi", isXinput ? "1" : "0");
-
-                if (!SystemConfig.getOptBoolean("disableautocontrollers"))
-                {
-                    ini.WriteValue("Player", "LRAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? "0" : LRAxis);
-                    ini.WriteValue("Player", "UDAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? "0" : UDAxis);
-                    ini.WriteValue("Player", "PlungerAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? "0" : PlungerAxis);
-                    ini.WriteValue("Player", "ReversePlungerAxis", "1");
-                    BindIniFeatureSlider(ini, "Player", "DeadZone", "joy_deadzone", "15");
-                }
-
-                ini.WriteValue("Editor", "WindowTop", (Screen.PrimaryScreen.Bounds.Height / 2 - 300).ToString());
-                ini.WriteValue("Editor", "WindowBottom", (Screen.PrimaryScreen.Bounds.Height / 2 + 300).ToString());
-                ini.WriteValue("Editor", "WindowLeft", (Screen.PrimaryScreen.Bounds.Width / 2 - 400).ToString());
-                ini.WriteValue("Editor", "WindowRight", (Screen.PrimaryScreen.Bounds.Width / 2 + 400).ToString());
-                ini.WriteValue("Editor", "WindowMaximized", "0");
-                ini.WriteValue("Editor", "SelectTableOnStart", "");
-                ini.WriteValue("Editor", "SelectTableOnPlayerClose", "");
-
-                WriteKBconfig(ini);
-                
                 ini.Save();
             }
-        }
-
-        private void WriteKBconfig(IniFile ini)
-        {
-            if (SystemConfig.getOptBoolean("disableautocontrollers"))
-                return;
-
-            ini.WriteValue("Player", "LFlipKey", "42");
-            ini.WriteValue("Player", "RFlipKey", "54");
-            ini.WriteValue("Player", "StagedLFlipKey", "219");
-            ini.WriteValue("Player", "StagedRFlipKey", "184");
-            ini.WriteValue("Player", "LTiltKey", "44");
-            ini.WriteValue("Player", "RTiltKey", "53");
-            ini.WriteValue("Player", "CTiltKey", "57");
-            ini.WriteValue("Player", "PlungerKey", "28");
-            ini.WriteValue("Player", "FrameCount", "87");
-            ini.WriteValue("Player", "DebugBalls", "24");
-            ini.WriteValue("Player", "Debugger", "32");
-            ini.WriteValue("Player", "AddCreditKey", "6");
-            ini.WriteValue("Player", "AddCreditKey2", "5");
-            ini.WriteValue("Player", "StartGameKey", "2");
-            ini.WriteValue("Player", "MechTilt", "20");
-            ini.WriteValue("Player", "RMagnaSave", "157");
-            ini.WriteValue("Player", "LMagnaSave", "29");
-            ini.WriteValue("Player", "ExitGameKey", "16");
-            ini.WriteValue("Player", "VolumeUp", "13");
-            ini.WriteValue("Player", "VolumeDown", "12");
-            ini.WriteValue("Player", "LockbarKey", "56");
-            ini.WriteValue("Player", "PauseKey", "25");
-            ini.WriteValue("Player", "TweakKey", "88");
-            ini.WriteValue("Player", "JoyCustom1Key", "200");
-            ini.WriteValue("Player", "JoyCustom2Key", "208");
-            ini.WriteValue("Player", "JoyCustom3Key", "203");
-            ini.WriteValue("Player", "JoyCustom4Key", "205");
-        }
-
-        private void SetupOptionsRegistry(ScreenResolution resolution)
-        {
-            //HKEY_CURRENT_USER\Software\Visual Pinball\VP10\Player
-
-            RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
-
-            RegistryKey vp = regKeyc.CreateSubKey("Visual Pinball");
-            if (vp == null)
-                return;
-
-            regKeyc = vp.CreateSubKey("Controller");
-            if (regKeyc != null)
-            {
-                SimpleLogger.Instance.Info("[Generator] Writing config to registry.");
-
-                if (Screen.AllScreens.Length > 1 && (!SystemConfig.isOptSet("enableb2s") || SystemConfig.getOptBoolean("enableb2s")) && !SystemInformation.TerminalServerSession)
-                    SetOption(regKeyc, "ForceDisableB2S", 0);
-                else
-                    SetOption(regKeyc, "ForceDisableB2S", 1);
-
-                SetupOptionIfNotExists(regKeyc, "DOFContactors", 2);
-                SetupOptionIfNotExists(regKeyc, "DOFKnocker", 2);
-                SetupOptionIfNotExists(regKeyc, "DOFChimes", 2);
-                SetupOptionIfNotExists(regKeyc, "DOFBell", 2);
-                SetupOptionIfNotExists(regKeyc, "DOFGear", 2);
-                SetupOptionIfNotExists(regKeyc, "DOFShaker", 2);
-                SetupOptionIfNotExists(regKeyc, "DOFFlippers", 2);
-                SetupOptionIfNotExists(regKeyc, "DOFTargets", 2);
-                SetupOptionIfNotExists(regKeyc, "DOFDropTargets", 2);
-
-                regKeyc.Close();
-            }
-
-            RegistryKey vp10 = vp.CreateSubKey("VP10");
-            if (vp10 == null)
-                return;
-
-            regKeyc = vp10.CreateSubKey("Player");
-            if (regKeyc != null)
-            {
-                SetOption(regKeyc, "DisableESC", 1);
-
-                // Resolution and fullscreen
-                SetOption(regKeyc, "Width", resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
-                SetOption(regKeyc, "Height", resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
-                SetOption(regKeyc, "FullScreen", resolution == null ? 0 : 1);
-                
-                // Vertical sync
-                if (SystemConfig.isOptSet("video_vsync") && SystemConfig["video_vsync"] == "adaptative")
-                    SetOption(regKeyc, "AdaptiveVSync", 2);
-                else if (SystemConfig.isOptSet("video_vsync") && SystemConfig["video_vsync"] == "false")
-                    SetOption(regKeyc, "AdaptiveVSync", 0);
-                else
-                    SetOption(regKeyc, "AdaptiveVSync", 1);
-
-                // Monitor index is 1-based
-                if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
-                {
-                    int monitor = SystemConfig["MonitorIndex"].ToInteger() - 1;
-                    SetOption(regKeyc, "Display", monitor);
-                }
-                else
-                    SetOption(regKeyc, "Display", 0);
-
-                // Video options
-                SetOption(regKeyc, "BallReflection", SystemConfig["vp_ballreflection"] == "1" ? 1 : 0);
-
-                if (SystemConfig.isOptSet("vp_ambient_occlusion") && SystemConfig["vp_ambient_occlusion"] == "dynamic")
-                {
-                    SetOption(regKeyc, "DisableAO", 0);
-                    SetOption(regKeyc, "DynamicAO", 1);
-                }
-                else
-                {
-                    SetOption(regKeyc, "DisableAO", SystemConfig["vp_ambient_occlusion"] == "0" ? 1 : 0);
-                    SetOption(regKeyc, "DynamicAO", 0);
-                }
-
-                if (SystemConfig.isOptSet("vp_antialiasing") && !string.IsNullOrEmpty(SystemConfig["vp_antialiasing"]))
-                {
-                    int fxaa = SystemConfig["vp_antialiasing"].ToInteger();
-                    SetOption(regKeyc, "FXAA", fxaa);
-                }
-                else
-                    SetOption(regKeyc, "FXAA", 0);
-
-                if (SystemConfig.isOptSet("vp_sharpen") && !string.IsNullOrEmpty(SystemConfig["vp_sharpen"]))
-                {
-                    int sharpen = SystemConfig["vp_sharpen"].ToInteger();
-                    SetOption(regKeyc, "Sharpen", sharpen);
-                }
-                else
-                    SetOption(regKeyc, "FXAA", 0);
-
-                SetOption(regKeyc, "BGSet", SystemConfig.getOptBoolean("arcademode") ? 1 : 0);
-
-                bool aniFilter = !SystemConfig.isOptSet("vp_anisotropic_filtering") || SystemConfig.getOptBoolean("vp_anisotropic_filtering");
-                SetOption(regKeyc, "ForceAnisotropicFiltering", aniFilter ? 1 : 0);
-                SetOption(regKeyc, "UseNVidiaAPI", SystemConfig.getOptBoolean("vp_nvidia") ? 1 : 0);
-                SetOption(regKeyc, "SoftwareVertexProcessing", SystemConfig.getOptBoolean("vp_vertex") ? 1 : 0);
-
-                // Audio
-                SetOption(regKeyc, "PlayMusic", SystemConfig.getOptBoolean("vp_music_off") ? 0 : 1);
-
-                // Controls
-                if (!SystemConfig.getOptBoolean("disableautocontrollers"))
-                {
-                    SetOption(regKeyc, "LRAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? 0 : 1);
-                    SetOption(regKeyc, "UDAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? 0 : 2);
-                    SetOption(regKeyc, "PlungerAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? 0 : 3);
-
-                    int deadzone = 15;
-
-                    if (SystemConfig.isOptSet("joy_deadzone") && !string.IsNullOrEmpty(SystemConfig["joy_deadzone"]))
-                        deadzone = SystemConfig["joy_deadzone"].ToIntegerString().ToInteger();
-
-                    SetOption(regKeyc, "DeadZone", deadzone);
-                }
-                regKeyc.Close();
-            }
-
-            regKeyc = vp10.CreateSubKey("Editor");
-            if (regKeyc != null)
-            {
-                SetOption(regKeyc, "WindowTop", Screen.PrimaryScreen.Bounds.Height / 2 - 300);
-                SetOption(regKeyc, "WindowBottom", Screen.PrimaryScreen.Bounds.Height / 2 + 300);
-                SetOption(regKeyc, "WindowLeft", Screen.PrimaryScreen.Bounds.Width / 2 - 400);
-                SetOption(regKeyc, "WindowRight", Screen.PrimaryScreen.Bounds.Width / 2 + 400);
-                SetOption(regKeyc, "WindowMaximized", 0);
-
-                regKeyc.Close();
-            }
-
-            vp10.Close();
-            vp.Close();
         }
 
         private static void SetupVPinMameOptions(string path, string romPath)
@@ -1132,6 +322,8 @@ namespace EmulatorLauncher
                 // default key
                 if (defaultKey != null)
                 {
+                    SetOption(defaultKey, "cheat", 1);
+
                     if (Program.SystemConfig.getOptBoolean("vpmame_dmd"))
                     {
                         SetOption(defaultKey, "showpindmd", 1);
@@ -1159,6 +351,8 @@ namespace EmulatorLauncher
 
                         if (romKey == null)
                             romKey = visualPinMame.CreateSubKey(rom);
+
+                        SetOption(romKey, "cheat", 1);
 
                         if (Program.SystemConfig.getOptBoolean("vpmame_dmd"))
                         {
@@ -1190,55 +384,10 @@ namespace EmulatorLauncher
             {
                 BindBoolIniFeatureOn(ini, "virtualdmd", "enabled", "vpmame_virtualdmd", "true", "false");
                 BindBoolIniFeature(ini, "zedmd", "enabled", "vpmame_zedmd", "true", "false");
+                BindBoolIniFeature(ini, "pin2dmd", "enabled", "vpmame_pin2dmd", "true", "false");
 
                 ini.Save();
             }
-        }
-
-        private static void DisableVPinMameLicenceDialogs(string romPath, RegistryKey visualPinMame)
-        {
-            if (romPath == null || !Directory.Exists(romPath))
-                return;
-
-            SimpleLogger.Instance.Info("[Generator] Disabling VPinMame Licence prompts for all available table roms.");
-
-            string[] romList = Directory.GetFiles(romPath, "*.zip").Select(r => Path.GetFileNameWithoutExtension(r)).Distinct().ToArray();
-            foreach (var rom in romList)
-            {
-                var romKey = visualPinMame.OpenSubKey(rom, true);
-                if (romKey == null)
-                {
-                    romKey = visualPinMame.CreateSubKey(rom);
-                    romKey?.SetValue(null, 1);
-                }
-                
-                if (romKey != null)
-                {
-                    romKey.SetValue("cabinet_mode", 1);
-                    romKey.SetValue("skip_disclaimer", 1);
-                    romKey.SetValue("skip_gameinfo", 1);
-
-                    romKey.Close();
-                }
-            }
-        }
-
-        private static void SetOption(RegistryKey regKeyc, string name, object value)
-        {
-            object o = regKeyc.GetValue(name);
-            if (object.Equals(value, o))
-                return;
-
-            regKeyc.SetValue(name, value);
-        }
-
-        private static void SetupOptionIfNotExists(RegistryKey regKeyc, string name, object value)
-        {
-            object o = regKeyc.GetValue(name);
-            if (o != null)
-                return;
-
-            regKeyc.SetValue(name, value);
         }
 
         private void SetupB2STableSettings(string path)
@@ -1294,8 +443,8 @@ namespace EmulatorLauncher
                         // Hide grill
                         XElement hidegrill = root.Element("HideGrill");
 
-                        if (element != null)
-                            element.Value = SystemConfig.getOptBoolean("vpbg_hidegrill") ? "1" : "0";
+                        if (hidegrill != null)
+                            hidegrill.Value = SystemConfig.getOptBoolean("vpbg_hidegrill") ? "1" : "0";
                         else
                             root.Add(new XElement("HideGrill", SystemConfig.getOptBoolean("vpbg_hidegrill") ? "1" : "0"));
 
@@ -1309,62 +458,103 @@ namespace EmulatorLauncher
             }
         }
 
-        private SdlToDirectInput getDInputController(Controller ctrl)
+        public override int RunAndWait(ProcessStartInfo path)
         {
-            string gamecontrollerDB = Path.Combine(Program.AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-            if (!File.Exists(gamecontrollerDB))
-                return null;
-
-            string guid = (ctrl.Guid.ToString()).ToLowerInvariant();
-            if (string.IsNullOrEmpty(guid))
-                return null;
-
-            SdlToDirectInput dinputController = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid);
-            if (dinputController == null)
-                return null;
-            else
-                return dinputController;
-        }
-
-        private string getDinputID(Dictionary<string, string> mapping, string key)
-        {
-            if (!mapping.ContainsKey(key))
-                return null;
-
-            string button = mapping[key];
-
-            if (button.StartsWith("-a") || button.StartsWith("+a"))
+            try
             {
-                int axisID = button.Substring(2).ToInteger();
-                axisID++;
-                return axisID.ToString();
-            }
-            else if (button.StartsWith("a"))
-            {
-                int axisID = button.Substring(1).ToInteger();
-                axisID++;
-                return axisID.ToString();
-            }
+                var px = Process.Start(path);
 
-            return null;
-        }
-
-        private static void BindBoolRegistryFeature(RegistryKey key, string name, string featureName, object truevalue, object falsevalue, bool defaultOn)
-        {
-            if (Program.Features.IsSupported(featureName))
-            {
-                if (Program.SystemConfig.isOptSet(featureName) && Program.SystemConfig.getOptBoolean(featureName))
-                    SetOption(key, name, truevalue);
-                else
+                using (var kb = new KeyboardManager(() => KillProcess(px)))
                 {
-                    if (Program.SystemConfig.isOptSet(featureName) && !Program.SystemConfig.getOptBoolean(featureName))
-                        SetOption(key, name, falsevalue);
-                    else if (defaultOn)
-                        SetOption(key, name, truevalue);
-                    else
-                        SetOption(key, name, falsevalue);
+                    kb.RegisterKeyboardAction(() => SaveScreenshot(), (vkCode, scanCode) => vkCode == 44 && scanCode == 55);
+
+                    while (!px.HasExited)
+                    {
+                        if (px.WaitForExit(10))
+                            break;
+
+                        Application.DoEvents();
+                    }
                 }
+
+                try
+                {
+                    Process[] backGlasses = Process.GetProcessesByName("B2SBackglassServerEXE");
+                    foreach (Process backGlass in backGlasses)
+                        backGlass.Kill();
+
+                    Process[] ultraDMDs = Process.GetProcessesByName("UltraDMD");
+                    foreach (Process ultraDMD in ultraDMDs)
+                        ultraDMD.Kill();
+
+                    Process[] pupDisplays = Process.GetProcessesByName("PinUpDisplay");
+                    foreach (Process pupDisplay in pupDisplays)
+                        pupDisplay.Kill();
+
+                    Process[] pupPlayers = Process.GetProcessesByName("PinUpPlayer");
+                    foreach (Process pupPlayer in pupPlayers)
+                        pupPlayer.Kill();
+                }
+                catch { }
+
+                int exitCode = px.ExitCode;
+
+                // vpinball always returns -1 when exiting
+                if (exitCode == -1)
+                    return 0;
+
+                return exitCode;
             }
+            catch
+            {
+
+            }
+
+            return -1;
+        }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            return PadToKey.AddOrUpdateKeyMapping(mapping, _processName, InputKey.hotkey | InputKey.r3, () => SaveScreenshot());
+        }
+
+        private static void SaveScreenshot()
+        {
+            if (!ScreenCapture.AddScreenCaptureToGameList(Program.SystemConfig["system"], Program.SystemConfig["rom"]))
+            {
+                string path = Program.AppConfig.GetFullPath("screenshots");
+                if (!Directory.Exists(path))
+                    return;
+
+                int index = 0;
+                string fn;
+
+                do
+                {
+                    fn = Path.Combine(path, Path.GetFileNameWithoutExtension(Program.SystemConfig["rom"]) + (index == 0 ? "" : "_" + index.ToString()) + ".jpg");
+                    index++;
+                }
+                while (File.Exists(fn));
+
+                ScreenCapture.CaptureScreen(fn);
+            }
+        }
+
+        private static void KillProcess(Process px)
+        {
+            try { px.Kill(); }
+            catch { }
+        }
+
+        public override void Cleanup()
+        {
+            if (_splash != null)
+            {
+                _splash.Dispose();
+                _splash = null;
+            }
+
+            base.Cleanup();
         }
 
         class DirectB2sData
@@ -1409,7 +599,6 @@ namespace EmulatorLauncher
                     }
                     catch { }
                 }
-
 
                 XmlElement element13 = (XmlElement)element.SelectSingleNode("Images/BackglassImage");
                 if (element13 != null)
@@ -1481,11 +670,10 @@ namespace EmulatorLauncher
 
             public Bulb[] Bulbs { get; private set; }
             public Image Image { get; private set; }
-
+            
             public class Bulb
             {
                 public int ID { get; set; }
-
                 public string LightColor { get; set; }
                 public int LocX { get; set; }
                 public int LocY { get; set; }
@@ -1493,7 +681,6 @@ namespace EmulatorLauncher
                 public int Height { get; set; }
                 public bool Visible { get; set; }
                 public bool IsImageSnippit { get; set; }
-
                 public Image Image { get; set; }
             }
         }

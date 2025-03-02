@@ -444,6 +444,15 @@
     <Compile Include="Generators\Uae.Generator.cs" />
     <Compile Include="Generators\vita3k.Generator.cs" />
     <Compile Include="Generators\VPinball.Generator.cs" />
+    <Compile Include="Generators\VPinball.Controllers.cs">
+      <DependentUpon>VPinball.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\VPinball.PreX8.cs">
+      <DependentUpon>VPinball.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\VPinball.Registration.cs">
+      <DependentUpon>VPinball.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\WinArcadia.Generator.cs" />
     <Compile Include="Generators\XEmu.Generator.cs" />
     <Compile Include="Generators\Xenia.Generator.cs" />
