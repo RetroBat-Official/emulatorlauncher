@@ -13,6 +13,7 @@ namespace EmulatorLauncher.Libretro
     partial class LibRetroGenerator : Generator
     {
         private bool _coreVideoDriverForce = false;
+        private bool _forceBias = false;
 
         public static string GetCoreName(string core)
         {
@@ -3302,6 +3303,11 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "melonds_opengl_better_polygons", "melondsds_polygon", "enabled", "disabled");
             BindFeature(coreSettings, "melonds_opengl_filtering", "melondsds_filter", "nearest");
             BindBoolFeatureOn(coreSettings, "melonds_threaded_renderer", "melonds_threaded_renderer", "enabled", "disabled");
+
+            if (coreSettings["melonds_render_mode"] == "opengl")
+            {
+                _forceBias = true;
+            }
         }
 
         private void ConfiguremGBA(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

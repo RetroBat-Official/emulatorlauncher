@@ -1649,7 +1649,7 @@ namespace EmulatorLauncher.Libretro
             {
                 retroarchConfig["video_viewport_bias_x"] = "0.000000";
 
-                if (driverYBias.Contains(_video_driver))
+                if (driverYBias.Contains(_video_driver) || _forceBias)
                     retroarchConfig["video_viewport_bias_y"] = "1.000000";
                 else
                     retroarchConfig["video_viewport_bias_y"] = "0.000000";
