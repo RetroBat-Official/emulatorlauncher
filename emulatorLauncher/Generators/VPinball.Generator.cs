@@ -265,7 +265,16 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "Player", "Sound3D", "vp_audiochannels", "0");
 
                 // Controls
-                SetupVPinballControls(ini);
+                if (SystemConfig.isOptSet("vp_inputdriver") && SystemConfig["vp_inputdriver"] == "pad2key")
+                {
+                    string sourcep2kFile = Path.Combine(AppConfig.GetFullPath("system"), "padtokey", "vpinball.keys.old");
+                    string targetp2kFile = Path.Combine(AppConfig.GetFullPath("system"), "padtokey", "vpinball.keys");
+
+                    if (!File.Exists(targetp2kFile) && File.Exists(sourcep2kFile))
+                        try { File.Copy(sourcep2kFile, targetp2kFile); } catch { }
+                }
+                else
+                    SetupVPinballControls(ini);
 
                 ini.Save();
             }
@@ -552,6 +561,17 @@ namespace EmulatorLauncher
             {
                 _splash.Dispose();
                 _splash = null;
+            }
+
+            string backupp2kFile = Path.Combine(AppConfig.GetFullPath("system"), "padtokey", "vpinball.keys.old");
+            string p2kFile = Path.Combine(AppConfig.GetFullPath("system"), "padtokey", "vpinball.keys");
+
+            if (File.Exists(p2kFile))
+            {
+                if (File.Exists(backupp2kFile))
+                    try { File.Delete(backupp2kFile); } catch { }
+
+                try { File.Move(p2kFile, backupp2kFile); } catch { }
             }
 
             base.Cleanup();
