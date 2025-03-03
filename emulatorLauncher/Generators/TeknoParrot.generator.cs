@@ -368,9 +368,12 @@ namespace EmulatorLauncher
             // APM3ID - for online gaming
             var apm3id = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "APM3ID");
             if (apm3id != null && SystemConfig.isOptSet("apm3id") && !string.IsNullOrEmpty(SystemConfig["apm3id"]))
-                apm3id.FieldValue = SystemConfig["apm3id"].ToUpperInvariant();
-            else if (apm3id != null)
-                apm3id.FieldValue = string.Empty;
+            {
+                string rbapm3id = SystemConfig["apm3id"].ToUpperInvariant();
+                string tpapm3id = apm3id.FieldValue.ToUpperInvariant();
+                if (string.IsNullOrEmpty(tpapm3id) || rbapm3id != tpapm3id)
+                    apm3id.FieldValue = rbapm3id;
+            }
 
             ConfigureControllers(userProfile, rom);
 
