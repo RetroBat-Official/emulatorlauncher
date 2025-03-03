@@ -13,6 +13,8 @@ namespace EmulatorLauncher.Libretro
     partial class LibRetroGenerator : Generator
     {
         private bool _coreVideoDriverForce = false;
+        private bool _forceBias = false;
+        private bool _forcenobias = false;
 
         public static string GetCoreName(string core)
         {
@@ -1021,12 +1023,19 @@ namespace EmulatorLauncher.Libretro
                 BindFeature(coreSettings, "desmume_color_depth", "desmume_color_depth", "16-bit");
                 BindFeature(coreSettings, "desmume_gfx_multisampling", "desmume_gfx_multisampling", "disabled");
                 BindBoolFeature(coreSettings, "desmume_gfx_texture_smoothing", "desmume_gfx_texture_smoothing", "enabled", "disabled");
+
+                if (coreSettings["desmume_opengl_mode"] == "enabled")
+                {
+                    _forceBias = true;
+                }
             }
 
             else if (core == "desmume2015")
             {
                 coreSettings["desmume_hybrid_layout_scale"] = "3";
             }
+
+            
         }
 
         private void ConfigureDolphin(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2209,6 +2218,13 @@ namespace EmulatorLauncher.Libretro
             // pcsx2_hint_language_unlock
             BindFeature(coreSettings, "pcsx2_renderer", "lrps2_renderer", "Auto");
 
+            List<string> renderNoBiasList = new List<string> { "D3D11", "D3D12", "Vulkan" };
+
+            if (renderNoBiasList.Contains(coreSettings["pcsx2_renderer"]))
+                _forcenobias = true;
+            else if (coreSettings["pcsx2_renderer"] == "OpenGL")
+                _forceBias = true;
+
             if (SystemConfig["lrps2_renderer"] == "paraLLEl-GS")
             {
                 retroarchConfig["video_driver"] = "vulkan";
@@ -2690,6 +2706,15 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "beetle_psx_hw_cpu_freq_scale", "beetle_psx_hw_cpu_freq_scale", "100%(native)");
             BindFeature(coreSettings, "beetle_psx_hw_cd_access_method", "beetle_psx_hw_cd_access_method", "async");
 
+            if (coreSettings["beetle_psx_hw_renderer"] == "hardware_vk")
+            {
+                _forcenobias = true;
+            }
+            else if (coreSettings["beetle_psx_hw_renderer"] == "hardware_gl")
+            {
+                _forceBias = true;
+            }
+
             // BIOS
             if (!SystemConfig.getOptBoolean("beetle_psx_original_bios"))
             {
@@ -3079,6 +3104,11 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-upscaling", "mupen64plus-parallel-rdp-upscaling", "1x");
             BindBoolFeature(coreSettings, "mupen64plus-parallel-rdp-vi-aa", "mupen64plus-parallel-rdp-vi-aa", "True", "False");
             BindBoolFeature(coreSettings, "mupen64plus-parallel-rdp-vi-bilinear", "mupen64plus-parallel-rdp-vi-bilinear", "True", "False");
+
+            if (coreSettings["mupen64plus-rdp-plugin"] == "gliden64")
+            {
+                _forceBias = true;
+            }
         }
 
         private void ConfigureMelonDS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -3102,6 +3132,11 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "melonds_hybrid_ratio", "melonds_hybrid_ratio", "3");
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
             BindFeatureSlider(coreSettings, "melonds_screen_gap", "melonds_screengap", "0");
+
+            if (coreSettings["melonds_opengl_renderer"] == "enabled")
+            {
+                _forceBias = true;
+            }
 
             // Boot to firmware directly if a .bin file is loaded
             string rom = SystemConfig["rom"];
@@ -3302,6 +3337,11 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "melonds_opengl_better_polygons", "melondsds_polygon", "enabled", "disabled");
             BindFeature(coreSettings, "melonds_opengl_filtering", "melondsds_filter", "nearest");
             BindBoolFeatureOn(coreSettings, "melonds_threaded_renderer", "melonds_threaded_renderer", "enabled", "disabled");
+
+            if (coreSettings["melonds_render_mode"] == "opengl")
+            {
+                _forceBias = true;
+            }
         }
 
         private void ConfiguremGBA(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -3627,6 +3667,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "parallel-n64-pak2", "parallel_pak2", "none");
             BindFeature(coreSettings, "parallel-n64-pak3", "parallel_pak3", "none");
             BindFeature(coreSettings, "parallel-n64-pak4", "parallel_pak4", "none");
+
+            _forceBias = true;
         }
 
         private void ConfigurePcsxRearmed(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -4553,6 +4595,11 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "swanstation_MemoryCards_Card1Type", "swanstation_memcard1", "Libretro");
             BindFeature(coreSettings, "swanstation_MemoryCards_Card2Type", "swanstation_memcard2", "None");
 
+            if (coreSettings["swanstation_GPU_Renderer"] == "Vulkan" || coreSettings["swanstation_GPU_Renderer"] == "D3D11")
+            {
+                _forcenobias = true;
+            }
+
             // PGXP
             if (SystemConfig.isOptSet("swanstation_pgxp") && SystemConfig.getOptBoolean("swanstation_pgxp"))
             {
@@ -4755,6 +4802,9 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "vitaquakeii_gl_texture_filtering", "vitaquakeii_gl_texture_filtering", "nearest_hq");
             BindFeature(coreSettings, "vitaquakeii_hand", "vitaquakeii_hand", "right");
             BindFeature(coreSettings, "vitaquakeii_xhair", "vitaquakeii_xhair", "cross");
+
+            if (coreSettings["vitaquakeii_renderer"] == "opengl")
+                _forceBias = true;
 
             // user interface
             BindBoolFeature(coreSettings, "vitaquakeii_fps", "vitaquakeii_fps", "enabled", "disabled");
