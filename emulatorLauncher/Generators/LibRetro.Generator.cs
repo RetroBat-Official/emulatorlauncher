@@ -1077,6 +1077,16 @@ namespace EmulatorLauncher.Libretro
                 _video_driver = defaultVideoDriver[core];
                 retroarchConfig["video_driver"] = defaultVideoDriver[core];
             }
+
+            if (SystemConfig["ratio"] == "custom")
+            {
+                if (_forcenobias)
+                    retroarchConfig["video_viewport_bias_y"] = "0.000000";
+                else if (_forceBias || driverYBias.Contains(SystemConfig["video_driver"]))
+                    retroarchConfig["video_viewport_bias_y"] = "1.000000";
+                else
+                    retroarchConfig["video_viewport_bias_y"] = "0.000000";
+            }
         }
 
         /// <summary>
@@ -1649,7 +1659,9 @@ namespace EmulatorLauncher.Libretro
             {
                 retroarchConfig["video_viewport_bias_x"] = "0.000000";
 
-                if (driverYBias.Contains(_video_driver) || _forceBias)
+                if (_forcenobias)
+                    retroarchConfig["video_viewport_bias_y"] = "0.000000";
+                else if (driverYBias.Contains(_video_driver) || _forceBias)
                     retroarchConfig["video_viewport_bias_y"] = "1.000000";
                 else
                     retroarchConfig["video_viewport_bias_y"] = "0.000000";
