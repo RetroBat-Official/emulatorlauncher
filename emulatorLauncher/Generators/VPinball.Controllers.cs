@@ -181,6 +181,7 @@ namespace EmulatorLauncher
             }
 
             BindIniFeatureSlider(ini, "Player", "DeadZone", "joy_deadzone", "15");
+            BindIniFeature(ini, "Player", "RumbleMode", "vp_rumble", "3");
         }
 
         private SdlToDirectInput getDInputController(Controller ctrl)
