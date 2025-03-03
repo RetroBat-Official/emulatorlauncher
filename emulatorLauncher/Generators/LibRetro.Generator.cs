@@ -1294,7 +1294,7 @@ namespace EmulatorLauncher.Libretro
                 }
 
                 // Netplay hide the gameplay
-                BindBoolFeature(retroarchConfig, "netplay_public_announce", "netplay_public_announce", "true", "false");
+                retroarchConfig["netplay_public_announce"] = string.IsNullOrEmpty(SystemConfig["netplay_public_announce"]) ? "true" : SystemConfig["netplay_public_announce"];
 
                 // custom relay server
                 if (SystemConfig["netplay.relay"] == "custom" && SystemConfig.isOptSet("netplay.customserver") && !string.IsNullOrEmpty(SystemConfig["netplay.customserver"]))
