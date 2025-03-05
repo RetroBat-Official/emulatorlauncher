@@ -271,6 +271,15 @@ namespace EmulatorLauncher
 
             input_config.SetObject("rumble", rumble);
 
+            //leds
+            var led = new DynamicJson();
+            led["enable_led"] = "false";
+            led["turn_off_led"] = "false";
+            led["use_rainbow"] = "false";
+            led["led_color"] = "0";
+
+            input_config.SetObject("led", led);
+
             //left joycon buttons mapping
             var left_joycon = new DynamicJson();
             left_joycon["button_minus"] = GetInputKeyName(c, InputKey.select, tech);
@@ -335,13 +344,21 @@ namespace EmulatorLauncher
 
             // Player identification part
             // Get guid in system.guid format
-            string guid = (_sdlVersion == SdlVersion.Unknown && c.SdlController.Guid != null) ? c.SdlController.Guid.ToString() : c.GetSdlGuid(_sdlVersion, true);
+            /*string guid = (_sdlVersion == SdlVersion.Unknown && c.SdlController.Guid != null) ? c.SdlController.Guid.ToString() : c.GetSdlGuid(_sdlVersion, true);
 
             if (_sdlMapping != null)
             {
                 var sdlTrueGuid = _sdlMapping.GetControllerGuid(c.DevicePath);
                 if (sdlTrueGuid != null)
                     guid = sdlTrueGuid.ToString();
+            }*/
+
+            string guid = c.Guid.ToString();
+
+            if (guid == null)
+            {
+                SimpleLogger.Instance.Error("[ERROR] Controller " + c.DevicePath + " unable to get GUID.");
+                return;
             }
 
             var newGuid = SdlJoystickGuidManager.FromSdlGuidString(guid);
@@ -350,7 +367,10 @@ namespace EmulatorLauncher
             string overrideGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
             string overrideGuid = SdlJoystickGuid.GetGuidFromFile(overrideGuidPath, c.Guid, "ryujinx");
             if (overrideGuid != null)
+            {
+                SimpleLogger.Instance.Info("[INFO] Controller GUID replaced from yml file : " + overrideGuid);
                 ryuGuidString = overrideGuid;
+            }
 
             input_config["version"] = "1";
             input_config["backend"] = "GamepadSDL2";
