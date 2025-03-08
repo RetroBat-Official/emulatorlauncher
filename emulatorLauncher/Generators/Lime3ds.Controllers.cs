@@ -4,6 +4,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common;
+using System.Collections.Generic;
 
 namespace EmulatorLauncher
 {
@@ -136,12 +137,44 @@ namespace EmulatorLauncher
             }
             ini.WriteValue("Controls", profile + "touch_device" + "\\default", "true");
             ini.WriteValue("Controls", profile + "touch_device", "engine:emu_window");
-            
-            //touch from button
-            ini.WriteValue("Controls", profile + "use_touch_from_button" + "\\default", "true");
-            ini.WriteValue("Controls", profile + "use_touch_from_button", "false");
-            ini.WriteValue("Controls", profile + "touch_from_button_map" + "\\default", "true");
-            ini.WriteValue("Controls", profile + "touch_from_button_map", "0");
+
+            // Use custom touch from button
+            if (Program.SystemConfig.isOptSet("lime3ds_touchprofile") && !string.IsNullOrEmpty(Program.SystemConfig["lime3ds_touchprofile"]))
+            {
+                string touch_profile = Program.SystemConfig["lime3ds_touchprofile"];
+                Dictionary<string, int> touchProfile = new Dictionary<string, int>();
+                var touchProfileStr = ini.EnumerateKeys("Controls").Where(k => k.StartsWith("touch_from_button_maps") && k.EndsWith("name")).ToList();
+                foreach (var tp in touchProfileStr)
+                {
+                    string[] parts = tp.Split('\\');
+                    if (parts.Length >= 3 && int.TryParse(parts[1], out int extractedNumber))
+                        touchProfile.Add(ini.GetValue("Controls", tp), extractedNumber);
+                }
+                int profileToUse = 0;
+                if (touchProfile.ContainsKey(touch_profile))
+                    profileToUse = touchProfile[touch_profile] - 1;
+
+                ini.WriteValue("Controls", profile + "use_touch_from_button\\default", "false");
+                ini.WriteValue("Controls", profile + "use_touch_from_button", "true");
+
+                if (profileToUse == 0)
+                {
+                    ini.WriteValue("Controls", profile + "touch_from_button_map" + "\\default", "true");
+                    ini.WriteValue("Controls", profile + "touch_from_button_map", "0");
+                }
+                else
+                {
+                    ini.WriteValue("Controls", profile + "touch_from_button_map\\default", "false");
+                    ini.WriteValue("Controls", profile + "touch_from_button_map", profileToUse.ToString());
+                }
+            }
+            else
+            {
+                ini.WriteValue("Controls", profile + "use_touch_from_button" + "\\default", "true");
+                ini.WriteValue("Controls", profile + "use_touch_from_button", "false");
+                ini.WriteValue("Controls", profile + "touch_from_button_map" + "\\default", "true");
+                ini.WriteValue("Controls", profile + "touch_from_button_map", "0");
+            }
 
             //udp information
             ini.WriteValue("Controls", profile + "udp_input_address" + "\\default", "true");
@@ -152,12 +185,6 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", profile + "udp_pad_index", "0");
 
             ini.WriteValue("Controls", "profiles\\size", "1");
-
-            //in the future we can add profiles per game to use touch from button in the touchscreen (via features)
-            ini.WriteValue("Controls", "touch_from_button_maps\\1\\name\\default", "true");
-            ini.WriteValue("Controls", "touch_from_button_maps\\1\\name", "default");
-            ini.WriteValue("Controls", "touch_from_button_maps\\1\\entries\\size", "0");
-            ini.WriteValue("Controls", "touch_from_button_maps\\size", "1");
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }
@@ -262,10 +289,45 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", profile + "motion_device", "\"" + "engine:motion_emu,update_period:100,sensitivity:0.01,tilt_clamp:90.0" + "\"");
             ini.WriteValue("Controls", profile + "touch_device\\default", "true");
             ini.WriteValue("Controls", profile + "touch_device", "\"" + "engine:emu_window" + "\"");
-            ini.WriteValue("Controls", profile + "use_touch_from_button\\default", "true");
-            ini.WriteValue("Controls", profile + "use_touch_from_button", "false");
-            ini.WriteValue("Controls", profile + "touch_from_button_map\\default", "true");
-            ini.WriteValue("Controls", profile + "touch_from_button_map", "0");
+
+            // Use custom touch from button
+            if (Program.SystemConfig.isOptSet("lime3ds_touchprofile") && !string.IsNullOrEmpty(Program.SystemConfig["lime3ds_touchprofile"]))
+            {
+                string touch_profile = Program.SystemConfig["lime3ds_touchprofile"];
+                Dictionary<string, int> touchProfile = new Dictionary<string, int>();
+                var touchProfileStr = ini.EnumerateKeys("Controls").Where(k => k.StartsWith("touch_from_button_maps") && k.EndsWith("name")).ToList();
+                foreach (var tp in touchProfileStr)
+                {
+                    string[] parts = tp.Split('\\');
+                    if (parts.Length >= 3 && int.TryParse(parts[1], out int extractedNumber))
+                        touchProfile.Add(ini.GetValue("Controls", tp), extractedNumber);
+                }
+                int profileToUse = 0;
+                if (touchProfile.ContainsKey(touch_profile))
+                    profileToUse = touchProfile[touch_profile] - 1;
+
+                ini.WriteValue("Controls", profile + "use_touch_from_button" + "\\default", "false");
+                ini.WriteValue("Controls", profile + "use_touch_from_button", "true");
+
+                if (profileToUse == 0)
+                {
+                    ini.WriteValue("Controls", profile + "touch_from_button_map" + "\\default", "true");
+                    ini.WriteValue("Controls", profile + "touch_from_button_map", "0");
+                }
+                else
+                {
+                    ini.WriteValue("Controls", profile + "touch_from_button_map\\default", "false");
+                    ini.WriteValue("Controls", profile + "touch_from_button_map", profileToUse.ToString());
+                }
+            }
+            else
+            {
+                ini.WriteValue("Controls", profile + "use_touch_from_button" + "\\default", "true");
+                ini.WriteValue("Controls", profile + "use_touch_from_button", "false");
+                ini.WriteValue("Controls", profile + "touch_from_button_map" + "\\default", "true");
+                ini.WriteValue("Controls", profile + "touch_from_button_map", "0");
+            }
+
             ini.WriteValue("Controls", profile + "udp_input_address\\default", "true");
             ini.WriteValue("Controls", profile + "udp_input_address", "127.0.0.1");
             ini.WriteValue("Controls", profile + "udp_input_port\\default", "true");
@@ -273,10 +335,6 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", profile + "udp_pad_index\\default", "true");
             ini.WriteValue("Controls", profile + "udp_pad_index", "0");
             ini.WriteValue("Controls", "profiles\\size", "1");
-            ini.WriteValue("Controls", "touch_from_button_maps\\1\\name\\default", "true");
-            ini.WriteValue("Controls", "touch_from_button_maps\\1\\name", "default");
-            ini.WriteValue("Controls", "touch_from_button_maps\\1\\entries\\size", "0");
-            ini.WriteValue("Controls", "touch_from_button_maps\\size", "1");
         }
 
         /*static Dictionary<string, string> DefKeys = new Dictionary<string, string>()
