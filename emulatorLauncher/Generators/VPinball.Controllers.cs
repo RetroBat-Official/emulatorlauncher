@@ -4,6 +4,9 @@ using System.IO;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common.EmulationStation;
+using System;
+using System.Security.Cryptography;
 
 namespace EmulatorLauncher
 {
@@ -14,49 +17,13 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("disableautocontrollers") && SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            Controller controller = null;
-            bool isXinput = false;
-            string LRAxis = "1";
-            string UDAxis = "2";
-            string PlungerAxis = "4";
+            Controller controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
 
-            if (Controllers != null && Controllers.Count > 0)
-            {
-                controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
-                
-                if (controller != null && controller.IsXInputDevice)
-                    isXinput = true;
-                else if (controller != null)
-                {
-                    SdlToDirectInput dinputController = getDInputController(controller);
-                    if (dinputController != null)
-                    {
-                        if (dinputController.ButtonMappings.ContainsKey("leftx"))
-                            LRAxis = getDinputID(dinputController.ButtonMappings, "leftx");
-                        if (dinputController.ButtonMappings.ContainsKey("lefty"))
-                            UDAxis = getDinputID(dinputController.ButtonMappings, "lefty");
-                        if (dinputController.ButtonMappings.ContainsKey("righty"))
-                            PlungerAxis = getDinputID(dinputController.ButtonMappings, "righty");
-                    }
-                    if (LRAxis == null)
-                        LRAxis = "1";
-                    if (UDAxis == null)
-                        UDAxis = "2";
-                    if (PlungerAxis == null)
-                        PlungerAxis = "4";
-                }
-            }
+            if (controller == null)
+                return;
 
-            if (SystemConfig.isOptSet("vp_inputdriver") && !string.IsNullOrEmpty(SystemConfig["vp_inputdriver"]))
-                ini.WriteValue("Player", "InputApi", SystemConfig["vp_inputdriver"]);
-            else
-                ini.WriteValue("Player", "InputApi", isXinput ? "1" : "0");
-
-            ini.WriteValue("Player", "LRAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? "0" : LRAxis);
-            ini.WriteValue("Player", "UDAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? "0" : UDAxis);
-            ini.WriteValue("Player", "PlungerAxis", SystemConfig.getOptBoolean("nouse_joyaxis") ? "0" : PlungerAxis);
-            ini.WriteValue("Player", "ReversePlungerAxis", "1");
-            BindIniFeatureSlider(ini, "Player", "DeadZone", "joy_deadzone", "15");
+            if (!controller.IsKeyboard)
+                WriteControllerconfig(ini, controller);
 
             WriteKBconfig(ini);
         }
@@ -92,13 +59,138 @@ namespace EmulatorLauncher
             ini.WriteValue("Player", "JoyCustom4Key", "205");
         }
 
+        private void WriteControllerconfig(IniFile ini, Controller controller)
+        {
+            SdlToDirectInput dinputController = getDInputController(controller);
+
+            bool isXinput = controller.IsXInputDevice;
+
+            string inputApi = isXinput ? "1" : "0";
+            if (SystemConfig.isOptSet("vp_inputdriver") && !string.IsNullOrEmpty(SystemConfig["vp_inputdriver"]))
+                inputApi = SystemConfig["vp_inputdriver"];
+
+            ini.WriteValue("Player", "InputApi", inputApi);
+
+            if (inputApi == "1")    // XINPUT case
+            {
+                // Axis
+                if (SystemConfig.getOptBoolean("nouse_joyaxis"))
+                {
+                    ini.WriteValue("Player", "PlungerAxis", "0");
+                    ini.WriteValue("Player", "LRAxis", "0");
+                    ini.WriteValue("Player", "UDAxis", "0");
+                }
+                else
+                {
+                    ini.WriteValue("Player", "PlungerAxis", "6");           // R2
+                    ini.WriteValue("Player", "ReversePlungerAxis", "0");
+                    ini.WriteValue("Player", "LRAxis", "1");                // Left stick horizontal
+                    ini.WriteValue("Player", "LRAxisFlip", "0");
+                    ini.WriteValue("Player", "UDAxis", "2");                // Left stick vertical
+                    ini.WriteValue("Player", "UDAxisFlip", "0");
+                }
+
+                ini.WriteValue("Player", "JoyCTiltKey", "13");          // up
+                ini.WriteValue("Player", "JoyLTiltKey", "11");          // left
+                ini.WriteValue("Player", "JoyRTiltKey", "12");          // right
+                ini.WriteValue("Player", "JoyMechTiltKey", "14");       // down
+                ini.WriteValue("Player", "JoyAddCreditKey", "7");       // select
+                ini.WriteValue("Player", "JoyStartGameKey", "8");       // start
+                ini.WriteValue("Player", "JoyPlungerKey", "1");         // SOUTH
+                ini.WriteValue("Player", "JoyPauseKey", "2");           // EAST
+                ini.WriteValue("Player", "JoyLFlipKey", "5");           // L1
+                ini.WriteValue("Player", "JoyRFlipKey", "6");           // R1
+            }
+            
+            else if (dinputController != null && dinputController.ButtonMappings.Count > 0)
+            {
+                if (SystemConfig.getOptBoolean("nouse_joyaxis"))
+                {
+                    ini.WriteValue("Player", "PlungerAxis", "0");
+                    ini.WriteValue("Player", "LRAxis", "0");
+                    ini.WriteValue("Player", "UDAxis", "0");
+                }
+                else
+                {
+                    string plungerAxis = getDinputID(dinputController.ButtonMappings, "righttrigger", isXinput);
+                    if (plungerAxis.Split('_').Length > 1)
+                    {
+                        ini.WriteValue("Player", "PlungerAxis", plungerAxis.Split('_')[0]);
+                        ini.WriteValue("Player", "ReversePlungerAxis", plungerAxis.Split('_')[1]);
+                    }
+                    else
+                    {
+                        ini.WriteValue("Player", "PlungerAxis", plungerAxis);
+                        ini.WriteValue("Player", "ReversePlungerAxis", isXinput ? "1" : "0");
+                    }
+
+                    ini.WriteValue("Player", "LRAxis", getDinputID(dinputController.ButtonMappings, "leftx", isXinput)); // Left stick horizontal
+                    ini.WriteValue("Player", "LRAxisFlip", "0");
+                    ini.WriteValue("Player", "UDAxis", getDinputID(dinputController.ButtonMappings, "lefty", isXinput)); // Left stick vertical
+                    ini.WriteValue("Player", "UDAxisFlip", "0");
+                }
+                ini.WriteValue("Player", "JoyCTiltKey", getDinputID(dinputController.ButtonMappings, "buttonup", isXinput));        // up
+                ini.WriteValue("Player", "JoyLTiltKey", getDinputID(dinputController.ButtonMappings, "buttonleft", isXinput));      // left
+                ini.WriteValue("Player", "JoyRTiltKey", getDinputID(dinputController.ButtonMappings, "buttonright", isXinput));     // right
+                ini.WriteValue("Player", "JoyMechTiltKey", getDinputID(dinputController.ButtonMappings, "buttondown", isXinput));   // down
+                ini.WriteValue("Player", "JoyAddCreditKey", getDinputID(dinputController.ButtonMappings, "back", isXinput));        // select
+                ini.WriteValue("Player", "JoyStartGameKey", getDinputID(dinputController.ButtonMappings, "start", isXinput));       // start
+                ini.WriteValue("Player", "JoyPlungerKey", getDinputID(dinputController.ButtonMappings, "a", isXinput));             // SOUTH
+                ini.WriteValue("Player", "JoyPauseKey", getDinputID(dinputController.ButtonMappings, "b", isXinput));               // EAST
+                ini.WriteValue("Player", "JoyLFlipKey", getDinputID(dinputController.ButtonMappings, "leftshoulder", isXinput));    // L1
+                ini.WriteValue("Player", "JoyRFlipKey", getDinputID(dinputController.ButtonMappings, "rightshoulder", isXinput));   // R1
+            }
+            
+            else
+            {
+                if (SystemConfig.getOptBoolean("nouse_joyaxis"))
+                {
+                    ini.WriteValue("Player", "PlungerAxis", "0");
+                    ini.WriteValue("Player", "LRAxis", "0");
+                    ini.WriteValue("Player", "UDAxis", "0");
+                }
+                else
+                {
+                    string plungerAxis = getButtonID(controller, InputKey.r2, isXinput);
+                    if (plungerAxis.Split('_').Length > 1)
+                    {
+                        ini.WriteValue("Player", "PlungerAxis", plungerAxis.Split('_')[0]);
+                        ini.WriteValue("Player", "ReversePlungerAxis", plungerAxis.Split('_')[1]);
+                    }
+                    else
+                    {
+                        ini.WriteValue("Player", "PlungerAxis", plungerAxis);
+                        ini.WriteValue("Player", "ReversePlungerAxis", isXinput ? "1" : "0");
+                    }
+
+                    ini.WriteValue("Player", "LRAxis", getButtonID(controller, InputKey.leftanalogleft, isXinput));
+                    ini.WriteValue("Player", "LRAxisFlip", "0");
+                    ini.WriteValue("Player", "UDAxis", getButtonID(controller, InputKey.leftanalogup, isXinput));
+                    ini.WriteValue("Player", "UDAxisFlip", "0");
+                }
+                ini.WriteValue("Player", "JoyCTiltKey", getButtonID(controller, InputKey.up, isXinput));
+                ini.WriteValue("Player", "JoyLTiltKey", getButtonID(controller, InputKey.left, isXinput));
+                ini.WriteValue("Player", "JoyRTiltKey", getButtonID(controller, InputKey.right, isXinput));
+                ini.WriteValue("Player", "JoyMechTiltKey", getButtonID(controller, InputKey.down, isXinput));
+                ini.WriteValue("Player", "JoyAddCreditKey", getButtonID(controller, InputKey.select, isXinput));
+                ini.WriteValue("Player", "JoyStartGameKey", getButtonID(controller, InputKey.start, isXinput));
+                ini.WriteValue("Player", "JoyPlungerKey", getButtonID(controller, InputKey.a, isXinput));
+                ini.WriteValue("Player", "JoyPauseKey", getButtonID(controller, InputKey.b, isXinput));
+                ini.WriteValue("Player", "JoyLFlipKey", getButtonID(controller, InputKey.pageup, isXinput));
+                ini.WriteValue("Player", "JoyRFlipKey", getButtonID(controller, InputKey.pagedown, isXinput));
+            }
+
+            BindIniFeatureSlider(ini, "Player", "DeadZone", "joy_deadzone", "15");
+            BindIniFeature(ini, "Player", "RumbleMode", "vp_rumble", "3");
+        }
+
         private SdlToDirectInput getDInputController(Controller ctrl)
         {
             string gamecontrollerDB = Path.Combine(Program.AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
             if (!File.Exists(gamecontrollerDB))
                 return null;
 
-            string guid = (ctrl.Guid.ToString()).ToLowerInvariant();
+            string guid = (ctrl.Guid.ToString()).ToLowerInvariant().Substring(0, 24) + "00000000";
             if (string.IsNullOrEmpty(guid))
                 return null;
 
@@ -109,27 +201,93 @@ namespace EmulatorLauncher
                 return dinputController;
         }
 
-        private string getDinputID(Dictionary<string, string> mapping, string key)
+        private string getDinputID(Dictionary<string, string> mapping, string key, bool isXinput)
         {
             if (!mapping.ContainsKey(key))
-                return null;
+                return "0";
+
+            bool inverted = false;
+            if (isXinput && key == "righttrigger")
+            {
+                key = "lefttrigger";
+                inverted = true;
+            }
 
             string button = mapping[key];
 
-            if (button.StartsWith("-a") || button.StartsWith("+a"))
+            if (button.StartsWith("b"))
             {
+                int buttonID = button.Substring(1).ToInteger();
+                buttonID++;
+                return buttonID.ToString();
+            }
+            else if (button.StartsWith("h"))
+                return "0";
+
+            else if (button.StartsWith("-a") || button.StartsWith("+a"))
+            {
+                if (button.StartsWith("-a"))
+                    inverted = true;
+                
                 int axisID = button.Substring(2).ToInteger();
                 axisID++;
+                
+                if (inverted)
+                    return axisID.ToString() + "_1";
+
                 return axisID.ToString();
             }
             else if (button.StartsWith("a"))
             {
                 int axisID = button.Substring(1).ToInteger();
                 axisID++;
+
+                if (inverted)
+                    return axisID.ToString() + "_1";
+
                 return axisID.ToString();
             }
 
-            return null;
+            return "0";
+        }
+
+        private string getButtonID(Controller c, InputKey key, bool isXinput)
+        {
+            if (c.Config == null)
+                return "0";
+
+            bool inverted = false;
+
+            if (isXinput && key == InputKey.r2)
+            {
+                return "3_1";
+            }
+
+            var input = c.Config[key];
+            if (input != null)
+            {
+                if (input.Type == "button")
+                {
+                    Int64 pid = input.Id;
+                    return (pid + 1).ToString();
+                }
+
+                else if (input.Type == "hat")
+                {
+                    return "0";
+                }
+
+                else if (input.Type == "axis")
+                {
+                    Int64 pid = input.Id;
+                    if (inverted)
+                        return (pid + 1).ToString() + "_1";
+
+                    return (pid + 1).ToString();
+                }
+            }
+
+            return "0";
         }
     }
 }

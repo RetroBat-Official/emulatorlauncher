@@ -121,6 +121,7 @@ namespace EmulatorLauncher
 
             //General Settings
             json["check_updates_on_start"] = "false";
+            json["update_checker_type"] = "Off";
             json["show_confirm_exit"] = "false";
             json["show_console"] = "false";
 
@@ -133,7 +134,12 @@ namespace EmulatorLauncher
 
             //System
             BindFeature(json, "system_language", "switch_language", GetDefaultswitchLanguage());
-            BindBoolFeatureOn(json, "enable_vsync", "vsync", "true", "false");
+            BindFeature(json, "vsync_mode", "ryujinx_vsync", "0");
+            if (SystemConfig.isOptSet("ryujinx_vsync") && SystemConfig["ryujinx_vsync"] == "2")
+                json["enable_custom_vsync_interval"] = "true";
+            else
+                json["enable_custom_vsync_interval"] = "false";
+
             BindBoolFeatureOn(json, "enable_ptc", "enable_ptc", "true", "false");
 
             // internet access
@@ -145,13 +151,13 @@ namespace EmulatorLauncher
             BindBoolFeatureOn(json, "enable_fs_integrity_checks", "enable_fs_integrity_checks", "true", "false");
             BindFeature(json, "audio_backend", "audio_backend", "SDL2");
             BindFeature(json, "memory_manager_mode", "memory_manager_mode", "HostMappedUnsafe");
-            BindBoolFeature(json, "expand_ram", "expand_ram", "true", "false");
             BindBoolFeature(json, "ignore_missing_services", "ignore_missing_services", "true", "false");
             BindFeature(json, "system_region", "system_region", "USA");
 
             //Graphics Settings
             BindBoolFeatureAuto(json, "backend_threading", "backend_threading", "On", "Off", "Auto");
-            
+            BindFeature(json, "anti_aliasing", "ryujinx_antialiasing", "None");
+            BindFeature(json, "scaling_filter", "ryujinx_scaling_filter", "Bilinear");
             BindBoolFeatureOn(json, "enable_shader_cache", "enable_shader_cache", "true", "false");
             BindBoolFeature(json, "enable_texture_recompression", "enable_texture_recompression", "true", "false");
 
