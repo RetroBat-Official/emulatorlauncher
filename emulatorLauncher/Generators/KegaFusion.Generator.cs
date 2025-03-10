@@ -51,7 +51,7 @@ namespace EmulatorLauncher
             {                
                 commandArray.Add("-mcd");
             }
-			else if (core == "segacd")
+			else if (core == "segacd" || core == "megacd")
             {                
                 commandArray.Add("-scd");
             }

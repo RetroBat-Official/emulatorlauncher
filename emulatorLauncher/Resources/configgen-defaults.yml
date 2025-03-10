@@ -9,7 +9,9 @@ default:
     rewind:         true
     bezel:          default
     forceNoBezel:   false
-
+megacd:
+  emulator: libretro
+  core:     genesisplusgx
 nes:
   emulator: libretro
   core:     fceumm
