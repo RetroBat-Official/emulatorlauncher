@@ -87,10 +87,12 @@ namespace EmulatorLauncher
             };
 
             if (!SystemConfig.getOptBoolean("rpcs3_gui"))
+            {
                 commandArray.Add("--no-gui");
-            
-            if (fullscreen)
-                commandArray.Add("--fullscreen");
+
+                if (fullscreen)
+                    commandArray.Add("--fullscreen");
+            }
 
             string configFilePath = Path.Combine(path, "config.yml");
 
