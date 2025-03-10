@@ -15,7 +15,7 @@ namespace EmulatorLauncher.Libretro
 
         static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami", "sgb", "gb-msu" };
         static readonly List<string> systemButtonRotate = new List<string>() { "nes", "fds", "mastersystem" };
-        static readonly List<string> systemMegadrive = new List<string>() { "genesis", "megadrive", "megadrive-msu", "sega32x", "segacd" };
+        static readonly List<string> systemMegadrive = new List<string>() { "genesis", "megadrive", "megacd", "megadrive-msu", "sega32x", "segacd" };
         static readonly List<string> systemNES = new List<string>() { "nes", "fds" };
         static readonly List<string> systemN64 = new List<string>() { "n64", "n64dd" };
         static readonly List<string> megadrive3ButtonsList = new List<string>() { "2", "257", "1025", "1537", "773" };

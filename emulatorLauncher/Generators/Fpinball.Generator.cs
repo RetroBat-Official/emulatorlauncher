@@ -9,6 +9,7 @@ using EmulatorLauncher.VPinballLauncher;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
@@ -136,6 +137,16 @@ namespace EmulatorLauncher
             SetupOptions(resolution);
             SetupControllers();
 
+            // Run dmdext if needed
+            if (SystemConfig.getOptBoolean("fpinball_dmdext"))
+            {
+                // check existence of dmdext & dmddevice.ini
+                string dmdext = Path.Combine(path, "dmdext.exe");
+                string dmddevice = Path.Combine(path, "DmdDevice.ini");
+                if (File.Exists(dmdext) && File.Exists(dmddevice))
+                    RunDMDExt(dmdext, dmddevice);
+            }
+
             var ret = new ProcessStartInfo()
             {
                 FileName = _bam != null && File.Exists(_bam) ? _bam : exe,
@@ -192,6 +203,51 @@ namespace EmulatorLauncher
             File.WriteAllLines(path, lines.ToArray());
 
             _sswatch = new ScreenShotsWatcher(screenShotPath, SystemConfig["system"], SystemConfig["rom"]);
+        }
+
+        private void RunDMDExt(string dmdext, string dmddevice)
+        {
+            if (!File.Exists(dmdext))
+            {
+                SimpleLogger.Instance.Error("[ERROR] dmdext.exe not found.");
+                return;
+            }
+
+            if (!File.Exists(dmddevice))
+            {
+                SimpleLogger.Instance.Error("[ERROR] DmdDevice.ini not found.");
+                return;
+            }
+
+            ConfigureDMDDevice(dmddevice);
+
+            ProcessStartInfo p = new ProcessStartInfo
+            {
+                FileName = dmdext,
+                WorkingDirectory = Path.GetDirectoryName(dmdext),
+                Arguments = "mirror --source=futurepinball -q --virtual-stay-on-top --fps 60 --use-ini=\"DmdDevice.ini\"",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            Process.Start(p);
+        }
+
+        private void ConfigureDMDDevice(string dmddevice)
+        {
+            if (!File.Exists(dmddevice))
+                return;
+
+            using (var ini = new IniFile(dmddevice, IniOptions.KeepEmptyLines | IniOptions.UseSpaces | IniOptions.KeepEmptyValues))
+            {
+                BindBoolIniFeatureOn(ini, "virtualdmd", "fpinball_virtualdmd", "enabled", "true", "false");
+                BindBoolIniFeature(ini, "zedmd", "fpinball_zedmd", "enabled", "true", "false");
+                BindBoolIniFeature(ini, "pixelcade", "fpinball_pixelcade", "enabled", "true", "false");
+                BindBoolIniFeature(ini, "pin2dmd", "fpinball_pin2dmd", "enabled", "true", "false");
+
+                ini.Save();
+            }
+
         }
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)

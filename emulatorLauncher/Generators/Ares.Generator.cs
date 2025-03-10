@@ -376,7 +376,7 @@ namespace EmulatorLauncher
                     firmware["BIOS.Europe"] = bios_eu.Replace("\\", "/");
             }
 
-            if (system == "segacd")
+            if (system == "segacd" || system == "megacd")
             {
                 var sys = bml.GetOrCreateContainer("MegaCD");
                 var firmware = sys.GetOrCreateContainer("Firmware");
