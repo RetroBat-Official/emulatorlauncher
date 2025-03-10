@@ -207,6 +207,8 @@ namespace EmulatorLauncher
                 tech = "DS3";
             else if (ctrl.IsXInputDevice && !SystemConfig.getOptBoolean("rpcs3_forceSDL"))
                 tech = "XInput";
+            else if (specialXInput.Any(w => ctrl.DevicePath.Contains(w)))
+                tech = "nefariusX";
 
             //Create Player block titles
             string playerBlockTitle = "Player" + " " + playerIndex + " " + "Input";
@@ -408,6 +410,41 @@ namespace EmulatorLauncher
                 config["L1"] = GetInputKeyNameSDL(ctrl, InputKey.pageup, isXinput);                            //LB
                 config["L2"] = GetInputKeyNameSDL(ctrl, InputKey.l2, isXinput);                            //LT
                 config["L3"] = GetInputKeyNameSDL(ctrl, InputKey.l3, isXinput);                            //LS
+            }
+
+            else if (tech == "nefariusX")
+            {
+                config["Left Stick Left"] = "LS X-";
+                config["Left Stick Down"] = "LS Y-";
+                config["Left Stick Right"] = "LS X+";
+                config["Left Stick Up"] = "LS Y+";
+                config["Right Stick Left"] = "RS X-";
+                config["Right Stick Down"] = "RS Y-";
+                config["Right Stick Right"] = "RS X+";
+                config["Right Stick Up"] = "RS Y+";
+                config["Start"] = "Start";
+                config["Select"] = "Back";
+                config["PS Button"] = "Guide";
+                config["Square"] = "X";
+                config["Cross"] = "A";
+                config["Circle"] = "B";
+                config["Triangle"] = "Y";
+                config["Left"] = "Left";
+                config["Down"] = "Down";
+                config["Right"] = "Right";
+                config["Up"] = "Up";
+                config["R1"] = "RB";
+                config["R2"] = "RT";
+                config["R3"] = "RS";
+                config["L1"] = "LB";
+                config["L2"] = "LT";
+                config["L3"] = "LS";
+                config["IR Nose"] = "\"\"";
+                config["IR Tail"] = "\"\"";
+                config["IR Left"] = "\"\"";
+                config["IR Right"] = "\"\"";
+                config["Tilt Left"] = "\"\"";
+                config["Tilt Right"] = "\"\"";
             }
             
             //motion controls
@@ -946,5 +983,7 @@ namespace EmulatorLauncher
 
             yml.Save(activeConfigFile);
         }
+
+        private List<string> specialXInput = new List<string> { "VID_054C&PID_0268" };
     }
 }
