@@ -445,6 +445,9 @@ namespace EmulatorLauncher
                         else
                             ret = "n64-standalone";
                         break;
+                    case "gopher64":
+                        ret = "n64-standalone";
+                        break;
                 }
             }
             else if (system == "nds")
