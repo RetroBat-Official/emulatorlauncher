@@ -126,7 +126,8 @@ namespace EmulatorLauncher
 
             // default to multigun if we have more than one usable gun and the inputdriver is not set to sdl (which do not support multigun)
             bool hasSdlInputDriverConfigured = SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"] == "sdl";
-            bool multigun = gunCount > 1 && guns.Length > 1 && !hasSdlInputDriverConfigured;
+            bool useGun = SystemConfig.getOptBoolean("use_guns");
+            bool multigun = useGun && gunCount > 1 && guns.Length > 1 && !hasSdlInputDriverConfigured;
             if (SystemConfig.isOptSet("multigun"))
                 multigun = SystemConfig.getOptBoolean("multigun");
             if (multigun)
@@ -1420,6 +1421,7 @@ namespace EmulatorLauncher
             int gunCount = RawLightgun.GetUsableLightGunCount();
             var guns = RawLightgun.GetRawLightguns();
 
+            bool useGun = SystemConfig.getOptBoolean("use_guns");
             bool multigun = SystemConfig.isOptSet("multigun") && SystemConfig.getOptBoolean("multigun");
             string mouseIndex1 = "1";
             string mouseIndex2 = "2";
