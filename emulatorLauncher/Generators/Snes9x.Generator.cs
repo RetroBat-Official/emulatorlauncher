@@ -91,7 +91,7 @@ namespace EmulatorLauncher
 					{ "Dir:Cheats", Path.Combine(AppConfig.GetFullPath("cheats"), "snes9x") },
 					{ "Dir:Patches", Path.Combine(AppConfig.GetFullPath("roms"), system) },
 					{ "Dir:Savestates", Path.Combine(AppConfig.GetFullPath("saves"), system, "snes9x", "sstates") },
-					{ "Dir:SRAM", Path.Combine(AppConfig.GetFullPath("saves"), system, "snes9x", "sram") },
+					{ "Dir:SRAM", Path.Combine(AppConfig.GetFullPath("saves"), system) },
 					{ "Dir:SatData", Path.Combine(AppConfig.GetFullPath("saves"), system, "snes9x", "satdata") },
 					{ "Dir:Bios", Path.Combine(AppConfig.GetFullPath("bios")) }
 				};
