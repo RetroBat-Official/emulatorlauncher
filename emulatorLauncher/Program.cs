@@ -75,6 +75,7 @@ namespace EmulatorLauncher
             { "flycast", () => new FlycastGenerator() },
             { "fpinball", () => new FpinballGenerator() },
             { "gemrb", () => new GemRBGenerator() },
+            { "gopher64", () => new Gopher64Generator() },
             { "gsplus", () => new GsPlusGenerator() },
             { "gzdoom", () => new GZDoomGenerator() },
             { "hatari", () => new HatariGenerator() },

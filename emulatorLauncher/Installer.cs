@@ -53,6 +53,7 @@ namespace EmulatorLauncher
             { new Installer("flycast", "flycast", "flycast.exe") },
             { new Installer("fpinball", "fpinball", "Future Pinball.exe") },
             { new Installer("gemrb", "gemrb", "gemrb.exe") },
+            { new Installer("gopher64", "gopher64", "gopher64-windows-x86_64.exe") },
             { new Installer("gsplus") },
             { new Installer("gzdoom", "gzdoom", "gzdoom.exe") },
             { new Installer("hatari", "hatari", "hatari.exe") },
