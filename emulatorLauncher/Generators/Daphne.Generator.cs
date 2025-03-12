@@ -119,7 +119,7 @@ namespace EmulatorLauncher
             if (romPathdirectories.Length >= 2)
             {
                 string secondFromRight = romPathdirectories[romPathdirectories.Length - 2];
-                if (secondFromRight == "vldp" && (Path.GetExtension(rom) == ".actionmax" || Path.GetExtension(rom) == ".singe"))
+                if (secondFromRight == "vldp" && (Path.GetExtension(rom) == ".actionmax" || Path.GetExtension(rom) == ".singe" || Path.GetExtension(rom) == ".altgame"))
                 {
                     string romNameAlt = Path.GetFileNameWithoutExtension(romPath);
                     zipSinge = Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(romPath)), "roms", romNameAlt + ".zip");
@@ -133,16 +133,16 @@ namespace EmulatorLauncher
 
             // Special Treatment for actionmax games
             var ext = Path.GetExtension(rom).Replace(".", "").ToLower();
-            if (ext == "actionmax" && !useAlt)
+            if ((ext == "actionmax" || ext == "altgame") && !useAlt)
             {
-                string expectedSingeFile = Path.Combine(Path.GetDirectoryName(rom), ext, romName + ".singe");
+                string expectedSingeFile = Path.Combine(Path.GetDirectoryName(rom), ext + ".daphne", romName + ".singe");
                 if (!File.Exists(expectedSingeFile))
                     return null;
 
-                rom = Path.Combine(Path.GetDirectoryName(rom), ext);
+                rom = Path.Combine(Path.GetDirectoryName(rom), ext + ".daphne");
             }
 
-            string commandsFile = rom + "\\" + romName + ".commands";
+            string commandsFile = romPath + "\\" + romName + ".commands";
 
             if (!useAlt && !zipHypseus)
             {
@@ -172,7 +172,7 @@ namespace EmulatorLauncher
                 else
                 {
                     singeFile = null;
-                    frameFile = rom.Replace(".singe", ".txt").Replace(".actionmax", ".txt");
+                    frameFile = rom.Replace(".singe", ".txt").Replace(".actionmax", ".txt").Replace(".altgame", ".txt");
                 }
 
                 if (!File.Exists(frameFile))
@@ -209,7 +209,8 @@ namespace EmulatorLauncher
                                            {
                         "singe",
                         "vldp",
-                        "-retropath", // Requires the CreateSymbolicLink
+                        //"-retropath", // Requires the CreateSymbolicLink
+                        "-singedir", romPath,
                         "-zlua", zipSinge,
                         "-framefile", frameFile,
                         "-manymouse",
@@ -223,7 +224,8 @@ namespace EmulatorLauncher
                        {
                         "singe",
                         "vldp",
-                        "-retropath", // Requires the CreateSymbolicLink
+                        //"-retropath", // Requires the CreateSymbolicLink
+                        "-singedir", romPath,
                         "-zlua", zipSinge,
                         "-usealt", romName,
                         "-framefile", frameFile,
@@ -238,7 +240,8 @@ namespace EmulatorLauncher
                        {
                         "singe",
                         "vldp",
-                        "-retropath", // Requires the CreateSymbolicLink
+                        //"-retropath", // Requires the CreateSymbolicLink
+                        "-singedir", romPath,
                         "-framefile", frameFile,
                         "-script", singeFile,
                         "-manymouse",
@@ -254,7 +257,8 @@ namespace EmulatorLauncher
                     _sindenSoft = true;
                 }
 
-                string directoryName = Path.GetFileName(rom);
+                // old code with symlinks
+                /*string directoryName = Path.GetFileName(rom);
 
                 if (directoryName == "actionmax")
                     directoryName = Path.ChangeExtension(directoryName, ".daphne");
@@ -279,7 +283,7 @@ namespace EmulatorLauncher
                     this.SetCustomError("Unable to create symbolic link. Please activate developer mode in Windows settings to allow this.");
                     ExitCode = ExitCodes.CustomError;
                     return null;                    
-                }
+                }*/
             }
             else
             {
@@ -374,7 +378,7 @@ namespace EmulatorLauncher
                             continue;
 
                         if (s == "-x" || s == "-y" || s == "-framefile" || s == "-script" || s == "script" || s == "-useoverlaysb" || s == "-homedir" ||
-                            s == "-datadir" || s == "-scalefactor")
+                            s == "-datadir" || s == "-scalefactor" || s == "singedir")
                         {
                             i++;
                             continue;
