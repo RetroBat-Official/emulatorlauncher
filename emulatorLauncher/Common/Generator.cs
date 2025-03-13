@@ -43,6 +43,8 @@ namespace EmulatorLauncher
         private IsoFile _mountedIso;
         private MountFile _mountFile;
         private GameUnzip _unzip;
+        private bool _customPath = false;
+        private string _customPathValue = null;
 
         protected string TryUnZipGameIfNeeded(string system, string fileName, bool silent = false, bool tryMount = true)
         {
@@ -58,14 +60,20 @@ namespace EmulatorLauncher
             {
                 string extractionPath = GetUnCompressedFolderPath();
 
-                if (Program.SystemConfig["decompressedfolders"] != "keep")
+                if (SystemConfig.isOptSet("decompressedpath") && !string.IsNullOrEmpty(SystemConfig["decompressedpath"]))
+                {
+                    extractionPath = SystemConfig["decompressedpath"].Replace('/', '\\');
+                    _customPath = true;
+                    _customPathValue = extractionPath;
+                }
+
+                else if (Program.SystemConfig["decompressedfolders"] != "keep")
                 {
                     // Decompression for mounting is generally faster in temp path as it's generally a SSD Drive...
                     extractionPath = Path.Combine(Path.GetTempPath(), ".uncompressed", Path.GetFileName(fileName));
                 }
                 else
                     extractionPath = Path.Combine(extractionPath, Path.GetFileName(fileName));
-
 
                 if (string.IsNullOrEmpty(extractionPath))
                     return fileName;
@@ -84,6 +92,14 @@ namespace EmulatorLauncher
             if (Zip.IsCompressedFile(fileName))
             {
                 string extractionPath = GetUnCompressedFolderPath();
+
+                if (SystemConfig.isOptSet("decompressedpath") && !string.IsNullOrEmpty(SystemConfig["decompressedpath"]))
+                {
+                    extractionPath = SystemConfig["decompressedpath"].Replace('/', '\\');
+                    _customPath = true;
+                    _customPathValue = extractionPath;
+                }
+
                 if (string.IsNullOrEmpty(extractionPath))
                     return fileName;
 
@@ -113,7 +129,7 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[Generator] Cleanup.");
             if (_mountFile != null)
             {
-                // Delete overlay path if it's emptt
+                // Delete overlay path if it's empty
                 try { Directory.Delete(_mountFile.OverlayPath); }
                 catch { }
 
@@ -124,7 +140,10 @@ namespace EmulatorLauncher
 
                 string uncompressedFolderPath = GetUnCompressedFolderPath();
 
-                if (Program.SystemConfig["decompressedfolders"] != "keep")
+                if (SystemConfig.isOptSet("decompressedpath") && !string.IsNullOrEmpty(SystemConfig["decompressedpath"]))
+                    extractionPath = SystemConfig["decompressedpath"].Replace('/', '\\');
+
+                else if (Program.SystemConfig["decompressedfolders"] != "keep")
                     uncompressedFolderPath = Path.Combine(Path.GetTempPath(), ".uncompressed");
 
                 bool deleteExtractedFiles = Program.SystemConfig["decompressedfolders"] != "keep"; // Program.SystemConfig["decompressedfolders"] == "delete";
@@ -226,9 +245,11 @@ namespace EmulatorLauncher
                 string path = Path.GetDirectoryName(filename);
                 string extractionPath = GetUnCompressedFolderPath();
 
+                if (Program.SystemConfig.isOptSet("decompressedpath") && !string.IsNullOrEmpty(Program.SystemConfig["decompressedpath"]))
+                    extractionPath = Program.SystemConfig["decompressedpath"].Replace('/', '\\');
+
                 if (!Zip.IsFreeDiskSpaceAvailableForExtraction(filename, extractionPath))
                     throw new Exception("Not enough free space on drive to decompress");
-
 
                 if (!Directory.Exists(extractionPath))
                 {
