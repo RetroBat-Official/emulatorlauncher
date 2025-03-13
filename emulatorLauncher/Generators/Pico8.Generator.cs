@@ -29,26 +29,26 @@ namespace EmulatorLauncher
 
             commandArray.Add("-home " + '\u0022' + path + '\u0022');
             commandArray.Add("-root_path " + '\u0022' + Path.GetDirectoryName(rom) + '\u0022');
-			commandArray.Add("-desktop " + '\u0022' + AppConfig.GetFullPath("screenshots") + "\\pico8" + '\u0022');
+            commandArray.Add("-desktop " + '\u0022' + AppConfig.GetFullPath("screenshots") + "\\pico8" + '\u0022');
+
+            if (Path.GetExtension(rom).ToLower() == ".exe")
+            {
+                path = Path.GetDirectoryName(rom);
 				
-			if (Path.GetExtension(rom).ToLower() == ".exe")
-			{
-				path = Path.GetDirectoryName(rom);
-				
-				if (!File.Exists(rom))
-                return null;
+	            if (!File.Exists(rom))
+                    return null;
 
                 return new ProcessStartInfo()
                 {
-					FileName = rom,
-					WorkingDirectory = path
+		            FileName = rom,
+		            WorkingDirectory = path
                 };
 
-			}
+            }
 			
-			commandArray.Add('\u0022' + rom + '\u0022');
+            commandArray.Add('\u0022' + rom + '\u0022');
 
-			string args = string.Join(" ", commandArray);
+            string args = string.Join(" ", commandArray);
             return new ProcessStartInfo()
             {
                 FileName = exe,

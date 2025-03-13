@@ -591,7 +591,7 @@ namespace EmulatorLauncher
 
                         ini.WriteValue("Core", "SlotA", SystemConfig["dolphin_slotA"] == "1" ? "1" : "8");
 
-                        string gcSavePath = Path.Combine(savesPath, "dolphin", "User", "GC", gc_region);
+                        string gcSavePath = Path.Combine(savesPath, "dolphin", "User", "GC", gc_region, "Card A");
                         if (!Directory.Exists(gcSavePath)) try { Directory.CreateDirectory(gcSavePath); }
                             catch { }
                         string sramFile = Path.Combine(savesPath, "dolphin", "User", "GC", "SRAM." + gc_region + ".raw");
