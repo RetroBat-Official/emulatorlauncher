@@ -401,7 +401,7 @@ namespace EmulatorLauncher
             BindBoolFeature(misc, "Show shader compilation hint", "rpcs3_hidehints", "false", "true");
             BindBoolFeature(misc, "Show PPU compilation hint", "rpcs3_hidehints", "false", "true");
 
-            SetupGuns(yml, vulkan);
+            SetupGuns(path, yml, vulkan);
 
             // Save to yml file
             yml.Save();

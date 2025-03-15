@@ -26,6 +26,11 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            // Ensure user folder exists
+            string userFolder = Path.Combine(path, "user");
+            if (!Directory.Exists(userFolder)) try { Directory.CreateDirectory(userFolder); }
+                catch { }
+
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             SetupConfigurationCitron(path, rom, fullscreen);

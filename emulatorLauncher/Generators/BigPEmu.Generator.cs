@@ -41,6 +41,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            CreateBatConfigFile(path);
+
             string sdl2 = Path.Combine(path, "Data", "ThirdParty", "bin", "SDL2.dll");
             if (File.Exists(sdl2))
                 _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
@@ -202,6 +204,16 @@ namespace EmulatorLauncher
 
                 //save
                 json.Save();
+            }
+        }
+
+        private void CreateBatConfigFile(string path)
+        {
+            string batfile = Path.Combine(path, "Configure BigPEmu.bat");
+            if (!File.Exists(batfile))
+            {
+                string content = "start bigpemu.exe * -localdata";
+                File.WriteAllText(batfile, content);
             }
         }
 
