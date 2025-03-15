@@ -34,13 +34,19 @@ namespace EmulatorLauncher
             // Check if config file already exists or not and create it if not
             string controllerSettings = Path.Combine(folder, "Retrobat.yml");
             
-
             var yml = YmlFile.Load(controllerSettings);
+
+            // Cleanup assignments
+            for (int i = 1; i <= 7; i++)
+            {
+                var player = yml.GetContainer("Player " + i + " Input");
+                player["Handler"] = "\"Null\"";
+            }
 
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
 
             //Create a single Player block in the file for each player
-            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
+            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(7))
                 ConfigureInput(yml, controller, double_pads);
 
             // Save to yml file
@@ -58,9 +64,9 @@ namespace EmulatorLauncher
             if (controller == null || controller.Config == null)
                 return;
 
-            if (controller.IsKeyboard)
+            if (controller.IsKeyboard && !this.Controllers.Any(c => !c.IsKeyboard))
                 ConfigureKeyboard(yml, controller.Config, controller.PlayerIndex);
-            else
+            else if (!controller.IsKeyboard)
                 ConfigureJoystick(yml, controller, controller.PlayerIndex, double_pads);
         }
 
@@ -74,6 +80,18 @@ namespace EmulatorLauncher
         {
             if (keyboard == null)
                 return;
+
+            bool guncon = false;
+            if (SystemConfig.isOptSet("rpcs3_guns") && SystemConfig["rpcs3_guns"] == "raw")
+            {
+                guncon = true;
+
+                if (!SystemConfig.getOptBoolean("rpcs3_guns_start1"))
+                {
+                    SimpleLogger.Instance.Info("[INFO] Keyboard is used for guns, assignment to port 3.");
+                    playerindex = 3;
+                }
+            }
 
             //Create player section (only 1 player with keyboard)
             var player = yml.GetOrCreateContainer("Player " + playerindex + " Input");
@@ -171,10 +189,19 @@ namespace EmulatorLauncher
             config["Right Stick Lerp Factor"] = "100";
             config["Analog Button Lerp Factor"] = "100";
             config["Trigger Lerp Factor"] = "100";
-            config["Device Class Type"] = "0";
-            config["Vendor ID"] = "1356";
-            config["Product ID"] = "616";
-            player["Buddy Device"] = "\"\"";
+            if (guncon)
+            {
+                config["Device Class Type"] = "40960";
+                config["Vendor ID"] = "2970";
+                config["Product ID"] = "2048";
+            }
+            else
+            {
+                config["Device Class Type"] = "0";
+                config["Vendor ID"] = "1356";
+                config["Product ID"] = "616";
+            }
+            player["Buddy Device"] = "\"Null\"";
         }
 
         /// <summary>
@@ -192,6 +219,24 @@ namespace EmulatorLauncher
             InputConfig joy = ctrl.Config;
             if (joy == null)
                 return;
+
+            bool guncon = false;
+
+            if (SystemConfig.isOptSet("rpcs3_guns") && SystemConfig["rpcs3_guns"] == "raw")
+            {
+                guncon = true;
+
+                if (!SystemConfig.getOptBoolean("rpcs3_guns_start1"))
+                {
+                    SimpleLogger.Instance.Info("[GUNS] Assigning controller starting at port 3.");
+                    if (playerIndex == 1)
+                        playerIndex = 3;
+                    else if (playerIndex == 2)
+                        playerIndex = 4;
+                    else
+                        return;
+                }
+            }
 
             //set type of controller
             string devicename = joy.DeviceName;
@@ -555,9 +600,19 @@ namespace EmulatorLauncher
             config["Right Stick Lerp Factor"] = "100";
             config["Analog Button Lerp Factor"] = "100";
             config["Trigger Lerp Factor"] = "100";
-            config["Device Class Type"] = "0";
-            config["Vendor ID"] = "1356";
-            config["Product ID"] = "616";
+
+            if (guncon)
+            {
+                config["Device Class Type"] = "40960";
+                config["Vendor ID"] = "2970";
+                config["Product ID"] = "2048";
+            }
+            else
+            {
+                config["Device Class Type"] = "0";
+                config["Vendor ID"] = "1356";
+                config["Product ID"] = "616";
+            }
             player["Buddy Device"] = "\"Null\"";
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
