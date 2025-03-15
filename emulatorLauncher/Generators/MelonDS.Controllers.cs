@@ -158,6 +158,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("Instance0.Keyboard", x, "-1");
 
             ini.WriteValue("Instance0.Keyboard", "HK_Pause", "16777273");
+            ini.WriteValue("Instance0.Keyboard", "HK_FullscreenToggle", "16777272");
 
             if (SystemConfig.isOptSet("fastforward_toggle") && SystemConfig.getOptBoolean("fastforward_toggle"))
             {
