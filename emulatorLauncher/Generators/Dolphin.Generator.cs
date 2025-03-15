@@ -54,6 +54,11 @@ namespace EmulatorLauncher
             if (string.IsNullOrEmpty(path))
                 return null;
 
+            // Ensure user folder exists
+            string userFolder = Path.Combine(path, "User");
+            if (!Directory.Exists(userFolder)) try { Directory.CreateDirectory(userFolder); }
+                catch { }
+
             string exe = Path.Combine(path, "Dolphin.exe");
             if (!File.Exists(exe))
             {                
