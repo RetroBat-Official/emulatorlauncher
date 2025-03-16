@@ -458,6 +458,7 @@
     <Compile Include="Generators\XEmu.Generator.cs" />
     <Compile Include="Generators\Xenia.Generator.cs" />
     <Compile Include="Generators\Xm6pro.Generator.cs" />
+    <Compile Include="Generators\Xroar.Generator.cs" />
     <Compile Include="Generators\Yabasanshiro.Generator.cs" />
     <Compile Include="Generators\Yabasanshiro.Controllers.cs">
       <DependentUpon>Yabasanshiro.Generator.cs</DependentUpon>

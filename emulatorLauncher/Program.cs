@@ -164,6 +164,7 @@ namespace EmulatorLauncher
             { "xenia-canary", () => new XeniaGenerator() },
             { "xenia-manager", () => new XeniaGenerator() },
             { "xm6pro", () => new Xm6proGenerator() },
+            { "xroar", () => new XroarGenerator() },
             { "yabasanshiro", () => new YabasanshiroGenerator() },
             { "yuzu", () => new YuzuGenerator() },
             { "yuzu-early-access", () => new YuzuGenerator() },
