@@ -675,6 +675,24 @@
     ]
   },
 
+  "dragon32": {
+    "name": "Dragon",
+    "biosFiles": [
+      {
+        "md5": "3420b96031078a4ef408cad7bf21a33f",
+        "file": "bios/dragon/d32.rom"
+      },
+      {
+        "md5": "5f0bee59710e55f5880e74890912ed78",
+        "file": "bios/dragon/d64_1.rom"
+      },
+      {
+        "md5": "fd91edce7be5e7c2d88e46b76956a8aa",
+        "file": "bios/dragon/d64_2.rom"
+      }
+    ]
+  },
+
   "dreamcast": {
     "name": "Dreamcast",
     "biosFiles": [

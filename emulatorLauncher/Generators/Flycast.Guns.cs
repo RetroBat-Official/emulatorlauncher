@@ -141,32 +141,97 @@ namespace EmulatorLauncher
             using (var ctrlini = new IniFile(mappingFile, IniOptions.UseSpaces))
             {
                 // Mouse binds
-                if (useXandB.Contains(_romName))
+                if (SystemConfig.isOptSet("flycast_mousegunbuttons") && !string.IsNullOrEmpty(SystemConfig["flycast_mousegunbuttons"]))
                 {
-                    ctrlini.WriteValue("digital", "bind0", "1:btn_x");
-                    ctrlini.WriteValue("digital", "bind1", "2:btn_start");
-                    ctrlini.WriteValue("digital", "bind2", "3:btn_b");
-                }
-                else if (useXandA.Contains(_romName))
-                {
-                    ctrlini.WriteValue("digital", "bind0", "1:btn_a");
-                    ctrlini.WriteValue("digital", "bind1", "2:btn_x");
-                    ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                    string[] buttons = SystemConfig["flycast_mousegunbuttons"].Split('_');
+                    Dictionary<string, string> mouseBMap = new Dictionary<string, string>();
+
+                    if (buttons.Length > 2)
+                    {
+                        mouseBMap.Add("bind0", buttons[0]);
+                        mouseBMap.Add("bind1", buttons[1]);
+                        mouseBMap.Add("bind2", buttons[2]);
+                    }
+                    else if (buttons.Length > 1)
+                    {
+                        mouseBMap.Add("bind0", buttons[0]);
+                        mouseBMap.Add("bind1", buttons[1]);
+                        mouseBMap.Add("bind2", "3:btn_start");
+                    }
+                    else if (buttons.Length > 0)
+                    {
+                        mouseBMap.Add("bind0", buttons[0]);
+                        mouseBMap.Add("bind1", guninvert ? "2:reload" : "2:btn_a");
+                        mouseBMap.Add("bind2", "3:btn_start");
+                    }
+
+                    int i = 1;
+                    foreach (var mouseB in mouseBMap)
+                    {
+                        string mvalue = mouseB.Value;
+
+                        switch (mvalue)
+                        {
+                            case "a":
+                                mvalue = i + ":btn_a";
+                                ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                break;
+                            case "r":
+                                mvalue = i + ":reload";
+                                ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                break;
+                            case "s":
+                                mvalue = i + ":btn_start";
+                                ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                break;
+                            case "x":
+                                mvalue = i + ":btn_x";
+                                ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                break;
+                            case "b":
+                                mvalue = i + ":btn_b";
+                                ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                break;
+                            case "y":
+                                mvalue = i + ":btn_y";
+                                ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                break;  
+                            default:
+                                ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                break;
+                        }
+                        i++;
+                    }
                 }
                 else
                 {
-                    if (reloadWithButtonB.Contains(_romName))
+                    if (useXandB.Contains(_romName))
                     {
-                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
-                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:btn_b" : "2:btn_a");
+                        ctrlini.WriteValue("digital", "bind0", "1:btn_b");
+                        ctrlini.WriteValue("digital", "bind1", "2:btn_x");
+                        ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                    }
+                    else if (useXandA.Contains(_romName))
+                    {
+                        ctrlini.WriteValue("digital", "bind0", "1:btn_a");
+                        ctrlini.WriteValue("digital", "bind1", "2:btn_x");
+                        ctrlini.WriteValue("digital", "bind2", "3:btn_start");
                     }
                     else
                     {
-                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
-                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
-                    }
+                        if (reloadWithButtonB.Contains(_romName))
+                        {
+                            ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
+                            ctrlini.WriteValue("digital", "bind1", guninvert ? "2:btn_b" : "2:btn_a");
+                        }
+                        else
+                        {
+                            ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
+                            ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
+                        }
 
-                    ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                        ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                    }
                 }
 
                 ctrlini.WriteValue("emulator", "dead_zone", "10");
@@ -463,31 +528,97 @@ namespace EmulatorLauncher
                         }
                         else
                         {
-                            if (useXandB.Contains(_romName))
+                            // Mouse buttons
+                            if (SystemConfig.isOptSet("flycast_mousegunbuttons") && !string.IsNullOrEmpty(SystemConfig["flycast_mousegunbuttons"]))
                             {
-                                ctrlini.WriteValue("digital", "bind0", "1:btn_x");
-                                ctrlini.WriteValue("digital", "bind1", "2:btn_start");
-                                ctrlini.WriteValue("digital", "bind2", "3:btn_b");
-                            }
-                            else if (useXandA.Contains(_romName))
-                            {
-                                ctrlini.WriteValue("digital", "bind0", "1:btn_a");
-                                ctrlini.WriteValue("digital", "bind1", "2:btn_x");
-                                ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                                string[] buttons = SystemConfig["flycast_mousegunbuttons"].Split('_');
+                                Dictionary<string, string> mouseBMap = new Dictionary<string, string>();
+
+                                if (buttons.Length > 2)
+                                {
+                                    mouseBMap.Add("bind0", buttons[0]);
+                                    mouseBMap.Add("bind1", buttons[1]);
+                                    mouseBMap.Add("bind2", buttons[2]);
+                                }
+                                else if (buttons.Length > 1)
+                                {
+                                    mouseBMap.Add("bind0", buttons[0]);
+                                    mouseBMap.Add("bind1", buttons[1]);
+                                    mouseBMap.Add("bind2", "3:btn_start");
+                                }
+                                else if (buttons.Length > 0)
+                                {
+                                    mouseBMap.Add("bind0", buttons[0]);
+                                    mouseBMap.Add("bind1", guninvert ? "2:reload" : "2:btn_a");
+                                    mouseBMap.Add("bind2", "3:btn_start");
+                                }
+
+                                int i = 1;
+                                foreach (var mouseB in mouseBMap)
+                                {
+                                    string mvalue = mouseB.Value;
+
+                                    switch (mvalue)
+                                    {
+                                        case "a":
+                                            mvalue = i + ":btn_a";
+                                            ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                            break;
+                                        case "r":
+                                            mvalue = i + ":reload";
+                                            ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                            break;
+                                        case "s":
+                                            mvalue = i + ":btn_start";
+                                            ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                            break;
+                                        case "x":
+                                            mvalue = i + ":btn_x";
+                                            ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                            break;
+                                        case "b":
+                                            mvalue = i + ":btn_b";
+                                            ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                            break;
+                                        case "y":
+                                            mvalue = i + ":btn_y";
+                                            ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                            break;
+                                        default:
+                                            ctrlini.WriteValue("digital", mouseB.Key, mvalue);
+                                            break;
+                                    }
+                                    i++;
+                                }
                             }
                             else
                             {
-                                if (reloadWithButtonB.Contains(_romName))
+                                if (useXandB.Contains(_romName))
                                 {
-                                    ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
-                                    ctrlini.WriteValue("digital", "bind1", guninvert ? "2:btn_b" : "2:btn_a");
+                                    ctrlini.WriteValue("digital", "bind0", "1:btn_b");
+                                    ctrlini.WriteValue("digital", "bind1", "2:btn_x");
+                                    ctrlini.WriteValue("digital", "bind2", "3:btn_start");
+                                }
+                                else if (useXandA.Contains(_romName))
+                                {
+                                    ctrlini.WriteValue("digital", "bind0", "1:btn_a");
+                                    ctrlini.WriteValue("digital", "bind1", "2:btn_x");
+                                    ctrlini.WriteValue("digital", "bind2", "3:btn_start");
                                 }
                                 else
                                 {
-                                    ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
-                                    ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
+                                    if (reloadWithButtonB.Contains(_romName))
+                                    {
+                                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:btn_b");
+                                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:btn_b" : "2:btn_a");
+                                    }
+                                    else
+                                    {
+                                        ctrlini.WriteValue("digital", "bind0", guninvert ? "1:btn_a" : "1:reload");
+                                        ctrlini.WriteValue("digital", "bind1", guninvert ? "2:reload" : "2:btn_a");
+                                    }
+                                    ctrlini.WriteValue("digital", "bind2", "3:btn_start");
                                 }
-                                ctrlini.WriteValue("digital", "bind2", "3:btn_start");
                             }
                         }
                         ctrlini.WriteValue("emulator", "dead_zone", "10");
