@@ -164,6 +164,8 @@ namespace EmulatorLauncher
             if (!Controllers.Any(c => !c.IsKeyboard))
                 return;
 
+            bool switchjoy = SystemConfig.getOptBoolean("xroar_joyswitch");
+
             string controllerDBFile = Path.Combine(path, "gamecontrollerdb.txt");
             if (File.Exists(controllerDBFile))
             {
@@ -188,7 +190,10 @@ namespace EmulatorLauncher
 
             int index1 = c1.DeviceIndex;
 
-            commandArray.Add("-joy-left");
+            if (switchjoy)
+                commandArray.Add("-joy-left");
+            else
+                commandArray.Add("-joy-right");
             commandArray.Add("RetroBat1");
 
             int index2 = -1;
@@ -196,12 +201,18 @@ namespace EmulatorLauncher
             if (c2 != null)
             {
                 index2 = c2.DeviceIndex;
-                commandArray.Add("-joy-right");
+                if (switchjoy)
+                    commandArray.Add("-joy-right");
+                else
+                    commandArray.Add("-joy-left");
                 commandArray.Add("RetroBat2");
             }
             else
             {
-                commandArray.Add("-joy-right");
+                if (switchjoy)
+                    commandArray.Add("-joy-right");
+                else
+                    commandArray.Add("-joy-left");
                 commandArray.Add("kjoy0");
             }
 
