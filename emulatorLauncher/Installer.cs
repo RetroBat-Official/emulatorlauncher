@@ -27,6 +27,7 @@ namespace EmulatorLauncher
             { new Installer("applewin") },
             { new Installer("arcadeflashweb") },
             { new Installer("ares", "ares", "ares.exe") },
+            { new Installer("azahar", "azahar", "azahar.exe") },
             { new Installer("bam", "fpinball", "Future Pinball.exe") },
             { new Installer("bigpemu", "bigpemu", "BigPEmu.exe") },
             { new Installer("bizhawk", "bizhawk", "EmuHawk.exe") },

@@ -388,8 +388,10 @@ namespace EmulatorLauncher
                     case "citra-canary":
                         if (Program.SystemConfig.isOptSet("citraqt_layout_option") && Program.SystemConfig["citraqt_layout_option"] == "3")
                             return "3ds_side_by_side";
-                        else if (Program.SystemConfig.isOptSet("citraqt_layout_option") && Program.SystemConfig["citraqt_layout_option"] == "2")
+                        else if (Program.SystemConfig.isOptSet("citraqt_layout_option") && Program.SystemConfig["citraqt_layout_option"] == "5")
                             return "3ds_hybrid";
+                        else if (Program.SystemConfig.isOptSet("citraqt_layout_option") && Program.SystemConfig["citraqt_layout_option"] == "2")
+                            return "3ds_bigsmall";
                         break;
                     case "libretro":
                         if (Program.SystemConfig.isOptSet("citra_layout_option") && Program.SystemConfig["citra_layout_option"] == "Side by Side")
@@ -400,8 +402,26 @@ namespace EmulatorLauncher
                     case "lime3ds":
                         if (Program.SystemConfig.isOptSet("lime_layout_option") && Program.SystemConfig["lime_layout_option"] == "3")
                             return "3ds_side_by_side";
-                        else if (Program.SystemConfig.isOptSet("lime_layout_option") && Program.SystemConfig["lime_layout_option"] == "2")
+                        else if (Program.SystemConfig.isOptSet("lime_layout_option") && Program.SystemConfig["lime_layout_option"] == "5")
                             return "3ds_hybrid";
+                        else if (Program.SystemConfig.isOptSet("lime_layout_option") && Program.SystemConfig["lime_layout_option"] == "2")
+                            return "3ds_bigsmall";
+                        break;
+                    case "azahar":
+                        if (Program.SystemConfig.isOptSet("azahar_layout_option") && Program.SystemConfig["azahar_layout_option"] == "3")
+                            return "3ds_side_by_side";
+                        else if (Program.SystemConfig.isOptSet("azahar_layout_option") && Program.SystemConfig["azahar_layout_option"] == "5")
+                            return "3ds_hybrid";
+                        else if (Program.SystemConfig.isOptSet("azahar_layout_option") && Program.SystemConfig["azahar_layout_option"] == "2")
+                            return "3ds_bigsmall";
+                        break;
+                    case "mandarine":
+                        if (Program.SystemConfig.isOptSet("mandarine_layout_option") && Program.SystemConfig["mandarine_layout_option"] == "3")
+                            return "3ds_side_by_side";
+                        else if (Program.SystemConfig.isOptSet("mandarine_layout_option") && Program.SystemConfig["mandarine_layout_option"] == "5")
+                            return "3ds_hybrid";
+                        else if (Program.SystemConfig.isOptSet("mandarine_layout_option") && Program.SystemConfig["mandarine_layout_option"] == "2")
+                            return "3ds_bigsmall";
                         break;
                 }
             }

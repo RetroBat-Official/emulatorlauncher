@@ -121,6 +121,10 @@
     <Compile Include="Generators\Ares.Controllers.cs">
       <DependentUpon>Ares.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Azahar.Generator.cs" />
+    <Compile Include="Generators\Azahar.Controllers.cs">
+      <DependentUpon>Azahar.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\BigPEmu.Generator.cs" />
     <Compile Include="Generators\BigPEmu.Controllers.cs">
       <DependentUpon>BigPEmu.Generator.cs</DependentUpon>

@@ -47,6 +47,7 @@ namespace EmulatorLauncher
             { "applewin", () => new AppleWinGenerator() },
             { "arcadeflashweb", () => new ArcadeFlashWebGenerator() },
             { "ares", () => new AresGenerator() },
+            { "azahar", () => new AzaharGenerator() },
             { "bam", () => new FpinballGenerator() },
             { "bigpemu", () => new BigPEmuGenerator() },
             { "bizhawk", () => new BizhawkGenerator() },

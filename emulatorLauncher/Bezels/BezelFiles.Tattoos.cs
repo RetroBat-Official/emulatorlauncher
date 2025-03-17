@@ -191,6 +191,7 @@ namespace EmulatorLauncher
                     case "citra-canary":
                     case "lime3ds":
                     case "mandarine":
+                    case "azahar":
                         if (Program.SystemConfig["n3ds_motion"] == "sdl")
                             ret = revert ? "3ds_stylus_cstick_revert" : "3ds_stylus_cstick";
                         else

@@ -9,9 +9,9 @@ using System.Linq;
 
 namespace EmulatorLauncher
 {
-    partial class Lime3dsGenerator : Generator
+    partial class AzaharGenerator : Generator
     {
-        public Lime3dsGenerator()
+        public AzaharGenerator()
         {
             DependsOnDesktopResolution = true;
         }
@@ -26,12 +26,7 @@ namespace EmulatorLauncher
 
             string path = AppConfig.GetFullPath(emulator);
 
-            string exe = Path.Combine(path, "lime3ds.exe");
-            if (!File.Exists(exe))
-                exe = Path.Combine(path, "lime3ds-gui.exe");    // old executable name
-            if (!File.Exists(exe))
-                exe = Path.Combine(path, "lime-qt.exe");    // even older executable name
-
+            string exe = Path.Combine(path, "azahar.exe");
             if (!File.Exists(exe))
                 return null;
 
@@ -62,7 +57,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            SetupConfigurationLime3ds(path, rom, fullscreen);
+            SetupConfigurationAzahar(path, rom, fullscreen);
 
             if (fullscreen)
             {
@@ -92,7 +87,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfigurationLime3ds(string path, string rom, bool fullscreen = true)
+        private void SetupConfigurationAzahar(string path, string rom, bool fullscreen = true)
         {
             if (SystemConfig.getOptBoolean("disableautoconfig"))
                 return;
@@ -104,7 +99,7 @@ namespace EmulatorLauncher
             string conf = Path.Combine(userconfigPath, "qt-config.ini");
             using (var ini = new IniFile(conf))
             {
-                SimpleLogger.Instance.Info("Writing Lime3ds configuration file: " + conf);
+                SimpleLogger.Instance.Info("Writing Azahar configuration file: " + conf);
 
                 // Define rom path
                 string romPath = Path.GetDirectoryName(rom);
@@ -138,7 +133,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("Data%20Storage", "use_custom_storage\\default", "false");
                 ini.WriteValue("Data%20Storage", "use_custom_storage", "true");
 
-                string emuNandPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "lime3ds", "nand");
+                string emuNandPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "azahar", "nand");
                 if (!Directory.Exists(emuNandPath)) try { Directory.CreateDirectory(emuNandPath); }
                     catch { }
                 ini.WriteValue("Data%20Storage", "nand_directory\\default", "false");
@@ -149,13 +144,13 @@ namespace EmulatorLauncher
                 if (File.Exists(nandPath))
                     Write3DSnand(nandPath);
 
-                string sdmcPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "lime3ds", "sdmc");
+                string sdmcPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "azahar", "sdmc");
                 if (!Directory.Exists(sdmcPath)) try { Directory.CreateDirectory(sdmcPath); }
                     catch { }
                 ini.WriteValue("Data%20Storage", "sdmc_directory\\default", "false");
                 ini.WriteValue("Data%20Storage", "sdmc_directory", sdmcPath.Replace("\\", "/"));
 
-                string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "lime3ds");
+                string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "azahar");
                 if (!Directory.Exists(screenshotPath)) try { Directory.CreateDirectory(screenshotPath); }
                     catch { }
                 ini.WriteValue("UI", "Paths\\screenshotPath\\default", "false");
@@ -166,9 +161,6 @@ namespace EmulatorLauncher
 
                 ini.WriteValue("UI", "confirmClose\\default", "false");
                 ini.WriteValue("UI", "confirmClose", "false");
-
-                ini.WriteValue("WebService", "enable_telemetry\\default", "false");
-                ini.WriteValue("WebService", "enable_telemetry", "false");
 
                 ini.WriteValue("UI", "firstStart\\default", "false");
                 ini.WriteValue("UI", "firstStart", "false");
@@ -189,12 +181,12 @@ namespace EmulatorLauncher
                     ini.WriteValue("Layout", "filter_mode", "false");
                 }
 
-                if (Features.IsSupported("lime_resolution_factor"))
+                if (Features.IsSupported("azahar_resolution_factor"))
                 {
-                    if (SystemConfig.isOptSet("lime_resolution_factor"))
+                    if (SystemConfig.isOptSet("azahar_resolution_factor"))
                     {
-                        ini.WriteValue("Renderer", "resolution_factor\\default", SystemConfig["lime_resolution_factor"].ToIntegerString() == "1" ? "true" : "false");
-                        ini.WriteValue("Renderer", "resolution_factor", SystemConfig["lime_resolution_factor"].ToIntegerString());
+                        ini.WriteValue("Renderer", "resolution_factor\\default", SystemConfig["azahar_resolution_factor"].ToIntegerString() == "1" ? "true" : "false");
+                        ini.WriteValue("Renderer", "resolution_factor", SystemConfig["azahar_resolution_factor"].ToIntegerString());
                     }
                     else
                     {
@@ -203,12 +195,12 @@ namespace EmulatorLauncher
                     }
                 }
 
-                if (Features.IsSupported("lime_texture_filter"))
+                if (Features.IsSupported("azahar_texture_filter"))
                 {
-                    if (SystemConfig.isOptSet("lime_texture_filter"))
+                    if (SystemConfig.isOptSet("azahar_texture_filter"))
                     {
                         ini.WriteValue("Renderer", "texture_filter\\default", "false");
-                        ini.WriteValue("Renderer", "texture_filter", SystemConfig["lime_texture_filter"]);
+                        ini.WriteValue("Renderer", "texture_filter", SystemConfig["azahar_texture_filter"]);
                     }
                     else
                     {
@@ -217,13 +209,13 @@ namespace EmulatorLauncher
                     }
                 }
 
-                if (Features.IsSupported("lime_layout_option"))
+                if (Features.IsSupported("azahar_layout_option"))
                 {
-                    if (SystemConfig.isOptSet("lime_layout_option"))
+                    if (SystemConfig.isOptSet("azahar_layout_option"))
                     {
                         ini.WriteValue("Layout", "layout_option\\default", "false");
-                        ini.WriteValue("Layout", "layout_option", SystemConfig["lime_layout_option"]);
-                        SimpleLogger.Instance.Info("[INFO] Setting layout option to : " + SystemConfig["lime_layout_option"]);
+                        ini.WriteValue("Layout", "layout_option", SystemConfig["azahar_layout_option"]);
+                        SimpleLogger.Instance.Info("[INFO] Setting layout option to : " + SystemConfig["azahar_layout_option"]);
                     }
                     else
                     {
@@ -232,9 +224,9 @@ namespace EmulatorLauncher
                     }
                 }
 
-                if (Features.IsSupported("lime_swap_screen"))
+                if (Features.IsSupported("azahar_swap_screen"))
                 {
-                    if (SystemConfig.isOptSet("lime_swap_screen") && SystemConfig.getOptBoolean("lime_swap_screen"))
+                    if (SystemConfig.isOptSet("azahar_swap_screen") && SystemConfig.getOptBoolean("azahar_swap_screen"))
                     {
                         ini.WriteValue("Layout", "swap_screen\\default", "false");
                         ini.WriteValue("Layout", "swap_screen", "true");
@@ -247,36 +239,36 @@ namespace EmulatorLauncher
                 }
 
                 // Define console region
-                if (SystemConfig.isOptSet("lime_region_value") && !string.IsNullOrEmpty(SystemConfig["lime_region_value"]) && SystemConfig["lime_region_value"] != "-1")
+                if (SystemConfig.isOptSet("azahar_region_value") && !string.IsNullOrEmpty(SystemConfig["azahar_region_value"]) && SystemConfig["azahar_region_value"] != "-1")
                 {
                     ini.WriteValue("System", "region_value\\default", "false");
-                    ini.WriteValue("System", "region_value", SystemConfig["lime_region_value"]);
+                    ini.WriteValue("System", "region_value", SystemConfig["azahar_region_value"]);
                 }
-                else if (Features.IsSupported("lime_region_value"))
+                else if (Features.IsSupported("azahar_region_value"))
                 {
                     ini.WriteValue("System", "region_value\\default", "true");
                     ini.WriteValue("System", "region_value", "-1");
                 }
 
                 // Custom textures
-                if (SystemConfig.isOptSet("lime_custom_textures") && SystemConfig.getOptBoolean("lime_custom_textures"))
+                if (SystemConfig.isOptSet("azahar_custom_textures") && SystemConfig.getOptBoolean("azahar_custom_textures"))
                 {
                     ini.WriteValue("Utility", "custom_textures\\default", "false");
                     ini.WriteValue("Utility", "custom_textures", "true");
                     SimpleLogger.Instance.Info("[INFO] Custom textures enabled.");
                 }
-                else if (Features.IsSupported("lime_custom_textures"))
+                else if (Features.IsSupported("azahar_custom_textures"))
                 {
                     ini.WriteValue("Utility", "custom_textures\\default", "true");
                     ini.WriteValue("Utility", "custom_textures", "false");
                 }
 
-                if (SystemConfig.isOptSet("lime_PreloadTextures") && SystemConfig.getOptBoolean("lime_PreloadTextures"))
+                if (SystemConfig.isOptSet("azahar_PreloadTextures") && SystemConfig.getOptBoolean("azahar_PreloadTextures"))
                 {
                     ini.WriteValue("Utility", "preload_textures\\default", "false");
                     ini.WriteValue("Utility", "preload_textures", "true");
                 }
-                else if (Features.IsSupported("lime_PreloadTextures"))
+                else if (Features.IsSupported("azahar_PreloadTextures"))
                 {
                     ini.WriteValue("Utility", "preload_textures\\default", "true");
                     ini.WriteValue("Utility", "preload_textures", "false");
