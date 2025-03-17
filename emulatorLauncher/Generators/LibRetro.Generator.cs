@@ -842,13 +842,13 @@ namespace EmulatorLauncher.Libretro
                     }
                 }
             }
-            else if (core == "tgbdual" || system == "wii" || system == "fbneo" || system == "nds")
-            {
-                retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
-            }
             else if (SystemConfig["shader"].Contains("Mega_Bezel"))
             {
                 retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("full").ToString();
+            }
+            else if (core == "tgbdual" || system == "wii" || system == "fbneo" || system == "nds" || system == "mame")
+            {
+                retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
             }
             else
                 retroarchConfig["aspect_ratio_index"] = "";
