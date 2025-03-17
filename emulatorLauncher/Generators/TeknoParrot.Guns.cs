@@ -489,7 +489,7 @@ namespace EmulatorLauncher
 
                                     // Find keyboard associated to lightgun
                                     int startIndex = iGun.DevicePath.IndexOf("VID");
-                                    if (startIndex >= 0 && !useKb)
+                                    if (startIndex >= 0 && !useKb && !ts_nogun)
                                     {
                                         int endIndex = iGun.DevicePath.IndexOf('#', startIndex);
                                         if (endIndex == -1) continue;
