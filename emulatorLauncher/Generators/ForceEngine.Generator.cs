@@ -28,7 +28,7 @@ namespace EmulatorLauncher
             if (lines.Length > 0)
                 mod = lines[0];
 
-            SetupForceEngine(rom);
+            SetupForceEngine(rom, path);
 
             var commandArray = new List<string>();
 
@@ -51,12 +51,13 @@ namespace EmulatorLauncher
                 Arguments = args,
             };
         }
-        private void SetupForceEngine(string rom)
+        private void SetupForceEngine(string rom, string path)
         {
-            string settings = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "TheForceEngine", "settings.ini");
+            string settings = Path.Combine(path, "settings.ini");
 
             if (!File.Exists(settings))
-                return;
+                try { File.WriteAllText(settings, ""); }
+                catch { return; }
 
             using (var ini = IniFile.FromFile(settings))
             {
@@ -97,8 +98,8 @@ namespace EmulatorLauncher
                 else
                 {
                     var res = ScreenResolution.CurrentResolution;
-                    ini.WriteValue("Screen Setup", "ScreenHeight", res.Height.ToString());
-                    ini.WriteValue("Screen Setup", "ScreenWidth", res.Width.ToString());
+                    ini.WriteValue("Graphics", "gameHeight", res.Height.ToString());
+                    ini.WriteValue("Graphics", "gameWidth", res.Width.ToString());
                 }
 
                 // System
