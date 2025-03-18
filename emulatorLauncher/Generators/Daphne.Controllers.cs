@@ -2,6 +2,7 @@
 using System.IO;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {   
@@ -10,7 +11,10 @@ namespace EmulatorLauncher
         private void CreateControllerConfiguration(string path)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             //if (!this.Controllers.Any(c => !c.IsKeyboard))
             //    return;

@@ -27,7 +27,10 @@ namespace EmulatorLauncher
         private void CreateControllerConfiguration(IniFile ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             // UpdateSdlControllersWithHints(ini);
 

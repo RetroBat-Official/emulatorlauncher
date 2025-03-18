@@ -4,6 +4,7 @@ using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Lightguns;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -13,7 +14,10 @@ namespace EmulatorLauncher
         private void ConfigureControllers(IniFile ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
 

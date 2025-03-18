@@ -12,7 +12,10 @@ namespace EmulatorLauncher
         private bool ConfigureMameControllers(string path)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
-                return false;
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                return;
+            }
 
             if (Controllers.Count == 0)
                 return false;

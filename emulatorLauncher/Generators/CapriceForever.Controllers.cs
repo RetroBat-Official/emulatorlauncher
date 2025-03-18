@@ -13,7 +13,10 @@ namespace EmulatorLauncher
         private void ConfigureControllers(IniFile ini, string path)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             // Define profile as retrobat
             ini.WriteValue("Inputs", "DefaultProfileFilename", "Retrobat.prfl");

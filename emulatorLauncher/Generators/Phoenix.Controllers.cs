@@ -12,7 +12,10 @@ namespace EmulatorLauncher
         private void ConfigureControllers(XElement settingsPlatform, string system)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             if (!this.Controllers.Any(c => !c.IsKeyboard))
                 return;

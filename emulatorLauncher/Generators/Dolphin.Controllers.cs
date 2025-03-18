@@ -33,7 +33,10 @@ namespace EmulatorLauncher
             sindenSoft = false;
 
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return false;
+            }
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Dolphin");
 

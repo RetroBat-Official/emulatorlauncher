@@ -12,7 +12,10 @@ namespace EmulatorLauncher
         private void CreateControllerConfiguration(ZEsarUXConfigFile cfg)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).Take(1))
                 ConfigureJoystick(controller, cfg);

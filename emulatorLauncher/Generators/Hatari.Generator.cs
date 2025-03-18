@@ -199,6 +199,12 @@ namespace EmulatorLauncher
 
         private void SetupJoysticks(IniFile ini)
         {
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                return;
+            }
+
             // First initialize all joysticks to disabled
             for (int i = 0; i < 6; i++)
             {

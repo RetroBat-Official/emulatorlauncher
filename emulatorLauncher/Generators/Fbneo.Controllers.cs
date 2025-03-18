@@ -17,7 +17,10 @@ namespace EmulatorLauncher
         private void CreateControllerConfiguration(string path, string rom, string system)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             string padConfigFolder = Path.Combine(path, "config", "games");
             if (!Directory.Exists(padConfigFolder)) try { Directory.CreateDirectory(padConfigFolder); }

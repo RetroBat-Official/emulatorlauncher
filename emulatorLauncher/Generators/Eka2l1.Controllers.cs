@@ -2,6 +2,7 @@
 using System.Linq;
 using System.IO;
 using System.Text;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -10,7 +11,10 @@ namespace EmulatorLauncher
         private void SetupControllers(string path)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             if (!Directory.Exists(Path.Combine(path, "bindings")))
                 try { Directory.CreateDirectory(Path.Combine(path, "bindings")); }

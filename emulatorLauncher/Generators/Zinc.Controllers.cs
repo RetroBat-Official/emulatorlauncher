@@ -14,7 +14,10 @@ namespace EmulatorLauncher
         private void ConfigureControllers(string iniFile, string path)
         {
             if (Program.SystemConfig.isOptSet("zinc_controller_config") && (Program.SystemConfig["zinc_controller_config"] == "none" || Program.SystemConfig["zinc_controller_config"] == "predefined"))
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Zinc");
 

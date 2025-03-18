@@ -100,7 +100,10 @@ namespace EmulatorLauncher
         private void ConfigureControls(DynamicJson input)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             // Set default input profiles
             List<string> profiles = new List<string>

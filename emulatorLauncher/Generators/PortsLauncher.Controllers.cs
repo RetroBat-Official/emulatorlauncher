@@ -20,7 +20,10 @@ namespace EmulatorLauncher
                 return;
 
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             var input = settings.GetOrCreateContainer("Input");
             var player1 = input.GetOrCreateContainer("PlayerCodes0");
@@ -46,7 +49,10 @@ namespace EmulatorLauncher
                 return;
 
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             // clear existing pad sections of ini file
             for (int i = 0; i < 4; i++)
@@ -154,7 +160,10 @@ namespace EmulatorLauncher
                 return;
 
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             // Keyboard defaults
             changes.Add(new Dhewm3ConfigChange("bind", "TAB", "_impulse19"));
@@ -248,7 +257,10 @@ namespace EmulatorLauncher
                 return;
 
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             ini.WriteValue("Input", "FirstGamepadNum", "0");
 
@@ -355,7 +367,10 @@ namespace EmulatorLauncher
                 return;
 
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             JObject deck;
 
@@ -575,7 +590,10 @@ namespace EmulatorLauncher
                 return;
 
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             if (!Controllers.Any(c => !c.IsKeyboard))
                 return;
