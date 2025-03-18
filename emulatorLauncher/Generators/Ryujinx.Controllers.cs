@@ -354,6 +354,8 @@ namespace EmulatorLauncher
             }*/
 
             string guid = c.Guid.ToString();
+            if (SystemConfig.isOptSet("ryujinx_sdlguid") && SystemConfig.getOptBoolean("ryujinx_sdlguid"))
+                guid = c.SdlController.Guid.ToString();
 
             if (guid == null)
             {
