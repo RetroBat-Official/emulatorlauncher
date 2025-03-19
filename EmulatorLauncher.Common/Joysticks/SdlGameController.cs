@@ -394,4 +394,111 @@ namespace EmulatorLauncher.Common.Joysticks
         TRIGGERLEFT = 4,
         TRIGGERRIGHT = 5
     }
+
+    public class Sdl3GameController
+    {
+        static Dictionary<Guid, SdlGameController> _controllersByGuid;
+        static Dictionary<string, SdlGameController> _controllersByPath;
+        static StringBuilder _joyInfos = new StringBuilder();
+
+        public int Index { get; set; }
+        public int InstanceID { get; set; }
+        public SdlJoystickGuid Guid { get; set; }
+        public string Name { get; set; }
+        public string Path { get; set; }
+
+        private const string SDL3_DLL = "SDL3.dll";  // Ensure this is correct
+
+        public const uint SDL_INIT_GAMECONTROLLER = 0x00002000;
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SDL_InitSubSystem(uint flags);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void SDL_QuitSubSystem(uint flags);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr SDL_GetJoysticks(out int num_joysticks);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr SDL_GetGamepads(out int num_joysticks);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr SDL_GetJoystickNameForID(int instance_id);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SDL_GetGamepadPlayerIndexForID(int instance_id);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr SDL_GetJoystickPathForID(int instance_id);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern ushort SDL_GetJoystickVendorForID(int instance_id);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern ushort SDL_GetJoystickProductForID(int instance_id);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void SDL_free(IntPtr ptr);
+
+        private const uint SDL_INIT_JOYSTICK = 0x00000200;
+
+        public static bool ListJoysticks(out List<Sdl3GameController> controllers)
+        {
+            controllers = new List<Sdl3GameController>();
+            try
+            {
+                
+                if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) < 0)
+                {
+                    return false;
+                }
+
+                int num_joysticks;
+                IntPtr joysticksPtr = SDL_GetGamepads(out num_joysticks);
+
+                if (joysticksPtr == IntPtr.Zero || num_joysticks == 0)
+                {
+                    return false;
+                }
+                else
+                {
+                    int[] joystickIDs = new int[num_joysticks];
+                    Marshal.Copy(joysticksPtr, joystickIDs, 0, num_joysticks);
+
+                    for (int i = 0; i < num_joysticks; i++)
+                    {
+                        int instance_id = joystickIDs[i];
+
+                        string name = Marshal.PtrToStringAnsi(SDL_GetJoystickNameForID(instance_id)) ?? "Unknown";
+                        string path = Marshal.PtrToStringAnsi(SDL_GetJoystickPathForID(instance_id)) ?? "Unknown";
+
+                        int index = SDL_GetGamepadPlayerIndexForID(instance_id);
+
+                        ushort vendorID = SDL_GetJoystickVendorForID(instance_id);
+                        ushort productID = SDL_GetJoystickProductForID(instance_id);
+
+                        controllers.Add(new Sdl3GameController
+                        {
+                            Index = index,
+                            Name = name,
+                            Path = path,
+                            InstanceID = instance_id
+                        });
+                    }
+
+                    SDL_free(joysticksPtr);
+                }
+
+                SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+    }
 }
