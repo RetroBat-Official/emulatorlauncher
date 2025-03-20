@@ -5,6 +5,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
+using System.IO;
 
 namespace EmulatorLauncher
 {
@@ -85,8 +86,10 @@ namespace EmulatorLauncher
 
             ini.WriteValue("InputSources", "SDLControllerEnhancedMode", "true");
 
-            // Get list of SDL3 controllers
-            if (Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
+            // Check SDL3 dll Get list of SDL3 controllers
+            bool sdl3 = Controller.CheckSDL3dll();
+
+            if (sdl3 && Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
                 _sdl3Controllers = Sdl3Controllers;
 
             // Reset hotkeys
@@ -144,6 +147,9 @@ namespace EmulatorLauncher
 
             //Perform mappings based on es_input
             WriteKeyboardMapping(padNumber, "Up", InputKey.up);
+
+            if (controllerType == "PlayStationMouse")
+                ini.WriteValue(padNumber, "Pointer", "Pointer-0");
 
             // if mouse right = mouse right button
             if (controllerType == "PlayStationMouse")
@@ -215,12 +221,11 @@ namespace EmulatorLauncher
                 string cPath = ctrl.DirectInput.DevicePath;
                 Sdl3GameController sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == ctrl.DirectInput.DevicePath);
                 sdl3index = sdl3Controller == null ? -1 : sdl3Controller.Index;
+                SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". SDL3 controller index : " + sdl3index);
             }
 
             if (sdl3index == -1)
-            {
                 sdl3index = ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index;
-            }
 
             //Define tech (SDL or XInput)
             string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
@@ -241,6 +246,9 @@ namespace EmulatorLauncher
 
             //Write button mapping
             ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
+
+            if (controllerType == "PlayStationMouse")
+                ini.WriteValue(padNumber, "Pointer", "Pointer-0");
 
             if (controllerType == "PlayStationMouse")
                 ini.WriteValue(padNumber, "Right", "Pointer-0/RightButton");                                        // Right when mouse is selected

@@ -71,6 +71,7 @@ namespace EmulatorLauncher
             // Guncon configuration
             // Only one mouse is supported so far in duckstation, for player 1
             ini.WriteValue(padNumber, "Type", "GunCon");
+            ini.WriteValue(padNumber, "Pointer", "Pointer-0");
             ini.WriteValue(padNumber, "Trigger", guninvert ? "Pointer-0/RightButton" : "Pointer-0/LeftButton");
 
             // Define mapping for A and B buttons (default is mouse right click and middle click)
@@ -117,6 +118,12 @@ namespace EmulatorLauncher
             {
                 ini.WriteValue(padNumber, "A", "Keyboard/VolumeUp");
                 ini.WriteValue(padNumber, "B", "Keyboard/VolumeDown");
+                ini.WriteValue(padNumber, "ShootOffscreen", guninvert ? "Pointer-0/LeftButton" : "Pointer-0/RightButton");
+            }
+            else if (SystemConfig["duck_gun_ab"] == "key_6")
+            {
+                ini.WriteValue(padNumber, "A", "Keyboard/1");
+                ini.WriteValue(padNumber, "B", "Keyboard/5");
                 ini.WriteValue(padNumber, "ShootOffscreen", guninvert ? "Pointer-0/LeftButton" : "Pointer-0/RightButton");
             }
             else if(SystemConfig.isOptSet("gun_reload_button") && SystemConfig.getOptBoolean("gun_reload_button"))

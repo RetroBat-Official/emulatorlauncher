@@ -487,6 +487,22 @@ namespace EmulatorLauncher
             }
             return null;
         }
+
+        public static bool CheckSDL3dll()
+        {
+            string sdl3Sourcepath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "SDL3.dll");
+            string sdl3Targetpath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "emulationstation", "SDL3.dll");
+            if (!File.Exists(sdl3Targetpath))
+                try { File.Copy(sdl3Sourcepath, sdl3Targetpath); } catch { }
+
+            if (!File.Exists(sdl3Targetpath))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] SDL3.dll not found.");
+                return false;
+            }
+            
+            return true;
+        }
     }
 
     static class InputExtensions

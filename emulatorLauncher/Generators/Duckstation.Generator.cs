@@ -172,7 +172,7 @@ namespace EmulatorLauncher
 
             try
             {
-                using (var ini = new IniFile(iniFile))
+                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     ini.WriteValue("Main", "SetupWizardIncomplete", "false");
 
@@ -239,6 +239,7 @@ namespace EmulatorLauncher
 
                             _saveStatesWatcher = new DuckStationSaveStatesMonitor(rom, Path.Combine(path, "savestates"), savesPath);
                             _saveStatesWatcher.PrepareEmulatorRepository();
+                            SimpleLogger.Instance.Info("[INFO] SavesStatesWatcher enabled.");
                         }
                         else
                             ini.WriteValue("Folders", "SaveStates", savesPath);
@@ -494,6 +495,8 @@ namespace EmulatorLauncher
 
                     // Gun configuration
                     CreateGunConfiguration(ini);
+
+                    ini.Save();
                 }
                 
             }
