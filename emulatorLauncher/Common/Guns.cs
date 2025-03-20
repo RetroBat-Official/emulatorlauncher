@@ -44,7 +44,7 @@ namespace EmulatorLauncher
                 {
                     string sindenExe = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "sinden", "Lightgun.exe");
                     string sindenPath = Path.GetDirectoryName(sindenExe);
-                    string cfgFile = Path.Combine(sindenPath, "Lightgun.exe.Config");
+                    
 
                     if (!File.Exists(sindenExe))
                     {
@@ -52,12 +52,16 @@ namespace EmulatorLauncher
                         {
                             sindenExe = Program.SystemConfig["sindensoftwarepath"];
                             sindenPath = Path.GetDirectoryName(sindenExe);
-                            cfgFile = Path.Combine(sindenPath, "Lightgun.exe.Config");
                         }
                     }
 
+                    string cfgFile = Path.Combine(sindenPath, "Lightgun.exe.Config");
+
                     if (!File.Exists(sindenExe))
+                    {
+                        SimpleLogger.Instance.Warning("[GUNS] Cannot find Sinden software executable.");
                         return;
+                    }
 
                     if (File.Exists(cfgFile))
                     {
@@ -145,6 +149,10 @@ namespace EmulatorLauncher
                         xmlDocument.Save(cfgFile);
                         SimpleLogger.Instance.Info("[GUNS] Sinden software succesfully configured.");
                     }
+                    else
+                    {
+                        SimpleLogger.Instance.Warning("[GUNS] Cannot find Sinden software configuration file.");
+                    }
 
                     if (File.Exists(sindenExe))
                     {
@@ -168,7 +176,10 @@ namespace EmulatorLauncher
                     }
                 }
             }
-            catch { }
+            catch 
+            {
+                SimpleLogger.Instance.Warning("[WARNING] Error in Sinden startup code implementation.");
+            }
         }
 
         public static void KillSindenSoftware()

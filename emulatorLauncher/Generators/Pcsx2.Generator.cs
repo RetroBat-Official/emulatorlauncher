@@ -708,9 +708,10 @@ namespace EmulatorLauncher
 
                 // UI section
                 ini.WriteValue("UI", "ConfirmShutdown", "false");
+                ini.WriteValue("UI", "SetupWizardIncomplete", "false");
 
                 // fullscreen management
-                
+
                 if (SystemConfig.getOptBoolean("forcefullscreen"))
                     ini.WriteValue("UI", "StartFullscreen", "true");
                 else if (SystemConfig.getOptBoolean("disable_fullscreen"))
@@ -725,7 +726,6 @@ namespace EmulatorLauncher
                 ini.Remove("UI", "DisplayWindowGeometry");
 
                 // Emucore section
-                ini.WriteValue("EmuCore", "SavestateZstdCompression", "true");
                 ini.WriteValue("EmuCore", "EnableGameFixes", "true");
                 ini.WriteValue("EmuCore", "EnablePatches", "true");
                 

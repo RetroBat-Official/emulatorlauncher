@@ -14,8 +14,11 @@ namespace EmulatorLauncher
     {
         private void SetupVPinballControls(IniFile ini)
         {
-            if (SystemConfig.isOptSet("disableautocontrollers") && SystemConfig["disableautocontrollers"] == "1")
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             Controller controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
 

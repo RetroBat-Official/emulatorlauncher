@@ -5,6 +5,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
+using System.IO;
 
 namespace EmulatorLauncher
 {
@@ -12,6 +13,7 @@ namespace EmulatorLauncher
     {
         private bool _forceSDL = false;
         private bool _multitap = false;
+        private List<Sdl3GameController> _sdl3Controllers = new List<Sdl3GameController>();
 
         /// <summary>
         /// Cf. https://github.com/stenzek/duckstation/blob/master/src/frontend-common/sdl_input_source.cpp
@@ -21,13 +23,15 @@ namespace EmulatorLauncher
         {
             var hints = new List<string>
             {
-                "SDL_JOYSTICK_HIDAPI_WII = 1"
+                "SDL_JOYSTICK_HIDAPI_WII = 1",
+                "SDL_HINT_JOYSTICK_HIDAPI_PS3 = 1"
             };
 
             if (ini.GetValue("InputSources", "SDLControllerEnhancedMode") == "true")
             {
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+                //hints.Add("SDL_HINT_JOYSTICK_ENHANCED_REPORTS = 1");
             }
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
@@ -37,7 +41,10 @@ namespace EmulatorLauncher
         private void CreateControllerConfiguration(IniFile ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for DuckStation");
 
@@ -77,9 +84,13 @@ namespace EmulatorLauncher
                 ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true" : "false");
             }
 
-            //ini.WriteValue("InputSources", "XInput", Controllers.Any(c => c.IsXInputDevice) ? "true" : "false");
-            //ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true": "false");
             ini.WriteValue("InputSources", "SDLControllerEnhancedMode", "true");
+
+            // Check SDL3 dll Get list of SDL3 controllers
+            bool sdl3 = Controller.CheckSDL3dll();
+
+            if (sdl3 && Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
+                _sdl3Controllers = Sdl3Controllers;
 
             // Reset hotkeys
             ResetHotkeysToDefault(ini);
@@ -136,6 +147,9 @@ namespace EmulatorLauncher
 
             //Perform mappings based on es_input
             WriteKeyboardMapping(padNumber, "Up", InputKey.up);
+
+            if (controllerType == "PlayStationMouse")
+                ini.WriteValue(padNumber, "Pointer", "Pointer-0");
 
             // if mouse right = mouse right button
             if (controllerType == "PlayStationMouse")
@@ -201,6 +215,18 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
+            int sdl3index = -1;
+            if (_sdl3Controllers.Count > 0)
+            {
+                string cPath = ctrl.DirectInput.DevicePath;
+                Sdl3GameController sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == ctrl.DirectInput.DevicePath);
+                sdl3index = sdl3Controller == null ? -1 : sdl3Controller.Index;
+                SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". SDL3 controller index : " + sdl3index);
+            }
+
+            if (sdl3index == -1)
+                sdl3index = ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index;
+
             //Define tech (SDL or XInput)
             string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
 
@@ -214,12 +240,15 @@ namespace EmulatorLauncher
             ini.WriteValue(padNumber, "Type", controllerType);
 
             //Get SDL controller index
-            string techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
+            string techPadNumber = "SDL-" + sdl3index + "/";
             if (ctrl.IsXInputDevice && !_forceSDL)
                 techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
 
             //Write button mapping
             ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
+
+            if (controllerType == "PlayStationMouse")
+                ini.WriteValue(padNumber, "Pointer", "Pointer-0");
 
             if (controllerType == "PlayStationMouse")
                 ini.WriteValue(padNumber, "Right", "Pointer-0/RightButton");                                        // Right when mouse is selected

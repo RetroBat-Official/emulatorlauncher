@@ -26,7 +26,10 @@ namespace EmulatorLauncher.Libretro
         public static bool WriteControllersConfig(ConfigFile retroconfig, string system, string core)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return false;
+            }
 
             var c1 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
             bool forceDInput = c1 != null && c1.SdlController == null && !c1.IsXInputDevice;

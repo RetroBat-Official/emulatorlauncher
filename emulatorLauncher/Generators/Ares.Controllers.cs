@@ -14,7 +14,10 @@ namespace EmulatorLauncher
         private void CreateControllerConfiguration(BmlFile bml)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Ares");
 

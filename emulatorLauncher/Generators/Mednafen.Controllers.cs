@@ -55,7 +55,11 @@ namespace EmulatorLauncher
         private void CreateControllerConfiguration(MednafenConfigFile cfg, string mednafenCore, string system)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
+
             if (!systemWithAutoconfig.Contains(mednafenCore))
                 return;
 

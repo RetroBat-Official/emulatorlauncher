@@ -15,6 +15,7 @@ namespace EmulatorLauncher
         private bool _forceSDL = false;
         private bool _forceDInput = false;
         private bool _multitap = false;
+        private List<Sdl3GameController> _sdl3Controllers = new List<Sdl3GameController>();
 
         /// <summary>
         /// Cf. https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Input/SDLInputSource.cpp
@@ -40,7 +41,10 @@ namespace EmulatorLauncher
         private void CreateControllerConfiguration(IniFile pcsx2ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for PCSX2");
 
@@ -48,6 +52,12 @@ namespace EmulatorLauncher
             _forceDInput = Program.SystemConfig.isOptSet("pcsx2_input_driver_force") && Program.SystemConfig["pcsx2_input_driver_force"] == "dinput";
 
             UpdateSdlControllersWithHints(pcsx2ini);
+
+            // Check SDL3 dll Get list of SDL3 controllers
+            bool sdl3 = Controller.CheckSDL3dll();
+
+            if (sdl3 && Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
+                _sdl3Controllers = Sdl3Controllers;
 
             // clear existing pad sections of ini file
             for (int i = 1; i < 9; i++)
@@ -231,6 +241,18 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
+            int sdl3index = -1;
+            if (_sdl3Controllers.Count > 0)
+            {
+                string cPath = ctrl.DirectInput.DevicePath;
+                Sdl3GameController sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == ctrl.DirectInput.DevicePath);
+                sdl3index = sdl3Controller == null ? -1 : sdl3Controller.Index;
+                SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". SDL3 controller index : " + sdl3index);
+            }
+
+            if (sdl3index == -1)
+                sdl3index = ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index;
+
             //Define tech (SDL or XInput or DInput)
             SdlToDirectInput dinputController = null;
             bool isXinput = ctrl.IsXInputDevice;
@@ -278,7 +300,7 @@ namespace EmulatorLauncher
             pcsx2ini.WriteValue(padNumber, "PressureModifier", "0.5");
 
             //Get SDL controller index
-            string techPadNumber = "SDL-" + (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index) + "/";
+            string techPadNumber = "SDL-" + sdl3index + "/";
             if (ctrl.IsXInputDevice && !_forceSDL)
                 techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
 
@@ -601,6 +623,8 @@ namespace EmulatorLauncher
         {
             Int64 pid;
 
+            bool isNintendo = c.VendorID == USB_VENDOR.NINTENDO;
+
             key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
@@ -611,10 +635,26 @@ namespace EmulatorLauncher
                     pid = input.Id;
                     switch (pid)
                     {
-                        case 0: return "A";
-                        case 1: return "B";
-                        case 2: return "Y";
-                        case 3: return "X";
+                        case 0: 
+                            if (isNintendo)
+                                return tech == "XInput" ? "A" : "FaceEast";
+                            else
+                                return tech == "XInput" ? "A" : "FaceSouth";
+                        case 1:
+                            if (isNintendo)
+                                return tech == "XInput" ? "A" : "FaceSouth";
+                            else
+                                return tech == "XInput" ? "B" : "FaceEast";
+                        case 2:
+                            if (isNintendo)
+                                return tech == "XInput" ? "A" : "FaceWest";
+                            else
+                                return tech == "XInput" ? "Y" : "FaceNorth";
+                        case 3:
+                            if (isNintendo)
+                                return tech == "XInput" ? "A" : "FaceNorth";
+                            else
+                                return tech == "XInput" ? "X" : "FaceWest"; ;
                         case 4: return tech == "XInput" ? "LeftShoulder" : "Back";
                         case 5: return tech == "SDL" ? "Guide" : "RightShoulder";
                         case 6: return tech == "XInput" ? "Back" : "Start";

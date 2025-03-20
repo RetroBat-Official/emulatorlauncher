@@ -16,7 +16,10 @@ namespace EmulatorLauncher
         private void ConfigureControllers(IniFile ini, string system, AltirraProfile profile)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
 
             if (Program.Controllers.Count < 1)
                 return;

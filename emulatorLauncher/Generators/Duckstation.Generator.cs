@@ -5,6 +5,8 @@ using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace EmulatorLauncher
 {
@@ -13,24 +15,25 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private SaveStatesWatcher _saveStatesWatcher;
+        private Version _duckstationVersion;
+        private bool _internalBezel = false;
+        private bool _cleanupbezel = false;
+        private string _path;
+        private KeyValuePair<string, string>[] _stage1;
+        private KeyValuePair<string, string>[] _stage2;
+        private KeyValuePair<string, string>[] _stage3;
+        private KeyValuePair<string, string>[] _stage4;
+        private KeyValuePair<string, string>[] _stage5;
+        private KeyValuePair<string, string>[] _stage6;
+        private KeyValuePair<string, string>[] _stage7;
+        private KeyValuePair<string, string>[] _stage8;
+        private KeyValuePair<string, string>[] _postproc;
+        private List<KeyValuePair<string, string>[]> stages = new List<KeyValuePair<string, string>[]>();
+        private bool _restoreShaders = false;
 
         public DuckstationGenerator()
         {
             DependsOnDesktopResolution = true;
-        }
-
-        public override void Cleanup()
-        {
-            if (_saveStatesWatcher != null)
-            {
-                _saveStatesWatcher.Dispose();
-                _saveStatesWatcher = null;
-            }
-
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
-
-            base.Cleanup();
         }
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -41,9 +44,13 @@ namespace EmulatorLauncher
             if (!Directory.Exists(path))
                 return null;
 
+            _path = path;
+
             string exe = Path.Combine(path, "duckstation-qt-x64-ReleaseLTCG.exe");
             if (!File.Exists(exe))
                 return null;
+
+            var ver = Version.TryParse(FileVersionInfo.GetVersionInfo(exe).FileVersion, out _duckstationVersion);
 
             _resolution = resolution;
 
@@ -60,33 +67,42 @@ namespace EmulatorLauncher
                 }
             }
 
-            SetupSettings(path, rom, system);
-
             //Applying bezels
             string renderer = "OpenGL";
             if (SystemConfig.isOptSet("gfxbackend") && !string.IsNullOrEmpty(SystemConfig["gfxbackend"]))
                 renderer = SystemConfig["gfxbackend"];
-            
-            switch (renderer)
+
+            if (SystemConfig.getOptBoolean("duckstation_internalBezel"))
             {
-                case "OpenGL":
-                    ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path);
-                    if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
-                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-                    break;
-                case "Vulkan":
-                case "Software":
-                    ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path);
-                    ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
-                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-                    break;
-                case "D3D11":
-                case "D3D12":
-                    ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
-                    if (!ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x64, system, rom, path, resolution, emulator))
-                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-                    break;
+                _internalBezel = true;
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             }
+
+            else
+            {
+                switch (renderer)
+                {
+                    case "OpenGL":
+                        ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path);
+                        if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                        break;
+                    case "Vulkan":
+                    case "Software":
+                        ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path);
+                        ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
+                        _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                        break;
+                    case "D3D11":
+                    case "D3D12":
+                        ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
+                        if (!ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                        break;
+                }
+            }
+
+            SetupSettings(path, rom, system);
 
             _resolution = resolution;
 
@@ -152,16 +168,16 @@ namespace EmulatorLauncher
 
         private void SetupSettings(string path, string rom, string system)
         {
-            if (SystemConfig.getOptBoolean("disableautoconfig"))
-                return;
-
             string iniFile = Path.Combine(path, "settings.ini");
 
             try
             {
-                using (var ini = new IniFile(iniFile))
+                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
+                    ini.WriteValue("Main", "SetupWizardIncomplete", "false");
+
                     string biosPath = AppConfig.GetFullPath("bios");
+
                     if (!string.IsNullOrEmpty(biosPath))
                     {
                         ini.WriteValue("BIOS", "SearchDirectory", biosPath);
@@ -223,6 +239,7 @@ namespace EmulatorLauncher
 
                             _saveStatesWatcher = new DuckStationSaveStatesMonitor(rom, Path.Combine(path, "savestates"), savesPath);
                             _saveStatesWatcher.PrepareEmulatorRepository();
+                            SimpleLogger.Instance.Info("[INFO] SavesStatesWatcher enabled.");
                         }
                         else
                             ini.WriteValue("Folders", "SaveStates", savesPath);
@@ -245,11 +262,14 @@ namespace EmulatorLauncher
                     //Enable cheevos is needed
                     if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
                     {
+                        SimpleLogger.Instance.Info("[INFO] Getting Retroachievements information for Cheevos login.");
+
                         ini.WriteValue("Cheevos", "Enabled", "true");
                         ini.WriteValue("Cheevos", "UnofficialTestMode", "false");
-                        ini.WriteValue("Cheevos", "UseFirstDiscFromPlaylist", "true");
                         ini.WriteValue("Cheevos", "SoundEffects", "true");
                         ini.WriteValue("Cheevos", "Notifications", "true");
+                        ini.WriteValue("Cheevos", "UseRAIntegration", "false");
+                        ini.WriteValue("Cheevos", "SpectatorMode", "false");
                         ini.WriteValue("Cheevos", "ChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "true" : "false");
                         ini.WriteValue("Cheevos", "LeaderboardNotifications", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
                         ini.WriteValue("Cheevos", "EncoreMode", SystemConfig.getOptBoolean("retroachievements.encore") ? "true" : "false");
@@ -258,7 +278,23 @@ namespace EmulatorLauncher
                         if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
                         {
                             ini.WriteValue("Cheevos", "Username", SystemConfig["retroachievements.username"]);
-                            ini.WriteValue("Cheevos", "Token", SystemConfig["retroachievements.token"]);
+
+                            string cheevosToken = SystemConfig["retroachievements.token"];
+
+                            var newCheevosVer = new Version(0, 1, 8770, 0);
+
+                            if (_duckstationVersion >= newCheevosVer)
+                            {
+                                SimpleLogger.Instance.Info("[INFO] Duckstation version : " + newCheevosVer.ToString() + ", encrypting Cheevos token.");
+                                try
+                                {
+                                    string newToken = EncryptLoginToken(cheevosToken, SystemConfig["retroachievements.username"]);
+                                    cheevosToken = newToken;
+                                }
+                                catch { SimpleLogger.Instance.Warning("[WARNING] Unable to define cheevos token."); }
+                            }
+
+                            ini.WriteValue("Cheevos", "Token", cheevosToken);
 
                             if (string.IsNullOrEmpty(ini.GetValue("Cheevos", "Token")))
                                 ini.WriteValue("Cheevos", "LoginTimestamp", Convert.ToString((int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds));
@@ -270,6 +306,21 @@ namespace EmulatorLauncher
                         ini.WriteValue("Cheevos", "ChallengeMode", "false");
                     }
 
+                    // Internal Bezels
+                    if (_internalBezel && _bezelFileInfo != null)
+                    {
+                        ini.WriteValue("BorderOverlay", "PresetName", "Custom");
+                        ini.WriteValue("BorderOverlay", "ImagePath", _bezelFileInfo.PngFile);
+                        string left = _bezelFileInfo.BezelInfos.left.ToString();
+                        string top = _bezelFileInfo.BezelInfos.top.ToString();
+                        string right = (_bezelFileInfo.BezelInfos.width - _bezelFileInfo.BezelInfos.right).ToString();
+                        string bottom = (_bezelFileInfo.BezelInfos.height - _bezelFileInfo.BezelInfos.bottom).ToString();
+                        ini.WriteValue("BorderOverlay", "DisplayStartX", left);
+                        ini.WriteValue("BorderOverlay", "DisplayStartY", top);
+                        ini.WriteValue("BorderOverlay", "DisplayEndX", right);
+                        ini.WriteValue("BorderOverlay", "DisplayEndY", bottom);
+                        _cleanupbezel = true;
+                    }
 
                     if (SystemConfig.isOptSet("psx_ratio") && !string.IsNullOrEmpty(SystemConfig["psx_ratio"]))
                         ini.WriteValue("Display", "AspectRatio", SystemConfig["psx_ratio"]);
@@ -279,7 +330,7 @@ namespace EmulatorLauncher
 
                     BindBoolIniFeatureOn(ini, "Display", "VSync", "VSync", "true", "false");
                     BindBoolIniFeature(ini, "Display", "OptimalFramePacing", "duckstation_optimalframepacing", "true", "false");
-                    BindIniFeature(ini, "Display", "DeinterlacingMode", "duckstation_deinterlace", "Adaptive");
+                    BindIniFeature(ini, "GPU", "DeinterlacingMode", "duckstation_deinterlace", "Progressive");
                     BindIniFeatureSlider(ini, "GPU", "ResolutionScale", "internal_resolution", "1");
 
                     if (SystemConfig.isOptSet("gfxbackend") && !string.IsNullOrEmpty(SystemConfig["gfxbackend"]))
@@ -292,8 +343,6 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("Texture_Enhancement"))
                         ini.WriteValue("GPU", "TextureFilter", "Nearest");
 
-                    BindBoolIniFeatureOn(ini, "GPU", "DisableInterlacing", "duck_deinterlace", "true", "false");
-                    BindBoolIniFeature(ini, "GPU", "ForceNTSCTimings", "NTSC_Timings", "true", "false");
                     BindBoolIniFeature(ini, "GPU", "WidescreenHack", "Widescreen_Hack", "true", "false");
                     BindBoolIniFeature(ini, "GPU", "TrueColor", "Disable_Dithering", "true", "false");
                     BindBoolIniFeature(ini, "GPU", "ScaledDithering", "Scaled_Dithering", "true", "false");
@@ -336,7 +385,6 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("psx_region"))
                         ini.WriteValue("Console", "Region", "Auto");
 
-                    BindBoolIniFeature(ini, "Console", "EnableCheats", "duckstation_cheats", "true", "false");
                     BindBoolIniFeature(ini, "Console", "Enable8MBRAM", "duckstation_ram", "true", "false");
 
                     if (SystemConfig.isOptSet("ExecutionMode") && !string.IsNullOrEmpty(SystemConfig["ExecutionMode"]))
@@ -371,24 +419,31 @@ namespace EmulatorLauncher
                     }
 
                     // Internal shaders
-                    // First delete existing shaders
+                    _stage1 = ini.EnumerateValues("PostProcessing/Stage1");
+                    _stage2 = ini.EnumerateValues("PostProcessing/Stage2");
+                    _stage3 = ini.EnumerateValues("PostProcessing/Stage3");
+                    _stage4 = ini.EnumerateValues("PostProcessing/Stage4");
+                    _stage5 = ini.EnumerateValues("PostProcessing/Stage5");
+                    _stage6 = ini.EnumerateValues("PostProcessing/Stage6");
+                    _stage7 = ini.EnumerateValues("PostProcessing/Stage7");
+                    _stage8 = ini.EnumerateValues("PostProcessing/Stage8");
+                    _postproc = ini.EnumerateValues("PostProcessing");
+                    stages.Add(_stage1); stages.Add(_stage2); stages.Add(_stage3); stages.Add(_stage4); stages.Add(_stage5); stages.Add(_stage6); stages.Add(_stage7); stages.Add(_stage8);
 
-                    for (int i = 1; i <= 8; i++)
-                    {
-                        string section = "PostProcessing/Stage" + i;
-                        ini.ClearSection(section);
-                    }
 
                     if (SystemConfig.isOptSet("duck_shaders") && !string.IsNullOrEmpty(SystemConfig["duck_shaders"]))
                     {
+                        
+                        for (int i = 1; i <= 8; i++)
+                        {
+                            string section = "PostProcessing/Stage" + i;
+                            ini.ClearSection(section);
+                        }
+
                         ini.WriteValue("PostProcessing", "Enabled", "true");
                         ini.WriteValue("PostProcessing", "StageCount", "1");
                         ini.WriteValue("PostProcessing/Stage1", "ShaderName", SystemConfig["duck_shaders"].Replace("_", "/"));
-                    }
-                    else
-                    {
-                        ini.WriteValue("PostProcessing", "Enabled", "false");
-                        ini.WriteValue("PostProcessing", "StageCount", "0");
+                        _restoreShaders = true;
                     }
 
                     BindBoolIniFeatureOn(ini, "Display", "ShowOSDMessages", "duckstation_osd_enabled", "true", "false");
@@ -440,17 +495,81 @@ namespace EmulatorLauncher
 
                     // Gun configuration
                     CreateGunConfiguration(ini);
+
+                    ini.Save();
                 }
                 
             }
             catch { }
         }
 
+        private const int AesBlockSize = 16;
+
+        public static string EncryptLoginToken(string token, string username)
+        {
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(username))
+                return string.Empty;
+
+            // Generate 32-byte encryption key from username
+            byte[] key = GetLoginEncryptionKey(username);
+
+            // Split key into AES key and IV
+            byte[] aesKey = key.Take(16).ToArray();  // First 16 bytes for AES key
+            byte[] aesIV = key.Skip(16).Take(16).ToArray();  // Last 16 bytes for IV
+
+            // Convert token to bytes and pad to block size
+            byte[] tokenBytes = Encoding.UTF8.GetBytes(token);
+            byte[] paddedData = PadToBlockSize(tokenBytes, AesBlockSize);
+
+            // Encrypt using AES-128-CBC
+            byte[] encryptedData = EncryptAesCbc(paddedData, aesKey, aesIV);
+
+            // Base64 encode the result
+            return Convert.ToBase64String(encryptedData);
+        }
+
+        private static byte[] GetLoginEncryptionKey(string username)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(username));
+
+                for (int i = 0; i < 100; i++) // 100 extra rounds of hashing
+                    hash = sha256.ComputeHash(hash);
+
+                return hash; // 32-byte key
+            }
+        }
+
+        private static byte[] EncryptAesCbc(byte[] data, byte[] key, byte[] iv)
+        {
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = key;
+                aes.IV = iv;
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.None; // No extra padding, we handle it manually
+
+                using (ICryptoTransform encryptor = aes.CreateEncryptor())
+                {
+                    return encryptor.TransformFinalBlock(data, 0, data.Length);
+                }
+            }
+        }
+
+        private static byte[] PadToBlockSize(byte[] data, int blockSize)
+        {
+            int paddedSize = (data.Length + blockSize - 1) / blockSize * blockSize;
+            byte[] paddedData = new byte[paddedSize];
+            Array.Copy(data, paddedData, data.Length);
+            return paddedData; // Zero-padding (matches C++ behavior)
+        }
+
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
 
-            if (_bezelFileInfo != null)
+            if (_bezelFileInfo != null && !_internalBezel)
                 bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
 
             int ret = base.RunAndWait(path);
@@ -461,6 +580,70 @@ namespace EmulatorLauncher
             ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
 
             return ret;
+        }
+
+        public override void Cleanup()
+        {
+            if (_saveStatesWatcher != null)
+            {
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
+            }
+
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
+
+            if (_cleanupbezel || _restoreShaders)
+            {
+                string iniFile = Path.Combine(_path, "settings.ini");
+
+                try
+                {
+                    using (var ini = new IniFile(iniFile))
+                    {
+                        if (_cleanupbezel)
+                            ini.ClearSection("BorderOverlay");
+
+                        if (_restoreShaders && _stage1.Count() > 0)
+                        {
+                            if (_stage1.Count() != 0)
+                            {
+                                int i = 1;
+                                foreach (var s in stages)
+                                {
+                                    if (s.Count() == 0)
+                                        continue;
+
+                                    string section = "PostProcessing/Stage" + i;
+
+                                    foreach (var kvp in s)
+                                    {
+                                        ini.WriteValue(section, kvp.Key, kvp.Value);
+                                    }
+
+                                    i++;
+                                }
+                                foreach (var kvp in _postproc)
+                                {
+                                    ini.WriteValue("PostProcessing", kvp.Key, kvp.Value);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            ini.ClearSection("PostProcessing");
+                            for (int i = 1; i <= 8; i++)
+                            {
+                                string section = "PostProcessing/Stage" + i;
+                                ini.ClearSection(section);
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            base.Cleanup();
         }
     }
 }

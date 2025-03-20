@@ -853,24 +853,21 @@ namespace EmulatorLauncher
         {
             try
             {
-                // Split the path by '#'
                 string[] parts = devicePath.Split('#');
                 if (parts.Length < 3)
                     return null;
 
-                // The second part contains VID and PID (ignore the MI_ part)
                 string[] vidPidParts = parts[1].Split('&');
                 string vidPid = $"{vidPidParts[0]}&{vidPidParts[1]}"; // Only take VID and PID
 
-                // The third part contains the character after the second #
                 string partAfterSecondHash = parts[2];
-                char characterAfterSecondHash = partAfterSecondHash[0]; // First character
+                char characterAfterSecondHash = partAfterSecondHash[0];
 
                 return vidPid;
             }
             catch
             {
-                return null; // Return null on error
+                return null;
             }
         }
 
@@ -878,12 +875,10 @@ namespace EmulatorLauncher
         {
             try
             {
-                // Split the path by '#'
                 string[] parts = devicePath.Split('#');
                 if (parts.Length < 3)
                     return "";
 
-                // The third part contains the character after the second #
                 string partAfterSecondHash = parts[2];
                 char characterAfterSecondHash = partAfterSecondHash[0]; // First character
 
@@ -891,7 +886,7 @@ namespace EmulatorLauncher
             }
             catch
             {
-                return ""; // Return null on error
+                return "";
             }
         }
 
@@ -911,11 +906,11 @@ namespace EmulatorLauncher
                     string toFind = kbVIDPID + "_" + kbChar;
                     if (toSearch.ToLowerInvariant() == toFind.ToLowerInvariant())
                     {
-                        return kb; // Return the matching keyboard
+                        return kb;
                     }
                 }
             }
-            return keyboard; // No match found
+            return keyboard;
         }
     }
 }
