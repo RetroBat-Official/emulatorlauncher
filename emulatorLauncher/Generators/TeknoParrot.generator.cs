@@ -81,6 +81,7 @@ namespace EmulatorLauncher
             { "ID6",                             @"Initial D arcade stage 6 AA\id6_dump_.exe" },
             { "ID7",                             @"Initial D arcade stage 7 AAX\InitialD7_GLW_RE_SBYD_dumped_.exe" },
             { "ID8",                             @"Initial D Arcade Stage 8 Infinity\InitialD8_GLW_RE_SBZZ_redumped_.exe" },
+            { "IDZv2TP",                         @"Initial D Arcade Stage Zero Ver.2\package\InitialD0_DX11_Nu.exe" },
             { "Ikaruga",                         @"Ikaruga for NesicaxLive\game.exe" },
             { "JurassicPark",                    @"Jurassic Park Arcade\Game" },
             { "JusticeLeague",                   @"Justice League - Heroes United\JLA.exe" },
@@ -577,6 +578,13 @@ namespace EmulatorLauncher
                     return profile;
             }
 
+            if (GetProfileFromYml(gameName, out string ymlProfileName))
+            {
+                var profile = JoystickHelper.DeSerializeGameProfile(Path.Combine(path, "GameProfiles", ymlProfileName + ".xml"), false);
+                if (profile != null)
+                    return profile;
+            }
+
             var profiles = new List<GameProfile>();
 
             foreach (var file in Directory.GetFiles(Path.Combine(path, "GameProfiles")))
@@ -856,7 +864,7 @@ namespace EmulatorLauncher
         {
             YmlExe = null;
 
-            string ExeInfoFile = Path.Combine(Program.AppConfig.GetFullPath("tools"), "teknoparrotExecutables.yml");
+            string ExeInfoFile = Path.Combine(Program.AppConfig.GetFullPath("tools"), "teknoparrotInfo.yml");
 
             try
             {
@@ -872,6 +880,38 @@ namespace EmulatorLauncher
                             if (info.Name == "executable")
                             {
                                 YmlExe = info.Value;
+                                continue;
+                            }
+                        }
+                        return true;
+                    }
+                    else return false;
+                }
+                else return false;
+            }
+            catch { return false; }
+        }
+
+        private static bool GetProfileFromYml(string game, out string ProfileName)
+        {
+            ProfileName = null;
+
+            string ProfileInfoFile = Path.Combine(Program.AppConfig.GetFullPath("tools"), "teknoparrotInfo.yml");
+
+            try
+            {
+                var yml = YmlFile.Load(ProfileInfoFile);
+                if (yml != null)
+                {
+                    var gameInfo = yml.GetContainer(game);
+                    if (gameInfo != null)
+                    {
+                        foreach (var infoLine in gameInfo.Elements)
+                        {
+                            YmlElement info = infoLine as YmlElement;
+                            if (info.Name == "profile")
+                            {
+                                ProfileName = info.Value;
                                 continue;
                             }
                         }

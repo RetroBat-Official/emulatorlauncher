@@ -46,6 +46,8 @@ namespace EmulatorLauncher
 
             _path = path;
 
+            bool fullscreen = (!SystemConfig.getOptBoolean("disable_fullscreen") && !IsEmulationStationWindowed()) || SystemConfig.getOptBoolean("forcefullscreen");
+
             string exe = Path.Combine(path, "duckstation-qt-x64-ReleaseLTCG.exe");
             if (!File.Exists(exe))
                 return null;
@@ -72,13 +74,13 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("gfxbackend") && !string.IsNullOrEmpty(SystemConfig["gfxbackend"]))
                 renderer = SystemConfig["gfxbackend"];
 
-            if (SystemConfig.getOptBoolean("duckstation_internalBezel"))
+            if (SystemConfig.getOptBoolean("duckstation_internalBezel") && fullscreen)
             {
                 _internalBezel = true;
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             }
 
-            else
+            else if (fullscreen)
             {
                 switch (renderer)
                 {
@@ -117,7 +119,7 @@ namespace EmulatorLauncher
             commandArray.Add("-batch");
             commandArray.Add("-portable");
 
-            if ((!SystemConfig.getOptBoolean("disable_fullscreen") && !IsEmulationStationWindowed()) || SystemConfig.getOptBoolean("forcefullscreen"))
+            if (fullscreen)
                 commandArray.Add("-fullscreen");
 
             if (File.Exists(SystemConfig["state_file"]))
