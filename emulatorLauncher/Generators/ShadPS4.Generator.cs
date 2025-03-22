@@ -60,7 +60,7 @@ namespace EmulatorLauncher
             }
             else
             {
-                commandArray.Add("-g");
+                //commandArray.Add("-g");
                 commandArray.Add("\"" + rom + "\"");
             }
 
