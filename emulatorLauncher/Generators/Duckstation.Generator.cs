@@ -492,6 +492,9 @@ namespace EmulatorLauncher
 
                     ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");
 
+                    // Add rom path to RecursivePaths
+                    AddPathToRecursivePaths(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
+
                     // Controller configuration
                     CreateControllerConfiguration(ini);
 
@@ -503,6 +506,17 @@ namespace EmulatorLauncher
                 
             }
             catch { }
+        }
+
+        private static void AddPathToRecursivePaths(string romPath, IniFile ini)
+        {
+            var recursivePaths = ini.EnumerateValues("GameList")
+                .Where(e => e.Key == "RecursivePaths")
+                .Select(e => Path.GetFullPath(e.Value))
+                .ToList();
+
+            if (!recursivePaths.Contains(romPath))
+                ini.AppendValue("GameList", "RecursivePaths", romPath);
         }
 
         private const int AesBlockSize = 16;
