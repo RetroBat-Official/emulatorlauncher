@@ -81,7 +81,11 @@ namespace EmulatorLauncher
         /// <param name="rom"></param>
         private void SetupConfiguration(string path, string rom, bool fullscreen, ScreenResolution resolution)
         {
-            string settingsFile = Path.Combine(path, "user", "config.toml");
+            string userFolder = Path.Combine(path, "user");
+            if (!Directory.Exists(userFolder))
+                try { Directory.CreateDirectory(userFolder); } catch { }
+
+            string settingsFile = Path.Combine(userFolder, "config.toml");
             string romPath = Path.GetDirectoryName(rom);
             if (Path.GetExtension(romPath).ToLower() == ".ps4")
                 romPath = Directory.GetParent(romPath).FullName.Replace("\\", "/");

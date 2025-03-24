@@ -94,7 +94,7 @@ namespace EmulatorLauncher
                     commandArray.Add("--fullscreen");
             }
 
-            string configFilePath = Path.Combine(path, "config.yml");
+            string configFilePath = Path.Combine(path, "config", "config.yml");
 
             bool useCustomConfig = SystemConfig.getOptBoolean("rpcs3_custom_config");
             if (!useCustomConfig)
@@ -250,7 +250,7 @@ namespace EmulatorLauncher
         {
             SimpleLogger.Instance.Info("[GENERATOR] Writing to config.yml file.");
 
-            YmlFile yml = YmlFile.Load(Path.Combine(path, "config.yml"));
+            YmlFile yml = YmlFile.Load(Path.Combine(path, "config", "config.yml"));
             // Initialize IO settings
             YmlContainer io = yml.GetOrCreateContainer("Input/Output");
             BindFeature(io, "Keyboard", "rpcs3_keyboard", "\"Null\"");
@@ -282,7 +282,6 @@ namespace EmulatorLauncher
             BindBoolFeature(core, "Accurate RSX reservation access", "accuratersx", "true", "false");
             BindFeature(core, "RSX FIFO Accuracy", "rpcs3_rsxfifoaccuracy", "Fast");
             BindBoolFeature(core, "PPU Accurate Vector NaN Values", "vectornan", "true", "false");
-            BindBoolFeature(core, "Full Width AVX-512", "fullavx", "true", "false");
             BindFeature(core, "XFloat Accuracy", "rpcs3_xfloat", "Accurate");
 
             // Handle Video part of yml file
