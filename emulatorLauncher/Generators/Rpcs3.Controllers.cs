@@ -11,6 +11,17 @@ namespace EmulatorLauncher
 {
     partial class Rpcs3Generator
     {
+        private void UpdateSdlControllersWithHints()
+        {
+            var hints = new List<string>
+            {
+                "SDL_HINT_JOYSTICK_THREAD = 1"
+            };
+
+            SdlGameController.ReloadWithHints(string.Join(",", hints));
+            Program.Controllers.ForEach(c => c.ResetSdlController());
+        }
+
         /// <summary>
         /// Create controller configuration
         /// </summary>
@@ -22,6 +33,8 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
             }
+
+            UpdateSdlControllersWithHints();
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for RPCS3");
             DefineActiveControllerProfile(path);
@@ -36,14 +49,21 @@ namespace EmulatorLauncher
 
             // Check if config file already exists or not and create it if not
             string controllerSettings = Path.Combine(folder, "Retrobat.yml");
-            
+
+            if (!File.Exists(controllerSettings))
+                try { File.WriteAllText(controllerSettings, ""); } catch { }
+
             var yml = YmlFile.Load(controllerSettings);
 
-            // Cleanup assignments
-            for (int i = 1; i <= 7; i++)
+            if (File.Exists(controllerSettings))
             {
-                var player = yml.GetContainer("Player " + i + " Input");
-                player["Handler"] = "\"Null\"";
+                // Cleanup assignments
+                for (int i = 1; i <= 7; i++)
+                {
+                    var player = yml.GetContainer("Player " + i + " Input");
+                    if (player != null)
+                        player["Handler"] = "\"Null\"";
+                }
             }
 
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
@@ -76,9 +96,9 @@ namespace EmulatorLauncher
         /// <summary>
         /// Keyboard configuration
         /// </summary>
-        /// <param name="controllerSettings"></param>
-        /// <param name="keyboard"></param>
         /// <param name="yml"></param>
+        /// <param name="keyboard"></param>
+        /// <param name="playerindex"></param>
         private void ConfigureKeyboard(YmlContainer yml, InputConfig keyboard, int playerindex)
         {
             if (keyboard == null)
@@ -180,8 +200,8 @@ namespace EmulatorLauncher
             config["Use LED as a battery indicator"] = "false";
             config["LED battery indicator brightness"] = "50";
             config["Player LED enabled"] = "true";
-            config["Enable Large Vibration Motor"] = "false";
-            config["Enable Small Vibration Motor"] = "false";
+            config["Large Vibration Motor Multiplier"] = "100";
+            config["Small Vibration Motor Multiplier"] = "100";
             config["Switch Vibration Motors"] = "false";
             config["Mouse Movement Mode"] = "Relative";
             config["Mouse Deadzone X Axis"] = "60";
@@ -210,10 +230,10 @@ namespace EmulatorLauncher
         /// <summary>
         /// Joystick configuration
         /// </summary>
-        /// <param name="controllerSettings"></param>
+        /// <param name="yml"></param>
         /// <param name="ctrl"></param>
         /// <param name="playerIndex"></param>
-        /// <param name="yml"></param>
+        /// <param name="double_pads"></param>
         private void ConfigureJoystick(YmlContainer yml, Controller ctrl, int playerIndex, Dictionary<string, int> double_pads)
         {
             if (ctrl == null)
@@ -583,14 +603,14 @@ namespace EmulatorLauncher
             // Rumble settings
             if (SystemConfig.getOptBoolean("rpcs3_rumble"))
             {
-                config["Enable Large Vibration Motor"] = "true";
-                config["Enable Small Vibration Motor"] = "true";
+                config["Large Vibration Motor Multiplier"] = "100";
+                config["Small Vibration Motor Multiplier"] = "100";
                 config["Switch Vibration Motors"] = "false";
             }
             else
             {
-                config["Enable Large Vibration Motor"] = "false";
-                config["Enable Small Vibration Motor"] = "false";
+                config["Large Vibration Motor Multiplier"] = "0";
+                config["Small Vibration Motor Multiplier"] = "0";
                 config["Switch Vibration Motors"] = "false";
             }
             
@@ -765,26 +785,13 @@ namespace EmulatorLauncher
                     switch (pid)
                     {
                         case 0: 
-                            if (xInput)
-                                return revertbuttons ? "B" : "A";
-                            else
-                                return revertbuttons ? "A" : "B";
-
+                            return revertbuttons ? "East" : "South";
                         case 1:
-                            if (xInput)
-                                return revertbuttons ? "A" : "B";
-                            else
-                                return revertbuttons ? "B" : "A";
+                            return revertbuttons ? "South" : "East";
                         case 2:
-                            if (xInput)
-                                return revertbuttons ? "X" : "Y";
-                            else
-                                return revertbuttons ? "Y" : "X";
+                            return revertbuttons ? "West" : "North";
                         case 3:
-                            if (xInput)
-                                return revertbuttons ? "Y" : "X";
-                            else
-                                return revertbuttons ? "X" : "Y";
+                            return revertbuttons ? "North" : "West";
                         case 4:
                             if (xInput)
                                 return "LB";
