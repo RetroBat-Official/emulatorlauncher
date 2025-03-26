@@ -393,6 +393,7 @@ namespace EmulatorLauncher
             {
                 BindBoolIniFeatureOn(ini, "virtualdmd", "enabled", "vpmame_virtualdmd", "true", "false");
                 BindBoolIniFeature(ini, "zedmd", "enabled", "vpmame_zedmd", "true", "false");
+                BindBoolIniFeature(ini, "zedmdhd", "enabled", "vpmame_zedmdhd", "true", "false");
                 BindBoolIniFeature(ini, "pin2dmd", "enabled", "vpmame_pin2dmd", "true", "false");
 
                 ini.Save();
