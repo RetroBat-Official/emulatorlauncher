@@ -346,7 +346,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("GPU", "TextureFilter", "Nearest");
 
                     BindBoolIniFeature(ini, "GPU", "WidescreenHack", "Widescreen_Hack", "true", "false");
-                    BindBoolIniFeature(ini, "GPU", "TrueColor", "Disable_Dithering", "true", "false");
+                    BindBoolIniFeatureOn(ini, "GPU", "TrueColor", "Disable_Dithering", "true", "false");
                     BindBoolIniFeature(ini, "GPU", "ScaledDithering", "Scaled_Dithering", "true", "false");
 
                     if (SystemConfig.isOptSet("duck_pgxp") && SystemConfig.getOptBoolean("duck_pgxp"))
