@@ -264,6 +264,19 @@ namespace EmulatorLauncher
                 ini.WriteValue("Player", "PlayMusic", SystemConfig.getOptBoolean("vp_music_off") ? "0" : "1");
                 BindIniFeature(ini, "Player", "Sound3D", "vp_audiochannels", "0");
 
+                // Lighting
+                if (SystemConfig.isOptSet("vp_lighting") && !string.IsNullOrEmpty(SystemConfig["vp_lighting"]))
+                {
+                    string lighting = SystemConfig["vp_lighting"];
+                    ini.WriteValue("Player", "EmissionScale", lighting);
+                    ini.WriteValue("TableOverride", "OverrideEmissionScale", "1");
+                }
+                else
+                {
+                    ini.WriteValue("Player", "EmissionScale", "0.500000");
+                    ini.WriteValue("TableOverride", "OverrideEmissionScale", "1");
+                }
+
                 // Controls
                 if (SystemConfig.isOptSet("vp_inputdriver") && SystemConfig["vp_inputdriver"] == "pad2key")
                 {
