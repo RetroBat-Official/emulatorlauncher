@@ -23,11 +23,6 @@ namespace EmulatorLauncher
 
             string path = AppConfig.GetFullPath(emulator);
 
-            if (emulator == "rpcs5")
-            {
-                throw new ApplicationException("APRIL's FOOLS !!!!!!!!!!!!!!!");
-            }
-
             if (string.IsNullOrEmpty(path) && emulator != "rpcs3")
                 path = AppConfig.GetFullPath("rpcs3");
 

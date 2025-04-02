@@ -96,7 +96,6 @@ namespace EmulatorLauncher
             { new Installer("raze", "raze", "raze.exe") },
             { new Installer("redream") },
             { new Installer("rpcs3") },
-            { new Installer("rpcs5", "rpcs5", "rpcs5.exe") },
             { new Installer("ruffle", "ruffle", "ruffle.exe") },
             { new Installer("ryujinx", "ryujinx", "Ryujinx.exe") },
             { new Installer("scummvm") },
