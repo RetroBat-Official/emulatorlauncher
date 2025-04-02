@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common;
+using Newtonsoft.Json.Linq;
 
 namespace EmulatorLauncher
 {
@@ -41,7 +41,7 @@ namespace EmulatorLauncher
 
         private SdlDllControllersMapping _sdlMapping;
 
-        private void CreateControllerConfiguration(DynamicJson json)
+        private void CreateControllerConfiguration(dynamic json)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
@@ -54,10 +54,10 @@ namespace EmulatorLauncher
             UpdateSdlControllersWithHints();
 
             //clear existing input_config section to avoid the same controller mapped to different players because of past mapping
-            json.Remove("input_config");
+            json.input_config = new Newtonsoft.Json.Linq.JArray();
 
             //create new input_config section
-            var input_configs = new List<DynamicJson>();
+            List<object> input_configs = new List<object>();
 
             int maxPad = 8;
             if (SystemConfig.isOptSet("ryujinx_maxcontrollers") && !string.IsNullOrEmpty(SystemConfig["ryujinx_maxcontrollers"]))
@@ -66,6 +66,8 @@ namespace EmulatorLauncher
             //loop controllers
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
                 ConfigureInput(json, controller, input_configs);
+
+            json.input_config = JArray.FromObject(input_configs);
         }
 
         /// <summary>
@@ -74,7 +76,7 @@ namespace EmulatorLauncher
         /// <param name="json"></param>
         /// <param name="c"></param>
         /// <param name="input_configs"></param>
-        private void ConfigureInput(DynamicJson json, Controller c, List<DynamicJson> input_configs)
+        private void ConfigureInput(dynamic json, Controller c, List<object> input_configs)
         {
             if (c == null || c.Config == null)
                 return;
@@ -91,7 +93,7 @@ namespace EmulatorLauncher
         /// <param name="json"></param>
         /// <param name="keyboard"></param>
         /// <param name="input_configs"></param>
-        private void ConfigureKeyboard(DynamicJson json, InputConfig keyboard, List<DynamicJson> input_configs)
+        private void ConfigureKeyboard(dynamic json, InputConfig keyboard, List<object> input_configs)
         {
             if (keyboard == null)
                 return;
@@ -103,91 +105,97 @@ namespace EmulatorLauncher
 
             bool handheld = playerType == "Handheld";
 
-            //Define action for keyboard mapping
-            Action<DynamicJson, string, InputKey> WriteKeyboardMapping = (v, w, k) =>
+            var newInputConfig = new Dictionary<string, object>();
+
+            newInputConfig["left_joycon_stick"] = new
             {
-                var a = keyboard[k];
-                if (a != null)
-                {
-                    v[w] = SdlToKeyCode(a.Id).ToString();
-                }
-                else
-                    v[w] = "Unbound";
+                stick_up = WriteKeyboardMapping(keyboard, InputKey.leftanalogup),
+                stick_down = WriteKeyboardMapping(keyboard, InputKey.leftanalogdown),
+                stick_left = WriteKeyboardMapping(keyboard, InputKey.leftanalogleft),
+                stick_right = WriteKeyboardMapping(keyboard, InputKey.leftanalogright),
+                stick_button = WriteKeyboardMapping(keyboard, InputKey.r3),
             };
 
-            var input_config = new DynamicJson();
-            var left_joycon_stick = new DynamicJson();
-            WriteKeyboardMapping(left_joycon_stick, "stick_up", InputKey.leftanalogup);
-            WriteKeyboardMapping(left_joycon_stick, "stick_down", InputKey.leftanalogdown);
-            WriteKeyboardMapping(left_joycon_stick, "stick_left", InputKey.leftanalogleft);
-            WriteKeyboardMapping(left_joycon_stick, "stick_right", InputKey.leftanalogright);
-            WriteKeyboardMapping(left_joycon_stick, "stick_button", InputKey.r3);
-            input_config.SetObject("left_joycon_stick", left_joycon_stick);
-
-            var right_joycon_stick = new DynamicJson();
-            WriteKeyboardMapping(right_joycon_stick, "stick_up", InputKey.rightanalogup);
-            WriteKeyboardMapping(right_joycon_stick, "stick_down", InputKey.rightanalogdown);
-            WriteKeyboardMapping(right_joycon_stick, "stick_left", InputKey.rightanalogleft);
-            WriteKeyboardMapping(right_joycon_stick, "stick_right", InputKey.rightanalogright);
-            WriteKeyboardMapping(right_joycon_stick, "stick_button", InputKey.l3);
-            input_config.SetObject("right_joycon_stick", right_joycon_stick);
-
-            var left_joycon = new DynamicJson();
-            WriteKeyboardMapping(left_joycon, "button_minus", InputKey.select);
+            newInputConfig["right_joycon_stick"] = new
+            {
+                stick_up = WriteKeyboardMapping(keyboard, InputKey.rightanalogup),
+                stick_down = WriteKeyboardMapping(keyboard, InputKey.rightanalogdown),
+                stick_left = WriteKeyboardMapping(keyboard, InputKey.rightanalogleft),
+                stick_right = WriteKeyboardMapping(keyboard, InputKey.rightanalogright),
+                stick_button = WriteKeyboardMapping(keyboard, InputKey.l3),
+            };
 
             if (playerType == "JoyconLeft")
             {
-                left_joycon["button_l"] = "Unbound";
-                left_joycon["button_zl"] = "Unbound";
-                WriteKeyboardMapping(left_joycon, "button_sl", InputKey.pageup);
-                WriteKeyboardMapping(left_joycon, "button_sr", InputKey.pagedown);
+                newInputConfig["left_joycon"] = new
+                {
+                    button_minus = WriteKeyboardMapping(keyboard, InputKey.select),
+                    button_l = "Unbound",
+                    button_zl = "Unbound",
+                    button_sl = WriteKeyboardMapping(keyboard, InputKey.pageup),
+                    button_sr = WriteKeyboardMapping(keyboard, InputKey.pagedown),
+                    dpad_up = WriteKeyboardMapping(keyboard, InputKey.up),
+                    dpad_down = WriteKeyboardMapping(keyboard, InputKey.down),
+                    dpad_left = WriteKeyboardMapping(keyboard, InputKey.left),
+                    dpad_right = WriteKeyboardMapping(keyboard, InputKey.right),
+                };
             }
+
             else
             {
-                WriteKeyboardMapping(left_joycon, "button_l", InputKey.pageup);
-                WriteKeyboardMapping(left_joycon, "button_zl", InputKey.l2);
-                left_joycon["button_sl"] = "Unbound";
-                left_joycon["button_sr"] = "Unbound";
+                newInputConfig["left_joycon"] = new
+                {
+                    button_minus = WriteKeyboardMapping(keyboard, InputKey.select),
+                    button_l = WriteKeyboardMapping(keyboard, InputKey.pageup),
+                    button_zl = WriteKeyboardMapping(keyboard, InputKey.l2),
+                    button_sl = "Unbound",
+                    button_sr = "Unbound",
+                    dpad_up = WriteKeyboardMapping(keyboard, InputKey.up),
+                    dpad_down = WriteKeyboardMapping(keyboard, InputKey.down),
+                    dpad_left = WriteKeyboardMapping(keyboard, InputKey.left),
+                    dpad_right = WriteKeyboardMapping(keyboard, InputKey.right),
+                };
             }
-
-            WriteKeyboardMapping(left_joycon, "dpad_up", InputKey.up);
-            WriteKeyboardMapping(left_joycon, "dpad_down", InputKey.down);
-            WriteKeyboardMapping(left_joycon, "dpad_left", InputKey.left);
-            WriteKeyboardMapping(left_joycon, "dpad_right", InputKey.right);
-            input_config.SetObject("left_joycon", left_joycon);
-
-            var right_joycon = new DynamicJson();
-            WriteKeyboardMapping(right_joycon, "button_plus", InputKey.start);
 
             if (playerType == "JoyconRight")
             {
-                right_joycon["button_r"] = "Unbound";
-                right_joycon["button_zr"] = "Unbound";
-                WriteKeyboardMapping(right_joycon, "button_sl", InputKey.pageup);
-                WriteKeyboardMapping(right_joycon, "button_sr", InputKey.pagedown);
+                newInputConfig["right_joycon"] = new
+                {
+                    button_plus = WriteKeyboardMapping(keyboard, InputKey.start),
+                    button_r = "Unbound",
+                    button_zr = "Unbound",
+                    button_sl = WriteKeyboardMapping(keyboard, InputKey.pageup),
+                    button_sr = WriteKeyboardMapping(keyboard, InputKey.pagedown),
+                    button_x = WriteKeyboardMapping(keyboard, InputKey.x),
+                    button_b = WriteKeyboardMapping(keyboard, InputKey.b),
+                    button_y = WriteKeyboardMapping(keyboard, InputKey.y),
+                    button_a = WriteKeyboardMapping(keyboard, InputKey.a),
+                };
             }
+
             else
             {
-                WriteKeyboardMapping(right_joycon, "button_r", InputKey.pagedown);
-                WriteKeyboardMapping(right_joycon, "button_zr", InputKey.r2);
-                right_joycon["button_sl"] = "Unbound";
-                right_joycon["button_sr"] = "Unbound";
+                newInputConfig["right_joycon"] = new
+                {
+                    button_plus = WriteKeyboardMapping(keyboard, InputKey.start),
+                    button_r = WriteKeyboardMapping(keyboard, InputKey.pagedown),
+                    button_zr = WriteKeyboardMapping(keyboard, InputKey.r2),
+                    button_sl = "Unbound",
+                    button_sr = "Unbound",
+                    button_x = WriteKeyboardMapping(keyboard, InputKey.x),
+                    button_b = WriteKeyboardMapping(keyboard, InputKey.b),
+                    button_y = WriteKeyboardMapping(keyboard, InputKey.y),
+                    button_a = WriteKeyboardMapping(keyboard, InputKey.a),
+                };
             }
 
-            WriteKeyboardMapping(right_joycon, "button_x", InputKey.x);
-            WriteKeyboardMapping(right_joycon, "button_b", InputKey.b);
-            WriteKeyboardMapping(right_joycon, "button_y", InputKey.y);
-            WriteKeyboardMapping(right_joycon, "button_a", InputKey.a);
-            input_config.SetObject("right_joycon", right_joycon);
+            newInputConfig["version"] = 1;
+            newInputConfig["backend"] = "WindowKeyboard";
+            newInputConfig["id"] = "0";
+            newInputConfig["controller_type"] = playerType;
+            newInputConfig["player_index"] = handheld ? "Handheld" : "Player1";
 
-            input_config["version"] = "1";
-            input_config["backend"] = "WindowKeyboard";
-            input_config["id"] = "\"" + "0" + "\"";
-            input_config["controller_type"] = playerType;
-            input_config["player_index"] = handheld ? "Handheld" : "Player1";
-
-            input_configs.Add(input_config);
-            json.SetObject("input_config", input_configs);
+            input_configs.Add(Newtonsoft.Json.Linq.JObject.FromObject(newInputConfig));
         }
 
         /// <summary>
@@ -197,7 +205,7 @@ namespace EmulatorLauncher
         /// <param name="c"></param>
         /// <param name="playerIndex"></param>
         /// <param name="input_configs"></param>
-        private void ConfigureJoystick(DynamicJson json, Controller c, int playerIndex, List<DynamicJson> input_configs)
+        private void ConfigureJoystick(dynamic json, Controller c, int playerIndex, List<object> input_configs)
         {
             if (c == null)
                 return;
@@ -222,94 +230,120 @@ namespace EmulatorLauncher
             var same_pad = this.Controllers.Where(i => i.Config != null && i.Guid == c.Guid && !i.IsKeyboard).OrderBy(j => j.DeviceIndex).ToList();
             if (same_pad.Count > 1)
                 index = same_pad.IndexOf(c);
-            
+
             //Build input_config section
-            var input_config = new DynamicJson();
-            
+            var newInputConfig = new Dictionary<string, object>();
+
             //left joycon section
-            var left_joycon_stick = new DynamicJson();
-            left_joycon_stick["joystick"] = "Left";
-            left_joycon_stick["invert_stick_x"] = "false";
-            left_joycon_stick["invert_stick_y"] = "false";
-            left_joycon_stick["rotate90_cw"] = "false";
-            left_joycon_stick["stick_button"] = GetInputKeyName(c, InputKey.l3, tech);
-            input_config.SetObject("left_joycon_stick", left_joycon_stick);
+            newInputConfig["left_joycon_stick"] = new
+            {
+                joystick = "Left",
+                invert_stick_x = false,
+                invert_stick_y = false,
+                rotate90_cw = false,
+                stick_button = GetInputKeyName(c, InputKey.l3, tech),
+            };
 
             //right joycon section
-            var right_joycon_stick = new DynamicJson();
-            right_joycon_stick["joystick"] = "Right";
-            right_joycon_stick["invert_stick_x"] = "false";
-            right_joycon_stick["invert_stick_y"] = "false";
-            right_joycon_stick["rotate90_cw"] = "false";
-            right_joycon_stick["stick_button"] = GetInputKeyName(c, InputKey.r3, tech);
-            input_config.SetObject("right_joycon_stick", right_joycon_stick);
+            newInputConfig["right_joycon_stick"] = new
+            {
+                joystick = "Right",
+                invert_stick_x = false,
+                invert_stick_y = false,
+                rotate90_cw = false,
+                stick_button = GetInputKeyName(c, InputKey.r3, tech),
+            };
 
-            input_config["deadzone_left"] = "0.1";
-            input_config["deadzone_right"] = "0.1";
-            input_config["range_left"] = "1";
-            input_config["range_right"] = "1";
-            input_config["trigger_threshold"] = "0.5";
+            newInputConfig["deadzone_left"] = 0.1;
+            newInputConfig["deadzone_right"] = 0.1;
+            newInputConfig["range_left"] = 1;
+            newInputConfig["range_right"] = 1;
+            newInputConfig["trigger_threshold"] = 0.5;
 
             //motion - can be enabled in features
-            var motion = new DynamicJson();
-            motion["motion_backend"] = "GamepadDriver";
-            motion["sensitivity"] = "100";
-            motion["gyro_deadzone"] = "1";
-            
-            if (Program.SystemConfig.isOptSet("ryujinx_enable_motion") && Program.SystemConfig.getOptBoolean("ryujinx_enable_motion") && tech != "XInput")
-                motion["enable_motion"] = "true";
+            if (Program.SystemConfig.getOptBoolean("ryujinx_enable_motion") && tech != "XInput")
+            {
+                newInputConfig["motion"] = new
+                {
+                    motion_backend = "GamepadDriver",
+                    sensitivity = 100,
+                    gyro_deadzone = 1,
+                    enable_motion = true,
+                };
+            }
             else
-                motion["enable_motion"] = "false";
-            input_config.SetObject("motion", motion);
+            {
+                newInputConfig["motion"] = new
+                {
+                    motion_backend = "GamepadDriver",
+                    sensitivity = 100,
+                    gyro_deadzone = 1,
+                    enable_motion = false,
+                };
+            }
 
-            //rumble - can be enabled in features
-            var rumble = new DynamicJson();
-            rumble["strong_rumble"] = "1";
-            rumble["weak_rumble"] = "1";
-
-            if (Program.SystemConfig.isOptSet("ryujinx_enable_rumble") && Program.SystemConfig.getOptBoolean("ryujinx_enable_rumble"))
-                rumble["enable_rumble"] = "true";
+            if (Program.SystemConfig.getOptBoolean("ryujinx_enable_rumble"))
+            {
+                newInputConfig["rumble"] = new
+                {
+                    strong_rumble = 1,
+                    weak_rumble = 1,
+                    enable_rumble = true,
+                };
+            }
             else
-                rumble["enable_rumble"] = "false";
-
-            input_config.SetObject("rumble", rumble);
+            {
+                newInputConfig["rumble"] = new
+                {
+                    strong_rumble = 1,
+                    weak_rumble = 1,
+                    enable_rumble = false,
+                };
+            }
 
             //leds
-            var led = new DynamicJson();
-            led["enable_led"] = "false";
-            led["turn_off_led"] = "false";
-            led["use_rainbow"] = "false";
-            led["led_color"] = "0";
-
-            input_config.SetObject("led", led);
+            newInputConfig["led"] = new
+            {
+                enable_led = false,
+                turn_off_led = false,
+                use_rainbow = false,
+                led_color = 0,
+            };
 
             //left joycon buttons mapping
-            var left_joycon = new DynamicJson();
-            left_joycon["button_minus"] = GetInputKeyName(c, InputKey.select, tech);
-
             if (playerType == "JoyconLeft")
             {
-                left_joycon["button_l"] = "Unbound";
-                left_joycon["button_zl"] = "Unbound";
-                left_joycon["button_sl"] = GetInputKeyName(c, InputKey.pageup, tech);
-                left_joycon["button_sr"] = GetInputKeyName(c, InputKey.pagedown, tech);
+                newInputConfig["left_joycon"] = new
+                {
+                    button_minus = GetInputKeyName(c, InputKey.select, tech),
+                    button_l = "Unbound",
+                    button_zl = "Unbound",
+                    button_sl = GetInputKeyName(c, InputKey.pageup, tech),
+                    button_sr = GetInputKeyName(c, InputKey.pagedown, tech),
+                    dpad_up = GetInputKeyName(c, InputKey.up, tech),
+                    dpad_down = GetInputKeyName(c, InputKey.down, tech),
+                    dpad_left = GetInputKeyName(c, InputKey.left, tech),
+                    dpad_right = GetInputKeyName(c, InputKey.right, tech),
+                };
             }
             else
             {
-                left_joycon["button_l"] = GetInputKeyName(c, InputKey.pageup, tech);
-                left_joycon["button_zl"] = GetInputKeyName(c, InputKey.l2, tech);
-                left_joycon["button_sl"] = "Unbound";
-                left_joycon["button_sr"] = "Unbound";
+                newInputConfig["left_joycon"] = new
+                {
+                    button_minus = GetInputKeyName(c, InputKey.select, tech),
+                    button_l = GetInputKeyName(c, InputKey.pageup, tech),
+                    button_zl = GetInputKeyName(c, InputKey.l2, tech),
+                    button_sl = "Unbound",
+                    button_sr = "Unbound",
+                    dpad_up = GetInputKeyName(c, InputKey.up, tech),
+                    dpad_down = GetInputKeyName(c, InputKey.down, tech),
+                    dpad_left = GetInputKeyName(c, InputKey.left, tech),
+                    dpad_right = GetInputKeyName(c, InputKey.right, tech),
+                };
             }
 
-            left_joycon["dpad_up"] = GetInputKeyName(c, InputKey.up, tech);
-            left_joycon["dpad_down"] = GetInputKeyName(c, InputKey.down, tech);
-            left_joycon["dpad_left"] = GetInputKeyName(c, InputKey.left, tech);
-            left_joycon["dpad_right"] = GetInputKeyName(c, InputKey.right, tech);
-            input_config.SetObject("left_joycon", left_joycon);
-
             //right joycon buttons mapping
-            var right_joycon = new DynamicJson();
+            Dictionary<string, object> right_joycon = new Dictionary<string, object>();
             right_joycon["button_plus"] = GetInputKeyName(c, InputKey.start, tech);
 
             if (playerType == "JoyconRight")
@@ -342,8 +376,8 @@ namespace EmulatorLauncher
                 right_joycon["button_y"] = GetInputKeyName(c, InputKey.y, tech);
                 right_joycon["button_a"] = GetInputKeyName(c, InputKey.a, tech);
             }
-            
-            input_config.SetObject("right_joycon", right_joycon);
+
+            newInputConfig["right_joycon"] = JObject.FromObject(right_joycon);
 
             // Player identification part
             // Get guid in system.guid format
@@ -366,6 +400,8 @@ namespace EmulatorLauncher
                 return;
             }
 
+            //guid = "03000000500400000002000000007200";
+
             var newGuid = SdlJoystickGuidManager.FromSdlGuidString(guid);
             string ryuGuidString = newGuid.ToString();
 
@@ -377,15 +413,14 @@ namespace EmulatorLauncher
                 ryuGuidString = overrideGuid;
             }
 
-            input_config["version"] = "1";
-            input_config["backend"] = "GamepadSDL2";
-            input_config["id"] = index + "-" + ryuGuidString;
-            input_config["controller_type"] = playerType;
-            input_config["player_index"] = handheld ? "Handheld" : "Player" + playerIndex;
+            newInputConfig["version"] = 1;
+            newInputConfig["backend"] = "GamepadSDL2";
+            newInputConfig["id"] = (index + "-" + ryuGuidString).ToString();
+            newInputConfig["controller_type"] = playerType;
+            newInputConfig["player_index"] = handheld ? "Handheld" : "Player" + playerIndex;
 
             //add section to file
-            input_configs.Add(input_config);
-            json.SetObject("input_config", input_configs);
+            input_configs.Add(Newtonsoft.Json.Linq.JObject.FromObject(newInputConfig));
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + c.DevicePath + " to player : " + c.PlayerIndex.ToString());
         }
@@ -444,6 +479,17 @@ namespace EmulatorLauncher
                 }
             }
             return "Unbound";
+        }
+
+        private static string WriteKeyboardMapping(InputConfig keyboard, InputKey k)
+        {
+            var a = keyboard[k];
+            if (a != null)
+            {
+                return SdlToKeyCode(a.Id).ToString();
+            }
+            else
+                return "Unbound";
         }
 
         private static string SdlToKeyCode(long sdlCode)
