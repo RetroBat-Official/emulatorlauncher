@@ -124,10 +124,10 @@ namespace EmulatorLauncher
                                 SetElementValue(appSettings, "cbButtonLeftOffscreen", "76");          //Left
                                 SetElementValue(appSettings, "cbButtonLeftB", "40");                  //W
                                 SetElementValue(appSettings, "cbButtonLeftOffscreenB", "40");         //W
-                                SetElementValue(appSettings, "cbButtonLeft", "77");                   //Right
-                                SetElementValue(appSettings, "cbButtonLeftOffscreen", "77");          //Right
-                                SetElementValue(appSettings, "cbButtonLeftB", "41");                  //X
-                                SetElementValue(appSettings, "cbButtonLeftOffscreenB", "41");         //X
+                                SetElementValue(appSettings, "cbButtonRight", "77");                  //Right
+                                SetElementValue(appSettings, "cbButtonRightOffscreen", "77");         //Right
+                                SetElementValue(appSettings, "cbButtonRightB", "41");                  //X
+                                SetElementValue(appSettings, "cbButtonRightOffscreenB", "41");         //X
 
                                 SetElementValue(appSettings, "cbButtonFrontLeft", "9");             //1
                                 SetElementValue(appSettings, "cbButtonFrontLeftB", "10");           //2
