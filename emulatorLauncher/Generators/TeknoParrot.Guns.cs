@@ -15,6 +15,7 @@ namespace EmulatorLauncher
     {
         private static bool _demulshooter = false;
         private static bool _sindenSoft = false;
+        private static RawInputDevice _orgKeyboard = null;
 
         private static bool ConfigureTPGuns(GameProfile userProfile, string rom)
         {
@@ -148,7 +149,10 @@ namespace EmulatorLauncher
             }
 
             if (keyboard != null && keyboard.FriendlyName != null)
+            {
                 SimpleLogger.Instance.Info("[GUNS] Using keyboard: " + keyboard.FriendlyName);
+                _orgKeyboard = keyboard;
+            }
             
             // Cleanup
             foreach (var joyButton in userProfile.JoystickButtons)
@@ -511,8 +515,9 @@ namespace EmulatorLauncher
                                         }
                                     }
 
-                                    if (useKb || ts_nogun)
+                                    if (_orgKeyboard != null && (useKb || ts_nogun))
                                     {
+                                        keyboard = _orgKeyboard;
                                         kbName = keyboard.Name;
                                         kbSuffix = keyboard.Manufacturer;
                                     }
