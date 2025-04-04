@@ -114,20 +114,20 @@ namespace EmulatorLauncher
 
                                 SetElementValue(appSettings, "cbButtonUp", "74");                   //Up
                                 SetElementValue(appSettings, "cbButtonUpOffscreen", "74");          //Up
-                                SetElementValue(appSettings, "cbButtonUpB", "38");                  //U
-                                SetElementValue(appSettings, "cbButtonUpOffscreenB", "38");         //U
+                                SetElementValue(appSettings, "cbButtonUpB", "74");
+                                SetElementValue(appSettings, "cbButtonUpOffscreenB", "74");
                                 SetElementValue(appSettings, "cbButtonDown", "75");                   //Down
                                 SetElementValue(appSettings, "cbButtonDownOffscreen", "75");          //Down
-                                SetElementValue(appSettings, "cbButtonDownB", "39");                  //V
-                                SetElementValue(appSettings, "cbButtonDownOffscreenB", "39");         //V
+                                SetElementValue(appSettings, "cbButtonDownB", "75");
+                                SetElementValue(appSettings, "cbButtonDownOffscreenB", "75");
                                 SetElementValue(appSettings, "cbButtonLeft", "76");                   //Left
                                 SetElementValue(appSettings, "cbButtonLeftOffscreen", "76");          //Left
-                                SetElementValue(appSettings, "cbButtonLeftB", "40");                  //W
-                                SetElementValue(appSettings, "cbButtonLeftOffscreenB", "40");         //W
+                                SetElementValue(appSettings, "cbButtonLeftB", "76");
+                                SetElementValue(appSettings, "cbButtonLeftOffscreenB", "76");
                                 SetElementValue(appSettings, "cbButtonRight", "77");                  //Right
                                 SetElementValue(appSettings, "cbButtonRightOffscreen", "77");         //Right
-                                SetElementValue(appSettings, "cbButtonRightB", "41");                  //X
-                                SetElementValue(appSettings, "cbButtonRightOffscreenB", "41");         //X
+                                SetElementValue(appSettings, "cbButtonRightB", "77");
+                                SetElementValue(appSettings, "cbButtonRightOffscreenB", "77");
 
                                 SetElementValue(appSettings, "cbButtonFrontLeft", "9");             //1
                                 SetElementValue(appSettings, "cbButtonFrontLeftB", "10");           //2
