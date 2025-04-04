@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using EmulatorLauncher.Common;
@@ -16,7 +17,7 @@ namespace EmulatorLauncher
 
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
-
+        private string _version = null;
         private SaveStatesWatcher _saveStatesWatcher;
         
         public override void Cleanup()
@@ -41,6 +42,13 @@ namespace EmulatorLauncher
             string exe = Path.Combine(path, "RMG.exe");
             if (!File.Exists(exe))
                 return null;
+
+            var output = ProcessExtensions.RunWithOutput(exe, "-v");
+            output = StringExtensions.FormatVersionString(output.ExtractString("Rosalie's Mupen GUI v", "\r"));
+
+            Version ver = new Version();
+            if (Version.TryParse(output, out ver))
+                _version = ver.ToString();
 
             string portableFile = Path.Combine(path, "portable.txt");
             if (!File.Exists(portableFile))
@@ -74,6 +82,12 @@ namespace EmulatorLauncher
             }
 
             _resolution = resolution;
+
+            if (File.Exists(SystemConfig["state_file"]) && _saveStatesWatcher != null && _saveStatesWatcher.Slot > -1)
+            {
+                commandArray.Add("--load-state-slot");
+                commandArray.Add(_saveStatesWatcher.Slot.ToString());
+            }
 
             if (system == "n64dd" && Path.GetExtension(rom).ToLowerInvariant() != ".ndd")
             {
@@ -128,6 +142,9 @@ namespace EmulatorLauncher
 
             using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
+                if (_version != null)
+                    ini.WriteValue("Rosalie's Mupen GUI", "Version", _version);
+
                 // Add rom path
                 ini.WriteValue("Rosalie's Mupen GUI RomBrowser", "Directory", Path.GetDirectoryName(rom).Replace("\\", "/"));
 
@@ -146,7 +163,7 @@ namespace EmulatorLauncher
                     _saveStatesWatcher.PrepareEmulatorRepository();
 
                     ini.WriteValue("Core", "SaveStatePath", "Save/State");
-                    ini.WriteValue("Core", "CurrentStateSlot", _saveStatesWatcher.Slot.ToString());
+                    ini.WriteValue("Core", "CurrentStateSlot", (_saveStatesWatcher.Slot + 1).ToString());
                     ini.WriteValue("Core", "SaveFilenameFormat", "1");
                     ini.WriteValue("Core", "AutoStateSlotIncrement", "False");
                 }

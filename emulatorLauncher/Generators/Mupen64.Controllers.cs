@@ -370,8 +370,8 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor50_Data", "4;13");
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor50_ExtraData", "0;0");
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor100_InputType", "0;0");
-            ini.WriteValue(iniSection, "Hotkey_SpeedFactor100_Name", "back;dpup");
-            ini.WriteValue(iniSection, "Hotkey_SpeedFactor100_Data", "4;11");
+            ini.WriteValue(iniSection, "Hotkey_SpeedFactor100_Name", "back;a");
+            ini.WriteValue(iniSection, "Hotkey_SpeedFactor100_Data", "4;0");
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor100_ExtraData", "0;0");
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor250_InputType", "0;0");
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor250_Name", "back;dpright");
@@ -385,6 +385,14 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "Hotkey_LoadState_Name", "back;y");
             ini.WriteValue(iniSection, "Hotkey_LoadState_Data", "4;3");
             ini.WriteValue(iniSection, "Hotkey_LoadState_ExtraData", "0;0");
+            ini.WriteValue(iniSection, "Hotkey_IncreaseSaveStateSlot_InputType", "0;0");
+            ini.WriteValue(iniSection, "Hotkey_IncreaseSaveStateSlot_Name", "back;dpup");
+            ini.WriteValue(iniSection, "Hotkey_IncreaseSaveStateSlot_Data", "4;11");
+            ini.WriteValue(iniSection, "Hotkey_IncreaseSaveStateSlot_ExtraData", "0;0");
+            ini.WriteValue(iniSection, "Hotkey_DecreaseSaveStateSlot_InputType", "0;0");
+            ini.WriteValue(iniSection, "Hotkey_DecreaseSaveStateSlot_Name", "back;dpdown");
+            ini.WriteValue(iniSection, "Hotkey_DecreaseSaveStateSlot_Data", "4;12");
+            ini.WriteValue(iniSection, "Hotkey_DecreaseSaveStateSlot_ExtraData", "0;0");
         }
 
         private void ConfigureEmptyHotkeys(IniFile ini, string iniSection)
