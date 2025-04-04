@@ -5,6 +5,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
 using Newtonsoft.Json;
 using System.Linq;
+using System;
 
 namespace EmulatorLauncher
 {
@@ -32,6 +33,32 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            try
+            {
+                var versionInfo = FileVersionInfo.GetVersionInfo(exe);
+                if (versionInfo != null)
+                {
+                    string version = versionInfo.FileMajorPart + "." + versionInfo.FileMinorPart + "." + versionInfo.FileBuildPart + "." + versionInfo.FilePrivatePart;
+                    if (!string.IsNullOrEmpty(version))
+                    {
+                        SimpleLogger.Instance.Info("[Generator] " + emulator + " version: " + version);
+
+                        string checkversion = "1.2.28.0";
+                        if (Version.TryParse(checkversion, out Version tocheck))
+                        {
+                            if (Version.TryParse(version, out Version current))
+                            {
+                                if (current <= tocheck)
+                                {
+                                    SystemConfig["ryujinx_sdlguid"] = "true";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
             string setupPath = Path.Combine(path, "portable");
 
             string portablePath = Path.Combine(AppConfig.GetFullPath("saves"), "switch", "ryujinx", "portable");
@@ -40,7 +67,12 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[Generator] Setting '" + setupPath + "' as content path for the emulator");
 
-            SetupConfiguration(setupPath);
+            // First of all delete the Config.json file near the executable if it exists
+            string jsonFiletoDelete = Path.Combine(path, "Config.json");
+            if (File.Exists(jsonFiletoDelete))
+                try { File.Delete(jsonFiletoDelete); } catch { }
+
+            SetupConfiguration(setupPath, path);
 
             var commandArray = new List<string>();
 
@@ -99,7 +131,7 @@ namespace EmulatorLauncher
         }
 
         //Manage Config.json file settings
-        private void SetupConfiguration(string setupPath)
+        private void SetupConfiguration(string setupPath, string path)
         {
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
@@ -217,6 +249,11 @@ namespace EmulatorLauncher
             //save config file
             string updatedJson = JsonConvert.SerializeObject(json, Formatting.Indented);
             File.WriteAllText(filePath, updatedJson);
+
+            // Also write the config file near the emulator in case it could not be deleted
+            string jsonNearExe = Path.Combine(path, "Config.json");
+            if (File.Exists(jsonNearExe))
+                File.WriteAllText(jsonNearExe, updatedJson);
         }
     }
 }
