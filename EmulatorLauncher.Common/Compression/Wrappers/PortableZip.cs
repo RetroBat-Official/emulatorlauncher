@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.ComponentModel;
 
-namespace EmulatorLauncher.Common.Compression
+namespace EmulatorLauncher.Common.Compression.Wrappers
 {
-    public class ZipArchiveFileEntry
+    public class ZipArchiveFileEntry : IArchiveEntry
     {
         private object _entry;
 
@@ -27,7 +28,7 @@ namespace EmulatorLauncher.Common.Compression
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
 
-            string path = Path.Combine(directory, Filename);
+            string path = Path.GetFullPath(Path.Combine(directory, Filename));
 
             if (IsDirectory)
             {
@@ -35,6 +36,12 @@ namespace EmulatorLauncher.Common.Compression
                     Directory.CreateDirectory(path);
 
                 return;
+            }
+            else
+            {
+                string dir = Path.GetDirectoryName(path);
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
             }
 
             using (var stream = Open())
@@ -51,7 +58,7 @@ namespace EmulatorLauncher.Common.Compression
                 {
                     fileStream = new FileStream(path, FileMode.Create, FileAccess.Write);
                 }
-                catch (IOException ex) 
+                catch (IOException ex)
                 {
                     int errorCode = Marshal.GetHRForException(ex) & ((1 << 16) - 1);
                     if (canRetry && (errorCode == 32 || errorCode == 33))
@@ -80,7 +87,7 @@ namespace EmulatorLauncher.Common.Compression
                 stream.Close();
             }
         }
-        
+
         public string Filename { get; set; }
         public bool IsDirectory { get; set; }
         public long Length { get; set; }
@@ -98,60 +105,49 @@ namespace EmulatorLauncher.Common.Compression
         }
     }
 
-    public class ZipArchive : IDisposable
+    public class ZipArchive : IDisposable, IArchive
     {
+        static void EnsureAssembly()
+        {
+            if (_zipCreateFromDirectory != null && _zipOpenRead != null)
+                return;
+
+            var afs = System.Reflection.Assembly.Load("System.IO.Compression.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+            if (afs == null)
+                throw new Exception("Framework not supported");
+
+            var ass = System.Reflection.Assembly.Load("System.IO.Compression, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+            if (ass == null)
+                throw new Exception("Framework not supported");
+
+            var zipFile = afs.GetTypes().FirstOrDefault(t => t.Name == "ZipFile");
+            if (zipFile == null)
+                throw new Exception("Framework not supported");
+
+            _zipCreateFromDirectory = zipFile.GetMember("CreateFromDirectory", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public).FirstOrDefault() as System.Reflection.MethodInfo;
+            if (_zipCreateFromDirectory == null)
+                throw new Exception("Framework not supported");
+
+            _zipOpenRead = zipFile.GetMember("OpenRead", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public).FirstOrDefault() as System.Reflection.MethodInfo;
+            if (_zipOpenRead == null)
+                throw new Exception("Framework not supported");
+        }
+
         private static System.Reflection.MethodInfo _zipCreateFromDirectory;
 
         public static void CreateFromDirectory(string sourceDirectoryName, string destinationArchiveFileName)
         {
-            if (_zipCreateFromDirectory == null)
-            {
-                var afs = System.Reflection.Assembly.Load("System.IO.Compression.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-                if (afs == null)
-                    throw new Exception("Framework not supported");
-
-                var ass = System.Reflection.Assembly.Load("System.IO.Compression, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-                if (ass == null)
-                    throw new Exception("Framework not supported");
-
-                var zipFile = afs.GetTypes().FirstOrDefault(t => t.Name == "ZipFile");
-                if (zipFile == null)
-                    throw new Exception("Framework not supported");
-
-                _zipCreateFromDirectory = zipFile.GetMember("CreateFromDirectory", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public).FirstOrDefault() as System.Reflection.MethodInfo;
-                if (_zipCreateFromDirectory == null)
-                    throw new Exception("Framework not supported");
-            }
-
-            _zipCreateFromDirectory.Invoke(null, new object[] { sourceDirectoryName, destinationArchiveFileName });            
+            EnsureAssembly();
+            _zipCreateFromDirectory.Invoke(null, new object[] { sourceDirectoryName, destinationArchiveFileName });
         }
 
         private static System.Reflection.MethodInfo _zipOpenRead;
 
         private IDisposable _zipArchive;
 
-        public static ZipArchive OpenRead(string path)
+        internal static ZipArchive Open(string path)
         {
-            if (_zipOpenRead == null)
-            {
-                var afs = System.Reflection.Assembly.Load("System.IO.Compression.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-                if (afs == null)
-                    throw new Exception("Framework not supported");
-
-                var ass = System.Reflection.Assembly.Load("System.IO.Compression, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
-                if (ass == null)
-                    throw new Exception("Framework not supported");
-
-                var zipFile = afs.GetTypes().FirstOrDefault(t => t.Name == "ZipFile");
-                if (zipFile == null)
-                    throw new Exception("Framework not supported");
-
-                _zipOpenRead = zipFile.GetMember("OpenRead", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public).FirstOrDefault() as System.Reflection.MethodInfo;
-                if (_zipOpenRead == null)
-                    throw new Exception("Framework not supported");
-            }
-
-
+            EnsureAssembly();
             IDisposable zipArchive = _zipOpenRead.Invoke(null, new object[] { path }) as IDisposable;
             if (zipArchive == null)
                 return null;
@@ -161,11 +157,12 @@ namespace EmulatorLauncher.Common.Compression
             return ret;
         }
 
-
-        public IEnumerable<ZipArchiveFileEntry> Entries
+        public IArchiveEntry[] Entries
         {
             get
             {
+                var ret = new List<IArchiveEntry>();
+
                 var entries = _zipArchive.GetType().GetValue<System.Collections.IEnumerable>(_zipArchive, "Entries");
                 foreach (var entry in entries)
                 {
@@ -179,7 +176,7 @@ namespace EmulatorLauncher.Common.Compression
                     e.Filename = fullName;
                     e.Length = zipArchiveEntry.GetValue<long>(entry, "Length");
                     e.LastModified = zipArchiveEntry.GetValue<DateTimeOffset>(entry, "LastWriteTime").DateTime;
-                    e.Crc32 = zipArchiveEntry.GetFieldValue<uint>(entry, "_crc32"); 
+                    e.Crc32 = zipArchiveEntry.GetFieldValue<uint>(entry, "_crc32");
 
                     if (fullName.EndsWith("/"))
                     {
@@ -187,8 +184,10 @@ namespace EmulatorLauncher.Common.Compression
                         e.IsDirectory = true;
                     }
 
-                    yield return e;
+                    ret.Add(e);
                 }
+
+                return ret.ToArray();
             }
         }
 
@@ -197,6 +196,25 @@ namespace EmulatorLauncher.Common.Compression
             if (_zipArchive != null)
                 _zipArchive.Dispose();
         }
+
+        public void Extract(string destination, string fileNameToExtract = null, ProgressChangedEventHandler progress = null, bool keepFolder = false)
+        {
+            var entries = this.Entries;
+
+            int idx = 0;
+            foreach (var entry in entries)
+            {
+                if (fileNameToExtract == null || fileNameToExtract == entry.Filename)
+                {
+                    entry.Extract(destination);
+                }
+
+                if (progress != null)
+                    progress(this, new ProgressChangedEventArgs(idx * 100 / entries.Length, null));
+
+                idx++;
+            }
+        }
     }
-       
+
 }

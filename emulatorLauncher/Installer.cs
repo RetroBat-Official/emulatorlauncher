@@ -11,6 +11,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Compression;
 using EmulatorLauncher.Common.EmulationStation;
 using static EmulatorLauncher.PadToKeyboard.SendKey;
+using EmulatorLauncher.Common.Compression.Wrappers;
 
 namespace EmulatorLauncher
 {
@@ -229,7 +230,7 @@ namespace EmulatorLauncher
             if (!Misc.IsAvailableNetworkActive())
                 return null;
 
-            if (!Zip.IsSevenZipAvailable)
+            if (!SevenZipArchive.IsSevenZipAvailable)
                 return null;
 
             if (emulator == null)

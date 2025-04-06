@@ -1295,6 +1295,10 @@ namespace EmulatorLauncher.Libretro
 
                 // Netplay hide the gameplay
                 retroarchConfig["netplay_public_announce"] = string.IsNullOrEmpty(SystemConfig["netplay_public_announce"]) ? "true" : SystemConfig["netplay_public_announce"];
+                
+                // When hosting, if not public announcing, make sure you don't use a mitm server -> It's LAN only
+                if (retroarchConfig["netplay_public_announce"] == "false" && (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator"))
+                    retroarchConfig["netplay_use_mitm_server"] = "false";
 
                 // custom relay server
                 if (SystemConfig["netplay.relay"] == "custom" && SystemConfig.isOptSet("netplay.customserver") && !string.IsNullOrEmpty(SystemConfig["netplay.customserver"]))
