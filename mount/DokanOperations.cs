@@ -35,7 +35,7 @@ namespace Mount
             OverlayPath = overlayPath;
 
             _entries = new Dictionary<string, FileEntry>(StringComparer.OrdinalIgnoreCase);
-            _entries["\\"] = new MountedFileEntry(new ZipEntry() { Filename = "\\", Length = 0, IsDirectory = true }, this);
+            _entries["\\"] = new MountedFileEntry(new VirtualArchiveEntry() { Filename = "\\", Length = 0, IsDirectory = true }, this);
 
             var entries = Zip.ListEntries(FileName);
             foreach (var z in entries)
@@ -761,5 +761,18 @@ namespace Mount
         {
             return NtStatus.Success;
         }
+    }
+
+    class VirtualArchiveEntry : IArchiveEntry
+    {
+        public string Filename { get; set; }
+        public bool IsDirectory { get; set; }
+        public long Length { get; set; }
+        public DateTime LastModified { get; set; }
+        public uint Crc32 { get; set; }
+        public string HexCrc { get; set; }
+
+        public void Extract(string directory) { }
+        public override string ToString() { return Filename; }
     }
 }

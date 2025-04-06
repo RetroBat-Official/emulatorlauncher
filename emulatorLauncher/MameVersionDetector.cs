@@ -49,7 +49,7 @@ namespace EmulatorLauncher
                 HashSet<string> cores = supportedCores == null ? null : new HashSet<string>(supportedCores.Select(c => c.Replace("_", "-")));
                 var ret = new List<CompatibleCore>();
 
-                using (var zip = ZipArchive.OpenRead(rom))
+                using (var zip = Zip.Open(rom))
                 {
                     var entries = zip.Entries.ToList();
                     var entriesCrcs = entries.Select(e => e.HexCrc).ToArray();
