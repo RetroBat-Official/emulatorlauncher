@@ -10,9 +10,9 @@ namespace Mount
 {
     class MountedFileEntry : FileEntry
     {
-        private ZipEntry _entry;
+        private IArchiveEntry _entry;
 
-        public MountedFileEntry(ZipEntry entry, DokanOperations fs)
+        public MountedFileEntry(IArchiveEntry entry, DokanOperations fs)
         {
             _entry = entry;
 

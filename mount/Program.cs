@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using DokanNet;
 using DokanNet.Logging;
 using EmulatorLauncher.Common.Compression;
+using EmulatorLauncher.Common.Compression.Wrappers;
 
 namespace Mount
 {
@@ -87,13 +88,13 @@ namespace Mount
 
             if (Path.GetExtension(archiveFile).ToLowerInvariant().Contains("squashfs"))
             {
-                if (!File.Exists(Zip.GetRdSquashFSPath()))
+                if (!SquashFsArchive.IsSquashFsAvailable)
                 {
                     Console.WriteLine("rdsquashfs.exe is missing");
                     return 1;
                 }
             }
-            else if (!File.Exists(Zip.GetSevenZipPath()))
+            else if (!SevenZipArchive.IsSevenZipAvailable)
             {
                 Console.WriteLine("7z.exe is missing");
                 return 1;

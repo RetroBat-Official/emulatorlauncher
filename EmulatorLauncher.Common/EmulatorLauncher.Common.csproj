@@ -60,9 +60,26 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="APIHook.cs" />
+    <Compile Include="Compression\IArchive.cs" />
+    <Compile Include="Compression\IArchiveEntry.cs" />
     <Compile Include="Compression\MountFile.cs" />
-    <Compile Include="Compression\PortableZip.cs" />
-    <Compile Include="Compression\ZipFile.cs" />
+    <Compile Include="Compression\Wrappers\PortableZip.cs" />
+    <Compile Include="Compression\Wrappers\SevenZipArchive.cs" />
+    <Compile Include="Compression\SevenZip\ArchiveFile.cs" />
+    <Compile Include="Compression\SevenZip\ArchiveFileCallback.cs" />
+    <Compile Include="Compression\SevenZip\ArchiveStreamCallback.cs" />
+    <Compile Include="Compression\SevenZip\ArchiveStreamsCallback.cs" />
+    <Compile Include="Compression\SevenZip\Entry.cs" />
+    <Compile Include="Compression\SevenZip\Formats.cs" />
+    <Compile Include="Compression\SevenZip\IArchiveExtractCallback.cs" />
+    <Compile Include="Compression\SevenZip\Kernel32Dll.cs" />
+    <Compile Include="Compression\SevenZip\SafeLibraryHandle.cs" />
+    <Compile Include="Compression\SevenZip\SevenZipException.cs" />
+    <Compile Include="Compression\SevenZip\SevenZipFormat.cs" />
+    <Compile Include="Compression\SevenZip\SevenZipHandle.cs" />
+    <Compile Include="Compression\SevenZip\SevenZipInterface.cs" />
+    <Compile Include="Compression\Wrappers\SquashFsArchive.cs" />
+    <Compile Include="Compression\Zip.cs" />
     <Compile Include="EmulationStation\EmulationStationServices.cs" />
     <Compile Include="EmulationStation\EsFeatures.cs" />
     <Compile Include="EmulationStation\EsGameList.cs" />

@@ -16,7 +16,7 @@ namespace EmulatorLauncher
         {            
             try
             {
-                using (var arch = ZipArchive.OpenRead(saveState))
+                using (var arch = Zip.Open(saveState))
                 {
                     var sshot = arch.Entries.FirstOrDefault(en => en.Filename == "Screenshot.png");
                     if (sshot != null)

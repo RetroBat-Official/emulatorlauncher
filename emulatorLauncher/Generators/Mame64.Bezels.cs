@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using System.Xml;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Compression;
+using EmulatorLauncher.Common.Compression.Wrappers;
 
 namespace EmulatorLauncher
 {

@@ -113,7 +113,7 @@ namespace RetrobatUpdater
                 // Extract zip archive
                 lastPercent = -1;
 
-                using (var archive = ZipArchive.OpenRead(file))
+                using (var archive = Zip.Open(file))
                 {
                     var entries = archive.Entries.ToList();
 
