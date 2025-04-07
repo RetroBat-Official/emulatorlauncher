@@ -2430,6 +2430,11 @@ namespace EmulatorLauncher.Libretro
             else
                 pluginsIni["hiscore"] = "0";
 
+            if (SystemConfig.isOptSet("layout_enable") && !SystemConfig.getOptBoolean("layout_enable"))
+                pluginsIni["layout"] = "0";
+            else
+                pluginsIni["layout"] = "1";
+
             pluginsIni.Save();
         }
 

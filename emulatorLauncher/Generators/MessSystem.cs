@@ -672,6 +672,8 @@ namespace EmulatorLauncher
                 pluginList.Add("cheat");
             if (SystemConfig.isOptSet("mame_hiscore") && SystemConfig.getOptBoolean("mame_hiscore"))
                 pluginList.Add("hiscore");
+            if (!SystemConfig.isOptSet("layout_enable") || SystemConfig.getOptBoolean("layout_enable"))
+                pluginList.Add("layout");
 
             if (pluginList.Count > 0)
             {
