@@ -59,6 +59,7 @@ namespace EmulatorLauncher.Libretro
                 { "daphne", "Daphne" },
                 { "desmume2015", "DeSmuME 2015" },
                 { "desmume", "DeSmuME" },
+                { "dice", "Dice" },
                 { "dinothawr", "Dinothawr" },
                 { "directxbox", "DirectXBox" },
                 { "dolphin_launcher", "Dolphin Launcher" },
@@ -321,6 +322,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureCitra(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureCrocoDS(retroarchConfig, coreSettings, system, core);
+            ConfigureDice(retroarchConfig, coreSettings, system, core);
             ConfigureDesmume(retroarchConfig, coreSettings, system, core);
             ConfigureDolphin(retroarchConfig, coreSettings, system, core);
             ConfigureDosboxPure(retroarchConfig, coreSettings, system, core);
@@ -974,6 +976,14 @@ namespace EmulatorLauncher.Libretro
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "crocods_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "crocods_controller2", "1");
+        }
+
+        private void ConfigureDice(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "dice")
+                return;
+
+            // Controls
         }
 
 
@@ -2419,6 +2429,11 @@ namespace EmulatorLauncher.Libretro
                 pluginsIni["hiscore"] = "1";
             else
                 pluginsIni["hiscore"] = "0";
+
+            if (SystemConfig.isOptSet("layout_enable") && !SystemConfig.getOptBoolean("layout_enable"))
+                pluginsIni["layout"] = "0";
+            else
+                pluginsIni["layout"] = "1";
 
             pluginsIni.Save();
         }
