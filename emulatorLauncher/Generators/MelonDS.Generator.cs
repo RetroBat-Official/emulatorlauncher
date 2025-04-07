@@ -101,6 +101,27 @@ namespace EmulatorLauncher
 
             using (IniFile ini = IniFile.FromFile(settingsFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues))
             {
+                if (ini.EnumerateValues("").Any(i => i.Key == "RecentROM"))
+                {
+                    ini.Remove("", "RecentROM");
+                }
+
+                if (ini.EnumerateValues("").Any(i => i.Key.StartsWith("\"")))
+                {
+                    string[] keys = ini.EnumerateValues("").Where(i => i.Key.StartsWith("\"")).Select(i => i.Key).ToArray();
+                    foreach(string k in keys)
+                        ini.Remove("", k);
+                }
+
+                if (ini.EnumerateValues("").Any(i => i.Key.StartsWith("]")))
+                {
+                    string[] keys = ini.EnumerateValues("").Where(i => i.Key.StartsWith("]")).Select(i => i.Key).ToArray();
+                    foreach (string k in keys)
+                        ini.Remove("", k);
+                }
+
+                ini.Remove("", "RecentROM");
+
                 CreateControllerConfiguration(ini);
 
                 bool dsi = SystemConfig.isOptSet("melonds_console") && SystemConfig["melonds_console"] == "dsi";
@@ -201,6 +222,7 @@ namespace EmulatorLauncher
                 BindBoolIniFeatureOn(ini, "Screen", "VSync", "melonds_vsync", "true", "false");
                 BindIniFeatureSlider(ini, "3D.GL", "ScaleFactor", "melonds_internal_resolution", "1");
                 BindBoolIniFeature(ini, "3D.GL", "BetterPolygons", "melonds_polygon", "true", "false");
+                ini.WriteValue("Instance0.Window0", "Enabled", "true");
                 BindIniFeature(ini, "Instance0.Window0", "ScreenLayout", "melonds_screen_layout", "1");
                 BindBoolIniFeature(ini, "Instance0.Window0", "ScreenSwap", "melonds_swapscreen", "true", "false");
                 BindIniFeature(ini, "Instance0.Window0", "ScreenSizing", "melonds_screen_sizing", "0");
