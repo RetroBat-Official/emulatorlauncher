@@ -913,6 +913,14 @@ namespace EmulatorLauncher
                             if (x.Key == InputKey.joystick1left || x.Key == InputKey.joystick1up)
                                 continue;
 
+                            if (!gc)
+                            {
+                                ini.WriteValue(gcpad, "IR/Up", "`Cursor Y-`");
+                                ini.WriteValue(gcpad, "IR/Down", "`Cursor Y+`");
+                                ini.WriteValue(gcpad, "IR/Left", "`Cursor X-`");
+                                ini.WriteValue(gcpad, "IR/Right", "`Cursor X+`");
+                            }
+
                             var input = pad.Config[x.Key];
                             if (input == null)
                                 continue;
@@ -1276,8 +1284,7 @@ namespace EmulatorLauncher
                             ini.WriteValue(gcpad, "IR/Auto-Hide", "False");
 
                         // Relative input for IR cursor
-                        
-                        if (Program.SystemConfig.getOptBoolean("wii_relativecursor"))
+                        if (Program.SystemConfig.getOptBoolean("wii_relativecursor") || pad.Config.Type == "keyboard")
                             ini.WriteValue(gcpad, "IR/Relative Input", "False");
                         else
                             ini.WriteValue(gcpad, "IR/Relative Input", "True");
