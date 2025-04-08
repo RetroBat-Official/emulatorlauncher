@@ -23,6 +23,7 @@ namespace EmulatorLauncher.Libretro
 
         private static int _playerCount = 1;
         private static int _maxCount = 2;
+        private static string _gameRemapName = null;
 
         public static void GenerateCoreInputRemap(string system, string core, Dictionary<string, string> inputremap)
         {
@@ -535,6 +536,8 @@ namespace EmulatorLauncher.Libretro
                 foreach (var button in buttonMap)
                     inputremap["input_player" + i + "_" + button.Key] = button.Value;
             }
+            _gameRemapName = romName;
+
             return true;
         }
 
@@ -545,7 +548,7 @@ namespace EmulatorLauncher.Libretro
             if (string.IsNullOrEmpty(cleanSystemName))
                 return;
 
-            //DeleteInputRemap(cleanSystemName);
+            DeleteInputRemap(cleanSystemName);
             if (createRemap == null)
                 return;
 
@@ -553,9 +556,9 @@ namespace EmulatorLauncher.Libretro
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            string path = Path.Combine(dir, cleanSystemName + ".rmp");
+            string path = _gameRemapName != null ? Path.Combine(dir, _gameRemapName + ".rmp") : Path.Combine(dir, cleanSystemName + ".rmp");
 
-            //this.AddFileForRestoration(path);
+            this.AddFileForRestoration(path);
 
             var cfg = ConfigFile.FromFile(path, new ConfigFileOptions() { CaseSensitive = true });
             createRemap(cfg);
@@ -568,7 +571,7 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             string dir = Path.Combine(RetroarchPath, "config", "remaps", cleanSystemName);
-            string path = Path.Combine(dir, cleanSystemName + ".rmp");
+            string path = _gameRemapName != null ? Path.Combine(dir, _gameRemapName + ".rmp") : Path.Combine(dir, cleanSystemName + ".rmp");
 
             try
             {
