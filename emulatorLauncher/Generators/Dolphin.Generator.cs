@@ -646,7 +646,13 @@ namespace EmulatorLauncher
                         ini.WriteValue("AutoUpdate", "UpdateTrack", "''");
 
                     // Set defaultISO when running the Wii Menu
-                    if (_runWiiMenu)
+                    if (SystemConfig.isOptSet("dolphin_defaultISO") && !string.IsNullOrEmpty(SystemConfig["dolphin_defaultISO"]))
+                    {
+                        string defaultISOPath = SystemConfig["dolphin_defaultISO"];
+                        if (File.Exists(defaultISOPath))
+                            ini.WriteValue("Core", "DefaultISO", defaultISOPath);
+                    }
+                    else if (_runWiiMenu)
                         ini.WriteValue("Core", "DefaultISO", rom);
                     else
                         ini.WriteValue("Core", "defaultISO", "\"\"");
