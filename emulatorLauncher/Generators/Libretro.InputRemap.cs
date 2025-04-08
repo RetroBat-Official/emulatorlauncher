@@ -545,7 +545,7 @@ namespace EmulatorLauncher.Libretro
             if (string.IsNullOrEmpty(cleanSystemName))
                 return;
 
-            //DeleteInputRemap(cleanSystemName);
+            DeleteInputRemap(cleanSystemName);
             if (createRemap == null)
                 return;
 
@@ -555,7 +555,7 @@ namespace EmulatorLauncher.Libretro
 
             string path = Path.Combine(dir, cleanSystemName + ".rmp");
 
-            //this.AddFileForRestoration(path);
+            this.AddFileForRestoration(path);
 
             var cfg = ConfigFile.FromFile(path, new ConfigFileOptions() { CaseSensitive = true });
             createRemap(cfg);

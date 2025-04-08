@@ -464,8 +464,8 @@ namespace EmulatorLauncher.Libretro
                         cfg[remap.Key] = remap.Value;
                 });
             }
-            //else
-            //    DeleteInputRemap(GetCoreName(core));
+            else
+                DeleteInputRemap(GetCoreName(core));
         }
 
         #region Core configuration
