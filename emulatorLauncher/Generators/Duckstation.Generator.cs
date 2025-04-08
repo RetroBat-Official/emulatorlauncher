@@ -117,7 +117,7 @@ namespace EmulatorLauncher
                 commandArray.Add("-fastboot");
 
             commandArray.Add("-batch");
-            commandArray.Add("-portable");
+            //commandArray.Add("-portable");        DEPRECATED
 
             if (fullscreen)
                 commandArray.Add("-fullscreen");
