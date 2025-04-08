@@ -137,7 +137,7 @@ namespace EmulatorLauncher
             {
                 string expectedSingeFile = Path.Combine(Path.GetDirectoryName(rom), ext + ".daphne", romName + ".singe");
                 if (!File.Exists(expectedSingeFile))
-                    return null;
+                    throw new Exception("[ERROR] Unable to find singe file for actionmax.");
 
                 rom = Path.Combine(Path.GetDirectoryName(rom), ext + ".daphne");
             }
