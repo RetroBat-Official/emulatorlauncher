@@ -116,27 +116,32 @@ namespace EmulatorLauncher.Common.Compression.SevenZip
                 {
                     string outputPath = getOutputPath(entry);
 
-                    if (outputPath == null) // getOutputPath = null means SKIP
+                    try
                     {
+                        if (outputPath == null) // getOutputPath = null means SKIP
+                        {
+                            fileStreams.Add(null);
+                            continue;
+                        }
+
+                        if (entry.IsFolder)
+                        {
+                            Directory.CreateDirectory(outputPath);
+                            fileStreams.Add(null);
+                            continue;
+                        }
+
+                        string directoryName = Path.GetDirectoryName(outputPath);
+                        if (!string.IsNullOrWhiteSpace(directoryName))
+                            Directory.CreateDirectory(directoryName);
+
+                        fileStreams.Add(File.Create(outputPath));
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Instance.Error("Failed to extract file " + outputPath, ex);
                         fileStreams.Add(null);
-                        continue;
                     }
-
-                    if (entry.IsFolder)
-                    {
-                        Directory.CreateDirectory(outputPath);
-                        fileStreams.Add(null);
-                        continue;
-                    }
-
-                    string directoryName = Path.GetDirectoryName(outputPath);
-
-                    if (!string.IsNullOrWhiteSpace(directoryName))
-                    {
-                        Directory.CreateDirectory(directoryName);
-                    }
-
-                    fileStreams.Add(File.Create(outputPath));
                 }
 
                 var callback = new ArchiveStreamsCallback(fileStreams, password);
@@ -144,6 +149,10 @@ namespace EmulatorLauncher.Common.Compression.SevenZip
                     callback.Progress += (a, b) => progress(this, b);
 
                 this.archive.Extract(null, 0xFFFFFFFF, 0, callback);
+            }
+            catch(Exception ex)
+            {
+                SimpleLogger.Instance.Error("Failed to extract archive", ex);
             }
             finally
             {
