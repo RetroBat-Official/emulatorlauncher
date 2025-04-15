@@ -62,7 +62,11 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("[INFO] game file is .m3u, reading content of file.");
                 rom = File.ReadAllText(rom);
-                rom = Path.Combine(romdir, rom.Substring(1));
+
+                if (rom.StartsWith(".") || rom.StartsWith("/") || rom.StartsWith("\\") || rom.StartsWith("#"))
+                    rom = rom.Substring(1);
+
+                rom = Path.Combine(romdir, rom);
                 SimpleLogger.Instance.Info("[INFO] path to rom : " + (rom != null ? rom : "null"));
             }
 
