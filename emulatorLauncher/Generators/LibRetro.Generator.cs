@@ -1070,6 +1070,12 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["video_driver"] = "glcore";
                 return;
             }
+            if (core == "scummvm" && (retroarchConfig["video_driver"] != "gl" && retroarchConfig["video_driver"] != "glcore"))
+            {
+                _video_driver = "glcore";
+                retroarchConfig["video_driver"] = "glcore";
+                return;
+            }
 
             // Set default video driver per core
             if (!SystemConfig.isOptSet("video_driver") && defaultVideoDriver.ContainsKey(core))
