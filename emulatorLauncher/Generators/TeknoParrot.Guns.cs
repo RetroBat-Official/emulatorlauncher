@@ -16,6 +16,7 @@ namespace EmulatorLauncher
         private static bool _demulshooter = false;
         private static bool _sindenSoft = false;
         private static RawInputDevice _orgKeyboard = null;
+        private static Dictionary<RawLightgun, RawInputDevice> _gunsKbAssociation = new Dictionary<RawLightgun, RawInputDevice>();
 
         private static bool ConfigureTPGuns(GameProfile userProfile, string rom)
         {
@@ -420,6 +421,9 @@ namespace EmulatorLauncher
                                     if (!useKb && !ts_nogun)
                                         keyboard = FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard);
 
+                                    if (!_gunsKbAssociation.ContainsKey(iGun))
+                                        _gunsKbAssociation.Add(iGun, keyboard);
+
                                     // Get Keyboard ID
                                     int firstIndex = keyboard.DevicePath.IndexOf('#');
                                     int secondIndex = keyboard.DevicePath.IndexOf('#', firstIndex + 1);
@@ -584,6 +588,9 @@ namespace EmulatorLauncher
                                    
                                     // Find keyboard associated to lightgun
                                     keyboard = FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard);
+
+                                    if (!_gunsKbAssociation.ContainsKey(iGun))
+                                        _gunsKbAssociation.Add(iGun, keyboard);
 
                                     // Get Keyboard ID
                                     int kbfirstIndex = keyboard.DevicePath.IndexOf('#');
@@ -900,9 +907,29 @@ namespace EmulatorLauncher
             string mouseVIDPID = GetWiimoteVIDPID(gunPath);
             string mouseChar = GetWiimoteAssociationChar(gunPath);
             string toSearch = mouseVIDPID + "_" + mouseChar;
+            List<RawInputDevice> kbToIgnore = new List<RawInputDevice>();
+
+            if (_gunsKbAssociation.Any(g => g.Key.DevicePath == gunPath))
+            {
+                var keyPair = _gunsKbAssociation.FirstOrDefault(g => g.Key.DevicePath == gunPath);
+                keyboard = keyPair.Value;
+                return keyboard;
+            }
+            else if (_gunsKbAssociation.Count > 0)
+            {
+                foreach (var pair in _gunsKbAssociation)
+                {
+                    kbToIgnore.Add(pair.Value);
+                }
+            }
 
             foreach (var kb in keyboards)
             {
+                if (kbToIgnore.Contains(kb))
+                {
+                    continue;
+                }
+                
                 string kbVIDPID = GetWiimoteVIDPID(kb.DevicePath);
                 string kbChar = GetWiimoteAssociationChar(kb.DevicePath);
 
