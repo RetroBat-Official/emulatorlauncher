@@ -52,6 +52,14 @@ namespace EmulatorLauncher
             RawLightgun gun2 = null;
             RawLightgun gun3 = null;
             RawLightgun gun4 = null;
+            RawLightgun orggun1 = null;
+            RawLightgun orggun2 = null;
+            RawLightgun orggun3 = null;
+            RawLightgun orggun4 = null;
+            RawInputDevice wiimote1kb = null;
+            RawInputDevice wiimote2kb = null;
+            RawInputDevice wiimote3kb = null;
+            RawInputDevice wiimote4kb = null;
 
             if (gunCount < 1)       // Return if no gun or mouse is connected !
                 return false;
@@ -59,10 +67,10 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[GUNS] Found " + gunCount + " usable guns.");
 
             // Gun indexes
-            gun1 = SetGun(guns, gunCount, 1);
-            gun2 = SetGun(guns, gunCount, 2);
-            gun3 = SetGun(guns, gunCount, 3);
-            gun4 = SetGun(guns, gunCount, 4);
+            gun1 = orggun1 = SetGun(guns, gunCount, 1);
+            gun2 = orggun2 = SetGun(guns, gunCount, 2);
+            gun3 = orggun3 = SetGun(guns, gunCount, 3);
+            gun4 = orggun4 = SetGun(guns, gunCount, 4);
 
             if (GunIndexOverride(guns, 1, out int newIndex1))
                 gun1 = guns[newIndex1];
@@ -109,6 +117,49 @@ namespace EmulatorLauncher
                 keyboard = keyboards[0];
             }
 
+            // Perform original assignment of keyboards to wiimotes
+            if (orggun1 != null && orggun1.Type == RawLighGunType.MayFlashWiimote)
+            {
+                wiimote1kb = FindAssociatedKeyboard(orggun1.DevicePath, keyboards, keyboard);
+                _gunsKbAssociation.Add(orggun1, wiimote1kb);
+            }
+            if (orggun2 != null && orggun2.Type == RawLighGunType.MayFlashWiimote)
+            {
+                wiimote2kb = FindAssociatedKeyboard(orggun2.DevicePath, keyboards, keyboard);
+                _gunsKbAssociation.Add(orggun2, wiimote2kb);
+            }
+            if (orggun3 != null && orggun3.Type == RawLighGunType.MayFlashWiimote)
+            {
+                wiimote3kb = FindAssociatedKeyboard(orggun3.DevicePath, keyboards, keyboard);
+                _gunsKbAssociation.Add(orggun3, wiimote3kb);
+            }
+            if (orggun4 != null && orggun4.Type == RawLighGunType.MayFlashWiimote)
+            {
+                wiimote4kb = FindAssociatedKeyboard(orggun4.DevicePath, keyboards, keyboard);
+                _gunsKbAssociation.Add(orggun4, wiimote4kb);
+            }
+
+            if (_gunsKbAssociation.Count > 1 && Program.SystemConfig.getOptBoolean("WiimoteKbOrder"))
+            {
+                var enumerator = _gunsKbAssociation.GetEnumerator();
+
+                enumerator.MoveNext();
+                var key1 = enumerator.Current.Key;
+                var value1 = enumerator.Current.Value;
+
+                enumerator.MoveNext();
+                var key2 = enumerator.Current.Key;
+                var value2 = enumerator.Current.Value;
+
+                if (value1 != null && value2 != null)
+                {
+                    _gunsKbAssociation.Remove(key1);
+                    _gunsKbAssociation.Remove(key2);
+                    _gunsKbAssociation.Add(key1, value2);
+                    _gunsKbAssociation.Add(key2, value1);
+                }
+            }
+
             // Define alternative keyboard to use in case multiple keyboards
             if (keyboards.Count > 1 && Program.SystemConfig.isOptSet("tp_kbindex") && !string.IsNullOrEmpty(Program.SystemConfig["tp_kbindex"]))
             {
@@ -142,7 +193,7 @@ namespace EmulatorLauncher
                         string manuf = mo["Manufacturer"].ToString();
                         k.FriendlyName = desc1;
                         k.Manufacturer = manuf;
-                        SimpleLogger.Instance.Info("[GUNS] Identified keyboard " + kbs + " with name: " + desc1);
+                        SimpleLogger.Instance.Info("[GUNS] Identified keyboard " + kbs + " with name: " + desc1 + " and path:" + k.DevicePath);
                     }
                 }
                 catch { SimpleLogger.Instance.Info("[GUNS] Cannot get friendly name for Keyboard " + kbs); }
@@ -419,10 +470,7 @@ namespace EmulatorLauncher
 
                                     // Find keyboard associated to lightgun
                                     if (!useKb && !ts_nogun)
-                                        keyboard = FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard);
-
-                                    if (!_gunsKbAssociation.ContainsKey(iGun))
-                                        _gunsKbAssociation.Add(iGun, keyboard);
+                                        keyboard = _gunsKbAssociation.ContainsKey(iGun) ? _gunsKbAssociation[iGun] : FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard);
 
                                     // Get Keyboard ID
                                     int firstIndex = keyboard.DevicePath.IndexOf('#');
@@ -587,10 +635,7 @@ namespace EmulatorLauncher
                                     string mouseButton = button.Key.ToLowerInvariant();
                                    
                                     // Find keyboard associated to lightgun
-                                    keyboard = FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard);
-
-                                    if (!_gunsKbAssociation.ContainsKey(iGun))
-                                        _gunsKbAssociation.Add(iGun, keyboard);
+                                    keyboard = _gunsKbAssociation.ContainsKey(iGun) ? _gunsKbAssociation[iGun] : FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard);
 
                                     // Get Keyboard ID
                                     int kbfirstIndex = keyboard.DevicePath.IndexOf('#');
