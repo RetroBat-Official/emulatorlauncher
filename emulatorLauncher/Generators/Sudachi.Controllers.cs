@@ -291,6 +291,14 @@ namespace EmulatorLauncher
             if (input == null)
                 return null;
 
+            List<string> directions = new List<string>() { "up", "down", "right", "left" };
+
+            if (directions.Contains(input.Name.ToString()))
+            {
+                input.Type = "hat";
+                input.Id = 0;
+            }
+
             string value = "engine:sdl,port:" + index + ",guid:" + guid;
 
             if (input.Type == "button")
