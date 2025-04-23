@@ -99,7 +99,7 @@ namespace EmulatorLauncher
 
             var suyuGuid = guid.ToString().ToLowerInvariant();
             string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.Guid, "suyu");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController.Guid, controller.Guid, "suyu");
             if (newGuid != null)
                 suyuGuid = newGuid;
 

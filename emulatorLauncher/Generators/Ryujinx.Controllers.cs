@@ -406,7 +406,7 @@ namespace EmulatorLauncher
             string ryuGuidString = newGuid.ToString();
 
             string overrideGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string overrideGuid = SdlJoystickGuid.GetGuidFromFile(overrideGuidPath, c.Guid, "ryujinx");
+            string overrideGuid = SdlJoystickGuid.GetGuidFromFile(overrideGuidPath, c.SdlController.Guid, c.Guid, "ryujinx");
             if (overrideGuid != null)
             {
                 SimpleLogger.Instance.Info("[INFO] Controller GUID replaced from yml file : " + overrideGuid);

@@ -10,7 +10,9 @@ using System.Globalization;
 namespace EmulatorLauncher
 {
     partial class CitronGenerator : Generator
-    {        
+    {
+        private Dictionary<string, int> _samePad = new Dictionary<string, int>();
+
         /// <summary>
         /// Cf. TBD
         /// </summary>
@@ -197,17 +199,20 @@ namespace EmulatorLauncher
 
             var citronGuid = guid.ToString().ToLowerInvariant();
             string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.Guid, "citron");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController.Guid, controller.Guid, "citron");
             if (newGuid != null)
                 citronGuid = newGuid;
 
-            int index = Program.Controllers
-                    .GroupBy(c => c.Guid.ToLowerInvariant())
-                    .Where(c => c.Key == controller.Guid.ToLowerInvariant())
-                    .SelectMany(c => c)
-                    .OrderBy(c => c.GetSdlControllerIndex())
-                    .ToList()
-                    .IndexOf(controller);
+            if (!_samePad.ContainsKey(citronGuid))
+                _samePad.Add(citronGuid, 0);
+            else
+                _samePad[citronGuid] += 1;
+
+            int index = 0;
+            if (_samePad.ContainsKey(citronGuid))
+            {
+                index = _samePad[citronGuid];
+            }
 
             string player = "player_" + (controller.PlayerIndex - 1) + "_";
 
