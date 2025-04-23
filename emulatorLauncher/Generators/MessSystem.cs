@@ -808,8 +808,8 @@ namespace EmulatorLauncher
                 }
                 if (!SystemConfig.isOptSet("ti99_speech") || SystemConfig.getOptBoolean("ti99_speech"))
                 {
-                    commandArray.Add("-ioport:peb:slot3");
-                    commandArray.Add("speech");
+                    commandArray.Add("-ioport");
+                    commandArray.Add("speechsyn");
                 }
             }
 
