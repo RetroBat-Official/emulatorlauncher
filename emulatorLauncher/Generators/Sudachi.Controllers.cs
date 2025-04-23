@@ -101,31 +101,22 @@ namespace EmulatorLauncher
 
             var sudachiGuid = guid.ToString().ToLowerInvariant();
 
+            string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController.Guid, controller.Guid, "sudachi");
+
+            if (newGuid != null)
+                sudachiGuid = newGuid;
+
             if (!_samePad.ContainsKey(sudachiGuid))
                 _samePad.Add(sudachiGuid, 0);
             else
                 _samePad[sudachiGuid] += 1;
 
-            string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.Guid, "sudachi");
-            bool multi = SdlJoystickGuid.multiGuid(newGuidPath, controller.Guid);
-
-            if (multi && _samePad[sudachiGuid] > 0)
-                newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.Guid, "sudachi", _samePad[sudachiGuid] + 1);
-
-            if (newGuid != null)
-                sudachiGuid = newGuid;
-
-            int index = Program.Controllers
-                    .GroupBy(c => c.Guid.ToLowerInvariant())
-                    .Where(c => c.Key == controller.Guid.ToLowerInvariant())
-                    .SelectMany(c => c)
-                    .OrderBy(c => c.GetSdlControllerIndex())
-                    .ToList()
-                    .IndexOf(controller);
-
-            if (multi)
-                index = 0;
+            int index = 0;
+            if (_samePad.ContainsKey(sudachiGuid))
+            {
+                index = _samePad[sudachiGuid];
+            }
 
             string player = "player_" + (controller.PlayerIndex - 1) + "_";
 

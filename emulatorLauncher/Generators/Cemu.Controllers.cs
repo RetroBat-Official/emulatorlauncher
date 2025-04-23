@@ -345,7 +345,7 @@ namespace EmulatorLauncher
                 .IndexOf(ctrl);
 
             string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, ctrl.Guid, "cemu");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, ctrl.SdlController.Guid, ctrl.Guid, "cemu");
             if (newGuid != null)
                 replaceGuid = true;
 

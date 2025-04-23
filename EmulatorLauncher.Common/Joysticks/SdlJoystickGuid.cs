@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using EmulatorLauncher.Common.FileFormats;
+using System.Collections.Generic;
 
 namespace EmulatorLauncher.Common.Joysticks
 {
@@ -237,7 +238,7 @@ namespace EmulatorLauncher.Common.Joysticks
             return ret;
         }
 
-        public static string GetGuidFromFile(string path, string inputGuid, string emulator, int guidIndex = 0)
+        public static string GetGuidFromFile(string path, string inputSDLGuid, string inputGuid, string emulator, int guidIndex = 0)
         {
             if (!File.Exists(path))
                 return null;
@@ -247,7 +248,29 @@ namespace EmulatorLauncher.Common.Joysticks
                 var yml = YmlFile.Load(path);
                 if (yml != null)
                 {
-                    var controllerInfo = yml.GetContainer(inputGuid.ToLowerInvariant());
+                    var controllerInfo = yml.GetContainer(inputSDLGuid.ToLowerInvariant());
+
+                    if (controllerInfo != null)
+                    {
+                        var emulatorInfo = controllerInfo.GetContainer(emulator);
+                        if (emulatorInfo != null)
+                        {
+                            string outputGuid = emulatorInfo["guid"];
+                            if (guidIndex != 0)
+                            {
+                                string newGuid = "guid" + guidIndex.ToString();
+                                if (emulatorInfo[newGuid] != null)
+                                    outputGuid = emulatorInfo[newGuid];
+                            }
+                            if (!string.IsNullOrEmpty(outputGuid))
+                            {
+                                SimpleLogger.Instance.Info("[INFO] Controller GUID replaced from yml file with: " + outputGuid.ToLowerInvariant());
+                                return outputGuid.ToLowerInvariant();
+                            }
+                        }
+                    }
+
+                    controllerInfo = yml.GetContainer(inputGuid.ToLowerInvariant());
                     if (controllerInfo != null)
                     {
                         var emulatorInfo = controllerInfo.GetContainer(emulator);
@@ -304,33 +327,6 @@ namespace EmulatorLauncher.Common.Joysticks
 
             return null;
         }
-
-        public static bool multiGuid(string path, string inputGuid)
-        {
-            if (!File.Exists(path))
-                return false;
-
-            try
-            {
-                var yml = YmlFile.Load(path);
-                if (yml != null)
-                {
-                    var controllerInfo = yml.GetContainer(inputGuid.ToLowerInvariant());
-                    if (controllerInfo != null)
-                    {
-                        bool multi = controllerInfo["multiGuid"] == "true";
-                        if (multi)
-                            return true;
-                        else
-                            return false;
-                    }
-                }
-            }
-            catch { return false; }
-
-            return false;
-        }
-
         #endregion
 
         #region Operators

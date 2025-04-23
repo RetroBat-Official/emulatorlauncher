@@ -197,7 +197,7 @@ namespace EmulatorLauncher
 
             var citronGuid = guid.ToString().ToLowerInvariant();
             string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.Guid, "citron");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController.Guid, controller.Guid, "citron");
             if (newGuid != null)
                 citronGuid = newGuid;
 

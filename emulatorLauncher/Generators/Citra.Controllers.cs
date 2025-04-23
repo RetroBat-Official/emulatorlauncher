@@ -41,7 +41,7 @@ namespace EmulatorLauncher
             var guid = controller.GetSdlGuid(_sdlVersion, true);
             var citraGuid = guid.ToString().ToLowerInvariant();
             string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.Guid, "citra");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController.Guid, controller.Guid, "citra");
             if (newGuid != null)
                 citraGuid = newGuid;
 
