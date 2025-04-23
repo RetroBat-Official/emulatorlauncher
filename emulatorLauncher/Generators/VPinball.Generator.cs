@@ -206,6 +206,7 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "Controller", "DOFFlippers", "vpdof_flippers", "2");
                 BindIniFeature(ini, "Controller", "DOFTargets", "vpdof_targets", "2");
                 BindIniFeature(ini, "Controller", "DOFDropTargets", "vpdof_droptargets", "2");
+                BindBoolIniFeature(ini, "Player", "PBWEnabled", "vp_analognudge", "1", "0");
 
                 ini.WriteValue("Player", "DisableESC", "1");
 
@@ -357,6 +358,14 @@ namespace EmulatorLauncher
                         SetOption(defaultKey, "showwindmd", 1);
                     }
 
+                    if (Program.SystemConfig.isOptSet("vpmame_soundmode") && !string.IsNullOrEmpty(Program.SystemConfig["vpmame_soundmode"]))
+                    {
+                        int soundMode = Program.SystemConfig["vpmame_soundmode"].ToInteger();
+                        SetOption(defaultKey, "sound_mode", soundMode);
+                    }
+                    else
+                        SetOption(defaultKey, "sound_mode", 0);
+
                     BindBoolRegistryFeature(defaultKey, "cabinet_mode", "vpmame_cabinet", 1, 0, true);
                     BindBoolRegistryFeature(defaultKey, "dmd_colorize", "vpmame_colordmd", 1, 0, false);
 
@@ -386,6 +395,14 @@ namespace EmulatorLauncher
                             SetOption(romKey, "showpindmd", 0);
                             SetOption(romKey, "showwindmd", 1);
                         }
+
+                        if (Program.SystemConfig.isOptSet("vpmame_soundmode") && !string.IsNullOrEmpty(Program.SystemConfig["vpmame_soundmode"]))
+                        {
+                            int soundMode = Program.SystemConfig["vpmame_soundmode"].ToInteger();
+                            SetOption(romKey, "sound_mode", soundMode);
+                        }
+                        else
+                            SetOption(romKey, "sound_mode", 0);
 
                         BindBoolRegistryFeature(romKey, "cabinet_mode", "vpmame_cabinet", 1, 0, true);
                         BindBoolRegistryFeature(romKey, "dmd_colorize", "vpmame_colordmd", 1, 0, false);
