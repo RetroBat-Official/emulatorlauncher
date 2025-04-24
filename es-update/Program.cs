@@ -35,7 +35,7 @@ namespace RetrobatUpdater
                     return 1;
                 }
 
-                string remoteVersion = RetrobatVersion.GetRemoteVersion(branch);
+                string remoteVersion = RetrobatVersion.GetRemoteVersion(branch, localVersion);
                 if (string.IsNullOrEmpty(remoteVersion) || remoteVersion == localVersion)
                 {
                     ConsoleOutput("No update available");
@@ -119,7 +119,7 @@ namespace RetrobatUpdater
 
                     // Find upgrade.xml
                     UpgradeInformationFile upgradeInfo = null;
-                    var upgrade = entries.FirstOrDefault(e => e.Filename == "upgrade.xml");
+                    var upgrade = entries.FirstOrDefault(e => e.Filename == "system\\upgrade.xml");
                     if (upgrade != null)
                     {
                         upgrade.Extract(tempDirectory);
