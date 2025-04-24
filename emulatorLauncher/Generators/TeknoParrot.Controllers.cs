@@ -576,7 +576,7 @@ namespace EmulatorLauncher
         static readonly string[] mappingPaths =
         {            
             // User specific
-            "{userpath}\\teknoparrot.yml",
+            "{userpath}\\inputmapping\\teknoparrot.yml",
 
             // RetroBat Default
             "{systempath}\\resources\\inputmapping\\teknoparrot.yml",
