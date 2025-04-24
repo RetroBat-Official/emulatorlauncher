@@ -478,7 +478,7 @@ namespace EmulatorLauncher
             {
                 string result = path
                     .Replace("{systempath}", "system")
-                    .Replace("{userpath}", "inputmapping");
+                    .Replace("{userpath}", "user");
 
                 ret = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
 

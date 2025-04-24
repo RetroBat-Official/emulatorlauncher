@@ -1730,6 +1730,20 @@ namespace EmulatorLauncher.Libretro
             if (_sindenSoft)
                 Guns.KillSindenSoftware();
 
+            // Kill java processes as there is a bug where sound continues even when retroarch is closed
+            if (SystemConfig["core"] == "freej2me")
+            {
+                var px = Process.GetProcessesByName("javaw");
+                foreach (var p in px)
+                {
+                    try
+                    {
+                        p.Kill();
+                    }
+                    catch { }
+                }
+            }
+
             base.Cleanup();
         }
 
