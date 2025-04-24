@@ -352,6 +352,11 @@ namespace EmulatorLauncher
                         SetOption(defaultKey, "showpindmd", 1);
                         SetOption(defaultKey, "showwindmd", 0);
                     }
+                    else if (Program.SystemConfig["vpmame_dmd"] == "none")
+                    {
+                        SetOption(defaultKey, "showpindmd", 0);
+                        SetOption(defaultKey, "showwindmd", 0);
+                    }
                     else
                     {
                         SetOption(defaultKey, "showpindmd", 0);
@@ -388,6 +393,11 @@ namespace EmulatorLauncher
                         if (Program.SystemConfig.getOptBoolean("vpmame_dmd"))
                         {
                             SetOption(romKey, "showpindmd", 1);
+                            SetOption(romKey, "showwindmd", 0);
+                        }
+                        else if (Program.SystemConfig["vpmame_dmd"] == "none")
+                        {
+                            SetOption(romKey, "showpindmd", 0);
                             SetOption(romKey, "showwindmd", 0);
                         }
                         else
