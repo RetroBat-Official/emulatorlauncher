@@ -3,6 +3,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.IO;
 using EmulatorLauncher.Common;
+using System;
 
 namespace EmulatorLauncher
 {
@@ -16,6 +17,9 @@ namespace EmulatorLauncher
         private string _romName;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private string _ipsOriginalFile = null;
+        private string _ipsIniFile = null;
+        private bool _restoreIpsFile = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -49,6 +53,29 @@ namespace EmulatorLauncher
 
             if (!fullscreen)
                 commandArray.Add("-w");
+
+            if (SystemConfig.getOptBoolean("fbneo_ips"))
+            {
+                commandArray.Add("-ips");
+
+                if (SystemConfig.isOptSet("fbneo_patch") && !string.IsNullOrEmpty(SystemConfig["fbneo_patch"]))
+                {
+                    string ipsFile = SystemConfig["fbneo_patch"];
+                    if (File.Exists(ipsFile))
+                    {
+                        string ipsFileName = Path.GetFileName(ipsFile);
+                        commandArray.Add(ipsFileName);
+                    }
+
+                    _ipsIniFile = Path.Combine(path, "config", "ips", _romName + ".ini");
+
+                    if (File.Exists(_ipsIniFile))
+                    {
+                        _ipsOriginalFile = File.ReadAllText(_ipsIniFile);
+                        _restoreIpsFile = true;
+                    }
+                }
+            }
 
             string args = string.Join(" ", commandArray);
             return new ProcessStartInfo()
@@ -179,6 +206,15 @@ namespace EmulatorLauncher
             }
             ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, path.WorkingDirectory);
             return ret;
+        }
+
+        public override void Cleanup()
+        {
+            if (_restoreIpsFile)
+            {
+                try { File.WriteAllText(_ipsIniFile, _ipsOriginalFile); }
+                catch { }
+            }
         }
     }
     
