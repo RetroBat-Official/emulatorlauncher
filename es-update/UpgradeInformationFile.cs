@@ -162,6 +162,14 @@ namespace RetrobatUpdater
                 }
                 catch { }
             }
+            if (Directory.Exists(oldPath) && !Directory.Exists(newPath))
+            {
+                try
+                {
+                    Directory.Move(oldPath, newPath);
+                }
+                catch { }
+            }
         }
     }
 

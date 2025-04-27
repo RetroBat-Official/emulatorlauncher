@@ -21,9 +21,9 @@ namespace RetrobatUpdater
             return installerUrl + "/" + relativePath;
         }
 
-        public static string GetRemoteVersion(string branch)
+        public static string GetRemoteVersion(string branch, string localversion)
         {
-            string url = GetInstallUrl(string.Format("{0}/version.info", branch));
+            string url = GetInstallUrl(string.Format("{0}/{1}/remote_version.info", branch, localversion));
 
             string remoteVersion = WebTools.DownloadString(url);
             if (!string.IsNullOrEmpty(remoteVersion))
@@ -40,7 +40,7 @@ namespace RetrobatUpdater
                 return localFile;
             */
 
-            string localFile = Path.Combine(Path.GetDirectoryName(typeof(RetrobatVersion).Assembly.Location), "version.info");
+            string localFile = Path.Combine(Path.GetDirectoryName(typeof(RetrobatVersion).Assembly.Location),"..", "system", "version.info");
             return localFile;
         }
 
