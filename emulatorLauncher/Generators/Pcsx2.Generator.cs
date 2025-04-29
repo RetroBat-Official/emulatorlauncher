@@ -584,7 +584,7 @@ namespace EmulatorLauncher
 
             string conf = Path.Combine(_path, "inis", "PCSX2.ini");
 
-            using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces))
+            using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues))
             {
                 ini.WriteValue("UI", "HideMouseCursor", "true");
                 CreateControllerConfiguration(ini);
@@ -684,7 +684,7 @@ namespace EmulatorLauncher
                     if (newSaveStates)
                     {
                         // Keep the original folder, we'll listen to it, and inject in our custom folder
-                        ini.WriteValue("Folders", "SaveStates ", "sstates");
+                        ini.WriteValue("Folders", "SaveStates", "sstates");
 
                         _saveStatesWatcher = new Pcsx2SaveStatesMonitor(rom, Path.Combine(path, "sstates"), savesPath);
                         _saveStatesWatcher.PrepareEmulatorRepository();
@@ -692,7 +692,7 @@ namespace EmulatorLauncher
                     else
                     {
                         FileTools.TryCreateDirectory(savesPath);
-                        ini.WriteValue("Folders", "SaveStates ", savesPath);
+                        ini.WriteValue("Folders", "SaveStates", savesPath);
                     }
                 }
 
