@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.IO.Compression;
 using System.Diagnostics;
 using System.Windows.Forms;
 using System.Drawing;
@@ -13,6 +14,8 @@ using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.PadToKeyboard;
 using System.Text.RegularExpressions;
+using EmulatorLauncher.Common.Compression.Wrappers;
+using EmulatorLauncher.Common.Compression;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -62,46 +65,8 @@ namespace EmulatorLauncher.Libretro
             }
 
             // Detect best core for MAME games ( If not overridden by the user )
-            if (system == "mame" && subCore == null && core != null && core.StartsWith("mame"))
-            {
-                if (string.IsNullOrEmpty(Program.SystemConfig[system + ".core"]) && string.IsNullOrEmpty(Program.CurrentGame.Core))
-                {
-                    string[] supportedCores = null;
-
-                    // Load supported core list from es_systems.cfg
-                    var esSystems = Program.EsSystems;
-                    if (esSystems != null)
-                    {
-                        supportedCores = esSystems.Systems
-                            .Where(sys => sys.Name == system)
-                            .SelectMany(sys => sys.Emulators)
-                            .Where(emul => emul.Name == emulator)
-                            .SelectMany(emul => emul.Cores)
-                            .Select(cr => cr.Name)
-                            .ToArray();
-
-                        if (supportedCores.Length == 0)
-                            supportedCores = null;
-                    }
-
-                    var compatibleCores = MameVersionDetector.FindCompatibleMameCores(rom, supportedCores).Select(c => c.Name.Replace("-", "_")).ToList();
-                    var bestCore = compatibleCores.FirstOrDefault();
-                    if (!string.IsNullOrEmpty(bestCore))
-                    {
-                        core = bestCore;
-
-                        if (SystemConfig.getOptBoolean("use_guns") && core == "mame2003" && compatibleCores.Contains("mame2003_plus"))
-                        {
-                            // mame2003 is not working fine with lightgun games -> prefer mame2003_plus if it's compatible
-                            core = "mame2003_plus";
-                        }
-
-                        SimpleLogger.Instance.Info("[FindBestMameCore] Detected compatible mame core : " + core);
-                    }
-                    else
-                        SimpleLogger.Instance.Info("[FindBestMameCore] No detected compatible mame core. Using current default core : " + core);
-                }
-            }
+            if (GetBestMameCore(system, subCore, core, emulator, rom, out string newCore))
+                core = newCore;
 
             // specific management for some extensions
             if (Path.GetExtension(rom).ToLowerInvariant() == ".game")
@@ -150,6 +115,18 @@ namespace EmulatorLauncher.Libretro
                         core = "vitaquake2-xatrix";
                     else if (endOfPakPath.Contains("zaero"))
                         core = "vitaquake2-zaero";
+                }
+            }
+            else if (core == "geolith" && Path.GetExtension(rom).ToLower() == ".zip")
+            {
+                using (var zip = Zip.Open(rom))
+                {
+                    var entries = zip.Entries.ToList();
+
+                    bool neoFileExists = entries.Any(z => z.Filename.EndsWith(".neo", StringComparison.OrdinalIgnoreCase));
+
+                    if (!neoFileExists)
+                        throw new ApplicationException("[ERROR] Geolith core requires a .neo file in the zip archive.");
                 }
             }
 
@@ -550,6 +527,59 @@ namespace EmulatorLauncher.Libretro
                 WorkingDirectory = RetroarchPath,
                 Arguments = finalArgs,
             };
+        }
+
+        private bool GetBestMameCore(string system, string subCore, string core, string emulator, string rom, out string newCore)
+        {
+            newCore = null;
+
+            if (system == "mame" && subCore == null && core != null && core.StartsWith("mame"))
+            {
+                if (string.IsNullOrEmpty(Program.SystemConfig[system + ".core"]) && string.IsNullOrEmpty(Program.CurrentGame.Core))
+                {
+                    string[] supportedCores = null;
+
+                    // Load supported core list from es_systems.cfg
+                    var esSystems = Program.EsSystems;
+                    if (esSystems != null)
+                    {
+                        supportedCores = esSystems.Systems
+                            .Where(sys => sys.Name == system)
+                            .SelectMany(sys => sys.Emulators)
+                            .Where(emul => emul.Name == emulator)
+                            .SelectMany(emul => emul.Cores)
+                            .Select(cr => cr.Name)
+                            .ToArray();
+
+                        if (supportedCores.Length == 0)
+                            supportedCores = null;
+                    }
+
+                    var compatibleCores = MameVersionDetector.FindCompatibleMameCores(rom, supportedCores).Select(c => c.Name.Replace("-", "_")).ToList();
+                    var bestCore = compatibleCores.FirstOrDefault();
+                    if (!string.IsNullOrEmpty(bestCore))
+                    {
+                        newCore = bestCore;
+
+                        if (SystemConfig.getOptBoolean("use_guns") && core == "mame2003" && compatibleCores.Contains("mame2003_plus"))
+                        {
+                            // mame2003 is not working fine with lightgun games -> prefer mame2003_plus if it's compatible
+                            newCore = "mame2003_plus";
+                        }
+
+                        SimpleLogger.Instance.Info("[FindBestMameCore] Detected compatible mame core : " + newCore);
+                        return true;
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[FindBestMameCore] No detected compatible mame core. Using current default core : " + core);
+
+                    return false;
+                }
+
+                return false;
+            }
+
+            return false;
         }
 
         private void Configure(string system, string core, string rom, ScreenResolution resolution)
