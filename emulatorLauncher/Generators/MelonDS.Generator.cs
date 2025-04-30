@@ -220,7 +220,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("", "LimitFPS", "true");
                 BindIniFeature(ini, "3D", "Renderer", "melonds_renderer", "2");
                 BindBoolIniFeatureOn(ini, "Screen", "VSync", "melonds_vsync", "true", "false");
-                BindIniFeatureSlider(ini, "3D.GL", "ScaleFactor", "melonds_internal_resolution", "1");
+                BindIniFeature(ini, "3D.GL", "ScaleFactor", "melonds_internal_resolution", "1");
                 BindBoolIniFeature(ini, "3D.GL", "BetterPolygons", "melonds_polygon", "true", "false");
                 ini.WriteValue("Instance0.Window0", "Enabled", "true");
                 BindIniFeature(ini, "Instance0.Window0", "ScreenLayout", "melonds_screen_layout", "1");

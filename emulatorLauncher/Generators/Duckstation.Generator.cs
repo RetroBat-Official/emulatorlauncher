@@ -333,7 +333,7 @@ namespace EmulatorLauncher
                     BindBoolIniFeatureOn(ini, "Display", "VSync", "VSync", "true", "false");
                     BindBoolIniFeature(ini, "Display", "OptimalFramePacing", "duckstation_optimalframepacing", "true", "false");
                     BindIniFeature(ini, "GPU", "DeinterlacingMode", "duckstation_deinterlace", "Progressive");
-                    BindIniFeatureSlider(ini, "GPU", "ResolutionScale", "internal_resolution", "1");
+                    BindIniFeature(ini, "GPU", "ResolutionScale", "internal_resolution", "1");
 
                     if (SystemConfig.isOptSet("gfxbackend") && !string.IsNullOrEmpty(SystemConfig["gfxbackend"]))
                         ini.WriteValue("GPU", "Renderer", SystemConfig["gfxbackend"]);

@@ -289,7 +289,7 @@ namespace EmulatorLauncher
             YmlContainer video = yml.GetOrCreateContainer("Video");
             BindFeature(video, "Renderer", "gfxbackend", "Vulkan");
             video["Resolution"] = "1280x720";
-            BindFeatureSlider(video, "Resolution Scale", "rpcs3_internal_resolution", "100");
+            BindFeature(video, "Resolution Scale", "rpcs3_internal_resolution", "100");
             BindFeature(video, "Aspect ratio", "rpcs3_ratio", "16:9");
             BindFeature(video, "Frame limit", "framelimit", "Auto");
             BindBoolFeatureOn(video, "MSAA", "msaa", "Auto", "Disabled");

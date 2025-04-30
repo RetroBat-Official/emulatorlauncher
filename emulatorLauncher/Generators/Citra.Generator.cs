@@ -190,8 +190,8 @@ namespace EmulatorLauncher
                 {
                     if (SystemConfig.isOptSet("citra_resolution_factor"))
                     {
-                        ini.WriteValue("Renderer", "resolution_factor\\default", SystemConfig["citra_resolution_factor"].Substring(0, 1) == "1" ? "true" : "false");
-                        ini.WriteValue("Renderer", "resolution_factor", SystemConfig["citra_resolution_factor"].Substring(0, 1));
+                        ini.WriteValue("Renderer", "resolution_factor\\default", SystemConfig["citra_resolution_factor"] == "1" ? "true" : "false");
+                        ini.WriteValue("Renderer", "resolution_factor", SystemConfig["citra_resolution_factor"]);
                     }
                     else
                     {

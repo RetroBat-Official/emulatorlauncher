@@ -744,7 +744,7 @@ namespace EmulatorLauncher
             // Graphic options
             double res = 1.0;
             if (SystemConfig.isOptSet("soh_resolution") && !string.IsNullOrEmpty(SystemConfig["soh_resolution"]))
-                res = (SystemConfig["soh_resolution"].ToDouble() / 100);
+                res = SystemConfig["soh_resolution"].ToDouble();
             cvars["gInternalResolution"] = res;
             
             BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "vsync", "1", "0");

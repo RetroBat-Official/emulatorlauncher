@@ -148,7 +148,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("Graphics", "FullScreen", fullscreen ? "True" : "False");
 
                     if (SystemConfig.isOptSet("ppsspp_resolution") && !string.IsNullOrEmpty(SystemConfig["ppsspp_resolution"]))
-                        ini.WriteValue("Graphics", "InternalResolution", SystemConfig["ppsspp_resolution"].ToIntegerString());
+                        ini.WriteValue("Graphics", "InternalResolution", SystemConfig["ppsspp_resolution"]);
                     else
                         ini.WriteValue("Graphics", "InternalResolution", "0");
 

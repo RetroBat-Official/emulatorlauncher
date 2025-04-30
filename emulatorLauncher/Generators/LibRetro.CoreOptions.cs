@@ -934,17 +934,7 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(coreSettings, "citra_region_value", "citra_region_value", "Auto");
             BindFeature(coreSettings, "citra_language", "citra_language", "English");
-
-            if (SystemConfig.isOptSet("citralr_resolution_factor") && !string.IsNullOrEmpty(SystemConfig["citralr_resolution_factor"]))
-            {
-                if (SystemConfig["citralr_resolution_factor"].ToIntegerString() == "1")
-                    coreSettings["citra_resolution_factor"] = "1x (Native)";
-                else
-                    coreSettings["citra_resolution_factor"] = SystemConfig["citralr_resolution_factor"].ToIntegerString() + "x";
-            }
-            else
-                coreSettings["citra_resolution_factor"] = "1x (Native)";
-
+            BindFeature(coreSettings, "citra_resolution_factor", "citralr_resolution_factor", "1x (Native)");
             BindFeature(coreSettings, "citra_texture_filter", "citralr_texture_filter", "none");
             BindBoolFeature(coreSettings, "citra_swap_screen", "citra_swap_screen", "Bottom", "Top");
             BindBoolFeature(coreSettings, "citra_custom_textures", "citra_custom_textures", "enabled", "disabled");
@@ -3348,7 +3338,7 @@ namespace EmulatorLauncher.Libretro
 
             // VIDEO
             BindBoolFeatureOn(coreSettings, "melonds_render_mode", "melondsds_renderer", "opengl", "software");
-            BindFeatureSlider(coreSettings, "melonds_opengl_resolution", "melondsds_resolution", "1");
+            BindFeature(coreSettings, "melonds_opengl_resolution", "melondsds_resolution", "1");
             BindBoolFeature(coreSettings, "melonds_opengl_better_polygons", "melondsds_polygon", "enabled", "disabled");
             BindFeature(coreSettings, "melonds_opengl_filtering", "melondsds_filter", "nearest");
             BindBoolFeatureOn(coreSettings, "melonds_threaded_renderer", "melonds_threaded_renderer", "enabled", "disabled");
@@ -3824,14 +3814,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "pokemini")
                 return;
 
-            if (SystemConfig.isOptSet("pokemini_video_scale") && !string.IsNullOrEmpty(SystemConfig["pokemini_video_scale"]))
-            {
-                string scale = SystemConfig["pokemini_video_scale"].ToIntegerString() + "x";
-                coreSettings["pokemini_video_scale"] = scale;
-            }
-            else
-                coreSettings["pokemini_video_scale"] = "4x";
-
+            BindFeature(coreSettings, "pokemini_video_scale", "pokemini_video_scale", "4x");
             BindFeature(coreSettings, "pokemini_palette", "pokemini_palette", "Default");
             BindFeatureSlider(coreSettings, "pokemini_lcdcontrast", "pokemini_lcdcontrast", "64");
             BindFeatureSlider(coreSettings, "pokemini_lcdbright", "pokemini_lcdbright", "0");
@@ -4599,7 +4582,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "swanstation_GPU_TextureFilter", "swanstation_texturefilter", "Nearest");
             BindFeature(coreSettings, "swanstation_Display_AspectRatio", "swanstation_aspectratio", "Native");
             BindFeature(coreSettings, "swanstation_Display_CropMode", "swanstation_cropmode", "Overscan");
-            BindFeatureSlider(coreSettings, "swanstation_GPU_ResolutionScale", "internal_resolution", "1");
+            BindFeature(coreSettings, "swanstation_GPU_ResolutionScale", "internal_resolution", "1");
             BindBoolFeature(coreSettings, "swanstation_GPU_ForceNTSCTimings", "force_ntsc_timings", "true", "false");
             BindBoolFeature(coreSettings, "swanstation_GPU_WidescreenHack", "widescreen_hack", "true", "false");
             BindFeature(coreSettings, "swanstation_GPU_MSAA", "msaa", "1");
@@ -4733,7 +4716,8 @@ namespace EmulatorLauncher.Libretro
             if (core != "vecx")
                 return;
 
-            BindFeatureSlider(coreSettings, "vecx_res_multi", "vecx_res_multi", "1");
+            BindFeature(coreSettings, "vecx_res_multi", "vecx_res_multi", "1");
+            BindBoolFeature(coreSettings, "vecx_use_hw", "vecx_use_hw", "Hardware", "Software");
         }
 
         private void Configurevice(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

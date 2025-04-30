@@ -145,7 +145,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("ports.qt", "hwaccelVideo", "1");
 
                 // Internal resolution
-                BindIniFeatureSlider(ini, "ports.qt", "videoScale", "internal_resolution", "4");
+                BindIniFeature(ini, "ports.qt", "videoScale", "internal_resolution", "4");
 
                 // Shaders
                 if (SystemConfig.isOptSet("mgba_shader") && !string.IsNullOrEmpty(SystemConfig["mgba_shader"]))

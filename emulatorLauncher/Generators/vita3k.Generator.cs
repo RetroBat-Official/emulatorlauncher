@@ -118,7 +118,7 @@ namespace EmulatorLauncher
 
             //Then the emulator options
             BindFeature(yml, "backend-renderer", "backend-renderer", "Vulkan");
-            BindFeatureSlider(yml, "resolution-multiplier", "resolution_multiplier", "1.00", 2);
+            BindFeature(yml, "resolution-multiplier", "resolution_multiplier", "1.00");
             BindBoolFeature(yml, "disable-surface-sync", "disable_surfacesync", "true", "false");
             BindFeature(yml, "screen-filter", "vita_screenfilter", "Bilinear");
             BindBoolFeatureOn(yml, "v-sync", "vita_vsync", "true", "false");

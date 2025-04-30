@@ -266,25 +266,34 @@ namespace EmulatorLauncher
                     // Resolution
                     if (SystemConfig.isOptSet("resolution") && !string.IsNullOrEmpty(SystemConfig["resolution"]))
                     {
-                        var res = SystemConfig["resolution"].ToIntegerString();
+                        var res = SystemConfig["resolution"];
 
                         switch (res)
                         {
                             case "0":
-                            case "1":
                                 ini.WriteValue("Video-AngrylionPlus", "ScreenWidth", "640");
                                 ini.WriteValue("Video-AngrylionPlus", "ScreenHeight", "480");
                                 break;
+                            case "1":
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenWidth", "320");
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenHeight", "240");
+                                break;
                             case "2":
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenWidth", "640");
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenHeight", "480");
+                                break;
+                            case "3":
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenWidth", "960");
+                                ini.WriteValue("Video-AngrylionPlus", "ScreenHeight", "720");
+                                break;
+                            case "4":
                                 ini.WriteValue("Video-AngrylionPlus", "ScreenWidth", "1280");
                                 ini.WriteValue("Video-AngrylionPlus", "ScreenHeight", "960");
                                 break;
-                            case "3":
+                            case "5":
                                 ini.WriteValue("Video-AngrylionPlus", "ScreenWidth", "1440");
                                 ini.WriteValue("Video-AngrylionPlus", "ScreenHeight", "1080");
                                 break;
-                            case "4":
-                            case "5":
                             case "6":
                             case "7":
                             case "8":
@@ -389,7 +398,7 @@ namespace EmulatorLauncher
 
                 // Resolution
                 if (SystemConfig.isOptSet("resolution") && !string.IsNullOrEmpty(SystemConfig["resolution"]))
-                    ini.WriteValue("User", "frameBufferEmulation\\nativeResFactor", SystemConfig["resolution"].ToIntegerString());
+                    ini.WriteValue("User", "frameBufferEmulation\\nativeResFactor", SystemConfig["resolution"]);
                 else
                     ini.WriteValue("User", "frameBufferEmulation\\nativeResFactor", "0");
 
