@@ -59,7 +59,7 @@ namespace EmulatorLauncher
 
                 ini.WriteValue("", "gamedir", "./../../roms/dreamcast");
 
-                BindIniFeatureSlider(ini, "", "res", "redream_res", "2");
+                BindIniFeature(ini, "", "res", "redream_res", "2");
                 BindIniFeature(ini, "", "cable", "redream_cable", "rgb");
                 BindIniFeature(ini, "", "broadcast", "redream_broadcast", "ntsc");
                 BindIniFeature(ini, "", "language", "redream_language", "english");

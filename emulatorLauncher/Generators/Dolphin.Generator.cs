@@ -289,7 +289,7 @@ namespace EmulatorLauncher
 
                     // Other settings
                     BindBoolIniFeatureOn(ini, "Hardware", "VSync", "dolphin_vsync", "True", "False");
-                    BindIniFeatureSlider(ini, "Settings", "InternalResolution", "internal_resolution", "0");
+                    BindIniFeature(ini, "Settings", "InternalResolution", "internal_resolution", "0");
                     BindIniFeature(ini, "Enhancements", "ForceTextureFiltering", "ForceFiltering", "0");
                     BindIniFeature(ini, "Enhancements", "PostProcessingShader", "dolphin_shaders", "(off)");
                     BindBoolIniFeature(ini, "Hacks", "VertexRounding", "VertexRounding", "True", "False");

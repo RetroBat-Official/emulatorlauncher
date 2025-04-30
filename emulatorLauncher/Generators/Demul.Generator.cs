@@ -141,7 +141,7 @@ namespace EmulatorLauncher
                         gpu = "gpuDX11old.dll";
                     }
 
-                    if (Features.IsSupported("internal_resolution") && SystemConfig.isOptSet("internal_resolution") && !SystemConfig["internal_resolution"].StartsWith("1.0"))
+                    if (Features.IsSupported("internal_resolution") && SystemConfig.isOptSet("internal_resolution") && SystemConfig["internal_resolution"] != "1")
                     {
                         _videoDriverName = "gpuDX11old";
                         gpu = "gpuDX11old.dll";
@@ -217,7 +217,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("resolution", "Width", resolution.Width.ToString());
                     ini.WriteValue("resolution", "Height", resolution.Height.ToString());
 
-                    BindIniFeatureSlider(ini, "main", "scaling", "internal_resolution", "1");
+                    BindIniFeature(ini, "main", "scaling", "internal_resolution", "1");
                     BindIniFeature(ini, "main", "aspect", "demul_ratio", "1");
 
                     if (SystemConfig.isOptSet("smooth"))

@@ -170,7 +170,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("video", "MaintainAspect", "true");
 
                 //Internal resolution
-                BindIniFeatureSlider(ini, "video", "RenderResolution", "internalresolution", "1");
+                BindIniFeature(ini, "video", "RenderResolution", "internalresolution", "1");
 
                 //XBE signature
                 BindBoolIniFeature(ini, "gui", "IgnoreInvalidXbeSig", "xbeSignature", "true", "false");

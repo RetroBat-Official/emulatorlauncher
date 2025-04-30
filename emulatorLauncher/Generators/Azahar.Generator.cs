@@ -185,8 +185,8 @@ namespace EmulatorLauncher
                 {
                     if (SystemConfig.isOptSet("azahar_resolution_factor"))
                     {
-                        ini.WriteValue("Renderer", "resolution_factor\\default", SystemConfig["azahar_resolution_factor"].ToIntegerString() == "1" ? "true" : "false");
-                        ini.WriteValue("Renderer", "resolution_factor", SystemConfig["azahar_resolution_factor"].ToIntegerString());
+                        ini.WriteValue("Renderer", "resolution_factor\\default", SystemConfig["azahar_resolution_factor"] == "1" ? "true" : "false");
+                        ini.WriteValue("Renderer", "resolution_factor", SystemConfig["azahar_resolution_factor"]);
                     }
                     else
                     {

@@ -191,7 +191,7 @@ namespace EmulatorLauncher
                     ini.Remove("display", "renderer");
 
                 // Resolution
-                BindIniFeatureSlider(ini, "display.quality", "surface_scale", "render_scale", "1");
+                BindIniFeature(ini, "display.quality", "surface_scale", "render_scale", "1");
 
                 // Aspect Ratio and scaling
                 if (SystemConfig.isOptSet("xemu_scale") && !string.IsNullOrEmpty(SystemConfig["xemu_scale"]))
