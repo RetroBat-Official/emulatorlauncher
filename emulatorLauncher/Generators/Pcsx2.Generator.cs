@@ -46,7 +46,11 @@ namespace EmulatorLauncher
             string path = AppConfig.GetFullPath(emulator);
             _path = path;
 
-            string exe = Path.Combine(_path, "pcsx2-qt.exe");
+            string exe = new string[] { "pcsx2-qt.exe", "pcsx2-qtx64.exe" }
+                .Select(fn => Path.Combine(_path, fn))
+                .Where(file => File.Exists(file))
+                .FirstOrDefault();
+
             if (File.Exists(exe))
                 _isPcsxqt = true;
 
