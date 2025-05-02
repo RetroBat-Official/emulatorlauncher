@@ -7,11 +7,13 @@ namespace EmulatorLauncher.Common.Joysticks
 {
     public static class GameControllerDBParser
     {
-        public static SdlToDirectInput ParseByGuid(string gamecontrollerDBpath, string targetGuid)
+        public static SdlToDirectInput ParseByGuid(string gamecontrollerDBpath, string targetGuid, bool anal = false)
         {
+            string targetAnalGuid = targetGuid + "_analog";
             try
             {
                 string[] lines = System.IO.File.ReadAllLines(gamecontrollerDBpath);
+
                 foreach (var line in lines)
                 {
                     // skip comment
@@ -21,7 +23,12 @@ namespace EmulatorLauncher.Common.Joysticks
                     // split the line into components
                     string[] parts = line.Split(',');
 
-                    // check if the guid matches the target guid
+                    // check if the guid matches the target guid (analog first)
+                    if (anal && parts.Length > 0 && parts[0].Trim().Equals(targetAnalGuid, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Create SdlToDirectInput object and return
+                        return SdlToDirectInput.FromString(parts);
+                    }
                     if (parts.Length > 0 && parts[0].Trim().Equals(targetGuid, StringComparison.OrdinalIgnoreCase))
                     {
                         // Create SdlToDirectInput object and return
