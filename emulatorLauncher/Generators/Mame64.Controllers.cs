@@ -226,7 +226,13 @@ namespace EmulatorLauncher
                     {
                         SimpleLogger.Instance.Info("[INFO] Player "+ i + " . Fetching gamecontrollerdb.txt file with guid : " + guid);
 
-                        try { ctrlr = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid); }
+                        try 
+                        { 
+                            if (SystemConfig.getOptBoolean("analogDpad"))
+                                ctrlr = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid, true);
+                            else
+                                ctrlr = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid);
+                        }
                         catch { }
 
                         if (ctrlr == null || ctrlr.ButtonMappings == null)
@@ -492,11 +498,19 @@ namespace EmulatorLauncher
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l3"] + " OR KEYCODE_C")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2"] + " OR KEYCODE_C")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r3"] + " OR KEYCODE_V")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2"] + " OR KEYCODE_V")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON9"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l3"] + " OR KEYCODE_B")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON10"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r3"] + " OR KEYCODE_N")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_START"),
@@ -813,11 +827,19 @@ namespace EmulatorLauncher
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl) + " OR KEYCODE_C")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefttrigger", xinputCtrl) + " OR KEYCODE_C")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "rightstick", xinputCtrl) + " OR KEYCODE_V")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "righttrigger", xinputCtrl) + " OR KEYCODE_V")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON9"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl) + " OR KEYCODE_B")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON10"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "rightstick", xinputCtrl) + " OR KEYCODE_N")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_START"),
@@ -1058,10 +1080,18 @@ namespace EmulatorLauncher
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l3"])));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2"])));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2"])));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON9"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l3"])));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON10"),
                     new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r3"])));
 
             input.Add(new XElement
@@ -1291,10 +1321,18 @@ namespace EmulatorLauncher
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl))));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefttrigger", xinputCtrl))));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "righttrigger", xinputCtrl))));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON9"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl))));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON10"),
                     new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "rightstick", xinputCtrl))));
 
             input.Add(new XElement
