@@ -140,6 +140,7 @@ namespace EmulatorLauncher
             { "snes9x", () => new Snes9xGenerator() },
             { "soh", () => new SohGenerator() },
             { "solarus", () => new SolarusGenerator() },
+            { "solarus2", () => new SolarusGenerator() },
             { "sonic3air", () => new PortsLauncherGenerator() },
             { "sonicmania", () => new PortsLauncherGenerator() },
             { "sonicretro", () => new PortsLauncherGenerator() },
