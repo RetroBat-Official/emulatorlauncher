@@ -135,11 +135,11 @@ namespace EmulatorLauncher
             var ext = Path.GetExtension(rom).Replace(".", "").ToLower();
             if ((ext == "actionmax" || ext == "altgame") && !useAlt)
             {
-                string expectedSingeFile = Path.Combine(Path.GetDirectoryName(rom), ext + ".daphne", romName + ".singe");
+                string expectedSingeFile = Path.Combine(Path.GetDirectoryName(rom), ext + ".hypseus", romName + ".singe");
                 if (!File.Exists(expectedSingeFile))
                     throw new Exception("[ERROR] Unable to find singe file for actionmax.");
 
-                rom = Path.Combine(Path.GetDirectoryName(rom), ext + ".daphne");
+                rom = Path.Combine(Path.GetDirectoryName(rom), ext + ".hypseus");
             }
 
             string commandsFile = romPath + "\\" + romName + ".commands";
@@ -321,11 +321,14 @@ namespace EmulatorLauncher
                 commandArray.Add("-gamepad");
             */
 
-            commandArray.Add("-x");
-            commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
+            if (emulator == "daphne")
+            {
+                commandArray.Add("-x");
+                commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
 
-            commandArray.Add("-y");
-            commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
+                commandArray.Add("-y");
+                commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
+            }
 
             commandArray.Add("-opengl");            
             commandArray.Add("-fastboot");
@@ -377,7 +380,7 @@ namespace EmulatorLauncher
                             s == "-ignore_aspect_ratio" || s == " - novsync" || s == "-nolinear_scale" || s == "-nocrosshair")
                             continue;
 
-                        if (s == "-x" || s == "-y" || s == "-framefile" || s == "-script" || s == "script" || s == "-useoverlaysb" || s == "-homedir" ||
+                        if (s == "-framefile" || s == "-script" || s == "script" || s == "-useoverlaysb" || s == "-homedir" ||
                             s == "-datadir" || s == "-scalefactor" || s == "singedir")
                         {
                             i++;
