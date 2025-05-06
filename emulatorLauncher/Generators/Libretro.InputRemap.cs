@@ -488,7 +488,7 @@ namespace EmulatorLauncher.Libretro
                     .Replace("{core}", core)
                     .Replace("{system}", system)
                     .Replace("{systempath}", "system")
-                    .Replace("{userpath}", "inputmapping");
+                    .Replace("{userpath}", "user");
 
                 coreMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
 
@@ -587,9 +587,9 @@ namespace EmulatorLauncher.Libretro
         static string[] mappingPaths =
         {            
             // User specific
-            "{userpath}\\libretro_{core}_{system}.yml",
-            "{userpath}\\libretro_{core}.yml",
-            "{userpath}\\libretro.yml",
+            "{userpath}\\inputmapping\\libretro_{core}_{system}.yml",
+            "{userpath}\\inputmapping\\libretro_{core}.yml",
+            "{userpath}\\inputmapping\\libretro.yml",
 
             // RetroBat Default
             "{systempath}\\resources\\inputmapping\\libretro_{core}_{system}.yml",

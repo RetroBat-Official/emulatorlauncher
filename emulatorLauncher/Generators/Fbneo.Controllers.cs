@@ -37,7 +37,7 @@ namespace EmulatorLauncher
             {
                 string result = mappingpath
                     .Replace("{systempath}", "system")
-                    .Replace("{userpath}", "inputmapping");
+                    .Replace("{userpath}", "user");
 
                 fbneoMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
 
@@ -526,7 +526,7 @@ namespace EmulatorLauncher
         static string[] mappingPaths =
         {            
             // User specific
-            "{userpath}\\fbneo.yml",
+            "{userpath}\\inputmapping\\fbneo.yml",
 
             // RetroBat Default
             "{systempath}\\resources\\inputmapping\\fbneo.yml",
