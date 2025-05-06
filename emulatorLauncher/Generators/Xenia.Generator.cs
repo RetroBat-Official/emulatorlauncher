@@ -110,7 +110,7 @@ namespace EmulatorLauncher
                 string iniFile = "xenia-canary.config.toml";
                 if (emulator == "xenia")
                     iniFile = "xenia.config.toml";
-                
+
                 using (IniFile ini = new IniFile(Path.Combine(path, iniFile), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
                 {
                     //APU section
@@ -189,7 +189,7 @@ namespace EmulatorLauncher
                         ini.AppendValue("GPU", "draw_resolution_scale_x", "1");
                         ini.AppendValue("GPU", "draw_resolution_scale_y", "1");
                     }
-                    
+
                     if (SystemConfig.isOptSet("xenia_internal_display_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_internal_display_resolution"]))
                         ini.AppendValue("Video", "internal_display_resolution", SystemConfig["xenia_internal_display_resolution"]);
                     else if (Features.IsSupported("xenia_internal_display_resolution"))
@@ -282,14 +282,17 @@ namespace EmulatorLauncher
                         ini.AppendValue("Memory", "protect_zero", "true");
 
                     // Storage section
-                    string contentPath = Path.Combine(AppConfig.GetFullPath("saves"), "xbox360", "xenia");
+                    string contentPath = Path.Combine(AppConfig.GetFullPath("saves"), "xbox360", "xenia", "content");
                     if (Directory.Exists(contentPath))
                     {
                         ini.AppendValue("Storage", "content_root", "\"" + contentPath.Replace("\\", "/") + "\"");
                         SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
                     }
                     else
-                        SimpleLogger.Instance.Info("[Generator] Setting '" + path + "' as content path for the emulator");
+                    {
+                        contentPath = Path.Combine(path, "content");
+                        SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
+                    }
 
                     if (SystemConfig.isOptSet("mount_cache") && SystemConfig.getOptBoolean("mount_cache"))
                         ini.AppendValue("Storage", "mount_cache", "true");
@@ -307,6 +310,30 @@ namespace EmulatorLauncher
                         ini.AppendValue("XConfig", "user_language", SystemConfig["xenia_lang"]);
                     else if (Features.IsSupported("xenia_lang"))
                         ini.AppendValue("XConfig", "user_language", GetXboxLangFromEnvironment());
+
+                    // Profiles
+                    if (_canary)
+                    {
+                        for (int i = 1; i < 4; i++)
+                        {
+                            string profileHint = "xenia_profile" + i;
+                            if (!SystemConfig.isOptSet(profileHint) || string.IsNullOrEmpty(SystemConfig[profileHint]))
+                                continue;
+                            string profileFolder = SystemConfig[profileHint];
+                            string profile = Path.GetFileNameWithoutExtension(profileFolder);
+
+                            if (!profileFolder.Contains(contentPath.Replace("\\", "/")))
+                            {
+                                SimpleLogger.Instance.Info("[Warning] Profile " + profile + " selected for Player " + i + " not in content path: " + contentPath);
+                                continue;
+                            }
+                            
+                            
+                            string setting = "logged_profile_slot_" + (i - 1) + "_xuid";
+                            if (SystemConfig.isOptSet(profileHint) && !string.IsNullOrEmpty(SystemConfig[profileHint]))
+                                ini.AppendValue("Profiles", setting, "\"" + profile + "\"");
+                        }
+                    }
                 }
             }
             catch { }
