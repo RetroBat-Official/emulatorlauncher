@@ -99,9 +99,49 @@ namespace EmulatorLauncher
                     ini.WriteValue("System.IPL", "Override", "true");
 
                     string saturnBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), "saturn_bios.bin");
+
+                    if (SystemConfig.isOptSet("ymir_force_bios") && !string.IsNullOrEmpty(SystemConfig["ymir_force_bios"]))
+                    {
+                        saturnBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), SystemConfig["ymir_force_bios"]);
+                    }
+
                     ini.WriteValue("System.IPL", "Path", "'" + saturnBiosPath + "'");
 
                     //CreateControllerConfiguration(ini);
+
+                    // Video
+                    if (SystemConfig.isOptSet("ymir_ratio") && !string.IsNullOrEmpty(SystemConfig["ymir_ratio"]))
+                    {
+                        string ratio = SystemConfig["ymir_video"];
+
+                        switch (ratio)
+                        {
+                            case "default":
+                                ini.WriteValue("Video", "ForceAspectRatio", "false");
+                                ini.WriteValue("Video", "ForcedAspect", "1.3333333333333333");
+                                break;
+                            case "43":
+                                ini.WriteValue("Video", "ForceAspectRatio", "true");
+                                ini.WriteValue("Video", "ForcedAspect", "1.3333333333333333");
+                                break;
+                            case "169":
+                                ini.WriteValue("Video", "ForceAspectRatio", "true");
+                                ini.WriteValue("Video", "ForcedAspect", "1.7777777777777777");
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        ini.WriteValue("Video", "ForceAspectRatio", "false");
+                        ini.WriteValue("Video", "ForcedAspect", "1.3333333333333333");
+                    }
+
+                    BindBoolIniFeature(ini, "Video", "ForceIntegerScaling", "integerscale", "true", "false");
+                    
+                    if (SystemConfig.isOptSet("ymir_videoformat") && !string.IsNullOrEmpty(SystemConfig["ymir_videoformat"]))
+                        ini.WriteValue("System", "VideoStandard", "'" + SystemConfig["ymir_videoformat"] + "'");
+                    else
+                        ini.WriteValue("System", "VideoStandard", "'NTSC'");
 
                     ini.Save();
                 }
