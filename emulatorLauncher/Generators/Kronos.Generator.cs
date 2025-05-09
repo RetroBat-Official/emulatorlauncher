@@ -157,7 +157,15 @@ namespace EmulatorLauncher
                     ini.WriteValue("1.0", "Memory\\Path", bkram.Replace("\\", "/"));
 
                     // Bios
+                    bool hleBios = false;
                     string bios = Path.Combine(AppConfig.GetFullPath("bios"), "saturn_bios.bin");
+                    if (SystemConfig.isOptSet("kronos_force_bios") && !string.IsNullOrEmpty(SystemConfig["kronos_force_bios"]))
+                    {
+                        if (SystemConfig["kronos_force_bios"] != "hle")
+                            bios = Path.Combine(AppConfig.GetFullPath("bios"), SystemConfig["kronos_force_bios"]);
+                        else
+                            hleBios = true;
+                    }
                     if (File.Exists(bios))
                         ini.WriteValue("1.0", "General\\Bios", bios.Replace("\\", "/"));
 
@@ -184,7 +192,12 @@ namespace EmulatorLauncher
                     // Features
                     ini.WriteValue("1.0", "General\\CdRom", "1");
                     ini.AppendValue("1.0", "General\\CdRomISO", null);
-                    BindBoolIniFeature(ini, "1.0", "General\\EnableEmulatedBios", "kronos_hle_bios", "true", "false");
+
+                    if (hleBios)
+                        ini.WriteValue("1.0", "General\\EnableEmulatedBios", "true");
+                    else
+                        ini.WriteValue("1.0", "General\\EnableEmulatedBios", "false");
+
                     ini.WriteValue("1.0", "Video\\OSDCore", "3");
                     ini.WriteValue("1.0", "Advanced\\SH2Interpreter", "8");
                     BindBoolIniFeatureOn(ini, "1.0", "General\\EnableVSync", "kronos_vsync", "true", "false");
