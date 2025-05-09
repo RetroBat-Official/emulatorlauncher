@@ -292,6 +292,7 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "network", "server", "flycast_server", null);
                 BindIniFeature(ini, "network", "LocalPort", "flycast_localport", "37391");
                 BindBoolIniFeature(ini, "network", "ActAsServer", "flycast_host", "yes", "no");
+                BindBoolIniFeature(ini, "network", "DCNet", "flycast_dcnet", "yes", "no");
 
                 if (SystemConfig.isOptSet("flycast_network") && !string.IsNullOrEmpty(SystemConfig["flycast_network"]))
                 {
@@ -322,7 +323,7 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    ini.WriteValue("network", "Network", "no");
+                    ini.WriteValue("network", "Enable", "no");
                 }
 
                 ini.Save();
