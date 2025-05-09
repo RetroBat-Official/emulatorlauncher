@@ -169,6 +169,7 @@ namespace EmulatorLauncher
             { "xm6pro", () => new Xm6proGenerator() },
             { "xroar", () => new XroarGenerator() },
             { "yabasanshiro", () => new YabasanshiroGenerator() },
+            { "ymir", () => new YmirGenerator() },
             { "yuzu", () => new YuzuGenerator() },
             { "yuzu-early-access", () => new YuzuGenerator() },
             { "zaccariapinball", () => new ZaccariaPinballGenerator() },

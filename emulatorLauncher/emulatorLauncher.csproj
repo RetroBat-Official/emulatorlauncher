@@ -467,6 +467,10 @@
     <Compile Include="Generators\Yabasanshiro.Controllers.cs">
       <DependentUpon>Yabasanshiro.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Ymir.Generator.cs" />
+    <Compile Include="Generators\Ymir.Controllers.cs">
+      <DependentUpon>Ymir.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Yuzu.Generator.cs" />
     <Compile Include="Generators\Yuzu.Controllers.cs">
       <DependentUpon>Yuzu.Generator.cs</DependentUpon>
