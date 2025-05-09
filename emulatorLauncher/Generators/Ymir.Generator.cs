@@ -70,6 +70,9 @@ namespace EmulatorLauncher
 
             var commandArray = new List<string>();
 
+            if (fullscreen)
+                commandArray.Add("-f");
+
             commandArray.Add("-d");
             commandArray.Add("\"" + rom + "\"");
 
