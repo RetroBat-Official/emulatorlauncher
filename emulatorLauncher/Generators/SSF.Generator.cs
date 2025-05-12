@@ -71,11 +71,13 @@ namespace EmulatorLauncher
 
             using (var ini = IniFile.FromFile(iniFile, IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
-                if (SystemConfig.isOptSet("use_external_bios") && SystemConfig.getOptBoolean("use_external_bios"))
+                if (SystemConfig.isOptSet("use_external_bios") && !string.IsNullOrEmpty(SystemConfig["use_external_bios"]))
                 {
-                    string saturnBios = Path.Combine(AppConfig.GetFullPath("bios"), "saturn_bios.bin");
-                    if (File.Exists(saturnBios))
+                    string saturnBios = Path.Combine(AppConfig.GetFullPath("bios"), SystemConfig["use_external_bios"]);
+                    if (File.Exists(saturnBios) && SystemConfig["use_external_bios"] != "hle")
                         ini.WriteValue("Peripheral", "SaturnBIOS", "\"" + saturnBios + "\"");
+                    else
+                        ini.WriteValue("Peripheral", "SaturnBIOS", "\"" + "" + "\"");
                 }
                 else
                     ini.WriteValue("Peripheral", "SaturnBIOS", "\"" + "" + "\"");

@@ -131,6 +131,7 @@ namespace EmulatorLauncher
             { new Installer("xm6pro", "xm6pro", "XM6.exe") },
             { new Installer("xroar", "xroar", "xroar.exe") },
             { new Installer("yabasanshiro", "yabasanshiro", "yabasanshiro.exe") },
+            { new Installer("ymir", "ymir", "ymir-sdl3.exe") },
             { new Installer("yuzu", "yuzu", "yuzu.exe") },
             { new Installer("zesarux", "zesarux", "zesarux.exe") },
             { new Installer("zinc", "zinc", "ZiNc.exe") } 

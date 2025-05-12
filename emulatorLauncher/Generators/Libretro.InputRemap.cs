@@ -18,6 +18,7 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> systemMegadrive = new List<string>() { "genesis", "megadrive", "megacd", "megadrive-msu", "sega32x", "segacd" };
         static readonly List<string> systemNES = new List<string>() { "nes", "fds" };
         static readonly List<string> systemN64 = new List<string>() { "n64", "n64dd" };
+        static readonly List<string> systemFBneo = new List<string>() { "cave", "cps1", "cps2", "cps3", "fbneo", "neogeo" };
         static readonly List<string> megadrive3ButtonsList = new List<string>() { "2", "257", "1025", "1537", "773" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
 
@@ -279,6 +280,72 @@ namespace EmulatorLauncher.Libretro
                         inputremap["input_player" + i + "_btn_l3"] = "-1";
                         inputremap["input_player" + i + "_btn_r"] = "12";
                         inputremap["input_player" + i + "_btn_r3"] = "-1";
+                    }
+                }
+                #endregion
+
+                #region fbneo
+                if (systemFBneo.Contains(system))
+                {
+                    if (core == "fbneo" && Program.SystemConfig.isOptSet("fbneo_controller") && !string.IsNullOrEmpty(Program.SystemConfig["fbneo_controller"]))
+                    {
+                        string layout = Program.SystemConfig["fbneo_controller"];
+                        if (layout.StartsWith("custom_"))
+                        {
+                            switch (layout)
+                            {
+                                case "custom_4bmini":
+                                    inputremap["input_player" + i + "_btn_a"] = "9";
+                                    inputremap["input_player" + i + "_btn_b"] = "8";
+                                    inputremap["input_player" + i + "_btn_x"] = "0";
+                                    inputremap["input_player" + i + "_btn_y"] = "1";
+                                    inputremap["input_player" + i + "_btn_l"] = "10";
+                                    inputremap["input_player" + i + "_btn_l2"] = "11";
+                                    inputremap["input_player" + i + "_btn_r"] = "12";
+                                    inputremap["input_player" + i + "_btn_r2"] = "13";
+                                    break;
+                                case "custom_6b":
+                                    inputremap["input_player" + i + "_btn_a"] = "11";
+                                    inputremap["input_player" + i + "_btn_b"] = "8";
+                                    inputremap["input_player" + i + "_btn_x"] = "1";
+                                    inputremap["input_player" + i + "_btn_y"] = "9";
+                                    inputremap["input_player" + i + "_btn_l"] = "13";
+                                    inputremap["input_player" + i + "_btn_l2"] = "12";
+                                    inputremap["input_player" + i + "_btn_r"] = "0";
+                                    inputremap["input_player" + i + "_btn_r2"] = "10";
+                                    break;
+                                case "custom_8b_top":
+                                    inputremap["input_player" + i + "_btn_a"] = "8";
+                                    inputremap["input_player" + i + "_btn_b"] = "0";
+                                    inputremap["input_player" + i + "_btn_x"] = "1";
+                                    inputremap["input_player" + i + "_btn_y"] = "9";
+                                    inputremap["input_player" + i + "_btn_l"] = "10";
+                                    inputremap["input_player" + i + "_btn_l2"] = "11";
+                                    inputremap["input_player" + i + "_btn_r"] = "12";
+                                    inputremap["input_player" + i + "_btn_r2"] = "13";
+                                    break;
+                                case "custom_8b_bottom":
+                                    inputremap["input_player" + i + "_btn_a"] = "10";
+                                    inputremap["input_player" + i + "_btn_b"] = "11";
+                                    inputremap["input_player" + i + "_btn_x"] = "12";
+                                    inputremap["input_player" + i + "_btn_y"] = "13";
+                                    inputremap["input_player" + i + "_btn_l"] = "8";
+                                    inputremap["input_player" + i + "_btn_l2"] = "0";
+                                    inputremap["input_player" + i + "_btn_r"] = "1";
+                                    inputremap["input_player" + i + "_btn_r2"] = "9";
+                                    break;
+                                case "custom_8b_mvs2":
+                                    inputremap["input_player" + i + "_btn_a"] = "8";
+                                    inputremap["input_player" + i + "_btn_b"] = "10";
+                                    inputremap["input_player" + i + "_btn_x"] = "1";
+                                    inputremap["input_player" + i + "_btn_y"] = "9";
+                                    inputremap["input_player" + i + "_btn_l"] = "11";
+                                    inputremap["input_player" + i + "_btn_l2"] = "0";
+                                    inputremap["input_player" + i + "_btn_r"] = "12";
+                                    inputremap["input_player" + i + "_btn_r2"] = "13";
+                                    break;
+                            }
+                        }
                     }
                 }
                 #endregion

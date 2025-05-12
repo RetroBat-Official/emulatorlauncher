@@ -1566,7 +1566,10 @@ namespace EmulatorLauncher.Libretro
             {
                 for (int i = 1; i < 3; i++)
                 {
-                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["fbneo_controller"];
+                    if (SystemConfig["fbneo_controller"].StartsWith("custom_"))
+                        retroarchConfig["input_libretro_device_p" + i] = "1";
+                    else
+                        retroarchConfig["input_libretro_device_p" + i] = SystemConfig["fbneo_controller"];
                 }
             }
             else
@@ -1650,12 +1653,12 @@ namespace EmulatorLauncher.Libretro
             }
 
             BindFeature(coreSettings, "reicast_texture_filtering", "reicast_texture_filtering", "0");
-            BindFeature(coreSettings, "reicast_anisotropic_filtering", "anisotropic_filtering", "off");
+            BindFeature(coreSettings, "reicast_anisotropic_filtering", "anisotropic_filtering", "4");
             BindFeatureSlider(coreSettings, "reicast_texupscale", "texture_upscaling", "1");
-            BindFeature(coreSettings, "reicast_cable_type", "cable_type", "TV (RGB)");
-            BindFeature(coreSettings, "reicast_broadcast", "reicast_broadcast", "Default");
+            BindFeature(coreSettings, "reicast_cable_type", "cable_type", "TV (Composite)");
+            BindFeature(coreSettings, "reicast_broadcast", "reicast_broadcast", "NTSC");
             BindFeature(coreSettings, "reicast_internal_resolution", "internal_resolution", "640x480");
-            BindBoolFeature(coreSettings, "reicast_force_freeplay", "reicast_force_freeplay", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "reicast_force_freeplay", "reicast_force_freeplay", "enabled", "disabled");
             BindBoolFeature(coreSettings, "reicast_allow_service_buttons", "reicast_allow_service_buttons", "enabled", "disabled");
             BindBoolFeature(coreSettings, "reicast_boot_to_bios", "reicast_boot_to_bios", "enabled", "disabled");
             BindBoolFeature(coreSettings, "reicast_hle_bios", "reicast_hle_bios", "enabled", "disabled");
@@ -1665,8 +1668,8 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "reicast_custom_textures", "reicast_custom_textures", "enabled", "disabled");
             BindFeature(coreSettings, "reicast_alpha_sorting", "reicast_alpha_sorting", "per-triangle (normal)");
             BindBoolFeature(coreSettings, "reicast_enable_rttb", "reicast_enable_rttb", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "reicast_mipmapping", "reicast_mipmapping", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "reicast_enable_dsp", "reicast_enable_dsp", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "reicast_mipmapping", "reicast_mipmapping", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "reicast_enable_dsp", "reicast_enable_dsp", "enabled", "disabled");
             BindBoolFeature(coreSettings, "reicast_pvr2_filtering", "reicast_pvr2_filtering", "enabled", "disabled");
             BindBoolFeature(coreSettings, "reicast_fog", "reicast_fog", "disabled", "enabled");
             BindBoolFeature(coreSettings, "reicast_digital_triggers", "reicast_digital_triggers", "enabled", "disabled");

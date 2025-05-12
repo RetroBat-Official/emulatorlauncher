@@ -623,7 +623,7 @@ namespace EmulatorLauncher
             if (system == "saturn")
             {
                 // SATURN firmware
-                string japBios = Path.Combine(AppConfig.GetFullPath("bios"), "saturn_bios.bin");
+                string japBios = Path.Combine(AppConfig.GetFullPath("bios"), "sega_101.bin");
                 if (File.Exists(japBios))
                     firmware["SAT+J"] = japBios;
                 string useuBios = Path.Combine(AppConfig.GetFullPath("bios"), "mpr-17933.bin");

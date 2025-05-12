@@ -459,6 +459,14 @@ namespace EmulatorLauncher
                 cfg["ss.input.sport1.multitap"] = "0";
                 cfg["ss.input.sport2.multitap"] = "0";
             }
+            // BIOS and carts
+            cfg["ss.bios_jp"] = "sega_101.bin";
+            cfg["ss.bios_na_eu"] = "mpr-17933.bin";
+            cfg["ss.bios_stv_eu"] = "epr-17954a.ic8";
+            cfg["ss.bios_stv_jp"] = "epr-20091.ic8";
+            cfg["ss.bios_stv_na"] = "epr-17952a.ic8";
+            cfg["ss.cart.kof95_path"] = "mpr-18811-mx.ic1";
+            cfg["ss.cart.ultraman_path"] = "mpr-19367-mx.ic1";
         }
 
         private void ConfigureMednafenSnes(MednafenConfigFile cfg, string mednafenCore)

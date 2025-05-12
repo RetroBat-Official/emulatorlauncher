@@ -118,7 +118,15 @@ namespace EmulatorLauncher
 
                     ini.WriteValue("0.9.11", "Memory\\Path", bkram.Replace("\\", "/"));
 
+                    bool hleBios = false;
                     string bios = Path.Combine(AppConfig.GetFullPath("bios"), "saturn_bios.bin");
+                    if (SystemConfig.isOptSet("yabasanshiro_force_bios") && !string.IsNullOrEmpty(SystemConfig["yabasanshiro_force_bios"]))
+                    {
+                        if (SystemConfig["yabasanshiro_force_bios"] != "hle")
+                            bios = Path.Combine(AppConfig.GetFullPath("bios"), SystemConfig["yabasanshiro_force_bios"]);
+                        else
+                            hleBios = true;
+                    }
                     if (File.Exists(bios))
                         ini.WriteValue("0.9.11", "General\\Bios", bios.Replace("\\", "/"));
 
@@ -133,7 +141,12 @@ namespace EmulatorLauncher
                     ini.WriteValue("0.9.11", "Advanced\\SH2Interpreter", "3");
                     ini.WriteValue("0.9.11", "Cartridge\\Type", "6");
                     BindIniFeature(ini, "0.9.11", "Video\\VideoCore", "yaba_videocore", "1");
-                    BindBoolIniFeature(ini, "0.9.11", "General\\EnableEmulatedBios", "yabasanshiro_force_hle_bios", "true", "false");
+                    
+                    if (hleBios)
+                        ini.WriteValue("0.9.11", "General\\EnableEmulatedBios", "true");
+                    else
+                        ini.WriteValue("0.9.11", "General\\EnableEmulatedBios", "false");
+
                     BindBoolIniFeature(ini, "0.9.11", "General\\ShowFPS", "yaba_fps", "true", "false");
                     BindBoolIniFeature(ini, "0.9.11", "General\\EnableFrameSkipLimiter", "yaba_frameskip", "true", "false");
                     BindIniFeature(ini, "0.9.11", "Video\\AspectRatio", "yaba_ratio", "0");

@@ -92,8 +92,10 @@ namespace EmulatorLauncher
                     deviceID = "0x000000000000000000010004" + idSection + "0000";
                 }
 
+                string newDeviceID = null;
                 string newDeviceIDPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-                string newDeviceID = SdlJoystickGuid.GetGuidFromFile(newDeviceIDPath, controller.SdlController.Guid, controller.Guid, "mednafen");
+                if (controller.SdlController != null && controller.SdlController.Guid != null)
+                    newDeviceID = SdlJoystickGuid.GetGuidFromFile(newDeviceIDPath, controller.SdlController.Guid, controller.Guid, "mednafen");
                 if (newDeviceID != null)
                     deviceID = newDeviceID;
 
