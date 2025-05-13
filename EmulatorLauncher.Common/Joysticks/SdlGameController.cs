@@ -448,7 +448,6 @@ namespace EmulatorLauncher.Common.Joysticks
             controllers = new List<Sdl3GameController>();
             try
             {
-                
                 if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) < 0)
                 {
                     return false;
