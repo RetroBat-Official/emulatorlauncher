@@ -590,19 +590,22 @@ namespace EmulatorLauncher
                         ini.WriteValue("General", "NANDRootPath", wiiNandPath);
 
                         // Gamecube saves
-                        string gc_region = "EUR";
-                        if (SystemConfig.isOptSet("dolphin_gcregion") && !string.IsNullOrEmpty(SystemConfig["dolphin_gcregion"]))
-                            gc_region = SystemConfig["dolphin_gcregion"];
+                        if (system != "wii")
+                        {
+                            string gc_region = "EUR";
+                            if (SystemConfig.isOptSet("dolphin_gcregion") && !string.IsNullOrEmpty(SystemConfig["dolphin_gcregion"]))
+                                gc_region = SystemConfig["dolphin_gcregion"];
 
-                        ini.WriteValue("Core", "SlotA", SystemConfig["dolphin_slotA"] == "1" ? "1" : "8");
+                            ini.WriteValue("Core", "SlotA", SystemConfig["dolphin_slotA"] == "1" ? "1" : "8");
 
-                        string gcSavePath = Path.Combine(savesPath, "dolphin", "User", "GC", gc_region, "Card A");
-                        if (!Directory.Exists(gcSavePath)) try { Directory.CreateDirectory(gcSavePath); }
-                            catch { }
-                        string sramFile = Path.Combine(savesPath, "dolphin", "User", "GC", "SRAM." + gc_region + ".raw");
+                            string gcSavePath = Path.Combine(savesPath, "dolphin", "User", "GC", gc_region, "Card A");
+                            if (!Directory.Exists(gcSavePath)) try { Directory.CreateDirectory(gcSavePath); }
+                                catch { }
+                            string sramFile = Path.Combine(savesPath, "dolphin", "User", "GC", "SRAM." + gc_region + ".raw");
 
-                        ini.WriteValue("Core", "GCIFolderAPath", gcSavePath);
-                        ini.WriteValue("Core", "MemcardAPath", sramFile);
+                            ini.WriteValue("Core", "GCIFolderAPath", gcSavePath);
+                            ini.WriteValue("Core", "MemcardAPath", sramFile);
+                        }
                     }
 
                     // Add rom path to isopath
