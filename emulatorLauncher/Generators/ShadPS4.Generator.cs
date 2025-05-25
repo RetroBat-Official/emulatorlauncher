@@ -88,9 +88,9 @@ namespace EmulatorLauncher
             string settingsFile = Path.Combine(userFolder, "config.toml");
             string romPath = Path.GetDirectoryName(rom);
             if (Path.GetExtension(romPath).ToLower() == ".ps4")
-                romPath = Directory.GetParent(romPath).FullName.Replace("\\", "/");
+                romPath = Directory.GetParent(romPath).FullName.Replace("\\", "\\\\");
             else if (Path.GetExtension(romPath).ToLower() == ".m3u")
-                romPath = romPath.Replace("\\", "/");
+                romPath = romPath.Replace("\\", "\\\\");
 
             using (IniFile toml = new IniFile(settingsFile, IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
             {
