@@ -581,11 +581,10 @@ namespace EmulatorLauncher
             if (game == null || game.Gun == null)
             {
                 SimpleLogger.Instance.Info("[GUNS] No gun configuration found for this game.");
-                return;
             }
 
             Dictionary<string, string> metadata = new Dictionary<string, string>();
-            if (game.Gun != null)
+            if (game != null && game.Gun != null)
             {
                 metadata["vertical_offset"] = game.Gun.VerticalOffset.ToString();
                 metadata["yaw"] = game.Gun.Yaw.ToString();
