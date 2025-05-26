@@ -49,6 +49,7 @@ namespace EmulatorLauncher
             { new Installer("dolphin", "dolphin-emu", "Dolphin.exe") },
             { new Installer("dosbox") },
             { new Installer("duckstation", new string[] { "duckstation"}, new string[] { "duckstation-qt-x64-ReleaseLTCG.exe" }) },
+            { new Installer("eden", "eden", "eden.exe") },
             { new Installer("eduke32", "eduke32", "eduke32.exe") },
             { new Installer("eka2l1", "eka2l1", "eka2l1_qt.exe") },
             { new Installer("fbneo", "fbneo", "fbneo64.exe") },

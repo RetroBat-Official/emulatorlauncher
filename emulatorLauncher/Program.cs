@@ -71,6 +71,7 @@ namespace EmulatorLauncher
             { "dosbox", () => new DosBoxGenerator() },
             { "duckstation", () => new DuckstationGenerator() },
             { "easyrpg", () => new EasyRpgGenerator() },
+            { "eden", () => new EdenGenerator() },
             { "eduke32", () => new EDukeGenerator() },
             { "eka2l1", () => new Eka2l1Generator() },
             { "fbneo", () => new FbneoGenerator() },

@@ -193,6 +193,10 @@
       <DependentUpon>Duckstation.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\EasyRpg.Generator.cs" />
+    <Compile Include="Generators\Eden.Generator.cs" />
+    <Compile Include="Generators\Eden.Controllers.cs">
+      <DependentUpon>Eden.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Eduke32.Generator.cs" />
     <Compile Include="Generators\Eka2l1.Generator.cs" />
     <Compile Include="Generators\Eka2l1.Controllers.cs">
