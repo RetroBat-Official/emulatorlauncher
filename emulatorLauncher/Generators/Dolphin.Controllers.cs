@@ -111,6 +111,21 @@ namespace EmulatorLauncher
             { InputKey.hotkey,          "Buttons/Hotkey" },
         };
 
+        static readonly InputKeyMapping gbaMapping = new InputKeyMapping()
+        {
+            { InputKey.b,               "Buttons/B" },
+            { InputKey.a,               "Buttons/A" },
+            { InputKey.pageup,          "Buttons/L" },
+            { InputKey.pagedown,        "Buttons/R" },
+            { InputKey.select,          "Buttons/SELECT"},
+            { InputKey.start,           "Buttons/START" },
+            { InputKey.up,              "D-Pad/Up" },
+            { InputKey.down,            "D-Pad/Down" },
+            { InputKey.left,            "D-Pad/Left" },
+            { InputKey.right,           "D-Pad/Right" },
+            { InputKey.hotkey,          "Buttons/Hotkey" },
+        };
+
         static readonly InputKeyMapping triforceMapping = new InputKeyMapping()
         {
             { InputKey.l2,              "Triggers/L-Analog" },
@@ -371,6 +386,22 @@ namespace EmulatorLauncher
             bool vs4axis = triforce && Program.SystemConfig.isOptSet("triforce_mapping") && Program.SystemConfig["triforce_mapping"] == "vs4";
 
             GenerateControllerConfig_any(path, "GCPadNew.ini", "GCPad", anyMapping, vs4axis ? vs4ReverseAxes : gamecubeReverseAxes, triforce);
+
+            bool gbaConf = false;
+            for (int i = 1; i < 5; i++)
+            {
+                int gbaPadIndex = i - 1;
+                string gbaPad = "gamecubepad" + i.ToString();
+
+                if (Program.SystemConfig[gbaPad] == "13")
+                {
+                    gbaConf = true;
+                    continue;
+                }
+            }
+
+            if (gbaConf)
+                GenerateControllerConfig_any(path, "GBA.ini", "GBA", gbaMapping, vs4axis ? vs4ReverseAxes : gamecubeReverseAxes, triforce);
         }
 
         static readonly Dictionary<XINPUTMAPPING, string> xInputMapping = new Dictionary<XINPUTMAPPING, string>()
@@ -715,6 +746,7 @@ namespace EmulatorLauncher
 
             int nsamepad = 0;
             bool gc = anyDefKey == "GCPad";
+            bool gba = anyDefKey == "GBA";
 
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
 
@@ -736,8 +768,9 @@ namespace EmulatorLauncher
 
                     string guid = pad.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant();
                     var prod = pad.ProductID;
-
-                    if (gcAdapters.ContainsKey(guid) && !Program.SystemConfig.getOptBoolean("gamecubepad" + (pad.PlayerIndex - 1)))
+                    string gamecubepad = "gamecubepad" + (pad.PlayerIndex - 1);
+                    
+                    if (gcAdapters.ContainsKey(guid) && Program.SystemConfig[gamecubepad] != "12" && Program.SystemConfig[gamecubepad] != "13")
                     {
                         ConfigureGCAdapter(gcpad, guid, pad, ini);
                         continue;
@@ -822,6 +855,12 @@ namespace EmulatorLauncher
                             anyMapping[InputKey.x] = tempMapY;
                         if (tempMapX != null)
                             anyMapping[InputKey.y] = tempMapX;
+                    }
+
+                    // Microphone
+                    if (gc && Program.SystemConfig.isOptSet("dolphin_gcpad_microphone") && Program.SystemConfig.getOptBoolean("dolphin_gcpad_microphone") && pad.PlayerIndex == 2)
+                    {
+                        anyMapping[InputKey.pageup] = "Microphone/Button";
                     }
 
                     foreach (var x in anyMapping)
@@ -912,7 +951,7 @@ namespace EmulatorLauncher
                             if (x.Key == InputKey.joystick1left || x.Key == InputKey.joystick1up)
                                 continue;
 
-                            if (!gc)
+                            if (!gc && !gba)
                             {
                                 ini.WriteValue(gcpad, "IR/Up", "`Cursor Y-`");
                                 ini.WriteValue(gcpad, "IR/Down", "`Cursor Y+`");
@@ -1141,7 +1180,7 @@ namespace EmulatorLauncher
                         }
                     }
 
-                    else
+                    else if (!gba)
                     {
                         // DEAD ZONE
                         if (Program.SystemConfig.isOptSet("dolphin_wii_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["dolphin_wii_deadzone"]))
