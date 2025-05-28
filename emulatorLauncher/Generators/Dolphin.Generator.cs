@@ -537,7 +537,7 @@ namespace EmulatorLauncher
                     // gamecube pads forced as standard pad
                     bool emulatedWiiMote = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"));
                     bool realWiimoteAsEmulated = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig["emulatedwiimotes"] != "0" && Program.SystemConfig["emulatedwiimotes"] != "1");
-                    
+
                     // wiimote scanning
                     if (emulatedWiiMote || system == "gamecube" || _triforce)
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "False");
@@ -606,6 +606,9 @@ namespace EmulatorLauncher
                             ini.WriteValue("Core", "GCIFolderAPath", gcSavePath);
                             ini.WriteValue("Core", "MemcardAPath", sramFile);
                         }
+
+                        if (SystemConfig.getOptBoolean("dolphin_microphone"))
+                            ini.WriteValue("Core", "SlotB", "4");
                     }
 
                     // Add rom path to isopath
@@ -630,14 +633,18 @@ namespace EmulatorLauncher
                         for (int i = 0; i < 4; i++)
                         {
                             var ctl = Controllers.FirstOrDefault(c => c.PlayerIndex == i + 1);
-                            bool gcPad = (system == "gamecube" && SystemConfig.isOptSet("gamecubepad" + i) && SystemConfig.getOptBoolean("gamecubepad" + i));
+                            bool gcPad = (system == "gamecube" && SystemConfig.isOptSet("gamecubepad" + i) && SystemConfig["gamecubepad" + i] == "12");
+                            bool gbaPad = (system == "gamecube" && SystemConfig.isOptSet("gamecubepad" + i) && SystemConfig["gamecubepad" + i] == "13");
 
                             if (wiiGCPad || gcPad)
                                 ini.WriteValue("Core", "SIDevice" + i, "12");
 
+                            else if (gbaPad)
+                                ini.WriteValue("Core", "SIDevice" + i, "13");
+
                             else if (ctl != null && ctl.Config != null)
                                 ini.WriteValue("Core", "SIDevice" + i, "6");
-                            
+
                             else
                                 ini.WriteValue("Core", "SIDevice" + i, "0");
                         }
@@ -659,6 +666,36 @@ namespace EmulatorLauncher
                         ini.WriteValue("Core", "DefaultISO", rom);
                     else
                         ini.WriteValue("Core", "defaultISO", "\"\"");
+
+                    // GBA settings
+                    string gbaBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), "gba_bios.bin");
+                    ini.WriteValue("GBA", "BIOS", gbaBiosPath);
+
+                    string gbaSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "gba");
+                    ini.WriteValue("GBA", "SavesPath", gbaSavesPath);
+                    ini.WriteValue("GBA", "SavesInRomPath", "False");
+
+                    if (SystemConfig.isOptSet("dolphin_gba_rom") && !string.IsNullOrEmpty(SystemConfig["dolphin_gba_rom"]))
+                    {
+                        string gbaRomPath = SystemConfig["dolphin_gba_rom"];
+                        string romPort = "2";
+                        if (SystemConfig.isOptSet("dolphin_gba_romport") && !string.IsNullOrEmpty(SystemConfig["dolphin_gba_romport"]))
+                            romPort = SystemConfig["dolphin_gba_romport"];
+
+                        string romPortString = "Rom" + romPort;
+
+                        if (File.Exists(gbaRomPath))
+                            ini.WriteValue("GBA", romPortString, gbaRomPath);
+                    }
+                    else
+                    {
+                        for (int i = 1; i <= 4; i++)
+                        {
+                            string romPortString = "Rom" + i;
+                            ini.Remove("GBA", romPortString);
+
+                        }
+                    }
                 }
             }
             catch { }
