@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
-using System.Globalization;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common;
 using System.IO;
@@ -34,8 +32,15 @@ namespace EmulatorLauncher
 
             // UpdateSdlControllersWithHints(ini);
 
+            // Cleanup
+            for (int i = 1; i <= 2; i++)
+            {
+                ini.ClearSection("Input.Port" + i + ".ControlPadBinds");
+                ini.ClearSection("Input.Port" + i);
+            }
+            
             // Inject controllers                
-            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
+            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(2))
                 ConfigureInput(ini, controller, controller.PlayerIndex);
         }
 
@@ -64,50 +69,136 @@ namespace EmulatorLauncher
             InputConfig joy = ctrl.Config;
             if (joy == null)
                 return;
-        }
 
-        private static string GetInputKeyName(Controller c, InputKey key, int index, bool trigger = false)
-        {
-            key = key.GetRevertedAxis(out bool revertAxis);
-            Int64 pid;
-            string ret = "";
+            bool invertBumpers = SystemConfig.getOptBoolean("saturn_invert_triggers");
+            string inputSection = "Input.Port" + playerindex;
+            string inputMapSection = "Input.Port" + playerindex + ".ControlPadBinds";
 
-            var input = c.Config[key];
-            if (input != null)
+            string peripheral = "'ControlPad'";
+
+            int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
+
+            string guid = (ctrl.Guid.ToString()).ToLowerInvariant();
+            bool needSatActivationSwitch = false;
+            bool sat_pad = Program.SystemConfig["saturn_pad_ymir"] == "1";
+
+            ini.WriteValue(inputSection, "PeripheralType", peripheral);
+
+            string saturnjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
+            if (File.Exists(saturnjson))
             {
-                if (input.Type == "button")
+                try
                 {
-                    pid = input.Id + 1;
-                    ret = ((index << 18) + pid).ToString();
-                    return ret;
-                }
+                    var saturnControllers = MegadriveController.LoadControllersFromJson(saturnjson);
 
-                if (input.Type == "axis")
-                {
-                    pid = input.Id;
-
-                    if (trigger)
+                    if (saturnControllers != null)
                     {
-                        ret = ((index << 18) + 32768 + pid).ToString();
+                        MegadriveController saturnGamepad = MegadriveController.GetMDController("ymir", guid, saturnControllers);
+
+                        if (saturnGamepad != null)
+                        {
+                            if (saturnGamepad.ControllerInfo != null)
+                            {
+                                if (saturnGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                    needSatActivationSwitch = saturnGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+
+                                if (needSatActivationSwitch && !sat_pad)
+                                {
+                                    SimpleLogger.Instance.Info("[Controller] Specific Saturn mapping needs to be activated for this controller.");
+                                    goto BypassSATControllers;
+                                }
+                            }
+
+                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + saturnGamepad.Name);
+
+                            if (saturnGamepad.Mapping != null)
+                            {
+                                // write mapping here
+                                foreach (var button in saturnGamepad.Mapping)
+                                {
+                                    string key = button.Key;
+                                    string value = button.Value;
+
+                                    ini.WriteValue("inputMapSection", key, "[ '" + value + "@" + index + "' ]");
+                                }
+
+                                SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
+
+                                return;
+                            }
+                            else
+                                SimpleLogger.Instance.Info("[INFO] Missing mapping for Saturn Gamepad, falling back to standard mapping.");
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] No specific mapping found for Saturn controller.");
                     }
                     else
-                    {
-                        if (input.Value > 0 || revertAxis)
-                            ret = ((index << 18) + 0x100000 + pid).ToString();
-                        else
-                            ret = ((index << 18) + 0x110000 + pid).ToString();
-                    }
-                    return ret;
+                        SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
                 }
-
-                if (input.Type == "hat")
-                {
-                    pid = input.Value;
-                    ret = ((index << 18) + 0x200000 + (pid << 4)).ToString();
-                    return ret;
-                }
+                catch { }
             }
-            return ret;
+
+            BypassSATControllers:
+
+            string padlayout = "standard";
+            if (SystemConfig.isOptSet("ymir_padlayout") && !string.IsNullOrEmpty(SystemConfig["ymir_padlayout"]))
+                padlayout = SystemConfig["ymir_padlayout"];
+
+            if (padlayout == "lr_yz" || padlayout == "lr_xz")
+            {
+                ini.WriteValue(inputMapSection, "A", "[ 'GamepadX@" + index + "' ]");
+                ini.WriteValue(inputMapSection, "B", "[ 'GamepadA@" + index + "' ]");
+                ini.WriteValue(inputMapSection, "C", "[ 'GamepadB@" + index + "' ]");
+            }
+            
+            else
+            {
+                ini.WriteValue(inputMapSection, "A", "[ 'GamepadA@" + index + "' ]");
+                ini.WriteValue(inputMapSection, "B", "[ 'GamepadB@" + index + "' ]");
+                ini.WriteValue(inputMapSection, "C", invertBumpers ? "[ 'GamepadRightTriggerButton@" + index + "' ]" : "[ 'GamepadRightBumper@" + index + "' ]");
+            }
+
+            ini.WriteValue(inputMapSection, "DPad", "[ 'GamepadLeftStick@" + index + "' ]");
+            ini.WriteValue(inputMapSection, "Down", "[ 'GamepadDpadDown@" + index + "' ]");
+            ini.WriteValue(inputMapSection, "L", invertBumpers ? "[ 'GamepadLeftBumper@" + index + "' ]" : "[ 'GamepadLeftTriggerButton@" + index + "' ]");
+            ini.WriteValue(inputMapSection, "Left", "[ 'GamepadDpadLeft@" + index + "' ]");
+            ini.WriteValue(inputMapSection, "R", invertBumpers ? "[ 'GamepadRightBumper@" + index + "' ]" : "[ 'GamepadRightTriggerButton@" + index + "' ]");
+            ini.WriteValue(inputMapSection, "Right", "[ 'GamepadDpadRight@" + index + "' ]");
+            ini.WriteValue(inputMapSection, "Start", "[ 'GamepadStart@" + index + "' ]");
+            ini.WriteValue(inputMapSection, "Up", "[ 'GamepadDpadUp@" + index + "' ]");
+
+            if (padlayout == "lr_yz")
+            {
+                ini.WriteValue(inputMapSection, "X", "[ 'GamepadY@" + index + "' ]");
+                ini.WriteValue(inputMapSection, "Y", invertBumpers ? "[ 'GamepadLeftTriggerButton@" + index + "' ]" : "[ 'GamepadLeftBumper@" + index + "' ]");
+                ini.WriteValue(inputMapSection, "Z", invertBumpers ? "[ 'GamepadRightTriggerButton@" + index + "' ]" : "[ 'GamepadRightBumper@" + index + "' ]");
+            }
+
+            else if (padlayout == "lr_xz")
+            {
+                ini.WriteValue(inputMapSection, "X", invertBumpers ? "[ 'GamepadLeftTriggerButton@" + index + "' ]" : "[ 'GamepadLeftBumper@" + index + "' ]");
+                ini.WriteValue(inputMapSection, "Y", "[ 'GamepadY@" + index + "' ]");
+                ini.WriteValue(inputMapSection, "Z", invertBumpers ? "[ 'GamepadRightTriggerButton@" + index + "' ]" : "[ 'GamepadRightBumper@" + index + "' ]");
+            }
+
+            else
+            {
+                ini.WriteValue(inputMapSection, "X", "[ 'GamepadX@" + index + "' ]");
+                ini.WriteValue(inputMapSection, "Y", "[ 'GamepadY@" + index + "' ]");
+                ini.WriteValue(inputMapSection, "Z", invertBumpers ? "[ 'GamepadLeftTriggerButton@" + index + "' ]" : "[ 'GamepadLeftBumper@" + index + "' ]");
+            }
+
+            string deadzone = "0.15";
+            if (SystemConfig.isOptSet("ymir_deadzone") && !string.IsNullOrEmpty(SystemConfig["ymir_deadzone"]))
+                deadzone = SystemConfig["ymir_deadzone"];
+
+            string triggerDeadzone = "0.15";
+            if (SystemConfig.isOptSet("ymir_trigger_deadzone") && !string.IsNullOrEmpty(SystemConfig["ymir_trigger_deadzone"]))
+                triggerDeadzone = SystemConfig["ymir_trigger_deadzone"];
+
+            ini.WriteValue("Input", "GamepadAnalogToDigitalSensitivity", deadzone);
+            ini.WriteValue("Input", "GamepadLSDeadzone", triggerDeadzone);
+            ini.WriteValue("Input", "GamepadRSDeadzone", triggerDeadzone);
         }
     }
 }
