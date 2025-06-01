@@ -5,6 +5,7 @@ using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common;
 using System.IO;
+using System.Collections.Generic;
 
 namespace EmulatorLauncher
 {
@@ -42,6 +43,8 @@ namespace EmulatorLauncher
             // Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(2))
                 ConfigureInput(ini, controller, controller.PlayerIndex);
+
+            ConfigureHotkeys(ini);
         }
 
         private void ConfigureInput(IniFile ini, Controller controller, int playerindex)
@@ -199,6 +202,34 @@ namespace EmulatorLauncher
             ini.WriteValue("Input", "GamepadAnalogToDigitalSensitivity", deadzone);
             ini.WriteValue("Input", "GamepadLSDeadzone", triggerDeadzone);
             ini.WriteValue("Input", "GamepadRSDeadzone", triggerDeadzone);
+        }
+
+        private Dictionary<string, string> hotkeys = new Dictionary<string, string>()
+        {
+            { "OpenSettings", "F10" },
+            { "PauseResume", "F6" },
+            { "Rewind", "F4" },
+            { "ToggleFullScreen", "Alt+Return" },
+            { "TurboSpeed", "F5" }
+        };
+
+        private Dictionary<string, string> stateKeys = new Dictionary<string, string>()
+        {
+            { "QuickLoadState", "F3" },
+            { "QuickSaveState", "F2" }
+        };
+
+        private void ConfigureHotkeys(IniFile ini)
+        {
+            foreach (var hk in hotkeys)
+            {
+                ini.WriteValue("Hotkeys", hk.Key, "[ '" + hk.Value + "' ]");
+            }
+
+            foreach (var hk in stateKeys)
+            {
+                ini.WriteValue("Hotkeys.SaveStates", hk.Key, "[ '" + hk.Value + "' ]");
+            }
         }
     }
 }
