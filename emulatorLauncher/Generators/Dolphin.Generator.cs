@@ -94,7 +94,7 @@ namespace EmulatorLauncher
             SetupStateSlotConfig(path);
             SetupCheevos(path);
 
-            DolphinControllers.WriteControllersConfig(path, system, _triforce, out _sindenSoft);
+            DolphinControllers.WriteControllersConfig(path, system, rom, _triforce, out _sindenSoft);
 
             if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
                 rom = rom.Replace("\\", "/");
