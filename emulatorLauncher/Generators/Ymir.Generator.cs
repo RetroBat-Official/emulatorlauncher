@@ -107,7 +107,27 @@ namespace EmulatorLauncher
 
                     ini.WriteValue("System.IPL", "Path", "'" + saturnBiosPath + "'");
 
-                    //CreateControllerConfiguration(ini);
+                    // Paths override
+                    string ymirSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "saturn", "ymir");
+                    if (!Directory.Exists(ymirSavesPath))
+                        try { Directory.CreateDirectory(ymirSavesPath); } catch { }
+                    string statePath = Path.Combine(ymirSavesPath, "state");
+                    if (!Directory.Exists(statePath))
+                        try { Directory.CreateDirectory(statePath); } catch { }
+                    string savestatesPath = Path.Combine(ymirSavesPath, "savestates");
+                    if (!Directory.Exists(savestatesPath))
+                        try { Directory.CreateDirectory(savestatesPath); } catch { }
+                    string backupPath = Path.Combine(ymirSavesPath, "backup");
+                    if (!Directory.Exists(backupPath))
+                        try { Directory.CreateDirectory(backupPath); } catch { }
+                    string iplPath = AppConfig.GetFullPath("bios");
+
+                    ini.WriteValue("General.PathOverrides", "BackupMemory", "'" + backupPath + "'");
+                    ini.WriteValue("General.PathOverrides", "IPLROMImages", "'" + iplPath + "'");
+                    ini.WriteValue("General.PathOverrides", "PersistentState", "'" + statePath + "'");
+                    ini.WriteValue("General.PathOverrides", "SaveStates", "'" + savestatesPath + "'");
+
+                    CreateControllerConfiguration(ini);
 
                     // Video
                     if (SystemConfig.isOptSet("ymir_ratio") && !string.IsNullOrEmpty(SystemConfig["ymir_ratio"]))
