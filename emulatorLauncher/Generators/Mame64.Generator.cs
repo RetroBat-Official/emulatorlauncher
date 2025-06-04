@@ -372,6 +372,8 @@ namespace EmulatorLauncher
             // Add plugins
 
             List<string> pluginList = new List<string>();
+            if (SystemConfig.isOptSet("mame_autofire") && SystemConfig.getOptBoolean("mame_autofire"))
+                pluginList.Add("autofire");
             if (SystemConfig.isOptSet("mame_cheats") && SystemConfig.getOptBoolean("mame_cheats"))
                 pluginList.Add("cheat");
             if (SystemConfig.isOptSet("mame_hiscore") && SystemConfig.getOptBoolean("mame_hiscore"))
@@ -605,6 +607,11 @@ namespace EmulatorLauncher
 
             // Plugin.ini
             var pluginsIni = MameIniFile.FromFile(Path.Combine(path, "plugin.ini"));
+
+            if (SystemConfig.isOptSet("mame_autofire") && SystemConfig.getOptBoolean("mame_autofire"))
+                pluginsIni["autofire"] = "1";
+            else
+                pluginsIni["autofire"] = "0";
 
             if (SystemConfig.isOptSet("mame_cheats") && SystemConfig.getOptBoolean("mame_cheats"))
                 pluginsIni["cheat"] = "1";
