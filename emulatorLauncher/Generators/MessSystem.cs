@@ -668,6 +668,8 @@ namespace EmulatorLauncher
             }
 
             List<string> pluginList = new List<string>();
+            if (SystemConfig.isOptSet("mame_autofire") && SystemConfig.getOptBoolean("mame_autofire"))
+                pluginList.Add("autofire");
             if (SystemConfig.isOptSet("cheats_enable") && SystemConfig.getOptBoolean("cheats_enable"))
                 pluginList.Add("cheat");
             if (SystemConfig.isOptSet("mame_hiscore") && SystemConfig.getOptBoolean("mame_hiscore"))
