@@ -41,7 +41,6 @@ namespace EmulatorLauncher
         private IsoFile _mountedIso;
         private MountFile _mountFile;
         private GameUnzip _unzip;
-        private bool _customPath = false;
         private string _customPathValue = null;
 
         protected string TryUnZipGameIfNeeded(string system, string fileName, bool silent = false, bool tryMount = true)
@@ -61,7 +60,6 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("decompressedpath") && !string.IsNullOrEmpty(SystemConfig["decompressedpath"]))
                 {
                     extractionPath = SystemConfig["decompressedpath"].Replace('/', '\\');
-                    _customPath = true;
                     _customPathValue = extractionPath;
                 }
 
@@ -94,7 +92,6 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("decompressedpath") && !string.IsNullOrEmpty(SystemConfig["decompressedpath"]))
                 {
                     extractionPath = SystemConfig["decompressedpath"].Replace('/', '\\');
-                    _customPath = true;
                     _customPathValue = extractionPath;
                 }
 

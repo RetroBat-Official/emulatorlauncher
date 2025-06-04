@@ -68,7 +68,6 @@ namespace EmulatorLauncher
 
         protected string _executableName;
         private string _daphneHomedir;
-        private string _symLink;
         private string _daphnePath;
         private bool _sindenSoft = false;
 
@@ -256,34 +255,6 @@ namespace EmulatorLauncher
                     Guns.StartSindenSoftware();
                     _sindenSoft = true;
                 }
-
-                // old code with symlinks
-                /*string directoryName = Path.GetFileName(rom);
-
-                if (directoryName == "actionmax")
-                    directoryName = Path.ChangeExtension(directoryName, ".daphne");
-
-                if (directoryName.EndsWith(".singe"))
-                    directoryName = directoryName.Replace(".singe", ".daphne");
-
-                _symLink = Path.Combine(emulatorPath, directoryName);
-
-                try
-                {
-                    if (Directory.Exists(_symLink))
-                        Directory.Delete(_symLink);
-                }
-                catch { }
-
-                SimpleLogger.Instance.Info("[Generator] Creating symbolic link for " + rom + " to " + _symLink);
-                FileTools.CreateSymlink(_symLink, rom, true);
-
-                if (!Directory.Exists(_symLink))
-                {
-                    this.SetCustomError("Unable to create symbolic link. Please activate developer mode in Windows settings to allow this.");
-                    ExitCode = ExitCodes.CustomError;
-                    return null;                    
-                }*/
             }
             else
             {
@@ -460,9 +431,6 @@ namespace EmulatorLauncher
             {
                 if (_sindenSoft)
                     Guns.KillSindenSoftware();
-
-                if (!string.IsNullOrEmpty(_symLink) && Directory.Exists(_symLink))
-                    Directory.Delete(_symLink);
 
                 string ram = Path.Combine(_daphneHomedir, "ram");
                 if (Directory.Exists(ram))
