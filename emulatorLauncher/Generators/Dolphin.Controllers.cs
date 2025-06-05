@@ -7,7 +7,6 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
-using EmulatorLauncher.Common.Lightguns;
 
 namespace EmulatorLauncher
 {
