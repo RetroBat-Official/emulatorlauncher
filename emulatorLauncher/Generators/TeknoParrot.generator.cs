@@ -413,6 +413,8 @@ namespace EmulatorLauncher
                 }
             }
 
+            _resolution = resolution;
+
             if (_exename == null)
                 _exename = Path.GetFileNameWithoutExtension(userProfile.GamePath);
             

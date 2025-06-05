@@ -181,6 +181,21 @@
     <Compile Include="Generators\Dolphin.SaveStatesMonitor.cs">
       <DependentUpon>Dolphin.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Dolphin.WiiGuns.cs">
+      <DependentUpon>Dolphin.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Dolphin.TriforceControllers.cs">
+      <DependentUpon>Dolphin.Controllers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Dolphin.WiiControllers.cs">
+      <DependentUpon>Dolphin.Controllers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Dolphin.GBAControllers.cs">
+      <DependentUpon>Dolphin.Controllers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Dolphin.GCControllers.cs">
+      <DependentUpon>Dolphin.Controllers.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\DosBox.Generator.cs" />
     <Compile Include="Generators\Duckstation.Generator.cs" />
     <Compile Include="Generators\Duckstation.Controllers.cs">

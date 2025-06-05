@@ -94,8 +94,6 @@ namespace EmulatorLauncher
             SetupStateSlotConfig(path);
             SetupCheevos(path);
 
-            DolphinControllers.WriteControllersConfig(path, system, rom, _triforce, out _sindenSoft);
-
             if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
                 rom = rom.Replace("\\", "/");
 
@@ -614,42 +612,6 @@ namespace EmulatorLauncher
                     // Add rom path to isopath
                     AddPathToIsoPath(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
 
-                    // Triforce specifics (AM-baseboard in SID devices, panic handlers)
-                    if (_triforce)
-                    {
-                        ini.WriteValue("Core", "SerialPort1", "6");                     // AM Baseboard
-                        ini.WriteValue("Core", "SIDevice0", "11");                      // AM Baseboard player 1
-                        ini.WriteValue("Core", "SIDevice1", "11");                      // AM Baseboard player 2
-                        ini.WriteValue("Core", "SIDevice2", "0");
-                        ini.WriteValue("Core", "SIDevice3", "0");
-                        ini.WriteValue("Interface", "UsePanicHandlers", "False");       // Disable panic handlers
-                        ini.WriteValue("Core", "EnableCheats", "True");                 // Cheats must be enabled
-                    }
-
-                    // Set SID devices (controllers)
-                    else if (!((Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")))
-                    {
-                        bool wiiGCPad = system == "wii" && SystemConfig.isOptSet("wii_gamecube") && SystemConfig.getOptBoolean("wii_gamecube");
-                        for (int i = 0; i < 4; i++)
-                        {
-                            var ctl = Controllers.FirstOrDefault(c => c.PlayerIndex == i + 1);
-                            bool gcPad = (system == "gamecube" && SystemConfig.isOptSet("gamecubepad" + i) && SystemConfig["gamecubepad" + i] == "12");
-                            bool gbaPad = (system == "gamecube" && SystemConfig.isOptSet("gamecubepad" + i) && SystemConfig["gamecubepad" + i] == "13");
-
-                            if (wiiGCPad || gcPad)
-                                ini.WriteValue("Core", "SIDevice" + i, "12");
-
-                            else if (gbaPad)
-                                ini.WriteValue("Core", "SIDevice" + i, "13");
-
-                            else if (ctl != null && ctl.Config != null)
-                                ini.WriteValue("Core", "SIDevice" + i, "6");
-
-                            else
-                                ini.WriteValue("Core", "SIDevice" + i, "0");
-                        }
-                    }
-
                     // Disable auto updates
                     string updateTrack = ini.GetValue("AutoUpdate", "UpdateTrack");
                     if (updateTrack != "")
@@ -696,6 +658,22 @@ namespace EmulatorLauncher
 
                         }
                     }
+
+                    // Triforce specifics (AM-baseboard in SID devices, panic handlers)
+                    if (_triforce)
+                    {
+                        ini.WriteValue("Core", "SerialPort1", "6");                     // AM Baseboard
+                        ini.WriteValue("Core", "SIDevice0", "11");                      // AM Baseboard player 1
+                        ini.WriteValue("Core", "SIDevice1", "11");                      // AM Baseboard player 2
+                        ini.WriteValue("Core", "SIDevice2", "0");
+                        ini.WriteValue("Core", "SIDevice3", "0");
+                        ini.WriteValue("Interface", "UsePanicHandlers", "False");       // Disable panic handlers
+                        ini.WriteValue("Core", "EnableCheats", "True");                 // Cheats must be enabled
+                    }
+
+                    DolphinControllers.WriteControllersConfig(path, ini, system, rom, _triforce, out _sindenSoft);
+
+                    ini.Save();
                 }
             }
             catch { }

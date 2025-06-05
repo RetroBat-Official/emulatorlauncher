@@ -396,13 +396,10 @@ namespace EmulatorLauncher.Libretro
             
             if (controller.PlayerIndex == 1 && !_noHotkey)
             {
-                bool toggleff = false;
-                
                 if (Program.SystemConfig.getOptBoolean("fastforward_toggle"))
                 {
                     retroarchspecials[InputKey.right] = "toggle_fast_forward";
                     retroarchspecialsALT[InputKey.r2] = "toggle_fast_forward";
-                    toggleff = true;
                 }
 
                 var hotkeyList = retroarchspecials;
