@@ -155,20 +155,20 @@ namespace EmulatorLauncher
                 json.game_dirs = new Newtonsoft.Json.Linq.JArray(gameDirs);
             }
 
-            //General Settings
+            // General Settings
             json.check_updates_on_start = false;
             json.update_checker_type = "Off";
             json.show_confirm_exit = false;
             json.show_console = false;
 
-            //Input
+            // Input
             BindBoolFeatureDefaultFalse(json, "docked_mode", "ryujinx_undock");
             json.hide_cursor = 2;
 
             // Discord
             BindBoolFeatureDefaultFalse(json, "enable_discord_integration", "discord");
 
-            //System
+            // System
             BindFeature(json, "system_language", "switch_language", GetDefaultswitchLanguage());
             BindFeatureInt(json, "vsync_mode", "ryujinx_vsync", 0);
             if (SystemConfig.isOptSet("ryujinx_vsync") && SystemConfig["ryujinx_vsync"] == "2")
@@ -177,6 +177,7 @@ namespace EmulatorLauncher
                 json.enable_custom_vsync_interval = false;
 
             BindBoolFeatureDefaultTrue(json, "enable_ptc", "enable_ptc");
+            BindBoolFeatureDefaultFalse(json, "ignore_applet", "ryujinx_controller_applet");
 
             // internet access
             if (SystemConfig.isOptSet("ryujinx_network") && SystemConfig["ryujinx_network"] == "internet")
@@ -190,7 +191,7 @@ namespace EmulatorLauncher
             BindBoolFeatureDefaultFalse(json, "ignore_missing_services", "ignore_missing_services");
             BindFeature(json, "system_region", "system_region", "USA");
 
-            //Graphics Settings
+            // Graphics Settings
             BindBoolFeatureAuto(json, "backend_threading", "backend_threading", "On", "Off", "Auto");
             BindFeature(json, "anti_aliasing", "ryujinx_antialiasing", "None");
             BindFeature(json, "scaling_filter", "ryujinx_scaling_filter", "Bilinear");
@@ -222,7 +223,7 @@ namespace EmulatorLauncher
             BindFeatureInt(json, "max_anisotropy", "max_anisotropy", -1);
             BindFeature(json, "aspect_ratio", "aspect_ratio", "Fixed16x9");
 
-            //Perform conroller configuration
+            // Perform conroller configuration
             CreateControllerConfiguration(json);
 
             BindFeature(json, "graphics_backend", "backend", "Vulkan");
@@ -246,7 +247,7 @@ namespace EmulatorLauncher
             else
                 json.multiplayer_mode = 0;
 
-            //save config file
+            // save config file
             string updatedJson = JsonConvert.SerializeObject(json, Formatting.Indented);
             File.WriteAllText(filePath, updatedJson);
 
