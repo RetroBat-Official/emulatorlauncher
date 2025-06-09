@@ -43,6 +43,11 @@ namespace EmulatorLauncher
             ConfigureControllers(path);
 
             //Applying bezels
+            if (!fullscreen)
+            {
+                SystemConfig["forceNoBezel"] = "1"; // Force no bezel in windowed mode
+            }
+            
             if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
