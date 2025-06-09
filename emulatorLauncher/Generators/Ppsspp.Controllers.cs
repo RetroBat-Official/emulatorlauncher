@@ -12,7 +12,6 @@ namespace EmulatorLauncher
 {
     partial class PpssppGenerator
     {
-        // see. github.com/batocera-linux/batocera.linux/blob/master/package/batocera/core/batocera-configgen/configgen/configgen/generators/ppsspp/ppssppControllers.py
         private void CreateControllerConfiguration(string memPath)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -102,7 +101,8 @@ namespace EmulatorLauncher
                 ini.WriteValue("ControlMapping", "Fast-forward", "1-132,20-109:20-22,21-109:21-22,22-109:22-22,23-109:23-22");      // SELECT + RIGHT
                 ini.WriteValue("ControlMapping", "Load State", "1-134,20-109:20-100,21-109:21-100,22-109:22-100,23-109:23-100");    // SELECT + NORTH
                 ini.WriteValue("ControlMapping", "Save State", "1-133,20-109:20-99,21-109:21-99,22-109:22-99,23-109:23-99");        // SELECT + WEST
-                ini.WriteValue("ControlMapping", "Pause", "1-140,20-109:20-97,21-109:21-97,22-109:22-97,23-109:23-97");             // SELECT + EAST
+                ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139,20-109:20-97,21-109:21-97,22-109:22-97,23-109:23-97");   // SELECT + EAST
+                ini.WriteValue("ControlMapping", "Pause", "1-140,20-109:20-96,21-109:21-96,22-109:22-96,23-109:23-96");             // SELECT + SOUTH
                 ini.WriteValue("ControlMapping", "Screenshot", "1-138,20-109:20-103,21-109:21-103,22-109:22-103,23-109:23-103");    // SELECT + RightShoulder
 
                 if (_saveStatesWatcher != null && _saveStatesWatcher.IncrementalMode)
@@ -156,7 +156,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("ControlMapping", "Fast-forward", "1-132," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("dpright", c1));        // SELECT + RIGHT
                     ini.WriteValue("ControlMapping", "Load State", "1-134," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("y", c1));                // SELECT + NORTH
                     ini.WriteValue("ControlMapping", "Save State", "1-133," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("x", c1));                // SELECT + WEST
-                    ini.WriteValue("ControlMapping", "Pause", "1-140," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("b", c1));                     // SELECT + EAST
+                    ini.WriteValue("ControlMapping", "Pause", "1-140," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("a", c1));                     // SELECT + SOUTH
+                    ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("b", c1));           // SELECT + EAST
                     ini.WriteValue("ControlMapping", "Screenshot", "1-138," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("rightshoulder", c1));    // SELECT + R
 
                     if (_saveStatesWatcher != null && _saveStatesWatcher.IncrementalMode)
@@ -195,7 +196,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("ControlMapping", "Fast-forward", "1-132," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.right));        // SELECT + RIGHT
                     ini.WriteValue("ControlMapping", "Load State", "1-134," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.x));              // SELECT + NORTH
                     ini.WriteValue("ControlMapping", "Save State", "1-133," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.y));              // SELECT + WEST
-                    ini.WriteValue("ControlMapping", "Pause", "1-140," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.b));                   // SELECT + EAST
+                    ini.WriteValue("ControlMapping", "Pause", "1-140," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.a));                   // SELECT + SOUTH
+                    ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.b));         // SELECT + EAST
                     ini.WriteValue("ControlMapping", "Screenshot", "1-138," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.pagedown));       // SELECT + R
 
                     if (_saveStatesWatcher != null && _saveStatesWatcher.IncrementalMode)
@@ -258,6 +260,7 @@ namespace EmulatorLauncher
             ini.WriteValue("ControlMapping", "Load State", deviceID + "134");       //F4
             ini.WriteValue("ControlMapping", "Save State", deviceID + "133");       //F3
             ini.WriteValue("ControlMapping", "Pause", deviceID + "140");            //F10
+            ini.WriteValue("ControlMapping", "Pause (no menu)", deviceID + "139");  //F9
             ini.WriteValue("ControlMapping", "Screenshot", deviceID + "138");       //F8
             ini.WriteValue("ControlMapping", "Previous Slot", deviceID + "135");    //F5
             ini.WriteValue("ControlMapping", "Next Slot", deviceID + "136");        //F6
