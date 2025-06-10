@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Compression;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Lightguns;
 
 namespace EmulatorLauncher
 {
@@ -185,6 +186,18 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "hack", "SkipRdtscPatching", "rdtscPatching", "true", "false");
 
                 ConfigureControllers(ini);
+            }
+
+            // If DemulShooter is enabled, configure it
+            if (_chihiro && SystemConfig.getOptBoolean("use_demulshooter") && _demulshooter != true)
+            {
+                var guns = RawLightgun.GetRawLightguns();
+                _demulshooter = true;
+                SimpleLogger.Instance.Info("[INFO] Configuring DemulShooter");
+                var gun1 = guns.Length > 0 ? guns[0] : null;
+                var gun2 = guns.Length > 1 ? guns[1] : null;
+
+                Demulshooter.StartDemulshooter("chihiro", "chihiro", _romName, gun1, gun2);
             }
 
             if (system == "xbox")
