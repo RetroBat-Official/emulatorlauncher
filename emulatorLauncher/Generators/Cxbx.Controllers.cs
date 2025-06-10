@@ -112,6 +112,19 @@ namespace EmulatorLauncher
 
             else if (padType == "2" && playerIndex == 1)
                 ConfigureGun(ini, playerIndex);
+
+            // If DemulShooter is enabled, configure it
+            if (_chihiro && SystemConfig.getOptBoolean("use_demulshooter"))
+            {
+                var guns = RawLightgun.GetRawLightguns();
+                _demulshooter = true;
+                SimpleLogger.Instance.Info("[INFO] Configuring DemulShooter");
+                var gun1 = guns.Length > 0 ? guns[0] : null;
+                var gun2 = guns.Length > 1 ? guns[1] : null;
+
+                Demulshooter.StartDemulshooter("chihiro", "chihiro", _romName, gun1, gun2);
+                return;
+            }
         }
 
         private void ConfigureJoystick(IniFile ini, Controller ctrl, int playerIndex, Dictionary<string, int> double_pads)
@@ -192,6 +205,19 @@ namespace EmulatorLauncher
 
             else if (padType == "2" && playerIndex == 1)
                 ConfigureGun(ini, playerIndex);
+
+            // If DemulShooter is enabled, configure it
+            if (_chihiro && SystemConfig.getOptBoolean("use_demulshooter"))
+            {
+                var guns = RawLightgun.GetRawLightguns();
+                _demulshooter = true;
+                SimpleLogger.Instance.Info("[INFO] Configuring DemulShooter");
+                var gun1 = guns.Length > 0 ? guns[0] : null;
+                var gun2 = guns.Length > 1 ? guns[1] : null;
+
+                Demulshooter.StartDemulshooter("chihiro", "chihiro", _romName, gun1, gun2);
+                return;
+            }
         }
 
         private static string GetInputKeyName(Controller c, InputKey key, bool isXinput)

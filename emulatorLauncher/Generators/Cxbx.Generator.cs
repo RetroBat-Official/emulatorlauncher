@@ -84,6 +84,8 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private bool _isUsingCxBxLoader;
         private bool _chihiro = false;
+        private bool _demulshooter = false;
+        private string _romName;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -141,6 +143,8 @@ namespace EmulatorLauncher
 
                 rom = xbe;
             }
+
+            _romName = Path.GetFileNameWithoutExtension(rom);
 
             //Configuration of .ini file
             using (var ini = IniFile.FromFile(Path.Combine(path, "settings.ini"), IniOptions.KeepEmptyValues | IniOptions.AllowDuplicateValues | IniOptions.UseSpaces))
@@ -356,9 +360,6 @@ namespace EmulatorLauncher
 
             process?.WaitForExit();
 
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
-
             bezel?.Dispose();
 
             if (process != null)
@@ -370,5 +371,15 @@ namespace EmulatorLauncher
             return -1;
         }
 
+        public override void Cleanup()
+        {
+            if (_demulshooter)
+                Demulshooter.KillDemulShooter();
+
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
+
+            base.Cleanup();
+        }
     }
 }
