@@ -114,7 +114,7 @@ namespace EmulatorLauncher
                 ConfigureGun(ini, playerIndex);
 
             // If DemulShooter is enabled, configure it
-            if (_chihiro && SystemConfig.getOptBoolean("use_demulshooter"))
+            if (_chihiro && SystemConfig.getOptBoolean("use_demulshooter") && _demulshooter != true)
             {
                 var guns = RawLightgun.GetRawLightguns();
                 _demulshooter = true;
@@ -123,7 +123,6 @@ namespace EmulatorLauncher
                 var gun2 = guns.Length > 1 ? guns[1] : null;
 
                 Demulshooter.StartDemulshooter("chihiro", "chihiro", _romName, gun1, gun2);
-                return;
             }
         }
 
@@ -207,7 +206,7 @@ namespace EmulatorLauncher
                 ConfigureGun(ini, playerIndex);
 
             // If DemulShooter is enabled, configure it
-            if (_chihiro && SystemConfig.getOptBoolean("use_demulshooter"))
+            if (_chihiro && SystemConfig.getOptBoolean("use_demulshooter") && _demulshooter != true)
             {
                 var guns = RawLightgun.GetRawLightguns();
                 _demulshooter = true;
@@ -216,7 +215,6 @@ namespace EmulatorLauncher
                 var gun2 = guns.Length > 1 ? guns[1] : null;
 
                 Demulshooter.StartDemulshooter("chihiro", "chihiro", _romName, gun1, gun2);
-                return;
             }
         }
 
