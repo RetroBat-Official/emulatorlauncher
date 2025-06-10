@@ -4,6 +4,8 @@ using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.Common.FileFormats;
+using System.Linq;
+using System;
 
 namespace EmulatorLauncher
 {
@@ -39,7 +41,7 @@ namespace EmulatorLauncher
         }
 
         private static readonly List<string> chihiroRoms = new List<string>
-        { "vcop3" };
+        { "vcop3", "virtuacop", "cop", "virtualcop", "virtua cop", "virtual cop", "vc3" };
 
         private static readonly List<string> demulRoms = new List<string>
         {
@@ -248,6 +250,8 @@ namespace EmulatorLauncher
 
         public static void KillDemulShooter()
         {
+            SimpleLogger.Instance.Info("[CLEANUP] Check if demulshooter needs closing.");
+
             string[] processNames = { "DemulShooter", "DemulShooterX64" };
 
             int i = 0;
@@ -294,6 +298,11 @@ namespace EmulatorLauncher
             else if (emulator == "flycast")
             {
                 target = "flycast";
+                ret = true;
+            }
+            else if (emulator == "chihiro")
+            {
+                target = "chihiro";
                 ret = true;
             }
             else if (emulator == "teknoparrot")
@@ -363,6 +372,14 @@ namespace EmulatorLauncher
                 if (exeLauncherGames.TryGetValue(romName, out var game))
                 {
                     dsRom = game.RomName;
+                    ret = true;
+                }
+            }
+            else if (emulator == "chihiro")
+            {
+                if (chihiroRoms.Any(r => rom.IndexOf(r, StringComparison.OrdinalIgnoreCase) >= 0))
+                {
+                    dsRom = "vcop3";
                     ret = true;
                 }
             }
