@@ -6,6 +6,7 @@ using System.IO;
 using Microsoft.Win32;
 using Steam_Library_Manager.Framework;
 using EmulatorLauncher.Common.Launchers.Steam;
+using Newtonsoft.Json;
 
 namespace EmulatorLauncher.Common.Launchers
 {
@@ -49,7 +50,7 @@ namespace EmulatorLauncher.Common.Launchers
             return games.ToArray();
         }
         
-        public static string GetSteamGameExecutableName(Uri uri)
+        public static string GetSteamGameExecutableName(Uri uri, string steamdb)
         {
             // Get Steam app ID from url
             string shorturl = uri.AbsolutePath.Substring(1);
@@ -71,8 +72,25 @@ namespace EmulatorLauncher.Common.Launchers
                 return null;
             }
 
-            // Call method to get executable name from Steam vdf files
-            string exe = FindExecutableName(steamAppId, SteamAppIdLong);
+            string exe = null;
+
+            // First : Method to get steam executable name from RetroBat database file first
+            if (File.Exists(steamdb))
+            {
+                string json = File.ReadAllText(steamdb);
+                string steamApp = steamAppId.ToString();
+                var appMap = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+
+                if (appMap != null && appMap.TryGetValue(steamApp, out string exeName))
+                {
+                    SimpleLogger.Instance.Info("[STEAM] STEAM game executable found in json file: " + exeName);
+                    return exeName;
+                }
+            }
+
+            // Then : Call method to get executable name from Steam vdf files
+            if (exe == null)
+                exe = FindExecutableName(steamAppId, SteamAppIdLong);
 
             if (string.IsNullOrEmpty(exe))
             {
