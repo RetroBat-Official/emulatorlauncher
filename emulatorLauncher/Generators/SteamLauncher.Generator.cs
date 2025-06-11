@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Diagnostics;
 using EmulatorLauncher.Common.Launchers;
@@ -13,7 +14,8 @@ namespace EmulatorLauncher
             public SteamGameLauncher(Uri uri)
             {
                 // Call method to get Steam executable
-                LauncherExe = SteamLibrary.GetSteamGameExecutableName(uri);
+                string steamInternalDBPath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "steamexecutables.json");
+                LauncherExe = SteamLibrary.GetSteamGameExecutableName(uri, steamInternalDBPath);
             }
 
             public override int RunAndWait(System.Diagnostics.ProcessStartInfo path)

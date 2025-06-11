@@ -353,10 +353,20 @@ namespace EmulatorLauncher
                 var firmware = sys.GetOrCreateContainer("Firmware");
 
                 string biospcecd = Path.Combine(AppConfig.GetFullPath("bios"), "syscard3.pce");
+                string biospcecd1 = Path.Combine(AppConfig.GetFullPath("bios"), "syscard1.pce");
+                string gexpresscard = Path.Combine(AppConfig.GetFullPath("bios"), "gexpress.pce");
                 if (File.Exists(biospcecd))
                 {
                     firmware["System-Card-3.0.US"] = biospcecd.Replace("\\", "/");
-                    firmware["System-Card-3.0.Japan"] = biospcecd.Replace("\\", "/");
+                    firmware["Arcade-Card.Japan"] = biospcecd.Replace("\\", "/");
+                }
+                if (File.Exists(biospcecd1))
+                {
+                    firmware["System-Card-1.0.Japan"] = biospcecd1.Replace("\\", "/");
+                }
+                if (File.Exists(gexpresscard))
+                {
+                    firmware["Games-Express.Japan"] = gexpresscard.Replace("\\", "/");
                 }
             }
 

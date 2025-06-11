@@ -11,6 +11,8 @@ namespace EmulatorLauncher
 {
     partial class AresGenerator : Generator
     {
+        private List<Sdl3GameController> _sdl3Controllers = new List<Sdl3GameController>();
+
         private void CreateControllerConfiguration(BmlFile bml)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -97,6 +99,12 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
+            // Check SDL3 dll Get list of SDL3 controllers
+            bool sdl3 = Controller.CheckSDL3dll();
+
+            if (sdl3 && Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
+                _sdl3Controllers = Sdl3Controllers;
+
             var input = bml.GetOrCreateContainer("Input");
 
             bool switchTriggers = (_system == "n64" || _system == "n64dd") && (!SystemConfig.isOptSet("ares64_inputprofile") || SystemConfig["ares64_inputprofile"] == "zl");
@@ -110,12 +118,9 @@ namespace EmulatorLauncher
             string vendorID = ctrl.DirectInput.VendorId.ToString("X4").ToLowerInvariant();
             string padId = "0x";
             
-            int index = ctrl.DeviceIndex;
+            int index = ctrl.DeviceIndex + 1;
 
-            if (index == 0)
-                padId = padId + vendorID + prodID + "/";
-            else
-                padId = padId + index + vendorID + prodID + "/";
+            padId = padId + index + vendorID + prodID + "/";
 
             #region specialControllers
             // Special treatment for N64 controllers
@@ -226,13 +231,13 @@ namespace EmulatorLauncher
                 catch { }
             }
 
-            BypassMDControllers:
+        BypassMDControllers:
             #endregion
 
-            vpad["Pad.Up"] = GetInputKeyName(ctrl, InputKey.up, padId);
-            vpad["Pad.Down"] = GetInputKeyName(ctrl, InputKey.down, padId);
-            vpad["Pad.Left"] = GetInputKeyName(ctrl, InputKey.left, padId);
-            vpad["Pad.Right"] = GetInputKeyName(ctrl, InputKey.right, padId);
+            vpad["Pad.Up"] = padId + "1/1/Lo;;";
+            vpad["Pad.Down"] = padId + "1/1/Hi;;";
+            vpad["Pad.Left"] = padId + "1/0/Lo;;";
+            vpad["Pad.Right"] = padId + "1/0/Hi;;";
             vpad["Select"] = GetInputKeyName(ctrl, InputKey.select, padId);
             vpad["Start"] = GetInputKeyName(ctrl, InputKey.start, padId);
             if (_system == "mastersystem" && SystemConfig.getOptBoolean("rotate_buttons"))
@@ -303,7 +308,7 @@ namespace EmulatorLauncher
             Int64 pid;
 
             // If controller is nintendo, A/B and X/Y are reversed
-            //bool revertbuttons = (c.VendorID == VendorId.USB_VENDOR_NINTENDO);
+            bool revertbuttons = (c.VendorID == USB_VENDOR.NINTENDO);
 
             key = key.GetRevertedAxis(out bool revertAxis);
 
@@ -313,6 +318,17 @@ namespace EmulatorLauncher
                 if (input.Type == "button")
                 {
                     pid = input.Id;
+                    if (revertbuttons)
+                    {
+                        switch (pid)
+                        {
+                            case 0: pid = 1; break;
+                            case 1: pid = 0; break;
+                            case 2: pid = 3; break;
+                            case 3: pid = 2; break;
+                        }
+                    }
+
                     return padId + "3/" + pid + ";;";
                 }
 
