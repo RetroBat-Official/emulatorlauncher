@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using EmulatorLauncher.Common.Lightguns;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace EmulatorLauncher
 {
@@ -274,7 +275,7 @@ namespace EmulatorLauncher
 
             BindBoolFeature(section, "SkipBootScreen", "mesen_gba_skipboot", "true", "false");
 
-            // Firmwares for gba need to be copied to emulator folder
+            // Firmware for gba needs to be copied to emulator folder
             string targetFirmwarePath = Path.Combine(path, "Firmware");
             if (!Directory.Exists(targetFirmwarePath)) try { Directory.CreateDirectory(targetFirmwarePath); }
                 catch { }
@@ -287,6 +288,28 @@ namespace EmulatorLauncher
 
             if (!File.Exists(sourceFirmware1))
                 throw new ApplicationException("GBA firmware is missing (gba_bios.bin)");
+        }
+
+        private void ConfigureColeco(DynamicJson section, string system, string path)
+        {
+            if (system != "colecovision")
+                return;
+
+            BindFeature(section, "Region", "mesen_coleco_region", "Auto");
+
+            // Firmware for coleco needs to be copied to emulator folder
+            string targetFirmwarePath = Path.Combine(path, "Firmware");
+            if (!Directory.Exists(targetFirmwarePath)) try { Directory.CreateDirectory(targetFirmwarePath); }
+                catch { }
+            string targetFirmware1 = Path.Combine(targetFirmwarePath, "bios.col");
+
+            string sourceFirmware1 = Path.Combine(AppConfig.GetFullPath("bios"), "colecovision.rom");
+
+            if (File.Exists(sourceFirmware1) && !File.Exists(targetFirmware1) && Directory.Exists(targetFirmwarePath))
+                File.Copy(sourceFirmware1, targetFirmware1);
+
+            if (!File.Exists(sourceFirmware1))
+                throw new ApplicationException("Colecovision firmware is missing (colecovision.rom)");
         }
 
         private void ConfigureSnes(DynamicJson section, string system)
@@ -402,6 +425,8 @@ namespace EmulatorLauncher
                     return "PcEngine";
                 case "mastersystem":
                     return "Sms";
+                case "colecovision":
+                    return "Cv";
             }
             return "none";
         }

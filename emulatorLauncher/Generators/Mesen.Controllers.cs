@@ -31,6 +31,8 @@ namespace EmulatorLauncher
                 portList = pcePorts;
             else if (mesenSystem == "Sms")
                 portList = smsPorts;
+            else if (mesenSystem == "Cv")
+                portList = cvPorts;
 
             foreach (string port in portList)
             {
@@ -46,8 +48,14 @@ namespace EmulatorLauncher
                         {
                             foreach (string button in mesenButtons)
                                 mappingSection[button] = "0";
+
+                            if (mesenSystem == "Cv")
+                            {
+                                mappingSection.SetObject("ColecoVisionControllerButtons", null);
+                            }
                         }
                     }
+                    
                 }
             }
 
@@ -195,6 +203,8 @@ namespace EmulatorLauncher
                 mapping["Right"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.right])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.right])).ToString();
                 mapping["TurboA"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.x])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.x])).ToString();
                 mapping["TurboB"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.y])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.y])).ToString();
+                mapping["TurboL"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.l2])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.l2])).ToString();
+                mapping["TurboR"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.r2])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.r2])).ToString();
             }
 
             else if (mesenSystem == "Snes")
@@ -256,6 +266,55 @@ namespace EmulatorLauncher
                 mapping["Right"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.right])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.right])).ToString();
                 mapping["Start"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.start])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.start])).ToString();
                 mapping["Select"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
+            }
+            
+            else if (mesenSystem == "Cv")
+            {
+                List<int> cvbuttons = new List<int>();
+                if (isXInput)
+                {
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.up]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.down]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.left]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.right]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.y]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.a]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.start]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.pageup]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.l2]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.pagedown]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.r2]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.rightanalogup]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.rightanalogdown]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.rightanalogleft]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.rightanalogright]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.x]));
+                    cvbuttons.Add(4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.b]));
+                }
+                else
+                {
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.up]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.down]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.left]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.right]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.y]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.a]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.start]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.pageup]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.l2]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.pagedown]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.r2]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.rightanalogup]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.rightanalogdown]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.rightanalogleft]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.rightanalogright]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.x]));
+                    cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.b]));
+                }
+                
+                mapping.SetObject("ColecoVisionControllerButtons", cvbuttons);
             }
 
             if (playerIndex == 1)
@@ -395,6 +454,15 @@ namespace EmulatorLauncher
                 WriteKeyboardMapping(mapping, "Start", InputKey.start);
                 WriteKeyboardMapping(mapping, "TurboA", InputKey.x);
                 WriteKeyboardMapping(mapping, "TurboB", InputKey.y);
+            }
+
+            else if (mesenSystem == "Cv")
+            {
+                List<int> cvbuttons = new List<int>
+                {
+                    24, 26, 23, 25, 44, 62, 35, 36, 37, 38, 39, 40, 41, 42, 43, 34, 60, 66
+                };
+                mapping.SetObject("ColecoVisionControllerButtons", cvbuttons);
             }
         }
 
@@ -584,6 +652,16 @@ namespace EmulatorLauncher
                     }
                 }
             }
+            else if (mesenSystem == "Cv")
+            {
+                switch (playerIndex)
+                {
+                    case 1:
+                        return "Port1";
+                    case 2:
+                        return "Port2";
+                }
+            }
 
             return null;
         }
@@ -617,6 +695,8 @@ namespace EmulatorLauncher
             else if (mesenSystem == "Gameboy" || mesenSystem == "Gba")
                 return "Controller";
             else if (mesenSystem == "Sms")
+                return "Port1";
+            else if (mesenSystem == "Cv")
                 return "Port1";
 
             return null;
@@ -770,6 +850,7 @@ namespace EmulatorLauncher
         static readonly List<string> snesPorts = new List<string>() { "Port1", "Port2", "Port1A", "Port1B", "Port1C", "Port1D", "Port2A", "Port2B", "Port2C", "Port2D" };
         static readonly List<string> gbPorts = new List<string>() { "Controller" };
         static readonly List<string> gbaPorts = new List<string>() { "Controller" };
+        static readonly List<string> cvPorts = new List<string>() { "Port1", "Port2" };
         static readonly List<string> pcePorts = new List<string>() { "Port1", "Port1A", "Port1B", "Port1C", "Port1D", "Port1E" };
         static readonly List<string> smsPorts = new List<string>() { "Port1", "Port2" };
 
@@ -803,6 +884,7 @@ namespace EmulatorLauncher
 
         static readonly Dictionary<string, int> systemMaxPad = new Dictionary<string, int>()
         {
+            { "Cv", 2 },
             { "Nes", 8 },
             { "Snes", 8 },
             { "Gameboy", 1 },
@@ -818,7 +900,8 @@ namespace EmulatorLauncher
             { "Gameboy", "GameboyController" },
             { "Gba", "GbaController" },
             { "PcEngine", "PceController" },
-            { "Sms", "SmsController" }
+            { "Sms", "SmsController" },
+            { "Cv", "ColecoVisionController" }
         };
 
         private static string SdlToKeyCode(long sdlCode)
