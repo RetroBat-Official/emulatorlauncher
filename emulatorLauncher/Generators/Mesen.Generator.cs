@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using EmulatorLauncher.Common.Lightguns;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace EmulatorLauncher
 {
@@ -72,9 +73,10 @@ namespace EmulatorLauncher
             var systemSection = json.GetOrCreateContainer(mesenSystem);
             ConfigureNes(systemSection, system);
             ConfigureSMS(systemSection, system);
-            ConfigurePCEngine(systemSection, system);
+            ConfigurePCEngine(systemSection, system, path);
             ConfigureSnes(systemSection, system);
             ConfigureGameboy(systemSection, system, path);
+            ConfigureGba(systemSection, system, path);
 
             // Emulator preferences
             var preference = json.GetOrCreateContainer("Preferences");
@@ -205,13 +207,30 @@ namespace EmulatorLauncher
             BindBoolFeatureOn(section, "EnableFmAudio", "mesen_sms_fmaudio", "true", "false");
         }
 
-        private void ConfigurePCEngine(DynamicJson section, string system)
+        private void ConfigurePCEngine(DynamicJson section, string system, string path)
         {
-            if (system != "pcengine")
+            if (system != "pcengine" && system != "pcenginecd")
                 return;
 
             BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
             BindFeature(section, "ConsoleType", "mesen_pce_console", "Auto");
+
+            if (system == "pcenginecd")
+            {
+                // Firmwares for pcenginecd need to be copied to emulator folder
+                string targetFirmwarePath = Path.Combine(path, "Firmware");
+                if (!Directory.Exists(targetFirmwarePath)) try { Directory.CreateDirectory(targetFirmwarePath); }
+                    catch { }
+                string targetFirmware1 = Path.Combine(targetFirmwarePath, "[BIOS] Super CD-ROM System (Japan) (v3.0).pce");
+
+                string sourceFirmware1 = Path.Combine(AppConfig.GetFullPath("bios"), "syscard3.pce");
+
+                if (File.Exists(sourceFirmware1) && !File.Exists(targetFirmware1) && Directory.Exists(targetFirmwarePath))
+                    File.Copy(sourceFirmware1, targetFirmware1);
+
+                if (!File.Exists(sourceFirmware1))
+                    throw new ApplicationException("PCE CD firmware is missing (syscard3.pce)");
+            }
         }
 
         private void ConfigureGameboy(DynamicJson section, string system, string path)
@@ -247,6 +266,50 @@ namespace EmulatorLauncher
                 if (!File.Exists(sourceFirmware1) && !File.Exists(sourceFirmware2))
                     throw new ApplicationException("Super Gameboy firmware is missing (SGB1.sfc and/or SGB2.sfc)");
             }
+        }
+
+        private void ConfigureGba(DynamicJson section, string system, string path)
+        {
+            if (system != "gba")
+                return;
+
+            BindBoolFeature(section, "SkipBootScreen", "mesen_gba_skipboot", "true", "false");
+
+            // Firmware for gba needs to be copied to emulator folder
+            string targetFirmwarePath = Path.Combine(path, "Firmware");
+            if (!Directory.Exists(targetFirmwarePath)) try { Directory.CreateDirectory(targetFirmwarePath); }
+                catch { }
+            string targetFirmware1 = Path.Combine(targetFirmwarePath, "gba_bios.bin");
+
+            string sourceFirmware1 = Path.Combine(AppConfig.GetFullPath("bios"), "gba_bios.bin");
+
+            if (File.Exists(sourceFirmware1) && !File.Exists(targetFirmware1) && Directory.Exists(targetFirmwarePath))
+                File.Copy(sourceFirmware1, targetFirmware1);
+
+            if (!File.Exists(sourceFirmware1))
+                throw new ApplicationException("GBA firmware is missing (gba_bios.bin)");
+        }
+
+        private void ConfigureColeco(DynamicJson section, string system, string path)
+        {
+            if (system != "colecovision")
+                return;
+
+            BindFeature(section, "Region", "mesen_coleco_region", "Auto");
+
+            // Firmware for coleco needs to be copied to emulator folder
+            string targetFirmwarePath = Path.Combine(path, "Firmware");
+            if (!Directory.Exists(targetFirmwarePath)) try { Directory.CreateDirectory(targetFirmwarePath); }
+                catch { }
+            string targetFirmware1 = Path.Combine(targetFirmwarePath, "bios.col");
+
+            string sourceFirmware1 = Path.Combine(AppConfig.GetFullPath("bios"), "colecovision.rom");
+
+            if (File.Exists(sourceFirmware1) && !File.Exists(targetFirmware1) && Directory.Exists(targetFirmwarePath))
+                File.Copy(sourceFirmware1, targetFirmware1);
+
+            if (!File.Exists(sourceFirmware1))
+                throw new ApplicationException("Colecovision firmware is missing (colecovision.rom)");
         }
 
         private void ConfigureSnes(DynamicJson section, string system)
@@ -350,15 +413,20 @@ namespace EmulatorLauncher
                     return "Nes";
                 case "snes":
                     return "Snes";
+                case "gba":
+                    return "Gba";
                 case "gb":
                 case "gbc":
                 case "sgb":
                     return "Gameboy";
                 case "pcengine":
+                case "pcenginecd":
                 case "supergrafx":
                     return "PcEngine";
                 case "mastersystem":
                     return "Sms";
+                case "colecovision":
+                    return "Cv";
             }
             return "none";
         }

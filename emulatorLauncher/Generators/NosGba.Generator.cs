@@ -76,7 +76,7 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("gba_colors") && !string.IsNullOrEmpty(SystemConfig["gba_colors"]))
                     ini.WriteValue("", "GBA Mode/Colors", SystemConfig["gba_colors"]);
                 else if (Features.IsSupported("gba_colors"))
-                    ini.WriteValue("", "GBA Mode/Colors", "GBA SP(backlight)");
+                    ini.WriteValue("", "GBA Mode/Colors", "GBA SP (backlight)");
 
                 if (SystemConfig.isOptSet("gba_video_output") && !string.IsNullOrEmpty(SystemConfig["gba_video_output"]))
                     ini.WriteValue("", "Video Output", SystemConfig["gba_video_output"]);

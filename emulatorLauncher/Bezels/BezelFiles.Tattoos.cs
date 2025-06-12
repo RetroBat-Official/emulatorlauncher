@@ -275,6 +275,9 @@ namespace EmulatorLauncher
                                 break;
                         }
                         break;
+                    case "mesen":
+                        ret = "gba_turbo";
+                        break;
                     case "mgba":
                     case "nosgba":
                         ret = "unknown";
