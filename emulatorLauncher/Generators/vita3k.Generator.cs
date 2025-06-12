@@ -4,6 +4,7 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -175,8 +176,40 @@ namespace EmulatorLauncher
                 var lleModules = yml.GetOrCreateContainer("lle-modules");
                 lleModules.Elements.Clear();
             }
-            //else don't touch the modules container
+
+            // Controls
+            var buttonMap = yml.GetOrCreateContainer("controller-binds");
+            buttonMap.Elements.Clear();
             
+            var c1 = this.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
+
+            if (c1 != null && c1.VendorID == Common.Joysticks.USB_VENDOR.NINTENDO)
+            {
+                buttonMap.Elements.Add(new YmlElement() { Value = "- 1" });
+                buttonMap.Elements.Add(new YmlElement() { Value = "- 0" });
+                buttonMap.Elements.Add(new YmlElement() { Value = "- 3" });
+                buttonMap.Elements.Add(new YmlElement() { Value = "- 2" });
+            }
+            else
+            {
+                buttonMap.Elements.Add(new YmlElement() { Value = "- 0" });
+                buttonMap.Elements.Add(new YmlElement() { Value = "- 1" });
+                buttonMap.Elements.Add(new YmlElement() { Value = "- 2" });
+                buttonMap.Elements.Add(new YmlElement() { Value = "- 3" });
+            }
+
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 4" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 5" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 6" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 7" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 8" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 9" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 10" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 11" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 12" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 13" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 14" });
+
             //save config file
             yml.Save();
         }
