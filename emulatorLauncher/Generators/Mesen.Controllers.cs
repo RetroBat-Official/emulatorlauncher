@@ -25,6 +25,8 @@ namespace EmulatorLauncher
                 portList = snesPorts;
             else if (mesenSystem == "GameBoy")
                 portList = gbPorts;
+            else if (mesenSystem == "Gba")
+                portList = gbaPorts;
             else if (mesenSystem == "PcEngine")
                 portList = pcePorts;
             else if (mesenSystem == "Sms")
@@ -179,6 +181,22 @@ namespace EmulatorLauncher
                 mapping["TurboB"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.y])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.y])).ToString();
             }
 
+            else if (mesenSystem == "Gba")
+            {
+                mapping["A"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.b])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.b])).ToString();
+                mapping["B"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.a])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.a])).ToString();
+                mapping["L"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.pageup])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.pageup])).ToString();
+                mapping["R"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.pagedown])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.pagedown])).ToString();
+                mapping["Select"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
+                mapping["Start"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.start])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.start])).ToString();
+                mapping["Up"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.up])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.up])).ToString();
+                mapping["Down"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.down])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.down])).ToString();
+                mapping["Left"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.left])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.left])).ToString();
+                mapping["Right"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.right])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.right])).ToString();
+                mapping["TurboA"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.x])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.x])).ToString();
+                mapping["TurboB"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.y])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.y])).ToString();
+            }
+
             else if (mesenSystem == "Snes")
             {
                 if (portSection == "Port1A")
@@ -294,6 +312,22 @@ namespace EmulatorLauncher
                 WriteKeyboardMapping(mapping, "Down", InputKey.down);
                 WriteKeyboardMapping(mapping, "Left", InputKey.left);
                 WriteKeyboardMapping(mapping, "Right", InputKey.right);
+                WriteKeyboardMapping(mapping, "TurboA", InputKey.x);
+                WriteKeyboardMapping(mapping, "TurboB", InputKey.y);
+            }
+
+            else if (mesenSystem == "Gba")
+            {
+                WriteKeyboardMapping(mapping, "A", InputKey.b);
+                WriteKeyboardMapping(mapping, "B", InputKey.a);
+                WriteKeyboardMapping(mapping, "L", InputKey.pageup);
+                WriteKeyboardMapping(mapping, "R", InputKey.pagedown);
+                WriteKeyboardMapping(mapping, "Up", InputKey.up);
+                WriteKeyboardMapping(mapping, "Down", InputKey.down);
+                WriteKeyboardMapping(mapping, "Left", InputKey.left);
+                WriteKeyboardMapping(mapping, "Right", InputKey.right);
+                WriteKeyboardMapping(mapping, "Select", InputKey.select);
+                WriteKeyboardMapping(mapping, "Start", InputKey.start);
                 WriteKeyboardMapping(mapping, "TurboA", InputKey.x);
                 WriteKeyboardMapping(mapping, "TurboB", InputKey.y);
             }
@@ -523,7 +557,7 @@ namespace EmulatorLauncher
                     }
                 }
             }
-            else if (mesenSystem == "Gameboy")
+            else if (mesenSystem == "Gameboy" || mesenSystem == "Gba")
             {
                 return "Controller";
             }
@@ -580,7 +614,7 @@ namespace EmulatorLauncher
                 else
                     return "Port1";
             }
-            else if (mesenSystem == "Gameboy")
+            else if (mesenSystem == "Gameboy" || mesenSystem == "Gba")
                 return "Controller";
             else if (mesenSystem == "Sms")
                 return "Port1";
@@ -730,11 +764,12 @@ namespace EmulatorLauncher
 
         static readonly List<string> xbuttonNames = new List<string>() { "Up", "Down", "Left", "Right", "Start", "Select", "L3", "R3", "L1", "R1", "?", "?", "South", "East", "West", "North", "L2", "R2", "RT Up", "RT Down", "RT Left", "RT Right", "LT Up", "LT Down", "LT Left", "LT Right" };
         static readonly List<string> dibuttonNames = new List<string>() { "LT Up", "LT Down", "LT Left", "LT Right", "RT Up", "RT Down", "RT Left", "RT Right", "Z+", "Z-", "Z2+", "Z2-", "Up", "Down", "Right", "Left", "West", "South", "East", "North", "L1", "R1", "L2", "R2", "Select", "Start", "L3", "R3", "Guide" };
-        static readonly List<string> mesenButtons = new List<string>() { "A", "B", "X", "Y", "L", "R", "Up", "Down", "Left", "Right", "Start", "Select", "TurboA", "TurboB", "TurboX", "TurboY", "TurboL", "TurboR", "TurboSelect", "TurboStart" };
+        static readonly List<string> mesenButtons = new List<string>() { "A", "B", "X", "Y", "L", "R", "Up", "Down", "Left", "Right", "Start", "Select", "U", "D", "TurboA", "TurboB", "TurboX", "TurboY", "TurboL", "TurboR", "TurboSelect", "TurboStart", "GenericKey1" };
 
         static readonly List<string> nesPorts = new List<string>() { "Port1", "Port2", "ExpPort", "Port1A", "Port1B", "Port1C", "Port1D", "ExpPortA", "ExpPortB", "ExpPortC", "ExpPortD", "MapperInput" };
         static readonly List<string> snesPorts = new List<string>() { "Port1", "Port2", "Port1A", "Port1B", "Port1C", "Port1D", "Port2A", "Port2B", "Port2C", "Port2D" };
         static readonly List<string> gbPorts = new List<string>() { "Controller" };
+        static readonly List<string> gbaPorts = new List<string>() { "Controller" };
         static readonly List<string> pcePorts = new List<string>() { "Port1", "Port1A", "Port1B", "Port1C", "Port1D", "Port1E" };
         static readonly List<string> smsPorts = new List<string>() { "Port1", "Port2" };
 
@@ -771,6 +806,7 @@ namespace EmulatorLauncher
             { "Nes", 8 },
             { "Snes", 8 },
             { "Gameboy", 1 },
+            { "Gba", 1 },
             { "PcEngine", 5 },
             { "Sms", 2 }
         };
@@ -780,6 +816,7 @@ namespace EmulatorLauncher
             { "Nes", "NesController" },
             { "Snes", "SnesController" },
             { "Gameboy", "GameboyController" },
+            { "Gba", "GbaController" },
             { "PcEngine", "PceController" },
             { "Sms", "SmsController" }
         };
