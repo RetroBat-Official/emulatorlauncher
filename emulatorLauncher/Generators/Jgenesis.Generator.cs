@@ -237,7 +237,7 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("jgen_genesis_ratio") && !string.IsNullOrEmpty(SystemConfig["jgen_genesis_ratio"]))
                 ini.WriteValue("genesis", "aspect_ratio", "\"" + SystemConfig["jgen_genesis_ratio"] + "\"");
             else
-                ini.WriteValue("genesis", "aspect_ratio", "\"" + "Ntsc" + "\"");
+                ini.WriteValue("genesis", "aspect_ratio", "\"" + "Auto" + "\"");
 
             BindBoolIniFeature(ini, "genesis", "remove_sprite_limits", "jgen_spritelimit", "true", "false");
 
@@ -346,7 +346,7 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("jgen_sms_region") && !string.IsNullOrEmpty(SystemConfig["jgen_sms_region"]))
                 ini.WriteValue("smsgg", "sms_region", "\"" + SystemConfig["jgen_sms_region"] + "\"");
             else
-                ini.WriteValue("smsgg", "sms_region", "\"" + "International" + "\"");
+                ini.Remove("smsgg", "sms_region");
 
             if (SystemConfig.isOptSet("jgen_sms_timing") && !string.IsNullOrEmpty(SystemConfig["jgen_sms_timing"]))
                 ini.WriteValue("smsgg", "sms_timing_mode", "\"" + SystemConfig["jgen_sms_timing"] + "\"");

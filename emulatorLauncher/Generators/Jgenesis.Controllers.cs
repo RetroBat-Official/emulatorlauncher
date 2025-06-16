@@ -281,6 +281,7 @@ namespace EmulatorLauncher
         private void WriteKBHotkeys(IniFileJGenesis ini)
         {
             ini.DeleteSection("[[input.hotkeys.mapping_1.exit]]");
+            ini.DeleteSection("[[input.hotkeys.mapping_1.toggle_overclocking]]");
 
             foreach (var hotkey in hotkeys)
             {
