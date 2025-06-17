@@ -64,16 +64,54 @@ namespace EmulatorLauncher
                 pcsx2ini.ClearSection("Pad" + i.ToString());
 
             // If more than 2 controllers plugged, PCSX2 must be set to use multitap, if more than 5, both multitaps must be activated
-            if (Controllers.Count > 2)
+            string multitap = "none";
+
+            if (!SystemConfig.isOptSet("pcsx2_multitap"))
             {
-                pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
-                pcsx2ini.WriteValue("Pad", "MultitapPort2", "true");
-                _multitap = true;
+                if (Controllers.Count > 2)
+                {
+                    pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
+                    pcsx2ini.WriteValue("Pad", "MultitapPort2", "true");
+                    _multitap = true;
+                    multitap = "both";
+                }
+                else
+                {
+                    pcsx2ini.WriteValue("Pad", "MultitapPort1", "false");
+                    pcsx2ini.WriteValue("Pad", "MultitapPort2", "false");
+                    multitap = "none";
+                }
             }
             else
             {
-                pcsx2ini.WriteValue("Pad", "MultitapPort1", "false");
-                pcsx2ini.WriteValue("Pad", "MultitapPort2", "false");
+                if (!string.IsNullOrEmpty(SystemConfig["pcsx2_multitap"]))
+                {
+                    multitap = SystemConfig["pcsx2_multitap"];
+
+                    switch (multitap)
+                    {
+                        case "none":
+                            pcsx2ini.WriteValue("Pad", "MultitapPort1", "false");
+                            pcsx2ini.WriteValue("Pad", "MultitapPort2", "false");
+                            _multitap = false;
+                            break;
+                        case "port1":
+                            pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
+                            pcsx2ini.WriteValue("Pad", "MultitapPort2", "false");
+                            _multitap = true;
+                            break;
+                        case "port2":
+                            pcsx2ini.WriteValue("Pad", "MultitapPort1", "false");
+                            pcsx2ini.WriteValue("Pad", "MultitapPort2", "true");
+                            _multitap = true;
+                            break;
+                        case "both":
+                            pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
+                            pcsx2ini.WriteValue("Pad", "MultitapPort2", "true");
+                            _multitap = true;
+                            break;
+                    }
+                }
             }
 
             pcsx2ini.WriteValue("InputSources", "SDLRawInput", "true");
@@ -105,13 +143,11 @@ namespace EmulatorLauncher
             // Inject controllers
             if (Controllers.Any(c => !c.IsKeyboard))
             {
-                foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex))
+                foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).Take(8))
                 {
                     int padSectionNumber = controller.PlayerIndex;
                     if (_multitap)
-                    {
-                        padSectionNumber = multitapPadNb[controller.PlayerIndex];
-                    }
+                        padSectionNumber = GetPadNumber(multitap, controller.PlayerIndex);
 
                     string padNumber = "Pad" + padSectionNumber.ToString();
 
@@ -121,13 +157,12 @@ namespace EmulatorLauncher
 
             else
             {
-                foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex))
+                foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(8))
                 {
                     int padSectionNumber = controller.PlayerIndex;
                     if (_multitap)
-                    {
-                        padSectionNumber = multitapPadNb[controller.PlayerIndex];
-                    }
+                        padSectionNumber = GetPadNumber(multitap, controller.PlayerIndex);
+
 
                     string padNumber = "Pad" + padSectionNumber.ToString();
 
@@ -803,6 +838,47 @@ namespace EmulatorLauncher
             return "None";
         }
 
+        private int GetPadNumber(string multitap, int playerindex)
+        {
+            if (multitap == "none" || playerindex == 1)
+                return playerindex;
+
+            switch (playerindex)
+            {
+                case 2:
+                    if (multitap == "port1" || multitap == "both")
+                        return 3;
+                    if (multitap == "port2")
+                        return 2;
+                    break;
+                case 3:
+                    if (multitap == "port1" || multitap == "both")
+                        return 4;
+                    if (multitap == "port2")
+                        return 6;
+                    break;
+                case 4:
+                    if (multitap == "port1" || multitap == "both")
+                        return 5;
+                    if (multitap == "port2")
+                        return 7;
+                    break;
+                case 5:
+                    if (multitap == "port1" || multitap == "both")
+                        return 2;
+                    if (multitap == "port2")
+                        return 8;
+                    break;
+                case 6:
+                    return 6;
+                case 7:
+                    return 7;
+                case 8:
+                    return 8;
+            }
+            return playerindex;
+        }
+
         private static string SdlToKeyCode(long sdlCode)
         {
             switch (sdlCode)
@@ -961,7 +1037,7 @@ namespace EmulatorLauncher
             return "None";
         }
 
-        static readonly Dictionary<int, int> multitapPadNb = new Dictionary<int, int>()
+        /*static readonly Dictionary<int, int> multitapPadNb = new Dictionary<int, int>()
         {
             { 1, 1 },
             { 2, 3 },
@@ -971,6 +1047,6 @@ namespace EmulatorLauncher
             { 6, 6 },
             { 7, 7 },
             { 8, 8 },
-        };
+        };*/
     }
 }
