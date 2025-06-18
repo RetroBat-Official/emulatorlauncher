@@ -87,7 +87,7 @@ namespace EmulatorLauncher
             #region triforce
             // Special mapping for triforce games to remove Z button from R1 (as this is used to access service menu and will be mapped to R3+L3)
             else if (triforce)
-                GenerateControllerConfig_triforce(path, triforceMapping);
+                GenerateControllerConfig_triforce(path);
             #endregion
 
             #region gamecube

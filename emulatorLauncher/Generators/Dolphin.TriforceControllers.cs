@@ -11,10 +11,20 @@ namespace EmulatorLauncher
 {
     partial class DolphinControllers
     {
-        private static void GenerateControllerConfig_triforce(string path, InputKeyMapping anyMapping)
+        private static void GenerateControllerConfig_triforce(string path)
         {
             //string path = Program.AppConfig.GetFullPath("dolphin");
             string iniFile = Path.Combine(path, "User", "Config", "GCPadNew.ini");
+
+            var anyMapping = triforceMapping;
+
+            if (Program.SystemConfig.isOptSet("triforce_mapping") && !string.IsNullOrEmpty(Program.SystemConfig["triforce_mapping"]))
+            {
+                string mappingKey = Program.SystemConfig["triforce_mapping"];
+
+                if (mappingKeys.ContainsKey(mappingKey))
+                    anyMapping = mappingKeys[mappingKey];
+            }
 
             SimpleLogger.Instance.Info("[INFO] Triforce: Writing controller configuration in : " + iniFile);
 
@@ -122,12 +132,6 @@ namespace EmulatorLauncher
                     {
                         string value = x.Value;
 
-                        if (Program.SystemConfig.isOptSet("triforce_mapping") && Program.SystemConfig["triforce_mapping"] == "vs4")
-                        {
-                            if (vs4mapping.ContainsKey(x.Key))
-                                value = vs4mapping[x.Key];
-                        }
-
                         if (pad.Config.Type == "keyboard")
                         {
                             if (x.Key == InputKey.a)
@@ -169,10 +173,6 @@ namespace EmulatorLauncher
                                 if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
                                     ini.WriteValue(gcpad, reverseAxis, xInputMapping[mapping]);
                             }
-
-                            // Z button is used to access test menu, map with R3
-                            ini.WriteValue(gcpad, "Buttons/Z", "`Thumb R`");
-
                         }
                         else if (forceSDL)
                         {
@@ -236,8 +236,6 @@ namespace EmulatorLauncher
                                         break;
                                 }
                             }
-                            // Z button is used to access test menu, do not map it with R1
-                            ini.WriteValue(gcpad, "Buttons/Z", "@(`Button 8`+`Button 9`)");
                         }
 
                         else // SDL
@@ -281,9 +279,6 @@ namespace EmulatorLauncher
                                 if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
                                     ini.WriteValue(gcpad, reverseAxis, axisValue(input, true));
                             }
-
-                            // Z button is used to access test menu, do not map it with R1
-                            ini.WriteValue(gcpad, "Buttons/Z", "@(`Button 7`+`Button 8`)");
                         }
                     }
 
@@ -388,20 +383,84 @@ namespace EmulatorLauncher
             { InputKey.joystick2up,     "C-Stick/Up" },
             { InputKey.joystick2left,   "C-Stick/Left"},
             { InputKey.hotkey,          "Buttons/Hotkey" },
+            { InputKey.r3,              "Buttons/Z" },
+        };
+
+        static readonly InputKeyMapping mkMapping = new InputKeyMapping()
+        {
+            { InputKey.l2,              "Triggers/L-Analog" },
+            { InputKey.r2,              "Triggers/R-Analog"},
+            { InputKey.b,               "Buttons/B" }, // cancel
+            { InputKey.select,          "Buttons/X" },// service
+            { InputKey.a,               "Buttons/A" }, // item
+            { InputKey.start,           "Buttons/Start" }, // start
+            { InputKey.l2,              "Triggers/L" }, // brake
+            { InputKey.r2,              "Triggers/R" }, // gaz
+            { InputKey.joystick1left,   "Main Stick/Left" }, // turn
+            { InputKey.r3,              "Buttons/Z" } // test
+        };
+
+        static readonly InputKeyMapping vsMapping = new InputKeyMapping()
+        {
+            { InputKey.b,               "Triggers/R" }, // short pass
+            { InputKey.y,               "Buttons/A" }, // long pass
+            { InputKey.select,          "Buttons/X" }, // service
+            { InputKey.a,               "Triggers/L" }, // shoot
+            { InputKey.x,               "Buttons/B" }, // dash
+            { InputKey.start,           "Buttons/Start" }, // start
+            { InputKey.r3,              "Buttons/Z" }, // test
+            { InputKey.joystick1up,     "Main Stick/Left" }, // movement
+            { InputKey.joystick1left,   "Main Stick/Down" }, // movement
+            { InputKey.right,           "D-Pad/Up" },
+            { InputKey.up,              "D-Pad/Left" },
+            { InputKey.down,            "D-Pad/Right" }
+        };
+
+        static readonly InputKeyMapping vs2002Mapping = new InputKeyMapping()
+        {
+            { InputKey.b,               "Triggers/R" }, // short pass
+            { InputKey.a,               "Buttons/A" }, // long pass
+            { InputKey.select,          "Buttons/X" }, // service
+            { InputKey.y,               "Triggers/L" }, // shoot
+            { InputKey.start,           "Buttons/Start" }, // start
+            { InputKey.r3,              "Buttons/Z" }, // test
+            { InputKey.up,              "D-Pad/Up" },
+            { InputKey.down,            "D-Pad/Down" },
+            { InputKey.left,            "D-Pad/Left" },
+            { InputKey.right,           "D-Pad/Right" }
+        };
+
+        static readonly InputKeyMapping fzeroMapping = new InputKeyMapping()
+        {
+            { InputKey.l2,              "Triggers/L-Analog" },
+            { InputKey.r2,              "Triggers/R-Analog"},
+            { InputKey.pageup,          "Buttons/A" }, // paddle
+            { InputKey.pagedown,        "Buttons/B" }, // paddle
+            { InputKey.y,               "Buttons/Y" }, // boost
+            { InputKey.select,          "Buttons/X" }, // service
+            { InputKey.start,           "Buttons/Start" }, // start
+            { InputKey.up,              "D-Pad/Up" }, // view 1
+            { InputKey.down,            "D-Pad/Down" }, // view 2
+            { InputKey.left,            "D-Pad/Left" }, // view 3
+            { InputKey.right,           "D-Pad/Right" }, // view 4
+            { InputKey.joystick1up,     "Main Stick/Up" },
+            { InputKey.joystick1left,   "Main Stick/Left" }, // turn
+            { InputKey.r3,              "Buttons/Z" }, // test
         };
 
         static readonly Dictionary<string, string> vs4ReverseAxes = new Dictionary<string, string>()
         {
             { "Main Stick/Down",   "Main Stick/Up" },
-            { "Main Stick/Left",   "Main Stick/Right" },
-            { "C-Stick/Up",        "C-Stick/Down" },
-            { "C-Stick/Left",      "C-Stick/Right" }
+            { "Main Stick/Left",   "Main Stick/Right" }
         };
 
-        static readonly InputKeyMapping vs4mapping = new InputKeyMapping()
+        static readonly Dictionary<string, InputKeyMapping> mappingKeys = new Dictionary<string, InputKeyMapping>()
         {
-            { InputKey.joystick1left,  "Main Stick/Down" },
-            { InputKey.joystick1up,    "Main Stick/Left" },
+            { "mk",         mkMapping       },
+            { "fzero",      fzeroMapping    },
+            { "vs2002",     vs2002Mapping   },
+            { "vs4",        vsMapping       },
+            { "standard",   triforceMapping }
         };
     }
 }
