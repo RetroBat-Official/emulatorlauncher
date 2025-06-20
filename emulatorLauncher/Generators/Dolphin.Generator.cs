@@ -482,15 +482,14 @@ namespace EmulatorLauncher
                     // Skip BIOS
                     BindBoolIniFeatureOn(ini, "Core", "SkipIPL", "skip_bios", "True", "False");
 
-                    // OSD Messages
+                    // Interface
                     BindBoolIniFeatureOn(ini, "Interface", "OnScreenDisplayMessages", "OnScreenDisplayMessages", "True", "False");
+                    ini.WriteValue("Interface", "ConfirmStop", "False");
+                    BindIniFeature(ini, "Interface", "CursorVisibility", "dolphin_mouse_cursor", "2");
 
                     // don't ask about statistics
                     ini.WriteValue("Analytics", "PermissionAsked", "True");
                     ini.WriteValue("Analytics", "Enabled", "False");
-
-                    // don't confirm at stop
-                    ini.WriteValue("Interface", "ConfirmStop", "False");
 
                     ini.WriteValue("Display", "KeepWindowOnTop", "False");
 

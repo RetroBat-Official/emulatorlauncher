@@ -267,7 +267,7 @@ namespace EmulatorLauncher
 
             //define type of controller
             string tech = "SDL";
-            if (prod == USB_PRODUCT.SONY_DS5)
+            if (prod == USB_PRODUCT.SONY_DS5 || prod == USB_PRODUCT.SONY_DS5_EDGE)
                 tech = "DualSense";
             else if (prod == USB_PRODUCT.SONY_DS4 || prod == USB_PRODUCT.SONY_DS4_DONGLE || prod == USB_PRODUCT.SONY_DS4_SLIM)
                 tech = "DS4";
@@ -295,13 +295,16 @@ namespace EmulatorLauncher
                 player["Handler"] = "SDL";
 
             //Set device & index (incremental for Dualshocks and XInput, actual device index for SDL)
-            int nsamepad;
-            if (double_pads.ContainsKey(tech + "/" + devicename))
-                nsamepad = double_pads[tech + "/" + devicename];
-            else
-                nsamepad = 1;
+            int nsamepad = 1;
+            string samepadString = tech == "SDL" ? tech + "/" + devicename : tech;
 
-            double_pads[tech + "/" + devicename] = nsamepad + 1;
+            int count = double_pads.Keys.Count(key => key.StartsWith(samepadString));
+            if (count > 0)
+            {
+                nsamepad = count + 1;
+            }
+
+            double_pads[samepadString + nsamepad] = nsamepad;
 
             if (tech == "DualSense" || tech == "DS4" || tech == "DS3")
                 player["Device"] = "\"" + tech + " Pad #" + nsamepad + "\"";
