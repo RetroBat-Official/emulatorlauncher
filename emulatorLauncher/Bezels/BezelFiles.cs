@@ -9,7 +9,6 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher;
-using System.Collections.Generic;
 
 namespace EmulatorLauncher
 {
