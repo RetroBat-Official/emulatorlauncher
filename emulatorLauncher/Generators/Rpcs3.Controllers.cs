@@ -267,7 +267,7 @@ namespace EmulatorLauncher
 
             //define type of controller
             string tech = "SDL";
-            if (prod == USB_PRODUCT.SONY_DS5)
+            if (prod == USB_PRODUCT.SONY_DS5 || prod == USB_PRODUCT.SONY_DS5_EDGE)
                 tech = "DualSense";
             else if (prod == USB_PRODUCT.SONY_DS4 || prod == USB_PRODUCT.SONY_DS4_DONGLE || prod == USB_PRODUCT.SONY_DS4_SLIM)
                 tech = "DS4";

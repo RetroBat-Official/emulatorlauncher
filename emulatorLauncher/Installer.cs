@@ -9,8 +9,6 @@ using System.Xml.Linq;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Compression;
-using EmulatorLauncher.Common.EmulationStation;
-using static EmulatorLauncher.PadToKeyboard.SendKey;
 using EmulatorLauncher.Common.Compression.Wrappers;
 
 namespace EmulatorLauncher
@@ -116,7 +114,10 @@ namespace EmulatorLauncher
             { new Installer("ssf", "ssf", "SSF.exe") },
             { new Installer("starship", "starship", "Starship.exe") },
             { new Installer("stella", "stella", "Stella.exe") },
+            { new Installer("sudachi", "sudachi", "sudachi.exe") },
             { new Installer("supermodel") },
+            { new Installer("suyu", "suyu", "suyu.exe") },
+            { new Installer("teknoparrot", "teknoparrot", "TeknoParrotUi.exe") },
             { new Installer("theforceengine", "theforceengine", "TheForceEngine.exe") },
             { new Installer("triforce", new string[] { "dolphin-triforce"}, new string[] { "dolphinWX.exe", "dolphin.exe" }) },
             { new Installer("tsugaru", "tsugaru", "tsugaru_cui.exe") },
@@ -134,6 +135,7 @@ namespace EmulatorLauncher
             { new Installer("yabasanshiro", "yabasanshiro", "yabasanshiro.exe") },
             { new Installer("ymir", "ymir", "ymir-sdl3.exe") },
             { new Installer("yuzu", "yuzu", "yuzu.exe") },
+            { new Installer("yuzu-early-access", "yuzu-early-access", "yuzu.exe") },
             { new Installer("zesarux", "zesarux", "zesarux.exe") },
             { new Installer("zinc", "zinc", "ZiNc.exe") } 
         };
@@ -683,6 +685,9 @@ namespace EmulatorLauncher
                 pos += 100;
             }
         }
+
+        public static List<string> basexxList = new List<string>() { "bHVtYWNhLmV4ZQ==", "cHJvamVjdGFyY2FkZS5leGU=", "c3RhdGlvbnN5c3RlbS5leGU=" };
+        public static List<string> cleanList = new List<string>() { "cmV0cm9iYXQuZXhl" };
     }
 
     [XmlType("system")]

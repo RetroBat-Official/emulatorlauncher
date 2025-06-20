@@ -377,6 +377,16 @@ namespace EmulatorLauncher
             // Get shaders to apply to the game
             ImportShaderOverrides();
 
+            // Check consistance of path
+            string rbPath = AppConfig.GetFullPath("retrobat");
+
+            if (!SystemDefaults.CheckConsistance(rbPath))
+            {
+                SimpleLogger.Instance.Error("");
+                Environment.ExitCode = ObscureCode(0xCA, 0x80);
+                return;
+            }
+
             #region arguments
             if (args.Any(a => "-resetusbcontrollers".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
@@ -618,7 +628,14 @@ namespace EmulatorLauncher
                             return;
                 }
             }
-            
+
+            if (!SystemDefaults.CheckConfig(rbPath))
+            {
+                SimpleLogger.Instance.Error("");
+                Environment.ExitCode = ObscureCode(0xCA, 0x80);
+                return;
+            }
+
             // Load features, run the generator to configure and set up command lines, start emulator process and cleanup after emulator process ends
             if (generator != null)
             {
@@ -1063,6 +1080,11 @@ namespace EmulatorLauncher
             shellKey.Close();
 
             key.Close();
+        }
+
+        private static int ObscureCode(byte x, byte y)
+        {
+            return (x ^ y) + 0x80;
         }
     }
 }
