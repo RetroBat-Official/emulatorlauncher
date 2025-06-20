@@ -103,6 +103,7 @@ namespace EmulatorLauncher.Libretro
                 { "gambatte", "Gambatte" },
                 { "gearboy", "Gearboy" },
                 { "gearcoleco", "Gearcoleco" },
+                { "geargrafx", "Geargrafx" },
                 { "gearsystem", "Gearsystem" },
                 { "genesis_plus_gx", "Genesis Plus GX" },
                 { "genesis_plus_gx_wide", "Genesis Plus GX Wide" },
@@ -345,6 +346,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureGambatte(retroarchConfig, coreSettings, system, core);
             ConfigureGearColeco(retroarchConfig, coreSettings, system, core);
+            ConfigureGearGrafx(retroarchConfig, coreSettings, system, core);
             ConfigureGearSystem(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGX(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
@@ -1823,6 +1825,37 @@ namespace EmulatorLauncher.Libretro
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "gearcoleco_controller", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "gearcoleco_controller", "1");
+        }
+
+        private void ConfigureGearGrafx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "geargrafx")
+                return;
+
+            BindFeature(coreSettings, "geargrafx_aspect_ratio", "geargrafx_aspect_ratio", "1:1 PAR");
+
+            BindFeature(coreSettings, "geargrafx_console_type", "geargrafx_console_type", "Auto");
+            BindFeature(coreSettings, "geargrafx_cdrom_type", "geargrafx_cdrom_type", "Auto");
+            BindFeature(coreSettings, "geargrafx_cdrom_bios", "geargrafx_cdrom_bios", "Auto");
+
+            BindBoolFeature(coreSettings, "geargrafx_no_sprite_limit", "geargrafx_no_sprite_limit", "Enabled", "Disabled");
+
+            if (!SystemConfig.isOptSet("geargrafx_turbotap"))
+            {
+                if (this.Controllers.Any(c => c.PlayerIndex == 2))
+                    coreSettings["geargrafx_turbotap"] = "Enabled";
+                else
+                    coreSettings["geargrafx_turbotap"] = "Disabled";
+            }
+
+            else
+                BindBoolFeature(coreSettings, "geargrafx_turbotap", "geargrafx_turbotap", "Enabled", "Disabled");
+
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "geargrafx_controller", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "geargrafx_controller", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "geargrafx_controller", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "geargrafx_controller", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p5", "geargrafx_controller", "1");
         }
 
         private void ConfigureGearSystem(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
