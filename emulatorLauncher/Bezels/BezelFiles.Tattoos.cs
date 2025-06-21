@@ -288,8 +288,13 @@ namespace EmulatorLauncher
             {
                 switch (emulator)
                 {
-                    case "bizhawk":
                     case "libretro":
+                        if (Program.SystemConfig.getOptBoolean("virtualjaguar_procontroller"))
+                            ret = "jaguarpro";
+                        else
+                            ret = "jaguar";
+                        break;
+                    case "bizhawk":
                     case "phoenix":
                         ret = "jaguar";
                         break;
