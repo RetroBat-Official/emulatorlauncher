@@ -4814,6 +4814,34 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "vice_controller2", "1");
         }
 
+        private Dictionary<string, string> jaguarPro = new Dictionary<string, string>()
+        {
+            { "a", "btn_a" },
+            { "analog_ld", "---" },
+            { "analog_ll", "num_1" },
+            { "analog_lr", "num_3" },
+            { "analog_lu", "num_2" },
+            { "analog_rd", "num_0" },
+            { "analog_rl", "---" },
+            { "analog_rr", "---" },
+            { "analog_ru", "num_5" },
+            { "b", "btn_b" },
+            { "down", "down" },
+            { "l1", "num_7" },
+            { "l2", "num_4" },
+            { "l3", "star" },
+            { "left", "left" },
+            { "r1", "num_9" },
+            { "r2", "num_6" },
+            { "r3", "hash" },
+            { "right", "right" },
+            { "select", "pause" },
+            { "start", "option" },
+            { "up", "up" },
+            { "x", "num_8" },
+            { "y", "btn_c" }
+        };
+
         private void ConfigureVirtualJaguar(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "virtualjaguar")
@@ -4823,6 +4851,20 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "virtualjaguar_bios", "bios_vj", "enabled", "disabled");
             BindBoolFeature(coreSettings, "virtualjaguar_doom_res_hack", "doom_res_hack", "enabled", "disabled");
             BindBoolFeature(coreSettings, "virtualjaguar_pal", "vj_pal", "enabled", "disabled");
+
+            // Controls use core options for pro controller
+            if (SystemConfig.isOptSet("virtualjaguar_procontroller") && SystemConfig.getOptBoolean("virtualjaguar_procontroller"))
+            {
+                _noRemap = true;
+
+                for (int i = 1; i < 3; i++)
+                {
+                    string reptropad = "virtualjaguar_p" + i + "_retropad_";
+
+                    foreach (var key in jaguarPro)
+                        coreSettings[reptropad + key.Key] = key.Value;
+                }
+            }
         }
 
         private void ConfigureVitaquake2(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

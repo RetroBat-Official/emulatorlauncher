@@ -25,6 +25,7 @@ namespace EmulatorLauncher.Libretro
         private static int _playerCount = 1;
         private static int _maxCount = 2;
         private static string _gameRemapName = null;
+        private bool _noRemap = false;
 
         public static void GenerateCoreInputRemap(string system, string core, Dictionary<string, string> inputremap)
         {
@@ -616,7 +617,7 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             DeleteInputRemap(cleanSystemName);
-            if (createRemap == null)
+            if (createRemap == null || _noRemap)
                 return;
 
             string dir = Path.Combine(RetroarchPath, "config", "remaps", cleanSystemName);
