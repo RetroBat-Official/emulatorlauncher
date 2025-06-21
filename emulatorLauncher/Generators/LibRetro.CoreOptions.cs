@@ -4853,9 +4853,10 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "virtualjaguar_pal", "vj_pal", "enabled", "disabled");
 
             // Controls use core options for pro controller
-            if (SystemConfig.isOptSet("virtualjaguar_procontroller") && SystemConfig.getOptBoolean("virtualjaguar_procontroller"))
+            if (SystemConfig.isOptSet("virtualjaguar_procontroller") && SystemConfig.getOptBoolean("virtualjaguar_procontroller") && SystemConfig["disableautocontrollers"] != "1")
             {
                 _noRemap = true;
+                coreSettings["virtualjaguar_alt_inputs"] = "enabled";
 
                 for (int i = 1; i < 3; i++)
                 {
@@ -4863,6 +4864,18 @@ namespace EmulatorLauncher.Libretro
 
                     foreach (var key in jaguarPro)
                         coreSettings[reptropad + key.Key] = key.Value;
+                }
+            }
+            else if (SystemConfig["disableautocontrollers"] != "1")
+            {
+                coreSettings["virtualjaguar_alt_inputs"] = "disabled";
+
+                for (int i = 1; i < 3; i++)
+                {
+                    string reptropad = "virtualjaguar_p" + i + "_retropad_";
+
+                    foreach (var key in jaguarPro)
+                        coreSettings[reptropad + key.Key] = "---";
                 }
             }
         }
