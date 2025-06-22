@@ -286,7 +286,7 @@ namespace EmulatorLauncher.Libretro
                         retroarchConfig["input_player" + playerIndex + "_start"] = "num1";
                         retroarchConfig["input_player" + playerIndex + "_select"] = "num5";
                         retroarchConfig["input_player" + playerIndex + "_gun_start"] = "num1";
-                        retroarchConfig["input_player" + playerIndex + "_gun_select"] = "w";
+                        retroarchConfig["input_player" + playerIndex + "_gun_select"] = "num5";
                         retroarchConfig["input_player" + playerIndex + "_gun_aux_a"] = "rctrl";
                         retroarchConfig["input_player" + playerIndex + "_gun_aux_b"] = "enter";
                         retroarchConfig["input_player" + playerIndex + "_gun_dpad_up"] = "up";
@@ -298,8 +298,8 @@ namespace EmulatorLauncher.Libretro
                     {
                         retroarchConfig["input_player" + playerIndex + "_start"] = "num1";
                         retroarchConfig["input_player" + playerIndex + "_select"] = "num5";
-                        retroarchConfig["input_player" + playerIndex + "_gun_start"] = "enter";
-                        retroarchConfig["input_player" + playerIndex + "_gun_select"] = "backspace";
+                        retroarchConfig["input_player" + playerIndex + "_gun_start"] = "num1";
+                        retroarchConfig["input_player" + playerIndex + "_gun_select"] = "num5";
                         retroarchConfig["input_player" + playerIndex + "_gun_aux_a"] = "q";
                         retroarchConfig["input_player" + playerIndex + "_gun_dpad_up"] = "up";
                         retroarchConfig["input_player" + playerIndex + "_gun_dpad_down"] = "down";
@@ -402,15 +402,20 @@ namespace EmulatorLauncher.Libretro
                             retroarchConfig["input_player" + playerIndex + "_gun_select"] = "escape";
                         }
                     }
-                    else if (guns[0].Type == RawLighGunType.Mouse && SystemConfig.isOptSet("WiimoteMode") && SystemConfig["WiimoteMode"] == "wiimotegun")
-                    {
-                        retroarchConfig["input_player" + playerIndex + "_gun_start"] = "num1";
-                        retroarchConfig["input_player" + playerIndex + "_gun_select"] = "w";
-                    }
-                    else
+                    else if (guns[0].Type == RawLighGunType.MayFlashWiimote)
                     {
                         retroarchConfig["input_player" + playerIndex + "_gun_start"] = "enter";
                         retroarchConfig["input_player" + playerIndex + "_gun_select"] = "backspace";
+                    }
+                    else if (guns[0].Type == RawLighGunType.Mouse && SystemConfig.isOptSet("WiimoteMode") && SystemConfig["WiimoteMode"] == "wiimotegun")
+                    {
+                        retroarchConfig["input_player" + playerIndex + "_gun_start"] = "num1";
+                        retroarchConfig["input_player" + playerIndex + "_gun_select"] = "num5";
+                    }
+                    else
+                    {
+                        retroarchConfig["input_player" + playerIndex + "_gun_start"] = "num1";
+                        retroarchConfig["input_player" + playerIndex + "_gun_select"] = "num5";
                     }
 
                     // Auxiliary buttons can be set to directions if using a wiimote
@@ -564,15 +569,20 @@ namespace EmulatorLauncher.Libretro
                                 retroarchConfig["input_player" + i + "_gun_select"] = "backspace";
                             }
                         }
-                        else if (guns[0].Type == RawLighGunType.Mouse && SystemConfig.isOptSet("WiimoteMode") && SystemConfig["WiimoteMode"] == "wiimotegun")
-                        {
-                            retroarchConfig["input_player" + i + "_gun_start"] = "num1";
-                            retroarchConfig["input_player" + i + "_gun_select"] = "w";
-                        }
-                        else
+                        else if (guns[0].Type == RawLighGunType.MayFlashWiimote)
                         {
                             retroarchConfig["input_player" + i + "_gun_start"] = "enter";
                             retroarchConfig["input_player" + i + "_gun_select"] = "backspace";
+                        }
+                        else if (guns[0].Type == RawLighGunType.Mouse && SystemConfig.isOptSet("WiimoteMode") && SystemConfig["WiimoteMode"] == "wiimotegun")
+                        {
+                            retroarchConfig["input_player" + i + "_gun_start"] = "num1";
+                            retroarchConfig["input_player" + i + "_gun_select"] = "num5";
+                        }
+                        else
+                        {
+                            retroarchConfig["input_player" + i + "_gun_start"] = "num1";
+                            retroarchConfig["input_player" + i + "_gun_select"] = "num5";
                         }
 
                         retroarchConfig["input_player" + i + "_gun_dpad_up"] = "up";
