@@ -746,7 +746,6 @@ namespace EmulatorLauncher
                             break;
                     }
                 }
-
             }
             else if (system == "snes")
             {
