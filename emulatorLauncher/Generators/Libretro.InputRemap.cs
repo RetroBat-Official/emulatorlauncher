@@ -13,10 +13,10 @@ namespace EmulatorLauncher.Libretro
         // Used for options to invert buttons, etc.
 
 
-        static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami", "sgb", "gb-msu" };
-        static readonly List<string> systemButtonRotate = new List<string>() { "nes", "fds", "mastersystem" };
-        static readonly List<string> systemMegadrive = new List<string>() { "genesis", "megadrive", "megacd", "megadrive-msu", "sega32x", "segacd" };
-        static readonly List<string> systemNES = new List<string>() { "nes", "fds" };
+        static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "superfamicom", "sattelaview", "sufami", "sgb", "gb-msu" };
+        static readonly List<string> systemButtonRotate = new List<string>() { "famicom", "nes", "fds", "mastersystem" };
+        static readonly List<string> systemMegadrive = new List<string>() { "genesis", "genesis-msu", "megadrive", "megacd", "megadrive-msu", "sega32x", "segacd" };
+        static readonly List<string> systemNES = new List<string>() { "nes", "fds", "famicom" };
         static readonly List<string> systemN64 = new List<string>() { "n64", "n64dd" };
         static readonly List<string> systemFBneo = new List<string>() { "cave", "cps1", "cps2", "cps3", "fbneo", "neogeo" };
         static readonly List<string> megadrive3ButtonsList = new List<string>() { "2", "257", "1025", "1537", "773" };
@@ -536,8 +536,21 @@ namespace EmulatorLauncher.Libretro
                     }
                 }
                 #endregion
+
+                #region supergrafx
+                if (system == "supergrafx")
+                {
+                    if (core == "geargrafx")
+                    {
+                        inputremap["input_player" + i + "_btn_l"] = "12";
+                        inputremap["input_player" + i + "_btn_l2"] = "-1";
+                        inputremap["input_player" + i + "_btn_r"] = "13";
+                        inputremap["input_player" + i + "_btn_r2"] = "-1";
+                    }
+                }
+                #endregion
             }
-            
+
             return;
         }
 

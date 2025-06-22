@@ -768,6 +768,12 @@ namespace EmulatorLauncher
                             case "fbneo":
                                 ret = "pcengine_simple";
                                 break;
+                            case "geargrafx":
+                                if (Program.SystemConfig.isOptSet("geargrafx_controller") && Program.SystemConfig["geargrafx_controller"] == "769")
+                                    ret = "pcengine_simple_6buttons";
+                                else
+                                    ret = "pcengine_simple";
+                                break;
                         }
                         break;
                     case "mednafen":
