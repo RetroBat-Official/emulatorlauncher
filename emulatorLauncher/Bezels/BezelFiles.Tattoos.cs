@@ -278,6 +278,9 @@ namespace EmulatorLauncher
                     case "mesen":
                         ret = "gba_turbo";
                         break;
+                    case "mednafen":
+                        ret = "gba_turboface";
+                        break;
                     case "bizhawk":
                         if (Program.SystemConfig.getOptBoolean("bizhawk_gba_turbo"))
                             ret = "gba_turbo";
