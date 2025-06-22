@@ -144,8 +144,8 @@ namespace EmulatorLauncher
             BypassSATControllers:
 
             string padlayout = "standard";
-            if (SystemConfig.isOptSet("ymir_padlayout") && !string.IsNullOrEmpty(SystemConfig["ymir_padlayout"]))
-                padlayout = SystemConfig["ymir_padlayout"];
+            if (SystemConfig.isOptSet("saturn_padlayout") && !string.IsNullOrEmpty(SystemConfig["saturn_padlayout"]))
+                padlayout = SystemConfig["saturn_padlayout"];
 
             if (padlayout == "lr_yz" || padlayout == "lr_xz")
             {
