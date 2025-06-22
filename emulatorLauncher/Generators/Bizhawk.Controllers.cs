@@ -149,7 +149,9 @@ namespace EmulatorLauncher
 
             bool monoplayer = systemMonoPlayer.Contains(system);
             var trollers = json.GetOrCreateContainer("AllTrollers");
+            var autofire = json.GetOrCreateContainer("AllTrollersAutoFire");
             var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
+            var turboControllerConfig = autofire.GetOrCreateContainer(systemController[system]);
 
             // Define mapping to use
             InputKeyMapping mapping = mappingToUse[system];
@@ -483,6 +485,20 @@ namespace EmulatorLauncher
                 {
                     controllerConfig["P" + i + " Key 0"] = "";
                     controllerConfig["P" + i + " Key 9"] = "";
+                }
+            }
+
+            if (system == "gba" && SystemConfig.getOptBoolean("bizhawk_gba_turbo"))
+            {
+                foreach (var x in gbaAutofireMapping)
+                {
+                    InputKey key = x.Key;
+                    string value = x.Value;
+
+                    if (isDInput)
+                        turboControllerConfig[value] = "J" + index + " " + GetDInputKeyName(controller, key);
+                    else
+                        turboControllerConfig[value] = "X" + index + " " + GetXInputKeyName(controller, key);
                 }
             }
 
@@ -1310,6 +1326,14 @@ namespace EmulatorLauncher
             { InputKey.b,               "A" },
             { InputKey.pageup,          "L" },
             { InputKey.pagedown,        "R" }
+        };
+
+        private static readonly InputKeyMapping gbaAutofireMapping = new InputKeyMapping()
+        {
+            { InputKey.y,               "B" },
+            { InputKey.x,               "A" },
+            { InputKey.l2,              "L" },
+            { InputKey.r2,              "R" }
         };
 
         private static readonly InputKeyMapping ggMapping = new InputKeyMapping()
@@ -2142,7 +2166,9 @@ namespace EmulatorLauncher
             bool monoplayer = systemMonoPlayer.Contains(system);
             var trollers = json.GetOrCreateContainer("AllTrollers");
             var controllerConfig = trollers.GetOrCreateContainer(systemController[system]);
-
+            var autofire = json.GetOrCreateContainer("AllTrollersAutoFire");
+            var turboControllerConfig = autofire.GetOrCreateContainer(systemController[system]);
+            
             InputKeyMapping mapping = mappingToUse[system];
 
             if (system == "psx")
@@ -2185,6 +2211,15 @@ namespace EmulatorLauncher
                         string value = x.Value;
                         controllerConfig["P" + i + " " + value] = "";
                     }
+                }
+            }
+
+            if (system == "gba")
+            {
+                foreach (var x in gbaAutofireMapping)
+                {
+                    string value = x.Value;
+                    turboControllerConfig[value] = "";
                 }
             }
         }
