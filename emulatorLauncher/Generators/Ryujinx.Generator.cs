@@ -204,16 +204,14 @@ namespace EmulatorLauncher
             {
                 res = SystemConfig["res_scale"].ToDouble();
 
-                if (res == 0)
-                    json.res_scale = 1;
-                else if (res < 1)
+                if (res < 1)
                 {
                     json.res_scale = -1;
                     json.res_scale_custom = res;
                 }
                 else
                 {
-                    json.res_scale = res;
+                    json.res_scale = (int)res;
                 }
             }
 
