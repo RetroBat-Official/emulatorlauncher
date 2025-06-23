@@ -2206,6 +2206,8 @@ namespace EmulatorLauncher.Libretro
                 BindBoolFeature(coreSettings, "kronos_service_enabled", "kronos_service_enabled", "enabled", "disabled");
             }
 
+            _forceBias = true;
+
             // Controls
             if (SystemConfig.isOptSet("kronos_controller") && !string.IsNullOrEmpty(SystemConfig["kronos_controller"]))
             {
@@ -4922,6 +4924,8 @@ namespace EmulatorLauncher.Libretro
         {
             if (core != "yabause")
                 return;
+
+            _forceBias = true;
         }
 
         private void ConfigureYabasanshiro(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -4929,6 +4933,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "yabasanshiro")
                 return;
 
+            _forceBias = true;
             BindFeature(coreSettings, "yabasanshiro_resolution_mode", "yabasanshiro_resolution_mode", "original");
             BindFeature(coreSettings, "yabasanshiro_addon_cart", "yabasanshiro_addon_cart", "4M_extended_ram");
             BindFeature(coreSettings, "yabasanshiro_system_language", "yabasanshiro_system_language", "english");
