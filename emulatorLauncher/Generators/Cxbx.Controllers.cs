@@ -289,8 +289,8 @@ namespace EmulatorLauncher
             ini.WriteValue(profileSection, "Stick Down", "DOWN");
             ini.WriteValue(profileSection, "Stick Left", "LEFT");
             ini.WriteValue(profileSection, "Stick Right", "RIGHT");
-            ini.WriteValue(profileSection, "START", "RETURN");
-            ini.WriteValue(profileSection, "SE/BA", "SPACE");
+            ini.WriteValue(profileSection, "START", "1");
+            ini.WriteValue(profileSection, "SE/BA", "5");
             ini.WriteValue(profileSection, "Trigger", "Click 0");
             ini.WriteValue(profileSection, "Grip", "Click 1");
             ini.WriteValue(profileSection, "A", "S");
