@@ -88,6 +88,7 @@ namespace EmulatorLauncher
 
             string inputMapSection = "Input.Port" + playerindex + ".ControlPadBinds";
 
+            // Check if 3D pad setting
             bool analogdpad = false;
             if (peripheral == "'AnalogPad'")
             {
@@ -96,13 +97,14 @@ namespace EmulatorLauncher
                 invertBumpers = false;
             }
 
+            ini.WriteValue(inputSection, "PeripheralType", peripheral);
+
             int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
 
+            // Check if controller has a specific mapping
             string guid = (ctrl.Guid.ToString()).ToLowerInvariant();
             bool needSatActivationSwitch = false;
             bool sat_pad = Program.SystemConfig["saturn_pad_ymir"] == "1";
-
-            ini.WriteValue(inputSection, "PeripheralType", peripheral);
 
             string saturnjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
             if (File.Exists(saturnjson))
@@ -191,8 +193,8 @@ namespace EmulatorLauncher
 
                 if (analogdpad)
                 {
-                    ini.WriteValue(inputMapSection, "AnalogL", "[ 'GamepadLeftTriggerButton@" + index + "' ]");
-                    ini.WriteValue(inputMapSection, "AnalogR", "[ 'GamepadRightTriggerButton@" + index + "' ]");
+                    ini.WriteValue(inputMapSection, "AnalogL", "[ 'GamepadLeftTrigger@" + index + "' ]");
+                    ini.WriteValue(inputMapSection, "AnalogR", "[ 'GamepadRightTrigger@" + index + "' ]");
                     ini.WriteValue(inputMapSection, "AnalogStick", "[ 'GamepadLeftStick@" + index + "' ]");
                 }
 
@@ -200,7 +202,11 @@ namespace EmulatorLauncher
                 ini.WriteValue(inputMapSection, "C", invertBumpers ? "[ 'GamepadRightTriggerButton@" + index + "' ]" : "[ 'GamepadRightBumper@" + index + "' ]");
             }
 
-            ini.WriteValue(inputMapSection, "DPad", "[ 'GamepadLeftStick@" + index + "' ]");
+            if (!analogdpad)
+                ini.WriteValue(inputMapSection, "DPad", "[ 'GamepadLeftStick@" + index + "' ]");
+            else
+                ini.WriteValue(inputMapSection, "DPad", "[ 'GamepadDPad@" + index + "' ]");
+
             ini.WriteValue(inputMapSection, "Down", "[ 'GamepadDpadDown@" + index + "' ]");
             ini.WriteValue(inputMapSection, "L", invertBumpers ? "[ 'GamepadLeftBumper@" + index + "' ]" : "[ 'GamepadLeftTriggerButton@" + index + "' ]");
             ini.WriteValue(inputMapSection, "Left", "[ 'GamepadDpadLeft@" + index + "' ]");
