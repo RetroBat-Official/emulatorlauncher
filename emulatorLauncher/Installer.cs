@@ -34,7 +34,7 @@ namespace EmulatorLauncher
             { new Installer("cdogs", new string[] { "cdogs", "cdogs/bin" }, "cdogs-sdl.exe") },
             { new Installer("cemu", "cemu", "Cemu.exe") },
             { new Installer("cgenius", "cgenius", "CGenius.exe") },
-            { new Installer("chihiro", new string[] { "cxbx-reloaded", "cxbx-r" }, "cxbx.exe") },
+            { new Installer("chihiro", "chihiro", "cxbx.exe") },
             { new Installer("citra", "citra", "citra-qt.exe") },
             { new Installer("citron", "citron", "citron.exe") },
             { new Installer("corsixth", "corsixth", "CorsixTH.exe") },
