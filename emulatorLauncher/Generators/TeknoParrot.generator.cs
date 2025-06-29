@@ -21,6 +21,7 @@ namespace EmulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private bool _triforce = false;
 
         static readonly Dictionary<string, string> executables = new Dictionary<string, string>()
         {
@@ -172,12 +173,15 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            if (core == "triforce")
+                _triforce = true;
+
             rom = this.TryUnZipGameIfNeeded(system, rom);
 
             string gameName = Path.GetFileNameWithoutExtension(rom);
             SimpleLogger.Instance.Info("[INFO] Game name : " + gameName);
 
-            GameProfile profile = FindGameProfile(path, rom, gameName);
+            GameProfile profile = FindGameProfile(path, rom, gameName, _triforce);
             if (profile == null)
             {
                 SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable to find gameprofile for " + rom);
@@ -211,6 +215,13 @@ namespace EmulatorLauncher
             }
 
             bool multiExe = false;
+
+            // Triforce case : put iso path in GamePath tag
+            if (_triforce)
+            {
+                userProfile.GamePath = rom;
+            }
+
             if (userProfile.GamePath == null || !File.Exists(userProfile.GamePath))
             {
                 SimpleLogger.Instance.Info("[INFO] Searching for Game executable.");
@@ -558,9 +569,30 @@ namespace EmulatorLauncher
             return path;
         }
 
-        private static GameProfile FindGameProfile(string path, string romPath, string gameName)
+        private static GameProfile FindGameProfile(string path, string romPath, string gameName, bool triforce = false)
         {
             string currentFolderName = Path.GetFileNameWithoutExtension(romPath);
+
+            if (GetProfileFromYml(gameName, out string ymlProfileName))
+            {
+                var profile = JoystickHelper.DeSerializeGameProfile(Path.Combine(path, "GameProfiles", ymlProfileName + ".xml"), false);
+                if (profile != null)
+                    return profile;
+            }
+
+            if (triforce)
+            {
+                string directoryPath = Path.GetDirectoryName(romPath);
+                string lastFolderName = Path.GetFileName(directoryPath);
+
+                if (File.Exists(Path.Combine(path, "GameProfiles", lastFolderName + ".xml")))
+                {
+                    var profile = JoystickHelper.DeSerializeGameProfile(Path.Combine(path, "GameProfiles", lastFolderName + ".xml"), false);
+                    if (profile != null)
+                        return profile;
+                }
+
+            }
 
             foreach (var exe in executables)
             {                
@@ -575,13 +607,6 @@ namespace EmulatorLauncher
             if (File.Exists(Path.Combine(path, "GameProfiles", gameName + ".xml")))
             {
                 var profile = JoystickHelper.DeSerializeGameProfile(Path.Combine(path, "GameProfiles", gameName + ".xml"), false);
-                if (profile != null)
-                    return profile;
-            }
-
-            if (GetProfileFromYml(gameName, out string ymlProfileName))
-            {
-                var profile = JoystickHelper.DeSerializeGameProfile(Path.Combine(path, "GameProfiles", ymlProfileName + ".xml"), false);
                 if (profile != null)
                     return profile;
             }
@@ -974,6 +999,9 @@ namespace EmulatorLauncher
 
             if (_demulshooter)
                 Demulshooter.KillDemulShooter();
+
+            if (_triforce)
+                KillProcessTree("Dolphin");
 
             return 0;
         }
