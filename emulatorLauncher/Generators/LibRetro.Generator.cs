@@ -745,8 +745,8 @@ namespace EmulatorLauncher.Libretro
             if (core == "mame")
                 savePath = Path.Combine(AppConfig.GetFullPath("saves"));
 
-            if (core == "dolphin")
-                savePath = Path.Combine(AppConfig.GetFullPath("saves"), "dolphin");
+            //if (core == "dolphin" && system == "wii")
+            //    savePath = Path.Combine(AppConfig.GetFullPath("saves"), "dolphin");
 
             FileTools.TryCreateDirectory(savePath);                
             retroarchConfig["savefile_directory"] = savePath;
