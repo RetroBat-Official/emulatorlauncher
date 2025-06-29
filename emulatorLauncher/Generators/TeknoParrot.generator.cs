@@ -452,7 +452,6 @@ namespace EmulatorLauncher
                 xdoc.SetElementValue("ConfirmExit", false);
                 xdoc.SetElementValue("HideVanguardWarning", true);
                 xdoc.SetElementValue("DisableAnalytics", true);
-                xdoc.SetElementValue("HasReadPolicies", true);
 
                 if (Program.SystemConfig.isOptSet("tp_stooz") && !string.IsNullOrEmpty(Program.SystemConfig["tp_stooz"]))
                 {
@@ -788,33 +787,6 @@ namespace EmulatorLauncher
             catch { }
 
             return null;
-
-            /*foreach (var file in Directory.GetFiles(path, "*.exe"))
-            {
-                if (file.IndexOf("AmAut", StringComparison.InvariantCultureIgnoreCase) >= 0)
-                    continue;
-
-                if (file.IndexOf("GetHwInfo", StringComparison.InvariantCultureIgnoreCase) >= 0)
-                    continue;
-
-                if (file.IndexOf("Game Loader", StringComparison.InvariantCultureIgnoreCase) >= 0)
-                    continue;
-
-                if (executableName == null || executableName.Equals(Path.GetFileName(file), StringComparison.InvariantCultureIgnoreCase))
-                    return file;
-            }
-
-            if (childs)
-            {
-                foreach (var dir in Directory.GetDirectories(path))
-                {
-                    var ret = FindBestExecutable(dir, executableName, true);
-                    if (ret != null)
-                        return ret;
-                }
-            }
-
-            return null;*/
         }
 
         private bool GetReshadeInfo(string game, out string reshadeExe, out ReshadeBezelType type, out ReshadePlatform platform)
@@ -1025,7 +997,7 @@ namespace EmulatorLauncher
             UiColour = "lightblue";
             UiDarkMode = false;
             UiHolidayThemes = true;
-            HasReadPolicies = true;
+            HasReadPolicies = false;
             DisableAnalytics = true;
         }
 
