@@ -22,6 +22,7 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private bool _triforce = false;
+        private bool _namco2x6 = false;
 
         static readonly Dictionary<string, string> executables = new Dictionary<string, string>()
         {
@@ -175,13 +176,16 @@ namespace EmulatorLauncher
 
             if (core == "triforce")
                 _triforce = true;
+            else if (core == "namco2x6")
+                _namco2x6 = true;
 
-            rom = this.TryUnZipGameIfNeeded(system, rom);
+            if (!_namco2x6)
+                rom = this.TryUnZipGameIfNeeded(system, rom);
 
             string gameName = Path.GetFileNameWithoutExtension(rom);
             SimpleLogger.Instance.Info("[INFO] Game name : " + gameName);
 
-            GameProfile profile = FindGameProfile(path, rom, gameName, _triforce);
+            GameProfile profile = FindGameProfile(path, rom, gameName, _triforce, _namco2x6);
             if (profile == null)
             {
                 SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable to find gameprofile for " + rom);
@@ -217,7 +221,7 @@ namespace EmulatorLauncher
             bool multiExe = false;
 
             // Triforce case : put iso path in GamePath tag
-            if (_triforce)
+            if (_triforce || _namco2x6)
             {
                 userProfile.GamePath = rom;
             }
@@ -389,6 +393,9 @@ namespace EmulatorLauncher
 
             ConfigureControllers(userProfile, rom);
 
+            if (_namco2x6)
+                ConfigurePlay(userProfile);
+
             JoystickHelper.SerializeGameProfile(userProfile, userProfilePath);
 
             Thread.Sleep(500);
@@ -463,6 +470,8 @@ namespace EmulatorLauncher
                 xdoc.SetElementValue("ConfirmExit", false);
                 xdoc.SetElementValue("HideVanguardWarning", true);
                 xdoc.SetElementValue("DisableAnalytics", true);
+                xdoc.SetElementValue("FirstTimeSetupComplete", true);
+                xdoc.SetElementValue("HideDolphinGUI", true);
 
                 if (Program.SystemConfig.isOptSet("tp_stooz") && !string.IsNullOrEmpty(Program.SystemConfig["tp_stooz"]))
                 {
@@ -518,33 +527,20 @@ namespace EmulatorLauncher
             }
         }
 
-        /*private static void ExtractUserProfiles(string path)
+        private static void ConfigurePlay(GameProfile userProfile)
         {
+            var graphicsBackend = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Graphics Backend");
+            if (graphicsBackend != null && Program.SystemConfig.isOptSet("tp_play_gpuapi") && !string.IsNullOrEmpty(Program.SystemConfig["tp_play_gpuapi"]))
+                graphicsBackend.FieldValue = Program.SystemConfig["tp_play_gpuapi"];
+            else
+                graphicsBackend.FieldValue = "Vulkan";
 
-            StringBuilder sb = new StringBuilder();
-
-            foreach (var file in Directory.GetFiles(Path.Combine(path, "UserProfiles")))
-            {
-                var zzz = JoystickHelper.DeSerializeGameProfile(file, false);
-                if (zzz == null)
-                    continue;
-
-                string code = Path.GetFileNameWithoutExtension(zzz.FileName);
-                if (executables.ContainsKey(code))
-                    continue;
-
-                string codeStr = "{ \"" + code + "\",";
-                sb.Append(codeStr);
-                sb.Append(new string(' ', Math.Max(1, 32 - code.Length)));
-                sb.Append("@\"");
-                sb.Append(zzz.GamePath);
-                sb.AppendLine("\" },");
-            }
-
-            var str = sb.ToString();
-        }*/
-
-        // <string name="teknoparrot.disableautocontrollers" value="1" />
+            var resolution = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Resolution");
+            if (resolution != null && Program.SystemConfig.isOptSet("tp_play_resolution") && !string.IsNullOrEmpty(Program.SystemConfig["tp_play_resolution"]))
+                resolution.FieldValue = Program.SystemConfig["tp_play_resolution"];
+            else
+                resolution.FieldValue = "480p";
+        }
 
         private static string RootDirectory(string path)
         {
@@ -569,7 +565,7 @@ namespace EmulatorLauncher
             return path;
         }
 
-        private static GameProfile FindGameProfile(string path, string romPath, string gameName, bool triforce = false)
+        private static GameProfile FindGameProfile(string path, string romPath, string gameName, bool triforce = false, bool namco2x6 = false)
         {
             string currentFolderName = Path.GetFileNameWithoutExtension(romPath);
 
@@ -578,6 +574,16 @@ namespace EmulatorLauncher
                 var profile = JoystickHelper.DeSerializeGameProfile(Path.Combine(path, "GameProfiles", ymlProfileName + ".xml"), false);
                 if (profile != null)
                     return profile;
+            }
+
+            if (namco2x6)
+            {
+                if (File.Exists(Path.Combine(path, "GameProfiles", gameName + ".xml")))
+                {
+                    var profile = JoystickHelper.DeSerializeGameProfile(Path.Combine(path, "GameProfiles", gameName + ".xml"), false);
+                    if (profile != null)
+                        return profile;
+                }
             }
 
             if (triforce)
@@ -1013,20 +1019,19 @@ namespace EmulatorLauncher
         {
             ExitGameKey = "0x1B";
             PauseGameKey = "0x13";
-
             ScoreCollapseGUIKey = "0x79";
             CheckForUpdates = true;
-
             ConfirmExit = true;
             DownloadIcons = true;
             UiDisableHardwareAcceleration = false;
             HideVanguardWarning = true;
-
             UiColour = "lightblue";
             UiDarkMode = false;
             UiHolidayThemes = true;
             HasReadPolicies = false;
             DisableAnalytics = true;
+            FirstTimeSetupComplete = true;
+            HideDolphinGUI = true;
         }
 
         public bool UseSto0ZDrivingHack { get; set; }
@@ -1035,16 +1040,12 @@ namespace EmulatorLauncher
         public bool FullAxisBrake { get; set; }
         public bool ReverseAxisGas { get; set; }
         public bool ReverseAxisBrake { get; set; }
-
         public string LastPlayed { get; set; }
         public string ExitGameKey { get; set; }
         public string PauseGameKey { get; set; }
-
         public string ScoreSubmissionID { get; set; }
         public string ScoreCollapseGUIKey { get; set; }
-
         public bool SaveLastPlayed { get; set; }
-
         public bool UseDiscordRPC { get; set; }
         public bool SilentMode { get; set; }
         public bool CheckForUpdates { get; set; }
@@ -1057,5 +1058,7 @@ namespace EmulatorLauncher
         public bool UiHolidayThemes { get; set; }
         public bool HasReadPolicies { get; set; }
         public bool DisableAnalytics { get; set; }
+        public bool FirstTimeSetupComplete { get; set; }
+        public bool HideDolphinGUI { get; set; }
     }
 }
