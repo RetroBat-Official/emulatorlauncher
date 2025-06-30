@@ -80,7 +80,7 @@ namespace EmulatorLauncher
 
             if (system == "wii")
             {
-                string sysconf = Path.Combine(AppConfig.GetFullPath("saves"), "dolphin", "User", "Wii", "shared2", "sys", "SYSCONF");
+                string sysconf = Path.Combine(AppConfig.GetFullPath("saves"), "wii", "dolphin-emu", "User", "Wii", "shared2", "sys", "SYSCONF");
                 if (File.Exists(sysconf))
                     WriteWiiSysconfFile(sysconf);
                 else
@@ -581,7 +581,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("General", "WFSPath", wfsPath);
 
                         // Wii NAND path
-                        string wiiNandPath = Path.Combine(savesPath, "dolphin", "User", "Wii");
+                        string wiiNandPath = Path.Combine(savesPath, "wii", "dolphin-emu", "User", "Wii");
                         if (!Directory.Exists(wiiNandPath)) try { Directory.CreateDirectory(wiiNandPath); }
                             catch { }
                         ini.WriteValue("General", "NANDRootPath", wiiNandPath);
@@ -590,15 +590,29 @@ namespace EmulatorLauncher
                         if (system != "wii")
                         {
                             string gc_region = "EUR";
+                            if (GetGameID(rom, path, out string gameID))
+                            {
+                                SimpleLogger.Instance.Info("[INFO] Game ID found: " + gameID);
+
+                                if (GetRegionFromGameId(gameID, out string region))
+                                {
+                                    gc_region = region;
+                                    SimpleLogger.Instance.Info("[INFO] Game region found: " + gc_region);
+                                }
+                            }
+
                             if (SystemConfig.isOptSet("dolphin_gcregion") && !string.IsNullOrEmpty(SystemConfig["dolphin_gcregion"]))
+                            {
                                 gc_region = SystemConfig["dolphin_gcregion"];
+                                SimpleLogger.Instance.Info("[INFO] Game region override: " + gc_region);
+                            }
 
                             ini.WriteValue("Core", "SlotA", SystemConfig["dolphin_slotA"] == "1" ? "1" : "8");
 
-                            string gcSavePath = Path.Combine(savesPath, "dolphin", "User", "GC", gc_region, "Card A");
+                            string gcSavePath = Path.Combine(savesPath, "gamecube", "dolphin-emu", "User", "GC", gc_region, "Card A");
                             if (!Directory.Exists(gcSavePath)) try { Directory.CreateDirectory(gcSavePath); }
                                 catch { }
-                            string sramFile = Path.Combine(savesPath, "dolphin", "User", "GC", "SRAM." + gc_region + ".raw");
+                            string sramFile = Path.Combine(savesPath, "gamecube", "dolphin -emu", "User", "GC", "SRAM." + gc_region + ".raw");
 
                             ini.WriteValue("Core", "GCIFolderAPath", gcSavePath);
                             ini.WriteValue("Core", "MemcardAPath", sramFile);
@@ -676,6 +690,74 @@ namespace EmulatorLauncher
                 }
             }
             catch { }
+        }
+
+        private static bool GetGameID(string rom, string path, out string gameID)
+        {
+            gameID = null;
+
+            try
+            {
+                string dolphinTool = Path.Combine(path, "DolphinTool.exe");
+                
+                var output = ProcessExtensions.RunWithOutput(dolphinTool, "header -i " + "\"" + rom + "\"");
+
+                foreach (string line in output.Split('\n'))
+                {
+                    if (line.StartsWith("Game ID:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        gameID = line.Split(':')[1].Trim();
+                        return true;
+                    }
+                }
+            }
+
+            catch { return false; }
+
+            return false;
+        }
+
+        private static bool GetRegionFromGameId(string gameId, out string region)
+        {
+            region = null;
+            
+            try
+            {
+                if (string.IsNullOrWhiteSpace(gameId) || gameId.Length < 4)
+                    return false;
+
+                char regionCode = gameId[3];
+
+                switch (regionCode)
+                {
+                    case 'E':
+                        region = "USA";
+                        break;
+                    case 'P':
+                    case 'D':
+                    case 'F':
+                    case 'I':
+                    case 'S':
+                    case 'R':
+                        region = "EUR";
+                        break;
+                    case 'J':
+                    case 'K':
+                    case 'T':
+                    case 'A':
+                        region = "JAP";
+                        break;
+                };
+
+                if (region != null)
+                    return true;
+                else
+                    return false;
+            } 
+            catch 
+            {
+                return false; 
+            }
         }
 
         private static void AddPathToIsoPath(string romPath, IniFile ini)

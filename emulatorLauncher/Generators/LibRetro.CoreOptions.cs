@@ -1100,7 +1100,6 @@ namespace EmulatorLauncher.Libretro
                     }
                 }
                 catch { }
-
             }
 
             // wii
