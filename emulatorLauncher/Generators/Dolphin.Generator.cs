@@ -589,13 +589,13 @@ namespace EmulatorLauncher
                         // Gamecube saves
                         if (system != "wii")
                         {
-                            string gc_region = "USA";
+                            string gc_region = "EUR";
                             if (SystemConfig.isOptSet("dolphin_gcregion") && !string.IsNullOrEmpty(SystemConfig["dolphin_gcregion"]))
                                 gc_region = SystemConfig["dolphin_gcregion"];
 
                             ini.WriteValue("Core", "SlotA", SystemConfig["dolphin_slotA"] == "1" ? "1" : "8");
 
-                            string gcSavePath = Path.Combine(savesPath, "gamecube", "dolphin-emu", "User", "GC", "USA", "Card A");
+                            string gcSavePath = Path.Combine(savesPath, "gamecube", "dolphin-emu", "User", "GC", gc_region, "Card A");
                             if (!Directory.Exists(gcSavePath)) try { Directory.CreateDirectory(gcSavePath); }
                                 catch { }
                             string sramFile = Path.Combine(savesPath, "gamecube", "dolphin -emu", "User", "GC", "SRAM." + gc_region + ".raw");
