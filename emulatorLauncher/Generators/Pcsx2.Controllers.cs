@@ -332,7 +332,7 @@ namespace EmulatorLauncher
             BindIniFeatureSlider(pcsx2ini, padNumber, "LargeMotorScale", "pcsx2_rumble_strength", "1", 2);
             BindIniFeatureSlider(pcsx2ini, padNumber, "SmallMotorScale", "pcsx2_rumble_strength", "1", 2);
             BindIniFeatureSlider(pcsx2ini, padNumber, "ButtonDeadzone", "pcsx2_trigger_deadzone", "0", 2);
-            pcsx2ini.WriteValue(padNumber, "PressureModifier", "0.5");
+            BindIniFeatureSlider(pcsx2ini, padNumber, "PressureModifier", "pcsx2_pressure_modifier", "0", 2);
 
             //Get SDL controller index
             string techPadNumber = "SDL-" + sdl3index + "/";
@@ -384,6 +384,12 @@ namespace EmulatorLauncher
                 pcsx2ini.WriteValue(padNumber, "RLeft", techPadNumber + GetDInputKeyName(dinputController, "rightx", -1));
                 pcsx2ini.WriteValue(padNumber, "LargeMotor", techPadNumber + "LargeMotor");
                 pcsx2ini.WriteValue(padNumber, "SmallMotor", techPadNumber + "SmallMotor");
+
+                if (SystemConfig.isOptSet("pcsx2_pressure") && !string.IsNullOrEmpty(SystemConfig["pcsx2_pressure"]))
+                {
+                    string pressure = SystemConfig["pcsx2_pressure"];
+                    pcsx2ini.WriteValue(padNumber, "Pressure", techPadNumber + GetDInputKeyName(dinputController, pressure));
+                }
 
                 // Specific cases for driving games
                 if (SystemConfig.isOptSet("pcsx2_triggersdriving") && !string.IsNullOrEmpty(SystemConfig["pcsx2_triggersdriving"]))
@@ -519,6 +525,17 @@ namespace EmulatorLauncher
                 pcsx2ini.WriteValue(padNumber, "RLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogleft, tech));
                 pcsx2ini.WriteValue(padNumber, "LargeMotor", techPadNumber + "LargeMotor");
                 pcsx2ini.WriteValue(padNumber, "SmallMotor", techPadNumber + "SmallMotor");
+
+                if (SystemConfig.isOptSet("pcsx2_pressure") && !string.IsNullOrEmpty(SystemConfig["pcsx2_pressure"]))
+                {
+                    string pressure = SystemConfig["pcsx2_pressure"];
+                    InputKey pressureKey = InputKey.l3;
+
+                    if (pressure == "rightstick")
+                        pressureKey = InputKey.r3;
+
+                    pcsx2ini.WriteValue(padNumber, "Pressure", techPadNumber + GetInputKeyName(ctrl, pressureKey, tech));
+                }
 
                 // Specific cases for driving games
                 if (SystemConfig.isOptSet("pcsx2_triggersdriving") && !string.IsNullOrEmpty(SystemConfig["pcsx2_triggersdriving"]))

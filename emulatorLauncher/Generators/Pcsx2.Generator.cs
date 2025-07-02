@@ -778,7 +778,7 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "EmuCore/GS", "TriFilter", "trilinear_filtering", "-1");
                 BindIniFeature(ini, "EmuCore/GS", "MaxAnisotropy", "anisotropic_filtering", "0");
                 BindIniFeature(ini, "EmuCore/GS", "dithering_ps2", "dithering", "2");
-                BindIniFeatureSlider(ini, "EmuCore/GS", "accurate_blending_unit", "blending_accuracy", "3");
+                BindIniFeatureSlider(ini, "EmuCore/GS", "accurate_blending_unit", "blending_accuracy", "1");
                 BindBoolIniFeature(ini, "EmuCore/GS", "fxaa", "fxaa", "true", "false");
                 BindIniFeature(ini, "EmuCore/GS", "TVShader", "TVShader", "0");
 
