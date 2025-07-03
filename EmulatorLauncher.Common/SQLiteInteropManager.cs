@@ -51,21 +51,15 @@ namespace EmulatorLauncher.Common
 
                 foreach (var prop in properties)
                 {
-                    if (prop.Value.PropertyType == typeof(string))
-                    {
-                        var str = reader.GetString(prop.Key);
-                        prop.Value.SetValue(instance, str, null);
+                    object value = reader.GetValue(prop.Key);
+                    if (value == System.DBNull.Value || value == null)
+                        continue;
+
+                    try 
+                    { 
+                        prop.Value.SetValue(instance, Convert.ChangeType(value, prop.Value.PropertyType), null); 
                     }
-                    else if (prop.Value.PropertyType == typeof(int))
-                    {
-                        var intVal = reader.GetInt32(prop.Key);
-                        prop.Value.SetValue(instance, intVal, null);
-                    }
-                    else if (prop.Value.PropertyType == typeof(long))
-                    {
-                        var intVal = reader.GetInt64(prop.Key);
-                        prop.Value.SetValue(instance, intVal, null);
-                    }
+                    catch { }
                 }
 
                 ret.Add(instance);

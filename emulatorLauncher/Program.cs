@@ -15,6 +15,7 @@ using EmulatorLauncher.Common.Compression;
 using EmulatorLauncher.PadToKeyboard;
 using EmulatorLauncher.Libretro;
 using EmulatorLauncher.Common.Compression.Wrappers;
+using EmulatorLauncher.Common.Launchers;
 
 // XBox
 // -p1index 0 -p1guid 030000005e040000ea02000000007801 -p1name "XBox One S Controller" -p1nbbuttons 11 -p1nbhats 1 -p1nbaxes 6 -system pcengine -emulator libretro -core mednafen_supergrafx -rom "H:\[Emulz]\roms\pcengine\1941 Counter Attack.pce"
@@ -388,6 +389,12 @@ namespace EmulatorLauncher
             }
 
             #region arguments
+            if (args.Any(a => "-updatestores".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                GameStoresManager.UpdateGames();
+                return;
+            }
+
             if (args.Any(a => "-resetusbcontrollers".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
                 bool elevated = WindowsIdentity.GetCurrent().Owner.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid);
