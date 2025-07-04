@@ -16,6 +16,8 @@ namespace EmulatorLauncher
 {
     partial class PortsLauncherGenerator : Generator
     {
+        private bool _finishProcess = false;
+
         private void ConfigurePort(List<string> commandArray, string rom, string exe)
         {
             // Add one method per port to configure, you can pass commandArray if the port requires special command line arguments
@@ -395,7 +397,7 @@ namespace EmulatorLauncher
 
         private void ConfigureOpenGoal(List<string> commandArray, string rom)
         {
-            List<string> openGoalGames = new List<string> { "jak1", "jak2" };
+            List<string> openGoalGames = new List<string> { "jak1", "jak2", "jak3" };
             Dictionary<string, string> openGoalDefaultRes = new Dictionary<string, string> 
             {
                 { "jak1", "aspect4x3 4 3 #t" },
@@ -434,6 +436,50 @@ namespace EmulatorLauncher
 
             if (!openGoalGames.Contains(gameName))
                 throw new ApplicationException("Game not supported by engine, ensure the game name is correct : " + gameName);
+
+            // Check if game has been extracted already, if not, user can set path to iso in ES
+            string outDataPath = Path.Combine(_path, "data", "out", gameName);
+            {
+                if (!Directory.Exists(outDataPath))
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] OpenGOAL data folder not found, checking if a path to ISO is specified.");
+                    
+                    string isoSearch = "opengoal_isopath_" + gameName;
+
+                    if (SystemConfig.isOptSet(isoSearch) && !string.IsNullOrEmpty(SystemConfig[isoSearch]))
+                    {
+                        string isoPath = SystemConfig[isoSearch];
+                        if (!File.Exists(isoPath))
+                            SimpleLogger.Instance.Error("[ERROR] Failed to extract game from ISO: " + isoPath);
+                        else
+                        {
+                            SimpleLogger.Instance.Error("[INFO] Trying to extract game file with provided path: " + isoPath);
+                            
+                            var openGoalExtract = new ProcessStartInfo()
+                            {
+                                FileName = Path.Combine(_path, "extractor.exe"),
+                                WorkingDirectory = _path,
+                                Arguments = "\"" + isoPath + "\"",
+                            };
+
+                            try
+                            {
+                                using (var process = new Process())
+                                {
+                                    process.StartInfo = openGoalExtract;
+                                    process.Start();
+                                    process.WaitForExit();
+                                    _finishProcess = true;
+                                    return;
+                                }
+                            }
+                            catch (Exception ex) { SimpleLogger.Instance.Error("[ERROR] Failed to extract game from ISO: " + isoPath + " - " + ex.Message); }
+                        }
+                    }
+                    else
+                        throw new ApplicationException("File needs to be extracted first.");
+                }
+            }
 
             commandArray.Add("-g");
             commandArray.Add(gameName);
