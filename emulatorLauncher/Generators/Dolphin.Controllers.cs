@@ -195,8 +195,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "@(Alt+RETURN)");
                     ini.WriteValue("Hotkeys", "General/Exit", "ESCAPE");
                     ini.WriteValue("Hotkeys", "General/Take Screenshot", "`F9`");
-                    ini.WriteValue("Hotkeys", "General/Eject Disc", "Alt+E");
-                    ini.WriteValue("Hotkeys", "General/Change Disc", "Alt+S");
+                    ini.WriteValue("Hotkeys", "General/Eject Disc", "@(Alt+E)");
+                    ini.WriteValue("Hotkeys", "General/Change Disc", "@(Alt+S)");
                 }
             }
         }
