@@ -536,7 +536,7 @@ namespace EmulatorLauncher
                     bool realWiimoteAsEmulated = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig["emulatedwiimotes"] != "0" && Program.SystemConfig["emulatedwiimotes"] != "1");
 
                     // wiimote scanning
-                    if (emulatedWiiMote || system == "gamecube" || _triforce)
+                    if (emulatedWiiMote || system == "gamecube" || _triforce || SystemConfig.getOptBoolean("dolphin_nowiimotescan"))
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "False");
                     else
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "True");

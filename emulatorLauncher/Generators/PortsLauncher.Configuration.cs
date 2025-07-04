@@ -505,6 +505,20 @@ namespace EmulatorLauncher
             debugSettings["text_check_range"] = "false";
             debugSettings.Save();
 
+            // Display settings
+            string displaySettingsFile = Path.Combine(gameConfigPath, "settings", "display-settings.json");
+            var displayConf = DynamicJson.Load(displaySettingsFile);
+
+            BindFeature(displayConf, "display_id", "MonitorIndex", "0");
+            if (_fullscreen && SystemConfig.getOptBoolean("exclusivefs"))
+                displayConf["display_mode"] = "2";
+            else if (_fullscreen)
+                displayConf["display_mode"] = "1";
+            else
+                displayConf["display_mode"] = "0";
+
+            displayConf.Save();
+
             // Game settings - to check settings for jak 2
             string configFilePath = Path.Combine(gameConfigPath, "settings", "pc-settings.gc");
 
@@ -556,8 +570,6 @@ namespace EmulatorLauncher
             else
                 bindFeature("aspect-state", openGoalDefaultRes.ContainsKey(gameName) ? openGoalDefaultRes[gameName] : "");
 
-            bindFeature("display-mode", "borderless");
-
             if (SystemConfig.isOptSet("opengoal_resolution") && !string.IsNullOrEmpty(SystemConfig["opengoal_resolution"]))
                 bindFeature("game-size", SystemConfig["opengoal_resolution"]);
             else
@@ -567,15 +579,6 @@ namespace EmulatorLauncher
                 string res = _resolution == null ? width + " " + height : _resolution.Width.ToString() + " " + _resolution.Height.ToString();
                 bindFeature("game-size", res);
             }
-
-            if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
-            {
-                int index = SystemConfig["MonitorIndex"].ToInteger();
-                if (index >= 0)
-                    bindFeature("monitor", (index - 1).ToString());
-            }
-            else
-                bindFeature("monitor", "0");
 
             bindFeature("letterbox", "#t");
 
@@ -590,9 +593,9 @@ namespace EmulatorLauncher
                 bindFeature("discord-rpc?", "#f");
 
             if (SystemConfig.isOptSet("opengoal_subtitles") && !SystemConfig.getOptBoolean("opengoal_subtitles"))
-                bindFeature("subtitles?", "#f");
+                bindFeature(gameName == "jak2" ? "memcard-subtitles?" : "subtitles ?", "#f");
             else
-                bindFeature("subtitles?", "#t");
+                bindFeature(gameName == "jak2" ? "memcard-subtitles?" : "subtitles?", "#t");
 
             if (SystemConfig.isOptSet("opengoal_region") && !string.IsNullOrEmpty(SystemConfig["opengoal_region"]))
                 bindFeature("territory", SystemConfig["opengoal_region"]);
