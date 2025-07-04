@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml.Serialization;
 using System.IO;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common;
 
 namespace RetrobatUpdater
 {
@@ -156,9 +157,13 @@ namespace RetrobatUpdater
                 try
                 {
                     if (File.Exists(newPath))
+                    {
                         File.Delete(newPath);
+                        SimpleLogger.Instance.Info("[Upgrade] Deled " + newPath);
+                    }
 
                     File.Move(oldPath, newPath);
+                    SimpleLogger.Instance.Info("[Upgrade] Copied " + oldPath + " to " + newPath);
                 }
                 catch { }
             }
@@ -167,6 +172,7 @@ namespace RetrobatUpdater
                 try
                 {
                     Directory.Move(oldPath, newPath);
+                    SimpleLogger.Instance.Info("[Upgrade] Copied " + oldPath + " to " + newPath);
                 }
                 catch { }
             }
@@ -191,7 +197,11 @@ namespace RetrobatUpdater
                         var files = Directory.GetFiles(Path.GetDirectoryName(fullPath), Path.GetFileName(fullPath));
                         foreach (var file in files)
                         {
-                            try { File.Delete(file); }
+                            try 
+                            { 
+                                File.Delete(file);
+                                SimpleLogger.Instance.Info("[Upgrade] Deled " + file);
+                            }
                             catch { }
                         }
                     }
@@ -206,7 +216,10 @@ namespace RetrobatUpdater
                 if (Directory.Exists(fullPath))
                     TryDeleteDirectory(fullPath);
                 else if (File.Exists(fullPath))
+                {
                     File.Delete(fullPath);
+                    SimpleLogger.Instance.Info("[Upgrade] Deled " + fullPath);
+                }
             }
             catch {}
         }
@@ -218,7 +231,11 @@ namespace RetrobatUpdater
 
             foreach (var file in Directory.GetFiles(fullPath))
             {
-                try { File.Delete(file); }
+                try 
+                { 
+                    File.Delete(file);
+                    SimpleLogger.Instance.Info("[Upgrade] Deled " + file);
+                }
                 catch
                 {
                     try

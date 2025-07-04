@@ -89,26 +89,7 @@ namespace RetrobatUpdater
                     SimpleLogger.Instance.Error("Failed to download update");
                     ConsoleOutput("Failed to download update");
                     return 1;
-                }
-
-                // Check SHA
-                if (false) // disabled
-                {
-                    try
-                    {
-                        string remoteSha = WebTools.DownloadString(url + ".sha256.txt");
-                        if (!string.IsNullOrEmpty(remoteSha))
-                        {
-                            var localSha = GetSha256(file);
-
-                            if (remoteSha != localSha)
-                            {
-                                SimpleLogger.Instance.Warning("SHA mismatch");
-                            }
-                        }
-                    }
-                    catch { }
-                }                
+                }       
 
                 // Extract zip archive
                 lastPercent = -1;
