@@ -335,6 +335,7 @@ namespace EmulatorLauncher
             if (args.Length == 0)
                 return;
 
+
             // Used by XInputDevice.GetDevices
             if (args.Length == 2 && args[0] == "-queryxinputinfo")
             {

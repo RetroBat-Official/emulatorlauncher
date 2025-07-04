@@ -8,6 +8,27 @@ namespace EmulatorLauncher
 {
     partial class ExeLauncherGenerator : Generator
     {
+        class LocalFileGameLauncher : GameLauncher
+        {
+            public LocalFileGameLauncher(Uri uri)
+            {
+                LauncherExe = uri.LocalPath;
+            }
+
+            public override int RunAndWait(ProcessStartInfo path)
+            {
+                try
+                {
+                    var process = Process.Start(LauncherExe);
+                    process.WaitForExit();
+                    return 0;
+                }
+                catch { }
+
+                return -1;
+            }
+        }
+
         class AmazonGameLauncher : GameLauncher
         {
             public AmazonGameLauncher(Uri uri)
