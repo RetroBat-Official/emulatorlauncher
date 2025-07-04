@@ -119,6 +119,8 @@
     <Compile Include="Joysticks\VidPid.cs" />
     <Compile Include="Joysticks\WinmmJoystick.cs" />
     <Compile Include="Joysticks\XInputDevice.cs" />
+    <Compile Include="Launchers\EaGamesLibrary.cs" />
+    <Compile Include="Launchers\GogLibrary.cs" />
     <Compile Include="Launchers\AmazonLibrary.cs" />
     <Compile Include="Launchers\EpicLibrary.cs" />
     <Compile Include="Launchers\LauncherGameInfo.cs" />
