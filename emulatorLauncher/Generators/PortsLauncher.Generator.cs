@@ -4,6 +4,7 @@ using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.PadToKeyboard;
+using System;
 
 namespace EmulatorLauncher
 {
@@ -112,6 +113,9 @@ namespace EmulatorLauncher
             List<string> commandArray = new List<string>();
 
             ConfigurePort(commandArray, rom, exe);
+
+            if (_finishProcess)
+                throw new ApplicationException("Game has been extracted from specified iso file.");
 
             // Setting up bezels, can be with or without reshade based on Dictionary
             if (systemBezels.ContainsKey(emulator) && systemBezels[emulator] != "no" && _fullscreen && !_nobezels)

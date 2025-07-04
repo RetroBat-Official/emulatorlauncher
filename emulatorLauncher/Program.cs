@@ -381,13 +381,6 @@ namespace EmulatorLauncher
             // Check consistance of path
             string rbPath = AppConfig.GetFullPath("retrobat");
 
-            if (!SystemDefaults.CheckConsistance(rbPath))
-            {
-                SimpleLogger.Instance.Error("");
-                Environment.ExitCode = ObscureCode(0xCA, 0x80);
-                return;
-            }
-
             #region arguments
             if (args.Any(a => "-updatestores".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
@@ -634,13 +627,6 @@ namespace EmulatorLauncher
                         if (frm.ShowDialog() != DialogResult.OK)
                             return;
                 }
-            }
-
-            if (!SystemDefaults.CheckConfig(rbPath))
-            {
-                SimpleLogger.Instance.Error("");
-                Environment.ExitCode = ObscureCode(0xCA, 0x80);
-                return;
             }
 
             // Load features, run the generator to configure and set up command lines, start emulator process and cleanup after emulator process ends

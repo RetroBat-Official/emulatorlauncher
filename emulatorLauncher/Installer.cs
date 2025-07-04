@@ -685,9 +685,6 @@ namespace EmulatorLauncher
                 pos += 100;
             }
         }
-
-        public static List<string> basexxList = new List<string>() { "bHVtYWNhLmV4ZQ==", "cHJvamVjdGFyY2FkZS5leGU=", "c3RhdGlvbnN5c3RlbS5leGU=" };
-        public static List<string> cleanList = new List<string>() { "cmV0cm9iYXQuZXhl" };
     }
 
     [XmlType("system")]
