@@ -10,6 +10,18 @@ namespace es_checkversion
 {
     class Program
     {
+        private static List<string> oldFiles = new List<string>
+        {
+            "7z.dll.old",
+            "emulationstation.exe.old",
+            "Emulatorlauncher.Common.dll.old",
+            "FreeImage.dll.old",
+            "libcurl.dll.old",
+            "libvlc.dll.old",
+            "libvlccore.dll.old",
+            "SDL2_mixer.dll.old",
+        };
+
         static int Main(string[] args)
         {
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
@@ -36,6 +48,17 @@ namespace es_checkversion
                 if (string.IsNullOrEmpty(remoteVersion))
                     throw new ApplicationException("Unable to get remote version");
                 SimpleLogger.Instance.Info("[INFO] Available remote Version: " + remoteVersion);
+
+                foreach (string old in oldFiles)
+                {
+                    string oldFile = Path.Combine(Path.GetDirectoryName(typeof(RetrobatVersion).Assembly.Location), old);
+                    if (File.Exists(oldFile))
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Removing old file: " + oldFile);
+                        try { File.Delete(oldFile); }
+                        catch { }
+                    }
+                }
 
                 if (localVersion != remoteVersion)
                 {
