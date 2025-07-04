@@ -143,8 +143,30 @@ namespace RetrobatUpdater
                         if (upgradeInfo != null && !upgradeInfo.IsOverridable(entry.Filename))
                             if (File.Exists(Path.Combine(rootPath, entry.Filename)))
                                 continue;
-                        
-                        entry.Extract(rootPath);
+
+                        try
+                        {
+                            string target = Path.Combine(rootPath, entry.Filename);
+
+                            if (File.Exists(target))
+                            {
+                                string copyTarget = target + ".old";
+                                if (File.Exists(copyTarget))
+                                    try { File.Delete(copyTarget); } catch { } // delete old copy
+                                File.Move(target, target + ".old");
+                            }
+                            entry.Extract(rootPath);
+                            FileTools.TryDeleteFile(target + ".old");
+
+                            SimpleLogger.Instance.Info("Copied File : " + target);
+
+                            if (File.Exists(target + ".old"))
+                            {
+                                SimpleLogger.Instance.Info("Could not delete old file : " + target + ".old");
+                            }
+                        }
+                        catch 
+                        { }
 
                         int percent = (idx * 100) / entries.Count;
                         if (percent != lastPercent)
