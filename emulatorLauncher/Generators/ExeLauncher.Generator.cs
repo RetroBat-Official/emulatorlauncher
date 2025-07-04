@@ -30,9 +30,10 @@ namespace EmulatorLauncher
 
         static readonly Dictionary<string, Func<Uri, GameLauncher>> launchers = new Dictionary<string, Func<Uri, GameLauncher>>()
         {
+            { "file", (uri) => new LocalFileGameLauncher(uri) },
             { "com.epicgames.launcher", (uri) => new EpicGameLauncher(uri) },
             { "steam", (uri) => new SteamGameLauncher(uri) },
-            { "amazon-games", (uri) => new AmazonGameLauncher(uri) }
+            { "amazon-games", (uri) => new AmazonGameLauncher(uri) }            
         };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
