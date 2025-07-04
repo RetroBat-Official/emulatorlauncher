@@ -89,26 +89,7 @@ namespace RetrobatUpdater
                     SimpleLogger.Instance.Error("Failed to download update");
                     ConsoleOutput("Failed to download update");
                     return 1;
-                }
-
-                // Check SHA
-                if (false) // disabled
-                {
-                    try
-                    {
-                        string remoteSha = WebTools.DownloadString(url + ".sha256.txt");
-                        if (!string.IsNullOrEmpty(remoteSha))
-                        {
-                            var localSha = GetSha256(file);
-
-                            if (remoteSha != localSha)
-                            {
-                                SimpleLogger.Instance.Warning("SHA mismatch");
-                            }
-                        }
-                    }
-                    catch { }
-                }                
+                }       
 
                 // Extract zip archive
                 lastPercent = -1;
@@ -143,8 +124,30 @@ namespace RetrobatUpdater
                         if (upgradeInfo != null && !upgradeInfo.IsOverridable(entry.Filename))
                             if (File.Exists(Path.Combine(rootPath, entry.Filename)))
                                 continue;
-                        
-                        entry.Extract(rootPath);
+
+                        try
+                        {
+                            string target = Path.Combine(rootPath, entry.Filename);
+
+                            if (File.Exists(target))
+                            {
+                                string copyTarget = target + ".old";
+                                if (File.Exists(copyTarget))
+                                    try { File.Delete(copyTarget); } catch { } // delete old copy
+                                File.Move(target, target + ".old");
+                            }
+                            entry.Extract(rootPath);
+                            FileTools.TryDeleteFile(target + ".old");
+
+                            SimpleLogger.Instance.Info("Copied File : " + target);
+
+                            if (File.Exists(target + ".old"))
+                            {
+                                SimpleLogger.Instance.Info("Could not delete old file : " + target + ".old");
+                            }
+                        }
+                        catch 
+                        { }
 
                         int percent = (idx * 100) / entries.Count;
                         if (percent != lastPercent)

@@ -28,6 +28,10 @@ namespace es_checkversion
                     throw new ApplicationException("Retrobat is not properly installed");
                 SimpleLogger.Instance.Info("[INFO] Local Version: " + localVersion);
 
+                string esVersionFile = Path.Combine(Path.GetDirectoryName(typeof(RetrobatVersion).Assembly.Location), "version.info");
+                if (!string.IsNullOrEmpty(localVersion))
+                    File.WriteAllText(esVersionFile, localVersion);
+
                 string remoteVersion = RetrobatVersion.GetRemoteVersion(branch, localVersion);
                 if (string.IsNullOrEmpty(remoteVersion))
                     throw new ApplicationException("Unable to get remote version");

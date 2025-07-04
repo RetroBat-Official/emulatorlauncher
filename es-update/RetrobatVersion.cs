@@ -57,6 +57,8 @@ namespace RetrobatUpdater
         {
             string localFile = GetLocalVersionInfoPath();
             File.WriteAllText(localFile, version);
+            string esVersionFile = Path.Combine(Path.GetDirectoryName(typeof(RetrobatVersion).Assembly.Location), "version.info");
+            File.WriteAllText(esVersionFile, version);
         }
     }
 }
