@@ -38,38 +38,6 @@ namespace EmulatorLauncher
             return _ymlSystemsCache.Where(i => i.system == system).Select(i => i.emulator).FirstOrDefault();
         }
 
-        public static bool CheckConsistance(string path)
-        {
-            string[] exeFiles = Directory.GetFiles(path, "*.exe", SearchOption.TopDirectoryOnly);
-
-            foreach (string filePath in exeFiles)
-            {
-                string fileName = Path.GetFileName(filePath).ToLowerInvariant();
-                string base64FileName = Convert.ToBase64String(Encoding.UTF8.GetBytes(fileName));
-
-                if (Installer.basexxList.Contains(base64FileName))
-                    return false;
-            }
-
-            return true; 
-        }
-
-        public static bool CheckConfig(string path)
-        {
-            string[] exeFiles = Directory.GetFiles(path, "*.exe", SearchOption.TopDirectoryOnly);
-
-            foreach (string filePath in exeFiles)
-            {
-                string fileName = Path.GetFileName(filePath).ToLowerInvariant();
-                string base64FileName = Convert.ToBase64String(Encoding.UTF8.GetBytes(fileName));
-
-                if (Installer.cleanList.Contains(base64FileName))
-                    return true;
-            }
-
-            return false;
-        }
-
         public static string GetDefaultCore(string system)
         {
             EnsureCache();
