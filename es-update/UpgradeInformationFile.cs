@@ -59,6 +59,10 @@ namespace RetrobatUpdater
                 if (upgrade.RenameActions != null)
                     foreach (var action in upgrade.RenameActions)
                         action.Execute(rootPath);
+
+                if (upgrade.MoveActions != null)
+                    foreach (var action in upgrade.MoveActions)
+                        action.Execute(rootPath);
             }
         }
 
@@ -134,6 +138,9 @@ namespace RetrobatUpdater
 
         [XmlElement("delete")]
         public DeleteAction[] DeleteActions { get; set; }
+
+        [XmlElement("move")]
+        public MoveAction[] MoveActions { get; set; }
 
         [XmlAttribute("version")]
         public string Version { get; set; }
@@ -252,6 +259,54 @@ namespace RetrobatUpdater
 
             try { Directory.Delete(fullPath); }
             catch { }
+        }
+    }
+
+    public partial class MoveAction
+    {
+        [XmlAttribute("path")]
+        public string path { get; set; }
+
+        [XmlAttribute("to")]
+        public string to { get; set; }
+
+        public void Execute(string root)
+        {
+            string oldPath = Path.Combine(root, path);
+            string newPath = Path.Combine(root, to);
+
+            if (File.Exists(oldPath))
+            {
+                try
+                {
+                    if (!Directory.Exists(Path.GetDirectoryName(newPath)))
+                        try { Directory.CreateDirectory(Path.GetDirectoryName(newPath)); } catch { }
+                    
+                    if (File.Exists(newPath))
+                    {
+                        File.Move(newPath, newPath + ".old");
+                        SimpleLogger.Instance.Info("[Upgrade] Renamed " + newPath + " to " + newPath + ".old");
+                    }
+
+                    File.Move(oldPath, newPath);
+                    SimpleLogger.Instance.Info("[Upgrade] Copied " + oldPath + " to " + newPath);
+                }
+                catch { }
+            }
+            if (Directory.Exists(newPath))
+            {
+                Directory.Move(newPath, newPath + ".old");
+            }
+            
+            if (Directory.Exists(oldPath) && !Directory.Exists(newPath))
+            {
+                try
+                {
+                    Directory.Move(oldPath, newPath);
+                    SimpleLogger.Instance.Info("[Upgrade] Copied " + oldPath + " to " + newPath);
+                }
+                catch { }
+            }
         }
     }
 }
