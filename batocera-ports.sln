@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.34601.136
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "batocera-install", "batocera-install\batocera-install.csproj", "{3AB028E9-C1FC-427B-B373-F387A72A7CE5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "batocera-wifi", "batocera-wifi\batocera-wifi.csproj", "{31F8CD5F-09FA-4429-B050-EA99CFD9164A}"
@@ -63,6 +65,18 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "x64controllers", "x64controllers\x64controllers.csproj", "{43EC6F2E-C62A-414F-8C0E-AAB1F799E70F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Éléments de solution", "Éléments de solution", "{BC1E3FFC-8D18-426E-ACEE-C21BE22AAC68}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{92C87EA0-6822-4CF0-AB79-B340ABEB25E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "start", "start", "{DC64C3C3-18FC-4191-B69F-FBF8AFBA1DC2}"
+	ProjectSection(SolutionItems) = preProject
+		.emulationstation\scripts\start\updatestores.bat = .emulationstation\scripts\start\updatestores.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "update-gamelists", "update-gamelists", "{842F14C8-8207-4DEB-98CC-93B94EDEBF7C}"
+	ProjectSection(SolutionItems) = preProject
+		.emulationstation\scripts\update-gamelists\updatestores.bat = .emulationstation\scripts\update-gamelists\updatestores.bat
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -226,6 +240,9 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{2BEB480F-A324-4861-AAFF-C36BE928631B} = {56B39FFD-1B80-497D-BA0E-1B9D59CB9313}
+		{92C87EA0-6822-4CF0-AB79-B340ABEB25E8} = {2BEB480F-A324-4861-AAFF-C36BE928631B}
+		{DC64C3C3-18FC-4191-B69F-FBF8AFBA1DC2} = {92C87EA0-6822-4CF0-AB79-B340ABEB25E8}
+		{842F14C8-8207-4DEB-98CC-93B94EDEBF7C} = {92C87EA0-6822-4CF0-AB79-B340ABEB25E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC96BEC8-AD81-4A62-9552-8D8FAD663EF0}
