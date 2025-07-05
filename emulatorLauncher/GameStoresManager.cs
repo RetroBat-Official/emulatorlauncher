@@ -72,9 +72,13 @@ namespace EmulatorLauncher
                 if (shell != null)
                     System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shell);
 
-                foreach (var file in files)
-                    FileTools.TryDeleteFile(file);
+                if (!Program.SystemConfig.getOptBoolean("storekeep"))
+                {
+                    foreach (var file in files)
+                        FileTools.TryDeleteFile(file);
+                }
             }
+
             catch (Exception ex) { SimpleLogger.Instance.Error("[ImportStore] " + name + " : " + ex.Message, ex); }
         }
     }

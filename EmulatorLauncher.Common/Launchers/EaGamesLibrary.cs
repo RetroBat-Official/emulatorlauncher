@@ -13,6 +13,7 @@ namespace EmulatorLauncher.Common.Launchers
             var games = new List<LauncherGameInfo>();
 
             var key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Ea Games", false);
+            
             if (key != null)
             {
                 foreach (var subkeyName in key.GetSubKeyNames())
