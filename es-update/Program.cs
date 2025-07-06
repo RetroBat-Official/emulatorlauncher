@@ -68,12 +68,16 @@ namespace RetrobatUpdater
                 }
                 catch { }
 
-                try { Directory.CreateDirectory(tempDirectory); }
-                catch { }
+                try 
+                { 
+                    Directory.CreateDirectory(tempDirectory);
+                    SimpleLogger.Instance.Info("[INFO] Creation of temporary folder: " + tempDirectory);
+                }
+                catch { SimpleLogger.Instance.Error("[ERROR] Unable to create temp folder: " + tempDirectory); }
 
                 // Download Zip Archive
                 int lastPercent = -1;
-
+                SimpleLogger.Instance.Info("[INFO] Downloading update from: " + url);
                 string file = WebTools.DownloadFile(url, tempDirectory, (o, e) =>
                 {
                     int percent = e.ProgressPercentage;
@@ -86,7 +90,7 @@ namespace RetrobatUpdater
 
                 if (string.IsNullOrEmpty(file))
                 {
-                    SimpleLogger.Instance.Error("Failed to download update");
+                    SimpleLogger.Instance.Error("[ERROR] Failed to download update");
                     ConsoleOutput("Failed to download update");
                     return 1;
                 }       
@@ -103,6 +107,7 @@ namespace RetrobatUpdater
                     var upgrade = entries.FirstOrDefault(e => e.Filename == "system\\upgrade.xml");
                     if (upgrade != null)
                     {
+                        SimpleLogger.Instance.Info("[INFO] Reading upgrade file: " + upgrade);
                         upgrade.Extract(tempDirectory);
 
                         // Process upgrade actions
@@ -243,6 +248,7 @@ namespace RetrobatUpdater
             {
                 if (File.Exists(upgradeFile))
                 {
+                    SimpleLogger.Instance.Info("[INFO] Reading upgrade.xml file, looking for upgrade actions.");
                     upgrades = UpgradeInformationFile.FromXml(upgradeFile);
                     if (upgrades != null)
                         upgrades.Process(rootPath, localVersion);
