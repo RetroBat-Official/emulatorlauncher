@@ -117,7 +117,7 @@ namespace RetrobatUpdater
                     foreach (var entry in entries)
                     {
                         // Don't extract upgrade.xml file
-                        if (entry.Filename == "upgrade.xml")
+                        if (entry.Filename == "system\\upgrade.xml")
                             continue;
 
                         // don't overwrite if excluded
@@ -128,6 +128,17 @@ namespace RetrobatUpdater
                         try
                         {
                             string target = Path.Combine(rootPath, entry.Filename);
+
+                            // Do not overwrite NVRAM files if they exist
+                            if (File.Exists(target))
+                            {
+                                bool isNVRAM = CheckNVRam(target);
+                                if (isNVRAM)
+                                {
+                                    SimpleLogger.Instance.Info("[INFO] Skipped NVRAM File : " + target + " as it already exists.");
+                                    continue;
+                                }
+                            }
 
                             if (File.Exists(target))
                             {
@@ -210,19 +221,18 @@ namespace RetrobatUpdater
             }
         }
 
-        private static string GetSha256(string filePath)
+        private static bool CheckNVRam(string path)
         {
-            using (var SHA256 = SHA256Managed.Create())
-            {
-                using (FileStream fileStream = System.IO.File.OpenRead(filePath))
-                {
-                    string result = "";
-                    foreach (var hash in SHA256.ComputeHash(fileStream))
-                        result += hash.ToString("x2");
+            if (path.Contains("emulators\\flycast\\data") && (path.EndsWith(".eeprom") || path.EndsWith(".nvmem") || path.EndsWith(".nvmem2")))
+                return true;
+            if (path.Contains("saves\\mame\\nvram"))
+                return true;
+            if (path.Contains("emulators\\m2emulator\\NVDATA") && path.EndsWith(".DAT"))
+                return true;
+            if (path.Contains("emulators\\supermodel\\NVRAM") && path.EndsWith(".nv"))
+                return true;
 
-                    return result;
-                }
-            }
+            return false;
         }
 
         private static UpgradeInformationFile ProcessUpgradeActions(string upgradeFile, string rootPath, string localVersion)
