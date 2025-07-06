@@ -14,7 +14,7 @@ namespace EmulatorLauncher
 
         private void CreateGunConfiguration(IniFile ini)
         {
-            bool gun = (SystemConfig["use_guns"] == "1" || SystemConfig["duck_controller1"] == "GunCon");
+            bool gun = SystemConfig.getOptBoolean("use_guns") || SystemConfig["duck_controller1"] == "GunCon";
             
             if (!gun)
                 return;
