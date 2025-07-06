@@ -1435,7 +1435,7 @@ namespace EmulatorLauncher
                 if (gunCount > 1 && guns.Length > 1)
                     mouseIndex2 = (guns[1].Index + 1).ToString();
 
-                if (SystemConfig.isOptSet("use_guns") && guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+                if (useGun && guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
                 {
                     Guns.StartSindenSoftware();
                     _sindenSoft = true;
