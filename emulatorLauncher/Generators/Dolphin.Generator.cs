@@ -684,6 +684,9 @@ namespace EmulatorLauncher
                         ini.WriteValue("Core", "EnableCheats", "True");                 // Cheats must be enabled
                     }
 
+                    // Bluetooth passthrough
+                    BindBoolIniFeature(ini, "BluetoothPassthrough", "Enabled", "dolphin_bt_pass", "True", "False");
+
                     DolphinControllers.WriteControllersConfig(path, ini, system, rom, _triforce, out _sindenSoft);
 
                     ini.Save();
