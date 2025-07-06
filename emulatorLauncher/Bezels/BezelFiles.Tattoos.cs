@@ -26,9 +26,9 @@ namespace EmulatorLauncher
                 {
                     string rom = Program.SystemConfig["rom"];
                     string gameName = rom != null ? Path.GetFileNameWithoutExtension(rom) : "system";
-                    tattooFile = Path.Combine(Program.AppConfig.GetFullPath("tattoos"), "games", system, gameName + ".png");
+                    tattooFile = Path.Combine(Program.AppConfig.GetFullPath("user"), "tattoos", "games", system, gameName + ".png");
                     if (!File.Exists(tattooFile))
-                        tattooFile = Path.Combine(Program.AppConfig.GetFullPath("tattoos"), "default", system + ".png");
+                        tattooFile = Path.Combine(Program.AppConfig.GetFullPath("user"), "tattoos", "default", system + ".png");
                     if (!File.Exists(tattooFile))
                         tattooFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tattoos", "games", system, gameName + ".png");
                     if (!File.Exists(tattooFile))

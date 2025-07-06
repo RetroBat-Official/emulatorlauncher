@@ -129,7 +129,7 @@ namespace EmulatorLauncher.Common.FileFormats
                 if (key == "home" && Directory.Exists(Path.Combine(LocalPath, ".emulationstation")))                        
                     return Path.Combine(LocalPath, ".emulationstation");
 
-                if (key == "bios" || key == "saves" || key == "thumbnails" || key == "shaders" || key == "decorations" || key == "tattoos" || key == "screenshots" || key == "roms" || key == "records" || key == "cheats")
+                if (key == "bios" || key == "saves" || key == "thumbnails" || key == "shaders" || key == "decorations" || key == "tattoos" || key == "screenshots" || key == "roms" || key == "records" || key == "cheats" || key == "user")
                 {
                     if (Directory.Exists(Path.GetFullPath(Path.Combine(LocalPath, "..", key))))
                         return Path.Combine(Path.GetFullPath(Path.Combine(LocalPath, "..", key)));
