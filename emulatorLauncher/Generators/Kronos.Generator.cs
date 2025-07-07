@@ -205,7 +205,7 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "1.0", "Video\\AspectRatio", "kronos_ratio", "0");
                     BindIniFeature(ini, "1.0", "Video\\upscale_type", "kronos_scaler", "0");
                     BindIniFeature(ini, "1.0", "Video\\filter_type", "kronos_filtering", "0");
-                    BindBoolIniFeature(ini, "1.0", "Video\\MeshMode", "kronos_mesh", "1", "0");
+                    BindBoolIniFeature(ini, "1.0", "Video\\MeshMode", "saturn_meshmode", "1", "0");
                     BindBoolIniFeature(ini, "1.0", "Video\\BandingMode", "kronos_bandingmode", "1", "0");
                     BindIniFeature(ini, "1.0", "Sound\\SoundCore", "kronos_audiocore", "2");
                     BindIniFeature(ini, "1.0", "Cartridge\\Type", "kronos_cartridge", "7");

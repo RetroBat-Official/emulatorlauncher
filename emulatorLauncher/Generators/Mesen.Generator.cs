@@ -17,6 +17,7 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private bool _sindenSoft = false;
+        static List<string> _m3uSystems = new List<string>() { "pcenginecd" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -27,6 +28,19 @@ namespace EmulatorLauncher
                 return null;
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+            // m3u management in some cases
+            if (_m3uSystems.Contains(system))
+            {
+                if (Path.GetExtension(rom).ToLower() == ".m3u")
+                {
+                    string tempRom = File.ReadLines(rom).FirstOrDefault();
+                    if (File.Exists(tempRom))
+                        rom = tempRom;
+                    else
+                        rom = Path.Combine(Path.GetDirectoryName(rom), tempRom);
+                }
+            }
 
             // settings (xml configuration)
             SetupJsonConfiguration(path, system, rom);

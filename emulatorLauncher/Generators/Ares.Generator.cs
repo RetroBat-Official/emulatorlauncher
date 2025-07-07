@@ -3,6 +3,7 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -19,6 +20,7 @@ namespace EmulatorLauncher
         private string _system;
         static List<string> _mdSystems = new List<string>() { "genesis", "megadrive", "mega32x", "megacd", "segacd", "sega32x" };
         static List<string> _n64Systems = new List<string>() { "n64", "n64dd" };
+        static List<string> _m3uSystems = new List<string>() { "PCEngineCD" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -71,6 +73,19 @@ namespace EmulatorLauncher
 
             if (aresSystems.ContainsKey(core))
                 aresSystem = aresSystems[core];
+
+            // m3u management in some cases
+            if (Path.GetExtension(rom).ToLower() == ".m3u")
+            {
+                if (_m3uSystems.Contains(aresSystem))
+                {
+                    string tempRom = File.ReadLines(rom).FirstOrDefault();
+                    if (File.Exists(tempRom))
+                        rom = tempRom;
+                    else
+                        rom = Path.Combine(Path.GetDirectoryName(rom), tempRom);
+                }
+            }
 
             List<string> commandArray = new List<string>
             {

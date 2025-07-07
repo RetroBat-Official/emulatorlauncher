@@ -320,14 +320,11 @@ namespace EmulatorLauncher
                     if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
                     {
                         ini.WriteValue("Achievements", "Enabled", "True");
-                        ini.WriteValue("Achievements", "AchievementsEnabled", "True");
                         ini.WriteValue("Achievements", "EncoreEnabled", SystemConfig.getOptBoolean("retroachievements.encore") ? "True" : "False");
                         ini.WriteValue("Achievements", "HardcoreEnabled", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "True" : "False");
-                        ini.WriteValue("Achievements", "LeaderboardsEnabled", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "True" : "False");
                         ini.WriteValue("Achievements", "DiscordPresenceEnabled", SystemConfig.getOptBoolean("retroachievements.richpresence") ? "True" : "False");
-                        ini.WriteValue("Achievements", "UnofficialEnabled", "False");
-                        ini.WriteValue("Achievements", "BadgesEnabled", "True");
                         ini.WriteValue("Achievements", "ProgressEnabled", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "True" : "False");
+                        //ini.WriteValue("Achievements", "UnofficialEnabled", SystemConfig.getOptBoolean("retroachievements.unofficial") ? "True" : "False");
 
                         // Inject credentials
                         if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
@@ -339,10 +336,12 @@ namespace EmulatorLauncher
                     else
                     {
                         ini.WriteValue("Achievements", "Enabled", "False");
-                        ini.WriteValue("Achievements", "AchievementsEnabled", "False");
+                        ini.WriteValue("Achievements", "DiscordPresenceEnabled", "False");
+                        ini.WriteValue("Achievements", "EncoreEnabled", "False");
                         ini.WriteValue("Achievements", "HardcoreEnabled", "False");
-                        ini.WriteValue("Achievements", "BadgesEnabled", "False");
                         ini.WriteValue("Achievements", "ProgressEnabled", "False");
+                        //ini.WriteValue("Achievements", "UnofficialEnabled", "False");
+                        ini.WriteValue("Achievements", "SpectatorEnabled", "False");
                     }
                 }
             }

@@ -231,6 +231,19 @@ namespace EmulatorLauncher.Libretro
                     rom = newRom;
             }
 
+            // m3u management in some cases
+            if (core == "mednafen_pce" || core == "mednafen_pce_fast")
+            {
+                if (Path.GetExtension(rom).ToLower() == ".m3u")
+                {
+                    string tempRom = File.ReadLines(rom).FirstOrDefault();
+                    if (File.Exists(tempRom))
+                        rom = tempRom;
+                    else
+                        rom = Path.Combine(Path.GetDirectoryName(rom), tempRom);
+                }
+            }
+
             // dosbox core specifics
             if (core != null && core.IndexOf("dosbox", StringComparison.InvariantCultureIgnoreCase) >= 0)
             {
