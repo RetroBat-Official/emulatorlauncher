@@ -124,10 +124,13 @@ namespace EmulatorLauncher
                                 if (saturnGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
                                     needSatActivationSwitch = saturnGamepad.ControllerInfo["needActivationSwitch"] == "yes";
 
+                                inputMapSection = "Input.Port" + playerindex + ".ControlPadBinds";
+
                                 if (saturnGamepad.ControllerInfo.ContainsKey("peripheral"))
                                 {
                                     peripheral = saturnGamepad.ControllerInfo["peripheral"];
-                                    ini.WriteValue(inputSection, "PeripheralType", peripheral);
+                                    ini.WriteValue(inputSection, "PeripheralType", "'" + peripheral + "'");
+                                    inputMapSection = "Input.Port" + playerindex + "." + peripheral + "Binds";
                                 }
 
                                 if (needSatActivationSwitch && !sat_pad)
@@ -147,7 +150,13 @@ namespace EmulatorLauncher
                                     string key = button.Key;
                                     string value = button.Value;
 
-                                    ini.WriteValue(inputMapSection, key, "[ '" + value + "@" + index + "' ]");
+                                    if (value.Contains("_"))
+                                    {
+                                        var newValue = value.Split('_');
+                                        ini.WriteValue(inputMapSection, key, "[ '" + newValue[0] + "@" + index + "', '" + newValue[1] + "@" + index + "' ]");
+                                    }
+                                    else
+                                        ini.WriteValue(inputMapSection, key, "[ '" + value + "@" + index + "' ]");
                                 }
 
                                 SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());

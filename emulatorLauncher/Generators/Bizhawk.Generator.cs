@@ -62,7 +62,11 @@ namespace EmulatorLauncher
             
             if (Path.GetExtension(rom) == ".m3u")
             {
-                rom = File.ReadAllText(rom);
+                string tempRom = File.ReadAllLines(rom).FirstOrDefault();
+                if (File.Exists(tempRom))
+                    rom = tempRom;
+                else
+                    rom = Path.Combine(Path.GetDirectoryName(rom), tempRom);
             }
 
             if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
@@ -687,6 +691,7 @@ namespace EmulatorLauncher
                 json["RARichPresenceActive"] = SystemConfig.getOptBoolean("retroachievements.richpresence") ? "true" : "false";
                 json["RAHardcoreMode"] = SystemConfig.getOptBoolean("retroachievements.hardcore") ? "true" : "false";
                 json["RASoundEffects"] = "true";
+                //json["RAAllowUnofficialCheevos"] = SystemConfig.getOptBoolean("retroachievements.unofficial") ? "true" : "false";
                 json["RAAutostart"] = "true";
             }
             else
@@ -699,6 +704,7 @@ namespace EmulatorLauncher
                 json["RARichPresenceActive"] = "false";
                 json["RAHardcoreMode"] = "false";
                 json["RASoundEffects"] = "false";
+                //json["RAAllowUnofficialCheevos"] = "false";
                 json["RAAutostart"] = "false";
             }
         }

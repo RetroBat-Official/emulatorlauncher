@@ -15,10 +15,12 @@ namespace es_checkversion
             "7z.dll.old",
             "emulationstation.exe.old",
             "Emulatorlauncher.Common.dll.old",
+            "es-update.exe.old",
             "FreeImage.dll.old",
             "libcurl.dll.old",
             "libvlc.dll.old",
             "libvlccore.dll.old",
+            "SDL2.dll.old",
             "SDL2_mixer.dll.old",
         };
 

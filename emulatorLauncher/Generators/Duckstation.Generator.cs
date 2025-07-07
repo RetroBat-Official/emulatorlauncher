@@ -267,14 +267,13 @@ namespace EmulatorLauncher
                         SimpleLogger.Instance.Info("[INFO] Getting Retroachievements information for Cheevos login.");
 
                         ini.WriteValue("Cheevos", "Enabled", "true");
-                        ini.WriteValue("Cheevos", "UnofficialTestMode", "false");
-                        ini.WriteValue("Cheevos", "SoundEffects", "true");
-                        ini.WriteValue("Cheevos", "Notifications", "true");
-                        ini.WriteValue("Cheevos", "UseRAIntegration", "false");
-                        ini.WriteValue("Cheevos", "SpectatorMode", "false");
-                        ini.WriteValue("Cheevos", "ChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "true" : "false");
-                        ini.WriteValue("Cheevos", "LeaderboardNotifications", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
                         ini.WriteValue("Cheevos", "EncoreMode", SystemConfig.getOptBoolean("retroachievements.encore") ? "true" : "false");
+                        //ini.WriteValue("Cheevos", "UnofficialTestMode", SystemConfig.getOptBoolean("retroachievements.unofficial") ? "true" : "false");
+                        ini.WriteValue("Cheevos", "ChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "true" : "false");
+                        ini.WriteValue("Cheevos", "Notifications", "true");
+                        ini.WriteValue("Cheevos", "LeaderboardNotifications", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
+                        ini.WriteValue("Cheevos", "SoundEffects", "true");
+                        ini.WriteValue("Cheevos", "Overlays", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "true" : "false");
 
                         // Inject credentials
                         if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
