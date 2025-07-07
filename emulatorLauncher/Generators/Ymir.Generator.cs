@@ -157,7 +157,10 @@ namespace EmulatorLauncher
                     }
 
                     BindBoolIniFeature(ini, "Video", "ForceIntegerScaling", "integerscale", "true", "false");
-                    
+                    BindBoolIniFeature(ini, "Video", "Deinterlace", "saturn_deinterlace", "true", "false");
+                    BindBoolIniFeature(ini, "Video", "TransparentMeshes", "saturn_meshmode", "true", "false");
+                    BindBoolIniFeatureOn(ini, "System", "InternalBackupRAMPerGame", "saturn_pergame_backup", "true", "false");
+
                     if (SystemConfig.isOptSet("ymir_videoformat") && !string.IsNullOrEmpty(SystemConfig["ymir_videoformat"]))
                         ini.WriteValue("System", "VideoStandard", "'" + SystemConfig["ymir_videoformat"] + "'");
                     else
