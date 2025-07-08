@@ -186,8 +186,8 @@ namespace EmulatorLauncher
                 ini["seconds_to_run"] = "0";
 
                 BindBoolFeatureOn(ini, "throttle", "psxmame_throttle", "1", "0");
+                BindBoolFeatureOn(ini, "sleep", "psxmame_sleep", "1", "0");
 
-                ini["sleep"] = "1";
                 ini["speed"] = "1.0";
                 ini["refreshspeed"] = "0";
 
@@ -291,9 +291,9 @@ namespace EmulatorLauncher
                 ini["multithreading"] = "0";
 
                 // Windows video options
-                ini["video"] = "gdi";
+                BindFeature(ini, "video", "psxmame_video", "gdi");
                 ini["numscreens"] = "1";
-                ini["window"] = "0";
+                BindBoolFeature(ini, "window", "psxmame_window", "1", "0");
                 ini["maximize"] = "1";
                 ini["keepaspect"] = "1";
                 ini["prescale"] = "1";

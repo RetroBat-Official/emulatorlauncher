@@ -35,38 +35,44 @@ namespace EmulatorLauncher
 
                 foreach (var game in getInstalledGames())
                 {
-                    Uri uri = new Uri(game.LauncherUrl);
-                    
-                    string path = Path.Combine(dir, game.Name + ".url");
-                    if (uri.Scheme == "file")
-                        path = Path.Combine(dir, game.Name + ".lnk");
-                    
-                    if (files.Contains(path))
+                    try
                     {
-                        files.Remove(path);
-                        continue;
-                    }
+                        Uri uri = new Uri(game.LauncherUrl);
 
-                    if (uri.Scheme == "file")
-                    {
-                        try
+                        string gameName = RemoveInvalidFileNameChars(game.Name);
+
+                        string path = Path.Combine(dir, gameName + ".url");
+                        if (uri.Scheme == "file")
+                            path = Path.Combine(dir, gameName + ".lnk");
+
+                        if (files.Contains(path))
                         {
-                            if (shell == null)
-                                shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
-
-                            dynamic shortcut = shell.CreateShortcut(Path.Combine(dir, game.Name + ".lnk"));
-                            shortcut.TargetPath = game.LauncherUrl;
-                            shortcut.Arguments = game.Parameters;
-                            shortcut.WorkingDirectory = game.InstallDirectory;
-                            shortcut.Save();
-
-                            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shortcut);
+                            files.Remove(path);
                             continue;
                         }
-                        catch { }
-                    }
 
-                    File.WriteAllText(path, "[InternetShortcut]\r\nURL=" + game.LauncherUrl);
+                        if (uri.Scheme == "file")
+                        {
+                            try
+                            {
+                                if (shell == null)
+                                    shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
+
+                                dynamic shortcut = shell.CreateShortcut(Path.Combine(dir, gameName + ".lnk"));
+                                shortcut.TargetPath = game.LauncherUrl;
+                                shortcut.Arguments = game.Parameters;
+                                shortcut.WorkingDirectory = game.InstallDirectory;
+                                shortcut.Save();
+
+                                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shortcut);
+                                continue;
+                            }
+                            catch { }
+                        }
+
+                        File.WriteAllText(path, "[InternetShortcut]\r\nURL=" + game.LauncherUrl);
+                    }
+                    catch (Exception ex) { SimpleLogger.Instance.Error("[ImportStore] " + name + " : " + ex.Message, ex); }
                 }
 
                 if (shell != null)
@@ -80,6 +86,12 @@ namespace EmulatorLauncher
             }
 
             catch (Exception ex) { SimpleLogger.Instance.Error("[ImportStore] " + name + " : " + ex.Message, ex); }
+        }
+
+        private static string RemoveInvalidFileNameChars(string x)
+        {
+            var invalidChars = Path.GetInvalidFileNameChars();
+            return new string(x.Where(c => !invalidChars.Contains(c)).ToArray());
         }
     }
 }
