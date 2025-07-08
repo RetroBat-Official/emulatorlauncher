@@ -324,7 +324,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Achievements", "HardcoreEnabled", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "True" : "False");
                         ini.WriteValue("Achievements", "DiscordPresenceEnabled", SystemConfig.getOptBoolean("retroachievements.richpresence") ? "True" : "False");
                         ini.WriteValue("Achievements", "ProgressEnabled", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "True" : "False");
-                        //ini.WriteValue("Achievements", "UnofficialEnabled", SystemConfig.getOptBoolean("retroachievements.unofficial") ? "True" : "False");
+                        ini.WriteValue("Achievements", "UnofficialEnabled", SystemConfig.getOptBoolean("retroachievements.unofficial") ? "True" : "False");
 
                         // Inject credentials
                         if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))

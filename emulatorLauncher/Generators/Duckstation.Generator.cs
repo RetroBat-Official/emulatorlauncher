@@ -268,7 +268,7 @@ namespace EmulatorLauncher
 
                         ini.WriteValue("Cheevos", "Enabled", "true");
                         ini.WriteValue("Cheevos", "EncoreMode", SystemConfig.getOptBoolean("retroachievements.encore") ? "true" : "false");
-                        //ini.WriteValue("Cheevos", "UnofficialTestMode", SystemConfig.getOptBoolean("retroachievements.unofficial") ? "true" : "false");
+                        ini.WriteValue("Cheevos", "UnofficialTestMode", SystemConfig.getOptBoolean("retroachievements.unofficial") ? "true" : "false");
                         ini.WriteValue("Cheevos", "ChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "true" : "false");
                         ini.WriteValue("Cheevos", "Notifications", "true");
                         ini.WriteValue("Cheevos", "LeaderboardNotifications", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
