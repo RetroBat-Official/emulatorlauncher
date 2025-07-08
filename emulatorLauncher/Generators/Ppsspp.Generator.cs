@@ -128,7 +128,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Achievements", "AchievementsEnable", "True");
                         ini.WriteValue("Achievements", "AchievementsChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "True" : "False");
                         ini.WriteValue("Achievements", "AchievementsEncoreMode", SystemConfig.getOptBoolean("retroachievements.encore") ? "true" : "false");
-                        //ini.WriteValue("Achievements", "AchievementsUnofficial", SystemConfig.getOptBoolean("retroachievements.unofficial") ? "true" : "false");
+                        ini.WriteValue("Achievements", "AchievementsUnofficial", SystemConfig.getOptBoolean("retroachievements.unofficial") ? "true" : "false");
                         ini.WriteValue("Achievements", "AchievementsUserName", SystemConfig["retroachievements.username"]);
                         ini.WriteValue("Achievements", "AchievementsSoundEffects", "True");
                     }

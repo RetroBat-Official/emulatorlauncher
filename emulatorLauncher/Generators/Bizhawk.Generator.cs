@@ -691,7 +691,7 @@ namespace EmulatorLauncher
                 json["RARichPresenceActive"] = SystemConfig.getOptBoolean("retroachievements.richpresence") ? "true" : "false";
                 json["RAHardcoreMode"] = SystemConfig.getOptBoolean("retroachievements.hardcore") ? "true" : "false";
                 json["RASoundEffects"] = "true";
-                //json["RAAllowUnofficialCheevos"] = SystemConfig.getOptBoolean("retroachievements.unofficial") ? "true" : "false";
+                json["RAAllowUnofficialCheevos"] = SystemConfig.getOptBoolean("retroachievements.unofficial") ? "true" : "false";
                 json["RAAutostart"] = "true";
             }
             else
