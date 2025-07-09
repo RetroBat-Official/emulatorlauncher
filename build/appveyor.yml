@@ -40,6 +40,7 @@ after_build:
 - 7z a batocera-ports.zip liblzo2-2.dll
 - 7z a batocera-ports.zip libsquashfs.dll
 - 7z a batocera-ports.zip libzstd.dll
+- 7z a batocera-ports.zip System.Data.SQLite.dll
 - 7z a batocera-ports.zip xbox-iso-vfs.exe
 - 7z a batocera-ports.zip 7z.exe
 - 7z a batocera-ports.zip 7z.dll
