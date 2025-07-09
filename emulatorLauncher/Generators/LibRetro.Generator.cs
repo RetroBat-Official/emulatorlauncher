@@ -1380,6 +1380,7 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["cheevos_challenge_indicators"] = SystemConfig["retroachievements.challenge_indicators"] == "true" ? "true" : "false";
                 retroarchConfig["cheevos_start_active"] = SystemConfig["retroachievements.encore"] == "true" ? "true" : "false";
                 retroarchConfig["cheevos_richpresence_enable"] = SystemConfig["retroachievements.richpresence"] == "true" ? "true" : "false";
+                retroarchConfig["cheevos_test_unofficial"] = SystemConfig["retroachievements.unofficial"] == "true" ? "true" : "false";
 
                 // Unlock sound
                 if (AppConfig.isOptSet("retroachievementsounds") && SystemConfig.isOptSet("retroachievements.sound") && !string.IsNullOrEmpty(SystemConfig["retroachievements.sound"]))
