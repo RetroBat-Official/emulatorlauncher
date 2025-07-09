@@ -1086,7 +1086,7 @@ namespace EmulatorLauncher.Libretro
                 try
                 {
                     // use Dolphin.ini for options not available in retroarch-core-options.cfg
-                    string iniPath = Path.Combine(AppConfig.GetFullPath("saves"), "dolphin", "User", "Config", "Dolphin.ini");
+                    string iniPath = Path.Combine(AppConfig.GetFullPath("saves"), "gamecube", "dolphin-emu", "User", "Config", "Dolphin.ini");
                     if (File.Exists(iniPath))
                     {
                         using (var ini = new IniFile(iniPath, IniOptions.UseSpaces))
@@ -1111,6 +1111,7 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["dolphin_widescreen"] = "disabled";
 
                 BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "Bottom");
+                BindBoolFeature(coreSettings, "dolphin_wiimote_continuous_scanning", "dolphin_nowiimotescan", "disabled", "enabled");
             }
         }
 
