@@ -52,6 +52,7 @@ namespace EmulatorLauncher
 
             if (extension == ".lnk")
             {
+                _exeFile = true;
                 SimpleLogger.Instance.Info("[INFO] link file, searching for target.");
                 string target = FileTools.GetShortcutTarget(rom);
 
@@ -188,7 +189,7 @@ namespace EmulatorLauncher
                     }
 
                     // Get executable name from icon path
-                    if (string.IsNullOrEmpty(_exename) && urlLines.Any(l => l.StartsWith("IconFile")))
+                    if (string.IsNullOrEmpty(_exename) && _gameLauncher == null && urlLines.Any(l => l.StartsWith("IconFile")))
                     {
                         string iconline = urlLines.FirstOrDefault(l => l.StartsWith("IconFile"));
                         if (iconline.EndsWith(".exe"))
@@ -229,6 +230,10 @@ namespace EmulatorLauncher
 
             if (Directory.Exists(rom)) // If rom is a directory ( .pc .win .windows, .wine )
             {
+                SimpleLogger.Instance.Info("[INFO] ROM is a directory, forcing process monitoring.");
+                _exeFile = true;
+                GetProcessFromFile(rom);
+
                 path = rom;
 
                 if (File.Exists(Path.Combine(rom, "autorun.cmd")))
@@ -310,6 +315,7 @@ namespace EmulatorLauncher
             
             if (ext == ".bat" || ext == ".cmd")
             {
+                _exeFile = true;
                 ret.WindowStyle = ProcessWindowStyle.Hidden;
                 ret.UseShellExecute = true;
             }
@@ -490,7 +496,7 @@ namespace EmulatorLauncher
             {
                 Dictionary<string, bool> launcherProcessStatusBefore = new Dictionary<string, bool>();
                 Dictionary<string, bool> launcherProcessStatusAfter = new Dictionary<string, bool>();
-                
+
                 foreach (string processName in launcherPprocessNames)
                 {
                     bool uiExists = Process.GetProcessesByName(processName).Any();
@@ -506,7 +512,7 @@ namespace EmulatorLauncher
 
                 Process process = Process.Start(path);
                 SimpleLogger.Instance.Info("Process started : " + _exename);
-                
+
                 Thread.Sleep(4000);
 
                 int i = 1;
@@ -522,10 +528,19 @@ namespace EmulatorLauncher
 
                 if (gamelist.Length == 0)
                 {
-                    SimpleLogger.Instance.Info("Process : " + _exename + " not running");
-                    return 0;
+                    SimpleLogger.Instance.Info("Process : " + _exename + " not running, trying to find game process by window focus.");
+                    var gameProcess = FindGameProcessByWindowFocus();
+                    if (gameProcess != null)
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Game process '" + gameProcess.ProcessName + "' identified by window focus. Monitoring process.");
+                        gameProcess.WaitForExit();
+                        SimpleLogger.Instance.Info("[INFO] Game process has exited.");
+                    }
+                    else
+                    {
+                        SimpleLogger.Instance.Info("[INFO] All fallback methods failed. Unable to monitor game process.");
+                    }
                 }
-
                 else
                 {
                     foreach (string processName in launcherPprocessNames)
@@ -589,6 +604,61 @@ namespace EmulatorLauncher
             return 0;
         }
 
+        private static Process FindGameProcessByWindowFocus()
+        {
+            SimpleLogger.Instance.Info("[INFO] Trying to find game process by window focus.");
+
+            // Wait for initial window to appear (e.g., a launcher)
+            System.Threading.Thread.Sleep(10000); // 10 seconds
+
+            IntPtr hWnd = User32.GetForegroundWindow();
+            if (hWnd == IntPtr.Zero) return null;
+
+            uint pid;
+            User32.GetWindowThreadProcessId(hWnd, out pid);
+            if (pid == 0) return null;
+
+            Process candidateProcess = null;
+            try { candidateProcess = Process.GetProcessById((int)pid); }
+            catch { return null; }
+
+            SimpleLogger.Instance.Info("[INFO] Initial process candidate: " + candidateProcess.ProcessName);
+
+            // Wait longer for the actual game to take over from the launcher
+            System.Threading.Thread.Sleep(20000); // 20 more seconds
+
+            hWnd = User32.GetForegroundWindow();
+            if (hWnd == IntPtr.Zero) return null;
+
+            User32.GetWindowThreadProcessId(hWnd, out pid);
+            if (pid == 0) return null;
+
+            Process finalProcess = null;
+            try { finalProcess = Process.GetProcessById((int)pid); }
+            catch { return null; }
+
+            SimpleLogger.Instance.Info("[INFO] Final process candidate: " + finalProcess.ProcessName);
+
+            // Check if the final process is fullscreen
+            RECT windowRect;
+            User32.GetWindowRect(hWnd, out windowRect);
+
+            int screenWidth = User32.GetSystemMetrics(User32.SM_CXSCREEN);
+            int screenHeight = User32.GetSystemMetrics(User32.SM_CYSCREEN);
+
+            bool isFullscreen = (windowRect.left == 0 && windowRect.top == 0 &&
+                                 windowRect.right == screenWidth && windowRect.bottom == screenHeight);
+
+            if (isFullscreen)
+            {
+                SimpleLogger.Instance.Info("[INFO] Final process '" + finalProcess.ProcessName + "' is fullscreen. Selecting it.");
+                return finalProcess;
+            }
+
+            SimpleLogger.Instance.Info("[INFO] Final process is not fullscreen. Detection by focus failed.");
+            return null;
+        }
+        
         abstract class GameLauncher
         {
             public string LauncherExe { get; protected set; }

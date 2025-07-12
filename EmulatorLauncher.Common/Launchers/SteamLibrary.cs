@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -72,8 +72,6 @@ namespace EmulatorLauncher.Common.Launchers
                 return null;
             }
 
-            string exe = null;
-
             // First : Method to get steam executable name from RetroBat database file first
             if (File.Exists(steamdb))
             {
@@ -88,143 +86,7 @@ namespace EmulatorLauncher.Common.Launchers
                 }
             }
 
-            // Then : Call method to get executable name from Steam vdf files
-            if (exe == null)
-                exe = FindExecutableName(steamAppId, SteamAppIdLong);
-
-            if (string.IsNullOrEmpty(exe))
-            {
-                SimpleLogger.Instance.Info("[WARNING] Cannot find STEAM game executable in appinfo.vdf.");
-                return null;
-            }
-            else
-                SimpleLogger.Instance.Info("[STEAM] STEAM game executable found: " + exe);
-
-            return Path.GetFileNameWithoutExtension(exe);
-        }
-
-        static string FindExecutableName(int steamAppId, ulong SteamAppIdLong = 1999999999999999999)
-        {
-            // Get Steam installation path in registry
-            string path = GetInstallPath();
-            if (string.IsNullOrEmpty(path))
-                throw new ApplicationException("Can not find Steam installation folder in registry.");
-            
-            string appinfoPath = Path.Combine(path, "appcache", "appinfo.vdf");
-
-            if (!File.Exists(appinfoPath))
-                SimpleLogger.Instance.Info("[WARNING] Missing file " + appinfoPath);
-
-            // Try to get executable by deserializing vdf file
-            // Broken since july 2024 - returns error
-            try
-            {
-                var reader = new SteamAppInfoReader();
-                reader.Read(appinfoPath);
-
-                SimpleLogger.Instance.Info("[INFO] Reading Steam file 'appinfo.vdf'");
-
-                var app = reader.Apps.FirstOrDefault(a => a.AppID == steamAppId);
-                if (app == null || steamAppId == 0)
-                    app = reader.Apps.FirstOrDefault(a => a.AppID == SteamAppIdLong);
-                if (app == null)
-                    return null;
-
-                SimpleLogger.Instance.Info("[INFO] Found Game \"" + steamAppId + "\" in 'appinfo.vdf'");
-
-                string executable;
-
-                var executables = app.Data.Traverse(d => d.Children).Where(d => d.Children.Any(c => c.Name == "executable")).ToArray();
-                foreach (var exe in executables)
-                {
-                    var config = exe.Children.Where(c => c.Name == "config").SelectMany(c => c.Children).Where(c => c.Name == "oslist" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
-                    if ("windows".Equals(config))
-                    {
-                        var type = exe.Children.Where(c => c.Name == "type" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
-                        if (type != "default")
-                            SimpleLogger.Instance.Info("[INFO] No default 'type' found, using first executable found.");
-
-                        executable = exe.Children.Where(c => c.Name == "executable" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
-                        if (!string.IsNullOrEmpty(executable))
-                        {
-                            SimpleLogger.Instance.Info("[INFO] Game executable " + executable + " found.");
-                            return executable;
-                        }
-                    }
-                    else
-                    {
-                        SimpleLogger.Instance.Info("[INFO] No 'windows' specific config found, using first executable found.");
-
-                        var type = exe.Children.Where(c => c.Name == "type" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
-                        if (type != "default")
-                            SimpleLogger.Instance.Info("[INFO] No default 'type' found, using first executable found.");
-
-                        executable = exe.Children.Where(c => c.Name == "executable" && c.Value != null).Select(c => c.Value.ToString()).FirstOrDefault();
-                        if (!string.IsNullOrEmpty(executable))
-                        {
-                            SimpleLogger.Instance.Info("[INFO] Game executable " + executable + " found.");
-                            return executable;
-                        }
-                    }
-
-                    SimpleLogger.Instance.Info("[WARNING] No game executable found, cannot put ES in Wait-mode.");
-                }
-            }
-            catch
-            {
-                SimpleLogger.Instance.Info("[WARNING] Impossible to read SteamAppInfo.");
-            }
-
-            // Try brutal method to look for the app ID and retrieve the first .exe that follows in the vdf file
-            try
-            {
-                SimpleLogger.Instance.Info("[INFO] Searching executable in Steam file 'appinfo.vdf' : alternative method");
-                string appInfo = File.ReadAllText(appinfoPath);
-                int index = appInfo.IndexOf(steamAppId.ToString());
-                if (steamAppId == 0)
-                    index = appInfo.IndexOf(SteamAppIdLong.ToString());
-
-                if (index != -1)
-                {
-                    SimpleLogger.Instance.Info("[INFO] Found Game \"" + steamAppId + "\" in 'appinfo.vdf'");
-                    string substringToSearch = appInfo.Substring(index);
-
-                    int exeIndex = substringToSearch.IndexOf(".exe");
-
-                    if (exeIndex != -1)
-                    {
-                        int actualExeIndex = index + exeIndex;
-
-                        // Restrict the search to the substring between the app ID and the .exe
-                        int sectionStart = index;
-                        int sectionEnd = actualExeIndex;
-                        if (sectionEnd != -1)
-                        {
-                            string restrictedContent = appInfo.Substring(sectionStart, sectionEnd - sectionStart);
-
-                            if (restrictedContent != null)
-                            {
-                                int nullIndex = restrictedContent.LastIndexOf('\0');
-                                if (nullIndex != -1)
-                                {
-                                    string steamExeName = restrictedContent.Substring(nullIndex + 1);
-
-                                    if (steamExeName != null)
-                                    {
-                                        SimpleLogger.Instance.Info("[INFO] Game executable " + steamExeName + " found (alternative method).");
-                                        return steamExeName;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch 
-            {
-                SimpleLogger.Instance.Info("[WARNING] Impossible to find Steam executable name : consider .gameexe method.");
-            }
-
+            SimpleLogger.Instance.Info("[WARNING] Cannot find STEAM game executable in steamexecutables.json. Use the .gameexe method or registry monitoring will be used.");
             return null;
         }
 
@@ -305,7 +167,6 @@ namespace EmulatorLauncher.Common.Launchers
                 InstallDirectory = installDir,
                 LauncherUrl = string.Format(GameLaunchUrl, gameId),
                 PreviewImageUrl = string.Format(HeaderImageUrl, gameId),
-                ExecutableName = FindExecutableName(gameId.ToInteger()),
                 Launcher = GameLauncherType.Steam
             };
 
