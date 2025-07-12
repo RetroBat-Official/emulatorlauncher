@@ -55,8 +55,6 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[INFO] link file, searching for target.");
                 string target = FileTools.GetShortcutTarget(rom);
 
-                string executableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".gameexe");
-
                 if (target != "" && target != null)
                 {
                     _isGameExePath = File.Exists(target);
@@ -587,6 +585,61 @@ namespace EmulatorLauncher
                 base.RunAndWait(path);
 
             return 0;
+        }
+
+        private static Process FindGameProcessByWindowFocus()
+        {
+            SimpleLogger.Instance.Info("[INFO] Trying to find game process by window focus.");
+
+            // Wait for initial window to appear (e.g., a launcher)
+            System.Threading.Thread.Sleep(10000); // 10 seconds
+
+            IntPtr hWnd = User32.GetForegroundWindow();
+            if (hWnd == IntPtr.Zero) return null;
+
+            uint pid;
+            User32.GetWindowThreadProcessId(hWnd, out pid);
+            if (pid == 0) return null;
+
+            Process candidateProcess = null;
+            try { candidateProcess = Process.GetProcessById((int)pid); }
+            catch { return null; }
+
+            SimpleLogger.Instance.Info("[INFO] Initial process candidate: " + candidateProcess.ProcessName);
+
+            // Wait longer for the actual game to take over from the launcher
+            System.Threading.Thread.Sleep(20000); // 20 more seconds
+
+            hWnd = User32.GetForegroundWindow();
+            if (hWnd == IntPtr.Zero) return null;
+
+            User32.GetWindowThreadProcessId(hWnd, out pid);
+            if (pid == 0) return null;
+
+            Process finalProcess = null;
+            try { finalProcess = Process.GetProcessById((int)pid); }
+            catch { return null; }
+
+            SimpleLogger.Instance.Info("[INFO] Final process candidate: " + finalProcess.ProcessName);
+
+            // Check if the final process is fullscreen
+            RECT windowRect;
+            User32.GetWindowRect(hWnd, out windowRect);
+
+            int screenWidth = User32.GetSystemMetrics(User32.SM_CXSCREEN);
+            int screenHeight = User32.GetSystemMetrics(User32.SM_CYSCREEN);
+
+            bool isFullscreen = (windowRect.left == 0 && windowRect.top == 0 &&
+                                 windowRect.right == screenWidth && windowRect.bottom == screenHeight);
+
+            if (isFullscreen)
+            {
+                SimpleLogger.Instance.Info("[INFO] Final process '" + finalProcess.ProcessName + "' is fullscreen. Selecting it.");
+                return finalProcess;
+            }
+
+            SimpleLogger.Instance.Info("[INFO] Final process is not fullscreen. Detection by focus failed.");
+            return null;
         }
 
         abstract class GameLauncher

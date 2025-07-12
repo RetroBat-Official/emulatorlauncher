@@ -50,10 +50,10 @@ namespace EmulatorLauncher.Common.Launchers
             return games.ToArray();
         }
         
-        public static string GetSteamGameExecutableName(Uri uri, string steamdb)
+        public static string GetSteamGameExecutableName(Uri uri, string steamdb, out string shorturl)
         {
             // Get Steam app ID from url
-            string shorturl = uri.AbsolutePath.Substring(1);
+            shorturl = uri.AbsolutePath.Substring(1);
             int endurl = shorturl.IndexOf("%");
             if (endurl == -1) // If there's no space, get until the end of the string
                 endurl = shorturl.Length;

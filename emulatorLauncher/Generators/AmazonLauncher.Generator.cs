@@ -49,7 +49,7 @@ namespace EmulatorLauncher
                 {
                     amazonGame.WaitForExit();
 
-                    if (!uiExists || (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam")))
+                    if ((!uiExists && Program.SystemConfig["killsteam"] != "0") || (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam")))
                     {
                         foreach (var ui in Process.GetProcessesByName("Amazon Games UI"))
                         {
