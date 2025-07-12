@@ -1001,7 +1001,7 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    if (!SystemConfig.isOptSet("mame_read_config") || SystemConfig["mame_read_config"] != "1")
+                    if (SystemConfig.isOptSet("mame_read_config") && SystemConfig["mame_read_config"] == "1")
                     {
                         var ini = MameIniFile.FromFile(inipath);
                         {
