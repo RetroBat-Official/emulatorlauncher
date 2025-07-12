@@ -150,6 +150,35 @@ namespace EmulatorLauncher
             BindFeature(video, "Driver", "ares_renderer", "OpenGL 3.2");
             BindFeature(video, "Output", "ares_aspect", "Scale");
 
+            // Sync options
+            if (SystemConfig.isOptSet("ares_gpusync") && !string.IsNullOrEmpty(SystemConfig["ares_gpusync"]))
+            {
+                switch (SystemConfig["ares_gpusync"])
+                {
+                    case "none":
+                        video["Blocking"] = "false";
+                        video["Flush"] = "false";
+                        break;
+                    case "sync":
+                        video["Blocking"] = "true";
+                        video["Flush"] = "false";
+                        break;
+                    case "gpu":
+                        video["Blocking"] = "false";
+                        video["Flush"] = "true";
+                        break;
+                    case "gpusync":
+                        video["Blocking"] = "true";
+                        video["Flush"] = "true";
+                        break;
+                }
+            }
+            else
+            {
+                video["Blocking"] = "true";
+                video["Flush"] = "false";
+            }
+
             /*string shaderPath = Path.Combine(AppConfig.GetFullPath("ares"), "Shaders");
 
             if (SystemConfig.isOptSet("ares_shaders") && SystemConfig["ares_shaders"] == "none")
@@ -217,6 +246,7 @@ namespace EmulatorLauncher
             // Audio
             var audio = bml.GetOrCreateContainer("Audio");
             BindFeature(audio, "Driver", "ares_audio_renderer", "WASAPI");
+            BindBoolFeatureOn(audio, "Blocking", "ares_audiosync", "true", "false");
 
             // General Settings
             var general = bml.GetOrCreateContainer("General");
