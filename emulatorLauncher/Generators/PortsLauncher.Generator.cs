@@ -92,9 +92,9 @@ namespace EmulatorLauncher
                 else
                 {
                     string romName = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
-                    if (rom.Contains("eur"))
+                    if (rom.Contains("eur") || rom.Contains("pal") || rom.Contains("fr"))
                         _exeName = "pd.pal.x86_64.exe";
-                    else if (rom.Contains("jap") || rom.Contains("jp"))
+                    else if (rom.Contains("jap") || rom.Contains("jp") || rom.Contains("japan"))
                         _exeName = "pd.jpn.x86_64.exe";
                 }
             }

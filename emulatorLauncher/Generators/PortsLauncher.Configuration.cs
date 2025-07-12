@@ -688,6 +688,14 @@ namespace EmulatorLauncher
                         break;
                 }
             }
+            else
+            {
+                string romName = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
+                if (rom.Contains("eur") || rom.Contains("pal") || rom.Contains("fr"))
+                    targetRom = Path.Combine(_path, "data", "pd.pal-final.z64");
+                else if (rom.Contains("jap") || rom.Contains("jp") || rom.Contains("japan"))
+                    targetRom = Path.Combine(_path, "data", "pd.jpn-final.z64");
+            }
 
             if (!File.Exists(targetRom))
             {
