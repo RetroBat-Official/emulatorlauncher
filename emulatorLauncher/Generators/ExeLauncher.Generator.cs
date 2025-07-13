@@ -526,14 +526,26 @@ namespace EmulatorLauncher
                 if (gamelist.Length == 0)
                 {
                     SimpleLogger.Instance.Info("Process : " + _exename + " not running.");
-                    foreach (string processName in launcherPprocessNames)
-                    {
-                        bool uihasStarted = Process.GetProcessesByName(processName).Any();
 
-                        if (uihasStarted)
-                            launcherProcessStatusAfter.Add(processName, true);
+                    var gameProcess = FindGameProcessByWindowFocus();
+                    if (gameProcess != null)
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Game process '" + gameProcess.ProcessName + "' identified by window focus. Monitoring process.");
+                        gameProcess.WaitForExit();
+                        SimpleLogger.Instance.Info("[INFO] Game process has exited.");
+
+                        foreach (string processName in launcherPprocessNames)
+                        {
+                            bool uihasStarted = Process.GetProcessesByName(processName).Any();
+
+                            if (uihasStarted)
+                                launcherProcessStatusAfter.Add(processName, true);
+                        }
+                        KillLauncher(launcherProcessStatusAfter, launcherProcessStatusBefore);
                     }
-                    KillLauncher(launcherProcessStatusAfter, launcherProcessStatusBefore);
+                    else
+                        SimpleLogger.Instance.Info("[INFO] All fallback methods failed. Unable to monitor game process.");
+
                     return 0;
                 }
 
