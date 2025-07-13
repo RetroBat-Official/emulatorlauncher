@@ -57,7 +57,7 @@ namespace EmulatorLauncher
                     // Start game
                     Process.Start(path);
 
-                    if (MonitorGameByRegistry())
+                    if (MonitorGameByRegistry(uiExists))
                         return 0;
 
                     SimpleLogger.Instance.Info("[INFO] Registry monitoring failed. Falling back to window focus detection.");
@@ -111,12 +111,10 @@ namespace EmulatorLauncher
                 }
             }
 
-            private bool MonitorGameByRegistry()
+            private bool MonitorGameByRegistry(bool uiExists = false)
             {
                 if (string.IsNullOrEmpty(_steamID))
                     return false;
-
-                bool uiExists = Process.GetProcessesByName("steam").Any();
 
                 SimpleLogger.Instance.Info("[INFO] Monitoring registry for game start (AppID: " + _steamID + ").");
 
