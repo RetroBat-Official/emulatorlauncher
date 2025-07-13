@@ -4582,6 +4582,8 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "stella_crop_hoverscan", "stella_crop_hoverscan", "enabled", "disabled");
             BindBoolFeatureAuto(coreSettings, "stella_phosphor", "stella_phosphor", "on", "off", "auto");
 
+            _forcenobias = true;
+
             // Lightgun
             SetupLightGuns(retroarchConfig, "4", core);
         }
