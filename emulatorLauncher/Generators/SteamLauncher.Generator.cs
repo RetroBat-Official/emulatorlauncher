@@ -21,7 +21,6 @@ namespace EmulatorLauncher
                 LauncherExe = SteamLibrary.GetSteamGameExecutableName(uri, steamInternalDBPath, out _steamID);
             }
 
-
             public override int RunAndWait(System.Diagnostics.ProcessStartInfo path)
             {
                 // Check if steam is already running
@@ -81,13 +80,33 @@ namespace EmulatorLauncher
 
             private void KillSteam(bool uiExists)
             {
+                if (Program.SystemConfig.getOptBoolean("killsteam"))
+                    SimpleLogger.Instance.Info("[INFO] Option set to always kill Steam.");
+                else if (Program.SystemConfig.isOptSet("killsteam"))
+                    SimpleLogger.Instance.Info("[INFO] Option set to never kill Steam.");
+                else
+                    SimpleLogger.Instance.Info("[INFO] Steam will be killed if not running before.");
+
                 // Kill steam if it was not running previously or if option is set in RetroBat
-                if ((!uiExists && Program.SystemConfig["killsteam"] != "0") || (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam")))
+                if (Program.SystemConfig.getOptBoolean("killsteam"))
                 {
                     foreach (var ui in Process.GetProcessesByName("steam"))
                     {
                         try { ui.Kill(); }
                         catch { }
+                        SimpleLogger.Instance.Info("[INFO] Killing Steam.");
+                    }
+                }
+                else if (!Program.SystemConfig.isOptSet("killsteam"))
+                {
+                    if (!uiExists)
+                    {
+                        foreach (var ui in Process.GetProcessesByName("steam"))
+                        {
+                            try { ui.Kill(); }
+                            catch { }
+                            SimpleLogger.Instance.Info("[INFO] Killing Steam.");
+                        }
                     }
                 }
             }

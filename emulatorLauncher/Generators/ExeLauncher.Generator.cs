@@ -81,7 +81,7 @@ namespace EmulatorLauncher
                         {
                             string uwpAppName = romLines[0];
                             int line = -1;
-                            var fileStream = GetStoreAppVersion(uwpAppName);
+                            var fileStream = GetStoreAppInfo(uwpAppName);
 
                             if (fileStream != null && fileStream != "")
                             {
@@ -442,6 +442,7 @@ namespace EmulatorLauncher
             json.Save();
         }
 
+        // If .gameexe is used, the function to get the process name via launcher specific search is disabled
         private bool GetProcessFromFile(string rom)
         {
             string executableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".gameexe");
@@ -460,7 +461,8 @@ namespace EmulatorLauncher
             }
         }
 
-        static string GetStoreAppVersion(string appName)
+        // Method to get info for uwp apps
+        static string GetStoreAppInfo(string appName)
         {
             // PowerShell Process Start
             Process process = new Process();
@@ -548,9 +550,9 @@ namespace EmulatorLauncher
                     SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
                     Process game = gamelist.OrderBy(p => p.StartTime).FirstOrDefault();
                     game.WaitForExit();
-                    KillLauncher(launcherProcessStatusAfter, launcherProcessStatusBefore);
                 }
 
+                KillLauncher(launcherProcessStatusAfter, launcherProcessStatusBefore);
                 return 0;
             }
 
@@ -638,7 +640,7 @@ namespace EmulatorLauncher
 
         private void KillLauncher(Dictionary<string, bool> launcherProcessAfter, Dictionary<string, bool> launcherProcessBefore)
         {
-            foreach (var processName in launcherPprocessNames)
+            foreach (var processName in launcherPprocessNames) // always kill launchers
             {
                 if (Program.SystemConfig.getOptBoolean("killsteam"))
                 {
@@ -652,12 +654,12 @@ namespace EmulatorLauncher
                         catch { }
                     }
                 }
-                else if (SystemConfig.isOptSet("killsteam"))
+                else if (SystemConfig.isOptSet("killsteam")) // do not kill launchers
                 {
                     SimpleLogger.Instance.Info("[INFO] Option set to NOT kill launcher process.");
                     return;
                 }
-                else
+                else // kill launcher processes only if they were started with the game
                 {
                     if (launcherProcessAfter.ContainsKey(processName) && !launcherProcessBefore.ContainsKey(processName))
                     {
@@ -674,7 +676,6 @@ namespace EmulatorLauncher
                 }
             }
         }
-
 
         abstract class GameLauncher
         {
