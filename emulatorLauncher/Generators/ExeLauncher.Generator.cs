@@ -587,7 +587,46 @@ namespace EmulatorLauncher
                         return _gameLauncher.RunAndWait(path);
                     }
 
-                    base.RunAndWait(path);
+                    else
+                    {
+                        int waitttime = 30;
+                        if (Program.SystemConfig.isOptSet("steam_wait") && !string.IsNullOrEmpty(Program.SystemConfig["steam_wait"]))
+                            waitttime = Program.SystemConfig["steam_wait"].ToInteger();
+                        SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waitttime.ToString() + " seconds for the game to run before returning to Game List");
+
+                        Process process = Process.Start(path);
+                        SimpleLogger.Instance.Info("Process started : " + _exename);
+
+                        Thread.Sleep(4000);
+
+                        int i = 1;
+
+                        Process[] gamelist = Process.GetProcessesByName(_exename);
+
+                        while (i <= waitttime && gamelist.Length == 0)
+                        {
+                            gamelist = Process.GetProcessesByName(_exename);
+                            Thread.Sleep(1000);
+                            i++;
+                        }
+
+                        if (gamelist.Length == 0)
+                        {
+                            SimpleLogger.Instance.Info("Process : " + _exename + " not running.");
+
+                            var gameProcess = FindGameProcessByWindowFocus();
+                            if (gameProcess != null)
+                            {
+                                SimpleLogger.Instance.Info("[INFO] Game process '" + gameProcess.ProcessName + "' identified by window focus. Monitoring process.");
+                                gameProcess.WaitForExit();
+                                SimpleLogger.Instance.Info("[INFO] Game process has exited.");
+                            }
+                            else
+                                SimpleLogger.Instance.Info("[INFO] All fallback methods failed. Unable to monitor game process.");
+
+                            return 0;
+                        }
+                    }
                 }
             }
 
