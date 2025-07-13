@@ -23,7 +23,7 @@ namespace EmulatorLauncher
         private string _exename = null;
         private bool _isGameExePath;
         private bool _steamRun = false;
-        private bool _exeFile;
+        private bool _gameExeFile; // When exe is specified in a .gameexe file
         private bool _nonSteam = false;
 
         private GameLauncher _gameLauncher;
@@ -45,7 +45,7 @@ namespace EmulatorLauncher
             string path = Path.GetDirectoryName(rom);
             string arguments = null;
             _isGameExePath = false;
-            _exeFile = false;
+            _gameExeFile = false;
             string extension = Path.GetExtension(rom);
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
@@ -61,20 +61,20 @@ namespace EmulatorLauncher
                     
                     if (_isGameExePath)
                         SimpleLogger.Instance.Info("[INFO] Link target file found.");
-                    
+
                     // executable process to monitor might be different from the target - user can specify true process executable in a .gameexe file
-                    _exeFile = GetProcessFromFile(rom);
+                    _gameExeFile = GetProcessFromFile(rom);
                 }
 
                 // if the target is not found in the link, see if a .gameexe file or a .uwp file exists
                 else
                 {
                     // First case : use has directly specified the executable name in a .gameexe file
-                    _exeFile = GetProcessFromFile(rom);
+                    _gameExeFile = GetProcessFromFile(rom);
 
                     // Second case : user has specified the UWP app name in a .uwp file
                     string uwpexecutableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".uwp");
-                    if (File.Exists(uwpexecutableFile) && !_exeFile)
+                    if (File.Exists(uwpexecutableFile) && !_gameExeFile)
                     {
                         var romLines = File.ReadAllLines(uwpexecutableFile);
                         if (romLines.Length > 0)
@@ -110,7 +110,7 @@ namespace EmulatorLauncher
                                             if (exePath != null)
                                             {
                                                 _exename = Path.GetFileNameWithoutExtension(exePath);
-                                                _exeFile = true;
+                                                _gameExeFile = true;
                                                 SimpleLogger.Instance.Info("[INFO] Executable name found for UWP app: " + _exename);
                                             }
                                         }
@@ -120,7 +120,7 @@ namespace EmulatorLauncher
                         }
                     }
 
-                    else if (!_exeFile)
+                    else if (!_gameExeFile)
                         SimpleLogger.Instance.Info("[INFO] Impossible to find executable name, using rom file name.");
                 }
 
@@ -137,9 +137,9 @@ namespace EmulatorLauncher
             else if (extension == ".url")
             {
                 // executable process to monitor might be different from the target - user can specify true process executable in a .gameexe file
-                _exeFile = GetProcessFromFile(rom);
+                _gameExeFile = GetProcessFromFile(rom);
 
-                if (!_exeFile)
+                if (!_gameExeFile)
                 {
                     try
                     {
@@ -328,7 +328,7 @@ namespace EmulatorLauncher
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            if (_isGameExePath || _exeFile)
+            if (_isGameExePath || _gameExeFile)
                 return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
 
             else if (_gameLauncher != null) 
@@ -480,11 +480,11 @@ namespace EmulatorLauncher
             return output;
         }
 
-        string[] launcherPprocessNames = { "Amazon Games UI", "EADesktop", "EpicGamesLauncher", "steam" };
+        readonly string[] launcherPprocessNames = { "Amazon Games UI", "EADesktop", "EpicGamesLauncher", "steam" };
 
         public override int RunAndWait(ProcessStartInfo path)
         {
-            if (_isGameExePath || _exeFile || _nonSteam)
+            if (_isGameExePath || _gameExeFile || _nonSteam)
             {
                 Dictionary<string, bool> launcherProcessStatusBefore = new Dictionary<string, bool>();
                 Dictionary<string, bool> launcherProcessStatusAfter = new Dictionary<string, bool>();
@@ -539,21 +539,7 @@ namespace EmulatorLauncher
                     game.WaitForExit();
                 }
 
-                foreach (var processName in launcherProcessStatusAfter)
-                {
-                    if (!launcherProcessStatusBefore.ContainsKey(processName.Key) || Program.SystemConfig.getOptBoolean("killsteam"))
-                    {
-                        foreach (var ui in Process.GetProcessesByName(processName.Key))
-                        {
-                            try
-                            {
-                                SimpleLogger.Instance.Info("[INFO] Killing process " + processName.Key);
-                                ui.Kill();
-                            }
-                            catch { }
-                        }
-                    }
-                }
+                KillLauncher(launcherProcessStatusBefore);
 
                 return 0;
             }
@@ -597,11 +583,10 @@ namespace EmulatorLauncher
             IntPtr hWnd = User32.GetForegroundWindow();
             if (hWnd == IntPtr.Zero) return null;
 
-            uint pid;
-            User32.GetWindowThreadProcessId(hWnd, out pid);
+            User32.GetWindowThreadProcessId(hWnd, out uint pid);
             if (pid == 0) return null;
 
-            Process candidateProcess = null;
+            Process candidateProcess;
             try { candidateProcess = Process.GetProcessById((int)pid); }
             catch { return null; }
 
@@ -616,15 +601,14 @@ namespace EmulatorLauncher
             User32.GetWindowThreadProcessId(hWnd, out pid);
             if (pid == 0) return null;
 
-            Process finalProcess = null;
+            Process finalProcess;
             try { finalProcess = Process.GetProcessById((int)pid); }
             catch { return null; }
 
             SimpleLogger.Instance.Info("[INFO] Final process candidate: " + finalProcess.ProcessName);
 
             // Check if the final process is fullscreen
-            RECT windowRect;
-            User32.GetWindowRect(hWnd, out windowRect);
+            User32.GetWindowRect(hWnd, out RECT windowRect);
 
             int screenWidth = User32.GetSystemMetrics(User32.SM_CXSCREEN);
             int screenHeight = User32.GetSystemMetrics(User32.SM_CYSCREEN);
@@ -640,6 +624,25 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Final process is not fullscreen. Detection by focus failed.");
             return null;
+        }
+
+        private void KillLauncher(Dictionary<string, bool> launcherProcessStatusBefore)
+        {
+            foreach (var processName in launcherProcessStatusBefore)
+            {
+                if ((!launcherProcessStatusBefore.ContainsKey(processName.Key) && !Program.SystemConfig.isOptSet("killsteam")) || Program.SystemConfig.getOptBoolean("killsteam"))
+                {
+                    foreach (var ui in Process.GetProcessesByName(processName.Key))
+                    {
+                        try
+                        {
+                            SimpleLogger.Instance.Info("[INFO] Killing process " + processName.Key);
+                            ui.Kill();
+                        }
+                        catch { }
+                    }
+                }
+            }
         }
 
         abstract class GameLauncher
