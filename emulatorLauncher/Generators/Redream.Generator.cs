@@ -3,6 +3,8 @@ using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using System.Windows.Forms;
+using System;
+using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -24,6 +26,25 @@ namespace EmulatorLauncher
             if (wideScreen)
                 SystemConfig["forceNoBezel"] = "1";
 
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
+            {
+                string[] lines = File.ReadAllLines(rom);
+                int lineIndex = 0;
+                if (SystemConfig.isOptSet("dreamcast_m3uindex") && !string.IsNullOrEmpty(SystemConfig["dreamcast_m3uindex"]))
+                {
+                    int.TryParse(SystemConfig["dreamcast_m3uindex"], out int index);
+                    if (index >= 0 && ((index - 1) < lines.Length))
+                        lineIndex = index - 1;
+                }
+
+                if (lines.Length > 0)
+                {
+                    rom = Path.Combine(Path.GetDirectoryName(rom), lines[lineIndex].Trim());
+                    if (!File.Exists(rom))
+                        throw new ApplicationException("M3U file points to a non-existing ROM: " + rom);
+                }
+            }
+            
             //Applying bezels & shaders
             if (!fullscreen)
                 SystemConfig["forceNoBezel"] = "true";
