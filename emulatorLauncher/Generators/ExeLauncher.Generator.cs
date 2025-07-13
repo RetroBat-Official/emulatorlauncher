@@ -494,7 +494,10 @@ namespace EmulatorLauncher
                     bool uiExists = Process.GetProcessesByName(processName).Any();
 
                     if (uiExists)
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Launcher: " + processName + " found running.");
                         launcherProcessStatusBefore.Add(processName, true);
+                    }
                 }
 
                 int waitttime = 30;
@@ -520,7 +523,15 @@ namespace EmulatorLauncher
 
                 if (gamelist.Length == 0)
                 {
-                    SimpleLogger.Instance.Info("Process : " + _exename + " not running");
+                    SimpleLogger.Instance.Info("Process : " + _exename + " not running.");
+                    foreach (string processName in launcherPprocessNames)
+                    {
+                        bool uihasStarted = Process.GetProcessesByName(processName).Any();
+
+                        if (uihasStarted)
+                            launcherProcessStatusAfter.Add(processName, true);
+                    }
+                    KillLauncher(launcherProcessStatusAfter, launcherProcessStatusBefore);
                     return 0;
                 }
 
@@ -537,9 +548,8 @@ namespace EmulatorLauncher
                     SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
                     Process game = gamelist.OrderBy(p => p.StartTime).FirstOrDefault();
                     game.WaitForExit();
+                    KillLauncher(launcherProcessStatusAfter, launcherProcessStatusBefore);
                 }
-
-                KillLauncher(launcherProcessStatusBefore);
 
                 return 0;
             }
@@ -626,24 +636,45 @@ namespace EmulatorLauncher
             return null;
         }
 
-        private void KillLauncher(Dictionary<string, bool> launcherProcessStatusBefore)
+        private void KillLauncher(Dictionary<string, bool> launcherProcessAfter, Dictionary<string, bool> launcherProcessBefore)
         {
-            foreach (var processName in launcherProcessStatusBefore)
+            foreach (var processName in launcherPprocessNames)
             {
-                if ((!launcherProcessStatusBefore.ContainsKey(processName.Key) && !Program.SystemConfig.isOptSet("killsteam")) || Program.SystemConfig.getOptBoolean("killsteam"))
+                if (Program.SystemConfig.getOptBoolean("killsteam"))
                 {
-                    foreach (var ui in Process.GetProcessesByName(processName.Key))
+                    foreach (var ui in Process.GetProcessesByName(processName))
                     {
                         try
                         {
-                            SimpleLogger.Instance.Info("[INFO] Killing process " + processName.Key);
+                            SimpleLogger.Instance.Info("[INFO] Option set to always kill launchers, killing process " + processName);
                             ui.Kill();
                         }
                         catch { }
                     }
                 }
+                else if (SystemConfig.isOptSet("killsteam"))
+                {
+                    SimpleLogger.Instance.Info("[INFO] Option set to NOT kill launcher process.");
+                    return;
+                }
+                else
+                {
+                    if (launcherProcessAfter.ContainsKey(processName) && !launcherProcessBefore.ContainsKey(processName))
+                    {
+                        foreach (var ui in Process.GetProcessesByName(processName))
+                        {
+                            try
+                            {
+                                SimpleLogger.Instance.Info("[INFO] Killing process " + processName);
+                                ui.Kill();
+                            }
+                            catch { }
+                        }
+                    }
+                }
             }
         }
+
 
         abstract class GameLauncher
         {

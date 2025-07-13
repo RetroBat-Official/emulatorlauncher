@@ -26,6 +26,10 @@ namespace EmulatorLauncher
             {
                 // Check if steam is already running
                 bool uiExists = Process.GetProcessesByName("steam").Any();
+                if (uiExists)
+                    SimpleLogger.Instance.Info("[INFO] Steam found running already.");
+                else
+                    SimpleLogger.Instance.Info("[INFO] Steam not yet running.");
 
                 if (LauncherExe != null)
                 {
