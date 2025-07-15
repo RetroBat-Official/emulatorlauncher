@@ -579,6 +579,20 @@ namespace EmulatorLauncher
             if (string.IsNullOrEmpty(SystemConfig["emulator"]))
                 SystemConfig["emulator"] = SystemConfig["system"];
 
+            // Log local version
+            try
+            {
+                Installer localInstaller = Installer.GetInstaller(null, true);
+                if (localInstaller != null)
+                {
+                    string localVersion = localInstaller.GetInstalledVersion(true);
+
+                    if (localVersion != null)
+                        SimpleLogger.Instance.Info("[Startup] Emulator version: " + localVersion);
+                }
+            }
+            catch { SimpleLogger.Instance.Error("[Startup] Error while getting local version"); }
+
             // Game info
             if (SystemConfig.isOptSet("gameinfo") && File.Exists(SystemConfig.GetFullPath("gameinfo")))
             {
@@ -662,23 +676,6 @@ namespace EmulatorLauncher
                         if (frm.ShowDialog() != DialogResult.OK)
                             return;
                 }
-            }
-
-            // Log local version
-            try
-            {
-                Installer localInstaller = Installer.GetInstaller(null, true);
-                if (localInstaller != null)
-                {
-                    string localVersion = localInstaller.GetInstalledVersion(true);
-
-                    if (localVersion != null)
-                        SimpleLogger.Instance.Info("[Startup] Emulator version: " + localVersion);
-                }
-            }
-            catch
-            {
-                SimpleLogger.Instance.Error("[Startup] Error while getting local version");
             }
 
             // Load features, run the generator to configure and set up command lines, start emulator process and cleanup after emulator process ends
