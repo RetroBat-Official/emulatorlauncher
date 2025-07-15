@@ -60,7 +60,13 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("decompressedpath") && !string.IsNullOrEmpty(SystemConfig["decompressedpath"]))
                 {
                     extractionPath = SystemConfig["decompressedpath"].Replace('/', '\\');
-                    _customPathValue = extractionPath;
+                    extractionPath = Path.Combine(extractionPath, ".uncompressed");
+
+                    if (!Directory.Exists(extractionPath))
+                        try { Directory.CreateDirectory(extractionPath); }
+                        catch { }
+                    if (Directory.Exists(extractionPath))
+                        _customPathValue = extractionPath;
                 }
 
                 else if (Program.SystemConfig["decompressedfolders"] != "keep")
@@ -92,6 +98,7 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("decompressedpath") && !string.IsNullOrEmpty(SystemConfig["decompressedpath"]))
                 {
                     extractionPath = SystemConfig["decompressedpath"].Replace('/', '\\');
+                    extractionPath = Path.Combine(extractionPath, ".uncompressed");
                     _customPathValue = extractionPath;
                 }
 
@@ -136,7 +143,10 @@ namespace EmulatorLauncher
                 string uncompressedFolderPath = GetUnCompressedFolderPath();
 
                 if (SystemConfig.isOptSet("decompressedpath") && !string.IsNullOrEmpty(SystemConfig["decompressedpath"]))
+                {
                     extractionPath = SystemConfig["decompressedpath"].Replace('/', '\\');
+                    extractionPath = Path.Combine(extractionPath, ".uncompressed");
+                }
 
                 else if (Program.SystemConfig["decompressedfolders"] != "keep")
                     uncompressedFolderPath = Path.Combine(Path.GetTempPath(), ".uncompressed");
@@ -241,7 +251,10 @@ namespace EmulatorLauncher
                 string extractionPath = GetUnCompressedFolderPath();
 
                 if (Program.SystemConfig.isOptSet("decompressedpath") && !string.IsNullOrEmpty(Program.SystemConfig["decompressedpath"]))
+                {
                     extractionPath = Program.SystemConfig["decompressedpath"].Replace('/', '\\');
+                    extractionPath = Path.Combine(extractionPath, ".uncompressed");
+                }
 
                 if (!Zip.IsFreeDiskSpaceAvailableForExtraction(filename, extractionPath))
                     throw new Exception("Not enough free space on drive to decompress");

@@ -365,6 +365,25 @@ namespace EmulatorLauncher
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileName(SystemConfig["rom"]) + "\"]"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
+            // Log Retrobat version && emulatorlauncher version
+            string rbVersionPath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "version.info");
+            string emulatorlauncherExePath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "emulationstation", "emulatorlauncher.exe");
+
+            if (File.Exists(rbVersionPath))
+            {
+                string rbVersion = File.ReadAllText(rbVersionPath).Trim();
+                SimpleLogger.Instance.Info("[Startup] Retrobat version : " + rbVersion);
+            }
+            else
+                SimpleLogger.Instance.Info("[Startup] Retrobat version : not found");
+
+            if (File.Exists(emulatorlauncherExePath))
+            {
+                DateTime lastModifiedDate = File.GetLastWriteTime(emulatorlauncherExePath);
+                if (lastModifiedDate != null)
+                    SimpleLogger.Instance.Info("[Startup] EmulatorLauncher.exe version : " + lastModifiedDate.ToString());
+            }
+
             // Automatically switch on lightgun if -lightgun is passed and not disabled in the config (except for wii where we do not want to switch on with real wiimote)
             if (!SystemConfig.isOptSet("use_guns") && args.Any(a => a == "-lightgun") && SystemConfig["system"] != "wii")
             {
