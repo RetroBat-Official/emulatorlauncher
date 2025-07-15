@@ -664,6 +664,23 @@ namespace EmulatorLauncher
                 }
             }
 
+            // Log local version
+            try
+            {
+                Installer localInstaller = Installer.GetInstaller(null, true);
+                if (localInstaller != null)
+                {
+                    string localVersion = localInstaller.GetInstalledVersion(true);
+
+                    if (localVersion != null)
+                        SimpleLogger.Instance.Info("[Startup] Emulator version: " + localVersion);
+                }
+            }
+            catch
+            {
+                SimpleLogger.Instance.Error("[Startup] Error while getting local version");
+            }
+
             // Load features, run the generator to configure and set up command lines, start emulator process and cleanup after emulator process ends
             if (generator != null)
             {

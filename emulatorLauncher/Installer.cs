@@ -10,6 +10,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Compression;
 using EmulatorLauncher.Common.Compression.Wrappers;
+using System.Text.RegularExpressions;
 
 namespace EmulatorLauncher
 {
@@ -230,12 +231,12 @@ namespace EmulatorLauncher
         #endregion
 
         #region Factory
-        public static Installer GetInstaller(string emulator = null)
+        public static Installer GetInstaller(string emulator = null, bool getLocal = false)
         {
-            if (!Misc.IsAvailableNetworkActive())
+            if (!Misc.IsAvailableNetworkActive() && !getLocal)
                 return null;
 
-            if (!SevenZipArchive.IsSevenZipAvailable)
+            if (!SevenZipArchive.IsSevenZipAvailable && !getLocal)
                 return null;
 
             if (emulator == null)
@@ -251,6 +252,12 @@ namespace EmulatorLauncher
                 installer = installers.Where(g => g.Emulator == emulator).FirstOrDefault();
             if (installer == null)
                 installer = installers.Where(g => g.Folders != null && g.Folders.Any(f => f == emulator)).FirstOrDefault();
+
+            if (getLocal)
+            {
+                return installer;
+            }
+
             if (installer != null && string.IsNullOrEmpty(installer.PackageUrl))
                 return null;
 
@@ -258,7 +265,7 @@ namespace EmulatorLauncher
         }
         #endregion
 
-        public string GetInstalledVersion()
+        public string GetInstalledVersion(bool versionCheck = false)
         {
             try
             {
@@ -301,9 +308,20 @@ namespace EmulatorLauncher
                 {
                     var output = ProcessExtensions.RunWithOutput(exe, "--version");
                     output = StringExtensions.FormatVersionString(output.ExtractString("Dolphin ", "\r"));
+                    
+                    if (output != null && versionCheck)
+                        SimpleLogger.Instance.Info("[INFO] Uncleaned Dolphin version: " + output);
+
+                    string cleaned = output;
+                    string[] parts = output.Split('.');
+                    if (parts.Length >= 1)
+                    {
+                        parts[0] = Regex.Match(parts[0], @"\d+").Value;
+                        cleaned = string.Join(".", parts);
+                    }
 
                     Version ver = new Version();
-                    if (Version.TryParse(output, out ver))
+                    if (Version.TryParse(cleaned, out ver))
                         return ver.ToString();
                 }
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "flycast")
