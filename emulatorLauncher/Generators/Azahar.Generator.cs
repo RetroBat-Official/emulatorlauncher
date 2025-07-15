@@ -276,6 +276,70 @@ namespace EmulatorLauncher
 
                 // Renderer
                 BindQtIniFeature(ini, "Renderer", "graphics_api", "graphics_api", "1");
+
+                // Bezel adjustment for default_nocurve and default_curve
+                List<string> bezelAdjust = new List<string>() { "default_curve", "default_curve_night", "default_nocurve", "default_nocurve_night" };
+                if (bezelAdjust.Contains(SystemConfig["bezel"]))
+                {
+                    ini.WriteValue("Layout", "layout_option\\default", "false");
+                    ini.WriteValue("Layout", "layout_option", "6");
+
+                    decimal topPosX = 560m / 1920m;
+                    decimal newTopPosX = (topPosX * (_resolution == null? ScreenResolution.CurrentResolution.Width : _resolution.Width));
+                    int finalTopPosx = (int)newTopPosX;
+
+                    decimal topPosY = 70m / 1080m;
+                    decimal newTopPosY = (topPosY * (_resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height));
+                    int finalTopPosY = (int)newTopPosY;
+
+                    decimal topWidth = 800m / 1920m;
+                    decimal newTopWidth = (topWidth * (_resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width));
+                    int finalTopWidth = (int)newTopWidth;
+
+                    decimal topHeight = 470m / 1080m;
+                    decimal newTopHeight = (topHeight * (_resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height));
+                    int finalTopHeight = (int)newTopHeight;
+
+                    decimal bottomPosX = 650m / 1920m;
+                    decimal newBottomPosX = (bottomPosX * (_resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width));
+                    int finalBottomPosx = (int)newBottomPosX;
+
+                    decimal bottomPosY = 550m / 1080m;
+                    decimal newBottomPosY = (bottomPosY * (_resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height));
+                    int finalBottomPosY = (int)newBottomPosY;
+
+                    decimal bottomWidth = 620m / 1920m;
+                    decimal newBottomWidth = (bottomWidth * (_resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width));
+                    int finalBottomWidth = (int)newBottomWidth;
+
+                    decimal bottomHeight = 480m / 1080m;
+                    decimal newBottomHeight = (bottomHeight * (_resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height));
+                    int finalBottomHeight = (int)newBottomHeight;
+
+                    ini.WriteValue("Layout", "custom_top_x\\default", "false");
+                    ini.WriteValue("Layout", "custom_top_x", finalTopPosx.ToString());
+
+                    ini.WriteValue("Layout", "custom_top_y\\default", "false");
+                    ini.WriteValue("Layout", "custom_top_y", finalTopPosY.ToString());
+
+                    ini.WriteValue("Layout", "custom_top_width\\default", "false");
+                    ini.WriteValue("Layout", "custom_top_width", finalTopWidth.ToString());
+
+                    ini.WriteValue("Layout", "custom_top_height\\default", "false");
+                    ini.WriteValue("Layout", "custom_top_height", finalTopHeight.ToString());
+
+                    ini.WriteValue("Layout", "custom_bottom_x\\default", "false");
+                    ini.WriteValue("Layout", "custom_bottom_x", finalBottomPosx.ToString());
+
+                    ini.WriteValue("Layout", "custom_bottom_y\\default", "false");
+                    ini.WriteValue("Layout", "custom_bottom_y", finalBottomPosY.ToString());
+
+                    ini.WriteValue("Layout", "custom_bottom_width\\default", "false");
+                    ini.WriteValue("Layout", "custom_bottom_width", finalBottomWidth.ToString());
+
+                    ini.WriteValue("Layout", "custom_bottom_height\\default", "false");
+                    ini.WriteValue("Layout", "custom_bottom_height", finalBottomHeight.ToString());
+                }
             }
         }
 

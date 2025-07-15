@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
