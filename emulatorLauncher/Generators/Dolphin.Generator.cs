@@ -302,6 +302,10 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Settings", "SSAA", "ssaa", "True", "False");
                     BindBoolIniFeature(ini, "Settings", "Crop", "dolphin_crop", "True", "False");
                     BindBoolIniFeature(ini, "Enhancements", "HDROutput", "enable_hdr", "True", "False");
+
+                    if (SystemConfig["dolphin_shaders"] == "AutoHDR" || SystemConfig["dolphin_shaders"] == "PerceptualHDR")
+                        ini.WriteValue("Enhancements", "HDROutput", "True");
+
                     BindIniFeature(ini, "Enhancements", "OutputResampling", "OutputResampling", "0");
                 }
             }
@@ -685,6 +689,12 @@ namespace EmulatorLauncher
 
                     // Bluetooth passthrough
                     BindBoolIniFeature(ini, "BluetoothPassthrough", "Enabled", "dolphin_bt_pass", "True", "False");
+
+                    // Shaders configuration
+                    BindIniFeatureSlider(ini, "AutoHDR-options", "AUTO_HDR_SHOULDER_POW", "hdr_shoulder_pow", "2.50", 2);
+                    BindIniFeatureSlider(ini, "AutoHDR-options", "AUTO_HDR_SHOULDER_START_ALPHA", "hdr_start_alpha", "0.00", 2);
+                    BindIniFeatureSlider(ini, "AutoHDR-options", "HDR_DISPLAY_MAX_NITS", "hdr_max_nits", "400");
+                    BindIniFeatureSlider(ini, "PerceptualHDR-options", "AMPLIFICATION", "hdr_amplification", "2.50", 2);
 
                     DolphinControllers.WriteControllersConfig(path, ini, system, rom, _triforce, out _sindenSoft);
 
