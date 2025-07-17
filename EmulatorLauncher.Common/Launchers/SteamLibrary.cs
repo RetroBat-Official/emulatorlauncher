@@ -303,7 +303,7 @@ namespace EmulatorLauncher.Common.Launchers
                 Id = gameId,
                 Name = name,
                 InstallDirectory = installDir,
-                LauncherUrl = string.Format(GameLaunchUrl, gameId),
+                LauncherUrl = string.Format(GameLaunchUrl, gameId) + "\"" + " -silent",
                 PreviewImageUrl = string.Format(HeaderImageUrl, gameId),
                 ExecutableName = FindExecutableName(gameId.ToInteger()),
                 Launcher = GameLauncherType.Steam
