@@ -1451,6 +1451,22 @@ namespace EmulatorLauncher
             { InputKey.select,              "Mode" },
         };
 
+        private static readonly InputKeyMapping mdMapping_lr_yb = new InputKeyMapping()
+        {
+            { InputKey.up,                  "Up"},
+            { InputKey.down,                "Down"},
+            { InputKey.left,                "Left" },
+            { InputKey.right,               "Right"},
+            { InputKey.y,                   "X" },
+            { InputKey.a,                   "A" },
+            { InputKey.b,                   "C" },
+            { InputKey.start,               "Start" },
+            { InputKey.pageup,              "Y" },
+            { InputKey.x,                   "Z" },
+            { InputKey.pagedown,            "B" },
+            { InputKey.select,              "Mode" },
+        };
+
         private static readonly InputKeyMapping n64Mapping = new InputKeyMapping()
         {
             { InputKey.leftanalogup,        "A Up" },
@@ -1976,6 +1992,8 @@ namespace EmulatorLauncher
                             return mdMapping_lr_zc;
                         case "lr_yz":
                             return mdMapping_lr_yz;
+                        case "lr_yb":
+                            return mdMapping_lr_yb;
                     }
                 }
             }
