@@ -2026,6 +2026,14 @@ namespace EmulatorLauncher
                     newMapping["x"] = InputKey.x;
                     newMapping["y"] = InputKey.pageup;
                 }
+                else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yb")
+                {
+                    newMapping["a"] = InputKey.a;
+                    newMapping["b"] = InputKey.pagedown;
+                    newMapping["x"] = InputKey.y;
+                    newMapping["y"] = InputKey.pageup;
+                    newMapping["z"] = InputKey.x;
+                }
             }
             else if (system == "mastersystem")
             {

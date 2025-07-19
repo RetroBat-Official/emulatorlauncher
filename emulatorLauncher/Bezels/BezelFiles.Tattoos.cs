@@ -353,6 +353,8 @@ namespace EmulatorLauncher
                                             ret = "megadrive_lr_zc";
                                         else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
                                             ret = "megadrive_lr_yz";
+                                        else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yb")
+                                            ret = "megadrive_lr_yb";
                                     }
                                 }
                                 break;
@@ -367,6 +369,8 @@ namespace EmulatorLauncher
                                             ret = "megadrive_lr_zc";
                                         else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
                                             ret = "megadrive_lr_yz";
+                                        else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yb")
+                                            ret = "megadrive_lr_yb";
                                     }
                                 }
                                 break;
@@ -378,6 +382,8 @@ namespace EmulatorLauncher
                                             ret = "megadrive_lr_zc";
                                         else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
                                             ret = "megadrive_lr_yz";
+                                        else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yb")
+                                            ret = "megadrive_lr_yb";
                                     }
                                 }
                                 break;
@@ -394,6 +400,8 @@ namespace EmulatorLauncher
                                     ret = "megadrive_lr_zc";
                                 else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
                                     ret = "megadrive_lr_yz";
+                                else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yb")
+                                    ret = "megadrive_lr_yb";
                             }
                         }
                         break;
@@ -405,6 +413,8 @@ namespace EmulatorLauncher
                                     ret = "megadrive_lr_zc";
                                 else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
                                     ret = "megadrive_lr_yz";
+                                else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yb")
+                                    ret = "megadrive_lr_yb";
                             }
                         }
                         break;
@@ -420,6 +430,8 @@ namespace EmulatorLauncher
                                     ret = "megadrive_lr_zc";
                                 else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yz")
                                     ret = "megadrive_lr_yz";
+                                else if (Program.SystemConfig["megadrive_control_layout"] == "lr_yb")
+                                    ret = "megadrive_lr_yb";
                             }
                         }
                         break;
