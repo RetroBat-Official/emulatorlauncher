@@ -252,6 +252,9 @@
     <Compile Include="Generators\Fpinball.Generator.cs" />
     <Compile Include="Generators\GemRB.Generator.cs" />
     <Compile Include="Generators\Gopher64.Generator.cs" />
+    <Compile Include="Generators\Gopher64.Controllers.cs">
+      <DependentUpon>Gopher64.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\GsPlus.Generator.cs" />
     <Compile Include="Generators\GzDoom.Generator.cs" />
     <Compile Include="Generators\Hatari.Generator.cs" />

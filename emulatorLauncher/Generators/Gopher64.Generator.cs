@@ -5,6 +5,10 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using System.Linq;
+using EmulatorLauncher.Common.EmulationStation;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 
 namespace EmulatorLauncher
 {
@@ -70,89 +74,69 @@ namespace EmulatorLauncher
         //Manage Config.json file settings
         private void SetupConfiguration(string setupPath, bool fullscreen)
         {
-            var json = DynamicJson.Load(Path.Combine(setupPath, "config.json"));
-            var input = json.GetOrCreateContainer("input");
-            var transfer_pak = input.GetOrCreateContainer("transfer_pak");
-            var video = json.GetOrCreateContainer("video");
-            var emulations = json.GetOrCreateContainer("emulation");
+            // Read and parse JSON
+            string configFile = Path.Combine(setupPath, "config.json");
 
-            ConfigureControls(input);
+            JObject root;
+            
+            if (File.Exists(configFile))
+            {
+                string jsonText = File.ReadAllText(configFile);
+                root = JObject.Parse(jsonText);
+            }
+            else
+            {
+                root = new JObject
+                {
+                    ["input"] = new JObject
+                    {
+                        ["input_profiles"] = new JObject
+                        {
+                            ["default"] = new JObject()
+                        }
+                    }
+                };
+            }
+
+            if (root["input"] == null || root["input"].Type != JTokenType.Object)
+                root["input"] = new JObject();
+            var input = (JObject)root["input"];
+
+            if (input["input_profiles"] == null || input["input_profiles"].Type != JTokenType.Object)
+                input["input_profiles"] = new JObject();
+            var profiles = (JObject)input["input_profiles"];
+
+            ConfigureControls(input, profiles);
+
+            if (root["video"] == null || root["video"].Type != JTokenType.Object)
+                root["video"] = new JObject();
+            var video = (JObject)root["video"];
+
+            if (root["emulation"] == null || root["emulation"].Type != JTokenType.Object)
+                root["emulation"] = new JObject();
+            var emulation = (JObject)root["emulation"];
 
             // Set fullscreen
-            video["fullscreen"] = fullscreen ? "true" : "false";
+            video["fullscreen"] = fullscreen ? true : false;
 
-            BindBoolFeature(video, "integer_scaling", "integerscale", "true", "false");
-            BindBoolFeature(video, "widescreen", "gopher64_widescreen", "true", "false");
-            //BindBoolFeature(video, "crt", "gopher64_crt", "true", "false");
+            BindBoolFeature(video, "integer_scaling", "integerscale");
+            BindBoolFeature(video, "widescreen", "gopher64_widescreen");
             
             if (SystemConfig.isOptSet("gopher64_resolution") && !string.IsNullOrEmpty(SystemConfig["gopher64_resolution"]))
             {
                 string res = SystemConfig["gopher64_resolution"].ToIntegerString();
-                video["upscale"] = res;
+                video["upscale"] = res.ToInteger();
             }
             else
-                video["upscale"] = "1";
+                video["upscale"] = 1;
+
+            // Emulation
+            BindBoolFeature(emulation, "disable_expansion_pak", "gopher64_disable_expansion_pak");
 
             //save config file
-            json.Save();
-        }
+            string jsonString = root.ToString(Newtonsoft.Json.Formatting.Indented);
 
-        private void ConfigureControls(DynamicJson input)
-        {
-            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
-            {
-                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
-                return;
-            }
-
-            // Set default input profiles
-            List<string> profiles = new List<string>
-            {
-                "default",
-                "default",
-                "default",
-                "default"
-            };
-            input.SetObject("input_profile_binding", profiles);
-
-            int padCount = this.Controllers.Where(c => !c.IsKeyboard).Count();
-
-            // Initiate HID list
-            List<string> controllersHID = new List<string>
-            {
-                null,
-                null,
-                null,
-                null
-            };
-
-            // Enable controllers
-            List<bool> controllersEnabled = new List<bool>
-            {
-                true,
-                false,
-                false,
-                false
-            };
-
-            int i = 0;
-
-            // Loop through controllers and assign them to the first 4 slots
-            foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).Take(4))
-            {
-                string cPath = controller.DirectInput.DevicePath
-                    .Replace("hid#", "HID#")
-                    .Replace("_vid", "_VID")
-                    .Replace("_pid", "_PID")
-                    .Replace("vid_", "VID_")
-                    .Replace("pid_", "PID_")
-                    .Replace("ig_", "IG_")
-                    ;
-                controllersHID[i] = cPath;
-                controllersEnabled[i] = true;
-            }
-            input.SetObject("controller_assignment", controllersHID);
-            input.SetObject("controller_enabled", controllersEnabled);
+            File.WriteAllText(configFile, jsonString);
         }
 
         public override int RunAndWait(ProcessStartInfo path)
