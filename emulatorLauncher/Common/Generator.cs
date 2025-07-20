@@ -785,14 +785,14 @@ namespace EmulatorLauncher
                 json[settingsName] = SystemConfig.GetValueOrDefault(featureName, defaultValue).ToInteger();
         }
 
-        protected void BindBoolFeature(JObject json, string settingsName, string featureName, string trueValue, string falseValue, bool force = false)
+        protected void BindBoolFeature(JObject json, string settingsName, string featureName, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
             {
                 if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
-                    json[settingsName] = trueValue;
+                    json[settingsName] = true;
                 else
-                    json[settingsName] = falseValue;
+                    json[settingsName] = false;
             }
         }
 
