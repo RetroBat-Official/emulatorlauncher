@@ -102,7 +102,7 @@ namespace EmulatorLauncher
             var sudachiGuid = guid.ToString().ToLowerInvariant();
 
             string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController.Guid, controller.Guid, "sudachi");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "sudachi");
 
             if (newGuid != null)
                 sudachiGuid = newGuid;

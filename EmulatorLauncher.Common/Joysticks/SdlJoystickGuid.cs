@@ -238,55 +238,70 @@ namespace EmulatorLauncher.Common.Joysticks
             return ret;
         }
 
-        public static string GetGuidFromFile(string path, string inputSDLGuid, string inputGuid, string emulator, int guidIndex = 0)
+        public static string GetGuidFromFile(string path, SdlGameController sdlCtrl, string inputGuid, string emulator, int guidIndex = 0)
         {
             if (!File.Exists(path))
                 return null;
+
+            SdlJoystickGuid inputSDLGuid = null;
+
+            if (sdlCtrl != null)
+                inputSDLGuid = sdlCtrl.Guid;
 
             try
             {
                 var yml = YmlFile.Load(path);
                 if (yml != null)
                 {
-                    var controllerInfo = yml.GetContainer(inputSDLGuid.ToLowerInvariant());
+                    YmlContainer controllerInfo = null;
+
+                    if (inputSDLGuid != null)
+                        controllerInfo = yml.GetContainer(inputSDLGuid.ToLowerInvariant());
 
                     if (controllerInfo != null)
                     {
                         var emulatorInfo = controllerInfo.GetContainer(emulator);
-                        if (emulatorInfo != null)
+                        try
                         {
-                            string outputGuid = emulatorInfo["guid"];
-                            if (guidIndex != 0)
+                            if (emulatorInfo != null)
                             {
-                                string newGuid = "guid" + guidIndex.ToString();
-                                if (emulatorInfo[newGuid] != null)
-                                    outputGuid = emulatorInfo[newGuid];
-                            }
-                            if (!string.IsNullOrEmpty(outputGuid))
-                            {
-                                SimpleLogger.Instance.Info("[INFO] Controller GUID replaced from yml file with: " + outputGuid.ToLowerInvariant());
-                                return outputGuid.ToLowerInvariant();
+                                string outputGuid = emulatorInfo["guid"] ?? string.Empty;
+                                if (guidIndex != 0)
+                                {
+                                    string newGuid = "guid" + guidIndex.ToString();
+                                    if (emulatorInfo[newGuid] != null)
+                                        outputGuid = emulatorInfo[newGuid];
+                                }
+                                if (!string.IsNullOrEmpty(outputGuid))
+                                {
+                                    SimpleLogger.Instance.Info("[INFO] Controller GUID replaced from yml file with: " + outputGuid.ToLowerInvariant());
+                                    return outputGuid.ToLowerInvariant();
+                                }
                             }
                         }
+                        catch { }
                     }
 
-                    controllerInfo = yml.GetContainer(inputGuid.ToLowerInvariant());
-                    if (controllerInfo != null)
+                    if (inputGuid != null)
                     {
-                        var emulatorInfo = controllerInfo.GetContainer(emulator);
-                        if (emulatorInfo != null)
+                        controllerInfo = yml.GetContainer(inputGuid.ToLowerInvariant());
+                        if (controllerInfo != null)
                         {
-                            string outputGuid = emulatorInfo["guid"];
-                            if (guidIndex != 0)
+                            var emulatorInfo = controllerInfo.GetContainer(emulator);
+                            if (emulatorInfo != null)
                             {
-                                string newGuid = "guid" + guidIndex.ToString();
-                                if (emulatorInfo[newGuid] != null)
-                                    outputGuid = emulatorInfo[newGuid];
-                            }
-                            if (!string.IsNullOrEmpty(outputGuid))
-                            {
-                                SimpleLogger.Instance.Info("[INFO] Controller GUID replaced from yml file with: " + outputGuid.ToLowerInvariant());
-                                return outputGuid.ToLowerInvariant();
+                                string outputGuid = emulatorInfo["guid"] ?? string.Empty;
+                                if (guidIndex != 0)
+                                {
+                                    string newGuid = "guid" + guidIndex.ToString();
+                                    if (emulatorInfo[newGuid] != null)
+                                        outputGuid = emulatorInfo[newGuid];
+                                }
+                                if (!string.IsNullOrEmpty(outputGuid))
+                                {
+                                    SimpleLogger.Instance.Info("[INFO] Controller GUID replaced from yml file with: " + outputGuid.ToLowerInvariant());
+                                    return outputGuid.ToLowerInvariant();
+                                }
                             }
                         }
                     }

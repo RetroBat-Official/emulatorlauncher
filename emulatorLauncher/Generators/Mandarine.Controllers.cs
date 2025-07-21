@@ -40,7 +40,7 @@ namespace EmulatorLauncher
             var guid = controller.GetSdlGuid(_sdlVersion, true);
             var mandarineGuid = guid.ToString().ToLowerInvariant();
             string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController.Guid, controller.Guid, "mandarine");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "mandarine");
             if (newGuid != null)
                 mandarineGuid = newGuid;
 

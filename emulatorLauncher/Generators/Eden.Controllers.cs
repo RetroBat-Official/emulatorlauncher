@@ -199,7 +199,7 @@ namespace EmulatorLauncher
 
             var edenGuid = guid.ToString().ToLowerInvariant();
             string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController.Guid, controller.Guid, "eden");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "eden");
             if (newGuid != null)
                 edenGuid = newGuid;
 

@@ -47,6 +47,11 @@ namespace EmulatorLauncher
             if (File.Exists(sdl2))
                 _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
 
+            string sdlVer = _sdlVersion.ToString();
+
+            if (sdlVer != null)
+                SimpleLogger.Instance.Info("[Generator] SDL version for guid : " + sdlVer);
+
             SetupConfigurationCitra(path, rom, fullscreen);
 
             string[] extensions = new string[] { ".3ds", ".3dsx", ".elf", ".axf", ".cci", ".cxi", ".app" };

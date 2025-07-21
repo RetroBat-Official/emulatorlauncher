@@ -245,7 +245,7 @@ namespace EmulatorLauncher
                 guid = ctrl.SdlController.Guid.ToString().ToUpperInvariant();
 
                 string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-                string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, ctrl.SdlController.Guid, ctrl.Guid, "bigpemu");
+                string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, ctrl.SdlController, ctrl.Guid, "bigpemu");
                 if (newGuid != null)
                     guid = newGuid.ToUpperInvariant();
 

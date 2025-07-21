@@ -39,9 +39,14 @@ namespace EmulatorLauncher
                 return;
 
             var guid = controller.GetSdlGuid(_sdlVersion, true);
+            if (guid == null)
+            {
+                SimpleLogger.Instance.Warning("[WARNING] SDL GUID is null");
+                return;
+            }
             var citraGuid = guid.ToString().ToLowerInvariant();
             string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController.Guid, controller.Guid, "citra");
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "citra");
             if (newGuid != null)
                 citraGuid = newGuid;
 
@@ -66,7 +71,14 @@ namespace EmulatorLauncher
             {
                 string name = profile + map.Value;
 
-                string cvalue = FromInput(controller, cfg[map.Key], citraGuid);
+                Input button = cfg[map.Key];
+                if (button == null)
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] No button found for : " + map.Value);
+                    continue;
+                }
+
+                string cvalue = FromInput(controller, button, citraGuid);
 
                 if (string.IsNullOrEmpty(cvalue))
                 {
@@ -91,7 +103,13 @@ namespace EmulatorLauncher
             {
                 string name = profile + map.Value;
 
-                string cvalue = FromInput(controller, cfg[map.Key], citraGuid);
+                Input button = cfg[map.Key];
+                if (button == null)
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] No button found for : " + map.Value);
+                    continue;
+                }
+                string cvalue = FromInput(controller, button, citraGuid);
 
                 if (string.IsNullOrEmpty(cvalue))
                 {
@@ -149,14 +167,17 @@ namespace EmulatorLauncher
                 string touch_profile = SystemConfig["citra_touchprofile"];
                 Dictionary<string, int> touchProfile = new Dictionary<string, int>();
                 var touchProfileStr = ini.EnumerateKeys("Controls").Where(k => k.StartsWith("touch_from_button_maps") && k.EndsWith("name")).ToList();
-                foreach (var tp in touchProfileStr)
+                if (touchProfileStr == null || touchProfileStr.Count > 0)
                 {
-                    string[] parts = tp.Split('\\');
-                    if (parts.Length >= 3 && int.TryParse(parts[1], out int extractedNumber))
-                        touchProfile.Add(ini.GetValue("Controls", tp), extractedNumber);
+                    foreach (var tp in touchProfileStr)
+                    {
+                        string[] parts = tp.Split('\\');
+                        if (parts.Length >= 3 && int.TryParse(parts[1], out int extractedNumber))
+                            touchProfile.Add(ini.GetValue("Controls", tp), extractedNumber);
+                    }
                 }
                 int profileToUse = 0;
-                if (touchProfile.ContainsKey(touch_profile))
+                if (touchProfile != null && touchProfile.Count > 0 && touchProfile.ContainsKey(touch_profile))
                     profileToUse = touchProfile[touch_profile] - 1;
 
                 ini.WriteValue("Controls", profile + "use_touch_from_button\\default", "false");
@@ -190,8 +211,6 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", profile + "udp_pad_index", "0");
 
             ini.WriteValue("Controls", "profiles\\size", "1");
-
-
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }
