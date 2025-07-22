@@ -99,7 +99,7 @@ namespace EmulatorLauncher
             string conf = Path.Combine(userconfigPath, "qt-config.ini");
             using (var ini = new IniFile(conf))
             {
-                SimpleLogger.Instance.Info("Writing Azahar configuration file: " + conf);
+                SimpleLogger.Instance.Info("[INFO] Writing Azahar configuration file: " + conf);
 
                 // Define rom path
                 string romPath = Path.GetDirectoryName(rom);

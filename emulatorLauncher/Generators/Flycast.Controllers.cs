@@ -376,12 +376,13 @@ namespace EmulatorLauncher
                 if (_isArcade)
                 {
                     string flycastMapping = null;
+                    SimpleLogger.Instance.Info("[INPUT] Looking for specific mapping in yml file.");
 
                     foreach (var path in mappingPaths)
                     {
                         string result = path
                             .Replace("{systempath}", "system")
-                            .Replace("{userpath}", "inputmapping");
+                            .Replace("{userpath}", "user");
 
                         flycastMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
 
@@ -419,6 +420,7 @@ namespace EmulatorLauncher
 
                             if (buttonMap.Count > 0)
                             {
+                                SimpleLogger.Instance.Info("[INPUT] Specific mapping found in yml file.");
                                 foreach (var button in buttonMap)
                                 {
                                     switch (button.Key)
@@ -953,7 +955,7 @@ namespace EmulatorLauncher
         static readonly string[] mappingPaths =
         {            
             // User specific
-            "{userpath}\\flycast_Arcade.yml",
+            "{userpath}\\inputmapping\\flycast_Arcade.yml",
 
             // RetroBat Default
             "{systempath}\\resources\\inputmapping\\flycast_Arcade.yml",

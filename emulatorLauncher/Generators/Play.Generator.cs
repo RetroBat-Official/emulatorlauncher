@@ -17,6 +17,7 @@ namespace EmulatorLauncher
         private bool _isArcade = false;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private string _romName;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -37,6 +38,7 @@ namespace EmulatorLauncher
 
             _isArcade = system == "namco2x6";
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            _romName = Path.GetFileNameWithoutExtension(rom);
 
             //settings
             SetupConfiguration(path, rom);
