@@ -358,7 +358,12 @@ namespace EmulatorLauncher
 
             var hideCursor = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "HideCursor");
             if (hideCursor != null)
-                hideCursor.FieldValue = "1";
+            {
+                if (SystemConfig.isOptSet("tp_display_cursor") && SystemConfig.getOptBoolean("tp_display_cursor"))
+                    hideCursor.FieldValue = "0";
+                else
+                    hideCursor.FieldValue = "1";
+            }
 
             var customResolution = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "CustomResolution");
             var resolutionWidth = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "ResolutionWidth");

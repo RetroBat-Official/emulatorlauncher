@@ -4,6 +4,8 @@ using System.IO;
 using System.Xml.Linq;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
@@ -94,6 +96,57 @@ namespace EmulatorLauncher
                 }
             }
 
+            // Get mapping from yml file
+            bool specialMapping = false;
+            var buttonMap = new Dictionary<string, string>();
+            if (_isArcade)
+            {
+                SimpleLogger.Instance.Info("[INPUT] Looking for specific mapping in yml file.");
+                YmlContainer game = null;
+                string namcoMapping = null;
+
+                foreach (var path in mappingPaths)
+                {
+                    string result = path
+                        .Replace("{systempath}", "system")
+                        .Replace("{userpath}", "user");
+
+                    namcoMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
+
+                    if (File.Exists(namcoMapping))
+                        break;
+                }
+
+                if (File.Exists(namcoMapping))
+                {
+                    YmlFile ymlFile = YmlFile.Load(namcoMapping);
+
+                    game = ymlFile.Elements.Where(c => c.Name == _romName).FirstOrDefault() as YmlContainer;
+
+                    if (game == null)
+                        game = ymlFile.Elements.Where(g => g.Name == "default").FirstOrDefault() as YmlContainer;
+
+                    if (game != null)
+                    {
+                        var gameName = game.Name;
+                        
+                        foreach (var buttonEntry in game.Elements)
+                        {
+                            if (buttonEntry is YmlElement button)
+                            {
+                                buttonMap.Add(button.Name, button.Value);
+                            }
+                        }
+
+                        if (buttonMap.Count > 0)
+                        {
+                            specialMapping = true;
+                            SimpleLogger.Instance.Info("[INPUT] Specific mapping found in yml file.");
+                        }
+                    }
+                }
+            }
+
             XElement analogsensitivity = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog.sensitivity").FirstOrDefault();
             analogsensitivity.SetAttributeValue("Value", "1.000000");
 
@@ -102,10 +155,16 @@ namespace EmulatorLauncher
             leftx1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
 
             XElement leftx1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_x.bindingtarget1.keyId").FirstOrDefault();
-            leftx1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "leftx", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("analog_left_x"))
+                leftx1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["analog_left_x"], isXinput));
+            else
+                leftx1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "leftx", isXinput));
 
             XElement leftx1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_x.bindingtarget1.keyType").FirstOrDefault();
-            leftx1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "leftx", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("analog_left_x"))
+                leftx1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["analog_left_x"], isXinput));
+            else
+                leftx1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "leftx", isXinput));
 
             XElement leftx1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_x.bindingtarget1.providerId").FirstOrDefault();
             leftx1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
@@ -115,10 +174,16 @@ namespace EmulatorLauncher
             lefty1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
 
             XElement lefty1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_y.bindingtarget1.keyId").FirstOrDefault();
-            lefty1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "lefty", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("analog_left_y"))
+                lefty1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["analog_left_y"], isXinput));
+            else
+                lefty1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "lefty", isXinput));
 
             XElement lefty1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_y.bindingtarget1.keyType").FirstOrDefault();
-            lefty1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "lefty", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("analog_left_y"))
+                lefty1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["analog_left_y"], isXinput));
+            else
+                lefty1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "lefty", isXinput));
 
             XElement lefty1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_y.bindingtarget1.providerId").FirstOrDefault();
             lefty1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
@@ -128,10 +193,16 @@ namespace EmulatorLauncher
             rightx1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
 
             XElement rightx1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_x.bindingtarget1.keyId").FirstOrDefault();
-            rightx1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "rightx", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("analog_right_x"))
+                rightx1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["analog_right_x"], isXinput));
+            else
+                rightx1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "rightx", isXinput));
 
             XElement rightx1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_x.bindingtarget1.keyType").FirstOrDefault();
-            rightx1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "rightx", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("analog_right_x"))
+                rightx1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["analog_right_x"], isXinput));
+            else
+                rightx1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "rightx", isXinput));
 
             XElement rightx1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_x.bindingtarget1.providerId").FirstOrDefault();
             rightx1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
@@ -141,10 +212,16 @@ namespace EmulatorLauncher
             righty1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
 
             XElement righty1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_y.bindingtarget1.keyId").FirstOrDefault();
-            righty1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "righty", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("analog_right_y"))
+                righty1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["analog_right_y"], isXinput));
+            else
+                righty1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "righty", isXinput));
 
             XElement righty1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_y.bindingtarget1.keyType").FirstOrDefault();
-            righty1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "righty", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("analog_right_y"))
+                righty1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["analog_right_y"], isXinput));
+            else
+                righty1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "righty", isXinput));
 
             XElement righty1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_y.bindingtarget1.providerId").FirstOrDefault();
             righty1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
@@ -170,10 +247,16 @@ namespace EmulatorLauncher
             dpdown1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
 
             XElement dpdown1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_down.bindingtarget1.keyId").FirstOrDefault();
-            dpdown1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "dpdown", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("dpad_down"))
+                dpdown1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["dpad_down"], isXinput));
+            else
+                dpdown1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "dpdown", isXinput));
 
             XElement dpdown1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_down.bindingtarget1.keyType").FirstOrDefault();
-            dpdown1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "dpdown", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("dpad_down"))
+                dpdown1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["dpad_down"], isXinput));
+            else
+                dpdown1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "dpdown", isXinput));
 
             XElement dpdown1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_down.bindingtarget1.providerId").FirstOrDefault();
             dpdown1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
@@ -183,10 +266,16 @@ namespace EmulatorLauncher
             dpleft1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
 
             XElement dpleft1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_left.bindingtarget1.keyId").FirstOrDefault();
-            dpleft1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "dpleft", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("dpad_left"))
+                dpleft1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["dpad_left"], isXinput));
+            else
+                dpleft1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "dpleft", isXinput));
 
             XElement dpleft1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_left.bindingtarget1.keyType").FirstOrDefault();
-            dpleft1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "dpleft", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("dpad_left"))
+                dpleft1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["dpad_left"], isXinput));
+            else
+                dpleft1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "dpleft", isXinput));
 
             XElement dpleft1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_left.bindingtarget1.providerId").FirstOrDefault();
             dpleft1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
@@ -196,10 +285,16 @@ namespace EmulatorLauncher
             dpright1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
 
             XElement dpright1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_right.bindingtarget1.keyId").FirstOrDefault();
-            dpright1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "dpright", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("dpad_right"))
+                dpright1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["dpad_right"], isXinput));
+            else
+                dpright1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "dpright", isXinput));
 
             XElement dpright1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_right.bindingtarget1.keyType").FirstOrDefault();
-            dpright1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "dpright", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("dpad_right"))
+                dpright1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["dpad_right"], isXinput));
+            else
+                dpright1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "dpright", isXinput));
 
             XElement dpright1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_right.bindingtarget1.providerId").FirstOrDefault();
             dpright1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
@@ -209,10 +304,16 @@ namespace EmulatorLauncher
             dpup1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
 
             XElement dpup1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_up.bindingtarget1.keyId").FirstOrDefault();
-            dpup1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "dpup", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("dpad_up"))
+                dpup1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["dpad_up"], isXinput));
+            else
+                dpup1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "dpup", isXinput));
 
             XElement dpup1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_up.bindingtarget1.keyType").FirstOrDefault();
-            dpup1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "dpup", isXinput));
+            if (specialMapping && buttonMap.ContainsKey("dpad_up"))
+                dpup1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["dpad_up"], isXinput));
+            else
+                dpup1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "dpup", isXinput));
 
             XElement dpup1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_up.bindingtarget1.providerId").FirstOrDefault();
             dpup1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
@@ -237,10 +338,16 @@ namespace EmulatorLauncher
                 buttonDeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
 
                 XElement buttonKeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + button.Key + ".bindingtarget1.keyId").FirstOrDefault();
-                buttonKeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, button.Value, isXinput));
+                if (specialMapping && buttonMap.ContainsKey(button.Key))
+                    buttonKeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap[button.Key], isXinput));
+                else
+                    buttonKeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, button.Value, isXinput));
 
                 XElement buttonKeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + button.Key + ".bindingtarget1.keyType").FirstOrDefault();
-                buttonKeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, button.Value, isXinput));
+                if (specialMapping && buttonMap.ContainsKey(button.Key))
+                    buttonKeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap[button.Key], isXinput));
+                else
+                    buttonKeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, button.Value, isXinput));
 
                 XElement buttonProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + button.Key + ".bindingtarget1.providerId").FirstOrDefault();
                 buttonProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
@@ -575,5 +682,14 @@ namespace EmulatorLauncher
                 }
             }
         }
+
+        static readonly string[] mappingPaths =
+        {            
+            // User specific
+            "{userpath}\\inputmapping\\play_Arcade.yml",
+
+            // RetroBat Default
+            "{systempath}\\resources\\inputmapping\\play_Arcade.yml",
+        };
     }
 }
