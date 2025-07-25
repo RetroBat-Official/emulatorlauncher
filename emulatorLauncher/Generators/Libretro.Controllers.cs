@@ -51,8 +51,11 @@ namespace EmulatorLauncher.Libretro
 
             CleanControllerConfig(retroconfig);
 
-            int controllerNb = Program.Controllers.Count + 1;
-            retroconfig["input_max_users"] = (controllerNb + 1).ToString();
+            int controllerNb = Program.Controllers.Count;
+            if (controllerNb < 4)
+                retroconfig["input_max_users"] = "4";
+            else
+                retroconfig["input_max_users"] = (controllerNb + 1).ToString();
 
             foreach (var controller in Program.Controllers)
                 WriteControllerConfig(retroconfig, controller, system, core);
