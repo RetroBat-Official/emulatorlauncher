@@ -654,13 +654,13 @@ namespace EmulatorLauncher.Libretro
 
             // Resolution & monitor
             bool forcefs = SystemConfig.getOptBoolean("forcefullscreen");
-
+            int test = Screen.AllScreens.Length;
             if (Features.IsSupported("MonitorIndex"))
             {
                 if (SystemConfig.isOptSet("MonitorIndex"))
                 {
                     int monitorId;
-                    if (int.TryParse(SystemConfig["MonitorIndex"], out monitorId) && monitorId < Screen.AllScreens.Length)
+                    if (int.TryParse(SystemConfig["MonitorIndex"], out monitorId) && monitorId <= Screen.AllScreens.Length)
                         retroarchConfig["video_monitor_index"] = (monitorId).ToString();
                 }
                 else

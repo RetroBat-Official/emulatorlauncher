@@ -518,6 +518,9 @@ namespace EmulatorLauncher.Libretro
                 else
                     retroconfig["input_turbo_default_button"] = "0";
 
+                // In Retroarch 1.21 the target button turboe'd is "input_turbo_button" and the values change
+                // Also turboactivationbutton can be set with "input_turbo_bind" - not needing the code below
+
                 // Define turbo activation button based on joypad input key mapping (4 options available L1, R1, L2, R2)
                 if (Program.SystemConfig.isOptSet("turbo_button") && !string.IsNullOrEmpty(Program.SystemConfig["turbo_button"]))
                 {
