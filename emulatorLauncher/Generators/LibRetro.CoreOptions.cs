@@ -1631,6 +1631,7 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["input_libretro_device_p3"] = "513";
                 retroarchConfig["input_libretro_device_p4"] = "513";
                 retroarchConfig["input_libretro_device_p5"] = "769";
+                retroarchConfig["input_max_users"] = "8";
             }
 
             SetupLightGuns(retroarchConfig, "258", core, 2);

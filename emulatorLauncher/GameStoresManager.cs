@@ -12,6 +12,12 @@ namespace EmulatorLauncher
     {
         public static void UpdateGames()
         {
+            if (Program.SystemConfig.isOptSet("scanStore") && Program.SystemConfig["scanStore"] == "0")
+            {
+                SimpleLogger.Instance.Info("[ImportStore] Option to scan installed store games is disabled.");
+                return;
+            }
+
             Parallel.Invoke(
                () => ImportStore("amazon", AmazonLibrary.GetInstalledGames),
                () => ImportStore("eagames", EaGamesLibrary.GetInstalledGames),

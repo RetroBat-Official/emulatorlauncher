@@ -405,6 +405,18 @@ namespace EmulatorLauncher
                 retList.Add("-ui_mouse");
             }
 
+            // Pedal
+            if (SystemConfig.isOptSet("mame_pedal") && !string.IsNullOrEmpty(SystemConfig["mame_pedal"]))
+            {
+                retList.Add("-pedal_device ");
+                retList.Add(SystemConfig["mame_pedal"]);
+            }
+            else
+            {
+                retList.Add("-pedal_device");
+                retList.Add("joystick");
+            }
+
             // Lightgun
             if (SystemConfig.isOptSet("mame_lightgun") && SystemConfig["mame_lightgun"] == "none")
                 retList.Add("-nogun");

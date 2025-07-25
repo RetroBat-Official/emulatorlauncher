@@ -54,6 +54,7 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("[INFO] link file, searching for target.");
                 string target = FileTools.GetShortcutTarget(rom);
+                arguments = FileTools.GetShortcutArgswsh(rom);
 
                 if (target != "" && target != null)
                 {
@@ -212,6 +213,11 @@ namespace EmulatorLauncher
                     throw new Exception("No path specified in .game file.");
                 else
                     linkTarget = lines[0];
+
+                if (lines.Length > 1)
+                {
+                    arguments = string.Join(" ", lines.Skip(1));
+                }
 
                 if (!File.Exists(linkTarget))
                     throw new Exception("Target file " + linkTarget + " does not exist.");

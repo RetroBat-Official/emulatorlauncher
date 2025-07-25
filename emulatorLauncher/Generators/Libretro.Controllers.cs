@@ -51,8 +51,11 @@ namespace EmulatorLauncher.Libretro
 
             CleanControllerConfig(retroconfig);
 
-            int controllerNb = Program.Controllers.Count + 1;
-            retroconfig["input_max_users"] = (controllerNb + 1).ToString();
+            int controllerNb = Program.Controllers.Count;
+            if (controllerNb < 4)
+                retroconfig["input_max_users"] = "4";
+            else
+                retroconfig["input_max_users"] = (controllerNb + 1).ToString();
 
             foreach (var controller in Program.Controllers)
                 WriteControllerConfig(retroconfig, controller, system, core);
@@ -514,6 +517,9 @@ namespace EmulatorLauncher.Libretro
                     retroconfig["input_turbo_default_button"] = Program.SystemConfig["turbo_default_button"];
                 else
                     retroconfig["input_turbo_default_button"] = "0";
+
+                // In Retroarch 1.21 the target button turboe'd is "input_turbo_button" and the values change
+                // Also turboactivationbutton can be set with "input_turbo_bind" - not needing the code below
 
                 // Define turbo activation button based on joypad input key mapping (4 options available L1, R1, L2, R2)
                 if (Program.SystemConfig.isOptSet("turbo_button") && !string.IsNullOrEmpty(Program.SystemConfig["turbo_button"]))

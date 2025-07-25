@@ -357,13 +357,20 @@ namespace EmulatorLauncher.Common
             if (!System.IO.File.Exists(shortcutFile))
                 throw new System.IO.FileNotFoundException("Shortcut file not found", shortcutFile);
 
-            // Create a Windows Script Host Shell object
-            dynamic shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
-            dynamic shortcut = shell.CreateShortcut(shortcutFile);
-            string args = shortcut.Arguments;
-            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shortcut);
-            System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shell);
-            return args;
+            try
+            {
+                // Create a Windows Script Host Shell object
+                dynamic shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
+                dynamic shortcut = shell.CreateShortcut(shortcutFile);
+                string args = shortcut.Arguments;
+                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shortcut);
+                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shell);
+                return args;
+            }
+            catch
+            {
+                return "";
+            }
         }
     }
 }
