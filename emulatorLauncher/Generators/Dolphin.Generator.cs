@@ -612,9 +612,13 @@ namespace EmulatorLauncher
 
                             ini.WriteValue("Core", "SlotA", SystemConfig["dolphin_slotA"] == "1" ? "1" : "8");
 
-                            string gcSavePath = Path.Combine(savesPath, "gamecube", "dolphin-emu", "User", "GC", gc_region, "Card A");
+                            string gcSavesPathNoRegion = Path.Combine(savesPath, "gamecube", "dolphin-emu", "User", "GC");
+                            SyncGCSaves(gcSavesPathNoRegion);
+                            
+                            string gcSavePath = Path.Combine(savesPath, "gamecube", "dolphin-emu", "User", "GC", gc_region);
                             if (!Directory.Exists(gcSavePath)) try { Directory.CreateDirectory(gcSavePath); }
                                 catch { }
+                            
                             string sramFile = Path.Combine(savesPath, "gamecube", "dolphin -emu", "User", "GC", "SRAM." + gc_region + ".raw");
 
                             ini.WriteValue("Core", "GCIFolderAPath", gcSavePath);
@@ -784,6 +788,105 @@ namespace EmulatorLauncher
 
             ini.WriteValue("General", "ISOPaths", (isoPathsCount + 1).ToString());
             ini.WriteValue("General", "ISOPath" + isoPathsCount, romPath);
+        }
+
+        
+        public static void SyncGCSaves(string path)
+        {
+            if (!Program.SystemConfig.isOptSet("dolphin_sync_saves") || !Program.SystemConfig.getOptBoolean("dolphin_sync_saves"))
+            {
+                SimpleLogger.Instance.Info("[INFO] GameCube saves sync is disabled.");
+                return;
+            }
+
+            try
+            {
+                string[] gcRegions = { "EUR", "USA", "JAP" };
+
+                foreach (string region in gcRegions)
+                {
+                    string mainPath = Path.Combine(path, region);
+                    string cardAPath = Path.Combine(mainPath, "Card A");
+
+                    if (!Directory.Exists(cardAPath))
+                        try { Directory.CreateDirectory(cardAPath); } catch { }
+
+                    Dictionary<string, string> standaloneCgiFiles = new Dictionary<string, string>();
+                    Dictionary<string, string> cardACgiFiles = new Dictionary<string, string>();
+
+                    // Get all .cgi files under main path (including subdirs)
+                    if (Directory.Exists(mainPath))
+                    {
+                        foreach (string filePath in Directory.GetFiles(mainPath, "*.gci"))
+                            standaloneCgiFiles[Path.GetFileName(filePath)] = filePath;
+                    }
+
+                    // Get all .cgi files under Card A path (including subdirs)
+                    if (Directory.Exists(cardAPath))
+                    {
+                        foreach (string filePath in Directory.GetFiles(cardAPath, "*.gci"))
+                        {
+                            cardACgiFiles[Path.GetFileName(filePath)] = filePath;
+                        }
+                    }
+
+                    // Sync files between folders
+                    HashSet<string> allKeys = new HashSet<string>(standaloneCgiFiles.Keys);
+                    allKeys.UnionWith(cardACgiFiles.Keys);
+
+                    foreach (string relativePath in allKeys)
+                    {
+                        bool inStandalone = standaloneCgiFiles.ContainsKey(relativePath);
+                        bool inCardA = cardACgiFiles.ContainsKey(relativePath);
+
+                        string sourcePath, targetPath;
+
+                        if (!inStandalone && inCardA)
+                        {
+                            // Copy from Card A to main
+                            sourcePath = cardACgiFiles[relativePath];
+                            targetPath = Path.Combine(mainPath, relativePath);
+                            try { File.Copy(sourcePath, targetPath); } catch { }
+                        }
+                        else if (inStandalone && !inCardA)
+                        {
+                            // Copy from main to Card A
+                            sourcePath = standaloneCgiFiles[relativePath];
+                            targetPath = Path.Combine(cardAPath, relativePath);
+                            try { File.Copy(sourcePath, targetPath); } catch { }
+                        }
+                        else if (inStandalone && inCardA)
+                        {
+                            // Compare timestamps
+                            DateTime mainTime = File.GetLastWriteTimeUtc(standaloneCgiFiles[relativePath]);
+                            DateTime cardATime = File.GetLastWriteTimeUtc(cardACgiFiles[relativePath]);
+
+                            if (mainTime > cardATime)
+                            {
+                                string oldPath = cardACgiFiles[relativePath] + ".old";
+                                if (File.Exists(oldPath))
+                                    try { File.Delete(oldPath); } catch { }
+                                try { File.Move(cardACgiFiles[relativePath], oldPath); } catch { }
+                                try { File.Copy(standaloneCgiFiles[relativePath], cardACgiFiles[relativePath]); } catch { }
+                            }
+                            else if (cardATime > mainTime)
+                            {
+                                string oldPath = standaloneCgiFiles[relativePath] + ".old";
+                                if (File.Exists(oldPath))
+                                    try { File.Delete(oldPath); } catch { }
+                                try { File.Move(standaloneCgiFiles[relativePath], oldPath); } catch { }
+                                try { File.Copy(cardACgiFiles[relativePath], standaloneCgiFiles[relativePath]); } catch { }
+                            }
+                        }
+                    }
+                }
+
+                SimpleLogger.Instance.Info("[INFO] GameCube saves have been synced.");
+            }
+            catch
+            {
+                SimpleLogger.Instance.Warning("[WARNING] Failed to sync GameCube saves.");
+            }
         }
 
         public override int RunAndWait(ProcessStartInfo path)

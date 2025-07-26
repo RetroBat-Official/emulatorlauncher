@@ -342,6 +342,7 @@ namespace EmulatorLauncher
                         switch (core)
                         {
                             case "genesis_plus_gx":
+                            case "genesis_plus_gx_expanded":
                             case "genesis_plus_gx_wide":
                                 {
                                     bool buttons3 = md3buttonsLibretro.Contains(Program.SystemConfig["genesis_plus_gx_controller"]);

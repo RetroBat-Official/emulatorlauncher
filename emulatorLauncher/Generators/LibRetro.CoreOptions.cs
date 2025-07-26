@@ -106,6 +106,7 @@ namespace EmulatorLauncher.Libretro
                 { "geargrafx", "Geargrafx" },
                 { "gearsystem", "Gearsystem" },
                 { "genesis_plus_gx", "Genesis Plus GX" },
+                { "genesis_plus_gx_expanded", "Genesis Plus GX" },
                 { "genesis_plus_gx_wide", "Genesis Plus GX Wide" },
                 { "geolith", "Geolith" },
                 { "gme", "Game Music Emu" },
@@ -1083,6 +1084,9 @@ namespace EmulatorLauncher.Libretro
             {
                 BindBoolFeature(coreSettings, "dolphin_widescreen_hack", "dolphin_widescreen_hack", "enabled", "disabled");
 
+                string gcSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "gamecube", "dolphin-emu", "User", "GC");
+                DolphinGenerator.SyncGCSaves(gcSavesPath);
+
                 try
                 {
                     // use Dolphin.ini for options not available in retroarch-core-options.cfg
@@ -1873,7 +1877,7 @@ namespace EmulatorLauncher.Libretro
 
         private void ConfigureGenesisPlusGX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
-            if (core != "genesis_plus_gx")
+            if (core != "genesis_plus_gx" && core != "genesis_plus_gx_expanded")
                 return;
 
             coreSettings["genesis_plus_gx_system_bram"] = "per game";

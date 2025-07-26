@@ -221,6 +221,7 @@ namespace EmulatorLauncher.Libretro
                     switch (core)
                     {
                         case "genesis_plus_gx":
+                        case "genesis_plus_gx_expanded":
                         case "genesis_plus_gx_wide":
                         case "picodrive":
                             if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
