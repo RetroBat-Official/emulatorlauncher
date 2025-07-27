@@ -116,8 +116,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("UI", "Paths\\gamedirs\\size", "3");
                 
                 // Write settings
-                ini.WriteValue("UI", "Updater\\check_for_update_on_start\\default", "false");
-                ini.WriteValue("UI", "Updater\\check_for_update_on_start", "false");
+                ini.WriteValue("Miscellaneous", "check_for_update_on_start\\default", "false");
+                ini.WriteValue("Miscellaneous", "check_for_update_on_start", "false");
 
                 if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
                 {
@@ -284,35 +284,35 @@ namespace EmulatorLauncher
                     ini.WriteValue("Layout", "layout_option\\default", "false");
                     ini.WriteValue("Layout", "layout_option", "6");
 
-                    decimal topPosX = 560m / 1920m;
+                    decimal topPosX = 562m / 1920m;
                     decimal newTopPosX = (topPosX * (_resolution == null? ScreenResolution.CurrentResolution.Width : _resolution.Width));
                     int finalTopPosx = (int)newTopPosX;
 
-                    decimal topPosY = 70m / 1080m;
+                    decimal topPosY = 66m / 1080m;
                     decimal newTopPosY = (topPosY * (_resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height));
                     int finalTopPosY = (int)newTopPosY;
 
-                    decimal topWidth = 800m / 1920m;
+                    decimal topWidth = 796m / 1920m;
                     decimal newTopWidth = (topWidth * (_resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width));
                     int finalTopWidth = (int)newTopWidth;
 
-                    decimal topHeight = 470m / 1080m;
+                    decimal topHeight = 476m / 1080m;
                     decimal newTopHeight = (topHeight * (_resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height));
                     int finalTopHeight = (int)newTopHeight;
 
-                    decimal bottomPosX = 650m / 1920m;
+                    decimal bottomPosX = 648m / 1920m;
                     decimal newBottomPosX = (bottomPosX * (_resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width));
                     int finalBottomPosx = (int)newBottomPosX;
 
-                    decimal bottomPosY = 550m / 1080m;
+                    decimal bottomPosY = 554m / 1080m;
                     decimal newBottomPosY = (bottomPosY * (_resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height));
                     int finalBottomPosY = (int)newBottomPosY;
 
-                    decimal bottomWidth = 620m / 1920m;
+                    decimal bottomWidth = 624m / 1920m;
                     decimal newBottomWidth = (bottomWidth * (_resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width));
                     int finalBottomWidth = (int)newBottomWidth;
 
-                    decimal bottomHeight = 480m / 1080m;
+                    decimal bottomHeight = 466m / 1080m;
                     decimal newBottomHeight = (bottomHeight * (_resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height));
                     int finalBottomHeight = (int)newBottomHeight;
 
