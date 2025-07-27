@@ -18,14 +18,115 @@ namespace EmulatorLauncher.Libretro
         {
             inputConfig = new Dictionary<string, string>();
             bool analogDpad = Program.SystemConfig.getOptBoolean("analogDpad");
+            bool useArcadeStick = Program.SystemConfig.getOptBoolean("arcade_stick");
+
+            // specific mapping for arcade sticks*
+            if (useArcadeStick)
+            {
+                string guid = controller.Guid.ToString().ToLowerInvariant();
+                string stickjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "arcade_sticks.json");
+                foreach (var path in mappingPaths)
+                {
+                    string result = path
+                        .Replace("{systempath}", "system")
+                        .Replace("{userpath}", "user");
+
+                    string stickjson2 = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result, "arcade_sticks.json");
+
+                    if (File.Exists(stickjson2))
+                    {
+                        stickjson = stickjson2;
+                        break;
+                    }
+                }
+
+                if (!File.Exists(stickjson))
+                {
+                    SimpleLogger.Instance.Info("[Controller] No json file found for Arcade Stick special mapping.");
+                    return false;
+                }
+
+                else
+                {
+                    try
+                    {
+                        var arcadeControllers = ArcadeStickController.LoadControllersFromJson(stickjson);
+
+                        if (arcadeControllers == null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                            return false;
+                        }
+
+                        ArcadeStickController arcadeStick = ArcadeStickController.GetArcadeController("libretro", guid, _inputDriver, arcadeControllers);
+                        if (arcadeStick == null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] No specific mapping found for Arcade Stick.");
+                            return false;
+                        }
+
+                        if (arcadeStick.Mapping == null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro : " + arcadeStick.Name);
+                            return false;
+                        }
+
+                        if (arcadeStick.ControllerInfo != null)
+                        {
+                            if (arcadeStick.ControllerInfo.ContainsKey("input_analog_sensitivity"))
+                                retroconfig["input_analog_sensitivity"] = arcadeStick.ControllerInfo["input_analog_sensitivity"];
+                            if (arcadeStick.ControllerInfo.ContainsKey("input_joypad_driver"))
+                                inputConfig["input_joypad_driver"] = arcadeStick.ControllerInfo["input_joypad_driver"];
+                        }
+
+                        SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + arcadeStick.Name);
+
+                        foreach (var button in arcadeStick.Mapping)
+                            inputConfig[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
+
+                        if (arcadeStick.HotKeyMapping != null && controller.PlayerIndex == 1)
+                        {
+                            foreach (var hotkey in arcadeStick.HotKeyMapping)
+                                inputConfig[hotkey.Key] = hotkey.Value;
+                            _specialControllerHotkey = true;
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + arcadeStick.Name);
+
+                        _inputDriver = "sdl2";
+
+                        if (inputConfig["input_joypad_driver"] != null)
+                            _inputDriver = inputConfig["input_joypad_driver"];
+
+                        _specialController = true;
+                        return true;
+                    }
+                    catch { }
+                }
+            }
 
             // Specific mapping for N64 like controllers
             if (system == "n64")
             {
                 string guid = controller.Guid.ToString().ToLowerInvariant();
-                string n64json = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
                 bool needActivationSwitch = false;
                 bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
+
+                string n64json = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+                foreach (var path in mappingPaths)
+                {
+                    string result = path
+                        .Replace("{systempath}", "system")
+                        .Replace("{userpath}", "user");
+
+                    string n64json2 = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result, "n64Controllers.json");
+
+                    if (File.Exists(n64json2))
+                    {
+                        n64json = n64json2;
+                        break;
+                    }
+                }
 
                 if (!File.Exists(n64json))
                 {
@@ -109,6 +210,21 @@ namespace EmulatorLauncher.Libretro
                 bool needActivationSwitch = false;
                 bool md_pad = Program.SystemConfig.getOptBoolean("md_pad");
 
+                foreach (var path in mappingPaths)
+                {
+                    string result = path
+                        .Replace("{systempath}", "system")
+                        .Replace("{userpath}", "user");
+
+                    string mdjson2 = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result, "mdControllers.json");
+
+                    if (File.Exists(mdjson2))
+                    {
+                        mdjson = mdjson2;
+                        break;
+                    }
+                }
+
                 if (!File.Exists(mdjson))
                 {
                     SimpleLogger.Instance.Info("[Controller] No Megadrive JSON file found.");
@@ -188,6 +304,21 @@ namespace EmulatorLauncher.Libretro
                 bool needActivationSwitch = false;
                 bool sat_pad = Program.SystemConfig.getOptBoolean("saturn_pad");
 
+                foreach (var path in mappingPaths)
+                {
+                    string result = path
+                        .Replace("{systempath}", "system")
+                        .Replace("{userpath}", "user");
+
+                    string saturnjson2 = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result, "saturnControllers.json");
+
+                    if (File.Exists(saturnjson2))
+                    {
+                        saturnjson = saturnjson2;
+                        break;
+                    }
+                }
+
                 if (!File.Exists(saturnjson))
                 {
                     SimpleLogger.Instance.Info("[Controller] No Saturn JSON file found.");
@@ -266,7 +397,22 @@ namespace EmulatorLauncher.Libretro
                 string specjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "3doControllers.json");
                 bool needActivationSwitch = false;
                 bool spec_pad = Program.SystemConfig.getOptBoolean("3do_pad");
+                
+                foreach (var path in mappingPaths)
+                {
+                    string result = path
+                        .Replace("{systempath}", "system")
+                        .Replace("{userpath}", "user");
 
+                    string specjson2 = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result, "3doControllers.json");
+
+                    if (File.Exists(specjson2))
+                    {
+                        specjson = specjson2;
+                        break;
+                    }
+                }
+                
                 if (!File.Exists(specjson))
                 {
                     SimpleLogger.Instance.Info("[Controller] No 3DO JSON file found.");
@@ -339,5 +485,14 @@ namespace EmulatorLauncher.Libretro
             }
             return false;
         }
+
+        static readonly string[] mappingPaths =
+        {            
+            // User specific
+            "{userpath}\\inputmapping",
+
+            // RetroBat Default
+            "{systempath}\\resources\\inputmapping",
+        };
     }
 }

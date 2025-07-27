@@ -566,13 +566,34 @@ namespace EmulatorLauncher.Libretro
             int index = controller.DeviceIndex;
             if (index < 0)
                 index = controller.PlayerIndex - 1;
+           
+            bool forceArcadeIndex = false;
 
-            if (_inputDriver == "sdl2" && !string.IsNullOrEmpty(controller.DevicePath) && controller.SdlController != null)
-                index = controller.SdlController.Index;
-            else if (_inputDriver == "dinput" && controller.DirectInput != null && controller.DirectInput.DeviceIndex >= 0)
-                index = controller.DirectInput.DeviceIndex;
-            else if (_inputDriver == "xinput" && controller.XInput != null && controller.XInput.DeviceIndex >= 0)
-                index = controller.XInput.DeviceIndex;
+            if (Program.SystemConfig.getOptBoolean("arcade_stick"))
+            {
+                int pIndex = controller.PlayerIndex;
+                string forcePIndex = "p" + pIndex.ToString() + "_stick_index";
+
+                if (Program.SystemConfig.isOptSet(forcePIndex) && !string.IsNullOrEmpty(Program.SystemConfig[forcePIndex]))
+                {
+                    if (int.TryParse(Program.SystemConfig[forcePIndex], out int stickIndex))
+                    {
+                        index = stickIndex;
+                        forceArcadeIndex = true;
+                        SimpleLogger.Instance.Info("[INFO] Force arcade stick index for player " + pIndex + " to: " + index);
+                    }
+                }
+            }
+
+            if (!forceArcadeIndex)
+            {
+                if (_inputDriver == "sdl2" && !string.IsNullOrEmpty(controller.DevicePath) && controller.SdlController != null)
+                    index = controller.SdlController.Index;
+                else if (_inputDriver == "dinput" && controller.DirectInput != null && controller.DirectInput.DeviceIndex >= 0)
+                    index = controller.DirectInput.DeviceIndex;
+                else if (_inputDriver == "xinput" && controller.XInput != null && controller.XInput.DeviceIndex >= 0)
+                    index = controller.XInput.DeviceIndex;
+            }
 
             retroconfig[string.Format("input_player{0}_joypad_index", controller.PlayerIndex)] = index.ToString();
             retroconfig[string.Format("input_player{0}_analog_dpad_mode", controller.PlayerIndex)] = GetAnalogMode(controller, system);
