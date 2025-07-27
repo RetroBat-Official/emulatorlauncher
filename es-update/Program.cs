@@ -15,6 +15,8 @@ namespace RetrobatUpdater
 
         static int Main(string[] args)
         {
+            string logFile = "es-update.log";
+            File.WriteAllText(logFile, string.Empty);
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
             SimpleLogger.Instance.Info("[Startup] " + Environment.CommandLine);
 
