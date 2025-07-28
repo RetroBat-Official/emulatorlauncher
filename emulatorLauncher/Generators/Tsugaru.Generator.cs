@@ -30,19 +30,15 @@ namespace EmulatorLauncher
 
             string biosPath = null;
 
-            if (!string.IsNullOrEmpty(AppConfig["bios"]))
-            {
-                if (Directory.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "fmtownsux")))
-                    biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "fmtownsux");
-                else if (Directory.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "fmtowns")))
-                    biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "fmtowns");
-                else if (Directory.Exists(Path.Combine(path, "roms")))
-                    biosPath = Path.Combine(path, "roms");
-                else if (Directory.Exists(Path.Combine(path, "fmtownsux")))
-                    biosPath = Path.Combine(path, "fmtownsux");
-            }
-
-            if (string.IsNullOrEmpty(biosPath) || !File.Exists(Path.Combine(biosPath, "FMT_SYS.ROM")))
+            if (Directory.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "fmtowns")))
+                biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "fmtowns");
+            if (!File.Exists(Path.Combine(biosPath, "FMT_SYS.ROM")))
+                biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "fmtownsux");
+            if (!File.Exists(Path.Combine(biosPath, "FMT_SYS.ROM")))
+                biosPath = Path.Combine(path, "roms");
+            if (!File.Exists(Path.Combine(biosPath, "FMT_SYS.ROM")))
+                biosPath = Path.Combine(path, "fmtownsux");
+            if (!File.Exists(Path.Combine(biosPath, "FMT_SYS.ROM")))
             {
                 SimpleLogger.Instance.Info("[TsugaruGenerator] Bios path not found");
                 return null;
