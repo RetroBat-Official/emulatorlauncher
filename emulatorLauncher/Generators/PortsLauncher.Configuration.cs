@@ -496,34 +496,57 @@ namespace EmulatorLauncher
             string debugSettingsFile = Path.Combine(gameConfigPath, "misc", "debug-settings.json");
 
             // Debug Settings file
-            var debugSettings = DynamicJson.Load(debugSettingsFile);
 
-            debugSettings["alternate_style"] = "false";
-            debugSettings["ignore_hide_imgui"] = "false";
-            debugSettings["monospaced_font"] = "true";
-            debugSettings["show_imgui"] = "false";
-            debugSettings["text_check_range"] = "false";
-            debugSettings.Save();
+            if (!File.Exists(debugSettingsFile))
+            {
+                try { File.WriteAllText(debugSettingsFile, "{}"); }
+                catch { SimpleLogger.Instance.Warning("[WARNING] Error opening debug-settings.json config file."); }
+            }
+
+            if (File.Exists(debugSettingsFile))
+            {
+                var debugSettings = DynamicJson.Load(debugSettingsFile);
+
+                debugSettings["alternate_style"] = "false";
+                debugSettings["ignore_hide_imgui"] = "false";
+                debugSettings["monospaced_font"] = "true";
+                debugSettings["show_imgui"] = "false";
+                debugSettings["text_check_range"] = "false";
+                debugSettings.Save();
+            }
 
             // Display settings
             string displaySettingsFile = Path.Combine(gameConfigPath, "settings", "display-settings.json");
-            var displayConf = DynamicJson.Load(displaySettingsFile);
 
-            BindFeature(displayConf, "display_id", "MonitorIndex", "0");
-            if (_fullscreen && SystemConfig.getOptBoolean("exclusivefs"))
-                displayConf["display_mode"] = "2";
-            else if (_fullscreen)
-                displayConf["display_mode"] = "1";
-            else
-                displayConf["display_mode"] = "0";
+            if (!File.Exists(displaySettingsFile))
+            {
+                try { File.WriteAllText(displaySettingsFile, "{}"); }
+                catch { SimpleLogger.Instance.Warning("[WARNING] Error opening display-settings.json config file."); }
+            }
 
-            displayConf.Save();
+            if (File.Exists(displaySettingsFile))
+            {
+                var displayConf = DynamicJson.Load(displaySettingsFile);
+
+                BindFeature(displayConf, "display_id", "MonitorIndex", "0");
+                if (_fullscreen && SystemConfig.getOptBoolean("exclusivefs"))
+                    displayConf["display_mode"] = "2";
+                else if (_fullscreen)
+                    displayConf["display_mode"] = "1";
+                else
+                    displayConf["display_mode"] = "0";
+
+                displayConf.Save();
+            }
 
             // Game settings - to check settings for jak 2
             string configFilePath = Path.Combine(gameConfigPath, "settings", "pc-settings.gc");
 
             if (!File.Exists(configFilePath))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] Could not find file: " + configFilePath);
                 return;
+            }
 
             string[] configLines = File.ReadAllLines(configFilePath);
             
