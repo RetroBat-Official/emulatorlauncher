@@ -64,6 +64,9 @@ namespace EmulatorLauncher
                 return;
 
             string padType = "1";
+            if (SystemConfig.getOptBoolean("use_guns") && playerIndex == 1)
+                padType = "2";
+
             if (SystemConfig.isOptSet("cxbx_controller" + playerIndex) || !string.IsNullOrEmpty(SystemConfig["cxbx_controller" + playerIndex]))
                 padType = SystemConfig["cxbx_controller" + playerIndex];
             
@@ -139,6 +142,9 @@ namespace EmulatorLauncher
             double_pads[shortDeviceName] = nsamepad + 1;
 
             string deviceName = tech + "/" + nsamepad + "/" + controllerName;
+
+            if (SystemConfig.getOptBoolean("use_guns") && playerIndex == 1)
+                padType = "2";
 
             if (SystemConfig.isOptSet("cxbx_controller" + playerIndex) || !string.IsNullOrEmpty(SystemConfig["cxbx_controller" + playerIndex]))
                 padType = SystemConfig["cxbx_controller" + playerIndex];
