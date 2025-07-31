@@ -426,31 +426,28 @@ namespace EmulatorLauncher
         public string Icon { get; set; }
     }
 
-    public class XeniaManagerArtworkCache
-    {
-        [JsonProperty("background")]
-        public string Background { get; set; }
-
-        [JsonProperty("boxart")]
-        public string Boxart { get; set; }
-
-        [JsonProperty("icon")]
-        public string Icon { get; set; }
-    }
-
     public class XeniaManagerFileLocations
     {
-        [JsonProperty("game_location")]
+        [JsonProperty("game")]
         public string GameLocation { get; set; }
 
-        [JsonProperty("patch_location")]
+        [JsonProperty("patch")]
         public string PatchLocation { get; set; }
 
-        [JsonProperty("config_location")]
+        [JsonProperty("config")]
         public string ConfigLocation { get; set; }
 
-        [JsonProperty("emulator_executable_location")]
+        [JsonProperty("custom_emulator_executable")]
         public string EmulatorExecutableLocation { get; set; }
+    }
+
+    public class XeniaManagerCompat
+    {
+        [JsonProperty("url")]
+        public string CompatURL { get; set; }
+
+        [JsonProperty("rating")]
+        public string CompatRating { get; set; }
     }
 
     public class XeniaManagerGame
@@ -467,23 +464,17 @@ namespace EmulatorLauncher
         [JsonProperty("media_id")]
         public string MediaId { get; set; }
 
-        [JsonProperty("emulator_version")]
+        [JsonProperty("xenia_version")]
         public string EmulatorVersion { get; set; }
 
         [JsonProperty("playtime")]
         public double? Playtime { get; set; }
 
-        [JsonProperty("gamecompatibility_url")]
-        public string GameCompatibilityUrl { get; set; }
-
-        [JsonProperty("compatibility_rating")]
-        public string CompatibilityRating { get; set; }
-
         [JsonProperty("artwork")]
         public XeniaManagerArtwork Artwork { get; set; }
 
-        [JsonProperty("artwork_cache")]
-        public XeniaManagerArtworkCache ArtworkCache { get; set; }
+        [JsonProperty("compatibility")]
+        public XeniaManagerCompat Compatibility { get; set; }
 
         [JsonProperty("file_locations")]
         public XeniaManagerFileLocations FileLocations { get; set; }
