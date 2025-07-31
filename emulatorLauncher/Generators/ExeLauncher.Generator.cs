@@ -25,6 +25,7 @@ namespace EmulatorLauncher
         private bool _steamRun = false;
         private bool _gameExeFile; // When exe is specified in a .gameexe file
         private bool _nonSteam = false;
+        private bool _batfile = false;
 
         private GameLauncher _gameLauncher;
 
@@ -314,6 +315,7 @@ namespace EmulatorLauncher
             
             if (ext == ".bat" || ext == ".cmd")
             {
+                _batfile = true;
                 ret.WindowStyle = ProcessWindowStyle.Hidden;
                 ret.UseShellExecute = true;
             }
@@ -574,7 +576,7 @@ namespace EmulatorLauncher
                 return 0;
             }
 
-            else if (_systemName == "windows" || _gameLauncher != null)
+            else if (!_batfile && (_systemName == "windows" || _gameLauncher != null))
             {
                 using (var frm = new System.Windows.Forms.Form())
                 {

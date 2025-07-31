@@ -127,8 +127,7 @@ namespace EmulatorLauncher
             _resolution = resolution;
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            if (_isUsingCxBxLoader)
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             
             // If rom is a directory
             if (Directory.Exists(rom))
@@ -150,6 +149,7 @@ namespace EmulatorLauncher
             //Configuration of .ini file
             using (var ini = IniFile.FromFile(Path.Combine(path, "settings.ini"), IniOptions.KeepEmptyValues | IniOptions.AllowDuplicateValues | IniOptions.UseSpaces))
             {
+                var guns = RawLightgun.GetRawLightguns();
                 var res = resolution ?? ScreenResolution.CurrentResolution;
 
                 //Fulscreen Management
@@ -169,7 +169,9 @@ namespace EmulatorLauncher
                 if (Features.IsSupported("ratio") && SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "stretch")
                 {
                     ini.WriteValue("video", "MaintainAspect", "false");
-                    _bezelFileInfo = null;
+
+                    if (!SystemConfig.getOptBoolean("use_guns") || !guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+                            _bezelFileInfo = null;
                 }
                 else
                     ini.WriteValue("video", "MaintainAspect", "true");

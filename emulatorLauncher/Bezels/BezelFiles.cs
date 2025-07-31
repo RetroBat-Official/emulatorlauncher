@@ -498,6 +498,8 @@ namespace EmulatorLauncher
             if (resolution == null)
                 resolution = ScreenResolution.CurrentResolution;
 
+            SimpleLogger.Instance.Info("[INFO] Creating sinden border bezel");
+
             try
             {
                 var conf = SindenLightgunConfiguration.GetConfiguration(Program.SystemConfig);
