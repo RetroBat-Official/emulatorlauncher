@@ -54,7 +54,7 @@ namespace EmulatorLauncher
             if (extension == ".lnk")
             {
                 SimpleLogger.Instance.Info("[INFO] link file, searching for target.");
-                string target = FileTools.GetShortcutTarget(rom);
+                string target = FileTools.GetShortcutTargetwsh(rom);
                 arguments = FileTools.GetShortcutArgswsh(rom);
 
                 if (target != "" && target != null)
