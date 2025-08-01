@@ -389,19 +389,46 @@ namespace EmulatorLauncher
             int slotindex = 0;
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
             {
+                string n64guid = controller.Guid.ToLowerInvariant();
+                string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+                bool needActivationSwitch = false;
+                bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
+                bool valid = false;
+                N64Controller n64Gamepad = null;
+
+                if (File.Exists(n64json))
+                {
+                    try
+                    {
+                        var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
+
+                        if (n64Controllers != null)
+                        {
+                            n64Gamepad = N64Controller.GetN64Controller("soh", n64guid, n64Controllers);
+
+                            if (n64Gamepad != null)
+                            {
+                                if (n64Gamepad.ControllerInfo != null)
+                                    valid = true;
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
                 // Do not configure controllers that do not have analog stick
-                if (controller.Config[InputKey.rightanalogup] == null)
+                if (!valid && controller.Config[InputKey.rightanalogup] == null)
                 {
                     SimpleLogger.Instance.Info("[CONTROLS] Ignoring controller " + controller.Guid.ToString() + " : no analog sticks.");
                     continue;
                 }
 
-                ConfigureSOHInput(controllers, deck, controller, slotindex);
+                ConfigureSOHInput(controllers, deck, controller, slotindex, n64Gamepad);
                 slotindex++;
             }
         }
 
-        private void ConfigureSOHInput(JObject controllers, JObject deck, Controller ctrl, int slotindex)
+        private void ConfigureSOHInput(JObject controllers, JObject deck, Controller ctrl, int slotindex, N64Controller n64Gamepad)
         {
             if (ctrl == null || ctrl.Config == null)
                 return;
@@ -499,37 +526,40 @@ namespace EmulatorLauncher
             bool needActivationSwitch = false;
             bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
             
-            if (File.Exists(n64json))
+            if (n64Gamepad != null)
             {
                 try
                 {
-                    var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
-
-                    if (n64Controllers != null)
+                    if (n64Gamepad.ControllerInfo != null)
                     {
-                        N64Controller n64Gamepad = N64Controller.GetN64Controller("soh", n64guid, n64Controllers);
+                        if (n64Gamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                            needActivationSwitch = n64Gamepad.ControllerInfo["needActivationSwitch"] == "yes";
 
-                        if (n64Gamepad != null)
+                        if (needActivationSwitch && !n64_pad)
                         {
-                            if (n64Gamepad.ControllerInfo != null)
+                            SimpleLogger.Instance.Info("[Controller] Specific n64 mapping needs to be activated for this controller.");
+                            goto BypassSPecialControllers;
+                        }
+
+                        SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
+
+                        if (n64Gamepad.ControllerInfo.ContainsKey("switch_trigger") && !string.IsNullOrEmpty(n64Gamepad.ControllerInfo["switch_trigger"]))
+                        {
+                            if (Program.SystemConfig.getOptBoolean("n64_special_trigger"))
                             {
-                                if (n64Gamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                                    needActivationSwitch = n64Gamepad.ControllerInfo["needActivationSwitch"] == "yes";
-
-                                if (needActivationSwitch && !n64_pad)
+                                string[] switchZ = n64Gamepad.ControllerInfo["switch_trigger"].Split('_');
+                                if (switchZ.Length > 3)
                                 {
-                                    SimpleLogger.Instance.Info("[Controller] Specific n64 mapping needs to be activated for this controller.");
-                                    goto BypassSPecialControllers;
+                                    n64Gamepad.Mapping[switchZ[0]] = switchZ[1];
+                                    n64Gamepad.Mapping[switchZ[2]] = switchZ[3];
                                 }
-
-                                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
-
-                                foreach (var button in n64Gamepad.Mapping)
-                                    mappings[button.Key] = button.Value.ToInteger();
-
-                                goto Rumble;
                             }
                         }
+
+                        foreach (var button in n64Gamepad.Mapping)
+                            mappings[button.Key] = button.Value.ToInteger();
+
+                        goto Rumble;
                     }
                 }
                 catch { }

@@ -153,8 +153,21 @@ namespace EmulatorLauncher
 
                             SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
 
+                            if (n64Gamepad.ControllerInfo.ContainsKey("switch_trigger") && !string.IsNullOrEmpty(n64Gamepad.ControllerInfo["switch_trigger"]))
+                            {
+                                if (Program.SystemConfig.getOptBoolean("n64_special_trigger"))
+                                {
+                                    n64Gamepad.Mapping["R-Trigger"] = n64Gamepad.ControllerInfo["switch_trigger"];
+                                }
+                            }
+
                             foreach (var button in n64Gamepad.Mapping)
-                                vpad[button.Key] = padId + button.Value + ";;";
+                            {
+                                if (!string.IsNullOrEmpty(button.Value))
+                                    vpad[button.Key] = padId + button.Value + ";;";
+                                else
+                                    vpad[button.Key] = ";;";
+                            }
 
                             SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
 

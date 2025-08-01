@@ -93,8 +93,6 @@ namespace EmulatorLauncher.Libretro
                         else
                             SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + arcadeStick.Name);
 
-                        _inputDriver = "sdl2";
-
                         if (inputConfig["input_joypad_driver"] != null)
                             _inputDriver = inputConfig["input_joypad_driver"];
 
@@ -174,6 +172,13 @@ namespace EmulatorLauncher.Libretro
                                 retroconfig["input_analog_sensitivity"] = n64Gamepad.ControllerInfo["input_analog_sensitivity"];
                             if (n64Gamepad.ControllerInfo.ContainsKey("input_joypad_driver"))
                                 inputConfig["input_joypad_driver"] = n64Gamepad.ControllerInfo["input_joypad_driver"];
+                            if (n64Gamepad.ControllerInfo.ContainsKey("switch_trigger") && !string.IsNullOrEmpty(n64Gamepad.ControllerInfo["switch_trigger"]))
+                            {
+                                if (Program.SystemConfig.getOptBoolean("n64_special_trigger"))
+                                {
+                                    n64Gamepad.Mapping["l2_btn"] = n64Gamepad.ControllerInfo["switch_trigger"];
+                                }
+                            }
                         }
 
                         SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
@@ -190,7 +195,7 @@ namespace EmulatorLauncher.Libretro
                         else
                             SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + n64Gamepad.Name);
 
-                        _inputDriver = "sdl2";
+                        //_inputDriver = "sdl2";
 
                         if (inputConfig["input_joypad_driver"] != null)
                             _inputDriver = inputConfig["input_joypad_driver"];
