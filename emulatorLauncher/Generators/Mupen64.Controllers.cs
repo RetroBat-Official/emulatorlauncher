@@ -146,6 +146,21 @@ namespace EmulatorLauncher
 
                             SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
 
+                            if (n64Gamepad.ControllerInfo.ContainsKey("switch_trigger") && !string.IsNullOrEmpty(n64Gamepad.ControllerInfo["switch_trigger"]))
+                            {
+                                if (Program.SystemConfig.getOptBoolean("n64_special_trigger"))
+                                {
+                                    string[] switchedZ = n64Gamepad.ControllerInfo["switch_trigger"].Split('_');
+                                    if (switchedZ.Length > 3)
+                                    {
+                                        n64Gamepad.Mapping["ZTrigger_InputType"] = switchedZ[0];
+                                        n64Gamepad.Mapping["ZTrigger_Name"] = switchedZ[1];
+                                        n64Gamepad.Mapping["ZTrigger_Data"] = switchedZ[2];
+                                        n64Gamepad.Mapping["ZTrigger_ExtraData"] = switchedZ[3];
+                                    }
+                                }
+                            }
+
                             ConfigureN64Controller(ini, iniSection, n64Gamepad);
 
                             if (playerIndex == 1)

@@ -237,6 +237,14 @@ namespace EmulatorLauncher
                                     useDInput = n64Gamepad.ControllerInfo["dinput"] == "true";
                             }
 
+                            if (n64Gamepad.ControllerInfo.ContainsKey("switch_trigger") && !string.IsNullOrEmpty(n64Gamepad.ControllerInfo["switch_trigger"]))
+                            {
+                                if (Program.SystemConfig.getOptBoolean("n64_special_trigger"))
+                                {
+                                    n64Gamepad.Mapping["Z"] = n64Gamepad.ControllerInfo["switch_trigger"];
+                                }
+                            }
+
                             if (n64Gamepad.Mapping != null)
                             {
                                 foreach (var x in n64Gamepad.Mapping)

@@ -80,7 +80,7 @@ namespace EmulatorLauncher.Common.Joysticks
                 var jsonContent = File.ReadAllText(jsonFilePath);
                 var rootObject = JsonConvert.DeserializeObject<RootObject>(jsonContent);
                 var controllers = new List<N64Controller>();
-                
+
                 foreach (var item in rootObject.Controllers)
                 {
                     var mappingDict = item.Mapping.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);

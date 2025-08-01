@@ -134,6 +134,14 @@ namespace EmulatorLauncher
 
                             SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
 
+                            if (n64Gamepad.ControllerInfo.ContainsKey("switch_trigger") && !string.IsNullOrEmpty(n64Gamepad.ControllerInfo["switch_trigger"]))
+                            {
+                                if (Program.SystemConfig.getOptBoolean("n64_special_trigger"))
+                                {
+                                    n64Gamepad.Mapping["Z"] = n64Gamepad.ControllerInfo["switch_trigger"];
+                                }
+                            }
+
                             ConfigureN64Controller(profileIni, iniSection, n64Gamepad);
 
                             profileIni.WriteValue(iniSection, "Deadzone", deadzone);
