@@ -619,7 +619,7 @@ namespace EmulatorLauncher
                             if (!Directory.Exists(gcSavePath)) try { Directory.CreateDirectory(gcSavePath); }
                                 catch { }
                             
-                            string sramFile = Path.Combine(savesPath, "gamecube", "dolphin -emu", "User", "GC", "SRAM." + gc_region + ".raw");
+                            string sramFile = Path.Combine(savesPath, "gamecube", "dolphin-emu", "User", "GC", "SRAM." + gc_region + ".raw");
 
                             ini.WriteValue("Core", "GCIFolderAPath", gcSavePath);
                             ini.WriteValue("Core", "MemcardAPath", sramFile);
