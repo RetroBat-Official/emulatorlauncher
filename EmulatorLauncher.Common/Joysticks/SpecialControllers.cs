@@ -303,6 +303,104 @@ namespace EmulatorLauncher.Common.Joysticks
     }
     #endregion
 
+    #region userMapping
+    public class UserController
+    {
+        static readonly UserController[] UserControllers;
+        public string Emulator { get; private set; }
+        public string Name { get; private set; }
+        public string Guid { get; private set; }
+        public string Driver { get; private set; }
+        public Dictionary<string, string> Mapping { get; private set; }
+        public Dictionary<string, string> HotKeyMapping { get; private set; }
+        public Dictionary<string, string> ControllerInfo { get; private set; }
+
+        #region Private methods
+        private UserController(string emulator, string name, string guid, string driver, Dictionary<string, string> mapping, Dictionary<string, string> hotkeymapping = null, Dictionary<string, string> controllerInfo = null)
+        {
+            Emulator = emulator;
+            Name = name;
+            Guid = guid;
+            Driver = driver;
+            Mapping = mapping;
+            HotKeyMapping = hotkeymapping;
+            ControllerInfo = controllerInfo;
+        }
+        #endregion
+
+        #region public methods
+        public static UserController GetUserController(string emulator, string guid, string driver, List<UserController> controllers)
+        {
+            if (string.IsNullOrEmpty(emulator) || string.IsNullOrEmpty(guid) || controllers == null || driver == null)
+                return null;
+
+            var ret = controllers.FirstOrDefault(c =>
+                string.Equals(c.Emulator, emulator, StringComparison.InvariantCultureIgnoreCase) &&
+                string.Equals(c.Driver, driver, StringComparison.InvariantCultureIgnoreCase) &&
+                c.Guid.Split(',')
+                    .Select(g => g.Trim())
+                    .Any(g => string.Equals(g, guid, StringComparison.InvariantCultureIgnoreCase))
+                );
+            if (ret == null)
+                ret = controllers.FirstOrDefault(c =>
+                string.Equals(c.Emulator, emulator, StringComparison.InvariantCultureIgnoreCase) &&
+                c.Guid.Split(',')
+                    .Select(g => g.Trim())
+                    .Any(g => string.Equals(g, guid, StringComparison.InvariantCultureIgnoreCase))
+                );
+
+            return ret == null ? null : ret;
+        }
+
+        public static UserController GetUserController(string emulator, string guid, List<UserController> controllers)
+        {
+            if (string.IsNullOrEmpty(emulator) || string.IsNullOrEmpty(guid) || controllers == null)
+                return null;
+
+            var ret = controllers.FirstOrDefault(c =>
+                string.Equals(c.Emulator, emulator, StringComparison.InvariantCultureIgnoreCase) &&
+                string.Equals(c.Guid, guid, StringComparison.InvariantCultureIgnoreCase));
+            return ret == null ? null : ret;
+        }
+
+        public static List<UserController> LoadControllersFromJson(string jsonFilePath)
+        {
+            if (!File.Exists(jsonFilePath))
+                throw new FileNotFoundException($"The JSON file '{jsonFilePath}' was not found.");
+
+            try
+            {
+                var jsonContent = File.ReadAllText(jsonFilePath);
+                var rootObject = JsonConvert.DeserializeObject<RootObject>(jsonContent);
+                var controllers = new List<UserController>();
+
+                foreach (var item in rootObject.Controllers)
+                {
+                    var mappingDict = item.Mapping.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                    controllers.Add(new UserController(
+                        item.Emulator,
+                        item.Name,
+                        item.Guid,
+                        item.Driver,
+                        mappingDict,
+                        item.HotKeyMapping ?? new Dictionary<string, string>(),
+                        item.ControllerInfo ?? new Dictionary<string, string>()
+                    ));
+                }
+
+                return controllers;
+            }
+
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Failed to load or parse the JSON file.", ex);
+            }
+        }
+        #endregion
+    }
+    #endregion
+
     public class RootObject
     {
         public List<ControllerItem> Controllers { get; set; }

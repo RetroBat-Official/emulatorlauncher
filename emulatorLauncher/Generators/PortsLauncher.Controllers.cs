@@ -533,7 +533,7 @@ namespace EmulatorLauncher
                     if (n64Gamepad.ControllerInfo != null)
                     {
                         if (n64Gamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                            needActivationSwitch = n64Gamepad.ControllerInfo["needActivationSwitch"] == "yes";
+                            needActivationSwitch = n64Gamepad.ControllerInfo["needActivationSwitch"] == "true";
 
                         if (needActivationSwitch && !n64_pad)
                         {
