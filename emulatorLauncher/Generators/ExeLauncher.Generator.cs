@@ -634,6 +634,13 @@ namespace EmulatorLauncher
 
                             return 0;
                         }
+                        else
+                        {
+                            SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
+                            Process game = gamelist.OrderBy(p => p.StartTime).FirstOrDefault();
+                            game.WaitForExit();
+                        }
+                        return 0;
                     }
                 }
             }
