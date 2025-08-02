@@ -50,7 +50,7 @@ namespace RetrobatUpdater
             if (Actions == null)
                 return;
 
-            SimpleLogger.Instance.Error("[INFO] Performing upgrade actions.");
+            SimpleLogger.Instance.Info("[INFO] Performing upgrade actions.");
 
             foreach (var upgrade in Actions.Where(i => string.IsNullOrEmpty(i.Version) || i.Version == localVersion))
             {
