@@ -13,9 +13,9 @@ namespace EmulatorLauncher
     partial class KronosGenerator
     {
         /// <summary>
-        /// Cf. https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Frontend/SDLInputSource.cpp#L211
+        /// Cf. 
         /// </summary>
-        /// <param name="pcsx2ini"></param>
+        /// <param name="xxx"></param>
         /*private void UpdateSdlControllersWithHints(IniFile ini)
         {
             var hints = new List<string>();
@@ -111,7 +111,7 @@ namespace EmulatorLauncher
                             if (saturnGamepad.ControllerInfo != null)
                             {
                                 if (saturnGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                                    needSatActivationSwitch = saturnGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+                                    needSatActivationSwitch = saturnGamepad.ControllerInfo["needActivationSwitch"] == "true";
 
                                 if (needSatActivationSwitch && !sat_pad)
                                 {

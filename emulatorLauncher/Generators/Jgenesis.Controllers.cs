@@ -83,10 +83,10 @@ namespace EmulatorLauncher
                             if (mdGamepad.ControllerInfo != null)
                             {
                                 if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                                    needMDActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+                                    needMDActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "true";
 
                                 if (mdGamepad.ControllerInfo.ContainsKey("mapping2"))
-                                    mapping2 = mdGamepad.ControllerInfo["mapping2"] == "yes";
+                                    mapping2 = mdGamepad.ControllerInfo["mapping2"] == "true";
 
                                 if (needMDActivationSwitch && !md_pad)
                                 {

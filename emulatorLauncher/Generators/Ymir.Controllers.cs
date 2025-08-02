@@ -122,7 +122,7 @@ namespace EmulatorLauncher
                             if (saturnGamepad.ControllerInfo != null)
                             {
                                 if (saturnGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                                    needSatActivationSwitch = saturnGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+                                    needSatActivationSwitch = saturnGamepad.ControllerInfo["needActivationSwitch"] == "true";
 
                                 inputMapSection = "Input.Port" + playerindex + ".ControlPadBinds";
 

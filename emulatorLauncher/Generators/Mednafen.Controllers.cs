@@ -260,7 +260,7 @@ namespace EmulatorLauncher
                                 if (mdGamepad.ControllerInfo != null)
                                 {
                                     if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                                        needMDActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+                                        needMDActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "true";
 
                                     if (needMDActivationSwitch && !md_pad)
                                     {
@@ -316,7 +316,7 @@ namespace EmulatorLauncher
                                 if (mdGamepad.ControllerInfo != null)
                                 {
                                     if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                                        needSatActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+                                        needSatActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "true";
 
                                     if (needSatActivationSwitch && !sat_pad)
                                     {

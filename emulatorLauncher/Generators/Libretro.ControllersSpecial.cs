@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System.Linq;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -19,11 +20,78 @@ namespace EmulatorLauncher.Libretro
             inputConfig = new Dictionary<string, string>();
             bool analogDpad = Program.SystemConfig.getOptBoolean("analogDpad");
             bool useArcadeStick = Program.SystemConfig.getOptBoolean("arcade_stick");
+            bool ignoreSystemSpecificMapping = false;
+            string guid = controller.Guid.ToString().ToLowerInvariant();
+
+            // First look if the user has a specific mapping file set for the controller
+            string userMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "user", "inputmapping", "retroarch_controller.json");
+            if (File.Exists(userMapping))
+            {
+                try
+                {
+                    var userControllers = UserController.LoadControllersFromJson(userMapping);
+
+                    if (userControllers == null)
+                    {
+                        SimpleLogger.Instance.Info("[Controller] Error loading custom mapping JSON file.");
+                        goto BypassUserController;
+                    }
+
+                    UserController userController = UserController.GetUserController("libretro", guid, _inputDriver, userControllers);
+                    if (userController == null)
+                    {
+                        SimpleLogger.Instance.Info("[Controller] No custom mapping found for User Controller.");
+                        goto BypassUserController;
+                    }
+
+                    if (userController.Mapping == null)
+                    {
+                        SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro : " + userController.Name);
+                        goto BypassUserController;
+                    }
+
+                    if (userController.ControllerInfo != null)
+                    {
+                        if (userController.ControllerInfo.ContainsKey("input_analog_sensitivity"))
+                            retroconfig["input_analog_sensitivity"] = userController.ControllerInfo["input_analog_sensitivity"];
+                        if (userController.ControllerInfo.ContainsKey("input_joypad_driver"))
+                            inputConfig["input_joypad_driver"] = userController.ControllerInfo["input_joypad_driver"];
+                        if (userController.ControllerInfo.ContainsKey("ignoreSystemSpecificMapping") && userController.ControllerInfo["ignoreSystemSpecificMapping"] == "true")
+                            ignoreSystemSpecificMapping = true;
+                    }
+
+                    SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + userController.Name);
+
+                    foreach (var button in userController.Mapping)
+                        inputConfig[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
+
+                    if (userController.HotKeyMapping != null && controller.PlayerIndex == 1)
+                    {
+                        foreach (var hotkey in userController.HotKeyMapping)
+                            inputConfig[hotkey.Key] = hotkey.Value;
+                        _specialControllerHotkey = true;
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + userController.Name);
+
+                    if (inputConfig.ContainsKey("input_joypad_driver") && inputConfig["input_joypad_driver"] != null)
+                        _inputDriver = inputConfig["input_joypad_driver"];
+
+                    _specialController = true;
+                    
+                    if (ignoreSystemSpecificMapping)
+                        return true;
+                    else
+                        goto BypassStickMapping;
+                }
+                catch { }
+            }
+
+        BypassUserController:
 
             // specific mapping for arcade sticks*
             if (useArcadeStick)
             {
-                string guid = controller.Guid.ToString().ToLowerInvariant();
                 string stickjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "arcade_sticks.json");
                 foreach (var path in mappingPaths)
                 {
@@ -79,7 +147,7 @@ namespace EmulatorLauncher.Libretro
                                 inputConfig["input_joypad_driver"] = arcadeStick.ControllerInfo["input_joypad_driver"];
                         }
 
-                        SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + arcadeStick.Name);
+                        SimpleLogger.Instance.Info("[Controller] Performing specific arcade stick mapping for " + arcadeStick.Name);
 
                         foreach (var button in arcadeStick.Mapping)
                             inputConfig[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
@@ -93,7 +161,7 @@ namespace EmulatorLauncher.Libretro
                         else
                             SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + arcadeStick.Name);
 
-                        if (inputConfig["input_joypad_driver"] != null)
+                        if (inputConfig.ContainsKey("input_joypad_driver") && inputConfig["input_joypad_driver"] != null)
                             _inputDriver = inputConfig["input_joypad_driver"];
 
                         _specialController = true;
@@ -103,10 +171,10 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
+        BypassStickMapping:
             // Specific mapping for N64 like controllers
             if (system == "n64")
             {
-                string guid = controller.Guid.ToString().ToLowerInvariant();
                 bool needActivationSwitch = false;
                 bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
 
@@ -160,7 +228,7 @@ namespace EmulatorLauncher.Libretro
                         if (n64Gamepad.ControllerInfo != null)
                         {
                             if (n64Gamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                                needActivationSwitch = n64Gamepad.ControllerInfo["needActivationSwitch"] == "yes";
+                                needActivationSwitch = n64Gamepad.ControllerInfo["needActivationSwitch"] == "true";
 
                             if (needActivationSwitch && !n64_pad)
                             {
@@ -181,7 +249,7 @@ namespace EmulatorLauncher.Libretro
                             }
                         }
 
-                        SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
+                        SimpleLogger.Instance.Info("[Controller] Performing specific n64 mapping for " + n64Gamepad.Name);
 
                         foreach (var button in n64Gamepad.Mapping)
                             inputConfig[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
@@ -197,7 +265,7 @@ namespace EmulatorLauncher.Libretro
 
                         //_inputDriver = "sdl2";
 
-                        if (inputConfig["input_joypad_driver"] != null)
+                        if (inputConfig.ContainsKey("input_joypad_driver") && inputConfig["input_joypad_driver"] != null)
                             _inputDriver = inputConfig["input_joypad_driver"];
 
                         _specialController = true;
@@ -210,7 +278,6 @@ namespace EmulatorLauncher.Libretro
             // Specific mapping for megadrive-like controllers
             else if (mdSystems.Contains(system))
             {
-                string guid = controller.Guid.ToString().ToLowerInvariant();
                 string mdjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
                 bool needActivationSwitch = false;
                 bool md_pad = Program.SystemConfig.getOptBoolean("md_pad");
@@ -264,7 +331,11 @@ namespace EmulatorLauncher.Libretro
                         if (mdGamepad.ControllerInfo != null)
                         {
                             if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                                needActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+                                needActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "true";
+                            if (mdGamepad.ControllerInfo.ContainsKey("input_analog_sensitivity"))
+                                retroconfig["input_analog_sensitivity"] = mdGamepad.ControllerInfo["input_analog_sensitivity"];
+                            if (mdGamepad.ControllerInfo.ContainsKey("input_joypad_driver"))
+                                inputConfig["input_joypad_driver"] = mdGamepad.ControllerInfo["input_joypad_driver"];
 
                             if (needActivationSwitch && !md_pad)
                             {
@@ -273,7 +344,7 @@ namespace EmulatorLauncher.Libretro
                             }
                         }
 
-                        SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
+                        SimpleLogger.Instance.Info("[Controller] Performing specific megadrive mapping for " + mdGamepad.Name);
 
                         foreach (var button in mdGamepad.Mapping)
                         {
@@ -294,6 +365,9 @@ namespace EmulatorLauncher.Libretro
                         else
                             SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + mdGamepad.Name);
 
+                        if (inputConfig.ContainsKey("input_joypad_driver") && inputConfig["input_joypad_driver"] != null)
+                            _inputDriver = inputConfig["input_joypad_driver"];
+
                         _specialController = true;
                         return true;
                     }
@@ -304,7 +378,6 @@ namespace EmulatorLauncher.Libretro
             // Specific mapping for saturn-like controllers
             else if (system == "saturn")
             {
-                string guid = controller.Guid.ToString().ToLowerInvariant();
                 string saturnjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
                 bool needActivationSwitch = false;
                 bool sat_pad = Program.SystemConfig.getOptBoolean("saturn_pad");
@@ -358,7 +431,11 @@ namespace EmulatorLauncher.Libretro
                         if (saturnGamepad.ControllerInfo != null)
                         {
                             if (saturnGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                                needActivationSwitch = saturnGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+                                needActivationSwitch = saturnGamepad.ControllerInfo["needActivationSwitch"] == "true";
+                            if (saturnGamepad.ControllerInfo.ContainsKey("input_analog_sensitivity"))
+                                retroconfig["input_analog_sensitivity"] = saturnGamepad.ControllerInfo["input_analog_sensitivity"];
+                            if (saturnGamepad.ControllerInfo.ContainsKey("input_joypad_driver"))
+                                inputConfig["input_joypad_driver"] = saturnGamepad.ControllerInfo["input_joypad_driver"];
 
                             if (needActivationSwitch && !sat_pad)
                             {
@@ -367,7 +444,7 @@ namespace EmulatorLauncher.Libretro
                             }
                         }
 
-                        SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + saturnGamepad.Name);
+                        SimpleLogger.Instance.Info("[Controller] Performing specific saturn mapping for " + saturnGamepad.Name);
 
                         foreach (var button in saturnGamepad.Mapping)
                         {
@@ -388,6 +465,9 @@ namespace EmulatorLauncher.Libretro
                         else
                             SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + saturnGamepad.Name);
 
+                        if (inputConfig.ContainsKey("input_joypad_driver") && inputConfig["input_joypad_driver"] != null)
+                            _inputDriver = inputConfig["input_joypad_driver"];
+
                         _specialController = true;
                         return true;
                     }
@@ -398,11 +478,10 @@ namespace EmulatorLauncher.Libretro
             // Specific mapping for megadrive-like controllers for 3DO system
             else if (system == "3do")
             {
-                string guid = controller.Guid.ToString().ToLowerInvariant();
                 string specjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "3doControllers.json");
                 bool needActivationSwitch = false;
                 bool spec_pad = Program.SystemConfig.getOptBoolean("3do_pad");
-                
+
                 foreach (var path in mappingPaths)
                 {
                     string result = path
@@ -417,7 +496,7 @@ namespace EmulatorLauncher.Libretro
                         break;
                     }
                 }
-                
+
                 if (!File.Exists(specjson))
                 {
                     SimpleLogger.Instance.Info("[Controller] No 3DO JSON file found.");
@@ -452,7 +531,11 @@ namespace EmulatorLauncher.Libretro
                         if (specGamepad.ControllerInfo != null)
                         {
                             if (specGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                                needActivationSwitch = specGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+                                needActivationSwitch = specGamepad.ControllerInfo["needActivationSwitch"] == "true";
+                            if (specGamepad.ControllerInfo.ContainsKey("input_analog_sensitivity"))
+                                retroconfig["input_analog_sensitivity"] = specGamepad.ControllerInfo["input_analog_sensitivity"];
+                            if (specGamepad.ControllerInfo.ContainsKey("input_joypad_driver"))
+                                inputConfig["input_joypad_driver"] = specGamepad.ControllerInfo["input_joypad_driver"];
 
                             if (needActivationSwitch && !spec_pad)
                             {
@@ -461,7 +544,7 @@ namespace EmulatorLauncher.Libretro
                             }
                         }
 
-                        SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + specGamepad.Name);
+                        SimpleLogger.Instance.Info("[Controller] Performing specific 3DO mapping for " + specGamepad.Name);
 
                         foreach (var button in specGamepad.Mapping)
                         {
@@ -469,7 +552,7 @@ namespace EmulatorLauncher.Libretro
                                 continue;
                             else if (!analogDpad && analogDpadStrings.Contains(button.Key))
                                 continue;
-                            
+
                             inputConfig[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
                         }
 
@@ -481,6 +564,9 @@ namespace EmulatorLauncher.Libretro
                         }
                         else
                             SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + specGamepad.Name);
+
+                        if (inputConfig.ContainsKey("input_joypad_driver") && inputConfig["input_joypad_driver"] != null)
+                            _inputDriver = inputConfig["input_joypad_driver"];
 
                         _specialController = true;
                         return true;

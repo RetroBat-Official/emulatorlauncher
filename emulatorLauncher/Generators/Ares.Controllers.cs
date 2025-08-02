@@ -142,7 +142,7 @@ namespace EmulatorLauncher
                             if (n64Gamepad.ControllerInfo != null)
                             {
                                 if (n64Gamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                                    needn64ActivationSwitch = n64Gamepad.ControllerInfo["needActivationSwitch"] == "yes";
+                                    needn64ActivationSwitch = n64Gamepad.ControllerInfo["needActivationSwitch"] == "true";
 
                                 if (needn64ActivationSwitch && !n64_pad)
                                 {
@@ -202,7 +202,7 @@ namespace EmulatorLauncher
                             if (mdGamepad.ControllerInfo != null)
                             {
                                 if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                                    needMDActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "yes";
+                                    needMDActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "true";
 
                                 if (needMDActivationSwitch && !md_pad)
                                 {
