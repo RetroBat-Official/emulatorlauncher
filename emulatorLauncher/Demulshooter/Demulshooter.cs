@@ -510,7 +510,7 @@ namespace EmulatorLauncher
             { "silenthillthearcade", new ExeLauncherGame { RomName = "sha", Architecture = "x32", Target = "ttx" } },
             { "thehouseofthedead2", new ExeLauncherGame { RomName = "hod2pc", Architecture = "x32", Target = "windows" } },
             { "thehouseofthedead3", new ExeLauncherGame { RomName = "hod3pc", Architecture = "x32", Target = "windows" } },
-            { "thehouseofthedeadrremake", new ExeLauncherGame { RomName = "hotdra", Architecture = "x64", Target = "windows" } },
+            { "thehouseofthedeadremake", new ExeLauncherGame { RomName = "hotdra", Architecture = "x64", Target = "windows" } },
             { "thehouseofthedeadscarletdawn", new ExeLauncherGame { RomName = "hodsd", Architecture = "x64", Target = "alls" } },
             { "tombraiderarcade", new ExeLauncherGame { RomName = "tra", Architecture = "x64", Target = "arcadepc" } },
             { "transformershumanalliance", new ExeLauncherGame { RomName = "tha", Architecture = "x32", Target = "ringwide" } },
