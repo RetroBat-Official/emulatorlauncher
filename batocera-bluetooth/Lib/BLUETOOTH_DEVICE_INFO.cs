@@ -81,5 +81,12 @@ namespace InTheHand.Net.Bluetooth.Win32
                 return stLastUsed.ToDateTime(DateTimeKind.Utc);
             }
         }
+
+        public bool IsAudioVideo { get { return (ulClassofDevice & 0x400) == 0x400; } }
+        public bool IsPeripheral { get { return (ulClassofDevice & 0x500) == 0x500; } }
+        public bool IsKeyboard { get { return (ulClassofDevice & 0x540) == 0x540; } }
+        public bool IsMouse { get { return (ulClassofDevice & 0x580) == 0x580; } }
+        public bool IsJoystick { get { return (ulClassofDevice & 0x504) == 0x504; } }
+        public bool IsGamePad { get { return (ulClassofDevice & 0x508) == 0x508; } }
     }
 }
