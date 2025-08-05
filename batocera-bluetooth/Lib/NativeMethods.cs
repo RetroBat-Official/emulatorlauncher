@@ -58,6 +58,11 @@ namespace InTheHand.Net.Bluetooth.Win32
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool BluetoothUnregisterAuthentication(IntPtr hRegHandle);
 
+        [DllImport(bthpropsDll, SetLastError = true)]
+        internal static extern int BluetoothSetServiceState(IntPtr hRadio, ref BLUETOOTH_DEVICE_INFO pbtdi, ref Guid pGuidService, uint dwServiceFlags);
+
+        internal static readonly Guid GUID_HID = new Guid("00001124-0000-1000-8000-00805f9b34fb"); // HID service
+
         /*
     
 
