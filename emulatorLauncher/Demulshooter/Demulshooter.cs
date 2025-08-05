@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
@@ -379,7 +379,7 @@ namespace EmulatorLauncher
             {
                 if (chihiroRoms.Any(r => rom.IndexOf(r, StringComparison.OrdinalIgnoreCase) >= 0))
                 {
-                    dsRom = "vcop3";
+                    dsRom = "vcop3_old";
                     ret = true;
                 }
             }
@@ -407,6 +407,7 @@ namespace EmulatorLauncher
             { "BugBusters", new TeknoParrotGame { XmlName = "BugBusters", RomName = "bugbust", Architecture = "x32", Target = "windows", ExtraArgs = "" } },
             { "ByonByon", new TeknoParrotGame { XmlName = "ByonByon", RomName = "mgungun2", Architecture = "x32", Target = "ttx", ExtraArgs = "" } },
             { "Castlevania", new TeknoParrotGame { XmlName = "Castlevania", RomName = "hcv", Architecture = "x32", Target = "konami", ExtraArgs = "" } },
+            { "Coopers9",  new TeknoParrotGame { XmlName = "Coopers9", RomName = "coop9", Architecture = "x32", Target = "konami", ExtraArgs = "" } },            																																		  
             { "Drakons", new TeknoParrotGame { XmlName = "Drakons", RomName = "drk", Architecture = "x64", Target = "arcadepc", ExtraArgs = "" } },
             { "EADP", new TeknoParrotGame { XmlName = "EADP", RomName = "eapd", Architecture = "x32", Target = "ttx", ExtraArgs = "" } },
             { "ElevatorActionInvasion", new TeknoParrotGame { XmlName = "ElevatorActionInvasion", RomName = "eai", Architecture = "x64", Target = "arcadepc", ExtraArgs = "" } },
@@ -416,8 +417,8 @@ namespace EmulatorLauncher
             { "GG", new TeknoParrotGame { XmlName = "GG", RomName = "sgg", Architecture = "x32", Target = "ringwide", ExtraArgs = "" } },
             { "GaiaAttack4", new TeknoParrotGame { XmlName = "GaiaAttack4", RomName = "gattack4", Architecture = "x32", Target = "ttx", ExtraArgs = "" } },
             { "GhostBusters", new TeknoParrotGame { XmlName = "GhostBusters", RomName = "gbusters", Architecture = "x32", Target = "arcadepc", ExtraArgs = "" } },
-            { "GSEVO", new TeknoParrotGame { XmlName = "GSEVO", RomName = "gsquad", Architecture = "x32", Target = "lindbergh", ExtraArgs = "" } },
-            { "GSEVOELF2", new TeknoParrotGame { XmlName = "GSEVOELF2", RomName = "gsquad", Architecture = "x32", Target = "lindbergh", ExtraArgs = "" } },
+            { "GSEVO", new TeknoParrotGame { XmlName = "GSEVO", RomName = "gsevo", Architecture = "x32", Target = "lindbergh", ExtraArgs = "" } },
+            { "GSEVOELF2", new TeknoParrotGame { XmlName = "GSEVOELF2", RomName = "gsevo", Architecture = "x32", Target = "lindbergh", ExtraArgs = "" } },
             { "GundamSpiritsOfZeon", new TeknoParrotGame { XmlName = "GundamSpiritsOfZeon", RomName = "gsoz", Architecture = "x32", Target = "ttx", ExtraArgs = "" } },
             { "GundamSpiritsOfZeon2p", new TeknoParrotGame { XmlName = "GundamSpiritsOfZeon2p", RomName = "gsoz2p", Architecture = "x32", Target = "ttx", ExtraArgs = "" } },
             { "HauntedMuseum", new TeknoParrotGame { XmlName = "HauntedMuseum", RomName = "hmuseum", Architecture = "x32", Target = "ttx", ExtraArgs = "" } },
@@ -473,6 +474,7 @@ namespace EmulatorLauncher
             { "bigbuckhunterultimatetrophy", new ExeLauncherGame { RomName = "bbhut", Architecture = "x64", Target = "windows" } },
             { "blockking", new ExeLauncherGame { RomName = "bkbs", Architecture = "x32", Target = "ttx" } },
             { "castlevaniaarcade", new ExeLauncherGame { RomName = "hcv", Architecture = "x32", Target = "konami" } },
+			{ "coopers9", new ExeLauncherGame { RomName = "coop9", Architecture = "x32", Target = "konami" } },
             { "dcop", new ExeLauncherGame { RomName = "dcop", Architecture = "x64", Target = "windows" } },
             { "eadp", new ExeLauncherGame { RomName = "eadp", Architecture = "x32", Target = "ttx" } },
             { "elevatoractioninvasion", new ExeLauncherGame { RomName = "eai", Architecture = "x64", Target = "arcadepc" } },
@@ -487,7 +489,6 @@ namespace EmulatorLauncher
             { "heavyfireafghanistan2p", new ExeLauncherGame { RomName = "hfa2p", Architecture = "x32", Target = "windows" } },
             { "heavyfireshaterredspear", new ExeLauncherGame { RomName = "hfss", Architecture = "x32", Target = "windows" } },
             { "heavyfireshaterredspear2p", new ExeLauncherGame { RomName = "hfss2p", Architecture = "x32", Target = "windows" } },
-            { "houseofthedeadoverkill", new ExeLauncherGame { RomName = "hodo", Architecture = "x32", Target = "windows" } },
             { "laststand", new ExeLauncherGame { RomName = "pvz", Architecture = "x32", Target = "arcadepc" } },
             { "lethalenforcers3", new ExeLauncherGame { RomName = "le3", Architecture = "x32", Target = "konami" } },
             { "letsgoisland", new ExeLauncherGame { RomName = "lgi", Architecture = "x32", Target = "ringwide" } },
@@ -512,6 +513,7 @@ namespace EmulatorLauncher
             { "thehouseofthedead3", new ExeLauncherGame { RomName = "hod3pc", Architecture = "x32", Target = "windows" } },
             { "thehouseofthedeadremake", new ExeLauncherGame { RomName = "hotdra", Architecture = "x64", Target = "windows" } },
             { "thehouseofthedeadscarletdawn", new ExeLauncherGame { RomName = "hodsd", Architecture = "x64", Target = "alls" } },
+            { "thehouseofthedeadoverkill", new ExeLauncherGame { RomName = "hodo", Architecture = "x32", Target = "windows" } },
             { "tombraiderarcade", new ExeLauncherGame { RomName = "tra", Architecture = "x64", Target = "arcadepc" } },
             { "transformershumanalliance", new ExeLauncherGame { RomName = "tha", Architecture = "x32", Target = "ringwide" } },
             { "transformershumanalliancetc5", new ExeLauncherGame { RomName = "tc5", Architecture = "x64", Target = "es3" } },
