@@ -384,8 +384,8 @@ namespace EmulatorLauncher
         private static void WriteShortcuts(IniFile ini)
         {
             // exit eden with SELECT+START
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20eden\\Controller_KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20eden\\Controller_KeySeq", "Minus+Plus");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Eden\\Controller_KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Eden\\Controller_KeySeq", "Minus+Plus");
 
             // Pause with SELECT+EAST
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq\\default", "false");
