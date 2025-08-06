@@ -687,7 +687,7 @@ namespace EmulatorLauncher
             if (standalone)
             {
                 commandArray.Add("-cfg_directory");
-                commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "cfg")));
+                commandArray.Add(EnsureDirectoryExists(Path.Combine(saves, "mame", "cfg")));
 
                 commandArray.Add("-inipath");
                 commandArray.Add(EnsureDirectoryExists(Path.Combine(bios, "mame", "ini")));

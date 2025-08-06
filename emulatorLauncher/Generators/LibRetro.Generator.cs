@@ -625,6 +625,8 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["rgui_show_start_screen"] = "false";
             retroarchConfig["rgui_browser_directory"] = AppConfig.GetFullPath("roms") ?? "default";
             retroarchConfig["input_overlay_enable_autopreferred"] = "false";
+            retroarchConfig["sort_savefiles_enable"] = "false";
+            retroarchConfig["sort_savefiles_by_content_enable"] = "false";
 
             // input driver set to raw if multigun is enabled
             if (SystemConfig.getOptBoolean("use_guns") && !SystemConfig.getOptBoolean("one_gun"))

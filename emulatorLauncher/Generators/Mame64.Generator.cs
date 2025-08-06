@@ -138,7 +138,7 @@ namespace EmulatorLauncher
                 }
 
                 // cfg directory
-                string cfgPath = hbmame ? Path.Combine(AppConfig.GetFullPath("bios"), "hbmame", "cfg") : Path.Combine(AppConfig.GetFullPath("bios"), "mame", "cfg");
+                string cfgPath = hbmame ? Path.Combine(AppConfig.GetFullPath("saves"), "hbmame", "cfg") : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg");
                 if (!Directory.Exists(cfgPath)) try { Directory.CreateDirectory(cfgPath); }
                     catch { }
                 if (!string.IsNullOrEmpty(cfgPath) && Directory.Exists(cfgPath))

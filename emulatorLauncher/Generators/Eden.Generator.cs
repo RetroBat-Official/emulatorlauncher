@@ -107,6 +107,9 @@ namespace EmulatorLauncher
                     ini.WriteValue("Data%20Storage", "load_directory", loadPath.Replace("\\", "/"));
                 }*/
 
+                ini.WriteValue("UI", "check_for_updates\\default", "false");
+                ini.WriteValue("UI", "check_for_updates", "false");
+
                 ini.WriteValue("System", "language_index\\default", "false");
                 if (SystemConfig.isOptSet("eden_language") && !string.IsNullOrEmpty(SystemConfig["eden_language"]))
                     ini.WriteValue("System", "language_index", SystemConfig["eden_language"]);
@@ -193,7 +196,7 @@ namespace EmulatorLauncher
                 BindQtIniFeature(ini, "Audio", "output_engine", "audio_backend", "auto");
                 BindQtIniFeature(ini, "System", "sound_index", "sound_index", "1");            
                 BindQtIniFeature(ini, "Renderer", "backend", "backend", "1");
-                BindQtIniFeature(ini, "Renderer", "resolution_setup", "resolution_setup", "2");
+                BindQtIniFeature(ini, "Renderer", "resolution_setup", "resolution_setup", "3");
                 BindQtIniFeature(ini, "Renderer", "aspect_ratio", "eden_ratio", "0");
                 BindQtIniFeature(ini, "Renderer", "max_anisotropy", "eden_anisotropy", "0");
                 BindQtIniFeature(ini, "Renderer", "use_vsync", "use_vsync", "2");
