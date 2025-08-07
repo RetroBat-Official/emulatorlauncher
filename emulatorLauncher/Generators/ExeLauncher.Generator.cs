@@ -9,6 +9,8 @@ using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.PadToKeyboard;
 using System.Xml.Linq;
+using EmulatorLauncher.Common.Launchers;
+using System.Runtime.InteropServices;
 
 namespace EmulatorLauncher
 {
@@ -29,12 +31,23 @@ namespace EmulatorLauncher
 
         private GameLauncher _gameLauncher;
 
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        private const int SW_MINIMIZE = 6;
+
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
         static readonly Dictionary<string, Func<Uri, GameLauncher>> launchers = new Dictionary<string, Func<Uri, GameLauncher>>()
         {
             { "file", (uri) => new LocalFileGameLauncher(uri) },
             { "com.epicgames.launcher", (uri) => new EpicGameLauncher(uri) },
             { "steam", (uri) => new SteamGameLauncher(uri) },
-            { "amazon-games", (uri) => new AmazonGameLauncher(uri) }            
+            { "amazon-games", (uri) => new AmazonGameLauncher(uri) }
         };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -59,13 +72,25 @@ namespace EmulatorLauncher
 
                 if (target != "" && target != null)
                 {
-                    _isGameExePath = File.Exists(target);
-                    
-                    if (_isGameExePath)
-                        SimpleLogger.Instance.Info("[INFO] Link target file found.");
+                    // GOG Game Launcher detection
+                    if (Path.GetFileName(target).Equals("GalaxyClient.exe", StringComparison.OrdinalIgnoreCase) && arguments != null && arguments.Contains("/gameId="))
+                    {
+                        SimpleLogger.Instance.Info("[INFO] GOG Galaxy shortcut detected.");
+                        string gameId = arguments.Split(new[] { "/gameId=" }, StringSplitOptions.None).Last().Split(' ').First();
+                        _gameLauncher = new GogGameLauncher(gameId);
+                        rom = target;
+                        path = Path.GetDirectoryName(rom);
+                    }
+                    else
+                    {
+                        _isGameExePath = File.Exists(target);
 
-                    // executable process to monitor might be different from the target - user can specify true process executable in a .gameexe file
-                    _gameExeFile = GetProcessFromFile(rom);
+                        if (_isGameExePath)
+                            SimpleLogger.Instance.Info("[INFO] Link target file found.");
+
+                        // executable process to monitor might be different from the target - user can specify true process executable in a .gameexe file
+                        _gameExeFile = GetProcessFromFile(rom);
+                    }
                 }
 
                 // if the target is not found in the link, see if a .gameexe file or a .uwp file exists
@@ -739,6 +764,144 @@ namespace EmulatorLauncher
                             catch { }
                         }
                     }
+                }
+            }
+        }
+
+        class GogGameLauncher : GameLauncher
+        {
+            private string _gameExecutable;
+            private string _gameId;
+
+            public GogGameLauncher(string gameId)
+            {
+                _gameId = gameId;
+
+                if (!string.IsNullOrEmpty(_gameId))
+                    _gameExecutable = GogLibrary.GetExecutablePathForGameId(_gameId);
+
+                if (!string.IsNullOrEmpty(_gameExecutable))
+                    LauncherExe = Path.GetFileNameWithoutExtension(_gameExecutable);
+                else
+                    LauncherExe = "GalaxyClient";
+            }
+
+            public override int RunAndWait(ProcessStartInfo path)
+            {
+                bool galaxyWasRunning = Process.GetProcessesByName("GalaxyClient").Any();
+
+                if (!string.IsNullOrEmpty(_gameExecutable))
+                {
+                    string gameExeName = Path.GetFileNameWithoutExtension(_gameExecutable);
+                    foreach (var process in Process.GetProcessesByName(gameExeName))
+                    {
+                        try { process.Kill(); }
+                        catch { }
+                    }
+                }
+
+                Process.Start(path);
+
+                // Continuously poll for GOG windows for up to 10 seconds and minimize them.
+                // This handles both the splash screen and the main client window that may appear later.
+                for (int i = 0; i < 20; i++)
+                {
+                    // Minimize any and all GOG Galaxy windows
+                    var processes = Process.GetProcessesByName("GalaxyClient");
+                    foreach (var p in processes)
+                    {
+                        if (p.MainWindowHandle != IntPtr.Zero)
+                            ShowWindow(p.MainWindowHandle, SW_MINIMIZE);
+                    }
+
+                    // If the actual game has started, we can stop waiting for GOG windows
+                    if (!string.IsNullOrEmpty(_gameExecutable) && Process.GetProcessesByName(Path.GetFileNameWithoutExtension(_gameExecutable)).Any())
+                        break;
+
+                    Thread.Sleep(500);
+                }
+
+                if (!string.IsNullOrEmpty(_gameExecutable))
+                {
+                    string gameExeName = Path.GetFileNameWithoutExtension(_gameExecutable);
+
+                    Process gameProcess = null;
+                    for (int i = 0; i < 60; i++)
+                    {
+                        var processes = Process.GetProcessesByName(gameExeName);
+                        if (processes.Length > 0)
+                        {
+                            foreach (var proc in processes)
+                            {
+                                try
+                                {
+                                    if (proc.MainModule != null && string.Equals(proc.MainModule.FileName, _gameExecutable, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        gameProcess = proc;
+                                        break;
+                                    }
+                                }
+                                catch
+                                {
+                                    gameProcess = proc;
+                                    break;
+                                }
+                            }
+
+                            if (gameProcess != null)
+                                break;
+                        }
+                        Thread.Sleep(1000);
+                    }
+
+                    if (gameProcess != null)
+                    {
+                        try
+                        {
+                            gameProcess.WaitForExit();
+                        }
+                        catch { }
+
+                        KillGalaxyIfNeeded(galaxyWasRunning);
+                        return 0;
+                    }
+                }
+
+                var focusedGame = FindGameProcessByWindowFocus();
+                if (focusedGame != null)
+                {
+                    try
+                    {
+                        focusedGame.WaitForExit();
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Error waiting for game process: " + ex.Message);
+                    }
+                }
+
+                KillGalaxyIfNeeded(galaxyWasRunning);
+                return 0;
+            }
+
+            private void KillGalaxyIfNeeded(bool galaxyWasRunning)
+            {
+                if (Program.SystemConfig.getOptBoolean("killgog"))
+                    KillGalaxy();
+                else if (Program.SystemConfig.isOptSet("killgog"))
+                {
+                    // Do nothing
+                }
+                else if (!galaxyWasRunning)
+                    KillGalaxy();
+            }
+
+            private void KillGalaxy()
+            {
+                foreach (var process in Process.GetProcessesByName("GalaxyClient").Concat(Process.GetProcessesByName("GalaxyCommunication")))
+                {
+                    try { process.Kill(); }
+                    catch { }
                 }
             }
         }
