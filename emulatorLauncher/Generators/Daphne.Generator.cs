@@ -114,6 +114,7 @@ namespace EmulatorLauncher
             string frameFile = null;
 
             string romPath = Path.GetDirectoryName(rom);
+            string systemRomBasePath = Path.Combine(AppConfig.GetFullPath("roms"), system);
             string[] romPathdirectories = romPath.Split(Path.DirectorySeparatorChar);
             if (romPathdirectories.Length >= 2)
             {
@@ -163,9 +164,10 @@ namespace EmulatorLauncher
             }
             else
             {
+                string basePath = Path.GetDirectoryName(romPath);
+
                 if (zipHypseus)
                 {
-                    string basePath = Path.GetDirectoryName(romPath);
                     frameFile = Path.Combine(basePath, "vldp", romName, romName + ".txt");
                 }
                 else
@@ -209,7 +211,7 @@ namespace EmulatorLauncher
                         "singe",
                         "vldp",
                         //"-retropath", // Requires the CreateSymbolicLink
-                        "-singedir", romPath,
+                        "-singedir", systemRomBasePath,
                         "-zlua", zipSinge,
                         "-framefile", frameFile,
                         "-manymouse",
@@ -224,7 +226,7 @@ namespace EmulatorLauncher
                         "singe",
                         "vldp",
                         //"-retropath", // Requires the CreateSymbolicLink
-                        "-singedir", romPath,
+                        "-singedir", systemRomBasePath,
                         "-zlua", zipSinge,
                         "-usealt", romName,
                         "-framefile", frameFile,
