@@ -4773,6 +4773,7 @@ namespace EmulatorLauncher.Libretro
             // Common Vice features
             coreSettings["vice_audio_options_display"] = "enabled";
             BindBoolFeatureOn(coreSettings, "vice_warp_boost", "warp_boost", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "vice_drive_true_emulation", "vice_drive_true_emulation", "enabled", "disabled");
             BindFeature(coreSettings, "vice_aspect_ratio", "vice_aspect_ratio", "auto");
             BindFeature(coreSettings, "vice_crop", "vice_crop", "auto");
             BindFeature(coreSettings, "vice_crop_mode", "vice_crop_mode", "both");
