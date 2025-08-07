@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Data.SQLite;
+using Microsoft.Win32;
 using EmulatorLauncher.Common.Launchers.Gog;
 using Newtonsoft.Json;
 using System.Linq;
@@ -43,16 +44,22 @@ namespace EmulatorLauncher.Common.Launchers
                         if (exeInfo == null || string.IsNullOrEmpty(exeInfo.Path))
                             continue;
 
+                        // Store the actual executable info for monitoring
+                        string actualExecutable = Path.Combine(app.installationPath, exeInfo.Path);
+                        
                         var game = new LauncherGameInfo()
                         {
                             Id = app.productId.ToString(),
                             Name = app.title,
                             InstallDirectory = Path.GetFullPath(app.installationPath),
-                            LauncherUrl = Path.Combine(app.installationPath, exeInfo.Path),   
-                            ExecutableName = exeInfo.Path,
-                            Parameters = exeInfo.Arguments,
+                            LauncherUrl = GetGogGalaxyPath(),   
+                            ExecutableName = Path.GetFileName(actualExecutable),
+                            Parameters = $"/command=runGame /gameId={app.productId}",
                             Launcher = GameLauncherType.Gog
                         };
+                        
+                        // Store the actual executable path for monitoring purposes
+                        game.PreviewImageUrl = actualExecutable; // Temporary storage, will be used by launcher
                       
                         games.Add(game);
                     }
@@ -67,6 +74,73 @@ namespace EmulatorLauncher.Common.Launchers
 
         public static bool IsInstalled { get { return File.Exists(GetDatabasePath()); } }
 
+        static string GetGogGalaxyPath()
+        {
+            // First, try to find the path in the registry (most reliable method, with user-provided path)
+            try
+            {
+                using (var key = Registry.LocalMachine.OpenSubKey("SOFTWARE\\WOW6432Node\\GOG.com\\GalaxyClient\\paths"))
+                {
+                    if (key != null)
+                    {
+                        object path = key.GetValue("client");
+                        if (path != null)
+                        {
+                            string clientPath = path.ToString();
+                            if (File.Exists(clientPath))
+                                return clientPath;
+                        }
+                    }
+                }
+            }
+            catch {}
+
+            // Fallback to searching Uninstall keys
+            try
+            {
+                string uninstallKey = "SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
+                using (var key = Registry.LocalMachine.OpenSubKey(uninstallKey))
+                {
+                    if (key != null)
+                    {
+                        foreach (var subkeyName in key.GetSubKeyNames())
+                        {
+                            using (var subkey = key.OpenSubKey(subkeyName))
+                            {
+                                if (subkey != null && subkey.GetValue("DisplayName") as string == "GOG Galaxy")
+                                {
+                                    string installLocation = subkey.GetValue("InstallLocation") as string;
+                                    if (!string.IsNullOrEmpty(installLocation))
+                                    {
+                                        string clientPath = Path.Combine(installLocation, "GalaxyClient.exe");
+                                        if (File.Exists(clientPath))
+                                            return clientPath;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            // Fallback to common installation paths if registry fails
+            string[] possiblePaths = {
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "GOG Galaxy", "GalaxyClient.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "GOG Galaxy", "GalaxyClient.exe"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "GOG.com", "Galaxy", "GalaxyClient.exe")
+            };
+
+            foreach (string path in possiblePaths)
+            {
+                if (File.Exists(path))
+                    return path;
+            }
+
+            // Default fallback if nothing else works
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "GOG Galaxy", "GalaxyClient.exe");
+        }
+
         static string GetDatabasePath()
         {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
@@ -75,6 +149,39 @@ namespace EmulatorLauncher.Common.Launchers
                 return gogDB;
 
             return null;
+        }
+
+        public static string GetExecutablePathForGameId(string gameId)
+        {
+            if (!int.TryParse(gameId, out int productId))
+                return null;
+
+            if (!IsInstalled)
+                return null;
+
+            using (var db = new SQLiteConnection("Data Source = " + GetDatabasePath()))
+            {
+                db.Open();
+
+                var cmd = db.CreateCommand();
+                cmd.CommandText = "SELECT installationPath FROM InstalledBaseProducts WHERE productId = @productId";
+                cmd.Parameters.AddWithValue("@productId", productId);
+
+                var installationPath = cmd.ExecuteScalar() as string;
+                if (string.IsNullOrEmpty(installationPath) || !Directory.Exists(installationPath))
+                {
+                    db.Close();
+                    return null;
+                }
+
+                var exeInfo = GetExecutableInfo(productId, installationPath);
+                db.Close();
+
+                if (exeInfo == null || string.IsNullOrEmpty(exeInfo.Path))
+                    return null;
+
+                return Path.Combine(installationPath, exeInfo.Path);
+            }
         }
 
         static GogPlayTask GetExecutableInfo(int productId, string installationPath)
