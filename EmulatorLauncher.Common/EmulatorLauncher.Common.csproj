@@ -155,6 +155,7 @@
     <Compile Include="Steam\ValveKeyValue\Deserialization\KVObjectBuilder.cs" />
     <Compile Include="Steam\ValveKeyValue\Deserialization\KVPartialState.cs" />
     <Compile Include="Steam\ValveKeyValue\Deserialization\KVPartialState{TState}.cs" />
+    <Compile Include="Steam\ValveKeyValue\Deserialization\KVTokenReader.cs" />
     <Compile Include="Steam\ValveKeyValue\IIncludedFileLoader.cs" />
     <Compile Include="Steam\ValveKeyValue\KeyValueException.cs" />
     <Compile Include="Steam\ValveKeyValue\KeyValues1\KV1BinaryNodeType.cs" />
@@ -178,6 +179,7 @@
     <Compile Include="ScreenResolution.cs" />
     <Compile Include="SDL2.cs" />
     <Compile Include="SimpleLogger.cs" />
+    <Compile Include="Steam\ValveKeyValue\StringTable.cs" />
     <Compile Include="StringExtensions.cs" />
     <Compile Include="Tools.cs" />
     <Compile Include="User32.cs" />

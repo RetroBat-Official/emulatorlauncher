@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Documents;
+using System.Windows.Forms;
 
 namespace EmulatorLauncher
 {
@@ -68,6 +70,10 @@ namespace EmulatorLauncher
                                 shortcut.TargetPath = game.LauncherUrl;
                                 shortcut.Arguments = game.Parameters;
                                 shortcut.WorkingDirectory = game.InstallDirectory;
+
+                                if (!string.IsNullOrEmpty(game.IconPath))
+                                    shortcut.IconLocation = game.IconPath;
+
                                 shortcut.Save();
 
                                 System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shortcut);
@@ -76,7 +82,15 @@ namespace EmulatorLauncher
                             catch { }
                         }
 
-                        File.WriteAllText(path, "[InternetShortcut]\r\nURL=" + game.LauncherUrl);
+                        if (!string.IsNullOrEmpty(game.IconPath))
+                        {
+                            var iconline = "IconFile=" + game.IconPath + "\r\n";
+                            string content = "[InternetShortcut]\r\n" + $"URL={game.LauncherUrl}\r\n" + iconline + "IconIndex=0" ;
+                            File.WriteAllText(path, content);
+                            
+                        }
+                        else
+                            File.WriteAllText(path, "[InternetShortcut]\r\nURL=" + game.LauncherUrl);
                     }
                     catch (Exception ex) { SimpleLogger.Instance.Error("[ImportStore] " + name + " : " + ex.Message, ex); }
                 }

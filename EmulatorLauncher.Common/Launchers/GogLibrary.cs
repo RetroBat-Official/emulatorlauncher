@@ -43,17 +43,24 @@ namespace EmulatorLauncher.Common.Launchers
                         if (exeInfo == null || string.IsNullOrEmpty(exeInfo.Path))
                             continue;
 
+                        var galaxyClientPath = GetGalaxyClientPath();
+
                         var game = new LauncherGameInfo()
                         {
                             Id = app.productId.ToString(),
                             Name = app.title,
                             InstallDirectory = Path.GetFullPath(app.installationPath),
-                            LauncherUrl = Path.Combine(app.installationPath, exeInfo.Path),   
-                            ExecutableName = exeInfo.Path,
-                            Parameters = exeInfo.Arguments,
+                            LauncherUrl = galaxyClientPath,
+                            ExecutableName = Path.GetFileName(galaxyClientPath),
+                            Parameters = $"/command=runGame /gameId={app.productId}",
                             Launcher = GameLauncherType.Gog
                         };
-                      
+
+                        var exePath = Path.Combine(app.installationPath, exeInfo.Path);
+
+                        if (exePath != null && File.Exists(exePath))
+                            game.IconPath = exePath;
+
                         games.Add(game);
                     }
                 }
@@ -63,6 +70,62 @@ namespace EmulatorLauncher.Common.Launchers
             }
             
             return games.ToArray();
+        }
+
+        public static string GetGOGGameById(string productId)
+        {
+            using (var db = new SQLiteConnection("Data Source = " + GetDatabasePath()))
+            {
+                db.Open();
+
+                var cmd = db.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT IB.productId, IB.installationPath, LD.title, LD.images
+                    FROM InstalledBaseProducts IB
+                    LEFT OUTER JOIN LimitedDetails AS LD ON IB.productId = LD.productId
+                    WHERE IB.productId = @productId;
+                ";
+                cmd.Parameters.AddWithValue("@productId", productId);
+
+                var reader = cmd.ExecuteReader();
+                var list = reader.ReadObjects<GogInstalledGameInfo>();
+
+                if (list != null && list.Length > 0)
+                {
+                    var app = list.First();
+
+                    if (Directory.Exists(app.installationPath))
+                    {
+                        var exeInfo = GetExecutableInfo(app.productId, app.installationPath);
+                        if (exeInfo != null && !string.IsNullOrEmpty(exeInfo.Path))
+                        {
+                            db.Close();
+                            return Path.GetFileNameWithoutExtension(exeInfo.Path);
+                        }
+                    }
+                }
+
+                db.Close();
+            }
+            return null;
+        }
+
+        private static string GetGalaxyClientPath()
+        {
+            using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\GOG.com\GalaxyClient"))
+            {
+                if (key != null)
+                {
+                    var path = key.GetValue("path") as string;
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        var exePath = Path.Combine(path, "GalaxyClient.exe");
+                        if (File.Exists(exePath))
+                            return exePath;
+                    }
+                }
+            }
+            return @"C:\Program Files (x86)\GOG Galaxy\GalaxyClient.exe"; // fallback
         }
 
         public static bool IsInstalled { get { return File.Exists(GetDatabasePath()); } }

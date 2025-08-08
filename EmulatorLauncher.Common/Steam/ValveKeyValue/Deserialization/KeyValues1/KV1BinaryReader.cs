@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using ValveKeyValue.Abstraction;
@@ -27,7 +29,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
     {
         public const int BinaryMagicHeader = 0x564B4256; // VBKV
 
-        public KV1BinaryReader(Stream stream, IVisitationListener listener)
+        public KV1BinaryReader(Stream stream, IVisitationListener listener, StringTable stringTable)
         {
             Require.NotNull(stream, "stream");
             Require.NotNull(listener, "listener");
@@ -39,12 +41,14 @@ namespace ValveKeyValue.Deserialization.KeyValues1
 
             this.stream = stream;
             this.listener = listener;
+            this.stringTable = stringTable;
             reader = new BinaryReaderLeaveOpen(stream, Encoding.UTF8); // , leaveOpen: true
         }
 
         readonly Stream stream;
         readonly BinaryReader reader;
         readonly IVisitationListener listener;
+        readonly StringTable stringTable;
         bool disposed;
         KV1BinaryNodeType endMarker = KV1BinaryNodeType.End;
 
@@ -93,9 +97,20 @@ namespace ValveKeyValue.Deserialization.KeyValues1
             }
         }
 
+        string ReadKeyForNextValue()
+        {
+            if (stringTable != null)
+            {
+                var index = reader.ReadInt32();
+                return stringTable[index];
+            }
+
+            return ReadNullTerminatedUtf8String();
+        }
+
         void ReadValue(KV1BinaryNodeType type)
         {
-            var name = Encoding.UTF8.GetString(ReadNullTerminatedBytes());
+            var name = ReadKeyForNextValue();
             KVValue value;
 
             switch (type)
@@ -108,11 +123,11 @@ namespace ValveKeyValue.Deserialization.KeyValues1
 
                 case KV1BinaryNodeType.String:
                     // UTF8 encoding is used for string values
-                    value = new KVObjectValue<string>(Encoding.UTF8.GetString(ReadNullTerminatedBytes()), KVValueType.String);
+                    value = new KVObjectValue<string>(ReadNullTerminatedUtf8String(), KVValueType.String);
                     break;
 
                 case KV1BinaryNodeType.WideString:
-                    throw new NotSupportedException("Wide String is not supported, please create an issue saying where you found it: https://github.com/SteamDatabase/ValveKeyValue/issues");
+                    throw new NotSupportedException("Wide String is not supported, please create an issue saying where you found it: https://github.com/ValveResourceFormat/ValveKeyValue/issues");
 
                 case KV1BinaryNodeType.Int32:
                 case KV1BinaryNodeType.Color:
@@ -143,18 +158,29 @@ namespace ValveKeyValue.Deserialization.KeyValues1
             listener.OnKeyValuePair(name, value);
         }
 
-        byte[] ReadNullTerminatedBytes()
+        private string ReadNullTerminatedUtf8String()
         {
-            using (var mem = new MemoryStream())
+            byte[] buffer = new byte[32];
+            int position = 0;
+
+            while (true)
             {
-                byte nextByte;
-                while ((nextByte = reader.ReadByte()) != 0)
+                int b = reader.ReadByte();
+                if (b <= 0) // null byte or stream ended
                 {
-                    mem.WriteByte(nextByte);
+                    break;
                 }
 
-                return mem.ToArray();
+                if (position >= buffer.Length)
+                {
+                    // Double the buffer size
+                    Array.Resize(ref buffer, buffer.Length * 2);
+                }
+
+                buffer[position++] = (byte)b;
             }
+
+            return Encoding.UTF8.GetString(buffer, 0, position);
         }
 
         void DetectMagicHeader()

@@ -309,6 +309,13 @@ namespace EmulatorLauncher.Common.Launchers
                 Launcher = GameLauncherType.Steam
             };
 
+            if (!string.IsNullOrEmpty(game.ExecutableName) && !string.IsNullOrEmpty(game.InstallDirectory))
+            {
+                var iconFile = Path.Combine(game.InstallDirectory, game.ExecutableName + ".exe");
+                if (File.Exists(iconFile))
+                    game.IconPath = iconFile;
+            }
+
             return game;
         }
 

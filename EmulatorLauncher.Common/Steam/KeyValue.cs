@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,11 +17,14 @@ namespace Steam_Library_Manager.Framework
     {
         static Dictionary<char, char> escapedMapping = new Dictionary<char, char>
         {
+            { '\\', '\\' },
             { 'n', '\n' },
             { 'r', '\r' },
             { 't', '\t' },
             // todo: any others?
         };
+
+        private StringBuilder sb = new StringBuilder(128);
 
         public KVTextReader( KeyValue kv, Stream input )
             : base( input )
@@ -58,7 +62,7 @@ namespace Steam_Library_Manager.Framework
                     s = ReadToken( out wasQuoted, out wasConditional );
                 }
 
-                if ( s.StartsWith( "{" ) && !wasQuoted )
+                if ( s!= null && s.StartsWith( "{" ) && !wasQuoted )
                 {
                     // header is valid so load the file
                     currentKey.RecursiveLoadFromBuffer( this );
@@ -93,16 +97,14 @@ namespace Steam_Library_Manager.Framework
                 char next = ( char )Peek();
                 if ( next == '/' )
                 {
-                    Read();
-                    if ( next == '/' )
-                    {
-                        ReadLine();
-                        return true;
-                    }
-                    else
-                    {
-                        throw new Exception( "BARE / WHAT ARE YOU DOIOIOIINODGNOIGNONGOIGNGGGGGGG" );
-                    }
+                    ReadLine();
+                    return true;
+                    /*
+                     *  As came up in parsing the Dota 2 units.txt file, the reference (Valve) implementation
+                     *  of the KV format considers a single forward slash to be sufficient to comment out the
+                     *  entirety of a line. While they still _tend_ to use two, it's not required, and likely
+                     *  is just done out of habit.
+                     */
                 }
 
                 return false;
@@ -229,6 +231,8 @@ namespace Steam_Library_Manager.Framework
             Color = 6,
             UInt64 = 7,
             End = 8,
+            Int64 = 10,
+            AlternateEnd = 11,
         }
 
         /// <summary>
@@ -283,6 +287,23 @@ namespace Steam_Library_Manager.Framework
 
                 return child;
             }
+
+            set
+            {
+                var existingChild = this.Children
+                    .FirstOrDefault(c => string.Equals(c.Name, key, StringComparison.OrdinalIgnoreCase));
+
+                if (existingChild != null)
+                {
+                    // if the key already exists, remove the old one
+                    this.Children.Remove(existingChild);
+                }
+
+                // ensure the given KV actually has the correct key assigned
+                value.Name = key;
+
+                this.Children.Add(value);
+            }
         }
 
         /// <summary>
@@ -292,6 +313,42 @@ namespace Steam_Library_Manager.Framework
         public string AsString()
         {
             return this.Value;
+        }
+
+        /// <summary>
+        /// Attempts to convert and return the value of this instance as an unsigned byte.
+        /// If the conversion is invalid, the default value is returned.
+        /// </summary>
+        /// <param name="defaultValue">The default value to return if the conversion is invalid.</param>
+        /// <returns>The value of this instance as an unsigned byte.</returns>
+        public byte AsUnsignedByte(byte defaultValue = default)
+        {
+            byte value;
+
+            if (byte.TryParse(this.Value, out value) == false)
+            {
+                return defaultValue;
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Attempts to convert and return the value of this instance as an unsigned short.
+        /// If the conversion is invalid, the default value is returned.
+        /// </summary>
+        /// <param name="defaultValue">The default value to return if the conversion is invalid.</param>
+        /// <returns>The value of this instance as an unsigned short.</returns>
+        public ushort AsUnsignedShort(ushort defaultValue = default)
+        {
+            ushort value;
+
+            if (ushort.TryParse(this.Value, out value) == false)
+            {
+                return defaultValue;
+            }
+
+            return value;
         }
 
         /// <summary>
@@ -305,6 +362,24 @@ namespace Steam_Library_Manager.Framework
             int value;
 
             if ( int.TryParse( this.Value, out value ) == false )
+            {
+                return defaultValue;
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Attempts to convert and return the value of this instance as an unsigned integer.
+        /// If the conversion is invalid, the default value is returned.
+        /// </summary>
+        /// <param name="defaultValue">The default value to return if the conversion is invalid.</param>
+        /// <returns>The value of this instance as an unsigned integer.</returns>
+        public uint AsUnsignedInteger(uint defaultValue = default)
+        {
+            uint value;
+
+            if (uint.TryParse(this.Value, out value) == false)
             {
                 return defaultValue;
             }
@@ -331,6 +406,24 @@ namespace Steam_Library_Manager.Framework
         }
 
         /// <summary>
+        /// Attempts to convert and return the value of this instance as an unsigned long.
+        /// If the conversion is invalid, the default value is returned.
+        /// </summary>
+        /// <param name="defaultValue">The default value to return if the conversion is invalid.</param>
+        /// <returns>The value of this instance as an unsigned long.</returns>
+        public ulong AsUnsignedLong(ulong defaultValue = default)
+        {
+            ulong value;
+
+            if (ulong.TryParse(this.Value, out value) == false)
+            {
+                return defaultValue;
+            }
+
+            return value;
+        }
+
+        /// <summary>
         /// Attempts to convert and return the value of this instance as a float.
         /// If the conversion is invalid, the default value is returned.
         /// </summary>
@@ -340,7 +433,7 @@ namespace Steam_Library_Manager.Framework
         {
             float value;
 
-            if ( float.TryParse( this.Value, out value ) == false )
+            if ( float.TryParse( this.Value, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out value ) == false )
             {
                 return defaultValue;
             }
@@ -685,6 +778,12 @@ namespace Steam_Library_Manager.Framework
                                 break;
                             }
 
+                        case Type.Int64:
+                            {
+                                current.Value = Convert.ToString(input.ReadInt64());
+                                break;
+                            }
+
                         default:
                             {
                                 throw new InvalidDataException( "Unknown KV type encountered." );
@@ -700,6 +799,16 @@ namespace Steam_Library_Manager.Framework
             }
 
             return input.Position == input.Length;
+        }
+
+        string GetNameForSerialization()
+        {
+            if (Name is null)
+            {
+                throw new InvalidOperationException("Cannot serialise a KeyValue object with a null name!");
+            }
+
+            return Name;
         }
     }
 
@@ -739,6 +848,13 @@ namespace Steam_Library_Manager.Framework
             stream.Read(data, 0, 8);
 
             return BitConverter.ToUInt64(data, 0);
+        }
+
+        public static long ReadInt64(this Stream stream)
+        {
+            stream.Read(data, 0, 8);
+
+            return BitConverter.ToInt64(data, 0);
         }
 
         public static float ReadFloat(this Stream stream)

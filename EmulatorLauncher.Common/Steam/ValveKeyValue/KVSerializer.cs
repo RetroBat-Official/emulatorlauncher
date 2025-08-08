@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Xml.Linq;
 using ValveKeyValue.Abstraction;
 using ValveKeyValue.Deserialization;
 using ValveKeyValue.Deserialization.KeyValues1;
@@ -56,7 +57,7 @@ namespace ValveKeyValue
             switch(format)
             {
                 case KVSerializationFormat.KeyValues1Text: return new KV1TextReader(new StreamReader(stream), listener, options);
-                case KVSerializationFormat.KeyValues1Binary: return new KV1BinaryReader(stream, listener);
+                case KVSerializationFormat.KeyValues1Binary: return new KV1BinaryReader(stream, listener, options.StringTable);
                 default: throw new ArgumentOutOfRangeException("format", format, "Invalid serialization format.");
             };
         }

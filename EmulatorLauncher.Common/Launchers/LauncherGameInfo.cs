@@ -13,6 +13,7 @@ namespace EmulatorLauncher.Common.Launchers
         public string ExecutableName { get; set; }
         public string InstallDirectory { get; set; }
         public string PreviewImageUrl { get; set; }
+        public string IconPath { get; set; }
         public string Parameters { get; set; }
 
         public GameLauncherType Launcher { get; set; }

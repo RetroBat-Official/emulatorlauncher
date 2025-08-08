@@ -1,12 +1,13 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Globalization;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -21,7 +22,7 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
         static readonly List<string> arcadeSystems = new List<string>() { "arcade", "mame", "hbmame", "fbneo", "cave", "cps1", "cps2", "cps3", "atomiswave", "naomi", "naomi2", "gaelco", "segastv", "neogeo64" };
-
+        private static Dictionary<int, int> _indexes = new Dictionary<int, int>();
 
         public static bool WriteControllersConfig(ConfigFile retroconfig, string system, string core)
         {
@@ -31,13 +32,12 @@ namespace EmulatorLauncher.Libretro
                 return false;
             }
 
-            var c1 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
-            bool forceDInput = c1 != null && c1.SdlController == null && !c1.IsXInputDevice;
+            _indexes.Clear();
 
-            if (Program.SystemConfig["input_driver"] == "xinput")
+            if (Program.SystemConfig.isOptSet("input_driver") && Program.SystemConfig["input_driver"] == "xinput")
                 _inputDriver = "xinput";
 
-            if (Program.SystemConfig["input_driver"] == "dinput" || forceDInput)
+            if (Program.SystemConfig.isOptSet("input_driver") && Program.SystemConfig["input_driver"] == "dinput")
                 _inputDriver = "dinput";
 
             // no menu in non full uimode
@@ -58,7 +58,35 @@ namespace EmulatorLauncher.Libretro
                 retroconfig["input_max_users"] = (controllerNb + 1).ToString();
 
             foreach (var controller in Program.Controllers)
+            {
+                if (controller.DirectInput != null && controller.Name != null)
+                    try { SimpleLogger.Instance.Info("[CONTROLLERS] Dinput index for controller " + controller.Name + " is: " + controller.DirectInput.DeviceIndex); } catch { }
+                if (controller.SdlController != null && controller.Name != null)
+                    try { SimpleLogger.Instance.Info("[CONTROLLERS] SDL index for controller " + controller.Name + " is: " + controller.SdlController.Index); } catch { }
+                if (controller.XInput != null && controller.Name != null)
+                    try { SimpleLogger.Instance.Info("[CONTROLLERS] Xinput index for controller " + controller.Name + " is: " + controller.XInput.DeviceIndex); } catch { }
+
                 WriteControllerConfig(retroconfig, controller, system, core);
+            }
+
+            // Check for duplicate indexes and log it
+            try
+            {
+                var duplicatesWithKeys = _indexes
+                .GroupBy(kv => kv.Value)
+                .Where(g => g.Count() > 1)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(kv => kv.Key).ToList()
+                );
+
+                if (duplicatesWithKeys.Count > 0)
+                {
+                    foreach (var pair in duplicatesWithKeys)
+                        SimpleLogger.Instance.Warning($"[WARNING] Value {pair.Key} is duplicated for keys: {string.Join(", ", pair.Value)}");
+                }
+            }
+            catch { SimpleLogger.Instance.Warning("[WARNING] Failed duplicate index check"); }
 
             WriteKBHotKeyConfig(retroconfig, core);
             if (_specialController && _specialControllerHotkey)
@@ -558,7 +586,7 @@ namespace EmulatorLauncher.Libretro
                 retroconfig[string.Format("input_player{0}_turbo_axis", controller.PlayerIndex)] = "nul";
             }
 
-            if (controller.Name == "Keyboard")
+            if (controller.Name != null && controller.Name == "Keyboard")
                 return;
 
             retroconfig["input_joypad_driver"] = _inputDriver;
@@ -589,14 +617,18 @@ namespace EmulatorLauncher.Libretro
             {
                 if (_inputDriver == "sdl2" && !string.IsNullOrEmpty(controller.DevicePath) && controller.SdlController != null)
                     index = controller.SdlController.Index;
-                else if (_inputDriver == "dinput" && controller.DirectInput != null && controller.DirectInput.DeviceIndex >= 0)
+                else if (_inputDriver == "dinput" && controller.DirectInput != null && controller.DirectInput.DeviceIndex > -1)
                     index = controller.DirectInput.DeviceIndex;
-                else if (_inputDriver == "xinput" && controller.XInput != null && controller.XInput.DeviceIndex >= 0)
+                else if (_inputDriver == "xinput" && controller.XInput != null && controller.XInput.DeviceIndex > -1)
                     index = controller.XInput.DeviceIndex;
             }
 
+            if (!_indexes.ContainsKey(controller.PlayerIndex))
+                _indexes[controller.PlayerIndex] = index;
+
             retroconfig[string.Format("input_player{0}_joypad_index", controller.PlayerIndex)] = index.ToString();
             retroconfig[string.Format("input_player{0}_analog_dpad_mode", controller.PlayerIndex)] = GetAnalogMode(controller, system);
+
         }
 
         public static string GetConfigValue(Input input)
@@ -613,7 +645,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             if (_inputDriver == "sdl2")
-            {            // sdl2
+            {
                 if (input.Type == "hat")
                 {
                     if (input.Value == 2) // SDL_HAT_RIGHT

@@ -99,6 +99,11 @@ namespace EmulatorLauncher.Common.Launchers
                     Launcher = GameLauncherType.Epic
                 };
 
+                var exePath = Path.Combine(game.InstallDirectory, game.ExecutableName);
+
+                if (exePath != null && File.Exists(exePath))
+                    game.IconPath = exePath;
+
                 games.Add(game);
             }
 

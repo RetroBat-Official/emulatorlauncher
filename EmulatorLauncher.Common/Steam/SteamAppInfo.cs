@@ -1,11 +1,13 @@
-﻿using System;
+﻿using EmulatorLauncher.Common;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using Steam_Library_Manager.Framework;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
-using Steam_Library_Manager.Framework;
-using Microsoft.Win32;
-using EmulatorLauncher.Common;
+using ValveKeyValue;
 
 namespace EmulatorLauncher
 {
@@ -17,6 +19,7 @@ namespace EmulatorLauncher
         }
 
         private const uint Magic28 = 0x07564428;
+        private const uint Magic29 = 0x07564429;
         private const uint Magic = 0x07564427;
 
         public List<SteamAppInfo> Apps { get; private set; }
@@ -41,12 +44,30 @@ namespace EmulatorLauncher
             {
                 var magic = reader.ReadUInt32();
 
-                if (magic != Magic && magic != Magic28)
+                if (magic != Magic && magic != Magic28 && magic != Magic29)
                 {
                     throw new InvalidDataException("Unknown magic header");
                 }
 
                 uint universe = reader.ReadUInt32();
+
+                var options = new KVSerializerOptions();
+
+                if (magic == Magic29)
+                {
+                    var stringTableOffset = reader.ReadInt64();
+                    var offset = reader.BaseStream.Position;
+                    reader.BaseStream.Position = stringTableOffset;
+                    var stringCount = reader.ReadUInt32();
+                    var stringPool = new string[stringCount];
+
+                    for (var i = 0; i < stringCount; i++)
+                    {
+                        stringPool[i] = ReadNullTermUtf8String(reader.BaseStream);
+                    }
+
+                    reader.BaseStream.Position = offset;
+                }
 
                 var deserializer = ValveKeyValue.KVSerializer.Create(ValveKeyValue.KVSerializationFormat.KeyValues1Binary);
 
@@ -57,6 +78,7 @@ namespace EmulatorLauncher
                         break;
 
                     uint size = reader.ReadUInt32(); // size until end of Data
+                    var end = reader.BaseStream.Position + size;
 
                     var app = new SteamAppInfo
                     {
@@ -70,7 +92,7 @@ namespace EmulatorLauncher
 
                     uint remaining = size - 4 - 4 - 8 - 20 - 4;
 
-                    if (magic == Magic28)
+                    if (magic == Magic28 || magic == Magic29)
                     {
                         app.BinaryDataHash = reader.ReadBytes(20);
                         remaining = remaining - 20;
@@ -86,6 +108,31 @@ namespace EmulatorLauncher
         public static DateTime DateTimeFromUnixTime(uint unixTime)
         {
             return new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc).AddSeconds(unixTime);
+        }
+
+        private static string ReadNullTermUtf8String(Stream stream)
+        {
+            byte[] buffer = new byte[32];
+            int position = 0;
+
+            while (true)
+            {
+                int b = stream.ReadByte();
+                if (b <= 0) // null byte or stream ended
+                {
+                    break;
+                }
+
+                if (position >= buffer.Length)
+                {
+                    // Double the buffer size
+                    Array.Resize(ref buffer, buffer.Length * 2);
+                }
+
+                buffer[position++] = (byte)b;
+            }
+
+            return Encoding.UTF8.GetString(buffer, 0, position);
         }
     }
 
