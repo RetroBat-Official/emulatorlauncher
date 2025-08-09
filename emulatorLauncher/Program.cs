@@ -58,6 +58,7 @@ namespace EmulatorLauncher
             { "cemu", () => new CemuGenerator() },
             { "cgenius", () => new CGeniusGenerator() },
             { "chihiro", () => new CxbxGenerator() },
+            { "chihiro-gun", () => new CxbxGenerator() },
             { "citra", () => new CitraGenerator() },
             { "citra-canary", () => new CitraGenerator() },
             { "citron", () => new CitronGenerator() },
