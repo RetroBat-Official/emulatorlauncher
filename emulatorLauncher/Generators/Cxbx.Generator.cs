@@ -85,6 +85,7 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private bool _isUsingCxBxLoader;
         private bool _chihiro = false;
+        private bool _chihiroDS = false;
         private bool _demulshooter = false;
         private string _romName;
 
@@ -98,6 +99,12 @@ namespace EmulatorLauncher
             {
                 path = AppConfig.GetFullPath("chihiro");
                 _chihiro = true;
+            }
+            else if ((core != null && core == "chihiro-gun") || (emulator != null && emulator == "chihiro-gun"))
+            {
+                path = AppConfig.GetFullPath("chihiro-ds");
+                _chihiro = true;
+                _chihiroDS = true;
             }
 
             if (string.IsNullOrEmpty(path))
@@ -199,7 +206,10 @@ namespace EmulatorLauncher
                 var gun1 = guns.Length > 0 ? guns[0] : null;
                 var gun2 = guns.Length > 1 ? guns[1] : null;
 
-                Demulshooter.StartDemulshooter("chihiro", "chihiro", _romName, gun1, gun2);
+                if (_chihiroDS)
+                    Demulshooter.StartDemulshooter("chihiro-ds", "chihiro", _romName, gun1, gun2);
+                else
+                    Demulshooter.StartDemulshooter("chihiro", "chihiro", _romName, gun1, gun2);
             }
 
             if (system == "xbox")

@@ -120,14 +120,38 @@ namespace ValveKeyValue.Deserialization.KeyValues1
                     ReadObjectCore();
                     listener.OnObjectEnd();
                     return;
-
                 case KV1BinaryNodeType.String:
                     // UTF8 encoding is used for string values
                     value = new KVObjectValue<string>(ReadNullTerminatedUtf8String(), KVValueType.String);
                     break;
 
                 case KV1BinaryNodeType.WideString:
-                    throw new NotSupportedException("Wide String is not supported, please create an issue saying where you found it: https://github.com/ValveResourceFormat/ValveKeyValue/issues");
+                    byte[] bytes = new byte[2];
+
+                    bytes = reader.ReadBytes(2);
+
+                    if (BitConverter.IsLittleEndian)
+                    {
+                        Array.Reverse(bytes, 0, 2);
+                    }
+
+                    int length = BitConverter.ToInt16(bytes, 0);
+
+                    List<byte> byteList = new List<byte>();
+
+                    for (int i = 0; i < length; i++)
+                    {
+                        bytes = reader.ReadBytes(2);
+
+                        byteList.AddRange(bytes);
+                    }
+
+                    string wstring_utf16 = Encoding.BigEndianUnicode.GetString(byteList.ToArray());
+                    //string wstring_utf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetBytes(wstring_utf16));
+
+                    value = new KVObjectValue<string>(wstring_utf16, KVValueType.WString);
+                    //value = new KVObjectValue<string>(wstring_utf8, KVValueType.WString);
+                    break;
 
                 case KV1BinaryNodeType.Int32:
                 case KV1BinaryNodeType.Color:

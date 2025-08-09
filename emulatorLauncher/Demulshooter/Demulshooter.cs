@@ -1,16 +1,18 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.Lightguns;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
-using System.Linq;
+using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.Common.Lightguns;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
     class Demulshooter
     {
+        private static Version _dsVersion;
         private static bool GetDemulshooterExecutable(string emulator, string rom, out string executable, out string path)
         {
             executable = "DemulShooter.exe";
@@ -42,6 +44,9 @@ namespace EmulatorLauncher
 
         private static readonly List<string> chihiroRoms = new List<string>
         { "vcop3", "virtuacop", "cop", "virtualcop", "virtua cop", "virtual cop", "vc3" };
+
+        private static readonly List<string> chihiroDSRoms = new List<string>
+        { "vcop3", "virtuacop", "cop", "virtualcop", "virtua cop", "virtual cop", "vc3", "vsg", "gs", "hod3xb", "hotd3" };
 
         private static readonly List<string> demulRoms = new List<string>
         {
@@ -174,6 +179,18 @@ namespace EmulatorLauncher
                     return;
                 }
 
+                // Get DSVersion
+                try
+                {
+                    var versionInfo = FileVersionInfo.GetVersionInfo(exe);
+                    string version = versionInfo.FileMajorPart + "." + versionInfo.FileMinorPart + "." + versionInfo.FileBuildPart + "." + versionInfo.FilePrivatePart;
+                    SimpleLogger.Instance.Info("[INFO] DemulShooter version: " + version);
+                    Version ver = new Version();
+                    if (Version.TryParse(version, out ver))
+                        _dsVersion = ver;
+                }
+                catch { SimpleLogger.Instance.Warning("[WARNING] Failed to get DemulShooter version."); }
+                    
                 var commandArray = new List<string>();
 
                 if (GetDemulshooterTarget(emulator, rom, out string target))
@@ -186,7 +203,7 @@ namespace EmulatorLauncher
 
                 if (emulator != "dolphin")
                 {
-                    if (GetDemulshooterRom(rom, emulator, out string dsRom))
+                    if (GetDemulshooterRom(rom, emulator, _dsVersion, out string dsRom))
                         commandArray.Add("-rom=" + dsRom);
                     else
                     {
@@ -300,7 +317,7 @@ namespace EmulatorLauncher
                 target = "flycast";
                 ret = true;
             }
-            else if (emulator == "chihiro")
+            else if (emulator == "chihiro" || emulator == "chihiro-ds")
             {
                 target = "chihiro";
                 ret = true;
@@ -327,7 +344,7 @@ namespace EmulatorLauncher
             return ret;
         }
 
-        private static bool GetDemulshooterRom(string rom, string emulator, out string dsRom)
+        private static bool GetDemulshooterRom(string rom, string emulator, Version dsVersion, out string dsRom)
         {
             dsRom = null;
             bool ret = false;
@@ -379,11 +396,58 @@ namespace EmulatorLauncher
             {
                 if (chihiroRoms.Any(r => rom.IndexOf(r, StringComparison.OrdinalIgnoreCase) >= 0))
                 {
-                    dsRom = "vcop3";
-                    ret = true;
+                    try
+                    {
+                        string dsVersionNew = "15.5.0.0";
+                        Version dsNewVersion = new Version();
+                        if (Version.TryParse(dsVersionNew, out dsNewVersion))
+                        {
+                            if (dsVersion >= dsNewVersion)
+                                dsRom = "vcop3_old";
+                            else
+                                dsRom = "vcop3";
+
+                            ret = true;
+                        }
+                        else
+                        {
+                            dsRom = "vcop3_old";
+                            ret = true;
+                        }
+                    }
+                    catch 
+                    {
+                        dsRom = "vcop3_old";
+                        ret = true;
+                    }
                 }
             }
 
+            else if (emulator == "chihiro-ds")
+            {
+                if (chihiroDSRoms.Any(r => rom.IndexOf(r, StringComparison.OrdinalIgnoreCase) >= 0))
+                {
+                    // Chihiro-ds version - specific ROM mappings for gun games
+                    string romLower = rom.ToLowerInvariant();
+                    if (romLower.Contains("vc3") || romLower.Contains("cop"))
+                    {
+                        dsRom = "vcop3";
+                        ret = true;
+                    }
+                    else if (romLower.Contains("vsg") || romLower == "gs")
+                    {
+                        dsRom = "gsquad";
+                        ret = true;
+                    }
+                    else if (romLower.Contains("hod3xb") || romLower.Contains("hotd3"))
+                    {
+                        dsRom = "hod3";
+                        ret = true;
+                    }
+                    else
+                        ret = false;
+                }
+            }
             return ret;
         }
 
