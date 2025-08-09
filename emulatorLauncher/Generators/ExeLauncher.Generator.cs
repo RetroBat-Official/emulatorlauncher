@@ -1,13 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Diagnostics;
-using System.Threading;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.PadToKeyboard;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Security.Policy;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Xml.Linq;
 
 namespace EmulatorLauncher
@@ -34,7 +36,8 @@ namespace EmulatorLauncher
             { "file", (uri) => new LocalFileGameLauncher(uri) },
             { "com.epicgames.launcher", (uri) => new EpicGameLauncher(uri) },
             { "steam", (uri) => new SteamGameLauncher(uri) },
-            { "amazon-games", (uri) => new AmazonGameLauncher(uri) }            
+            { "amazon-games", (uri) => new AmazonGameLauncher(uri) },
+            { "goggalaxy", (uri) => new GogGameLauncher(uri) },
         };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -56,6 +59,23 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[INFO] link file, searching for target.");
                 string target = FileTools.GetShortcutTargetwsh(rom);
                 arguments = FileTools.GetShortcutArgswsh(rom);
+
+                string exeName = Path.GetFileNameWithoutExtension(target);
+                if (exeName.Equals("GalaxyClient", StringComparison.OrdinalIgnoreCase))
+                {
+                    var match = Regex.Match(arguments, @"/gameId=(\d+)");
+                    if (match.Success)
+                    {
+                        string gameId = match.Groups[1].Value;
+                        var uri = new Uri($"goggalaxy:{gameId}");
+
+                        if (launchers.TryGetValue(uri.Scheme, out Func<Uri, GameLauncher> gameLauncherInstanceBuilder))
+                        {
+                            _gameLauncher = gameLauncherInstanceBuilder(uri);
+                            goto GOGBYPASS;
+                        }
+                    }
+                }
 
                 if (target != "" && target != null)
                 {
@@ -208,7 +228,7 @@ namespace EmulatorLauncher
             else if (extension == ".game")
             {
                 string linkTarget = null;
-                string [] lines = File.ReadAllLines(rom);
+                string[] lines = File.ReadAllLines(rom);
 
                 if (lines.Length == 0)
                     throw new Exception("No path specified in .game file.");
@@ -224,13 +244,15 @@ namespace EmulatorLauncher
                     throw new Exception("Target file " + linkTarget + " does not exist.");
 
                 _isGameExePath = File.Exists(linkTarget);
-                
+
                 if (_isGameExePath)
                 {
                     rom = linkTarget;
                     path = Path.GetDirectoryName(linkTarget);
                 }
             }
+
+        GOGBYPASS:
 
             if (Directory.Exists(rom)) // If rom is a directory ( .pc .win .windows, .wine )
             {
@@ -490,7 +512,7 @@ namespace EmulatorLauncher
             return output;
         }
 
-        readonly string[] launcherPprocessNames = { "Amazon Games UI", "EADesktop", "EpicGamesLauncher", "steam" };
+        readonly string[] launcherPprocessNames = { "Amazon Games UI", "EADesktop", "EpicGamesLauncher", "steam", "GalaxyClient" };
 
         public override int RunAndWait(ProcessStartInfo path)
         {

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ValveKeyValue.Deserialization.KeyValues1
 {
-    class KV1TokenReader : IDisposable
+    class KV1TokenReader : KVTokenReader
     {
         const char QuotationMark = '"';
         const char ObjectStart = '{';
@@ -16,19 +16,15 @@ namespace ValveKeyValue.Deserialization.KeyValues1
         const char ConditionEnd = ']';
         const char InclusionMark = '#';
 
-        public KV1TokenReader(TextReader textReader, KVSerializerOptions options)
+        public KV1TokenReader(TextReader textReader, KVSerializerOptions options) : base(textReader)
         {
-            Require.NotNull(textReader, "textReader");
             Require.NotNull(options, "options");
 
-            this.textReader = textReader;
             this.options = options;
         }
 
         readonly KVSerializerOptions options;
-        TextReader textReader;
-        bool disposed;
-        int? peekedNext;
+        readonly StringBuilder sb = new StringBuilder();
 
         public KVToken ReadNextToken()
         {
@@ -50,17 +46,6 @@ namespace ValveKeyValue.Deserialization.KeyValues1
                 case InclusionMark: return ReadInclusion();
                 default: return ReadString();
             };
-        }
-
-        public void Dispose()
-        {
-            if (!disposed)
-            {
-                textReader.Dispose();
-                textReader = null;
-
-                disposed = true;
-            }
         }
 
         KVToken ReadString()
@@ -85,19 +70,22 @@ namespace ValveKeyValue.Deserialization.KeyValues1
         {
             ReadChar(CommentBegin);
 
-            var sb = new StringBuilder();
-            var next = Next();
-
             // Some keyvalues implementations have a bug where only a single slash is needed for a comment
+            // If the file ends with a single slash then we have an empty comment, bail out
+
+            if (!TryGetNext(out var next))
+            {
+                return new KVToken(KVTokenType.Comment, string.Empty);
+            }
+            // If the next character is not a slash, then we have a comment that starts with a single slash
+            // Otherwise pretend the comment is a double-slash and ignore this new second slash.
             if (next != CommentBegin)
             {
                 sb.Append(next);
             }
 
-            while (true)
+            while (TryGetNext(out next))
             {
-                next = Next();
-
                 if (next == '\n')
                 {
                     break;
@@ -112,6 +100,7 @@ namespace ValveKeyValue.Deserialization.KeyValues1
             }
 
             var text = sb.ToString();
+            sb.Clear();
 
             return new KVToken(KVTokenType.Comment, text);
         }
@@ -143,53 +132,8 @@ namespace ValveKeyValue.Deserialization.KeyValues1
             throw new InvalidDataException("Unrecognized term after '#' symbol.");
         }
 
-        char Next()
-        {
-            int next;
-
-            if (peekedNext.HasValue)
-            {
-                next = peekedNext.Value;
-                peekedNext = null;
-            }
-            else
-            {
-                next = textReader.Read();
-            }
-
-            if (next == -1)
-            {
-                throw new EndOfStreamException();
-            }
-
-            return (char)next;
-        }
-
-        int Peek()
-        {
-            if (peekedNext.HasValue)
-            {
-                return peekedNext.Value;
-            }
-
-            var next = textReader.Read();
-            peekedNext = next;
-
-            return next;
-        }
-
-        void ReadChar(char expectedChar)
-        {
-            var next = Next();
-            if (next != expectedChar)
-            {
-                throw new InvalidDataException("The syntax is incorrect, expected '{expectedChar}' but got '{next}'.");
-            }
-        }
-
         string ReadUntil(params char[] terminators)
         {
-            var sb = new StringBuilder();
             var escapeNext = false;
 
             var integerTerminators = new HashSet<int>(terminators.Select(t => (int)t));
@@ -209,17 +153,35 @@ namespace ValveKeyValue.Deserialization.KeyValues1
                     {
                         switch (next)
                         {
-                            case 'r':
-                                next = '\r';
-                                break;
                             case 'n':
                                 next = '\n';
                                 break;
                             case 't':
                                 next = '\t';
                                 break;
+                            case 'v':
+                                next = '\v';
+                                break;
+                            case 'b':
+                                next = '\b';
+                                break;
+                            case 'r':
+                                next = '\r';
+                                break;
+                            case 'f':
+                                next = '\f';
+                                break;
+                            case 'a':
+                                next = '\a';
+                                break;
+                            case '?':
+                                next = '?';
+                                break;
                             case '\\':
                                 next = '\\';
+                                break;
+                            case '\'':
+                                next = '\'';
                                 break;
                             case '"':
                                 next = '"';
@@ -241,23 +203,19 @@ namespace ValveKeyValue.Deserialization.KeyValues1
             }
 
             var result = sb.ToString();
+            sb.Clear();
 
             // Valve bug-for-bug compatibility with tier1 KeyValues/CUtlBuffer: an invalid escape sequence is a null byte which
             // causes the text to be trimmed to the point of that null byte.
-            if (options.EnableValveNullByteBugBehavior)
+            if (options.EnableValveNullByteBugBehavior && result.IndexOf('\0') is var nullByteIndex && nullByteIndex >= 0)
             {
-                int nullByteIndex = result.IndexOf('\0');
-                if (nullByteIndex >= 0)
                     result = result.Substring(0, nullByteIndex);
             }
-
             return result;
         }
 
         string ReadUntilWhitespaceOrQuote()
         {
-            var sb = new StringBuilder();
-
             while (true)
             {
                 var next = Peek();
@@ -269,21 +227,10 @@ namespace ValveKeyValue.Deserialization.KeyValues1
                 sb.Append(Next());
             }
 
-            return sb.ToString();
-        }
+            var result = sb.ToString();
+            sb.Clear();
 
-        void SwallowWhitespace()
-        {
-            while (PeekWhitespace())
-            {
-                Next();
-            }
-        }
-
-        bool PeekWhitespace()
-        {
-            var next = Peek();
-            return !IsEndOfFile(next) && char.IsWhiteSpace((char)next);
+            return result;
         }
 
         string ReadStringRaw()
@@ -306,7 +253,5 @@ namespace ValveKeyValue.Deserialization.KeyValues1
             ReadChar(QuotationMark);
             return text;
         }
-
-        bool IsEndOfFile(int value) { return value == -1; }
     }
 }
