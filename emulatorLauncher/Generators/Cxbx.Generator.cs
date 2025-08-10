@@ -344,6 +344,69 @@ namespace EmulatorLauncher
 
             var process = Process.Start(path);
 
+            if (_chihiroDS)
+            {
+                process.WaitForExit();
+
+                while (true)
+                {
+                    var runningProcesses = Process.GetProcessesByName("cxbxr-ldr");
+                    if (runningProcesses.Length == 0)
+                    {
+                        System.Threading.Thread.Sleep(1000);
+                        runningProcesses = Process.GetProcessesByName("cxbxr-ldr");
+                        if (runningProcesses.Length == 0)
+                        {
+                            break;
+                        }
+                    }
+
+                    foreach (var proc in runningProcesses)
+                    {
+                        try
+                        {
+                            var hWnd = User32.FindHwnd(process.Id);
+                            if (hWnd == IntPtr.Zero)
+                                continue;
+
+                            var name = User32.GetClassName(hWnd);
+                            if (name != null && name.Contains("CxbxRender"))
+                            {
+                                var style = User32.GetWindowStyle(hWnd);
+                                if (style.HasFlag(WS.CAPTION))
+                                {
+                                    int resX = (_resolution == null ? Screen.PrimaryScreen.Bounds.Width : _resolution.Width);
+                                    int resY = (_resolution == null ? Screen.PrimaryScreen.Bounds.Height : _resolution.Height);
+
+                                    style &= ~WS.CAPTION;
+                                    style &= ~WS.THICKFRAME;
+                                    style &= ~WS.MAXIMIZEBOX;
+                                    style &= ~WS.MINIMIZEBOX;
+                                    style &= ~WS.OVERLAPPED;
+                                    style &= ~WS.SYSMENU;
+                                    User32.SetWindowStyle(hWnd, style);
+
+                                    User32.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, resX, resY, SWP.NOZORDER | SWP.FRAMECHANGED);
+
+                                    if (_bezelFileInfo != null)
+                                        bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+                                }
+
+                                break;
+                            }
+                        }
+                        catch { }
+
+                        proc?.WaitForExit();
+                    }
+                    System.Threading.Thread.Sleep(500);
+
+                    bezel?.Dispose();
+                }
+
+                return 0;
+            }
+
             while (process != null)
             {
                 if (process.WaitForExit(50))
