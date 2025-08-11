@@ -641,7 +641,8 @@ namespace EmulatorLauncher.Libretro
             }
             else
                 retroarchConfig["input_driver"] = "dinput";
-            
+
+            BindBoolFeature(retroarchConfig, "game_specific_options", "game_specific_options", "true", "false");
             BindBoolFeature(retroarchConfig, "pause_on_disconnect", "pause_on_disconnect", "true", "false");
             BindBoolFeature(retroarchConfig, "pause_nonactive", "use_guns", "true", "false", true); // Pause when calibrating gun...
             BindBoolFeature(retroarchConfig, "input_autodetect_enable", "disableautocontrollers", "true", "false", true);
