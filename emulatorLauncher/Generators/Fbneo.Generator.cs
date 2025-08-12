@@ -113,7 +113,6 @@ namespace EmulatorLauncher
                 if (!Directory.Exists(fbneoBiosPath)) try { Directory.CreateDirectory(fbneoBiosPath); }
                     catch { }
                 cfg["szAppRomPaths[2]"] = fbneoBiosPath + "\\";
-                cfg["szAppHiscorePath"] = fbneoBiosPath + "\\";
 
                 string cheatsPath = Path.Combine(fbneoBiosPath, "cheats");
                 if (!Directory.Exists(cheatsPath)) try { Directory.CreateDirectory(cheatsPath); }
@@ -125,10 +124,11 @@ namespace EmulatorLauncher
                     catch { }
                 cfg["szAppSamplesPath"] = samplePath + "\\";
 
-                string eepromPath = Path.Combine(AppConfig.GetFullPath("saves"), "fbneo");
+                string eepromPath = Path.Combine(AppConfig.GetFullPath("saves"), "fbneo", "fbneo");
                 if (!Directory.Exists(eepromPath)) try { Directory.CreateDirectory(eepromPath); }
                     catch { }
                 cfg["szAppEEPROMPath"] = eepromPath + "\\";
+                cfg["szAppHiscorePath"] = eepromPath + "\\";
 
                 string blendPath = Path.Combine(eepromPath, "blend");
                 if (!Directory.Exists(blendPath)) try { Directory.CreateDirectory(blendPath); }
@@ -183,6 +183,7 @@ namespace EmulatorLauncher
 
                 BindBoolFeature(cfg, "bForce60Hz", "fbneo_force60hz", "1", "0");
                 BindBoolFeature(cfg, "bRunAhead", "fbneo_runahead", "1", "0");
+                BindBoolFeatureOn(cfg, "EnableHiscores", "fbneo_hiscore", "1", "0");
 
                 cfg.Save();
             }

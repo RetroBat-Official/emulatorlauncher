@@ -625,7 +625,10 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["rgui_show_start_screen"] = "false";
             retroarchConfig["rgui_browser_directory"] = AppConfig.GetFullPath("roms") ?? "default";
             retroarchConfig["input_overlay_enable_autopreferred"] = "false";
-            retroarchConfig["sort_savefiles_enable"] = "false";
+            if (CoreSaveSort.Contains(core))
+                retroarchConfig["sort_savefiles_enable"] = "true";
+            else
+                retroarchConfig["sort_savefiles_enable"] = "false";
             retroarchConfig["sort_savefiles_by_content_enable"] = "false";
 
             // input driver set to raw if multigun is enabled
@@ -1922,6 +1925,7 @@ namespace EmulatorLauncher.Libretro
         static List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
         static List<string> coreNoGL = new List<string>() { "citra", "kronos", "mednafen_psx", "mednafen_psx_hw", "pcsx2", "swanstation" };
         static List<string> driverYBias = new List<string>() { "gl", "glcore" };
+        static List<string> CoreSaveSort = new List<string>() { "dolphin" };
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>() 
