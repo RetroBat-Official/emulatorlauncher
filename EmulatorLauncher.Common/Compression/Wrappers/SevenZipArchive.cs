@@ -15,9 +15,17 @@ namespace EmulatorLauncher.Common.Compression.Wrappers
     /// </summary>
     public class SevenZipArchive : IArchive
     {
+        private static bool? _isSevenZipAvailable;
+
         public static bool IsSevenZipAvailable
         {
-            get { return File.Exists(GetSevenZipPath()); }
+            get 
+            {
+                if (!_isSevenZipAvailable.HasValue)
+                    _isSevenZipAvailable = File.Exists(GetSevenZipPath());
+
+                return _isSevenZipAvailable.Value;
+            }
         }
 
         private static string GetSevenZipPath()

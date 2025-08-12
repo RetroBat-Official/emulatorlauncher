@@ -8,13 +8,12 @@ using System.IO.Compression;
 using EmulatorLauncher.Common.Compression;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common;
+using System.Xml;
 
 namespace EmulatorLauncher
 {
     static class MameVersionDetector
     {
-        private static MameGames games;
-
         public static string FindBestMameCore(string rom, string[] supportedCores = null)
         {
             return FindCompatibleMameCores(rom, supportedCores).Select(c => c.Name).FirstOrDefault();
@@ -27,19 +26,27 @@ namespace EmulatorLauncher
 
             try
             {
-                if (games == null)
+                MameGame game = null;
+                var targetId = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
+
+                using (var steam = new MemoryStream(Properties.Resources.mamecrcs_xml_gz))
                 {
-#if DEVTOOL
-                    games = ReadGZipFile(@"H:\ConsoleApplication1 - Copie\output\mamecrcs.xml.gz").FromXmlString<MameGames>();
-#else
-                    games = GZipBytesToString(Properties.Resources.mamecrcs_xml_gz).FromXmlString<MameGames>();
-#endif
+                    using (var gzip = new GZipStream(steam, CompressionMode.Decompress))
+                    {
+                        using (var reader = XmlReader.Create(gzip, new XmlReaderSettings() { CheckCharacters = false, IgnoreComments = true, IgnoreWhitespace = true }))
+                        {
+                            while (reader.Read())
+                            {
+                                if (reader.NodeType == XmlNodeType.Element && reader.Name == "game" && reader.GetAttribute("id") == targetId)
+                                {
+                                    game = reader.ReadOuterXml().FromXmlString<MameGame>();
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
 
-                if (games == null || games.Games == null)
-                    return new CompatibleCore[] { };
-
-                var game = games.Games.FirstOrDefault(ff => ff.Name == Path.GetFileNameWithoutExtension(rom).ToLowerInvariant());
                 if (game == null)
                     return new CompatibleCore[] { };
 
@@ -50,9 +57,8 @@ namespace EmulatorLauncher
                 var ret = new List<CompatibleCore>();
 
                 using (var zip = Zip.Open(rom))
-                {
-                    var entries = zip.Entries.ToList();
-                    var entriesCrcs = entries.Select(e => e.HexCrc).ToArray();
+                {             
+                    var entriesCrcs = zip.Entries.Select(e => e.HexCrc).ToArray();
                     
                     // Exact match
                     foreach (var mm in game.Roms)
@@ -113,9 +119,7 @@ namespace EmulatorLauncher
             }
             catch (Exception ex)
             {
-#if !DEVTOOL
                 SimpleLogger.Instance.Error("[FindBestMameCore] Exception " + ex.Message, ex);
-#endif
             }
 
             return new CompatibleCore[] { }; 
@@ -146,12 +150,6 @@ namespace EmulatorLauncher
             }
 
             return null;
-        }
-
-        static string GZipBytesToString(byte[] bytes)
-        {
-            using (var reader = new MemoryStream(bytes))
-                return ReadGZipStream(reader);
         }
 
         internal static string ListAllGames(string mamePath, bool forFBNEO)

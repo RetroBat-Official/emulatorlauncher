@@ -78,20 +78,27 @@ namespace EmulatorLauncher.Common
             }
         }
 
+        private static bool? _isAvailableNetwork;
         public static bool IsAvailableNetworkActive()
         {
+            if (_isAvailableNetwork.HasValue)
+                return _isAvailableNetwork.Value;
+
             // only recognizes changes related to Internet adapters
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 // however, this will include all adapters -- filter by opstatus and activity
                 var interfaces = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
-                return (from face in interfaces
-                        where face.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up
-                        where (face.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Tunnel) && (face.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Loopback)
-                        select face.GetIPv4Statistics()).Any(statistics => (statistics.BytesReceived > 0) && (statistics.BytesSent > 0));
-            }
 
-            return false;
+                _isAvailableNetwork = (from face in interfaces
+                                       where face.OperationalStatus == System.Net.NetworkInformation.OperationalStatus.Up
+                                       where (face.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Tunnel) && (face.NetworkInterfaceType != System.Net.NetworkInformation.NetworkInterfaceType.Loopback)
+                                       select face.GetIPv4Statistics()).Any(statistics => (statistics.BytesReceived > 0) && (statistics.BytesSent > 0));
+            }
+            else
+                _isAvailableNetwork = false;
+
+            return _isAvailableNetwork.Value;
         }
 
         public static bool NetworkHasPublicIP()
