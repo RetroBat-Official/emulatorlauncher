@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using static EmulatorLauncher.Mame64Generator;
+using System.ComponentModel;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -301,6 +302,19 @@ namespace EmulatorLauncher.Libretro
 
         private void ConfigureCoreOptions(ConfigFile retroarchConfig, string system, string core)
         {
+            if (SystemConfig.isOptSet("game_specific_options") && SystemConfig.getOptBoolean("game_specific_options"))
+            {
+                string retroArchOptFileFolder = Path.Combine(AppConfig.GetFullPath("retroarch"), "config", GetCoreName(core));
+                string romName = Path.GetFileNameWithoutExtension(SystemConfig["rom"]);
+
+                if (File.Exists(Path.Combine(retroArchOptFileFolder, romName + ".opt")))
+                    SimpleLogger.Instance.Warning("[WARNING] A core .opt file exists for the game, RetroBat might not work correctly");
+                if (File.Exists(Path.Combine(retroArchOptFileFolder, system + ".opt")))
+                    SimpleLogger.Instance.Warning("[WARNING] A core .opt file exists for the content dir, RetroBat might not work correctly");
+                if (File.Exists(Path.Combine(retroArchOptFileFolder, romName + ".opt")))
+                    SimpleLogger.Instance.Warning("[WARNING] A core .opt file exists for the core, RetroBat might not work correctly");
+            }
+
             InputRemap = new Dictionary<string, string>();
 
             // ratio is widescreen ?

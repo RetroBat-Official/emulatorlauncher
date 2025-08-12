@@ -592,12 +592,19 @@ namespace EmulatorLauncher
 
         private void ConfigureUIini(string path) 
         {
-            var uiIni = MameIniFile.FromFile(Path.Combine(path, "ui.ini"));
-            if (uiIni["skip_warnings"] != "1")
+            if (!Directory.Exists(path))
+                try { Directory.CreateDirectory(path); } catch { }
+
+            try
             {
-                uiIni["skip_warnings"] = "1";
-                uiIni.Save();
+                var uiIni = MameIniFile.FromFile(Path.Combine(path, "ui.ini"));
+                if (uiIni["skip_warnings"] != "1")
+                {
+                    uiIni["skip_warnings"] = "1";
+                    uiIni.Save();
+                }
             }
+            catch { }
         }
 
         private void ConfigureMameini(string path)

@@ -185,6 +185,11 @@ namespace RetrobatUpdater
                 // Update local version info
                 RetrobatVersion.SetLocalVersion(remoteVersion);
 
+                // Delete upgrade.xml file
+                string upgradeXMLFile = Path.Combine(rootPath, "system", "upgrade.xml");
+                if (File.Exists(upgradeXMLFile))
+                    try { File.Delete(upgradeXMLFile); } catch { }
+
                 ConsoleOutput("UPDATE DONE");
                 return 0;
             }
