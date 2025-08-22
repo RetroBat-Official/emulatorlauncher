@@ -26,6 +26,8 @@ namespace EmulatorLauncher
             { "electron_flop", "electron_flop" }
         };
 
+        static readonly List<string> mame_arcade_systems = new List<string>() { "mame", "model2", "segastv", "zinc" };
+
         static readonly MessSystem[] MessSystems = new MessSystem[]
             {
                 // IN RETROBAT
@@ -535,7 +537,10 @@ namespace EmulatorLauncher
                 new MessSystem("gw"           ,""         ,""      ),
                 new MessSystem("gameandwatch" ,""         ,""      ),
                 new MessSystem("lcdgames"     ,"%romname%",""      ),
-                new MessSystem("mame"         ,"%romname%"     ,""      ),
+                new MessSystem("mame"         ,"%romname%",""      ),
+                new MessSystem("segastv"      ,"%romname%",""      ),
+                new MessSystem("model2"       ,"%romname%",""      ),
+                new MessSystem("zinc"         ,"%romname%",""      ),
                 new MessSystem("hbmame"       ,"hbmame"   ,""      ),
                 new MessSystem("cave"         ,"%romname%",""      ),
                 new MessSystem("tvgames"      ,""         ,""      ),
@@ -835,6 +840,13 @@ namespace EmulatorLauncher
             {
                 commandArray.Add("-ramsize");
                 commandArray.Add(SystemConfig["ramsize"]);
+            }
+
+            // Bios
+            if (SystemConfig.isOptSet("mame_bios") && !string.IsNullOrEmpty(SystemConfig["mame_bios"]))
+            {
+                commandArray.Add("-bios");
+                commandArray.Add(SystemConfig["mame_bios"]);
             }
 
             // Autostart computer games where applicable
@@ -1160,7 +1172,7 @@ namespace EmulatorLauncher
                 commandArray.Add(this.UseFileNameWithoutExtension ? Path.GetFileNameWithoutExtension(rom) : rom);
 
             // Add an argument to mame core to fix saving of remap file naming
-            if (system == "mame" && MachineName == "%romname%")
+            if (mame_arcade_systems.Contains(system) && MachineName == "%romname%")
             {
                 commandArray.Add("-comment_directory");
                 commandArray.Add(rom);
