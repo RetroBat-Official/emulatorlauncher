@@ -24,7 +24,21 @@ namespace EmulatorLauncher.Libretro
             string guid = controller.Guid.ToString().ToLowerInvariant();
 
             // First look if the user has a specific mapping file set for the controller
-            string userMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "user", "inputmapping", "retroarch_controller.json");
+            string userMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "retroarch_controller.json");
+            foreach (var path in mappingPaths)
+            {
+                string result = path
+                    .Replace("{systempath}", "system")
+                    .Replace("{userpath}", "user");
+
+                string userMapping2 = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result, "retroarch_controller.json");
+
+                if (File.Exists(userMapping2))
+                {
+                    userMapping = userMapping2;
+                    break;
+                }
+            }
             if (File.Exists(userMapping))
             {
                 try
@@ -336,6 +350,8 @@ namespace EmulatorLauncher.Libretro
                                 retroconfig["input_analog_sensitivity"] = mdGamepad.ControllerInfo["input_analog_sensitivity"];
                             if (mdGamepad.ControllerInfo.ContainsKey("input_joypad_driver"))
                                 inputConfig["input_joypad_driver"] = mdGamepad.ControllerInfo["input_joypad_driver"];
+                            if (mdGamepad.ControllerInfo.ContainsKey("analogdpad"))
+                                analogDpad = mdGamepad.ControllerInfo["analogdpad"] == "true";
 
                             if (needActivationSwitch && !md_pad)
                             {
@@ -430,12 +446,14 @@ namespace EmulatorLauncher.Libretro
 
                         if (saturnGamepad.ControllerInfo != null)
                         {
-                            if (saturnGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                            if (saturnGamepad.ControllerInfo.ContainsKey("needActivationSwitch") && saturnGamepad.ControllerInfo["needActivationSwitch"] == "true")
                                 needActivationSwitch = saturnGamepad.ControllerInfo["needActivationSwitch"] == "true";
                             if (saturnGamepad.ControllerInfo.ContainsKey("input_analog_sensitivity"))
                                 retroconfig["input_analog_sensitivity"] = saturnGamepad.ControllerInfo["input_analog_sensitivity"];
                             if (saturnGamepad.ControllerInfo.ContainsKey("input_joypad_driver"))
                                 inputConfig["input_joypad_driver"] = saturnGamepad.ControllerInfo["input_joypad_driver"];
+                            if (saturnGamepad.ControllerInfo.ContainsKey("analogdpad"))
+                                analogDpad = saturnGamepad.ControllerInfo["analogdpad"] == "true";
 
                             if (needActivationSwitch && !sat_pad)
                             {
@@ -530,12 +548,14 @@ namespace EmulatorLauncher.Libretro
 
                         if (specGamepad.ControllerInfo != null)
                         {
-                            if (specGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                            if (specGamepad.ControllerInfo.ContainsKey("needActivationSwitch") && specGamepad.ControllerInfo["needActivationSwitch"] == "true")
                                 needActivationSwitch = specGamepad.ControllerInfo["needActivationSwitch"] == "true";
                             if (specGamepad.ControllerInfo.ContainsKey("input_analog_sensitivity"))
                                 retroconfig["input_analog_sensitivity"] = specGamepad.ControllerInfo["input_analog_sensitivity"];
                             if (specGamepad.ControllerInfo.ContainsKey("input_joypad_driver"))
                                 inputConfig["input_joypad_driver"] = specGamepad.ControllerInfo["input_joypad_driver"];
+                            if (specGamepad.ControllerInfo.ContainsKey("analogdpad"))
+                                analogDpad = specGamepad.ControllerInfo["analogdpad"] == "true";
 
                             if (needActivationSwitch && !spec_pad)
                             {

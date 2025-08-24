@@ -91,15 +91,16 @@ namespace EmulatorLauncher.PadToKeyboard
 
         public static bool operator ==(JoyInputState c1, JoyInputState c2)
         {
-            return !object.ReferenceEquals(c1, null) && !object.ReferenceEquals(c2, null) && c1.Equals(c2);
+            if (ReferenceEquals(c1, c2))
+                return true;
+            if (ReferenceEquals(c1, null) || ReferenceEquals(c2, null))
+                return false;
+            return c1.Equals(c2);
         }
 
         public static bool operator !=(JoyInputState c1, JoyInputState c2)
         {
-            if (c1 == null && c2 != null)
-                return true;
-
-            return !c1.Equals(c2);
+            return !(c1 == c2);
         }
 
         public override string ToString()
@@ -128,7 +129,7 @@ namespace EmulatorLauncher.PadToKeyboard
             if (!_keys.TryGetValue((int)k, out newValue))
                 return 0;
 
-            if (k == InputKey.joystick2right || k == InputKey.joystick2down || k == InputKey.joystick1right || k == InputKey.joystick2down)
+            if (k == InputKey.joystick2right || k == InputKey.joystick2down || k == InputKey.joystick1right || k == InputKey.joystick1down)
                 return Math.Abs(newValue.Value);
 
             return -Math.Abs(newValue.Value);

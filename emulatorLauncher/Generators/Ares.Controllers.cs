@@ -201,7 +201,7 @@ namespace EmulatorLauncher
                         {
                             if (mdGamepad.ControllerInfo != null)
                             {
-                                if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                if (mdGamepad.ControllerInfo.ContainsKey("needActivationSwitch") && mdGamepad.ControllerInfo["needActivationSwitch"] == "true")
                                     needMDActivationSwitch = mdGamepad.ControllerInfo["needActivationSwitch"] == "true";
 
                                 if (needMDActivationSwitch && !md_pad)
@@ -247,10 +247,10 @@ namespace EmulatorLauncher
         BypassMDControllers:
             #endregion
 
-            vpad["Pad.Up"] = padId + "1/1/Lo;;";
-            vpad["Pad.Down"] = padId + "1/1/Hi;;";
-            vpad["Pad.Left"] = padId + "1/0/Lo;;";
-            vpad["Pad.Right"] = padId + "1/0/Hi;;";
+            vpad["Pad.Up"] = GetInputKeyName(ctrl, InputKey.up, padId);
+            vpad["Pad.Down"] = GetInputKeyName(ctrl, InputKey.down, padId);
+            vpad["Pad.Left"] = GetInputKeyName(ctrl, InputKey.left, padId);
+            vpad["Pad.Right"] = GetInputKeyName(ctrl, InputKey.right, padId);
             vpad["Select"] = GetInputKeyName(ctrl, InputKey.select, padId);
             vpad["Start"] = GetInputKeyName(ctrl, InputKey.start, padId);
             if (_system == "mastersystem" && SystemConfig.getOptBoolean("rotate_buttons"))
@@ -342,11 +342,27 @@ namespace EmulatorLauncher
                         }
                     }
 
+                    if (key == InputKey.down || key == InputKey.up || key == InputKey.left || key == InputKey.right)
+                    {
+                        switch (pid)
+                        {
+                            case 11: return padId + "1/1/Lo;;";
+                            case 12: return padId + "1/1/Hi;;";
+                            case 13: return padId + "1/0/Lo;;";
+                            case 14: return padId + "1/0/Hi;;";
+                        }
+                    }
+
                     return padId + "3/" + pid + ";;";
                 }
 
                 if (input.Type == "axis")
                 {
+                    if (key == InputKey.down || key == InputKey.up || key == InputKey.left || key == InputKey.right)
+                    {
+                        key = key.GetRevertedDpadAxis(out revertAxis);
+                    }
+                    
                     if (input.Id < 4)
                     {
                         pid = input.Id;
@@ -354,9 +370,25 @@ namespace EmulatorLauncher
                         return padId + "0/" + pid + "/" + pval + ";;";
                     }
                     else if (input.Id == 4)
-                        return padId + "0/4/Hi;;";
+                    {
+                        if (key == InputKey.down || key == InputKey.up || key == InputKey.left || key == InputKey.right)
+                        {
+                            string pval = revertAxis ? "Hi" : "Lo";
+                            return padId + "0/4/" + pval + ";;";
+                        }
+                        else
+                            return padId + "0/4/Hi;;";
+                    }
                     else if (input.Id == 5)
-                        return padId + "0/5/Hi;;";
+                    {
+                        if (key == InputKey.down || key == InputKey.up || key == InputKey.left || key == InputKey.right)
+                        {
+                            string pval = revertAxis ? "Hi" : "Lo";
+                            return padId + "0/4/" + pval + ";;";
+                        }
+                        else
+                            return padId + "0/5/Hi;;";
+                    }
                 }
 
                 if (input.Type == "hat")
