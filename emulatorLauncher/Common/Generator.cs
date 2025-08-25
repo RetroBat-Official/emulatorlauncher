@@ -871,6 +871,17 @@ namespace EmulatorLauncher
             }
         }
 
+        protected void BindBoolFeature(JObject json, string settingsName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    json[settingsName] = trueValue;
+                else
+                    json[settingsName] = falseValue;
+            }
+        }
+
         protected void BindBoolFeatureOnInt(JObject json, string settingsName, string featureName, string trueValue, string falseValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
