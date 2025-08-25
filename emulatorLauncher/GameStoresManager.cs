@@ -14,18 +14,21 @@ namespace EmulatorLauncher
     {
         public static void UpdateGames()
         {
-            if (Program.SystemConfig.isOptSet("scanStore") && Program.SystemConfig["scanStore"] == "0")
+            if (!Program.SystemConfig.getOptBoolean("scanStore"))
             {
                 SimpleLogger.Instance.Info("[ImportStore] Option to scan installed store games is disabled.");
                 return;
             }
+
+            string retrobatPath = Program.AppConfig.GetFullPath("retrobat");
+            bool getUninstalled = Program.SystemConfig.getOptBoolean("scanStoreUninstalled");
 
             Parallel.Invoke(
                () => ImportStore("amazon", AmazonLibrary.GetInstalledGames),
                () => ImportStore("eagames", EaGamesLibrary.GetInstalledGames),
                () => ImportStore("epic", EpicLibrary.GetInstalledGames),
                () => ImportStore("gog", GogLibrary.GetInstalledGames),
-               () => ImportStore("steam", SteamLibrary.GetInstalledGames));
+               () => ImportStore("steam", () => SteamLibrary.GetAllGames(retrobatPath, getUninstalled)));
         }
 
         private static void ImportStore(string name, Func<LauncherGameInfo[]> getInstalledGames)

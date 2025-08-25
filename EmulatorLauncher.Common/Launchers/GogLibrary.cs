@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Data.SQLite;
-using EmulatorLauncher.Common.Launchers.Gog;
+﻿using EmulatorLauncher.Common.Launchers.Gog;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Data.SQLite;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace EmulatorLauncher.Common.Launchers
 {
@@ -34,37 +35,36 @@ namespace EmulatorLauncher.Common.Launchers
                 var list = reader.ReadObjects<GogInstalledGameInfo>();
                 if (list != null)
                 {
-                    foreach (var app in list)
-                    {                                         
-                        if (!Directory.Exists(app.installationPath))
-                            continue;
+                    var galaxyClientPath = GetGalaxyClientPath();
+
+                    Parallel.ForEach(list, app =>
+                    {
+                        if (!Directory.Exists(app.installationPath)) return;
 
                         var exeInfo = GetExecutableInfo(app.productId, app.installationPath);
-                        if (exeInfo == null || string.IsNullOrEmpty(exeInfo.Path))
-                            continue;
+                        if (exeInfo == null || string.IsNullOrEmpty(exeInfo.Path)) return;
 
-                        var galaxyClientPath = GetGalaxyClientPath();
+                        var exePath = Path.Combine(app.installationPath, exeInfo.Path);
+                        bool exeExists = File.Exists(exePath);
 
                         var game = new LauncherGameInfo()
                         {
                             Id = app.productId.ToString(),
                             Name = app.title,
-                            InstallDirectory = Path.GetFullPath(app.installationPath),
+                            InstallDirectory = exeExists ? exePath : Path.GetFullPath(app.installationPath),
                             LauncherUrl = galaxyClientPath,
                             ExecutableName = Path.GetFileName(galaxyClientPath),
                             Parameters = $"/command=runGame /gameId={app.productId}",
-                            Launcher = GameLauncherType.Gog
+                            Launcher = GameLauncherType.Gog,
+                            IconPath = exeExists ? exePath : null
                         };
 
-                        var exePath = Path.Combine(app.installationPath, exeInfo.Path);
-
-                        if (exePath != null && File.Exists(exePath))
-                            game.IconPath = exePath;
-
-                        games.Add(game);
-                    }
+                        lock (games)
+                        {
+                            games.Add(game);
+                        }
+                    });
                 }
-
 
                 db.Close();
             }
