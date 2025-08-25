@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
+using Newtonsoft.Json.Linq;
 using System;
-using EmulatorLauncher.Common;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
     partial class MesenGenerator : Generator
     {
-        private void SetupControllers(DynamicJson pref, DynamicJson systemSection, string mesenSystem)
+        private void SetupControllers(JObject pref, JObject systemSection, string mesenSystem)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
@@ -36,14 +36,14 @@ namespace EmulatorLauncher
 
             foreach (string port in portList)
             {
-                var portSection = systemSection.GetOrCreateContainer(port);
+                var portSection = GetOrCreateContainer(systemSection, port);
                 if (portSection != null)
                 {
                     portSection["Type"] = "None";
                     portSection["TurboSpeed"] = "0";
                     for (int i = 1; i < 5; i++)
                     {
-                        var mappingSection = portSection.GetOrCreateContainer("Mapping" + i);
+                        var mappingSection = GetOrCreateContainer(portSection, "Mapping" + i);
                         if (mappingSection != null)
                         {
                             foreach (string button in mesenButtons)
@@ -51,7 +51,7 @@ namespace EmulatorLauncher
 
                             if (mesenSystem == "Cv")
                             {
-                                mappingSection.SetObject("ColecoVisionControllerButtons", null);
+                                mappingSection["ColecoVisionControllerButtons"] = JValue.CreateNull();
                             }
                         }
                     }
@@ -71,7 +71,7 @@ namespace EmulatorLauncher
                 ConfigureInput(pref, systemSection, controller, mesenSystem);
         }
 
-        private void ConfigureInput(DynamicJson pref, DynamicJson systemSection, Controller controller, string mesenSystem)
+        private void ConfigureInput(JObject pref, JObject systemSection, Controller controller, string mesenSystem)
         {
             if (controller == null || controller.Config == null)
                 return;
@@ -82,7 +82,7 @@ namespace EmulatorLauncher
                 ConfigureJoystick(pref, systemSection, controller, mesenSystem);
         }
 
-        private void ConfigureJoystick(DynamicJson pref, DynamicJson systemSection, Controller ctrl, string mesenSystem)
+        private void ConfigureJoystick(JObject pref, JObject systemSection, Controller ctrl, string mesenSystem)
         {
             if (ctrl == null)
                 return;
@@ -106,8 +106,8 @@ namespace EmulatorLauncher
             if (portSection == null)
                 return;
 
-            var port = systemSection.GetOrCreateContainer(portSection);
-            var mapping = port.GetOrCreateContainer("Mapping1");
+            var port = GetOrCreateContainer(systemSection, portSection);
+            var mapping = GetOrCreateContainer(port, "Mapping1");
             var inputKeyMapping = inputKeyMappingDefault;
             if (isNintendo)
             {
@@ -129,8 +129,8 @@ namespace EmulatorLauncher
             {
                 if (portSection == "Port1A")
                 {
-                    port = systemSection.GetOrCreateContainer("Port1");
-                    mapping = port.GetOrCreateContainer("Mapping1");
+                    port = GetOrCreateContainer(systemSection, "Port1");
+                    mapping = GetOrCreateContainer(port, "Mapping1");
                 }
                 if (revertButtons)
                 {
@@ -174,8 +174,8 @@ namespace EmulatorLauncher
             {
                 if (portSection == "Port1A")
                 {
-                    port = systemSection.GetOrCreateContainer("Port1");
-                    mapping = port.GetOrCreateContainer("Mapping1");
+                    port = GetOrCreateContainer(systemSection, "Port1");
+                    mapping = GetOrCreateContainer(port, "Mapping1");
                 }
                 mapping["A"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.b])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.b])).ToString();
                 mapping["B"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.a])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.a])).ToString();
@@ -211,8 +211,8 @@ namespace EmulatorLauncher
             {
                 if (portSection == "Port1A")
                 {
-                    port = systemSection.GetOrCreateContainer("Port1");
-                    mapping = port.GetOrCreateContainer("Mapping1");
+                    port = GetOrCreateContainer(systemSection,"Port1");
+                    mapping = GetOrCreateContainer(port, "Mapping1");
                 }
                 if (controllerType == "SnesMouse")
                 {
@@ -221,7 +221,7 @@ namespace EmulatorLauncher
                         512,
                         513
                     };
-                    mapping.SetObject("MouseButtons", mouseID);
+                    mapping["MouseButtons"] = new JArray(mouseID);
                 }
                 if (SystemConfig.getOptBoolean("buttonsInvert"))
                 {
@@ -251,8 +251,8 @@ namespace EmulatorLauncher
             {
                 if (portSection == "Port1A")
                 {
-                    port = systemSection.GetOrCreateContainer("Port1");
-                    mapping = port.GetOrCreateContainer("Mapping1");
+                    port = GetOrCreateContainer(systemSection,"Port1");
+                    mapping = GetOrCreateContainer(port, "Mapping1");
                 }
                 mapping["A"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.b])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.b])).ToString();
                 mapping["B"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.a])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.a])).ToString();
@@ -313,8 +313,8 @@ namespace EmulatorLauncher
                     cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.x]));
                     cvbuttons.Add(8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.b]));
                 }
-                
-                mapping.SetObject("ColecoVisionControllerButtons", cvbuttons);
+
+                mapping["ColecoVisionControllerButtons"] = new JArray(cvbuttons);
             }
 
             if (playerIndex == 1)
@@ -323,7 +323,7 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
-        private void ConfigureKeyboard(DynamicJson pref, DynamicJson systemSection, InputConfig keyboard, string mesenSystem)
+        private void ConfigureKeyboard(JObject pref, JObject systemSection, InputConfig keyboard, string mesenSystem)
         {
             if (keyboard == null)
                 return;
@@ -334,8 +334,8 @@ namespace EmulatorLauncher
             if (portSection == null)
                 return;
 
-            var port = systemSection.GetOrCreateContainer(portSection);
-            var mapping = port.GetOrCreateContainer("Mapping2");
+            var port = GetOrCreateContainer(systemSection, portSection);
+            var mapping = GetOrCreateContainer(port, "Mapping2");
 
             string controllerType = "None";
             if (SystemConfig.isOptSet("mesen_controllertype1") && !string.IsNullOrEmpty(SystemConfig["mesen_controllertype1"]))
@@ -345,7 +345,7 @@ namespace EmulatorLauncher
 
             port["Type"] = controllerType;
 
-            Action<DynamicJson, string, InputKey> WriteKeyboardMapping = (v, w, k) =>
+            Action<JObject, string, InputKey> WriteKeyboardMapping = (v, w, k) =>
             {
                 var a = keyboard[k];
                 if (a != null)
@@ -360,8 +360,8 @@ namespace EmulatorLauncher
             {
                 if (portSection == "Port1A")
                 {
-                    port = systemSection.GetOrCreateContainer("Port1");
-                    mapping = port.GetOrCreateContainer("Mapping2");
+                    port = GetOrCreateContainer(systemSection, "Port1");
+                    mapping = GetOrCreateContainer(port, "Mapping2");
                 }
                 WriteKeyboardMapping(mapping, "A", InputKey.b);
                 WriteKeyboardMapping(mapping, "B", InputKey.a);
@@ -395,8 +395,8 @@ namespace EmulatorLauncher
             {
                 if (portSection == "Port1A")
                 {
-                    port = systemSection.GetOrCreateContainer("Port1");
-                    mapping = port.GetOrCreateContainer("Mapping2");
+                    port = GetOrCreateContainer(systemSection, "Port1");
+                    mapping = GetOrCreateContainer(port, "Mapping2");
                 }
                 if (controllerType == "SnesMouse")
                 {
@@ -405,7 +405,7 @@ namespace EmulatorLauncher
                         512,
                         513
                     };
-                    mapping.SetObject("MouseButtons", mouseID);
+                    mapping["MouseButtons"] = new JArray(mouseID);
                 }
                 WriteKeyboardMapping(mapping, "A", InputKey.b);
                 WriteKeyboardMapping(mapping, "B", InputKey.a);
@@ -425,8 +425,8 @@ namespace EmulatorLauncher
             {
                 if (portSection == "Port1A")
                 {
-                    port = systemSection.GetOrCreateContainer("Port1");
-                    mapping = port.GetOrCreateContainer("Mapping2");
+                    port = GetOrCreateContainer(systemSection, "Port1");
+                    mapping = GetOrCreateContainer(port, "Mapping2");
                 }
                 WriteKeyboardMapping(mapping, "A", InputKey.b);
                 WriteKeyboardMapping(mapping, "B", InputKey.a);
@@ -462,7 +462,7 @@ namespace EmulatorLauncher
                 {
                     24, 26, 23, 25, 44, 62, 35, 36, 37, 38, 39, 40, 41, 42, 43, 34, 60, 66
                 };
-                mapping.SetObject("ColecoVisionControllerButtons", cvbuttons);
+                mapping["ColecoVisionControllerButtons"] = new JArray(cvbuttons);
             }
         }
 
@@ -702,20 +702,20 @@ namespace EmulatorLauncher
             return null;
         }
 
-        private void ConfigureMultitap(DynamicJson systemSection, string mesenSystem)
+        private void ConfigureMultitap(JObject systemSection, string mesenSystem)
         {
             if (mesenSystem == "Nes")
             {
                 if (SystemConfig.isOptSet("mesen_nes_multitap") && SystemConfig["mesen_nes_multitap"] == "dual")
                 {
-                    var port1 = systemSection.GetOrCreateContainer("Port1");
+                    var port1 = GetOrCreateContainer(systemSection, "Port1");
                     port1["Type"] = "FourScore";
-                    var expport = systemSection.GetOrCreateContainer("ExpPort");
+                    var expport = GetOrCreateContainer(systemSection, "ExpPort");
                     expport["Type"] = "FourPlayerAdapter";
                 }
                 else if (SystemConfig.isOptSet("mesen_nes_multitap") && SystemConfig["mesen_nes_multitap"] == "single")
                 {
-                    var port1 = systemSection.GetOrCreateContainer("Port1");
+                    var port1 = GetOrCreateContainer(systemSection, "Port1");
                     port1["Type"] = "FourScore";
                 }
             }
@@ -724,14 +724,14 @@ namespace EmulatorLauncher
             {
                 if (SystemConfig.isOptSet("mesen_snes_multitap") && SystemConfig["mesen_snes_multitap"] == "dual")
                 {
-                    var port1 = systemSection.GetOrCreateContainer("Port1");
+                    var port1 = GetOrCreateContainer(systemSection, "Port1");
                     port1["Type"] = "Multitap";
-                    var port2 = systemSection.GetOrCreateContainer("Port2");
+                    var port2 = GetOrCreateContainer(systemSection, "Port2");
                     port2["Type"] = "Multitap";
                 }
                 else if (SystemConfig.isOptSet("mesen_snes_multitap") && SystemConfig["mesen_snes_multitap"] == "single")
                 {
-                    var port1 = systemSection.GetOrCreateContainer("Port1");
+                    var port1 = GetOrCreateContainer(systemSection,"Port1");
                     port1["Type"] = "Multitap";
                 }
             }
@@ -740,106 +740,106 @@ namespace EmulatorLauncher
             {
                 if (SystemConfig.isOptSet("mesen_pce_multitap") && SystemConfig.getOptBoolean("mesen_pce_multitap"))
                 {
-                    var port1 = systemSection.GetOrCreateContainer("Port1");
+                    var port1 = GetOrCreateContainer(systemSection, "Port1");
                     port1["Type"] = "PceTurboTap";
                 }
             }
         }
 
-        private void WriteHotkeys(DynamicJson pref, int index, bool isXInput, Dictionary<InputKey, string> inputKeyMapping)
+        private void WriteHotkeys(JObject pref, int index, bool isXInput, Dictionary<InputKey, string> inputKeyMapping)
         {
             pref.Remove("ShortcutKeys");
-            var shortcuts = new List<DynamicJson>();
-            
-            var ffshortcut = new DynamicJson();
+            JArray shortcuts = new JArray();
+
+            JObject ffshortcut = new JObject();
             ffshortcut["Shortcut"] = "FastForward";
-            var ffkeys = ffshortcut.GetOrCreateContainer("KeyCombination2");
+            var ffkeys = GetOrCreateContainer(ffshortcut, "KeyCombination2");
             ffkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             ffkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.right])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.right])).ToString();
             ffkeys["Key3"] = "0";
             shortcuts.Add(ffshortcut);
 
-            var rewshortcut = new DynamicJson();
+            JObject rewshortcut = new JObject();
             rewshortcut["Shortcut"] = "Rewind";
-            var rewkeys = rewshortcut.GetOrCreateContainer("KeyCombination2");
+            var rewkeys = GetOrCreateContainer(rewshortcut, "KeyCombination2");
             rewkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             rewkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.left])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.left])).ToString();
             rewkeys["Key3"] = "0";
             shortcuts.Add(rewshortcut);
 
-            var shotshortcut = new DynamicJson();
+            JObject shotshortcut = new JObject();
             shotshortcut["Shortcut"] = "TakeScreenshot";
-            var shotkeys = shotshortcut.GetOrCreateContainer("KeyCombination2");
+            var shotkeys = GetOrCreateContainer(shotshortcut, "KeyCombination2");
             shotkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             shotkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.r3])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.r3])).ToString();
             shotkeys["Key3"] = "0";
             shortcuts.Add(shotshortcut);
 
-            var pauseshortcut = new DynamicJson();
+            JObject pauseshortcut = new JObject();
             pauseshortcut["Shortcut"] = "Pause";
-            var pausekeys = pauseshortcut.GetOrCreateContainer("KeyCombination2");
+            var pausekeys = GetOrCreateContainer(pauseshortcut, "KeyCombination2");
             pausekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             pausekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.b])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.b])).ToString();
             pausekeys["Key3"] = "0";
             shortcuts.Add(pauseshortcut);
 
-            var nextslotshortcut = new DynamicJson();
+            JObject nextslotshortcut = new JObject();
             nextslotshortcut["Shortcut"] = "MoveToNextStateSlot";
-            var nextslotkeys = nextslotshortcut.GetOrCreateContainer("KeyCombination2");
+            var nextslotkeys = GetOrCreateContainer(nextslotshortcut, "KeyCombination2");
             nextslotkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             nextslotkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.up])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.up])).ToString();
             nextslotkeys["Key3"] = "0";
             shortcuts.Add(nextslotshortcut);
 
-            var prevslotshortcut = new DynamicJson();
+            JObject prevslotshortcut = new JObject();
             prevslotshortcut["Shortcut"] = "MoveToPreviousStateSlot";
-            var prevslotkeys = prevslotshortcut.GetOrCreateContainer("KeyCombination2");
+            var prevslotkeys = GetOrCreateContainer(prevslotshortcut, "KeyCombination2");
             prevslotkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             prevslotkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.down])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.down])).ToString();
             prevslotkeys["Key3"] = "0";
             shortcuts.Add(prevslotshortcut);
 
-            var savestateshortcut = new DynamicJson();
+            JObject savestateshortcut = new JObject();
             savestateshortcut["Shortcut"] = "SaveState";
-            var savekeys = savestateshortcut.GetOrCreateContainer("KeyCombination2");
+            var savekeys = GetOrCreateContainer(savestateshortcut, "KeyCombination2");
             savekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             savekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.y])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.y])).ToString();
             savekeys["Key3"] = "0";
             shortcuts.Add(savestateshortcut);
 
-            var loadstateshortcut = new DynamicJson();
+            JObject loadstateshortcut = new JObject();
             loadstateshortcut["Shortcut"] = "LoadState";
-            var loadkeys = loadstateshortcut.GetOrCreateContainer("KeyCombination2");
+            var loadkeys = GetOrCreateContainer(loadstateshortcut, "KeyCombination2");
             loadkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             loadkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.x])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.x])).ToString();
             loadkeys["Key3"] = "0";
             shortcuts.Add(loadstateshortcut);
 
-            var toggleffshortcut = new DynamicJson();
+            JObject toggleffshortcut = new JObject();
             toggleffshortcut["Shortcut"] = "ToggleFastForward";
-            var fftogglekeys = toggleffshortcut.GetOrCreateContainer("KeyCombination2");
+            var fftogglekeys = GetOrCreateContainer(toggleffshortcut, "KeyCombination2");
             fftogglekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             fftogglekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.pagedown])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.pagedown])).ToString();
             fftogglekeys["Key3"] = "0";
             shortcuts.Add(toggleffshortcut);
 
-            var togglerewshortcut = new DynamicJson();
+            JObject togglerewshortcut = new JObject();
             togglerewshortcut["Shortcut"] = "ToggleRewind";
-            var rewtogglekeys = togglerewshortcut.GetOrCreateContainer("KeyCombination2");
+            var rewtogglekeys = GetOrCreateContainer(togglerewshortcut, "KeyCombination2");
             rewtogglekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             rewtogglekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.pageup])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.pageup])).ToString();
             rewtogglekeys["Key3"] = "0";
             shortcuts.Add(togglerewshortcut);
 
-            var exitshortcut = new DynamicJson();
+            JObject exitshortcut = new JObject();
             exitshortcut["Shortcut"] = "Exit";
-            var exitkeys = exitshortcut.GetOrCreateContainer("KeyCombination2");
+            var exitkeys = GetOrCreateContainer(exitshortcut, "KeyCombination2");
             exitkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             exitkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.start])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.start])).ToString();
             exitkeys["Key3"] = "0";
             shortcuts.Add(exitshortcut);
 
-            pref.SetObject("ShortcutKeys", shortcuts);
+            pref["ShortcutKeys"] = shortcuts;
         }
 
         static readonly List<string> xbuttonNames = new List<string>() { "Up", "Down", "Left", "Right", "Start", "Select", "L3", "R3", "L1", "R1", "?", "?", "South", "East", "West", "North", "L2", "R2", "RT Up", "RT Down", "RT Left", "RT Right", "LT Up", "LT Down", "LT Left", "LT Right" };

@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Windows;
+using System.Xml.Linq;
 
 namespace EmulatorLauncher
 {
@@ -45,7 +47,11 @@ namespace EmulatorLauncher
             { "Classic/Right Stick/Up" , "Classic/Right Stick/Down"},
             { "Classic/Right Stick/Left" , "Classic/Right Stick/Right"},
             { "Classic/Left Stick/Up" , "Classic/Left Stick/Down"},
-            { "Classic/Left Stick/Left" , "Classic/Left Stick/Right" }
+            { "Classic/Left Stick/Left" , "Classic/Left Stick/Right" },
+            { "uDraw/Stylus/Up" , "uDraw/Stylus/Down"},
+            { "uDraw/Stylus/Left" , "uDraw/Stylus/Right" },
+            { "Drawsome/Stylus/Up" , "Drawsome/Stylus/Down"},
+            { "Drawsome/Stylus/Left" , "Drawsome/Stylus/Right" }
         };
 
         private static void GenerateControllerConfig_emulatedwiimotes(string path, string rom)
@@ -58,6 +64,7 @@ namespace EmulatorLauncher
             string romName = Path.GetFileName(rom);
 
             var wiiMapping = new InputKeyMapping(_wiiMapping);
+            var extraMapping = new Dictionary<string, InputKey>();
 
             if (Program.SystemConfig["controller_mode"] != "cc" && !romName.Contains(".cc."))
             {
@@ -161,6 +168,159 @@ namespace EmulatorLauncher
                     wiiMapping[InputKey.l2] = "Shake/Y";
                     wiiMapping[InputKey.l2] = "Shake/Z";
                 }
+
+                // udraw : uDraw tablet
+                else if (Program.SystemConfig["controller_mode"] == "udraw" || romName.Contains(".udraw."))
+                {
+                    extraOptions["Extension"] = "uDraw";
+                    wiiMapping[InputKey.b] = "uDraw/Touch/Pressure";
+                    wiiMapping[InputKey.a] = "uDraw/Touch/Lift";
+                    wiiMapping[InputKey.joystick1up] = "uDraw/Stylus/Up";
+                    wiiMapping[InputKey.joystick1left] = "uDraw/Stylus/Left";
+                    wiiMapping[InputKey.pagedown] = "uDraw/Buttons/Rocker Up";
+                    wiiMapping[InputKey.pageup] = "uDraw/Buttons/Rocker Down";
+                }
+
+                // tatacon : TaikoDrum
+                else if (Program.SystemConfig["controller_mode"] == "tatacon" || romName.Contains(".tatacon."))
+                {
+                    extraOptions["Extension"] = "TaTaCon";
+                    wiiMapping[InputKey.l2] = "TaTaCon/Center/Left";
+                    wiiMapping[InputKey.r2] = "TaTaCon/Center/Right";
+                    wiiMapping[InputKey.pageup] = "TaTaCon/Rim/Left";
+                    wiiMapping[InputKey.pagedown] = "TaTaCon/Rim/Right";
+                }
+
+                // guitar : Guitar
+                else if (Program.SystemConfig["controller_mode"] == "guitar" || romName.Contains(".guitar."))
+                {
+                    extraOptions["Extension"] = "Guitar";
+                    wiiMapping[InputKey.b] = "Guitar/Frets/Green";
+                    wiiMapping[InputKey.pageup] = "Guitar/Frets/Red";
+                    wiiMapping[InputKey.pagedown] = "Guitar/Frets/Yellow";
+                    wiiMapping[InputKey.r2] = "Guitar/Frets/Blue";
+                    wiiMapping[InputKey.y] = "Guitar/Frets/Orange";
+                    wiiMapping[InputKey.l2] = "Guitar/Strum/Up";
+                    wiiMapping[InputKey.select] = "Guitar/Buttons/-";
+                    wiiMapping[InputKey.start] = "Guitar/Buttons/+";
+                    wiiMapping[InputKey.up] = "Guitar/Stick/Up";
+                    wiiMapping[InputKey.down] = "Guitar/Stick/Down";
+                    wiiMapping[InputKey.left] = "Guitar/Stick/Left";
+                    wiiMapping[InputKey.right] = "Guitar/Stick/Right";
+                    wiiMapping[InputKey.joystick1left] = "Guitar/Whammy/Bar";
+
+                    
+                    extraMapping["Guitar/Frets/Green_2"] = InputKey.l2;
+                    extraMapping["Guitar/Frets/Red_2"] = InputKey.a;
+                    extraMapping["Guitar/Strum/Up_2"] = InputKey.pageup;
+                    extraMapping["Guitar/Strum/Down_2"] = InputKey.down;
+                    extraMapping["Guitar/Strum/Up_3"] = InputKey.pagedown;
+                    extraMapping["Guitar/Strum/Up_4"] = InputKey.r2;
+                    extraMapping["Guitar/Strum/Up_5"] = InputKey.y;
+                    extraMapping["Guitar/Strum/Up_6"] = InputKey.up;
+                    extraMapping["Guitar/Buttons/-_2"] = InputKey.joystick1up;
+                    extraMapping["Guitar/Buttons/-_3"] = InputKey.joystick1down;
+                    extraMapping["Guitar/Buttons/-_4"] = InputKey.joystick2up;
+                    extraMapping["Guitar/Buttons/-_5"] = InputKey.joystick2down;
+                    extraMapping["Guitar/Whammy/Bar_2"] = InputKey.joystick1right;
+                    extraMapping["Guitar/Whammy/Bar_3"] = InputKey.joystick2left;
+                    extraMapping["Guitar/Whammy/Bar_4"] = InputKey.joystick2right;
+                }
+
+                // drumsrb & drumsgh : Drums
+                else if (Program.SystemConfig["controller_mode"] == "drumsrb" || romName.Contains(".drumsrb."))
+                {
+                    extraOptions["Extension"] = "Drums";
+                    wiiMapping[InputKey.l2] = "Drums/Pads/Red";
+                    wiiMapping[InputKey.pageup] = "Drums/Pads/Yellow";
+                    wiiMapping[InputKey.pagedown] = "Drums/Pads/Blue";
+                    wiiMapping[InputKey.r2] = "Drums/Pads/Green";
+                    wiiMapping[InputKey.joystick1left] = "Drums/Pads/Bass";
+                    wiiMapping[InputKey.select] = "Drums/Buttons/-";
+                    wiiMapping[InputKey.start] = "Drums/Buttons/+";
+                    wiiMapping[InputKey.up] = "Drums/Stick/Up";
+                    wiiMapping[InputKey.down] = "Drums/Stick/Down";
+                    wiiMapping[InputKey.left] = "Drums/Stick/Left";
+                    wiiMapping[InputKey.right] = "Drums/Stick/Right";
+
+                    extraMapping["Drums/Pads/Red_2"] = InputKey.a;
+                    extraMapping["Drums/Pads/Yellow_2"] = InputKey.up;
+                    extraMapping["Drums/Pads/Yellow_3"] = InputKey.left;
+                    extraMapping["Drums/Pads/Blue_2"] = InputKey.down;
+                    extraMapping["Drums/Pads/Blue_3"] = InputKey.right;
+                    extraMapping["Drums/Pads/Green_2"] = InputKey.b;
+                    extraMapping["Drums/Pads/Bass_2"] = InputKey.joystick1right;
+                    extraMapping["Drums/Pads/Bass_3"] = InputKey.joystick2left;
+                    extraMapping["Drums/Pads/Bass_4"] = InputKey.joystick2right;
+                }
+
+                else if (Program.SystemConfig["controller_mode"] == "drumsgh" || romName.Contains(".drumsgh."))
+                {
+                    extraOptions["Extension"] = "Drums";
+                    wiiMapping[InputKey.l2] = "Drums/Pads/Red";
+                    wiiMapping[InputKey.pageup] = "Drums/Pads/Yellow";
+                    wiiMapping[InputKey.pagedown] = "Drums/Pads/Blue";
+                    wiiMapping[InputKey.r2] = "Drums/Pads/Orange";
+                    wiiMapping[InputKey.b] = "Drums/Pads/Green";
+                    wiiMapping[InputKey.joystick1left] = "Drums/Pads/Bass";
+                    wiiMapping[InputKey.select] = "Drums/Buttons/-";
+                    wiiMapping[InputKey.start] = "Drums/Buttons/+";
+                    wiiMapping[InputKey.up] = "Drums/Stick/Up";
+                    wiiMapping[InputKey.down] = "Drums/Stick/Down";
+                    wiiMapping[InputKey.left] = "Drums/Stick/Left";
+                    wiiMapping[InputKey.right] = "Drums/Stick/Right";
+
+                    extraMapping["Drums/Pads/Red_2"] = InputKey.a;
+                    extraMapping["Drums/Pads/Yellow_2"] = InputKey.joystick1down;
+                    extraMapping["Drums/Pads/Yellow_3"] = InputKey.joystick2down;
+                    extraMapping["Drums/Pads/Yellow_4"] = InputKey.joystick1up;
+                    extraMapping["Drums/Pads/Yellow_5"] = InputKey.joystick2up;
+                    extraMapping["Drums/Pads/Orange_2"] = InputKey.joystick1down;
+                    extraMapping["Drums/Pads/Orange_3"] = InputKey.joystick2down;
+                    extraMapping["Drums/Pads/Orange_4"] = InputKey.joystick1up;
+                    extraMapping["Drums/Pads/Orange_5"] = InputKey.joystick2up;
+                    extraMapping["Drums/Pads/Bass_2"] = InputKey.joystick1right;
+                    extraMapping["Drums/Pads/Bass_3"] = InputKey.joystick2left;
+                    extraMapping["Drums/Pads/Bass_4"] = InputKey.joystick2right;
+                }
+
+                else if (Program.SystemConfig["controller_mode"] == "drawsome" || romName.Contains(".ds."))
+                {
+                    extraOptions["Extension"] = "Drawsome";
+                    wiiMapping[InputKey.b] = "Drawsome/Touch/Pressure";
+                    wiiMapping[InputKey.a] = "Drawsome/Touch/Lift";
+                    wiiMapping[InputKey.joystick1up] = "Drawsome/Stylus/Up";
+                    wiiMapping[InputKey.joystick1left] = "Drawsome/Stylus/Left";
+                }
+
+                else if (Program.SystemConfig["controller_mode"] == "turntable" || romName.Contains(".tt."))
+                {
+                    extraOptions["Extension"] = "Turntable";
+                    wiiMapping[InputKey.pageup] = "Turntable/Buttons/Green Left";
+                    wiiMapping[InputKey.pagedown] = "Turntable/Buttons/Red Left";
+                    wiiMapping[InputKey.y] = "Turntable/Buttons/Blue Left";
+                    wiiMapping[InputKey.select] = "Turntable/Buttons/-";
+                    wiiMapping[InputKey.start] = "Turntable/Buttons/+";
+                    wiiMapping[InputKey.joystick1left] = "Turntable/Table Left/Left";
+                    wiiMapping[InputKey.up] = "Turntable/Stick/Up";
+                    wiiMapping[InputKey.down] = "Turntable/Stick/Down";
+                    wiiMapping[InputKey.left] = "Turntable/Stick/Left";
+                    wiiMapping[InputKey.right] = "Turntable/Stick/Right";
+                    wiiMapping[InputKey.l3] = "Turntable/Effect/Left";
+                    wiiMapping[InputKey.r3] = "Turntable/Effect/Right";
+                    wiiMapping[InputKey.l2] = "Turntable/Crossfade/Left";
+                    wiiMapping[InputKey.r2] = "Turntable/Crossfade/Right";
+
+                    extraMapping["Turntable/Buttons/Green Left_2"] = InputKey.b;
+                    extraMapping["Turntable/Buttons/Red Left_2"] = InputKey.a;
+                    extraMapping["Turntable/Table Left/Left_3"] = InputKey.joystick1up;
+                    extraMapping["Turntable/Table Left/Left_4"] = InputKey.joystick2left;
+                    extraMapping["Turntable/Table Left/Left_5"] = InputKey.joystick2up;
+                    extraMapping["Turntable/Table Left/Right_2"] = InputKey.joystick1down;
+                    extraMapping["Turntable/Table Left/Right_3"] = InputKey.joystick2down;
+                    extraMapping["Turntable/Table Left/Right_4"] = InputKey.joystick1right;
+                    extraMapping["Turntable/Table Left/Right_5"] = InputKey.joystick2right;
+                }
             }
 
             // cc : Classic Controller Settings
@@ -207,7 +367,7 @@ namespace EmulatorLauncher
                 wiiMapping[InputKey.r3] = "Classic/Right Stick/Modifier";
             }
 
-            GenerateControllerConfig_wii(path, wiiMapping, wiiReverseAxes, extraOptions);
+            GenerateControllerConfig_wii(path, wiiMapping, wiiReverseAxes, extraOptions, extraMapping);
         }
 
         private static void GenerateControllerConfig_realwiimotes(string path)
@@ -275,7 +435,7 @@ namespace EmulatorLauncher
                 SetWiimoteHotkeys(hotkeyini);
         }
 
-        private static void GenerateControllerConfig_wii(string path, InputKeyMapping anyMapping, Dictionary<string, string> anyReverseAxes, Dictionary<string, string> extraOptions = null)
+        private static void GenerateControllerConfig_wii(string path, InputKeyMapping anyMapping, Dictionary<string, string> anyReverseAxes, Dictionary<string, string> extraOptions = null, Dictionary<string, InputKey> extramapping = null)
         {
             //string path = Program.AppConfig.GetFullPath("dolphin");
             string iniFile = Path.Combine(path, "User", "Config", "WiimoteNew.ini");
@@ -537,6 +697,371 @@ namespace EmulatorLauncher
 
                                 if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
                                     ini.WriteValue(gcpad, reverseAxis, axisValue(input, true));
+                            }
+                        }
+                    }
+
+                    foreach (var y in extramapping)
+                    {
+                        string value = y.Key;
+                        if (value.Contains('_'))
+                        {
+                            string[] values = value.Split('_');
+                            value = values[0];
+                        }
+
+                        if (pad.Config.Type == "keyboard")
+                        {
+                            if (y.Value == InputKey.a)
+                                value = "Buttons/A";
+                            else if (y.Value == InputKey.b)
+                                value = "Buttons/B";
+
+                            if (y.Value == InputKey.joystick1left || y.Value == InputKey.joystick1up)
+                                continue;
+
+                            var input = pad.Config[y.Value];
+                            if (input == null)
+                                continue;
+
+                            var name = ToDolphinKey(input.Id);
+
+                            string originalIni = ini.GetValue(gcpad, value)?? "";
+                            string newIniValue;
+                            if (string.IsNullOrEmpty(originalIni))
+                                newIniValue = name;
+                            else
+                                newIniValue = originalIni + "|" + name;
+                            ini.WriteValue(gcpad, value, name);
+                        }
+                        else if (tech == "XInput")
+                        {
+                            var mapping = pad.GetXInputMapping(y.Value);
+                            if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
+                            {
+                                string originalIni = ini.GetValue(gcpad, value) ?? "";
+                                string newIniValue;
+                                if (string.IsNullOrEmpty(originalIni))
+                                    newIniValue = xInputMapping[mapping];
+                                else
+                                    newIniValue = originalIni + "|" + xInputMapping[mapping];
+                                ini.WriteValue(gcpad, value, newIniValue);
+                            }
+                            else if (y.Value == InputKey.joystick1down || y.Value == InputKey.joystick2down || y.Value == InputKey.joystick1right || y.Value == InputKey.joystick2right)
+                            {
+                                string newIniValue;
+
+                                switch (y.Value)
+                                {
+                                    case InputKey.joystick1down:
+                                        string originalIni = ini.GetValue(gcpad, value) ?? "";
+                                        if (string.IsNullOrEmpty(originalIni))
+                                            newIniValue = xInputMapping[XINPUTMAPPING.LEFTANALOG_DOWN];
+                                        else
+                                            newIniValue = originalIni + "|" + xInputMapping[XINPUTMAPPING.LEFTANALOG_DOWN];
+                                        ini.WriteValue(gcpad, value, newIniValue);
+                                        break;
+                                    case InputKey.joystick2down:
+                                        string originalIni2 = ini.GetValue(gcpad, value) ?? "";
+                                        if (string.IsNullOrEmpty(originalIni2))
+                                            newIniValue = xInputMapping[XINPUTMAPPING.RIGHTANALOG_DOWN];
+                                        else
+                                            newIniValue = originalIni2 + "|" + xInputMapping[XINPUTMAPPING.RIGHTANALOG_DOWN];
+                                        ini.WriteValue(gcpad, value, newIniValue);
+                                        break;
+                                    case InputKey.joystick1right:
+                                        string originalIni3 = ini.GetValue(gcpad, value) ?? "";
+                                        if (string.IsNullOrEmpty(originalIni3))
+                                            newIniValue = xInputMapping[XINPUTMAPPING.LEFTANALOG_RIGHT];
+                                        else
+                                            newIniValue = originalIni3 + "|" + xInputMapping[XINPUTMAPPING.LEFTANALOG_RIGHT];
+                                        ini.WriteValue(gcpad, value, newIniValue);
+                                        break;
+                                    case InputKey.joystick2right:
+                                        string originalIni4 = ini.GetValue(gcpad, value) ?? "";
+                                        if (string.IsNullOrEmpty(originalIni4))
+                                            newIniValue = xInputMapping[XINPUTMAPPING.RIGHTANALOG_RIGHT];
+                                        else
+                                            newIniValue = originalIni4 + "|" + xInputMapping[XINPUTMAPPING.RIGHTANALOG_RIGHT];
+                                        ini.WriteValue(gcpad, value, newIniValue);
+                                        break;
+                                }
+                            }
+
+                            if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
+                            {
+                                mapping = pad.GetXInputMapping(y.Value, true);
+                                if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
+                                {
+                                    string originalIni = ini.GetValue(gcpad, reverseAxis) ?? "";
+                                    string newIniValue;
+                                    if (string.IsNullOrEmpty(originalIni))
+                                        newIniValue = xInputMapping[mapping];
+                                    else
+                                        newIniValue = originalIni + "|" + xInputMapping[mapping];
+                                    ini.WriteValue(gcpad, reverseAxis, newIniValue);
+                                }
+                            }
+                        }
+                        else if (forceSDL)
+                        {
+                            var keyPress = y.Value;
+                            bool revertAxis = false;
+
+                            if (y.Value == InputKey.joystick1down || y.Value == InputKey.joystick2down || y.Value == InputKey.joystick1right || y.Value == InputKey.joystick2right)
+                            {
+                                switch (y.Value)
+                                {
+                                    case InputKey.joystick1down:
+                                        keyPress = InputKey.joystick1up;
+                                        revertAxis = true;
+                                        break;
+                                    case InputKey.joystick2down:
+                                        keyPress = InputKey.joystick2up;
+                                        revertAxis = true;
+                                        break;
+                                    case InputKey.joystick1right:
+                                        keyPress = InputKey.joystick1left;
+                                        revertAxis = true;
+                                        break;
+                                    case InputKey.joystick2right:
+                                        keyPress = InputKey.joystick2left;
+                                        revertAxis = true;
+                                        break;
+                                }
+                            }
+                            
+                            var input = pad.Config[keyPress];
+
+                            if (input == null)
+                                continue;
+
+                            if (input.Type == "button")
+                            {
+                                if (input.Id == 0) // invert A&B
+                                {
+                                    string originalIni = ini.GetValue(gcpad, value) ?? "";
+                                    string newIniValue;
+                                    if (string.IsNullOrEmpty(originalIni))
+                                        newIniValue = "`Button 1`";
+                                    else
+                                        newIniValue = originalIni + "|" + "`Button 1`";
+                                    ini.WriteValue(gcpad, value, newIniValue);
+                                }
+                                else if (input.Id == 1) // invert A&B
+                                {
+                                    string originalIni = ini.GetValue(gcpad, value) ?? "";
+                                    string newIniValue;
+                                    if (string.IsNullOrEmpty(originalIni))
+                                        newIniValue = "`Button 0`";
+                                    else
+                                        newIniValue = originalIni + "|" + "`Button 0`";
+                                    ini.WriteValue(gcpad, value, newIniValue);
+                                }
+
+                                else
+                                {
+                                    string originalIni = ini.GetValue(gcpad, value) ?? "";
+                                    string newIniValue;
+                                    if (string.IsNullOrEmpty(originalIni))
+                                        newIniValue = "`Button " + input.Id.ToString() + "`";
+                                    else
+                                        newIniValue = originalIni + "|" + "`Button " + input.Id.ToString() + "`";
+                                    ini.WriteValue(gcpad, value, newIniValue);
+                                }
+                            }
+
+                            else if (input.Type == "axis")
+                            {
+                                Func<Input, string> axisValue = (inp) =>
+                                {
+                                    string axis = "`Axis ";
+
+                                    if (inp.Id == 0 || inp.Id == 1 || inp.Id == 2 || inp.Id == 3)
+                                        axis += inp.Id;
+
+                                    if ((!revertAxis && inp.Value > 0) || (revertAxis && inp.Value < 0))
+                                        axis += "+";
+                                    else
+                                        axis += "-";
+
+                                    if (inp.Id == 4 || inp.Id == 5)
+                                        axis = "`Full Axis " + inp.Id + "+";
+
+                                    return axis + "`";
+                                };
+
+                                string originalIni = ini.GetValue(gcpad, value) ?? "";
+                                string newIniValue;
+                                if (string.IsNullOrEmpty(originalIni))
+                                    newIniValue = axisValue(input);
+                                else
+                                    newIniValue = originalIni + "|" + axisValue(input);
+                                ini.WriteValue(gcpad, value, newIniValue);
+
+                                if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
+                                {
+                                    revertAxis = true;
+                                    string originalIniRev = ini.GetValue(gcpad, reverseAxis) ?? "";
+                                    string newIniValueRev;
+                                    if (string.IsNullOrEmpty(originalIniRev))
+                                        newIniValueRev = axisValue(input);
+                                    else
+                                        newIniValueRev = originalIniRev + "|" + axisValue(input);
+                                    ini.WriteValue(gcpad, reverseAxis, newIniValueRev);
+                                }
+                            }
+
+                            else if (input.Type == "hat")
+                            {
+                                Int64 pid = input.Value;
+                                switch (pid)
+                                {
+                                    case 1:
+                                        string originalIni = ini.GetValue(gcpad, value) ?? "";
+                                        string newIniValue;
+                                        if (string.IsNullOrEmpty(originalIni))
+                                            newIniValue = "`Hat " + input.Id.ToString() + " N`";
+                                        else
+                                            newIniValue = originalIni + "|" + "`Hat " + input.Id.ToString() + " N`";
+                                        ini.WriteValue(gcpad, value, newIniValue);
+                                        break;
+                                    case 2:
+                                        string originalIni2 = ini.GetValue(gcpad, value) ?? "";
+                                        string newIniValue2;
+                                        if (string.IsNullOrEmpty(originalIni2))
+                                            newIniValue2 = "`Hat " + input.Id.ToString() + " E`";
+                                        else
+                                            newIniValue2 = originalIni2 + "|" + "`Hat " + input.Id.ToString() + " E`";
+                                        ini.WriteValue(gcpad, value, newIniValue2);
+                                        break;
+                                    case 4:
+                                        string originalIni3 = ini.GetValue(gcpad, value) ?? "";
+                                        string newIniValue3;
+                                        if (string.IsNullOrEmpty(originalIni3))
+                                            newIniValue3 = "`Hat " + input.Id.ToString() + " S`";
+                                        else
+                                            newIniValue3 = originalIni3 + "|" + "`Hat " + input.Id.ToString() + " S`";
+                                        ini.WriteValue(gcpad, value, newIniValue3);
+                                        break;
+                                    case 8:
+                                        string originalIni4 = ini.GetValue(gcpad, value) ?? "";
+                                        string newIniValue4;
+                                        if (string.IsNullOrEmpty(originalIni4))
+                                            newIniValue4 = "`Hat " + input.Id.ToString() + " W`";
+                                        else
+                                            newIniValue4 = originalIni4 + "|" + "`Hat " + input.Id.ToString() + " W`";
+                                        ini.WriteValue(gcpad, value, newIniValue4);
+                                        break;
+                                }
+                            }
+                        }
+
+                        else // SDL
+                        {
+                            var keyPress = y.Value;
+                            bool revertAxis = false;
+
+                            if (y.Value == InputKey.joystick1down || y.Value == InputKey.joystick2down || y.Value == InputKey.joystick1right || y.Value == InputKey.joystick2right)
+                            {
+                                switch (y.Value)
+                                {
+                                    case InputKey.joystick1down:
+                                        keyPress = InputKey.joystick1up;
+                                        revertAxis = true;
+                                        break;
+                                    case InputKey.joystick2down:
+                                        keyPress = InputKey.joystick2up;
+                                        revertAxis = true;
+                                        break;
+                                    case InputKey.joystick1right:
+                                        keyPress = InputKey.joystick1left;
+                                        revertAxis = true;
+                                        break;
+                                    case InputKey.joystick2right:
+                                        keyPress = InputKey.joystick2left;
+                                        revertAxis = true;
+                                        break;
+                                }
+                            }
+
+                            var input = pad.GetSdlMapping(keyPress);
+
+                            if (input == null)
+                                continue;
+
+                            if (input.Type == "button")
+                            {
+                                if (input.Id == 0) // invert A&B
+                                {
+                                    string originalIni = ini.GetValue(gcpad, value) ?? "";
+                                    string newIniValue;
+                                    if (string.IsNullOrEmpty(originalIni))
+                                        newIniValue = "`Button 1`";
+                                    else
+                                        newIniValue = originalIni + "|" + "`Button 1`";
+                                    ini.WriteValue(gcpad, value, newIniValue);
+                                }
+                                else if (input.Id == 1) // invert A&B
+                                {
+                                    string originalIni = ini.GetValue(gcpad, value) ?? "";
+                                    string newIniValue;
+                                    if (string.IsNullOrEmpty(originalIni))
+                                        newIniValue = "`Button 0`";
+                                    else
+                                        newIniValue = originalIni + "|" + "`Button 0`";
+                                    ini.WriteValue(gcpad, value, newIniValue);
+                                }
+                                else
+                                {
+                                    string originalIni = ini.GetValue(gcpad, value) ?? "";
+                                    string newIniValue;
+                                    if (string.IsNullOrEmpty(originalIni))
+                                        newIniValue = "`Button " + input.Id.ToString() + "`";
+                                    else
+                                        newIniValue = originalIni + "|" + "`Button " + input.Id.ToString() + "`";
+                                    ini.WriteValue(gcpad, value, newIniValue);
+                                }
+                            }
+                            else if (input.Type == "axis")
+                            {
+                                Func<Input, string> axisValue = (inp) =>
+                                {
+                                    string axis = "`Axis ";
+
+                                    if (inp.Id == 0 || inp.Id == 1 || inp.Id == 2 || inp.Id == 3)
+                                        axis += inp.Id;
+
+                                    if ((!revertAxis && inp.Value > 0) || (revertAxis && inp.Value < 0))
+                                        axis += "+";
+                                    else
+                                        axis += "-";
+
+                                    if (inp.Id == 4 || inp.Id == 5)
+                                        axis = "`Full Axis " + inp.Id + "+";
+
+                                    return axis + "`";
+                                };
+
+                                string originalIni = ini.GetValue(gcpad, value) ?? "";
+                                string newIniValue;
+                                if (string.IsNullOrEmpty(originalIni))
+                                    newIniValue = axisValue(input);
+                                else
+                                    newIniValue = originalIni + "|" + axisValue(input);
+                                ini.WriteValue(gcpad, value, newIniValue);
+
+                                if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
+                                {
+                                    revertAxis = true;
+                                    string originalIniRev = ini.GetValue(gcpad, reverseAxis) ?? "";
+                                    string newIniValueRev;
+                                    if (string.IsNullOrEmpty(originalIniRev))
+                                        newIniValueRev = axisValue(input);
+                                    else
+                                        newIniValueRev = originalIniRev + "|" + axisValue(input);
+                                    ini.WriteValue(gcpad, reverseAxis, newIniValueRev);
+                                }
                             }
                         }
                     }

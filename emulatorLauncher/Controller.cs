@@ -515,12 +515,32 @@ namespace EmulatorLauncher
             { InputKey.joystick2down, InputKey.joystick2up },
         };
 
+        private static Dictionary<InputKey, InputKey> revertedDpadAxis = new Dictionary<InputKey, InputKey>()
+        {
+            { InputKey.right, InputKey.left },
+            { InputKey.down, InputKey.up },
+        };
+
         public static InputKey GetRevertedAxis(this InputKey key, out bool reverted)
         {
             reverted = false;
 
             InputKey revertedKey;
             if (revertedAxis.TryGetValue(key, out revertedKey))
+            {
+                key = revertedKey;
+                reverted = true;
+            }
+
+            return key;
+        }
+
+        public static InputKey GetRevertedDpadAxis(this InputKey key, out bool reverted)
+        {
+            reverted = false;
+
+            InputKey revertedKey;
+            if (revertedDpadAxis.TryGetValue(key, out revertedKey))
             {
                 key = revertedKey;
                 reverted = true;

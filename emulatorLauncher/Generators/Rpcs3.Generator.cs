@@ -303,12 +303,12 @@ namespace EmulatorLauncher
             BindBoolFeature(video, "Strict Rendering Mode", "strict_rendering", "true", "false");
             BindBoolFeature(video, "Disable Vertex Cache", "disablevertex", "true", "false");
             BindBoolFeature(video, "Multithreaded RSX", "multithreadedrsx", "true", "false");
-            BindFeature(video, "Output Scaling Mode", "rpcs3_scaling_filter", "Nearest");
+            BindFeature(video, "Output Scaling Mode", "rpcs3_scaling_filter", "Bilinear");
             BindFeature(video, "3D Display Mode", "enable3d", "Disabled");
             
             BindFeature(video, "Anisotropic Filter Override", "anisotropicfilter", "0");
             BindFeature(video, "Shader Precision", "shader_quality", "Auto");
-            BindFeatureSlider(video, "Driver Wake-Up Delay", "driver_wake", "1");
+            BindFeatureSlider(video, "Driver Wake-Up Delay", "driver_wake", "0");
             BindBoolFeature(video, "Force CPU Blit", "cpu_blit", "true", "false");
             BindBoolFeature(video, "Disable ZCull Occlusion Queries", "disable_zcull_queries", "true", "false");
             BindFeatureSlider(video, "Minimum Scalable Dimension", "rpcs3_resolution_scale", "16");

@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -27,14 +29,23 @@ namespace EmulatorLauncher
 
             SetupConfiguration(path, grp, resolution);
 
-            var commandArray = new List<string>
+            var commandArray = new List<string>();
+
+            if (Path.GetExtension(rom).ToLower() == ".eduke32")
             {
-                "-gamegrp",
-                "\"" + grp + "\"",
-                "-j",
-                "\"" + Path.GetDirectoryName(rom) + "\"",
-                "-nosetup"
-            };
+                var edukeArgs = Eduke32Arg.ParseConfig(rom, Path.GetDirectoryName(rom));
+                commandArray.AddRange(edukeArgs);
+            }
+
+            else
+            {
+                commandArray.Add("-gamegrp");
+                commandArray.Add("\"" + grp + "\"");
+                commandArray.Add("-j");
+                commandArray.Add("\"" + Path.GetDirectoryName(rom) + "\"");
+            }
+
+            commandArray.Add("-nosetup");
 
             string args = string.Join(" ", commandArray);
 
@@ -93,6 +104,72 @@ namespace EmulatorLauncher
                 }
             }
             catch { }
-         }
+        }
+    }
+    class Eduke32Arg
+    {
+        public static List<Eduke32Arg> Eduke32Args = new List<Eduke32Arg>()
+        {
+            new Eduke32Arg("DIR", "-j", false),
+            new Eduke32Arg("FILE", "-gamegrp", true),
+            new Eduke32Arg("FILE+", "-g", false),
+            new Eduke32Arg("CON", "-x", true),
+            new Eduke32Arg("CON+", "-mx", false),
+            new Eduke32Arg("DEF", "-h", true),
+            new Eduke32Arg("DEF+", "-mh", false),
+            new Eduke32Arg("MAP", "-map", true),
+        };
+
+        public Eduke32Arg(string key, string argument, bool single)
+        {
+            Key = key;
+            Argument = argument;
+            Single = single;
+        }
+
+        public string Key { get; set; }
+        public string Argument { get; set; }
+        public bool Single { get; set; }
+
+
+        public static List<string> ParseConfig(string filePath, string basePath)
+        {
+            var lines = File.ReadAllLines(filePath);
+            var argsList = new List<string>();
+
+            var availableArgs = new List<Eduke32Arg>(Eduke32Args);
+
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line) || !line.Contains("="))
+                    continue;
+
+                var parts = line.Split(new[] { '=' }, 2);
+                var key = parts[0].Trim();
+                var value = parts.Length > 1 ? parts[1].Trim() : string.Empty;
+
+                var argDef = availableArgs.FirstOrDefault(a => a.Key == key);
+                if (argDef != null)
+                {
+                    argsList.Add(argDef.Argument);
+
+                    if (value.StartsWith("/") || value.StartsWith("\\"))
+                    {
+                        value = value.Substring(1);
+                        string fullPath = Path.Combine(basePath, value);
+                        argsList.Add(fullPath);
+                    }
+
+                    else
+                        argsList.Add(value);
+
+                    // Ensure we do not add twice a single-use argument
+                    if (argDef.Single)
+                        availableArgs.Remove(argDef);
+                }
+            }
+
+            return argsList;
+        }
     }
 }

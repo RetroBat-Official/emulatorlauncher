@@ -45,7 +45,6 @@ namespace EmulatorLauncher
                     string sindenExe = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "sinden", "Lightgun.exe");
                     string sindenPath = Path.GetDirectoryName(sindenExe);
                     
-
                     if (!File.Exists(sindenExe))
                     {
                         if (Program.SystemConfig.isOptSet("sindensoftwarepath") && !string.IsNullOrEmpty(Program.SystemConfig["sindensoftwarepath"]))

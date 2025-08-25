@@ -16,6 +16,7 @@ namespace EmulatorLauncher.Libretro
         private static bool _specialController = false;
         private static bool _specialControllerHotkey = false;
         private static bool _noHotkey = false;
+        private static bool _singleButtonShortcuts = false;
         private static string _inputDriver = "sdl2";
         private static readonly HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "n64", "dreamcast", "gamecube", "3ds" };
         static readonly List<string> mdSystems = new List<string>() { "megadrive", "genesis", "megadrive-msu", "genesis-msu", "segacd", "megacd", "sega32x", "mega32x" };
@@ -274,8 +275,12 @@ namespace EmulatorLauncher.Libretro
             }
 
             var hotKey = GetInputCode(c0, InputKey.hotkey);
-            if (hotKey != null && hotKey.Type != "key")                    
-                config[string.Format("input_enable_hotkey_{0}", typetoname[hotKey.Type])] = GetConfigValue(hotKey);            
+            if (hotKey != null && hotKey.Type != "key" && !_singleButtonShortcuts)                    
+                config[string.Format("input_enable_hotkey_{0}", typetoname[hotKey.Type])] = GetConfigValue(hotKey);
+            if (_singleButtonShortcuts)
+            {
+                config["input_enable_hotkey"] = config["input_enable_hotkey_axis"] = config["input_enable_hotkey_btn"] = config["input_enable_hotkey_mbtn"] = "nul";
+            }
         }
 
         private static string GetAnalogMode(Controller controller, string system)
@@ -448,7 +453,10 @@ namespace EmulatorLauncher.Libretro
                     YmlFile ymlFile = YmlFile.Load(cHotkeyFile);
                     if (ymlFile != null)
                     {
-                        YmlContainer cHotkeyList = ymlFile.Elements.Where(c => c.Name == core).FirstOrDefault() as YmlContainer;
+                        YmlContainer cHotkeyList = ymlFile.Elements.Where(c => c.Name == system).FirstOrDefault() as YmlContainer;
+
+                        if (cHotkeyList == null)
+                            cHotkeyList = ymlFile.Elements.Where(c => c.Name == core).FirstOrDefault() as YmlContainer;
 
                         if (cHotkeyList == null)
                             cHotkeyList = ymlFile.Elements.Where(c => c.Name == "default").FirstOrDefault() as YmlContainer;
@@ -466,6 +474,12 @@ namespace EmulatorLauncher.Libretro
                                 {
                                     YmlElement hotkey = cHotkey as YmlElement;
                                     string value = hotkey.Value;
+
+                                    if (hotkey.Name == "noHotkey" && value == "true")
+                                    {
+                                        _singleButtonShortcuts = true;
+                                        continue;
+                                    }
 
                                     if (Program.SystemConfig.getOptBoolean("fastforward_toggle") && hotkey.Value == "hold_fast_forward")
                                         value = "toggle_fast_forward";

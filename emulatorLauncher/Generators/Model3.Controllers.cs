@@ -81,7 +81,7 @@ namespace EmulatorLauncher
 
             // We clear the InputSystem key for all sections because we're controlling the input system and
             // don't want to have a game-specific override in the existing configuration take presedence over our value.
-            foreach (var section in ini.EnumerateSections())
+            foreach (var section in ini.EnumerateSections().Where(s => s != " Global "))
             {
                 ini.Remove(section, "InputSystem");
             }
