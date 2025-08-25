@@ -1,12 +1,13 @@
-﻿using System;
+﻿using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Launchers.Amazon;
+using System;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Data.SQLite;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
-using System.Data.SQLite;
-using EmulatorLauncher.Common.FileFormats;
-using System.Data.Common;
-using EmulatorLauncher.Common.Launchers.Amazon;
+using System.Threading.Tasks;
 
 namespace EmulatorLauncher.Common.Launchers
 {
@@ -38,30 +39,32 @@ namespace EmulatorLauncher.Common.Launchers
                 var list = reader.ReadObjects<AmazonInstalledGameInfo>();
                 if (list != null)
                 {
-                    foreach (var app in list)
+                    Parallel.ForEach(list, app =>
                     {
-                        if (!Directory.Exists(app.InstallDirectory))
-                            continue;
+                        if (string.IsNullOrEmpty(app.InstallDirectory) || !Directory.Exists(app.InstallDirectory))
+                            return;
+
+                        var exeName = GetAmazonGameExecutable(app.InstallDirectory);
+                        var installDir = Path.GetFullPath(app.InstallDirectory);
+                        var exePath = Path.Combine(installDir, exeName);
 
                         var game = new LauncherGameInfo()
                         {
                             Id = app.Id,
                             Name = app.ProductTitle,
-                            InstallDirectory = Path.GetFullPath(app.InstallDirectory),
-                            LauncherUrl = string.Format(GameLaunchUrl, app.Id),   
-                            ExecutableName = GetAmazonGameExecutable(app.InstallDirectory),
-                            Launcher = GameLauncherType.Amazon
+                            InstallDirectory = installDir,
+                            LauncherUrl = string.Format(GameLaunchUrl, app.Id),
+                            ExecutableName = exeName,
+                            Launcher = GameLauncherType.Amazon,
+                            IconPath = File.Exists(exePath) ? exePath : null
                         };
 
-                        var exePath = Path.Combine(game.InstallDirectory, game.ExecutableName);
-
-                        if (exePath != null && File.Exists(exePath))
-                            game.IconPath = exePath;
-
-                        games.Add(game);
-                    }
+                        lock (games)
+                        {
+                            games.Add(game);
+                        }
+                    });
                 }
-
 
                 db.Close();
             }

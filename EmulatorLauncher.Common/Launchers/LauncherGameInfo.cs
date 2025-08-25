@@ -15,6 +15,7 @@ namespace EmulatorLauncher.Common.Launchers
         public string PreviewImageUrl { get; set; }
         public string IconPath { get; set; }
         public string Parameters { get; set; }
+        public bool IsInstalled { get; set; }
 
         public GameLauncherType Launcher { get; set; }
 

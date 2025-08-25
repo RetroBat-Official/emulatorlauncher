@@ -1,12 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
+﻿using EmulatorLauncher.Common.Launchers.Steam;
 using Microsoft.Win32;
-using Steam_Library_Manager.Framework;
-using EmulatorLauncher.Common.Launchers.Steam;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Steam_Library_Manager.Framework;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace EmulatorLauncher.Common.Launchers
 {
@@ -47,9 +52,215 @@ namespace EmulatorLauncher.Common.Launchers
             }
             catch { }
 
+            SimpleLogger.Instance.Info("[Steam] Found " + games.Count + " installed games.");
             return games.ToArray();
         }
-        
+
+        public static LauncherGameInfo[] GetAllGames(string retrobatPath, bool getUninstalled = false)
+        {
+            var ret = new List<LauncherGameInfo>();
+            var allGames = new Dictionary<string, LauncherGameInfo>();
+            var apiGames = new Dictionary<string, JToken>();
+            var ownedGamesFromApi = new List<LauncherGameInfo>();
+
+            if (getUninstalled)
+            {
+                // 1. Get API Key from file
+                string apiKey = null;
+                try
+                {
+                    if (!string.IsNullOrEmpty(retrobatPath))
+                    {
+                        string apiKeyPath = Path.Combine(retrobatPath, "user", "apikey", "steam.apikey");
+                        if (File.Exists(apiKeyPath))
+                        {
+                            apiKey = File.ReadAllLines(apiKeyPath).FirstOrDefault().Trim();
+                            if (string.IsNullOrEmpty(apiKey))
+                                SimpleLogger.Instance.Warning("[Steam] steam.apikey file is empty.");
+                            else
+                                SimpleLogger.Instance.Info("[Steam] Found Steam API Key.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Error("[Steam] Error reading steam.apikey file: " + ex.Message, ex);
+                }
+
+                // 2. Call the API if the key exists
+                if (!string.IsNullOrEmpty(apiKey))
+                {
+                    string steamId64 = GetSteamId64();
+                    if (string.IsNullOrEmpty(steamId64))
+                    {
+                        SimpleLogger.Instance.Error("[Steam] Could not find user SteamID64. Cannot fetch game list from API.");
+                    }
+                    else
+                    {
+                        string url = $"https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={apiKey}&steamid={steamId64}&format=json&include_appinfo=1&include_played_free_games=true&skip_unvetted_apps=false";
+
+                        SimpleLogger.Instance.Info("[Steam] Calling Steam Web API: " + url.Replace(apiKey, "REDACTED"));
+
+                        try
+                        {
+                            var webClient = new System.Net.WebClient();
+                            webClient.Encoding = Encoding.UTF8;
+                            string json = webClient.DownloadString(url);
+
+                            var response = Newtonsoft.Json.Linq.JObject.Parse(json)["response"];
+                            if (response != null && response.ToString() != "{}")
+                            {
+                                var responseGames = response["games"];
+                                if (responseGames != null)
+                                {
+                                    SimpleLogger.Instance.Info("[Steam] Found " + responseGames.Count() + " games from Steam Web API.");
+                                    Parallel.ForEach(responseGames, g =>
+                                    {
+                                        string appId = g["appid"]?.ToString();
+                                        string name = g["name"]?.ToString();
+                                        string iconURL = g["img_icon_url"]?.ToString();
+
+                                        if (string.IsNullOrEmpty(appId) || string.IsNullOrEmpty(name))
+                                            return;
+
+                                        string icoPath = Path.Combine(Path.GetTempPath(), $"{appId}.ico");
+                                        string tempJpg = Path.Combine(Path.GetTempPath(), $"{appId}.jpg");
+                                        string jpgUrl = $"http://media.steampowered.com/steamcommunity/public/images/apps/{appId}/{iconURL}.jpg";
+
+                                        // Download + convert
+                                        try
+                                        {
+                                            if (DownloadImage(jpgUrl, tempJpg))
+                                            {
+                                                using (Bitmap bmp = new Bitmap(tempJpg))
+                                                    SaveBitmapAsIcon(bmp, icoPath);
+                                                File.Delete(jpgUrl);
+                                            }
+                                        }
+                                        catch { }
+
+                                        var gameToAdd = new LauncherGameInfo()
+                                        {
+                                            Id = appId,
+                                            Name = name,
+                                            LauncherUrl = string.Format(GameLaunchUrl, appId),
+                                            PreviewImageUrl = string.Format(HeaderImageUrl, appId),
+                                            Launcher = GameLauncherType.Steam,
+                                            IconPath = File.Exists(icoPath) ? icoPath : null
+                                        };
+
+                                        lock (ownedGamesFromApi)
+                                        {
+                                            ownedGamesFromApi.Add(gameToAdd);
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SimpleLogger.Instance.Info("[Steam] Steam API call failed. Using local data only. Error: " + ex.Message);
+                        }
+                    }
+                }
+            }
+
+            // First, add installed games. They have more accurate information.
+            var installedGames = GetInstalledGames();
+            foreach (var game in installedGames)
+            {
+                if (!allGames.ContainsKey(game.Id))
+                {
+                    allGames.Add(game.Id, game);
+                }
+            }
+
+            // Then, add all other owned games from the API list we fetched earlier.
+            if (getUninstalled)
+            {
+                var nonInstalledGames = ownedGamesFromApi.Where(g => !allGames.ContainsKey(g.Id)).ToList();
+                SimpleLogger.Instance.Info("[Steam] Found " + nonInstalledGames.Count + " non-installed games.");
+
+                foreach (var game in nonInstalledGames)
+                {
+                    // The check is redundant here since we know they are not in allGames, but it's safe
+                    if (!allGames.ContainsKey(game.Id))
+                    {
+                        allGames.Add(game.Id, game);
+                    }
+                }
+            }
+
+            return allGames.Values.ToArray();
+        }
+
+        private static void SaveBitmapAsIcon(Bitmap bmp, string filePath)
+        {
+            using (FileStream fs = new FileStream(filePath, FileMode.Create))
+            {
+                using (Bitmap newBmp = new Bitmap(bmp, new Size(32, 32)))
+                {
+                    Icon icon = Icon.FromHandle(newBmp.GetHicon());
+
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        icon.Save(ms);
+                        byte[] iconData = ms.ToArray();
+                        fs.Write(iconData, 0, iconData.Length);
+                    }
+                }
+            }
+        }
+
+        private static bool DownloadImage(string url, string filePath)
+        {
+            try
+            {
+                using (WebClient client = new WebClient())
+                {
+                    client.DownloadFile(url, filePath);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        private static string GetSteamId64()
+        {
+            string steamPath = GetInstallPath();
+            if (string.IsNullOrEmpty(steamPath))
+                return null;
+
+            string loginUsersPath = Path.Combine(steamPath, "config", "loginusers.vdf");
+            if (!File.Exists(loginUsersPath))
+                return null;
+
+            try
+            {
+                string vdfText = File.ReadAllText(loginUsersPath);
+                var regex = new Regex("\"(\\d{17})\"\\s*\\{[^}]*\"MostRecent\"\\s*\"1\"", RegexOptions.IgnoreCase);
+                var match = regex.Match(vdfText);
+
+                if (match.Success)
+                    return match.Groups[1].Value;
+
+                // Fallback
+                regex = new Regex("\"(\\d{17})\"");
+                match = regex.Match(vdfText);
+                if (match.Success)
+                    return match.Groups[1].Value;
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[Steam] Error finding SteamID64: " + ex.Message, ex);
+            }
+
+            return null;
+        }
+
         public static string GetSteamGameExecutableName(Uri uri, string steamdb, out string shorturl)
         {
             // Get Steam app ID from url
@@ -306,7 +517,8 @@ namespace EmulatorLauncher.Common.Launchers
                 LauncherUrl = string.Format(GameLaunchUrl, gameId) + "\"" + " -silent",
                 PreviewImageUrl = string.Format(HeaderImageUrl, gameId),
                 ExecutableName = FindExecutableName(gameId.ToInteger()),
-                Launcher = GameLauncherType.Steam
+                Launcher = GameLauncherType.Steam,
+                IsInstalled = true
             };
 
             if (!string.IsNullOrEmpty(game.ExecutableName) && !string.IsNullOrEmpty(game.InstallDirectory))

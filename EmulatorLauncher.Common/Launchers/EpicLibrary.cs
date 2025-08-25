@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.Serialization;
-using System.IO;
+﻿using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
-using Microsoft.Win32;
 using EmulatorLauncher.Common.Launchers.Epic;
-using EmulatorLauncher.Common.EmulationStation;
+using Microsoft.Win32;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.Serialization;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace EmulatorLauncher.Common.Launchers
 {
@@ -55,57 +57,65 @@ namespace EmulatorLauncher.Common.Launchers
 
         public static LauncherGameInfo[] GetInstalledGames()
         {
-            var games = new List<LauncherGameInfo>();
-
             if (!IsInstalled)
-                return games.ToArray();
+                return new LauncherGameInfo[0];
 
             var appList = GetInstalledAppList();
             var manifests = GetInstalledManifests();
 
             if (appList == null || manifests == null)
-                return games.ToArray();
+                return new LauncherGameInfo[0];
 
-            foreach (var app in appList)
+            // Index manifests for O(1) lookup
+            var manifestDict = manifests
+                .Where(m => !string.IsNullOrEmpty(m.AppName))
+                .ToDictionary(m => m.AppName, m => m);
+
+            var games = new ConcurrentBag<LauncherGameInfo>();
+
+            Parallel.ForEach(appList, app =>
             {
-                if (app.AppName.StartsWith("UE_"))
-                    continue;
-
-                var manifest = manifests.FirstOrDefault(a => a.AppName == app.AppName);
-                if (manifest == null)
-                    continue;
-
-                // Skip DLCs
-                if (manifest.AppName != manifest.MainGameAppName)
-                    continue;
-
-                // Skip Plugins
-                if (manifest.AppCategories == null || manifest.AppCategories.Any(a => a == "plugins" || a == "plugins/engine"))
-                    continue;
-
-                var gameName = manifest.DisplayName ?? Path.GetFileName(app.InstallLocation);
-
-                var installLocation = manifest.InstallLocation ?? app.InstallLocation;
-                if (string.IsNullOrEmpty(installLocation))
-                    continue;
-
-                var game = new LauncherGameInfo()
+                try
                 {
-                    Id = app.AppName,
-                    Name = gameName,
-                    LauncherUrl = string.Format(GameLaunchUrl, manifest.AppName),
-                    InstallDirectory = Path.GetFullPath(installLocation),
-                    ExecutableName = manifest.LaunchExecutable,
-                    Launcher = GameLauncherType.Epic
-                };
+                    if (app.AppName.StartsWith("UE_"))
+                        return;
 
-                var exePath = Path.Combine(game.InstallDirectory, game.ExecutableName);
+                    if (!manifestDict.TryGetValue(app.AppName, out var manifest))
+                        return;
 
-                if (exePath != null && File.Exists(exePath))
-                    game.IconPath = exePath;
+                    // Skip DLCs
+                    if (manifest.AppName != manifest.MainGameAppName)
+                        return;
 
-                games.Add(game);
-            }
+                    // Skip Plugins
+                    if (manifest.AppCategories?.Any(a => a == "plugins" || a == "plugins/engine") == true)
+                        return;
+
+                    var installLocation = manifest.InstallLocation ?? app.InstallLocation;
+                    if (string.IsNullOrEmpty(installLocation))
+                        return;
+
+                    var fullInstallPath = Path.GetFullPath(installLocation);
+                    var exePath = Path.Combine(fullInstallPath, manifest.LaunchExecutable);
+
+                    var game = new LauncherGameInfo()
+                    {
+                        Id = app.AppName,
+                        Name = manifest.DisplayName ?? Path.GetFileName(installLocation),
+                        LauncherUrl = string.Format(GameLaunchUrl, manifest.AppName),
+                        InstallDirectory = fullInstallPath,
+                        ExecutableName = manifest.LaunchExecutable,
+                        Launcher = GameLauncherType.Epic,
+                        IconPath = File.Exists(exePath) ? exePath : null
+                    };
+
+                    games.Add(game);
+                }
+                catch
+                {
+                    // Ignore individual failures to keep the loop robust
+                }
+            });
 
             return games.ToArray();
         }
