@@ -36,8 +36,8 @@ namespace EmulatorLauncher
             // Cleanup
             for (int i = 1; i <= 2; i++)
             {
-                ini.ClearSection("Input.Port" + i + ".ControlPadBinds");
-                ini.ClearSection("Input.Port" + i + ".AnalogPadBinds");
+                ini.ClearSection("Input.Port" + i + ".ControlPad.Binds");
+                ini.ClearSection("Input.Port" + i + ".AnalogPad.Binds");
                 ini.ClearSection("Input.Port" + i);
             }
             
@@ -86,13 +86,13 @@ namespace EmulatorLauncher
                 peripheral = "'" + peripheral + "'";
             }
 
-            string inputMapSection = "Input.Port" + playerindex + ".ControlPadBinds";
+            string inputMapSection = "Input.Port" + playerindex + ".ControlPad.Binds";
 
             // Check if 3D pad setting
             bool analogdpad = false;
             if (peripheral == "'AnalogPad'")
             {
-                inputMapSection = "Input.Port" + playerindex + ".AnalogPadBinds";
+                inputMapSection = "Input.Port" + playerindex + ".AnalogPad.Binds";
                 analogdpad = true;
                 invertBumpers = false;
             }
@@ -124,13 +124,13 @@ namespace EmulatorLauncher
                                 if (saturnGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
                                     needSatActivationSwitch = saturnGamepad.ControllerInfo["needActivationSwitch"] == "true";
 
-                                inputMapSection = "Input.Port" + playerindex + ".ControlPadBinds";
+                                inputMapSection = "Input.Port" + playerindex + ".ControlPad.Binds";
 
                                 if (saturnGamepad.ControllerInfo.ContainsKey("peripheral"))
                                 {
                                     peripheral = saturnGamepad.ControllerInfo["peripheral"];
                                     ini.WriteValue(inputSection, "PeripheralType", "'" + peripheral + "'");
-                                    inputMapSection = "Input.Port" + playerindex + "." + peripheral + "Binds";
+                                    inputMapSection = "Input.Port" + playerindex + "." + peripheral + ".Binds";
                                 }
 
                                 if (needSatActivationSwitch && !sat_pad)
