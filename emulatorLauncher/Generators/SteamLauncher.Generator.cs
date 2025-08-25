@@ -14,9 +14,12 @@ namespace EmulatorLauncher
         class SteamGameLauncher : GameLauncher
         {
             private string _steamID;
+            private Uri _uri;
+
             public SteamGameLauncher(Uri uri)
             {
                 // Call method to get Steam executable
+                _uri = uri;
                 string steamInternalDBPath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "steamexecutables.json");
                 LauncherExe = SteamLibrary.GetSteamGameExecutableName(uri, steamInternalDBPath, out _steamID);
             }
@@ -29,6 +32,29 @@ namespace EmulatorLauncher
                     SimpleLogger.Instance.Info("[INFO] Steam found running already.");
                 else
                     SimpleLogger.Instance.Info("[INFO] Steam not yet running.");
+
+                if (!IsGameInstalled())
+                {
+                    SimpleLogger.Instance.Info("[INFO] Game is not installed. Triggering installation.");
+
+                    // Start game install
+                    Process.Start(path);
+
+                    if (MonitorGameInstallation())
+                    {
+                        // Re-check for executable now that it's installed
+                        string steamInternalDBPath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "steamexecutables.json");
+                        LauncherExe = SteamLibrary.GetSteamGameExecutableName(_uri, steamInternalDBPath, out _steamID);
+                    }
+                    else
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Failed to install the game within the time limit.");
+                        KillSteam(uiExists);
+                        return -1;
+                    }
+
+                    SimpleLogger.Instance.Info("[INFO] Installation complete. Game will now be launched.");
+                }
 
                 if (LauncherExe != null)
                 {
@@ -46,6 +72,7 @@ namespace EmulatorLauncher
                     if (steamGame != null)
                     {
                         steamGame.WaitForExit();
+                        SimpleLogger.Instance.Info("[INFO] Steam game closed : " + LauncherExe);
 
                         // Kill steam if it was not running previously or if option is set in RetroBat
                         KillSteam(uiExists);
@@ -168,6 +195,61 @@ namespace EmulatorLauncher
                 KillSteam(uiExists);
 
                 return true;
+            }
+
+            private bool IsGameInstalled()
+            {
+                if (string.IsNullOrEmpty(_steamID))
+                    return false;
+
+                try
+                {
+                    using (var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Valve\\Steam\\Apps\\" + _steamID))
+                    {
+                        if (key == null)
+                            return false;
+
+                        var installed = key.GetValue("Installed");
+                        var updating = key.GetValue("Updating");
+
+                        if (installed != null && installed is int && (int)installed == 1)
+                        {
+                            if (updating != null && updating is int && (int)updating == 1)
+                                return false;
+
+                            return true;
+                        }
+                    }
+                }
+                catch 
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] Failed to check if Steam game is installed");
+                    return false;
+                }
+
+                return false;
+            }
+
+            private bool MonitorGameInstallation()
+            {
+                if (string.IsNullOrEmpty(_steamID))
+                    return false;
+
+                SimpleLogger.Instance.Info("[STEAM] Waiting for game installation to complete (AppID: " + _steamID + ").");
+
+                // Wait for installation, with a long timeout (e.g., 2 hours = 7200 seconds)
+                for (int i = 0; i < 7200; i++)
+                {
+                    if (IsGameInstalled())
+                    {
+                        SimpleLogger.Instance.Info("[STEAM] Game " + _steamID + " installation complete.");
+                        return true;
+                    }
+                    System.Threading.Thread.Sleep(1000);
+                }
+
+                SimpleLogger.Instance.Info("[STEAM] Timeout: Game installation did not complete.");
+                return false;
             }
         }
     }

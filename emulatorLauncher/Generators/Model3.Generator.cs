@@ -222,9 +222,11 @@ namespace EmulatorLauncher
                         
                     //Create controller configuration
                     CreateControllerConfiguration(ini);
+
+                    ini.Save();
                 }
             }
-            catch { }
+            catch { SimpleLogger.Instance.Error("[ERROR] Unable to save config ini file."); }
         }
 
         public override void Cleanup()

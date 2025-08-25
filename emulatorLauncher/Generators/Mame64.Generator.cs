@@ -387,7 +387,14 @@ namespace EmulatorLauncher
                 retList.Add("-plugin");
                 retList.Add(pluginJoin);
             }
-            
+
+            // BIOS
+            if (SystemConfig.isOptSet("mame_bios") && !string.IsNullOrEmpty(SystemConfig["mame_bios"]))
+            {
+                retList.Add("-bios");
+                retList.Add(SystemConfig["mame_bios"]);
+            }
+
             // DEVICES
             // Mouse
             if (SystemConfig.isOptSet("mame_mouse") && SystemConfig["mame_mouse"] == "none")

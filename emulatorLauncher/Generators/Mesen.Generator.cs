@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
-using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using EmulatorLauncher.Common.Lightguns;
 using System.Linq;
-using System.Windows.Forms;
 
 namespace EmulatorLauncher
 {
@@ -75,7 +73,7 @@ namespace EmulatorLauncher
             if (!File.Exists(settingsFile))
                 File.WriteAllText(settingsFile, "{}");
 
-            var json = DynamicJson.Load(settingsFile);
+            JObject json = JObject.Parse(File.ReadAllText(settingsFile));
 
             string mesenSystem = GetMesenSystem(system);
             if (mesenSystem == "none")
@@ -84,7 +82,7 @@ namespace EmulatorLauncher
             json["FirstRun"] = "false";
 
             // System preferences
-            var systemSection = json.GetOrCreateContainer(mesenSystem);
+            var systemSection = GetOrCreateContainer(json, mesenSystem);
             ConfigureNes(systemSection, system);
             ConfigureSMS(systemSection, system);
             ConfigurePCEngine(systemSection, system, path);
@@ -93,7 +91,7 @@ namespace EmulatorLauncher
             ConfigureGba(systemSection, system, path);
 
             // Emulator preferences
-            var preference = json.GetOrCreateContainer("Preferences");
+            var preference = GetOrCreateContainer(json, "Preferences");
 
             preference["AutomaticallyCheckForUpdates"] = "false";
             preference["SingleInstance"] = "true";
@@ -169,7 +167,7 @@ namespace EmulatorLauncher
             }
 
             // Video menu
-            var video = json.GetOrCreateContainer("Video");
+            var video = GetOrCreateContainer(json, "Video");
             BindFeature(video, "VideoFilter", "mesen_filter", "None");
             BindFeature(video, "AspectRatio", "mesen_ratio", "Auto");
             BindBoolFeature(video, "UseBilinearInterpolation", "bilinear_filtering", "true", "false");
@@ -179,11 +177,11 @@ namespace EmulatorLauncher
             BindBoolFeature(video, "UseExclusiveFullscreen", "exclusivefs", "true", "false");
 
             // Emulation menu
-            var emulation = json.GetOrCreateContainer("Emulation");
+            var emulation = GetOrCreateContainer(json, "Emulation");
             BindFeatureSlider(emulation, "RunAheadFrames", "mesen_runahead", "0");
 
             // Input menu
-            var input = json.GetOrCreateContainer("Input");
+            var input = GetOrCreateContainer(json, "Input");
             BindBoolFeature(input, "HidePointerForLightGuns", "mesen_target", "false", "true");
 
             // Controllers configuration
@@ -191,10 +189,10 @@ namespace EmulatorLauncher
             SetupGuns(systemSection, mesenSystem);
 
             // Save json file
-            json.Save();
+            File.WriteAllText(settingsFile, json.ToString(Formatting.Indented));
         }
 
-        private void ConfigureNes(DynamicJson section, string system)
+        private void ConfigureNes(JObject section, string system)
         {
             if (system != "nes" && system != "fds")
                 return;
@@ -211,7 +209,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ConfigureSMS(DynamicJson section, string system)
+        private void ConfigureSMS(JObject section, string system)
         {
             if (system != "mastersystem")
                 return;
@@ -221,7 +219,7 @@ namespace EmulatorLauncher
             BindBoolFeatureOn(section, "EnableFmAudio", "mesen_sms_fmaudio", "true", "false");
         }
 
-        private void ConfigurePCEngine(DynamicJson section, string system, string path)
+        private void ConfigurePCEngine(JObject section, string system, string path)
         {
             if (system != "pcengine" && system != "pcenginecd")
                 return;
@@ -247,7 +245,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ConfigureGameboy(DynamicJson section, string system, string path)
+        private void ConfigureGameboy(JObject section, string system, string path)
         {
             if (system != "gb" && system != "gbc" && system != "sgb")
                 return;
@@ -282,7 +280,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ConfigureGba(DynamicJson section, string system, string path)
+        private void ConfigureGba(JObject section, string system, string path)
         {
             if (system != "gba")
                 return;
@@ -304,7 +302,7 @@ namespace EmulatorLauncher
                 throw new ApplicationException("GBA firmware is missing (gba_bios.bin)");
         }
 
-        private void ConfigureColeco(DynamicJson section, string system, string path)
+        private void ConfigureColeco(JObject section, string system, string path)
         {
             if (system != "colecovision")
                 return;
@@ -326,7 +324,7 @@ namespace EmulatorLauncher
                 throw new ApplicationException("Colecovision firmware is missing (colecovision.rom)");
         }
 
-        private void ConfigureSnes(DynamicJson section, string system)
+        private void ConfigureSnes(JObject section, string system)
         {
             if (system != "snes")
                 return;
@@ -334,7 +332,7 @@ namespace EmulatorLauncher
             BindFeature(section, "Region", "mesen_region", "Auto");
         }
 
-        private void SetupGuns(DynamicJson section, string mesenSystem)
+        private void SetupGuns(JObject section, string mesenSystem)
         {
             var guns = RawLightgun.GetRawLightguns();
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
@@ -345,23 +343,23 @@ namespace EmulatorLauncher
 
             foreach (var port in nesPorts)
             {
-                var portSection = section.GetOrCreateContainer(port);
-                var mapping = portSection.GetOrCreateContainer("Mapping1");
-                mapping.SetObject("ZapperButtons", null);
+                var portSection = GetOrCreateContainer(section, port);
+                var mapping = GetOrCreateContainer(portSection, "Mapping1");
+                mapping["ZapperButtons"] = JValue.CreateNull();
             }
 
             if (mesenSystem == "Nes")
             {
                 if (SystemConfig.isOptSet("mesen_zapper") && !string.IsNullOrEmpty(SystemConfig["mesen_zapper"]) && SystemConfig["mesen_zapper"] != "none")
                 {
-                    var portSection = section.GetOrCreateContainer(SystemConfig["mesen_zapper"]);
-                    var mapping = portSection.GetOrCreateContainer("Mapping1");
+                    var portSection = GetOrCreateContainer(section, SystemConfig["mesen_zapper"]);
+                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
                     List<int> mouseID = new List<int>
                     {
                         512,
                         513
                     };
-                    mapping.SetObject("ZapperButtons", mouseID);
+                    mapping["ZapperButtons"] = new JArray(mouseID);
 
                     portSection["Type"] = "Zapper";
                 }
@@ -371,21 +369,21 @@ namespace EmulatorLauncher
             {
                 foreach (var port in smsPorts)
                 {
-                    var portSection = section.GetOrCreateContainer(port);
-                    var mapping = portSection.GetOrCreateContainer("Mapping1");
-                    mapping.SetObject("LightPhaserButtons", null);
+                    var portSection = GetOrCreateContainer(section, port);
+                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
+                    mapping["LightPhaserButtons"] = JValue.CreateNull();
                 }
                 
                 if (SystemConfig.isOptSet("mesen_zapper") && !string.IsNullOrEmpty(SystemConfig["mesen_zapper"]) && SystemConfig["mesen_zapper"] != "none")
                 {
-                    var portSection = section.GetOrCreateContainer(SystemConfig["mesen_zapper"]);
-                    var mapping = portSection.GetOrCreateContainer("Mapping1");
+                    var portSection = GetOrCreateContainer(section, SystemConfig["mesen_zapper"]);
+                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
                     List<int> mouseID = new List<int>
                     {
                         512,
                         513
                     };
-                    mapping.SetObject("LightPhaserButtons", mouseID);
+                    mapping["LightPhaserButtons"] = new JArray(mouseID);
 
                     portSection["Type"] = "SmsLightPhaser";
                 }
@@ -395,15 +393,15 @@ namespace EmulatorLauncher
             {
                 foreach (var port in snesPorts)
                 {
-                    var portSection = section.GetOrCreateContainer(port);
-                    var mapping = portSection.GetOrCreateContainer("Mapping1");
-                    mapping.SetObject("SuperScopeButtons", null);
+                    var portSection = GetOrCreateContainer(section, port);
+                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
+                    mapping["SuperScopeButtons"] = JValue.CreateNull();
                 }
 
                 if (SystemConfig.isOptSet("mesen_superscope") && !string.IsNullOrEmpty(SystemConfig["mesen_superscope"]) && SystemConfig["mesen_superscope"] != "none")
                 {
-                    var portSection = section.GetOrCreateContainer(SystemConfig["mesen_superscope"]);
-                    var mapping = portSection.GetOrCreateContainer("Mapping1");
+                    var portSection = GetOrCreateContainer(section, SystemConfig["mesen_superscope"]);
+                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
                     List<int> mouseID = new List<int>
                     {
                         512,
@@ -411,7 +409,7 @@ namespace EmulatorLauncher
                         514,
                         6
                     };
-                    mapping.SetObject("SuperScopeButtons", mouseID);
+                    mapping["SuperScopeButtons"] = new JArray(mouseID);
 
                     portSection["Type"] = "SuperScope";
                 }
@@ -463,6 +461,15 @@ namespace EmulatorLauncher
                 return 0;
 
             return ret;
+        }
+
+        private JObject GetOrCreateContainer(JObject parent, string key)
+        {
+            if (parent[key] == null || parent[key].Type != JTokenType.Object)
+            {
+                parent[key] = new JObject();
+            }
+            return (JObject)parent[key];
         }
     }
 }

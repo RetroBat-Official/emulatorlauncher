@@ -122,10 +122,15 @@ namespace EmulatorLauncher
                         try { Directory.CreateDirectory(backupPath); } catch { }
                     string iplPath = AppConfig.GetFullPath("bios");
 
+                    string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "ymir");
+                    if (!Directory.Exists(screenshotPath))
+                        try { Directory.CreateDirectory(screenshotPath); } catch { }
+
                     ini.WriteValue("General.PathOverrides", "BackupMemory", "'" + backupPath + "'");
                     ini.WriteValue("General.PathOverrides", "IPLROMImages", "'" + iplPath + "'");
                     ini.WriteValue("General.PathOverrides", "PersistentState", "'" + statePath + "'");
                     ini.WriteValue("General.PathOverrides", "SaveStates", "'" + savestatesPath + "'");
+                    ini.WriteValue("General.PathOverrides", "Screenshots", "'" + screenshotPath + "'");
 
                     CreateControllerConfiguration(ini);
 
