@@ -1039,12 +1039,18 @@ namespace EmulatorLauncher
 
         private void DefineActiveControllerProfile(string path)
         {
+            string activeConfigFileDir = Path.Combine(path, "config", "input_configs");
+            if (!Directory.Exists(activeConfigFileDir)) { try { Directory.CreateDirectory(activeConfigFileDir); } catch { } }
+
             string activeConfigFile = Path.Combine(path, "config", "input_configs", "active_input_configurations.yml");
 
-            if (!File.Exists(activeConfigFile))
-                return;
+            YmlFile yml;
 
-            var yml = YmlFile.Load(activeConfigFile);
+            if (File.Exists(activeConfigFile))
+                yml = YmlFile.Load(activeConfigFile);
+            else
+                yml = new YmlFile();
+
             var activeConfig = yml.GetOrCreateContainer("Active Configurations");
             
             activeConfig["global"] = "Retrobat";
