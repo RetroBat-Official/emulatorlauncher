@@ -139,7 +139,43 @@ namespace EmulatorLauncher.Libretro
             }
             else
             {
+                bool updatesEnabled = !SystemConfig.isOptSet("updates.enabled") || SystemConfig.getOptBoolean("updates.enabled");
                 string corePath = Path.Combine(RetroarchCorePath, core + "_libretro.dll");
+                if (File.Exists(corePath) && updatesEnabled)
+                {
+                    SimpleLogger.Instance.Info("[INFO] Checking core update availability");
+                    var date = File.GetCreationTime(corePath).ToUniversalTime().ToString("0.yy.MM.dd");
+                    if (Installer.CoreHasUpdateAvailable(core, date, out string ServerVersion))
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Core update available, downloading");
+
+                        try
+                        {
+
+                            string url = Installer.GetUpdateUrl("cores/" + core + "_libretro.dll.zip");
+                            if (!WebTools.UrlExists(url))
+                            {
+                                // Automatic install of missing core
+                                var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"));
+
+                                url = retroarchConfig["core_updater_buildbot_cores_url"];
+                                if (!string.IsNullOrEmpty(url))
+                                    url += core + "_libretro.dll.zip";
+                            }
+
+                            if (WebTools.UrlExists(url))
+                            {
+                                using (var frm = new InstallerFrm(core, url, RetroarchCorePath))
+                                {
+                                    frm.SetLabel(string.Format(Properties.Resources.UpdateAvailable, "libretro-" + core, ServerVersion, date));
+                                    frm.ShowDialog();
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+                }
+
                 if (!File.Exists(corePath))
                 {
                     try
