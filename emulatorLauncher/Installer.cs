@@ -577,9 +577,13 @@ namespace EmulatorLauncher
             return false;
         }
 
-        public static bool CoreHasUpdateAvailable(string core, string date, out string ServerVersion)
+        public static bool CoreHasUpdateAvailable(string core, string date, string version, out string ServerVersion)
         {
             ServerVersion = "";
+
+            if (version == "0.0.0.0")
+                version = date;
+
             try
             {
                 string xml = null;
@@ -634,7 +638,7 @@ namespace EmulatorLauncher
 
                 Version local = new Version();
                 Version server = new Version();
-                if (Version.TryParse(date, out local) && Version.TryParse(serverVersion.Version, out server))
+                if (Version.TryParse(version, out local) && Version.TryParse(serverVersion.Version, out server))
                 {
                     if (local < server)
                     {
