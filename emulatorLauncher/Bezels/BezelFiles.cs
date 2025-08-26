@@ -445,6 +445,13 @@ namespace EmulatorLauncher
                         else if (Program.SystemConfig.isOptSet("bizhawk_melonds_layout") && (Program.SystemConfig["bizhawk_melonds_layout"] == "3" || Program.SystemConfig["bizhawk_melonds_layout"] == "4"))
                             return "nds_single_screen";
                         break;
+                    case "desmume":
+                        if (Program.SystemConfig.isOptSet("desmume_layout") && Program.SystemConfig["desmume_layout"] == "1")
+                            return "nds_desmume_side_by_side";
+                        else if (Program.SystemConfig.isOptSet("desmume_layout") && Program.SystemConfig["desmume_layout"] == "2")
+                            return "nds_desmume_single_screen";
+                        else
+                            return "nds_desmume";
                     case "libretro":
                     {
                         switch (core)

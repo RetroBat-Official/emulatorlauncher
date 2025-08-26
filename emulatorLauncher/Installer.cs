@@ -44,6 +44,7 @@ namespace EmulatorLauncher
             { new Installer("daphne") },
             { new Installer("demul") },
             { new Installer("demul-old", "demul-old", "demul.exe") },
+            { new Installer("desmume", "desmume", "DeSmuME-VS2022-x64-Release.exe") },
             { new Installer("devilutionx", "devilutionx", "devilutionx.exe") },
             { new Installer("dhewm3", "dhewm3", "dhewm3.exe") },
             { new Installer("dolphin", "dolphin-emu", "Dolphin.exe") },
@@ -576,9 +577,13 @@ namespace EmulatorLauncher
             return false;
         }
 
-        public static bool CoreHasUpdateAvailable(string core, string date, out string ServerVersion)
+        public static bool CoreHasUpdateAvailable(string core, string date, string version, out string ServerVersion)
         {
             ServerVersion = "";
+
+            if (version == "0.0.0.0")
+                version = date;
+
             try
             {
                 string xml = null;
@@ -633,7 +638,7 @@ namespace EmulatorLauncher
 
                 Version local = new Version();
                 Version server = new Version();
-                if (Version.TryParse(date, out local) && Version.TryParse(serverVersion.Version, out server))
+                if (Version.TryParse(version, out local) && Version.TryParse(serverVersion.Version, out server))
                 {
                     if (local < server)
                     {

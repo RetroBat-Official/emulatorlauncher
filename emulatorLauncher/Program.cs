@@ -67,6 +67,7 @@ namespace EmulatorLauncher
             { "daphne", () => new DaphneGenerator() },
             { "demul", () => new DemulGenerator() },
             { "demul-old", () => new DemulGenerator() },
+            { "desmume", () => new DesmumeGenerator() },
             { "devilutionx", () => new DevilutionXGenerator() },
             { "dhewm3", () => new Dhewm3Generator() },
             { "dolphin", () => new DolphinGenerator() },

@@ -144,8 +144,11 @@ namespace EmulatorLauncher.Libretro
                 if (File.Exists(corePath) && updatesEnabled)
                 {
                     SimpleLogger.Instance.Info("[INFO] Checking core update availability");
-                    var date = File.GetCreationTime(corePath).ToUniversalTime().ToString("0.yy.MM.dd");
-                    if (Installer.CoreHasUpdateAvailable(core, date, out string ServerVersion))
+                    var date = File.GetLastWriteTime(corePath).ToUniversalTime().ToString("0.yy.MM.dd");
+                    var versionInfo = FileVersionInfo.GetVersionInfo(corePath);
+                    string version = versionInfo.FileMajorPart + "." + versionInfo.FileMinorPart + "." + versionInfo.FileBuildPart + "." + versionInfo.FilePrivatePart;
+
+                    if (Installer.CoreHasUpdateAvailable(core, date, version, out string ServerVersion))
                     {
                         SimpleLogger.Instance.Info("[INFO] Core update available, downloading");
 
