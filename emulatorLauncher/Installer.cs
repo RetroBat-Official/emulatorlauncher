@@ -44,6 +44,7 @@ namespace EmulatorLauncher
             { new Installer("daphne") },
             { new Installer("demul") },
             { new Installer("demul-old", "demul-old", "demul.exe") },
+            { new Installer("desmume", "desmume", "DeSmuME-VS2022-x64-Release.exe") },
             { new Installer("devilutionx", "devilutionx", "devilutionx.exe") },
             { new Installer("dhewm3", "dhewm3", "dhewm3.exe") },
             { new Installer("dolphin", "dolphin-emu", "Dolphin.exe") },
