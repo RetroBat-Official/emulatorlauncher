@@ -182,6 +182,24 @@ namespace EmulatorLauncher
             return installerUrl;
         }
 
+        public static string GetUpdateUrlCores(string fileName)
+        {
+            string installerUrl = RegistryKeyEx.GetRegistryValue(
+                RegistryKeyEx.CurrentUser,
+                @"SOFTWARE\RetroBat",
+                "InstallRootUrl") as string;
+
+            if (string.IsNullOrEmpty(installerUrl))
+                return string.Empty;
+
+            if (installerUrl.EndsWith("/"))
+                installerUrl = installerUrl + UpdatesType + "/emulators/cores/" + fileName;
+            else
+                installerUrl = installerUrl + "/" + UpdatesType + "/emulators/cores/" + fileName;
+
+            return installerUrl;
+        }
+
         public static string UpdatesType
         {
             get
@@ -545,6 +563,81 @@ namespace EmulatorLauncher
                     if (local < server)
                     {
                         ServerFileName = serverVersion.Path;
+                        ServerVersion = server.ToString();
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error(ex.Message);
+            }
+
+            return false;
+        }
+
+        public static bool CoreHasUpdateAvailable(string core, string date, out string ServerVersion)
+        {
+            ServerVersion = "";
+            try
+            {
+                string xml = null;
+                
+                string cachedFile = Path.Combine(GetTempPath(), "coreversions.xml");
+
+                if (File.Exists(cachedFile) && DateTime.Now - File.GetCreationTime(cachedFile) <= new TimeSpan(1, 0, 0, 0))
+                {
+                    xml = File.ReadAllText(cachedFile);
+                }
+                else
+                {
+                    string url = Installer.GetUpdateUrlCores("coreversions.xml");
+                    if (string.IsNullOrEmpty(url))
+                        return false;
+
+                    xml = WebTools.DownloadString(url);
+
+                    if (!string.IsNullOrEmpty(xml))
+                    {
+                        try
+                        {
+                            string dir = Path.GetDirectoryName(cachedFile);
+                            if (!Directory.Exists(dir))
+                                Directory.CreateDirectory(dir);
+
+                            if (File.Exists(cachedFile))
+                                File.Delete(cachedFile);
+                        }
+                        catch { }
+
+                        File.WriteAllText(cachedFile, xml);
+                        File.SetCreationTime(cachedFile, DateTime.Now);
+                    }
+                }
+
+                if (string.IsNullOrEmpty(xml))
+                    return false;
+
+                var settings = XDocument.Parse(xml);
+                if (settings == null)
+                    return false;
+
+                var serverVersion = settings
+                    .Descendants()
+                    .Where(d => d.Name == "system" && d.Attribute("name") != null && d.Attribute("version") != null && d.Attribute("name").Value == core)
+                    .Select(d => new { Version = d.Attribute("version").Value, Path = d.Attribute("file") == null ? null : d.Attribute("file").Value })
+                    .FirstOrDefault();
+
+                if (serverVersion == null)
+                    return false;
+
+                Version local = new Version();
+                Version server = new Version();
+                if (Version.TryParse(date, out local) && Version.TryParse(serverVersion.Version, out server))
+                {
+                    if (local < server)
+                    {
+                        string ServerFileName = serverVersion.Path;
                         ServerVersion = server.ToString();
                         return true;
                     }
