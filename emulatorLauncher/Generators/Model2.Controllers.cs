@@ -59,11 +59,10 @@ namespace EmulatorLauncher
                 return;
 
             // Enumerate the same way as supermodel
-            var directInput = new DirectInput();
+            var directInput = new SharpDX.DirectInput.DirectInput();
             var diDevices = directInput.GetDevices(SharpDX.DirectInput.DeviceClass.GameControl, SharpDX.DirectInput.DeviceEnumerationFlags.AttachedOnly);
 
             int diCount = diDevices.Count;
-            SimpleLogger.Instance.Info("[INFO] Enumerated " + diCount.ToString() + " directInput devices.");
 
             //initialize controller index, m2emulator uses directinput controller index (+1)
             //only index of player 1 is initialized as there might be only 1 controller at that point
