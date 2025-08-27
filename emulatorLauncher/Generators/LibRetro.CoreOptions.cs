@@ -1815,7 +1815,7 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             coreSettings["gambatte_gbc_color_correction_mode"] = "accurate";
-            coreSettings["gambatte_gbc_color_correction"] = "GBC only";
+            BindFeature(coreSettings, "gambatte_gbc_color_correction", "gambatte_gbc_color_correction", "GBC only");
             coreSettings["gambatte_up_down_allowed"] = "disabled";
 
             if (system == "gb")
