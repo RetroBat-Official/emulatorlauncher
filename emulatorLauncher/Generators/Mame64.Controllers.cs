@@ -1,7 +1,7 @@
 ﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.Lightguns;
-using SharpDX.DirectInput;
+using DI = SharpDX.DirectInput;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -72,8 +72,7 @@ namespace EmulatorLauncher
             var input = new XElement("input");
             var mameControllers = new List<Controller>();
             var xControllers = this.Controllers.Where(c => c.IsXInputDevice).OrderBy(i => i.XInput.DeviceIndex).ToList();
-            var directInput = new SharpDX.DirectInput.DirectInput();
-            var diDevices = directInput.GetDevices(SharpDX.DirectInput.DeviceClass.GameControl, SharpDX.DirectInput.DeviceEnumerationFlags.AttachedOnly);
+            var diDevices = new DirectInputInfo().GetDinputDevices();
 
             if (SystemConfig["mame_joystick_driver"] == "xinput")
                 mameControllers = this.Controllers.Where(c => c.IsXInputDevice && !c.IsKeyboard).OrderBy(i => i.XInput.DeviceIndex).ToList();

@@ -5,7 +5,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.Lightguns;
-using SharpDX.DirectInput;
+using DI = SharpDX.DirectInput;
 
 namespace EmulatorLauncher
 {
@@ -88,10 +88,7 @@ namespace EmulatorLauncher
             }
 
             // Enumerate the same way as supermodel
-            var directInput = new SharpDX.DirectInput.DirectInput();
-            var diDevices = directInput.GetDevices(SharpDX.DirectInput.DeviceClass.GameControl, SharpDX.DirectInput.DeviceEnumerationFlags.AttachedOnly);
-            
-            int diCount = diDevices.Count;
+            var diDevices = new DirectInputInfo().GetDinputDevices();
 
             //initialize tech : as default we will use sdl instead of dinput, as there are less differences in button mappings in sdl !
             string tech = "sdl";
