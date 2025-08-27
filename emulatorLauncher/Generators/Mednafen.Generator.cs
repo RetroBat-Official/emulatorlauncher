@@ -554,17 +554,28 @@ namespace EmulatorLauncher
                 case "gb":
                 case "gbc":
                     return "gb";
+                case "snes":
+                case "sfc":
+                case "superfamicom":
+                    return "snes";
                 case "mastersystem":
                     return "sms";
                 case "megadrive":
+                case "genesis":
                     return "md";
                 case "pcengine":
                 case "pcenginecd":
+                case "turbografx":
+                case "turbografxcd":
+                case "turbografx16":
                 case "supergrafx":
                     return "pce";
                 case "saturn":
                 case "segastv":
                     return "ss";
+                case "nes":
+                case "famicom":
+                    return "nes";
             }
 
             return core;

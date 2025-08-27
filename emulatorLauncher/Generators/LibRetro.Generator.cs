@@ -2066,11 +2066,13 @@ namespace EmulatorLauncher.Libretro
             new SubSystem("fbneo", "pcenginecd", "pce"),
 
             new SubSystem("fbneo", "turbografx", "tg"),
+            new SubSystem("fbneo", "turbografxcd", "tg"),
             new SubSystem("fbneo", "turbografx16", "tg"),
             
             new SubSystem("fbneo", "gamegear", "gg"),
             new SubSystem("fbneo", "mastersystem", "sms"),
             new SubSystem("fbneo", "megadrive", "md"),
+            new SubSystem("fbneo", "genesis", "md"),
 
             new SubSystem("fbneo", "sg1000", "sg1k"),
             new SubSystem("fbneo", "sg-1000", "sg1k"),

@@ -1987,10 +1987,10 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (system == "nes" && Program.SystemConfig.getOptBoolean("rotate_buttons"))
+            if ((system == "nes" || system =="famicom") && Program.SystemConfig.getOptBoolean("rotate_buttons"))
                 return nesMapping_rotate;
 
-            if ((system == "megadrive" || system == "sega32x") && !Program.SystemConfig.getOptBoolean("md_3buttons"))
+            if ((system == "megadrive" || system == "sega32x" || system == "genesis" || system == "mega32x") && !Program.SystemConfig.getOptBoolean("md_3buttons"))
             {
                 if (Program.SystemConfig.isOptSet("megadrive_control_layout"))
                 {
@@ -2006,7 +2006,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (system == "snes" || (system == "sgb" && core == "BSNES"))
+            if ((system == "snes" || system == "sfc" || system == "superfamicom") || (system == "sgb" && core == "BSNES"))
             {
                 if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
                     return snesMapping_invert;
@@ -2113,14 +2113,17 @@ namespace EmulatorLauncher
             { "c64", "Commodore 64 Controller" },
             { "channelf", "ChannelF Controller" },
             { "colecovision", "ColecoVision Basic Controller" },
+            { "famicom", "NES Controller" },
             { "gamegear", "GG Controller" },
             { "gb", "Gameboy Controller" },
             { "gba", "GBA Controller" },
+            { "genesis", "GPGX Genesis Controller" },
             { "intellivision", "Intellivision Controller" },
             { "jaguar", "Jaguar Controller" },
             { "jaguarcd", "Jaguar Controller" },
             { "lynx", "Lynx Controller" },
             { "mastersystem", "SMS Controller" },
+            { "mega32x", "PicoDrive Genesis Controller" },
             { "megadrive", "GPGX Genesis Controller" },
             { "multivision", "SMS Controller" },
             { "n64", "Nintendo 64 Controller" },
@@ -2134,10 +2137,14 @@ namespace EmulatorLauncher
             { "psx", "PSX Front Panel" },
             { "saturn", "Saturn Controller" },
             { "sega32x", "PicoDrive Genesis Controller" },
+            { "sfc", "SNES Controller" },
             { "sg1000", "SMS Controller" },
             { "sgb", "Gameboy Controller" },
             { "snes", "SNES Controller" },
+            { "superfamicom", "SNES Controller" },
             { "tic80", "TIC-80 Controller" },
+            { "turbografx", "PC Engine Controller" },
+            { "turbografxcd", "PC Engine Controller" },
             { "uzebox", "SNES Controller" },
             { "vectrex", "Vectrex Digital Controller" },
             { "virtualboy", "VirtualBoy Controller" },
@@ -2153,15 +2160,18 @@ namespace EmulatorLauncher
             { "atari7800", atariMapping },
             { "channelf", channelfMapping },
             { "colecovision", colecoMapping },
+            { "famicom", nesMapping },
             { "gamegear", ggMapping },
             { "gb", gbMapping },
             { "gba", gbaMapping },
             { "gbc", gbMapping },
+            { "genesis", mdMapping },
             { "intellivision", intvMapping },
             { "jaguar", jaguarMapping },
             { "jaguarcd", jaguarMapping },
             { "lynx", lynxMapping },
             { "mastersystem", smsMapping },
+            { "mega32x", mdMapping },
             { "megadrive", mdMapping },
             { "multivision", smsMapping },
             { "n64", n64Mapping },
@@ -2175,10 +2185,14 @@ namespace EmulatorLauncher
             { "psx", dualshockOctoMapping },
             { "saturn", saturnMapping },
             { "sega32x", mdMapping },
+            { "sfc", snesMapping },
             { "sg1000", smsMapping },
             { "sgb", gbMapping },
             { "snes", snesMapping },
+            { "superfamicom", snesMapping },
             { "tic80", tic80Mapping },
+            { "turbografx", pceMapping },
+            { "turbografxcd", pceMapping },
             { "uzebox", snesMapping },
             { "vectrex", vecMapping },
             { "virtualboy", vbMapping },
