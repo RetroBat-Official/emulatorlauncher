@@ -73,7 +73,7 @@ namespace EmulatorLauncher
             var mameControllers = new List<Controller>();
             var xControllers = this.Controllers.Where(c => c.IsXInputDevice).OrderBy(i => i.XInput.DeviceIndex).ToList();
             var directInput = new DirectInput();
-            var diDevices = directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
+            var diDevices = directInput.GetDevices(SharpDX.DirectInput.DeviceClass.GameControl, SharpDX.DirectInput.DeviceEnumerationFlags.AttachedOnly);
 
             if (SystemConfig["mame_joystick_driver"] == "xinput")
                 mameControllers = this.Controllers.Where(c => c.IsXInputDevice && !c.IsKeyboard).OrderBy(i => i.XInput.DeviceIndex).ToList();

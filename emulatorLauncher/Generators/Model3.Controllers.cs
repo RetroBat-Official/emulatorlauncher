@@ -89,9 +89,10 @@ namespace EmulatorLauncher
 
             // Enumerate the same way as supermodel
             var directInput = new DirectInput();
-            var diDevices = directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
-
-            SimpleLogger.Instance.Info("[INFO] Enumerated " + diDevices.Count + " directInput devices.");
+            var diDevices = directInput.GetDevices(SharpDX.DirectInput.DeviceClass.GameControl, SharpDX.DirectInput.DeviceEnumerationFlags.AttachedOnly);
+            
+            int diCount = diDevices.Count;
+            SimpleLogger.Instance.Info("[INFO] Enumerated " + diCount.ToString() + " directInput devices.");
 
             //initialize tech : as default we will use sdl instead of dinput, as there are less differences in button mappings in sdl !
             string tech = "sdl";
