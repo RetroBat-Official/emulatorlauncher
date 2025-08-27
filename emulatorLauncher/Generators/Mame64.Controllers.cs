@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Xml.Linq;
-using EmulatorLauncher.Common.Lightguns;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
-using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Lightguns;
+using SharpDX.DirectInput;
+using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Xml.Linq;
 
 namespace EmulatorLauncher
 {
@@ -68,43 +70,34 @@ namespace EmulatorLauncher
             var mameconfig = new XElement("mameconfig", new XAttribute("version", "10"));
             var system = new XElement("system", new XAttribute("name", "default"));
             var input = new XElement("input");
-            var mameControllers = this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).ToList();
+            var mameControllers = new List<Controller>();
+            var xControllers = this.Controllers.Where(c => c.IsXInputDevice).OrderBy(i => i.XInput.DeviceIndex).ToList();
+            var directInput = new DirectInput();
+            var diDevices = directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
 
             if (SystemConfig["mame_joystick_driver"] == "xinput")
-                mameControllers = this.Controllers.Where(c => c.IsXInputDevice && !c.IsKeyboard).OrderBy(i => i.PlayerIndex).ToList();
+                mameControllers = this.Controllers.Where(c => c.IsXInputDevice && !c.IsKeyboard).OrderBy(i => i.XInput.DeviceIndex).ToList();
 
-            else if (!SystemConfig.isOptSet("mame_joystick_driver") || SystemConfig["mame_joystick_driver"] == "winhybrid")
+            else if (SystemConfig["mame_joystick_driver"] == "dinput")
             {
-                int i = 1;
-                var nonXinputControllers = mameControllers.Where(c => !c.IsXInputDevice).OrderBy(o => o.DirectInput.DeviceIndex).ToList();
-                if (nonXinputControllers.Count > 0)
+                foreach (var ct in diDevices)
                 {
-                    foreach (var controller in nonXinputControllers)
-                    {
-                        hybridController.Add(controller, i);
-                        i++;
-                    }
+                    var cont = this.Controllers.Where(c => c.DirectInput != null && c.DirectInput.InstanceGuid == ct.InstanceGuid).FirstOrDefault();
+                    if (cont != null)
+                        mameControllers.Add(cont);
                 }
+            }
 
-                var usbControllers = mameControllers.Where(c => !nonXinputControllers.Contains(c) && c.DevicePath.StartsWith("USB")).OrderBy(o => o.DirectInput.DeviceIndex).ToList();
-                if (usbControllers.Count > 0)
+            else
+            {
+                foreach (var ct in diDevices)
                 {
-                    foreach (var controller in usbControllers)
-                    {
-                        hybridController.Add(controller, i);
-                        i++;
-                    }
+                    var cont = this.Controllers.Where(c => c.DirectInput != null && !c.IsXInputDevice && c.DirectInput.InstanceGuid == ct.InstanceGuid).FirstOrDefault();
+                    if (cont != null)
+                        mameControllers.Add(cont);
                 }
-
-                var otherXinputControllers = mameControllers.Where(c => !nonXinputControllers.Contains(c) && !usbControllers.Contains(c)).OrderBy(o => o.DirectInput.DeviceIndex).ToList();
-                if (otherXinputControllers.Count > 0)
-                {
-                    foreach (var controller in otherXinputControllers)
-                    {
-                        hybridController.Add(controller, i);
-                        i++;
-                    }
-                }
+                if (xControllers.Count > 0)
+                    mameControllers.AddRange(xControllers);
             }
 
             // Specific Gun4IR & Sinden mapping
@@ -187,7 +180,7 @@ namespace EmulatorLauncher
             foreach (var controller in mameControllers)
             {
                 int i = controller.PlayerIndex;
-                int cIndex = mameControllers.OrderBy(c => c.DirectInput.DeviceIndex).ToList().IndexOf(controller) + 1;
+                int cIndex = mameControllers.ToList().IndexOf(controller) + 1;
                 string joy = "JOYCODE_" + cIndex + "_";
                 bool dpadonly = SystemConfig.isOptSet("mame_dpadandstick") && SystemConfig.getOptBoolean("mame_dpadandstick");
                 bool isXinput = controller.IsXInputDevice && SystemConfig["mame_joystick_driver"] != "dinput";
@@ -203,10 +196,9 @@ namespace EmulatorLauncher
                     input.Add(new XElement("mapdevice", new XAttribute("device", "XInput Player " + xIndex), new XAttribute("controller", "JOYCODE_" + xIndex)));
                 }
 
-                if ((!SystemConfig.isOptSet("mame_joystick_driver") || SystemConfig["mame_joystick_driver"] == "winhybrid") && hybridController.Count > 0)
+                else
                 {
-                    var hIndex = hybridController[controller];
-                    joy = "JOYCODE_" + hIndex + "_";
+                    joy = "JOYCODE_" + cIndex + "_";
                 }
 
                 // Override index through option
