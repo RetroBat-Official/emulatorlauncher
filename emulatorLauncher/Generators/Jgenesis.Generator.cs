@@ -281,7 +281,7 @@ namespace EmulatorLauncher
 
         private void ConfigureNes(IniFileJGenesis ini, string system)
         {
-            if (system != "nes")
+            if (system != "nes" && system != "famicom")
                 return;
 
             if (SystemConfig.isOptSet("jgen_nes_timing") && !string.IsNullOrEmpty(SystemConfig["jgen_nes_timing"]))
@@ -365,7 +365,7 @@ namespace EmulatorLauncher
 
         private void ConfigureSnes(IniFileJGenesis ini, string system)
         {
-            if (system != "snes")
+            if (system != "snes" && system != "sfc" && system != "superfamicom")
                 return;
 
             if (SystemConfig.isOptSet("jgen_snes_timing") && !string.IsNullOrEmpty(SystemConfig["jgen_snes_timing"]))
@@ -440,12 +440,13 @@ namespace EmulatorLauncher
                     return "nes";
                 case "snes":
                 case "superfamicom":
-                case "sfamicom":
+                case "sfc":
                     return "snes";
                 case "segacd":
                 case "megacd":
                     return "sega_cd";
                 case "megadrive":
+                case "genesis":
                     return "genesis";
                 case "mastersystem":
                 case "gamegear":
@@ -469,7 +470,7 @@ namespace EmulatorLauncher
                     return "Nes";
                 case "snes":
                 case "superfamicom":
-                case "sfamicom":
+                case "sfc":
                     return "Snes";
                 case "segacd":
                 case "megacd":
@@ -523,7 +524,7 @@ namespace EmulatorLauncher
                     return "32x";
                 case "snes":
                 case "superfamicom":
-                case "sfamicom":
+                case "sfc":
                     return "sfc";
             }
             return null;

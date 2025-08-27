@@ -392,7 +392,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (system == "pcenginecd")
+            if (system == "pcenginecd" || system == "turbografxcd")
             {
                 var sys = bml.GetOrCreateContainer("PCEngineCD");
                 var firmware = sys.GetOrCreateContainer("Firmware");

@@ -143,13 +143,14 @@ namespace EmulatorLauncher
         }
 
         static List<string> gbSystems = new List<string>() { "gb", "gbc" };
+        static List<string> psxSystems = new List<string>() { "psx", "ps1", "playstation" };
         static List<string> ngpSystems = new List<string>() { "ngp", "ngpc" };
         static List<string> jaguarSystems = new List<string>() { "jaguar", "jaguarcd" };
         static List<string> megadriveSystems = new List<string>() { "genesis", "megacd", "megadrive", "megadrive-msu", "sega32x", "segacd" };
         static List<string> n64Systems = new List<string>() { "n64", "n64dd" };
-        static List<string> nesSystems = new List<string>() { "fds", "nes" };
-        static List<string> pceSystems = new List<string>() { "pcengine", "pcenginecd" };
-        static List<string> snesSystems = new List<string>() { "satellaview", "snes", "snes-msu1", "sgb", "sufami" };
+        static List<string> nesSystems = new List<string>() { "fds", "nes", "famicom" };
+        static List<string> pceSystems = new List<string>() { "pcengine", "pcenginecd", "turbografx", "turbografxcd" };
+        static List<string> snesSystems = new List<string>() { "satellaview", "snes", "snes-msu1", "sgb", "sufami", "sfc", "superfamicom" };
         static List<string> md3buttonsLibretro = new List<string>() { "257", "1025", "1537", "773", "2" };
         private static string GetTattooName(string system, string core, string emulator)
         {
@@ -169,6 +170,8 @@ namespace EmulatorLauncher
                 system = "jaguar";
             else if (ngpSystems.Contains(system))
                 system = "ngp";
+            else if (psxSystems.Contains(system))
+                system = "psx";
 
             string ret = system;
 

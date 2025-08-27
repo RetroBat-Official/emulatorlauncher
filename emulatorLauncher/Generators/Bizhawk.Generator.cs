@@ -27,7 +27,7 @@ namespace EmulatorLauncher
         private bool _sindenSoft;
 
         private static readonly List<string> preferredRomExtensions = new List<string>() { ".bin", ".cue", ".img", ".iso", ".rom" };
-        private static readonly List<string> zipSystems = new List<string>() { "3ds", "psx", "saturn", "n64", "n64dd", "pcenginecd", "jaguarcd", "vectrex", "odyssey2", "uzebox" };
+        private static readonly List<string> zipSystems = new List<string>() { "3ds", "psx", "saturn", "n64", "n64dd", "pcenginecd", "turbografxcd", "jaguarcd", "vectrex", "odyssey2", "uzebox" };
         private static readonly List<string> _mdSystems = new List<string>() { "genesis", "mega32x", "megacd", "megadrive", "sega32x", "segacd" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -169,6 +169,7 @@ namespace EmulatorLauncher
         private static readonly Dictionary<string, string> bizhawkPreferredCore = new Dictionary<string, string>()
         {
             { "atari2600", "A26" },
+            { "famicom", "NES" },
             { "gg", "GG" },
             { "gamegear", "GG" },
             { "gb", "GB" },
@@ -184,11 +185,15 @@ namespace EmulatorLauncher
             { "pcenginecd", "PCECD" },
             { "psx", "PSX" },
             { "satellaview", "BSX" },
+            { "sfc", "SNES" },
             { "sg1000", "SG" },
             { "sgb", "SGB" },
             { "snes", "SNES" },
+            { "superfamicom", "SNES" },
             { "supergrafx", "SGX" },
             { "ti83", "TI83" },
+            { "turbografx", "PCE" },
+            { "turbografxcd", "PCECD" },
         };
 
         private void SetupGeneralConfig(DynamicJson json, string system, string core, string rom, string emulator, bool fullscreen)
@@ -544,7 +549,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (system == "nes")
+            if (system == "nes" || system == "famicom")
             {
                 // NES firmware
                 string disksysPath = Path.Combine(AppConfig.GetFullPath("bios"), "disksys.rom");
@@ -756,6 +761,7 @@ namespace EmulatorLauncher
             { "c64", "C64" },
             { "channelf", "ChannelF" },
             { "colecovision", "Coleco" },
+            { "famicom", "NES" },
             { "gamegear", "GG" },
             { "gb", "GB_GBC_SGB" },
             { "gb2players", "GBL" },
@@ -768,6 +774,7 @@ namespace EmulatorLauncher
             { "jaguarcd", "Jaguar" },
             { "lynx", "Lynx" },
             { "mastersystem", "SMS" },
+            { "mega32x", "32X" },
             { "megadrive", "GEN" },
             { "msx", "MSX" },
             { "multivision", "SG" },
@@ -783,12 +790,16 @@ namespace EmulatorLauncher
             { "satellaview", "BSX" },
             { "saturn", "SAT" },
             { "sega32x", "32X" },
+            { "sfc", "SNES" },
             { "sg1000", "SG" },
             { "sgb", "GB_GBC_SGB" },
             { "snes", "SNES" },
+            { "superfamicom", "SNES" },
             { "supergrafx", "PCE_PCECD_SGX_SGXCD" },
             { "ti83", "TI83" },
             { "tic80", "TIC80" },
+            { "turbografx", "PCE_PCECD_SGX_SGXCD" },
+            { "turbografxcd", "PCE_PCECD_SGX_SGXCD" },
             { "uzebox", "UZE" },
             { "vectrex", "VEC" },
             { "virtualboy", "VB" },
@@ -806,16 +817,22 @@ namespace EmulatorLauncher
             { "jaguarcd", "Jaguar" },
             { "lynx", "Lynx" },
             { "nes", "NES" },
+            { "famicom", "NES" },
             { "snes", "SNES" },
+            { "sfc", "SNES" },
+            { "superfamicom", "SNES" },
             { "n64", "N64" },
             { "gb", "GB" },
             { "gba", "GBA" },
             { "psx", "PSX" },
             { "mastersystem", "SMS" },
             { "megadrive", "GEN" },
+            { "genesis", "GEN" },
             { "sega32x", "32X" },
+            { "mega32x", "32X" },
             { "saturn", "SAT" },
             { "pcengine", "PCE" },
+            { "turbografx", "PCE" },
             { "colecovision", "Coleco" },
             { "ti83", "TI83" },
             { "wswan", "WSWAN" },
@@ -833,6 +850,7 @@ namespace EmulatorLauncher
             { "gbc", "GB" },
             { "gbc2players", "GB" },
             { "pcenginecd", "PCE" },
+            { "turbografxcd", "PCE" },
             { "sgb", "GB" },
         };
     }

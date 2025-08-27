@@ -6,6 +6,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
+using SharpDX.DirectInput;
 
 namespace EmulatorLauncher
 {
@@ -57,14 +58,49 @@ namespace EmulatorLauncher
             if (c1 == null || c1.Config == null)
                 return;
 
+            // Enumerate the same way as supermodel
+            var directInput = new DirectInput();
+            var diDevices = directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
+            SimpleLogger.Instance.Info("[INFO] Enumerated " + diDevices.Count + " directInput devices.");
+
             //initialize controller index, m2emulator uses directinput controller index (+1)
             //only index of player 1 is initialized as there might be only 1 controller at that point
             int j2index;
-            int j1index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex + 1 : c1.DeviceIndex + 1;
+            int j1index = 1;
+            
+            if (c1.DirectInput != null)
+            {
+                var dinputDevice1 = diDevices.Where(d => d.InstanceGuid == c1.DirectInput.InstanceGuid).FirstOrDefault();
+
+                if (dinputDevice1 != null)
+                {
+                    j1index = diDevices.IndexOf(dinputDevice1) + 1;
+                    SimpleLogger.Instance.Info("[INFO] Defined player 1 index based on dinput enumeration.");
+                }
+                else
+                    j1index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex + 1 : c1.DeviceIndex + 1;
+            }
+            else
+                j1index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex + 1 : c1.DeviceIndex + 1;
 
             //If a secod controller is connected, get controller index of player 2, if there is no 2nd controller, just increment the index
             if (c2 != null && c2.Config != null && !c2.IsKeyboard)
-                j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
+            {
+                if (c2.DirectInput != null)
+                {
+                    var dinputDevice2 = diDevices.Where(d => d.InstanceGuid == c2.DirectInput.InstanceGuid).FirstOrDefault();
+
+                    if (dinputDevice2 != null)
+                    {
+                        j2index = diDevices.IndexOf(dinputDevice2) + 1;
+                        SimpleLogger.Instance.Info("[INFO] Defined player 2 index based on dinput enumeration.");
+                    }
+                    else
+                        j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
+                }
+                else
+                    j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
+            }
             else
                 j2index = 0;
 
@@ -194,7 +230,23 @@ namespace EmulatorLauncher
 
                     if (wheelbuttonMap != null && wheelbuttonMap.Count > 0)
                     {
-                        j1index = wheelPadIndex + 1;
+                        c1 = this.Controllers.FirstOrDefault(c => c.DeviceIndex == wheel.ControllerIndex);
+
+                        if (c1.DirectInput != null)
+                        {
+                            var dinputDevice1 = diDevices.Where(d => d.InstanceGuid == c1.DirectInput.InstanceGuid).FirstOrDefault();
+
+                            if (dinputDevice1 != null)
+                            {
+                                j1index = diDevices.IndexOf(dinputDevice1) + 1;
+                                SimpleLogger.Instance.Info("[INFO] Defined player 1 index based on dinput enumeration.");
+                            }
+                            else
+                                j1index = wheelPadIndex + 1;
+                        }
+                        else
+                            j1index = wheelPadIndex + 1;
+
                         shifterID = j1index - 1;
 
                         ini.WriteValue("Input", "XInput", "0");
@@ -202,8 +254,6 @@ namespace EmulatorLauncher
                         tech2 = "dinput";
                         dinput1 = true;
                         dinput2 = true;
-
-                        c1 = this.Controllers.FirstOrDefault(c => c.DeviceIndex == wheel.ControllerIndex);
                         wheelGuid = c1.Guid;
 
                         SimpleLogger.Instance.Info("[WHEELS] Wheel index : " + wheelPadIndex);

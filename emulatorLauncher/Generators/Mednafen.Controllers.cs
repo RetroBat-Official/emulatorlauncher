@@ -724,7 +724,7 @@ namespace EmulatorLauncher
                 if (!noType)
                     cfg[mednafenCore + ".input.port" + playerIndex] = padType;
 
-                newmapping = ConfigureMappingPerSystem(newmapping, system, padType, cfg);
+                newmapping = ConfigureMappingPerSystem(newmapping, mednafenCore, padType, cfg);
 
                 foreach (var entry in newmapping)
                 {
@@ -2045,10 +2045,10 @@ namespace EmulatorLauncher
             return "";
         }
 
-        private static Dictionary<string, InputKey> ConfigureMappingPerSystem(Dictionary<string, InputKey> mapping, string system, string padType, MednafenConfigFile cfg)
+        private static Dictionary<string, InputKey> ConfigureMappingPerSystem(Dictionary<string, InputKey> mapping, string mednafenCore, string padType, MednafenConfigFile cfg)
         {
             Dictionary<string, InputKey> newMapping = mapping;
-            if (system == "nes")
+            if (mednafenCore == "nes")
             {
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
                 {
@@ -2069,7 +2069,7 @@ namespace EmulatorLauncher
                     }
                 }
             }
-            else if (system == "megadrive" && padType == "gamepad6")
+            else if (mednafenCore == "md" && padType == "gamepad6")
             {
                 if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
                 {
@@ -2093,7 +2093,7 @@ namespace EmulatorLauncher
                     newMapping["z"] = InputKey.x;
                 }
             }
-            else if (system == "mastersystem")
+            else if (mednafenCore == "sms")
             {
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
                 {
@@ -2103,7 +2103,7 @@ namespace EmulatorLauncher
                     newMapping["rapid_fire2"] = InputKey.b;
                 }
             }
-            else if (system == "saturn")
+            else if (mednafenCore == "ss")
             {
                 bool switchTriggers = Program.SystemConfig.getOptBoolean("saturn_invert_triggers");
                 if (Program.SystemConfig.isOptSet("saturn_padlayout") && !string.IsNullOrEmpty(Program.SystemConfig["saturn_padlayout"]))

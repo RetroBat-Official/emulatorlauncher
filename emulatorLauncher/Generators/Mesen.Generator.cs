@@ -15,7 +15,7 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private bool _sindenSoft = false;
-        static List<string> _m3uSystems = new List<string>() { "pcenginecd" };
+        static List<string> _m3uSystems = new List<string>() { "pcenginecd", "turbografxcd" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -89,6 +89,7 @@ namespace EmulatorLauncher
             ConfigureSnes(systemSection, system);
             ConfigureGameboy(systemSection, system, path);
             ConfigureGba(systemSection, system, path);
+            ConfigureColeco(systemSection, system, path);
 
             // Emulator preferences
             var preference = GetOrCreateContainer(json, "Preferences");
@@ -194,7 +195,7 @@ namespace EmulatorLauncher
 
         private void ConfigureNes(JObject section, string system)
         {
-            if (system != "nes" && system != "fds")
+            if (system != "nes" && system != "fds" && system != "famicom")
                 return;
             section["AutoConfigureInput"] = "false";
             BindBoolFeature(section, "EnableHdPacks", "mesen_customtextures", "true", "false");
@@ -221,13 +222,13 @@ namespace EmulatorLauncher
 
         private void ConfigurePCEngine(JObject section, string system, string path)
         {
-            if (system != "pcengine" && system != "pcenginecd")
+            if (system != "pcengine" && system != "pcenginecd" && system != "turbografx" && system != "turbografxcd" && system != "turbografx16")
                 return;
 
             BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
             BindFeature(section, "ConsoleType", "mesen_pce_console", "Auto");
 
-            if (system == "pcenginecd")
+            if (system == "pcenginecd" || system == "turbografxcd")
             {
                 // Firmwares for pcenginecd need to be copied to emulator folder
                 string targetFirmwarePath = Path.Combine(path, "Firmware");
@@ -326,7 +327,7 @@ namespace EmulatorLauncher
 
         private void ConfigureSnes(JObject section, string system)
         {
-            if (system != "snes")
+            if (system != "snes" && system != "sfc" && system != "superfamicom")
                 return;
 
             BindFeature(section, "Region", "mesen_region", "Auto");

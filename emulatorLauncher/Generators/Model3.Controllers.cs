@@ -5,6 +5,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.Lightguns;
+using SharpDX.DirectInput;
 
 namespace EmulatorLauncher
 {
@@ -85,6 +86,12 @@ namespace EmulatorLauncher
             {
                 ini.Remove(section, "InputSystem");
             }
+
+            // Enumerate the same way as supermodel
+            var directInput = new DirectInput();
+            var diDevices = directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
+
+            SimpleLogger.Instance.Info("[INFO] Enumerated " + diDevices.Count + " directInput devices.");
 
             //initialize tech : as default we will use sdl instead of dinput, as there are less differences in button mappings in sdl !
             string tech = "sdl";
@@ -192,18 +199,20 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[WHEELS] Wheel model found : " + drivingWheel.ToString());
 
                 if (drivingWheel != WheelType.Default)
-                    usableWheels.Add(new Wheel() 
-                    { 
-                        Name = controller.Name, 
-                        VendorID = controller.VendorID.ToString(), 
-                        ProductID = controller.ProductID.ToString(), 
-                        DevicePath = controller.DevicePath.ToLowerInvariant(), 
+                {
+                    usableWheels.Add(new Wheel()
+                    {
+                        Name = controller.Name,
+                        VendorID = controller.VendorID.ToString(),
+                        ProductID = controller.ProductID.ToString(),
+                        DevicePath = controller.DevicePath.ToLowerInvariant(),
                         DinputIndex = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex,
                         SDLIndex = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex,
                         XInputIndex = controller.XInput != null ? controller.XInput.DeviceIndex : controller.DeviceIndex,
                         ControllerIndex = controller.DeviceIndex,
                         Type = drivingWheel
                     });
+                }
             }
 
             wheelNb = usableWheels.Count;
@@ -283,23 +292,38 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Input indexes in supermodel are either sdl+1 or DirectInput + 1 (also includes xinput, rawinput)
+            // Input indexes in supermodel are by enum
             int j1index, j2index = -1;
 
-            if (tech == "sdl")
+            if (c1.DirectInput != null)
             {
-                j1index = c1.SdlController != null ? c1.SdlController.Index + 1 : c1.DeviceIndex + 1;
+                var dinputDevice1 = diDevices.Where(d => d.InstanceGuid == c1.DirectInput.InstanceGuid).FirstOrDefault();
 
-                if (c2 != null && c2.Config != null)
+                if (dinputDevice1 != null)
                 {
-                    j2index = c2.SdlController != null ? c2.SdlController.Index + 1 : c2.DeviceIndex + 1;
+                    j1index = diDevices.IndexOf(dinputDevice1) + 1;
+                    SimpleLogger.Instance.Info("[INFO] Defined player 1 index based on dinput enumeration.");
                 }
+                else
+                    j1index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex + 1 : c1.DeviceIndex + 1;
             }
             else
-            {
                 j1index = c1.DirectInput != null ? c1.DirectInput.DeviceIndex + 1 : c1.DeviceIndex + 1;
 
-                if (c2 != null && c2.Config != null)
+            if (c2 != null && c2.Config != null)
+            {
+                if (c2.DirectInput != null)
+                {
+                    var dinputDevice2 = diDevices.Where(d => d.InstanceGuid == c2.DirectInput.InstanceGuid).FirstOrDefault();
+                    if (dinputDevice2 != null)
+                    {
+                        j2index = diDevices.IndexOf(dinputDevice2) + 1;
+                        SimpleLogger.Instance.Info("[INFO] Defined player 2 index based on dinput enumeration.");
+                    }
+                    else
+                        j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
+                }
+                else
                     j2index = c2.DirectInput != null ? c2.DirectInput.DeviceIndex + 1 : c2.DeviceIndex + 1;
             }
 
