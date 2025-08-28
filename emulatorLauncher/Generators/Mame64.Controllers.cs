@@ -455,13 +455,18 @@ namespace EmulatorLauncher
                         button.Mask == null ? null : new XAttribute("mask", button.Mask),
                         button.DefValue == null ? null : new XAttribute("defvalue", button.DefValue));
 
-                        foreach (var map in button.ButtonMappings)
+                    foreach (var map in button.ButtonMappings)
+                    {
+                        string mappingText = map.Mapping;
+                        if (!string.Equals(mappingText, "NONE", StringComparison.OrdinalIgnoreCase))
                         {
-                        var butonMap = new XElement("newseq",
-                        new XAttribute("type", map.Type), GetSpecificMappingX(joy, mouseIndex1, map.Mapping, i));
-
-                        port.Add(butonMap);
+                            mappingText = GetSpecificMappingX(joy, mouseIndex1, mappingText, i);
                         }
+
+                        var buttonMap = new XElement("newseq", new XAttribute("type", map.Type), mappingText);
+
+                        port.Add(buttonMap);
+                    }
                   
                     input.Add(port);
                 }
@@ -815,10 +820,15 @@ namespace EmulatorLauncher
 
                     foreach (var map in button.ButtonMappings)
                     {
-                        var butonMap = new XElement("newseq",
-                        new XAttribute("type", map.Type), GetSpecificMappingD(ctrlr, joy, mouseIndex1, map.Mapping, i, xinputCtrl));
+                        string mappingText = map.Mapping;
+                        if (!string.Equals(mappingText, "NONE", StringComparison.OrdinalIgnoreCase))
+                        {
+                            mappingText = GetSpecificMappingD(ctrlr, joy, mouseIndex1, mappingText, i, xinputCtrl);
+                        }
 
-                        port.Add(butonMap);
+                        var buttonMap = new XElement("newseq", new XAttribute("type", map.Type), mappingText);
+
+                        port.Add(buttonMap);
                     }
 
                     input.Add(port);
@@ -1089,10 +1099,15 @@ namespace EmulatorLauncher
 
                     foreach (var map in button.ButtonMappings)
                     {
-                        var butonMap = new XElement("newseq",
-                        new XAttribute("type", map.Type), GetSpecificMappingX(joy, mouseIndex2, map.Mapping, i));
+                        string mappingText = map.Mapping;
+                        if (!string.Equals(mappingText, "NONE", StringComparison.OrdinalIgnoreCase))
+                        {
+                            mappingText = GetSpecificMappingX(joy, mouseIndex2, mappingText, i);
+                        }
 
-                        port.Add(butonMap);
+                        var buttonMap = new XElement("newseq", new XAttribute("type", map.Type), mappingText);
+
+                        port.Add(buttonMap);
                     }
 
                     input.Add(port);
@@ -1367,10 +1382,15 @@ namespace EmulatorLauncher
 
                     foreach (var map in button.ButtonMappings)
                     {
-                        var butonMap = new XElement("newseq",
-                        new XAttribute("type", map.Type), GetSpecificMappingD(ctrlr, joy, mouseIndex2, map.Mapping, i, xinputCtrl));
+                        string mappingText = map.Mapping;
+                        if (!string.Equals(mappingText, "NONE", StringComparison.OrdinalIgnoreCase))
+                        {
+                            mappingText = GetSpecificMappingD(ctrlr, joy, mouseIndex2, mappingText, i, xinputCtrl);
+                        }
 
-                        port.Add(butonMap);
+                        var buttonMap = new XElement("newseq", new XAttribute("type", map.Type), mappingText);
+
+                        port.Add(buttonMap);
                     }
 
                     input.Add(port);
@@ -2022,13 +2042,27 @@ namespace EmulatorLauncher
                     string[] mapParts = value.Split('_');
                     if (mapParts.Length > 1)
                     {
+                        int axisDirection = 0;
                         string source = mapParts[1];
                         string target = null;
 
+                        if (source.EndsWith("trigger"))
+                        {
+                            switch (source)
+                            {
+                                case "l2trigger":
+                                    source = "lefttrigger";
+                                    axisDirection = 1;
+                                    break;
+                                case "r2trigger":
+                                    source = "righttrigger";
+                                    axisDirection = 1;
+                                    break;
+                            }
+                        }
+
                         if (specificToDInput.ContainsKey(source))
                             source = specificToDInput[source];
-
-                        int axisDirection = 0;
 
                         if (source.StartsWith("ls"))
                         {
@@ -2162,10 +2196,12 @@ namespace EmulatorLauncher
         #region Xinput mapping dictionnaries
         static readonly Dictionary<string, string> xInputMapping = new Dictionary<string, string>()
         {
-            { "l3",             "BUTTON7"},
-            { "r3",             "BUTTON8"},
+            { "l3",             "BUTTON7" },
+            { "r3",             "BUTTON8" },
             { "l2",             "SLIDER1" },
-            { "r2",             "SLIDER2"},
+            { "r2",             "SLIDER2" },
+            { "l2trigger",      "SLIDER1_NEG" },
+            { "r2trigger",      "SLIDER2_NEG" },
             { "north",          "BUTTON4" },
             { "south",          "BUTTON1" },
             { "west",           "BUTTON3" },
@@ -2181,11 +2217,11 @@ namespace EmulatorLauncher
             { "lsup",           "YAXIS_UP_SWITCH" },
             { "lsdown",         "YAXIS_DOWN_SWITCH" },
             { "lsleft",         "XAXIS_LEFT_SWITCH" },
-            { "lsright",        "XAXIS_RIGHT_SWITCH"},
+            { "lsright",        "XAXIS_RIGHT_SWITCH" },
             { "rsup",           "RZAXIS_NEG_SWITCH" },
             { "rsdown",         "RZAXIS_POS_SWITCH" },
             { "rsleft",         "ZAXIS_NEG_SWITCH" },
-            { "rsright",        "ZAXIS_POS_SWITCH"},
+            { "rsright",        "ZAXIS_POS_SWITCH" },
             { "ls_x",           "XAXIS" },
             { "ls_y",           "YAXIS" },
             { "rs_x",           "ZAXIS" },
@@ -2197,15 +2233,15 @@ namespace EmulatorLauncher
             { "leftstickx",           "ls_x" },
             { "leftsticky",           "ls_y" },
             { "rightstickx",           "rs_x" },
-            { "rightsticky",           "rs_y"}
+            { "rightsticky",           "rs_y" }
         };
 
         static readonly Dictionary<string, string> specificToDInput = new Dictionary<string, string>()
         {
-            { "l3",             "leftstick"},
-            { "r3",             "rightstick"},
+            { "l3",             "leftstick" },
+            { "r3",             "rightstick" },
             { "l2",             "lefttrigger" },
-            { "r2",             "righttrigger"},
+            { "r2",             "righttrigger" },
             { "north",          "y" },
             { "south",          "a" },
             { "west",           "x" },
