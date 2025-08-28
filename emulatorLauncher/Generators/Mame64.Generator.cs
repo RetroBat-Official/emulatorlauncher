@@ -546,7 +546,7 @@ namespace EmulatorLauncher
             
             else if (!SystemConfig.isOptSet("mame_ctrlr_profile") || SystemConfig["mame_ctrlr_profile"] == "retrobat_auto")
             {
-                if (ConfigureMameControllers(ctrlrPath, hbmame))
+                if (ConfigureMameControllers(ctrlrPath, hbmame, rom))
                 {
                     retList.Add("-ctrlr");
                     retList.Add("retrobat_auto");
