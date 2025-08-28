@@ -603,10 +603,41 @@ namespace EmulatorLauncher.Libretro
             if (ymlFile == null)
                 return false;
 
-            game = ymlFile.Elements.Where(c => c.Name == romName).FirstOrDefault() as YmlContainer;
+            string controLayout = "";
+            if (Program.SystemConfig.isOptSet("arcade_pad_layout") && !string.IsNullOrEmpty(Program.SystemConfig["arcade_pad_layout"]))
+                controLayout = Program.SystemConfig["arcade_pad_layout"];
+
+            string searchYml = romName;
+
+            if (!string.IsNullOrEmpty(controLayout))
+                searchYml = searchYml + "_" + controLayout;
+
+            // Loop through yml elements
+            // example for mame sf2:
+            // sf2_gamepad, sf2_8button...
+            // If option is set in ES to use 8button layout for mame, search for:
+            // 1) sf2_8button
+            // 2) sf2
+            // 3) Any container beginning with s or sf and ending with 8button
+            // 4) Any container beginning with s or sf
+            // 5) default_8button
+            // 6) default
+            game = ymlFile.Elements.Where(c => c.Name == searchYml).FirstOrDefault() as YmlContainer;
 
             if (game == null)
+                game = ymlFile.Elements.Where(c => c.Name == romName).FirstOrDefault() as YmlContainer;
+
+            if (game == null)
+                game = ymlFile.Elements.Where(c => romName.StartsWith(c.Name) && romName.EndsWith(controLayout)).FirstOrDefault() as YmlContainer;
+            if (game == null)
                 game = ymlFile.Elements.Where(c => romName.StartsWith(c.Name)).FirstOrDefault() as YmlContainer;
+
+            string defsearch = "default";
+            if (!string.IsNullOrEmpty(controLayout))
+                defsearch = defsearch + "_" + controLayout;
+
+            if (game == null)
+                game = ymlFile.Elements.Where(c => c.Name == defsearch).FirstOrDefault() as YmlContainer;
 
             if (game == null)
                 game = ymlFile.Elements.Where(c => c.Name == "default").FirstOrDefault() as YmlContainer;
@@ -696,10 +727,39 @@ namespace EmulatorLauncher.Libretro
             "{systempath}\\resources\\inputmapping\\libretro.yml"
         };
 
+        // RETROARCH/MAME correspondance (example for sf2 with snes controls):
+        // A(EAST) => L
+        // B(SOUTH) => X
+        // X(NORTH) => A
+        // Y(WEST) => B
+        // L => Y
+        // R => R
         private enum Mame_remap
         {
+            L2 = 12,
+            L = 10,
+            SELECT = 2,
+            START = 3,
+            R2 = 13,
+            R = 11,
             L3 = 14,
             R3 = 15,
+            A = 8,
+            B = 0,
+            X = 9,
+            Y = 1,
+            JOY1DOWN = 18,
+            JOY1LEFT = 17,
+            JOY1UP = 19,
+            JOY1RIGHT = 16,
+            DPADRIGHT = 7,
+            DPADLEFT = 6,
+            DPADUP = 4,
+            DPADDOWN = 5,
+            JOY2DOWN = 22,
+            JOY2LEFT = 21,
+            JOY2UP = 23,
+            JOY2RIGHT = 20
         };
 
         private enum Atari800_remap

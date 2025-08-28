@@ -1,18 +1,22 @@
 ﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.Lightguns;
-using DI = SharpDX.DirectInput;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using DI = SharpDX.DirectInput;
 
 namespace EmulatorLauncher
 {
     partial class Mame64Generator
     {
         private bool _sindenSoft = false;
+        private GameMapping _gameMapping = null;
+        private Layout _gameLayout = null;
 
         private void UpdateSdlControllersWithHints()
         {
@@ -25,7 +29,7 @@ namespace EmulatorLauncher
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }
 
-        private bool ConfigureMameControllers(string path, bool hbmame)
+        private bool ConfigureMameControllers(string path, bool hbmame, string rom)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
@@ -56,6 +60,32 @@ namespace EmulatorLauncher
 
             UpdateSdlControllersWithHints();
 
+            // Get specific mapping if it exists
+            string MappingFileName = Path.GetFileNameWithoutExtension(rom) + ".xml";
+            string layout = "default";
+            if (SystemConfig.isOptSet("mame_controller_layout") && !string.IsNullOrEmpty(SystemConfig["mame_controller_layout"]))
+                layout = SystemConfig["mame_controller_layout"];
+
+            string specificMappingPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "user", "inputmapping", "mame", MappingFileName);
+            if (!File.Exists(specificMappingPath))
+                specificMappingPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mame", MappingFileName);
+
+            if (File.Exists(specificMappingPath))
+            {
+                var gameMapping = GameMapping.LoadGameFromXml(specificMappingPath);
+
+                if (gameMapping != null)
+                {
+                    var gameLayout = gameMapping.Layouts.Where(l => l.Type == layout).FirstOrDefault();
+
+                    if (gameLayout != null)
+                    {
+                        _gameMapping = gameMapping;
+                        _gameLayout = gameLayout;
+                    }
+                }
+            }
+
             // Delete existing config file if any
             string inputConfig = Path.Combine(path, "retrobat_auto.cfg");
             if (File.Exists(inputConfig))
@@ -63,9 +93,8 @@ namespace EmulatorLauncher
 
             // Complex logic to get pad index for MAME
             // MAME uses dinput index for dinput but for hybrid ...
-            // ... it reads first non-xinput controllers and sorts them by dinput index
-            // ... then it reads USB controllers and sorts them by dinput index
-            // ... finally it reads other XInput controllers also sorted by dinput index
+            // ... it reads first non-xinput controllers and sorts them by enumeration order
+            // ... finally it reads other XInput controllers also sorted by enumeration index
             Dictionary<Controller, int> hybridController = new Dictionary<Controller, int>();
             var mameconfig = new XElement("mameconfig", new XAttribute("version", "10"));
             var system = new XElement("system", new XAttribute("name", "default"));
@@ -215,10 +244,10 @@ namespace EmulatorLauncher
                     }
                     if (gamecontrollerDB != null)
                     {
-                        SimpleLogger.Instance.Info("[INFO] Player "+ i + " . Fetching gamecontrollerdb.txt file with guid : " + guid);
+                        SimpleLogger.Instance.Info("[INFO] Player " + i + " . Fetching gamecontrollerdb.txt file with guid : " + guid);
 
-                        try 
-                        { 
+                        try
+                        {
                             if (SystemConfig.getOptBoolean("analogDpad"))
                                 ctrlr = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid, true);
                             else
@@ -227,7 +256,7 @@ namespace EmulatorLauncher
                         catch { }
 
                         if (ctrlr == null || ctrlr.ButtonMappings == null)
-                            SimpleLogger.Instance.Info("[INFO] Player "+ i + ". No controller mapping found in gamecontrollerdb.txt file for guid : " + guid);
+                            SimpleLogger.Instance.Info("[INFO] Player " + i + ". No controller mapping found in gamecontrollerdb.txt file for guid : " + guid);
                         else
                             SimpleLogger.Instance.Info("[INFO] Player " + i + ": controller mapping found in gamecontrollerDB file.");
                     }
@@ -264,7 +293,7 @@ namespace EmulatorLauncher
                 }
 
                 // define mapping for xInput case
-                var mapping = hbmame? hbxInputMapping : xInputMapping;
+                var mapping = hbmame ? hbxInputMapping : xInputMapping;
 
                 // Invert player 1 & 2 with feature
                 bool invert = SystemConfig.getOptBoolean("mame_indexswitch") && mameControllers.Count > 1;
@@ -300,7 +329,7 @@ namespace EmulatorLauncher
             }
 
             // Generate xml document
-            XDocument xdoc = new XDocument (new XDeclaration("1.0", null, null));
+            XDocument xdoc = new XDocument(new XDeclaration("1.0", null, null));
             xdoc.Add(mameconfig);
             mameconfig.Add(system);
             system.Add(input);
@@ -314,7 +343,7 @@ namespace EmulatorLauncher
         }
 
         #region configuration
-        private void ConfigurePlayer1XInput(int i, XElement input, Dictionary<string,string> mapping, string joy, string mouseIndex1, bool hbmame, bool dpadonly)
+        private void ConfigurePlayer1XInput(int i, XElement input, Dictionary<string, string> mapping, string joy, string mouseIndex1, bool hbmame, bool dpadonly)
         {
             if (hbmame)
             {
@@ -392,6 +421,58 @@ namespace EmulatorLauncher
             input.Add(new XElement
                 ("port", new XAttribute("type", "TILT1"),
                     new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["r1"] + " OR KEYCODE_T")));
+
+            // Start & coin
+            input.Add(new XElement
+                ("port", new XAttribute("type", "START" + i),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["start"] + " OR KEYCODE_1")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "COIN" + i),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " OR KEYCODE_5")));
+
+            // Specific mapping if available
+            if (!hbmame && _gameLayout != null)
+            {
+                if (_gameMapping.Name != null)
+                    SimpleLogger.Instance.Info("[INFO] Performing specific mapping (xinput) for: " + _gameMapping.Name);
+
+                foreach (var button in _gameLayout.Buttons)
+                {
+                    string player = button.Player;
+                    if (player != null && player != "1")
+                        continue;
+                    if (button.Type.Contains("P2_") || button.Type.Contains("P3_") || button.Type.Contains("P4_") || button.Type.Contains("P5_") || button.Type.Contains("P6_"))
+                        continue;
+                    if (button.Type.Contains("START2") || button.Type.Contains("START3") || button.Type.Contains("START4") || button.Type.Contains("START5") || button.Type.Contains("START6"))
+                        continue;
+                    if (button.Type.Contains("COIN2") || button.Type.Contains("COIN3") || button.Type.Contains("COIN4") || button.Type.Contains("COIN5") || button.Type.Contains("COIN6"))
+                        continue;
+
+                    var port = new XElement("port",
+                        new XAttribute("type", button.Type),
+                        button.Tag == null ? null : new XAttribute("tag", button.Tag),
+                        button.Mask == null ? null : new XAttribute("mask", button.Mask),
+                        button.DefValue == null ? null : new XAttribute("defvalue", button.DefValue));
+
+                    foreach (var map in button.ButtonMappings)
+                    {
+                        string mappingText = map.Mapping;
+                        if (!string.Equals(mappingText, "NONE", StringComparison.OrdinalIgnoreCase))
+                        {
+                            mappingText = GetSpecificMappingX(joy, mouseIndex1, mappingText, i);
+                        }
+
+                        var buttonMap = new XElement("newseq", new XAttribute("type", map.Type), mappingText);
+
+                        port.Add(buttonMap);
+                    }
+                  
+                    input.Add(port);
+                }
+
+                return;
+            }
 
             // Standard joystick buttons and directions
             if (dpadonly)
@@ -632,15 +713,6 @@ namespace EmulatorLauncher
                     new XElement("newseq", new XAttribute("type", "standard"), "MOUSECODE_" + mouseIndex1 + "_YAXIS"),
                     new XElement("newseq", new XAttribute("type", "increment"), "KEYCODE_DOWN"),
                     new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_UP")));
-
-            // Start & coin
-            input.Add(new XElement
-                ("port", new XAttribute("type", "START" + i),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["start"] + " OR KEYCODE_1")));
-
-            input.Add(new XElement
-                ("port", new XAttribute("type", "COIN" + i),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " OR KEYCODE_5")));
         }
 
         private void ConfigurePlayer1DInput(int i, XElement input, SdlToDirectInput ctrlr, string joy, string mouseIndex1, bool hbmame, bool dpadonly, bool xinputCtrl)
@@ -721,6 +793,49 @@ namespace EmulatorLauncher
             input.Add(new XElement
                 ("port", new XAttribute("type", "TILT1"),
                     new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_T")));
+
+            // Specific mapping if available
+            if (!hbmame && _gameLayout != null)
+            {
+                if (_gameMapping.Name != null)
+                    SimpleLogger.Instance.Info("[INFO] Performing specific mapping (dinput) for: " + _gameMapping.Name);
+
+                foreach (var button in _gameLayout.Buttons)
+                {
+                    string player = button.Player;
+                    if (player != null && player != "1")
+                        continue;
+                    if (button.Type.Contains("P2_") || button.Type.Contains("P3_") || button.Type.Contains("P4_") || button.Type.Contains("P5_") || button.Type.Contains("P6_"))
+                        continue;
+                    if (button.Type.Contains("START2") || button.Type.Contains("START3") || button.Type.Contains("START4") || button.Type.Contains("START5") || button.Type.Contains("START6"))
+                        continue;
+                    if (button.Type.Contains("COIN2") || button.Type.Contains("COIN3") || button.Type.Contains("COIN4") || button.Type.Contains("COIN5") || button.Type.Contains("COIN6"))
+                        continue;
+
+                    var port = new XElement("port",
+                        new XAttribute("type", button.Type),
+                        button.Tag == null ? null : new XAttribute("tag", button.Tag),
+                        button.Mask == null ? null : new XAttribute("mask", button.Mask),
+                        button.DefValue == null ? null : new XAttribute("defvalue", button.DefValue));
+
+                    foreach (var map in button.ButtonMappings)
+                    {
+                        string mappingText = map.Mapping;
+                        if (!string.Equals(mappingText, "NONE", StringComparison.OrdinalIgnoreCase))
+                        {
+                            mappingText = GetSpecificMappingD(ctrlr, joy, mouseIndex1, mappingText, i, xinputCtrl);
+                        }
+
+                        var buttonMap = new XElement("newseq", new XAttribute("type", map.Type), mappingText);
+
+                        port.Add(buttonMap);
+                    }
+
+                    input.Add(port);
+                }
+
+                return;
+            }
 
             // Standard joystick buttons and directions
             if (dpadonly)
@@ -958,6 +1073,49 @@ namespace EmulatorLauncher
 
         private void ConfigurePlayersXInput(int i, XElement input, Dictionary<string, string> mapping, string joy, string mouseIndex2, bool hbmame, bool dpadonly)
         {
+            // Specific mapping if available
+            if (!hbmame && _gameLayout != null)
+            {
+                if (_gameMapping.Name != null)
+                    SimpleLogger.Instance.Info("[INFO] Performing specific mapping (xinput) for: " + _gameMapping.Name);
+
+                foreach (var button in _gameLayout.Buttons)
+                {
+                    string player = button.Player;
+                    if (player != null && player == "1")
+                        continue;
+                    if (button.Type.Contains("P1_"))
+                        continue;
+                    if (button.Type.Contains("START1"))
+                        continue;
+                    if (button.Type.Contains("COIN1"))
+                        continue;
+
+                    var port = new XElement("port",
+                        new XAttribute("type", button.Type),
+                        button.Tag == null ? null : new XAttribute("tag", button.Tag),
+                        button.Mask == null ? null : new XAttribute("mask", button.Mask),
+                        button.DefValue == null ? null : new XAttribute("defvalue", button.DefValue));
+
+                    foreach (var map in button.ButtonMappings)
+                    {
+                        string mappingText = map.Mapping;
+                        if (!string.Equals(mappingText, "NONE", StringComparison.OrdinalIgnoreCase))
+                        {
+                            mappingText = GetSpecificMappingX(joy, mouseIndex2, mappingText, i);
+                        }
+
+                        var buttonMap = new XElement("newseq", new XAttribute("type", map.Type), mappingText);
+
+                        port.Add(buttonMap);
+                    }
+
+                    input.Add(port);
+                }
+
+                return;
+            }
+
             if (dpadonly)
             {
                 input.Add(new XElement
@@ -1199,6 +1357,48 @@ namespace EmulatorLauncher
 
         private void ConfigurePlayersDInput(int i, XElement input, SdlToDirectInput ctrlr, string joy, string mouseIndex2, bool dpadonly, bool xinputCtrl)
         {
+            if (_gameLayout != null)
+            {
+                if (_gameMapping.Name != null)
+                    SimpleLogger.Instance.Info("[INFO] Performing specific mapping (dinput) for: " + _gameMapping.Name);
+
+                foreach (var button in _gameLayout.Buttons)
+                {
+                    string player = button.Player;
+                    if (player != null && player == "1")
+                        continue;
+                    if (button.Type.Contains("P1_"))
+                        continue;
+                    if (button.Type.Contains("START1"))
+                        continue;
+                    if (button.Type.Contains("COIN1"))
+                        continue;
+
+                    var port = new XElement("port",
+                        new XAttribute("type", button.Type),
+                        button.Tag == null ? null : new XAttribute("tag", button.Tag),
+                        button.Mask == null ? null : new XAttribute("mask", button.Mask),
+                        button.DefValue == null ? null : new XAttribute("defvalue", button.DefValue));
+
+                    foreach (var map in button.ButtonMappings)
+                    {
+                        string mappingText = map.Mapping;
+                        if (!string.Equals(mappingText, "NONE", StringComparison.OrdinalIgnoreCase))
+                        {
+                            mappingText = GetSpecificMappingD(ctrlr, joy, mouseIndex2, mappingText, i, xinputCtrl);
+                        }
+
+                        var buttonMap = new XElement("newseq", new XAttribute("type", map.Type), mappingText);
+
+                        port.Add(buttonMap);
+                    }
+
+                    input.Add(port);
+                }
+
+                return;
+            }
+
             if (dpadonly)
             {
                 input.Add(new XElement
@@ -1582,7 +1782,7 @@ namespace EmulatorLauncher
 
             if (multi)
             {
-                input.Add(new XElement 
+                input.Add(new XElement
                     ("port", new XAttribute("type", "P2_JOYSTICK_UP"),
                         new XElement("newseq", new XAttribute("type", "standard"), "GUNCODE_2_BUTTON7")));
 
@@ -1662,6 +1862,11 @@ namespace EmulatorLauncher
                 return "";
             }
 
+            if (buttonkey == "dpup" || buttonkey == "dpleft")
+                axisDirection = -1;
+            else if (buttonkey == "dpdown" || buttonkey == "dpright")
+                axisDirection = 1;
+
             string button = c.ButtonMappings[buttonkey];
 
             // For xInput : specific treatment of axis
@@ -1738,15 +1943,265 @@ namespace EmulatorLauncher
             }
             return "";
         }
+
+        private string GetSpecificMappingX(string joy, string mouseindex, string mapping, int player)
+        {
+            string ret = "";
+
+            string[] parts = mapping.Split(new string[] { "OR" }, StringSplitOptions.None);
+
+            foreach (string part in parts)
+            {
+                string value = part.Trim();
+
+                if (value.StartsWith("JOY"))
+                {
+                    string[] mapParts = value.Split('_');
+                    if (mapParts.Length > 1)
+                    {
+                        string source = mapParts[1];
+                        string target = null;
+
+                        if (specificToXinput.ContainsKey(source))
+                            source = specificToXinput[source];
+
+                        if (xInputMapping.ContainsKey(source))
+                        {
+                            target = xInputMapping[source];
+
+                            if (string.IsNullOrEmpty(ret))
+                                ret += joy + target;
+                            else
+                                ret += " OR " + joy + target;
+                        }
+                    }
+                }
+                else if (value.StartsWith("GUN"))
+                {
+                    if (player > 2)
+                        ret = "";
+                    else if (player == 2 && !_multigun)
+                        ret = "";
+                    else
+                    {
+                        string[] mapParts = value.Split('_');
+                        if (mapParts.Length > 1)
+                        {
+                            string target = mapParts[1];
+                            if (string.IsNullOrEmpty(ret))
+                                ret += "GUNCODE_" + mouseindex + "_" + target;
+                            else
+                                ret += " OR " + "GUNCODE_" + mouseindex + "_" + target;
+                        }
+                    }
+                }
+                else if (value.StartsWith("MOUSE"))
+                {
+                    if (player > 2)
+                        ret = "";
+                    else if (player == 2 && !_multigun)
+                        ret = "";
+                    else
+                    {
+                        string[] mapParts = value.Split('_');
+                        if (mapParts.Length > 1)
+                        {
+                            string target = mapParts[1];
+                            if (string.IsNullOrEmpty(ret))
+                                ret += "MOUSECODE_" + mouseindex + "_" + target;
+                            else
+                                ret += " OR " + "MOUSECODE_" + mouseindex + "_" + target;
+                        }
+                    }
+                }
+
+                else if (value.StartsWith("KEY"))
+                {
+                    if (string.IsNullOrEmpty(ret))
+                        ret += value;
+                    else
+                        ret += " OR " + value;
+                }
+            }
+
+            return ret;
+        }
+
+        private string GetSpecificMappingD(SdlToDirectInput c, string joy, string mouseindex, string mapping, int player, bool isXinput)
+        {
+            string ret = "";
+
+            string[] parts = mapping.Split(new string[] { "OR" }, StringSplitOptions.None);
+
+            foreach (string part in parts)
+            {
+                string value = part.Trim();
+
+                if (value.StartsWith("JOY"))
+                {
+                    string[] mapParts = value.Split('_');
+                    if (mapParts.Length > 1)
+                    {
+                        int axisDirection = 0;
+                        string source = mapParts[1];
+                        string target = null;
+
+                        if (source.EndsWith("trigger"))
+                        {
+                            switch (source)
+                            {
+                                case "l2trigger":
+                                    source = "lefttrigger";
+                                    axisDirection = 1;
+                                    break;
+                                case "r2trigger":
+                                    source = "righttrigger";
+                                    axisDirection = 1;
+                                    break;
+                            }
+                        }
+
+                        if (specificToDInput.ContainsKey(source))
+                            source = specificToDInput[source];
+
+                        if (source.StartsWith("ls"))
+                        {
+                            switch (source)
+                            {
+                                case "lsup":
+                                    axisDirection = -1;
+                                    source = "lefty";
+                                    break;
+                                case "lsdown":
+                                    axisDirection = 1;
+                                    source = "lefty";
+                                    break;
+                                case "lsleft":
+                                    axisDirection = -1;
+                                    source = "leftx";
+                                    break;
+                                case "lsright":
+                                    axisDirection = 1;
+                                    source = "leftx";
+                                    break;
+                            }
+                        }
+
+                        else if (source.StartsWith("rs"))
+                        {
+                            switch (source)
+                            {
+                                case "rsup":
+                                    axisDirection = -1;
+                                    source = "righty";
+                                    break;
+                                case "rsdown":
+                                    axisDirection = 1;
+                                    source = "righty";
+                                    break;
+                                case "rsleft":
+                                    axisDirection = -1;
+                                    source = "rightx";
+                                    break;
+                                case "rsright":
+                                    axisDirection = 1;
+                                    source = "rightx";
+                                    break;
+                            }
+                        }
+
+                        else if (specificToXinput.ContainsKey(source))
+                        {
+                            axisDirection = 0;
+                            switch (source)
+                            {
+                                case "leftstickx":
+                                    source = "leftx";
+                                    break;
+                                case "leftsticky":
+                                    source = "lefty";
+                                    break;
+                                case "rightstickx":
+                                    source = "rightx";
+                                    break;
+                                case "rightsticky":
+                                    source = "righty";
+                                    break;
+                            }
+                        }
+
+                        target = GetDinputMapping(c, source, isXinput, axisDirection);
+
+                        if (!string.IsNullOrEmpty(target))
+                        {
+                            if (string.IsNullOrEmpty(ret))
+                                ret += joy + target;
+                            else
+                                ret += " OR " + joy + target;
+                        }
+                    }
+                }
+                else if (value.StartsWith("GUN"))
+                {
+                    if (player > 2)
+                        ret = "";
+                    else if (player == 2 && !_multigun)
+                        ret = "";
+                    else
+                    {
+                        string[] mapParts = value.Split('_');
+                        if (mapParts.Length > 1)
+                        {
+                            string target = mapParts[1];
+                            if (string.IsNullOrEmpty(ret))
+                                ret += "GUNCODE_" + mouseindex + "_" + target;
+                            else
+                                ret += " OR " + "GUNCODE_" + mouseindex + "_" + target;
+                        }
+                    }
+                }
+                else if (value.StartsWith("MOUSE"))
+                {
+                    if (player > 2)
+                        ret = "";
+                    else if (player == 2 && !_multigun)
+                        ret = "";
+                    else
+                    {
+                        string[] mapParts = value.Split('_');
+                        if (mapParts.Length > 1)
+                        {
+                            string target = mapParts[1];
+                            if (string.IsNullOrEmpty(ret))
+                                ret += "MOUSECODE_" + mouseindex + "_" + target;
+                            else
+                                ret += " OR " + "MOUSECODE_" + mouseindex + "_" + target;
+                        }
+                    }
+                }
+
+                else if (value.StartsWith("KEY"))
+                {
+                    if (string.IsNullOrEmpty(ret))
+                        ret += value;
+                    else
+                        ret += " OR " + value;
+                }
+            }
+
+            return ret;
+        }
         #endregion
 
         #region Xinput mapping dictionnaries
         static readonly Dictionary<string, string> xInputMapping = new Dictionary<string, string>()
         {
-            { "l3",             "BUTTON7"},
-            { "r3",             "BUTTON8"},
+            { "l3",             "BUTTON7" },
+            { "r3",             "BUTTON8" },
             { "l2",             "SLIDER1" },
-            { "r2",             "SLIDER2"},
+            { "r2",             "SLIDER2" },
+            { "l2trigger",      "SLIDER1_NEG" },
+            { "r2trigger",      "SLIDER2_NEG" },
             { "north",          "BUTTON4" },
             { "south",          "BUTTON1" },
             { "west",           "BUTTON3" },
@@ -1762,15 +2217,43 @@ namespace EmulatorLauncher
             { "lsup",           "YAXIS_UP_SWITCH" },
             { "lsdown",         "YAXIS_DOWN_SWITCH" },
             { "lsleft",         "XAXIS_LEFT_SWITCH" },
-            { "lsright",        "XAXIS_RIGHT_SWITCH"},
+            { "lsright",        "XAXIS_RIGHT_SWITCH" },
             { "rsup",           "RZAXIS_NEG_SWITCH" },
             { "rsdown",         "RZAXIS_POS_SWITCH" },
             { "rsleft",         "ZAXIS_NEG_SWITCH" },
-            { "rsright",        "ZAXIS_POS_SWITCH"},
+            { "rsright",        "ZAXIS_POS_SWITCH" },
             { "ls_x",           "XAXIS" },
             { "ls_y",           "YAXIS" },
             { "rs_x",           "ZAXIS" },
             { "rs_y",           "RZAXIS"}
+        };
+
+        static readonly Dictionary<string, string> specificToXinput = new Dictionary<string, string>()
+        {
+            { "leftstickx",           "ls_x" },
+            { "leftsticky",           "ls_y" },
+            { "rightstickx",           "rs_x" },
+            { "rightsticky",           "rs_y" }
+        };
+
+        static readonly Dictionary<string, string> specificToDInput = new Dictionary<string, string>()
+        {
+            { "l3",             "leftstick" },
+            { "r3",             "rightstick" },
+            { "l2",             "lefttrigger" },
+            { "r2",             "righttrigger" },
+            { "north",          "y" },
+            { "south",          "a" },
+            { "west",           "x" },
+            { "east",           "b" },
+            { "start",          "start" },
+            { "select",         "back" },
+            { "l1",             "leftshoulder" },
+            { "r1",             "rightshoulder" },
+            { "up",             "dpup" },
+            { "down",           "dpdown" },
+            { "left",           "dpleft" },
+            { "right",          "dpright" },
         };
 
         static readonly Dictionary<string, string> hbxInputMapping = new Dictionary<string, string>()
@@ -1805,5 +2288,108 @@ namespace EmulatorLauncher
             { "rs_y",           "RZAXIS"}
         };
         #endregion
+    }
+
+    public class ButtonMapping
+    {
+        public string Type { get; set; }
+        public string Mapping { get; set; }
+    }
+
+    public class Button
+    {
+        public string Type { get; set; }
+        public string Player { get; set; }
+        public string Tag { get; set; }
+        public string Mask { get; set; }
+        public string DefValue { get; set; }
+        public string Function { get; set; }
+        public string X { get; set; }
+        public string Y { get; set; }
+        public string Color { get; set; }
+        public List<ButtonMapping> ButtonMappings { get; set; }
+    }
+
+    public class Layout
+    {
+        public string Type { get; set; }
+        public string JoystickColor { get; set; }
+        public List<Button> Buttons { get; set; }
+    }
+
+    public class GameMapping
+    {
+        public string Name { get; set; }
+        public string Rom { get; set; }
+        public List<Layout> Layouts { get; set; }
+
+        private static string GetAttr(XElement element, string attrName)
+        {
+            return element == null ? null : (string)element.Attribute(attrName);
+        }
+
+        private static XElement GetElem(XElement parent, string name)
+        {
+            return parent == null ? null : parent.Element(name);
+        }
+
+        public static GameMapping LoadGameFromXml(string filePath)
+        {
+            var doc = XDocument.Load(filePath);
+            var gameElement = doc.Root;
+            if (gameElement == null) return null;
+
+            var game = new GameMapping
+            {
+                Name = GetAttr(gameElement, "name"),
+                Rom = GetAttr(gameElement, "rom"),
+                Layouts = new List<Layout>()
+            };
+
+            var layoutsElement = GetElem(gameElement, "layouts");
+            if (layoutsElement != null)
+            {
+                foreach (var l in layoutsElement.Elements("layout"))
+                {
+                    var layout = new Layout
+                    {
+                        Type = GetAttr(l, "type"),
+                        JoystickColor = GetAttr(l, "joystickcolor"),
+                        Buttons = new List<Button>()
+                    };
+
+                    foreach (var b in l.Elements("button"))
+                    {
+                        var button = new Button
+                        {
+                            Type = GetAttr(b, "type"),
+                            Player = GetAttr(b, "player"),
+                            Tag = GetAttr(b, "tag"),
+                            Mask = GetAttr(b, "mask"),
+                            DefValue = GetAttr(b, "defvalue"),
+                            Function = GetAttr(b, "function"),
+                            X = GetAttr(b, "x"),
+                            Y = GetAttr(b, "y"),
+                            Color = GetAttr(b, "color"),
+                            ButtonMappings = new List<ButtonMapping>()
+                        };
+
+                        foreach (var m in b.Elements("mapping"))
+                        {
+                            var mapping = new ButtonMapping
+                            {
+                                Type = GetAttr(m, "type"),
+                                Mapping = GetAttr(m, "name"),
+                            };
+                            button.ButtonMappings.Add(mapping);
+                        }
+                        layout.Buttons.Add(button);
+                    }
+                    game.Layouts.Add(layout);
+                }
+            }
+
+            return game;
+        }
     }
 }
