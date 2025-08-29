@@ -27,6 +27,7 @@ namespace EmulatorLauncher.Libretro
         private static int _maxCount = 2;
         private static string _gameRemapName = null;
         private bool _noRemap = false;
+        private static bool _mameXML = false;
 
         public static void GenerateCoreInputRemap(string system, string core, Dictionary<string, string> inputremap)
         {
@@ -672,8 +673,10 @@ namespace EmulatorLauncher.Libretro
             {
                 foreach (var button in buttonMap)
                     inputremap["input_player" + i + "_" + button.Key] = button.Value;
+                
             }
             _gameRemapName = romName;
+            _mameXML = true;
 
             return true;
         }
