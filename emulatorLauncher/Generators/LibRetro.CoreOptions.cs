@@ -447,7 +447,6 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["aspect_ratio_index"] = idx.ToString();
                     retroarchConfig["video_aspect_ratio_auto"] = "false";
                     SystemConfig["bezel"] = "none";
-
                 }
             }
 
@@ -470,6 +469,9 @@ namespace EmulatorLauncher.Libretro
                     InputRemap["input_remap_port_p" + i] = index.ToString();
                 }
                 GenerateCoreInputRemap(system, core, InputRemap);
+
+                if (core == "mame" && _mameXML)
+                    coreSettings["mame_buttons_profiles"] = "disabled";
             }
 
             // Injects cores input remaps
@@ -483,6 +485,30 @@ namespace EmulatorLauncher.Libretro
             }
             else
                 DeleteInputRemap(GetCoreName(core));
+
+            // Specific treatment for MAME as RetroArch reads data from MAME.opt and not from global settings
+            if (core == "mame")
+            {
+                string mameOptFileFolder = Path.Combine(AppConfig.GetFullPath("retroarch"), "config", "MAME");
+                if (!Directory.Exists(mameOptFileFolder))
+                    try { Directory.CreateDirectory(mameOptFileFolder); } catch { }
+
+                string mameOptFile = Path.Combine(mameOptFileFolder, "MAME.opt");
+                if (!File.Exists(mameOptFile))
+                    try { File.Create(mameOptFile).Close(); } catch { }
+
+                var mameCoreSettings = ConfigFile.FromFile(mameOptFile, new ConfigFileOptions() { CaseSensitive = true });
+
+                foreach (var setting in coreSettings)
+                {
+                    if (setting.Name.StartsWith("mame_") && !setting.Name.Contains("_current"))
+                    {
+                        mameCoreSettings[setting.Name] = setting.Value;
+                    }
+                }
+
+                mameCoreSettings.Save(mameOptFile, true);
+            }
         }
 
         #region Core configuration
@@ -2384,26 +2410,6 @@ namespace EmulatorLauncher.Libretro
             }
 
             ConfigureMameini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
-
-            string mameOptFileFolder = Path.Combine(AppConfig.GetFullPath("retroarch"), "config", "MAME");
-            if (!Directory.Exists(mameOptFileFolder))
-                try { Directory.CreateDirectory(mameOptFileFolder); } catch { }
-            
-            string mameOptFile = Path.Combine(mameOptFileFolder, "MAME.opt");
-            if (!File.Exists(mameOptFile))
-                try { File.Create(mameOptFile).Close(); } catch { }
-            
-            var mameCoreSettings = ConfigFile.FromFile(mameOptFile, new ConfigFileOptions() { CaseSensitive = true });
-
-            foreach (var setting in coreSettings)
-            {
-                if (setting.Name.StartsWith("mame_") && !setting.Name.Contains("_current"))
-                {
-                    mameCoreSettings[setting.Name] = setting.Value;
-                }
-            }
-
-            mameCoreSettings.Save(mameOptFile, true);
         }
 
         private void CleanupMameMessConfigFiles(MessSystem messSystem)

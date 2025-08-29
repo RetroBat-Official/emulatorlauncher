@@ -60,6 +60,11 @@ namespace EmulatorLauncher
 
             UpdateSdlControllersWithHints();
 
+            // Delete input that would be in cfg file
+            string cfgFile = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg", Path.GetFileNameWithoutExtension(rom) + ".cfg");
+            if (File.Exists(cfgFile))
+                DeleteInputincfgFile(cfgFile);
+
             // Get specific mapping if it exists
             string MappingFileName = Path.GetFileNameWithoutExtension(rom) + ".xml";
             string layout = "default";
@@ -570,11 +575,11 @@ namespace EmulatorLauncher
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2"] + " OR KEYCODE_C")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2trigger"] + " OR KEYCODE_C")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2"] + " OR KEYCODE_V")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2trigger"] + " OR KEYCODE_V")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON9"),
@@ -610,13 +615,13 @@ namespace EmulatorLauncher
             {
                 input.Add(new XElement
                     ("port", new XAttribute("type", "P" + i + "_PEDAL"),
-                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2"] + "_NEG"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2"]),
                         new XElement("newseq", new XAttribute("type", "increment"), joy + mapping["south"] + " KEYCODE_LCONTROL")));
 
 
                 input.Add(new XElement
                     ("port", new XAttribute("type", "P" + i + "_PEDAL2"),
-                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2"] + "_NEG"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2"]),
                         new XElement("newseq", new XAttribute("type", "increment"), joy + mapping["east"] + " OR KEYCODE_LALT")));
             }
 
@@ -1229,11 +1234,11 @@ namespace EmulatorLauncher
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2"])));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2trigger"])));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2"])));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2trigger"])));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON9"),
@@ -1276,12 +1281,12 @@ namespace EmulatorLauncher
             {
                 input.Add(new XElement
                     ("port", new XAttribute("type", "P" + i + "_PEDAL"),
-                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2"] + "_NEG"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2"]),
                         new XElement("newseq", new XAttribute("type", "increment"), joy + mapping["south"])));
 
                 input.Add(new XElement
                     ("port", new XAttribute("type", "P" + i + "_PEDAL2"),
-                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2"] + "_NEG"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2"]),
                         new XElement("newseq", new XAttribute("type", "increment"), joy + mapping["east"])));
             }
 
@@ -1845,6 +1850,22 @@ namespace EmulatorLauncher
             }
         }
 
+        private void DeleteInputincfgFile(string cfgFile)
+        {
+            try
+            {
+                XDocument doc = XDocument.Load(cfgFile);
+
+                XElement inputElement = doc.Root?
+                    .Element("system")?
+                    .Element("input");
+
+                inputElement?.Remove();
+                doc.Save(cfgFile);
+            }
+            catch { }
+        }
+
         private string GetDinputMapping(SdlToDirectInput c, string buttonkey, bool isXinput, int axisDirection = 0)
         {
             if (c == null)
@@ -2198,10 +2219,10 @@ namespace EmulatorLauncher
         {
             { "l3",             "BUTTON7" },
             { "r3",             "BUTTON8" },
-            { "l2",             "SLIDER1" },
-            { "r2",             "SLIDER2" },
-            { "l2trigger",      "SLIDER1_NEG" },
-            { "r2trigger",      "SLIDER2_NEG" },
+            { "l2",             "SLIDER1_NEG" },
+            { "r2",             "SLIDER2_NEG" },
+            { "l2trigger",      "SLIDER1_NEG_SWITCH" },
+            { "r2trigger",      "SLIDER2_NEG_SWITCH" },
             { "north",          "BUTTON4" },
             { "south",          "BUTTON1" },
             { "west",           "BUTTON3" },
