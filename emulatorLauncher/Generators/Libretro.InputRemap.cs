@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -56,6 +57,13 @@ namespace EmulatorLauncher.Libretro
             string rom = Program.SystemConfig["rom"];
             if (!string.IsNullOrEmpty(rom) && File.Exists(rom))
                 romName = System.IO.Path.GetFileNameWithoutExtension(rom);
+
+            if (core == "mame")
+            {
+                string cfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", romName + ".cfg");
+                if (File.Exists(cfgFile))
+                    DeleteInputincfgFile(cfgFile);
+            }
 
             bool remapFromFile = SetupCoreGameRemaps(system, core, romName, inputremap);
             if (remapFromFile)
@@ -604,8 +612,8 @@ namespace EmulatorLauncher.Libretro
                 return false;
 
             string controLayout = "";
-            if (Program.SystemConfig.isOptSet("arcade_pad_layout") && !string.IsNullOrEmpty(Program.SystemConfig["arcade_pad_layout"]))
-                controLayout = Program.SystemConfig["arcade_pad_layout"];
+            if (Program.SystemConfig.isOptSet("mame_controller_layout") && !string.IsNullOrEmpty(Program.SystemConfig["mame_controller_layout"]))
+                controLayout = Program.SystemConfig["mame_controller_layout"];
 
             string searchYml = romName;
 
@@ -626,7 +634,6 @@ namespace EmulatorLauncher.Libretro
 
             if (game == null)
                 game = ymlFile.Elements.Where(c => c.Name == romName).FirstOrDefault() as YmlContainer;
-
             if (game == null)
                 game = ymlFile.Elements.Where(c => romName.StartsWith(c.Name) && romName.EndsWith(controLayout)).FirstOrDefault() as YmlContainer;
             if (game == null)
@@ -710,6 +717,22 @@ namespace EmulatorLauncher.Libretro
 
                 if (Directory.Exists(dir) && Directory.GetFiles(dir).Length == 0)
                     Directory.Delete(dir);
+            }
+            catch { }
+        }
+
+        private static void DeleteInputincfgFile(string cfgFile)
+        {
+            try
+            {
+                XDocument doc = XDocument.Load(cfgFile);
+
+                XElement inputElement = doc.Root?
+                    .Element("system")?
+                    .Element("input");
+
+                inputElement?.Remove();
+                doc.Save(cfgFile);
             }
             catch { }
         }
