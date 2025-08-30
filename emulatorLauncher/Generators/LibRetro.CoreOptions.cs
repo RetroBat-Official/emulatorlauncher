@@ -468,10 +468,7 @@ namespace EmulatorLauncher.Libretro
                     var index = i - 1;
                     InputRemap["input_remap_port_p" + i] = index.ToString();
                 }
-                GenerateCoreInputRemap(system, core, InputRemap);
-
-                if (core == "mame" && _mameXML)
-                    coreSettings["mame_buttons_profiles"] = "disabled";
+                GenerateCoreInputRemap(system, core, InputRemap, coreSettings);
             }
 
             // Injects cores input remaps

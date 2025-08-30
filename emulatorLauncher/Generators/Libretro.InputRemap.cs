@@ -29,7 +29,7 @@ namespace EmulatorLauncher.Libretro
         private bool _noRemap = false;
         private static bool _mameXML = false;
 
-        public static void GenerateCoreInputRemap(string system, string core, Dictionary<string, string> inputremap)
+        public static void GenerateCoreInputRemap(string system, string core, Dictionary<string, string> inputremap, ConfigFile coreSettings)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
@@ -66,7 +66,7 @@ namespace EmulatorLauncher.Libretro
                     DeleteInputincfgFile(cfgFile);
             }
 
-            bool remapFromFile = SetupCoreGameRemaps(system, core, romName, inputremap);
+            bool remapFromFile = SetupCoreGameRemaps(system, core, romName, inputremap, coreSettings);
             if (remapFromFile)
                 return;
 
@@ -581,7 +581,7 @@ namespace EmulatorLauncher.Libretro
             return;
         }
 
-        private static bool SetupCoreGameRemaps(string system, string core, string romName, Dictionary<string, string> inputremap)
+        private static bool SetupCoreGameRemaps(string system, string core, string romName, Dictionary<string, string> inputremap, ConfigFile coreSettings)
         {
             if (core == null || system == null || romName == null)
                 return false;
@@ -677,6 +677,9 @@ namespace EmulatorLauncher.Libretro
             }
             _gameRemapName = romName;
             _mameXML = true;
+
+            if (core == "mame" && _mameXML)
+                coreSettings["mame_buttons_profiles"] = "disabled";
 
             return true;
         }
