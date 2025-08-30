@@ -40,6 +40,13 @@ namespace EmulatorLauncher
                     // Start game install
                     Process.Start(path);
 
+                    if (!MonitorUserInstallationValidation())
+                    {
+                        SimpleLogger.Instance.Info("[INFO] User did not launch installation within the time limit.");
+                        KillSteam(uiExists);
+                        throw new ApplicationException("Validation of installation not done.");
+                    }
+
                     if (MonitorGameInstallation())
                     {
                         // Re-check for executable now that it's installed
@@ -50,7 +57,7 @@ namespace EmulatorLauncher
                     {
                         SimpleLogger.Instance.Info("[INFO] Failed to install the game within the time limit.");
                         KillSteam(uiExists);
-                        return -1;
+                        throw new ApplicationException("Game not installed after 2 hours delay!");
                     }
 
                     SimpleLogger.Instance.Info("[INFO] Installation complete. Game will now be launched.");
@@ -230,6 +237,44 @@ namespace EmulatorLauncher
                 return false;
             }
 
+            private bool HasInstallationStarted()
+            {
+                if (string.IsNullOrEmpty(_steamID))
+                    return false;
+
+                try
+                {
+                    using (var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Valve\\Steam\\Apps\\" + _steamID))
+                    {
+                        if (key == null)
+                            return false;
+
+                        var installed = key.GetValue("Installed");
+                        var updating = key.GetValue("Updating");
+
+                        if (installed != null && installed is int && (int)installed == 0)
+                        {
+                            if (updating != null && updating is int && (int)updating == 0)
+                                return false;
+
+                            return true;
+                        }
+                        else if (installed != null && installed is int && (int)installed == 1)
+                        {
+                            SimpleLogger.Instance.Info("[INFO] Game is already installed.");
+                            return true;
+                        }
+                    }
+                }
+                catch
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] Failed to check if Steam game installation has begun.");
+                    return true;
+                }
+
+                return true;
+            }
+
             private bool MonitorGameInstallation()
             {
                 if (string.IsNullOrEmpty(_steamID))
@@ -249,6 +294,28 @@ namespace EmulatorLauncher
                 }
 
                 SimpleLogger.Instance.Info("[STEAM] Timeout: Game installation did not complete.");
+                return false;
+            }
+
+            private bool MonitorUserInstallationValidation()
+            {
+                if (string.IsNullOrEmpty(_steamID))
+                    return false;
+
+                SimpleLogger.Instance.Info("[STEAM] Waiting for game installation to start (AppID: " + _steamID + ").");
+
+                // Wait for user to push the button for installation, with a 30 seconds timeout
+                for (int i = 0; i < 30; i++)
+                {
+                    if (HasInstallationStarted())
+                    {
+                        SimpleLogger.Instance.Info("[STEAM] Game " + _steamID + " installation in progress or game installed already.");
+                        return true;
+                    }
+                    System.Threading.Thread.Sleep(1000);
+                }
+
+                SimpleLogger.Instance.Info("[STEAM] Timeout: User did not validate installation.");
                 return false;
             }
         }

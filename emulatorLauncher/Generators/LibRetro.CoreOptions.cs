@@ -323,6 +323,7 @@ namespace EmulatorLauncher.Libretro
                 _isWidescreen = true;
 
             var coreSettings = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), new ConfigFileOptions() { CaseSensitive = true });
+            SimpleLogger.Instance.Info("[INFO] Configuring core options in retroarch-core-options file.");
 
             Configure4Do(retroarchConfig, coreSettings, system, core);
             Configure81(retroarchConfig, coreSettings, system, core);
@@ -451,6 +452,12 @@ namespace EmulatorLauncher.Libretro
             }
 
             // Inject custom input_libretro_device_pXX values into remap file, as it's no longer supported in retroarch.cfg file
+            SimpleLogger.Instance.Info("[INFO] Configuring Input Remap file in retroarch\\config\\remaps\\" + GetCoreName(core));
+
+            bool mameAuto = coreSettings["mame_buttons_profiles"] == "enabled"; // If user selected mame autoconfig: no specific treatment for MAME
+            if (mameAuto)
+                SimpleLogger.Instance.Info("[INFO] User selected libretro mame game configuration option, disabling RetroBat layout mapping.");
+
             if (InputRemap != null && InputRemap.Count == 0)
             {
                 for (int i = 1; i <= 8; i++)
@@ -468,7 +475,7 @@ namespace EmulatorLauncher.Libretro
                     var index = i - 1;
                     InputRemap["input_remap_port_p" + i] = index.ToString();
                 }
-                GenerateCoreInputRemap(system, core, InputRemap, coreSettings);
+                GenerateCoreInputRemap(system, core, InputRemap, coreSettings, mameAuto);
             }
 
             // Injects cores input remaps
