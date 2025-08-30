@@ -1,4 +1,5 @@
-﻿using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,9 +28,8 @@ namespace EmulatorLauncher.Libretro
         private static int _maxCount = 2;
         private static string _gameRemapName = null;
         private bool _noRemap = false;
-        private static bool _mameXML = false;
 
-        public static void GenerateCoreInputRemap(string system, string core, Dictionary<string, string> inputremap, ConfigFile coreSettings)
+        public static void GenerateCoreInputRemap(string system, string core, Dictionary<string, string> inputremap, ConfigFile coreSettings, bool mameAuto = false)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
@@ -62,11 +62,14 @@ namespace EmulatorLauncher.Libretro
             if (core == "mame")
             {
                 string cfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", romName + ".cfg");
+                string ctrlFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "ctrlr", romName + ".cfg");
                 if (File.Exists(cfgFile))
-                    DeleteInputincfgFile(cfgFile);
+                    DeleteInputincfgFile(cfgFile, ctrlFile);
+                else if (File.Exists(ctrlFile) && !File.Exists(cfgFile) && !mameAuto)
+                    try { File.Copy(ctrlFile, cfgFile); } catch { }
             }
 
-            bool remapFromFile = SetupCoreGameRemaps(system, core, romName, inputremap, coreSettings);
+            bool remapFromFile = SetupCoreGameRemaps(system, core, romName, inputremap, coreSettings, mameAuto);
             if (remapFromFile)
                 return;
 
@@ -581,9 +584,9 @@ namespace EmulatorLauncher.Libretro
             return;
         }
 
-        private static bool SetupCoreGameRemaps(string system, string core, string romName, Dictionary<string, string> inputremap, ConfigFile coreSettings)
+        private static bool SetupCoreGameRemaps(string system, string core, string romName, Dictionary<string, string> inputremap, ConfigFile coreSettings, bool mameAuto = false)
         {
-            if (core == null || system == null || romName == null)
+            if (core == null || system == null || romName == null || mameAuto)
                 return false;
 
             Dictionary<string, Dictionary<string, string>> gameMapping = new Dictionary<string, Dictionary<string, string>>();
@@ -676,10 +679,7 @@ namespace EmulatorLauncher.Libretro
                 
             }
             _gameRemapName = romName;
-            _mameXML = true;
-
-            if (core == "mame" && _mameXML)
-                coreSettings["mame_buttons_profiles"] = "disabled";
+            SimpleLogger.Instance.Info("[INFO] Generated controller configuration based on inputmapping file.");
 
             return true;
         }
@@ -727,17 +727,30 @@ namespace EmulatorLauncher.Libretro
             catch { }
         }
 
-        private static void DeleteInputincfgFile(string cfgFile)
+        private static void DeleteInputincfgFile(string cfgFile, string ctrlFile)
         {
             try
             {
                 XDocument doc = XDocument.Load(cfgFile);
 
-                XElement inputElement = doc.Root?
+                XElement systemElement = doc.Root?.Element("system");
+
+                systemElement?.Element("input")?.Remove();
+
+                if (File.Exists(ctrlFile))
+                {
+                    XDocument ctrldoc = XDocument.Load(ctrlFile);
+
+                    XElement ctrlinputElement = ctrldoc.Root?
                     .Element("system")?
                     .Element("input");
 
-                inputElement?.Remove();
+                    if (ctrlinputElement != null && systemElement != null)
+                    {
+                        systemElement.Add(new XElement(ctrlinputElement));
+                    }
+                }
+
                 doc.Save(cfgFile);
             }
             catch { }
