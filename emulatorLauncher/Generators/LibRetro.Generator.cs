@@ -27,6 +27,30 @@ namespace EmulatorLauncher.Libretro
         public string RetroarchPath { get; set; }
         public string RetroarchCorePath { get; set; }
         public string CurrentHomeDirectory { get; set; }
+
+        public string LogFile
+        {
+            get { return Path.Combine(Program.LocalPath, ".emulationstation", "es_launch_stdout.log"); }
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            int ret = base.RunAndWait(path);
+            if (ret == 1 && File.Exists(LogFile))
+            {
+                var line = File.ReadAllLines(LogFile).FirstOrDefault(s => s != null && s.StartsWith("[libretro ERROR]"));
+                if (!string.IsNullOrEmpty(line))
+                {
+                    base.SetCustomError(line.Replace("[libretro ERROR]", "").Trim());
+                    ExitCode = ExitCodes.CustomError;
+                    Environment.ExitCode = (int)ExitCode;
+                    return 0;
+                }
+            }
+
+            return ret;
+        }
+
         public LibRetroGenerator()
         {
             RetroarchPath = AppConfig.GetFullPath("retroarch");
@@ -34,6 +58,8 @@ namespace EmulatorLauncher.Libretro
             RetroarchCorePath = AppConfig.GetFullPath("retroarch.cores");
             if (string.IsNullOrEmpty(RetroarchCorePath))
                 RetroarchCorePath = Path.Combine(RetroarchPath, "cores");
+
+            FileTools.TryDeleteFile(LogFile);
         }
 
         const string RetroArchNetPlayPatchedName = "RETROBAT";
@@ -522,6 +548,9 @@ namespace EmulatorLauncher.Libretro
                 Environment.SetEnvironmentVariable("HOME", RetroarchPath);
             }
 
+            string logFile = Path.Combine(Program.LocalPath, ".emulationstation", "es_launch_stdout.log");
+            string logCommand = $"--log-file \"{LogFile}\" -verbose ";
+
             // manage MESS systems (MAME core)
             MessSystem messSystem = core == "mame" ? MessSystem.GetMessSystem(system, subCore) : null;
             if (messSystem != null && !string.IsNullOrEmpty(messSystem.MachineName))
@@ -535,7 +564,7 @@ namespace EmulatorLauncher.Libretro
                 {
                     FileName = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe"),
                     WorkingDirectory = RetroarchPath,
-                    Arguments = ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + messArgs).Trim()
+                    Arguments = (logCommand + "-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + messArgs).Trim()
                 };
             }
 
@@ -577,7 +606,7 @@ namespace EmulatorLauncher.Libretro
             {
                 FileName = retroarch,
                 WorkingDirectory = RetroarchPath,
-                Arguments = finalArgs,
+                Arguments = logCommand + finalArgs,
             };
         }
 
