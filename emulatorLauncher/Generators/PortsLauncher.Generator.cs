@@ -160,6 +160,7 @@ namespace EmulatorLauncher
             { "opengoal", "gk.exe"},
             { "openjazz", "OpenJazz.exe"},
             { "pdark", "pd.x86_64.exe"},
+            { "powerbomberman", "Power Bomberman.exe"},
             { "soh", "soh.exe"},
             { "sonic3air", "Sonic3AIR.exe"},
             { "sonicmania", "RSDKv5U_x64.exe"},

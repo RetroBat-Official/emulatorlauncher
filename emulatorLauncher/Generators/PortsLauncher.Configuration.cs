@@ -31,6 +31,7 @@ namespace EmulatorLauncher
             ConfigureOpenGoal(commandArray, rom);
             ConfigureOpenJazz(commandArray, rom);
             ConfigurePDark(commandArray, rom);
+            ConfigurePowerBomberman(rom, exe);
             ConfigureSOH(rom, exe);
             ConfigureSonic3air(rom, exe);
             ConfigureSonicMania(rom, exe);
@@ -754,6 +755,44 @@ namespace EmulatorLauncher
                     ConfigurePDarkControls(ini);
                 }
                 catch { }
+            }
+        }
+
+        private void ConfigurePowerBomberman(string rom, string exe)
+        {
+            if (_emulator != "powerbomberman")
+                return;
+
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string pbPath = Path.Combine(localAppData, "pb");
+            if (!Directory.Exists(pbPath))
+                try { Directory.CreateDirectory(pbPath); } catch { }
+            string config = Path.Combine(pbPath, "config.ini");
+            if (!File.Exists(config))
+            {
+                try
+                {
+                    string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "powerbomberman", "config.ini");
+
+                    if (File.Exists(templateFile))
+                    {
+                        try { File.Copy(templateFile, config); } catch { }
+                    }
+                }
+                catch { }
+            }
+
+            using (var ini = new IniFile(config))
+            {
+                BindBoolIniFeatureOn(ini, "VIDEO", "vsync", "pb_vsync", "1", "0");
+                if (_fullscreen)
+                    ini.WriteValue("VIDEO", "fullscreen", "1");
+                else
+                    ini.WriteValue("VIDEO", "fullscreen", "0");
+
+                ConfigurePowerBombermanControls(ini);
+
+                ini.Save();
             }
         }
 

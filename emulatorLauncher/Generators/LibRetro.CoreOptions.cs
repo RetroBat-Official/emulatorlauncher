@@ -1663,6 +1663,7 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["fceumm_overscan_v_top"] = "8";
             }
 
+            BindFeature(coreSettings, "fceumm_region", "fceumm_region", "Auto");
             BindFeature(coreSettings, "fceumm_aspect", "fceumm_aspect", "8:7 PAR");
             BindBoolFeature(coreSettings, "fceumm_turbo_enable", "nes_turbo_enable", "Both", "None");
             BindFeature(coreSettings, "fceumm_palette", "fceumm_palette", "default");
@@ -2946,6 +2947,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "mesen")
                 return;
 
+            BindFeature(coreSettings, "mesen_region", "mesen_region", "Auto");
             BindFeature(coreSettings, "mesen_aspect_ratio", "mesen_aspect_ratio", "Auto");
             BindBoolFeature(coreSettings, "mesen_hdpacks", "hd_packs", "enabled", "disabled");
             BindFeature(coreSettings, "mesen_ntsc_filter", "ntsc_filter", "Disabled");

@@ -57,7 +57,7 @@ namespace EmulatorLauncher
                     game = ymlFile.Elements.Where(g => g.Name == _romName).FirstOrDefault() as YmlContainer;
 
                 if (game == null)
-                    game = ymlFile.Elements.Where(g => _romName.StartsWith(g.Name) && g.Name != "").FirstOrDefault() as YmlContainer;
+                    game = ymlFile.Elements.Where(g => _romName.StartsWith(g.Name) && g.Name != "").OrderByDescending(g => g.Name.Length).FirstOrDefault() as YmlContainer;
 
                 if (game == null)
                     game = ymlFile.Elements.Where(g => g.Name == "default_" + system).FirstOrDefault() as YmlContainer;
