@@ -639,9 +639,7 @@ namespace EmulatorLauncher.Libretro
             if (game == null)
                 game = ymlFile.Elements.Where(c => c.Name == romName).FirstOrDefault() as YmlContainer;
             if (game == null)
-                game = ymlFile.Elements.Where(c => romName.StartsWith(c.Name) && romName.EndsWith(controLayout)).FirstOrDefault() as YmlContainer;
-            if (game == null)
-                game = ymlFile.Elements.Where(c => romName.StartsWith(c.Name)).FirstOrDefault() as YmlContainer;
+                game = ymlFile.Elements.Where(c => romName.StartsWith(c.Name)).OrderByDescending(c => c.Name.Length).FirstOrDefault() as YmlContainer;
 
             string defsearch = "default";
             if (!string.IsNullOrEmpty(controLayout))

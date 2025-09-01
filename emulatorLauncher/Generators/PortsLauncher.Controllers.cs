@@ -1,12 +1,13 @@
-﻿using System.IO;
-using EmulatorLauncher.Common.FileFormats;
-using System.Linq;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
-using System;
-using System.Collections.Generic;
-using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Windows.Controls;
 
 namespace EmulatorLauncher
@@ -356,6 +357,172 @@ namespace EmulatorLauncher
                 ini.WriteValue(bindingSection, "ACCEPT_BUTTON", joyIndex + "_A");
                 ini.WriteValue(bindingSection, "CANCEL_BUTTON", joyIndex + "_B");
                 ini.WriteValue(bindingSection, "CK_8000", joyIndex + "_LSTICK");
+            }
+        }
+        #endregion
+
+        #region powerbomberman
+        private void ConfigurePowerBombermanControls(IniFile ini)
+        {
+            if (_emulator != "powerbomberman")
+                return;
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                return;
+            }
+
+            // Clear sections
+            for (int i = 1; i < 17; i++)
+            {
+                string playerSection = "PLAYER" + i.ToString();
+                ini.WriteValue(playerSection, "type", "0");
+                ini.Remove(playerSection, "type2");
+
+                for (int j = 0; j < 11; j++)
+                {
+                    string key = "key" + j.ToString() + "_0";
+                    ini.Remove(playerSection, key);
+                }
+            }
+
+            if (!this.Controllers.Any(c => !c.IsKeyboard))
+            {
+                string section = "PLAYER1";
+
+                ini.WriteValue(section, "type", "1");
+                ini.WriteValue(section, "type2", "0");
+                ini.WriteValue(section, "sensitivity", "0.30");
+                ini.WriteValue(section, "key0_0", "40");
+                ini.WriteValue(section, "key1_0", "39");
+                ini.WriteValue(section, "key2_0", "38");
+                ini.WriteValue(section, "key3_0", "37");
+                ini.WriteValue(section, "key4_0", "13");
+
+                List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
+                if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId))
+                {
+                    ini.WriteValue(section, "key5_0", "68");
+                    ini.WriteValue(section, "key6_0", "83");
+                    ini.WriteValue(section, "key7_0", "81");
+                    ini.WriteValue(section, "key8_0", "90");
+                    ini.WriteValue(section, "key9_0", "65");
+                }
+                else
+                {
+                    ini.WriteValue(section, "key5_0", "68");
+                    ini.WriteValue(section, "key6_0", "83");
+                    ini.WriteValue(section, "key7_0", "65");
+                    ini.WriteValue(section, "key8_0", "87");
+                    ini.WriteValue(section, "key9_0", "81");
+                }
+
+                ini.WriteValue(section, "key10_0", "69");
+            }
+
+            else
+            {
+                var xControllers = this.Controllers.Where(c => c.IsXInputDevice && !c.IsKeyboard).ToList();
+                var dControllers = this.Controllers.Where(c => !c.IsXInputDevice && !c.IsKeyboard).ToList();
+                var diDevices = new DirectInputInfo().GetDinputDevices();
+                List<Controller> pbControllers = new List<Controller>();
+
+                var guidOrderLookup = diDevices.Select((d, index) => new { d.InstanceGuid, index }).ToDictionary(x => x.InstanceGuid, x => x.index);
+                if (dControllers.Count > 0)
+                {
+                    dControllers = dControllers.Where(c => guidOrderLookup.ContainsKey(c.DirectInput.InstanceGuid)).OrderBy(c => guidOrderLookup[c.DirectInput.InstanceGuid]).ToList();
+                    pbControllers.AddRange(dControllers);
+                }
+                if (xControllers.Count > 0)
+                {
+                    xControllers = xControllers.Where(c => guidOrderLookup.ContainsKey(c.DirectInput.InstanceGuid)).OrderBy(c => guidOrderLookup[c.DirectInput.InstanceGuid]).ToList();
+                    pbControllers.AddRange(xControllers);
+                }
+
+                int i = 0;
+                foreach (var controller in pbControllers.Take(16))
+                {
+                    ConfigurePowerBombermanInput(ini, controller, controller.PlayerIndex, i);
+                    i++;
+                }
+            }
+        }
+
+        private void ConfigurePowerBombermanInput(IniFile ini, Controller ctrl, int playerIndex, int padIndex)
+        {
+            if (ctrl == null || ctrl.Config == null)
+                return;
+
+            SdlToDirectInput dctrl = null;
+            string guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
+            string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
+            dctrl = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid);
+
+            string section = "PLAYER" + playerIndex.ToString();
+            string index = padIndex.ToString();
+
+            if (ctrl.IsXInputDevice)
+            {
+                SimpleLogger.Instance.Info("[INFO] Player " + playerIndex + ". Using generic xInput mapping for : " + guid);
+
+                ini.WriteValue(section, "type", "3");
+                ini.WriteValue(section, "type2", index);
+                ini.WriteValue(section, "sensitivity", "0.30");
+
+                ini.WriteValue(section, "key0_0", "-4");
+                ini.WriteValue(section, "key1_0", "-1");
+                ini.WriteValue(section, "key2_0", "-5");
+                ini.WriteValue(section, "key3_0", "-2");
+                ini.WriteValue(section, "key4_0", "7");
+                ini.WriteValue(section, "key5_0", "1");
+                ini.WriteValue(section, "key6_0", "0");
+                ini.WriteValue(section, "key7_0", "2");
+                ini.WriteValue(section, "key8_0", "3");
+                ini.WriteValue(section, "key9_0", "4");
+                ini.WriteValue(section, "key10_0", "5");
+            }
+            else if (dctrl != null && dctrl.ButtonMappings != null)
+            {
+                SimpleLogger.Instance.Info("[INFO] Player " + playerIndex + ". Using gamecontrollerDB file mapping for : " + guid);
+
+                ini.WriteValue(section, "type", "3");
+                ini.WriteValue(section, "type2", index);
+                ini.WriteValue(section, "sensitivity", "0.30");
+
+                ini.WriteValue(section, "key0_0", "-4");
+                ini.WriteValue(section, "key1_0", "-1");
+                ini.WriteValue(section, "key2_0", "-5");
+                ini.WriteValue(section, "key3_0", "-2");
+                ini.WriteValue(section, "key4_0", GetPBDinputMapping(dctrl, "start"));
+                ini.WriteValue(section, "key5_0", GetPBDinputMapping(dctrl, "b"));
+                ini.WriteValue(section, "key6_0", GetPBDinputMapping(dctrl, "a"));
+                ini.WriteValue(section, "key7_0", GetPBDinputMapping(dctrl, "x"));
+                ini.WriteValue(section, "key8_0", GetPBDinputMapping(dctrl, "y"));
+                ini.WriteValue(section, "key9_0", GetPBDinputMapping(dctrl, "leftshoulder"));
+                ini.WriteValue(section, "key10_0", GetPBDinputMapping(dctrl, "rightshoulder"));
+            }
+
+            else
+            {
+                SimpleLogger.Instance.Info("[INFO] Player " + playerIndex + ". No controller mapping found in gamecontrollerdb.txt file for guid : " + guid + ". Using es_input info.");
+                
+                ini.WriteValue(section, "type", "3");
+                ini.WriteValue(section, "type2", index);
+                ini.WriteValue(section, "sensitivity", "0.30");
+
+                ini.WriteValue(section, "key0_0", "-4");
+                ini.WriteValue(section, "key1_0", "-1");
+                ini.WriteValue(section, "key2_0", "-5");
+                ini.WriteValue(section, "key3_0", "-2");
+
+                ini.WriteValue(section, "key4_0", GetSDLInputName(ctrl, InputKey.start, "pb"));
+                ini.WriteValue(section, "key5_0", GetSDLInputName(ctrl, InputKey.b, "pb"));
+                ini.WriteValue(section, "key6_0", GetSDLInputName(ctrl, InputKey.a, "pb"));
+                ini.WriteValue(section, "key7_0", GetSDLInputName(ctrl, InputKey.y, "pb"));
+                ini.WriteValue(section, "key8_0", GetSDLInputName(ctrl, InputKey.x, "pb"));
+                ini.WriteValue(section, "key9_0", GetSDLInputName(ctrl, InputKey.pageup, "pb"));
+                ini.WriteValue(section, "key10_0", GetSDLInputName(ctrl, InputKey.pagedown, "pb"));
             }
         }
         #endregion
@@ -727,6 +894,8 @@ namespace EmulatorLauncher
                                 return "H1";
                             else if (port == "soh")
                                 return "11";
+                            else if (port == "pb")
+                                return "-5";
                             else
                                 return "Pov0";
                         case 2:
@@ -734,6 +903,8 @@ namespace EmulatorLauncher
                                 return "H2";
                             else if (port == "soh")
                                 return "14";
+                            else if (port == "pb")
+                                return "-1";
                             else
                                 return "Pov1";
                         case 4:
@@ -741,6 +912,8 @@ namespace EmulatorLauncher
                                 return "H4";
                             else if (port == "soh")
                                 return "12";
+                            else if (port == "pb")
+                                return "-4";
                             else
                                 return "Pov2";
                         case 8:
@@ -748,6 +921,8 @@ namespace EmulatorLauncher
                                 return "H8";
                             else if (port == "soh")
                                 return "13";
+                            else if (port == "pb")
+                                return "-2";
                             else
                                 return "Pov3";
                     }
@@ -790,14 +965,104 @@ namespace EmulatorLauncher
             }
             return "";
         }
+
+        private string GetPBDinputMapping(SdlToDirectInput c, string buttonkey, int axisDirection = 0)
+        {
+            if (c == null)
+                return "";
+
+            if (c.ButtonMappings == null)
+            {
+                SimpleLogger.Instance.Info("[INFO] No mapping found for the controller.");
+                return "";
+            }
+
+            if (!c.ButtonMappings.ContainsKey(buttonkey))
+            {
+                SimpleLogger.Instance.Info("[INFO] No mapping found for " + buttonkey + " in gamecontrollerdb file");
+                return "";
+            }
+
+            string button = c.ButtonMappings[buttonkey];
+
+            if (button.StartsWith("b"))
+            {
+                int buttonID = (button.Substring(1).ToInteger());
+                return buttonID.ToString();
+            }
+
+            else if (button.StartsWith("h"))
+            {
+                int hatID = button.Substring(3).ToInteger();
+
+                switch (hatID)
+                {
+                    case 1:
+                        return "-5";
+                    case 2:
+                        return "-1";
+                    case 4:
+                        return "-4";
+                    case 8:
+                        return "-2";
+                }
+            }
+
+            else if (button.StartsWith("a") || button.StartsWith("-a") || button.StartsWith("+a"))
+            {
+                int axisID = button.Substring(1).ToInteger();
+
+                if (button.StartsWith("-a"))
+                {
+                    axisID = button.Substring(2).ToInteger();
+                    axisDirection = -1;
+                }
+                if (button.StartsWith("+a"))
+                {
+                    axisID = button.Substring(2).ToInteger();
+                    axisDirection = 1;
+                }
+
+                return "0";
+
+                /*switch (axisID)
+                {
+                    case 0:
+                        if (axisDirection == 1) return "XAXIS_RIGHT_SWITCH";
+                        else if (axisDirection == -1) return "XAXIS_LEFT_SWITCH";
+                        else return "XAXIS";
+                    case 1:
+                        if (axisDirection == 1) return "YAXIS_DOWN_SWITCH";
+                        else if (axisDirection == -1) return "YAXIS_UP_SWITCH";
+                        else return "YAXIS";
+                    case 2:
+                        if (axisDirection == 1) return "ZAXIS_POS_SWITCH";
+                        else if (axisDirection == -1) return "ZAXIS_NEG_SWITCH";
+                        else return "ZAXIS";
+                    case 3:
+                        if (axisDirection == 1) return "RXAXIS_POS_SWITCH";
+                        else if (axisDirection == -1) return "RXAXIS_NEG_SWITCH";
+                        else return "RXAXIS";
+                    case 4:
+                        if (axisDirection == 1) return "RYAXIS_POS_SWITCH";
+                        else if (axisDirection == -1) return "RYAXIS_NEG_SWITCH";
+                        else return "RYAXIS";
+                    case 5:
+                        if (axisDirection == 1) return "RZAXIS_POS_SWITCH";
+                        else if (axisDirection == -1) return "RZAXIS_NEG_SWITCH";
+                        else return "RZAXIS";
+                }*/
+            }
+            return "";
+        }
         #endregion
 
         #region Dictionaries
         /// <summary>
         /// Dictionaries and mappings can be added below if necessary, keep alphabetical order and name it with port name
         /// </summary>
-        
-        private static Dictionary<string, string> cdogsKeyboard1 = new Dictionary<string, string>()
+
+        private static readonly Dictionary<string, string> cdogsKeyboard1 = new Dictionary<string, string>()
         {
             { "left", "80" },
             { "right", "79" },
@@ -809,7 +1074,7 @@ namespace EmulatorLauncher
             { "map", "4" }
         };
 
-        private static Dictionary<string, string> cdogsKeyboard2 = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> cdogsKeyboard2 = new Dictionary<string, string>()
         {
             { "left", "92" },
             { "right", "94" },
@@ -821,7 +1086,7 @@ namespace EmulatorLauncher
             { "map", "98" }
         };
 
-        private InputKeyMapping cgeniusMapping = new InputKeyMapping
+        private readonly InputKeyMapping cgeniusMapping = new InputKeyMapping
         {
             { InputKey.select,      "Back" },
             { InputKey.pagedown,    "Camlead" },
@@ -837,12 +1102,12 @@ namespace EmulatorLauncher
             { InputKey.up,          "Up" }
         };
 
-        private List<string> pdarkMapping = new List<string>
+        private readonly List<string> pdarkMapping = new List<string>
         { "R_CBUTTONS", "L_CBUTTONS", "D_CBUTTONS", "U_CBUTTONS", "R_TRIG", "L_TRIG", "X_BUTTON", "Y_BUTTON", "R_JPAD", "L_JPAD", "D_JPAD", "U_JPAD", "START_BUTTON",
         "Z_TRIG", "B_BUTTON", "A_BUTTON", "STICK_XNEG", "STICK_XPOS", "STICK_YNEG", "STICK_YPOS", "ACCEPT_BUTTON", "CANCEL_BUTTON", "CK_0040",
         "CK_0080", "CK_0100", "CK_0200", "CK_0400", "CK_0800", "CK_1000", "CK_2000", "CK_4000", "CK_8000" };
 
-        private Dictionary<int, InputKey> sohMapping = new Dictionary<int, InputKey>()
+        private readonly Dictionary<int, InputKey> sohMapping = new Dictionary<int, InputKey>()
         {
             { 32768,      InputKey.a },                     // A
             { 16384,      InputKey.y },                     // B
@@ -868,7 +1133,7 @@ namespace EmulatorLauncher
             { 1,          InputKey.rightanalogright }
         };
 
-        private static Dictionary<long, long> sohXinputRemap = new Dictionary<long, long>()
+        private static readonly Dictionary<long, long> sohXinputRemap = new Dictionary<long, long>()
         {
             { 6, 4 },
             { 7, 6 },
