@@ -53,10 +53,9 @@ namespace EmulatorLauncher.Common.FileFormats
                 CheckCharacters = false,
                 IgnoreWhitespace = true,
                 ConformanceLevel = ConformanceLevel.Auto,
+                IgnoreComments = true,
                 ValidationType = ValidationType.None
             };
-
-           
 
             // Fix attributes strings containing & caracters
             foreach (var toFix in xml.ExtractStrings("\"", "\"", true).Distinct().Where(s => s.Contains("& ")))

@@ -96,6 +96,7 @@ namespace EmulatorLauncher
                     }
 
                     // Some crcs are missing....
+                    /*
                     foreach (var mm in game.Roms)
                     {
                         foreach (var core in mm.Cores)
@@ -112,7 +113,7 @@ namespace EmulatorLauncher
                             if (gameCrcs.Except(entriesCrcs).Count() == gameCrcs.Length - entriesCrcs.Length)
                                 ret.Add(new CompatibleCore() { Name = core, Match = RomSetMatch.SomeMissing });
                         }
-                    }
+                    }*/
 
                     return ret.ToArray();
                 }
