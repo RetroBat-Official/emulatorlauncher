@@ -876,7 +876,7 @@ namespace EmulatorLauncher
                     var lines = File.ReadAllLines(autorunFile);
                     if (!string.IsNullOrEmpty(lines[0]))
                         bootCommand = lines[0];
-                    if (!string.IsNullOrEmpty(lines[1]))
+                    if (lines.Count() > 1 && !string.IsNullOrEmpty(lines[1]))
                         bootDelay = lines[1];
                     /*commandArray.Add("-autoboot_delay");
                     commandArray.Add("3");
