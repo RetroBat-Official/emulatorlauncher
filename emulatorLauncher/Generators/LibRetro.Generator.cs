@@ -728,6 +728,7 @@ namespace EmulatorLauncher.Libretro
 
             // Resolution & monitor
             bool forcefs = SystemConfig.getOptBoolean("forcefullscreen");
+            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
             int test = Screen.AllScreens.Length;
             if (Features.IsSupported("MonitorIndex"))
             {
@@ -774,25 +775,51 @@ namespace EmulatorLauncher.Libretro
                         resolution = ScreenResolution.FromSize(width, height); // For bezels
                     }
                     else
-                        retroarchConfig["video_windowed_fullscreen"] = "true";
+                        retroarchConfig["video_windowed_fullscreen"] = exclusivefs ? "false" : "true";
                 }
                 else
-                    retroarchConfig["video_windowed_fullscreen"] = "true";
+                    retroarchConfig["video_windowed_fullscreen"] = exclusivefs ? "false" : "true";
             }
-            else if (!forcefs)
+            else if (IsEmulationStationWindowed())
             {
+                var res = ScreenResolution.CurrentResolution;
+                bool identicalRes = resolution.Height.ToString() == res.Width.ToString();
+                
                 retroarchConfig["video_fullscreen_x"] = resolution.Width.ToString();
                 retroarchConfig["video_fullscreen_y"] = resolution.Height.ToString();
                 retroarchConfig["video_refresh_rate"] = resolution.DisplayFrequency.ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
-                retroarchConfig["video_windowed_fullscreen"] = "false";
+                retroarchConfig["video_windowed_fullscreen"] = exclusivefs ? "false" : "true";
+
+                if (forcefs)
+                {
+                    retroarchConfig["video_fullscreen"] = "true";
+                    if (identicalRes)
+                        retroarchConfig["video_windowed_fullscreen"] = exclusivefs ? "false" : "true";
+                    else
+                        retroarchConfig["video_windowed_fullscreen"] = "false";
+                }
+                else
+                {
+                    retroarchConfig["video_fullscreen"] = "false";
+                    retroarchConfig["video_windowed_fullscreen"] = "false";
+                }
             }
 
             else
             {
+                var res = ScreenResolution.CurrentResolution;
+                bool identicalRes = resolution.Height.ToString() == res.Width.ToString();
+
                 retroarchConfig["video_fullscreen_x"] = resolution.Width.ToString();
                 retroarchConfig["video_fullscreen_y"] = resolution.Height.ToString();
                 retroarchConfig["video_refresh_rate"] = resolution.DisplayFrequency.ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
-                retroarchConfig["video_windowed_fullscreen"] = "true";
+                
+                if (identicalRes)
+                    retroarchConfig["video_windowed_fullscreen"] = exclusivefs ? "false" : "true";
+                else
+                    retroarchConfig["video_windowed_fullscreen"] = "false";
+                
+                retroarchConfig["video_fullscreen"] = "true";
             }
 
             if (resolution == null && retroarchConfig["video_monitor_index"] != "0")
@@ -963,12 +990,10 @@ namespace EmulatorLauncher.Libretro
             {
                 retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("full").ToString();
             }
-            else if (core == "tgbdual" || system == "wii" || system == "fbneo" || system == "nds" || system == "mame")
+            else
             {
                 retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
             }
-            else
-                retroarchConfig["aspect_ratio_index"] = "";
             
             // Rewind
             if (!SystemConfig.isOptSet("rewind"))
