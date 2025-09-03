@@ -3205,6 +3205,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "melonds_opengl_resolution", "melonds_opengl_resolution", "1x native (256x192)");
             BindFeature(coreSettings, "melonds_hybrid_ratio", "melonds_hybrid_ratio", "3");
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
+            BindFeature(coreSettings, "melonds_mic_input", "melonds_mic_input", "Blow Noise");
             BindFeatureSlider(coreSettings, "melonds_screen_gap", "melonds_screengap", "0");
 
             if (coreSettings["melonds_opengl_renderer"] == "enabled")
@@ -3411,6 +3412,10 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "melonds_opengl_better_polygons", "melondsds_polygon", "enabled", "disabled");
             BindFeature(coreSettings, "melonds_opengl_filtering", "melondsds_filter", "nearest");
             BindBoolFeatureOn(coreSettings, "melonds_threaded_renderer", "melonds_threaded_renderer", "enabled", "disabled");
+
+            // Microphone
+            BindFeature(coreSettings, "melonds_mic_input", "melonds_mic_input", "blow");
+            BindFeature(coreSettings, "melondsds_touch_mode", "melondsds_touch_mode", "hold");
 
             if (coreSettings["melonds_render_mode"] == "opengl")
             {
