@@ -621,9 +621,6 @@ namespace EmulatorLauncher.Libretro
 
             string searchYml = romName;
 
-            if (!string.IsNullOrEmpty(controLayout))
-                searchYml = searchYml + "_" + controLayout;
-
             // Loop through yml elements
             // example for mame sf2:
             // sf2_gamepad, sf2_8button...
@@ -634,12 +631,27 @@ namespace EmulatorLauncher.Libretro
             // 4) Any container beginning with s or sf
             // 5) default_8button
             // 6) default
+            YmlContainer gameLayout = null;
             game = ymlFile.Elements.Where(c => c.Name == searchYml).FirstOrDefault() as YmlContainer;
+            if (game != null)
+            {
+                string searchYmlLayout = searchYml + "_" + controLayout;
+                gameLayout = ymlFile.Elements.Where(c => c.Name == searchYmlLayout).FirstOrDefault() as YmlContainer;
+                if (gameLayout != null)
+                    game = gameLayout;
+            }
 
-            if (game == null)
-                game = ymlFile.Elements.Where(c => c.Name == romName).FirstOrDefault() as YmlContainer;
-            if (game == null)
+            else if (game == null)
+            {
                 game = ymlFile.Elements.Where(c => romName.StartsWith(c.Name)).OrderByDescending(c => c.Name.Length).FirstOrDefault() as YmlContainer;
+                if (game != null)
+                {
+                    string searchYmlLayout = game.Name + "_" + controLayout;
+                    gameLayout = ymlFile.Elements.Where(c => c.Name == searchYmlLayout).FirstOrDefault() as YmlContainer;
+                    if (gameLayout != null)
+                        game = gameLayout;
+                }
+            }
 
             string defsearch = "default";
             if (!string.IsNullOrEmpty(controLayout))

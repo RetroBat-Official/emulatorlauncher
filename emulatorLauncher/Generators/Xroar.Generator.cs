@@ -1,9 +1,9 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace EmulatorLauncher
@@ -61,6 +61,11 @@ namespace EmulatorLauncher
                 commandArray.Add("-m");
                 commandArray.Add(SystemConfig["xroar_machine"]);
             }
+            else if (system == "coco")
+            {
+                commandArray.Add("-m");
+                commandArray.Add("coco");
+            }
 
             if (SystemConfig.isOptSet("xroar_cart") && !string.IsNullOrEmpty(SystemConfig["xroar_cart"]))
             {
@@ -70,42 +75,30 @@ namespace EmulatorLauncher
 
             commandArray.Add("-rompath");
             string romPath = Path.Combine(AppConfig.GetFullPath("bios"), "dragon");
+            if (system == "coco")
+                romPath = Path.Combine(AppConfig.GetFullPath("bios"), "coco");
             commandArray.Add("\"" + romPath + "\"");
 
             if (fullscreen)
                 commandArray.Add("-fs");
 
-            SetupConfiguration(setupPath, commandArray);
-
-            // Check if additional command line arguments are set
-            string commandFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".commands");
-            string defaultCommands = Path.Combine(path, "default.commands");
-            if (File.Exists(commandFile))
-            {
-                string[] lines = File.ReadAllLines(commandFile);
-                foreach (string line in lines)
-                {
-                    if (line.StartsWith("#"))
-                        continue;
-
-                    commandArray.Add(line);
-                }
-            }
-            else if (File.Exists(defaultCommands))
-            {
-                string[] lines = File.ReadAllLines(defaultCommands);
-                foreach (string line in lines)
-                {
-                    if (line.StartsWith("#"))
-                        continue;
-
-                    commandArray.Add(line);
-                }
-            }
-
+            SetupConfiguration(setupPath, commandArray, system);
             ConfigureControls(path, commandArray, setupPath);
 
-            commandArray.Add("\"" + rom + "\"");
+            var addCommands = new List<string>();
+            if (GetCommands(path, rom, out addCommands))
+            {
+                commandArray.Add("-load");
+                commandArray.Add("\"" + rom + "\"");
+
+                commandArray.Add("-type");
+                commandArray.AddRange(addCommands);
+            }
+
+            else
+            {
+                commandArray.Add("\"" + rom + "\"");
+            }
 
             string args = string.Join(" ", commandArray);
 
@@ -117,8 +110,57 @@ namespace EmulatorLauncher
             };
         }
 
+        private bool GetCommands(string path, string rom, out List<string> addCommands)
+        {
+            addCommands = new List<string>();
+            string romName = Path.GetFileNameWithoutExtension(rom);
+            string commandFile = Path.Combine(Path.GetDirectoryName(rom), romName + ".autorun");
+            string defaultCommands = Path.Combine(path, "default.commands");
+            if (File.Exists(commandFile))
+            {
+                string[] lines = File.ReadAllLines(commandFile);
+                foreach (string line in lines)
+                {
+                    if (line.StartsWith("#"))
+                        continue;
+
+                    addCommands.Add(line);
+                }
+                if (addCommands.Count > 0)
+                    return true;
+            }
+            
+            else if (File.Exists(defaultCommands))
+            {
+                string[] lines = File.ReadAllLines(defaultCommands);
+                foreach (string line in lines)
+                {
+                    if (line.StartsWith("#"))
+                        continue;
+
+                    addCommands.Add(line);
+                }
+                if (addCommands.Count > 0)
+                    return true;
+            }
+            
+            else if (SystemConfig.isOptSet("xroar_load_command") && !string.IsNullOrEmpty(SystemConfig["xroar_load_command"]))
+            {
+                string load = SystemConfig["xroar_load_command"];
+                string run = "";
+                if (SystemConfig.isOptSet("xroar_run_command") && !string.IsNullOrEmpty(SystemConfig["xroar_run_command"]))
+                    run = SystemConfig["xroar_run_command"];
+
+                addCommands.Add("-type");
+                addCommands.Add("\"" + load + "\"\"" + romName + "\"\"" + "\r" + run + "\r" + "\"");
+                return true;
+            }
+
+            return false;
+        }
+
         //Manage config.xroar file settings
-        private void SetupConfiguration(string setupPath, List<string> commandArray)
+        private void SetupConfiguration(string setupPath, List<string> commandArray, string system)
         {
             bool rompathExists = false;
             bool defaultmachine = false;

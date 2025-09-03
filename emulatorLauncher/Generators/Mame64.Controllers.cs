@@ -1975,7 +1975,7 @@ namespace EmulatorLauncher
             {
                 string value = part.Trim();
 
-                if (value.StartsWith("JOY"))
+                if (value.StartsWith("JOY") || value.StartsWith("joy"))
                 {
                     string[] mapParts = value.Split('_');
                     if (mapParts.Length > 1)
@@ -1997,7 +1997,7 @@ namespace EmulatorLauncher
                         }
                     }
                 }
-                else if (value.StartsWith("GUN"))
+                else if (value.StartsWith("GUN") || value.StartsWith("gun"))
                 {
                     if (player > 2)
                         ret = "";
@@ -2016,7 +2016,7 @@ namespace EmulatorLauncher
                         }
                     }
                 }
-                else if (value.StartsWith("MOUSE"))
+                else if (value.StartsWith("MOUSE") || value.StartsWith("mouse"))
                 {
                     if (player > 2)
                         ret = "";
@@ -2036,7 +2036,7 @@ namespace EmulatorLauncher
                     }
                 }
 
-                else if (value.StartsWith("KEY"))
+                else if (value.StartsWith("KEY") || value.StartsWith("key"))
                 {
                     if (string.IsNullOrEmpty(ret))
                         ret += value;
