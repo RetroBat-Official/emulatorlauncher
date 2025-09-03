@@ -249,6 +249,9 @@ namespace EmulatorLauncher
                 BindIniFeatureSlider(ini, "Instance0.Window0", "ScreenGap", "melonds_screengap", "0");
                 BindIniFeature(ini, "Instance0.Window0", "ScreenRotation", "melonds_rotate", "0");
 
+                // Microphone
+                BindIniFeature(ini, "Mic", "InputType", "melonds_micInputType", "1");
+
                 ini.Save();
             }
         }
