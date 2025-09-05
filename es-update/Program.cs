@@ -239,6 +239,12 @@ namespace RetrobatUpdater
                 return true;
             if (path.Contains("saves\\mame\\nvram"))
                 return true;
+            if (path.Contains("saves\\atomiswave\\reicast"))
+                return true;
+            if (path.Contains("saves\\naomi\\reicast"))
+                return true;
+            if (path.Contains("saves\\naomi2\\reicast"))
+                return true;
             if (path.Contains("emulators\\m2emulator\\NVDATA") && path.EndsWith(".DAT"))
                 return true;
             if (path.Contains("emulators\\supermodel\\NVRAM") && path.EndsWith(".nv"))
