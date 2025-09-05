@@ -15,6 +15,7 @@ namespace EmulatorLauncher
         }
 
         private bool _multigun = false;
+        private bool _mouseGun = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -432,11 +433,20 @@ namespace EmulatorLauncher
                 retList.Add("-lightgun_device");
                 retList.Add(SystemConfig["mame_lightgun"]);
             }
-            else
+            else if (SystemConfig.getOptBoolean("use_guns"))
             {
                 retList.Add("-lightgun_device");
                 retList.Add("lightgun");
             }
+            else
+            {
+                retList.Add("-lightgun_device");
+                retList.Add("mouse");
+                _mouseGun = true;
+            }
+
+            if (SystemConfig.isOptSet("mame_lightgun") && SystemConfig["mame_lightgun"] == "mouse")
+                _mouseGun = true;
 
             // Paddle
             if (SystemConfig.isOptSet("mame_paddle") && !string.IsNullOrEmpty(SystemConfig["mame_paddle"]))
@@ -501,12 +511,6 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("mame_offscreen_reload") && SystemConfig.getOptBoolean("mame_offscreen_reload") && SystemConfig["mame_lightgun"] != "none")
                 retList.Add("-reload");
 
-            if (SystemConfig.isOptSet("mame_multimouse") && SystemConfig.getOptBoolean("mame_multimouse"))
-            {
-                retList.Add("-multimouse");
-                _multigun = true;
-            }
-
             // Gamepad driver
             retList.Add("-joystickprovider");
             if (SystemConfig.isOptSet("mame_joystick_driver") && !string.IsNullOrEmpty(SystemConfig["mame_joystick_driver"]))
@@ -553,8 +557,14 @@ namespace EmulatorLauncher
                 }
             }
 
+            if (SystemConfig.isOptSet("mame_multimouse") && !SystemConfig.getOptBoolean("mame_multimouse"))
+                SimpleLogger.Instance.Info("[INFO] Multimouse disabled");
+
+            else
+                retList.Add("-multimouse");
+
             if (!SystemConfig.isOptSet("GameFocus") || !SystemConfig.getOptBoolean("Gamefocus"))
-                retList.Add("-ui_active");
+                        retList.Add("-ui_active");
 
             return retList;
         }
