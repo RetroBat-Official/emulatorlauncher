@@ -442,6 +442,7 @@ namespace EmulatorLauncher
             {
                 retList.Add("-lightgun_device");
                 retList.Add("mouse");
+                _mouseGun = true;
             }
 
             if (SystemConfig.isOptSet("mame_lightgun") && SystemConfig["mame_lightgun"] == "mouse")
