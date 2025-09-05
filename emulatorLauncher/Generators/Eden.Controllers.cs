@@ -12,6 +12,7 @@ namespace EmulatorLauncher
     partial class EdenGenerator : Generator
     {
         private Dictionary<string, int> _samePad = new Dictionary<string, int>();
+        private static bool _norawinput = false;
 
         /// <summary>
         /// Cf. TBD
@@ -21,7 +22,7 @@ namespace EmulatorLauncher
         {
             var hints = new List<string>();
 
-            if (ini.GetValue("Controls", "enable_raw_input\\default") != "false" || ini.GetValue("Controls", "enable_raw_input") == "false")
+            if (_norawinput)
                 hints.Add("SDL_HINT_JOYSTICK_RAWINPUT = 1");
 
             if (ini.GetValue("Controls", "enable_joycon_driver\\default") == "true" || ini.GetValue("Controls", "enable_joycon_driver") != "false")
@@ -44,6 +45,20 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
+
+            if (SystemConfig.getOptBoolean("eden_norawinput"))
+                _norawinput = true;
+
+            if (_norawinput)
+            {
+                ini.WriteValue("Controls", "enable_raw_input\\default", "true");
+                ini.WriteValue("Controls", "enable_raw_input", "false");
+            }
+            else
+            {
+                ini.WriteValue("Controls", "enable_raw_input\\default", "false");
+                ini.WriteValue("Controls", "enable_raw_input", "true");
             }
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Eden");
@@ -188,20 +203,22 @@ namespace EmulatorLauncher
                 return;
 
             var guid = controller.GetSdlGuid(SdlVersion.SDL2_0_X, true);
+            var edenGuid = guid.ToString().ToLowerInvariant();
 
             // Eden deactivates RAWINPUT with SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, 0) when enable_raw_input is set to false (default value) 
             // Convert Guid to XInput
-            if (ini.GetValue("Controls", "enable_raw_input\\default") != "false" || ini.GetValue("Controls", "enable_raw_input") == "false")
+            if (_norawinput)
             {
                 if (controller.SdlWrappedTechID == SdlWrappedTechId.RawInput && controller.XInput != null)
                     guid = guid.ToXInputGuid(controller.XInput.SubType);
-            }
 
-            var edenGuid = guid.ToString().ToLowerInvariant();
-            string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "eden");
-            if (newGuid != null)
-                edenGuid = newGuid;
+                edenGuid = guid.ToString().ToLowerInvariant();
+
+                string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+                string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "eden");
+                if (newGuid != null)
+                    edenGuid = newGuid;
+            }
 
             if (!_samePad.ContainsKey(edenGuid))
                 _samePad.Add(edenGuid, 0);
@@ -406,7 +423,7 @@ namespace EmulatorLauncher
             else if (input.Type == "axis")
             {
                 //Eden sdl implementation uses "2" as axis value for left trigger for XInput
-                if (controller.IsXInputDevice)
+                if (controller.IsXInputDevice && _norawinput)
                 {
                     long newID = input.Id;
                     if (input.Id == 4)
@@ -438,7 +455,7 @@ namespace EmulatorLauncher
                 long edentopval = topVal.Id;
 
                 //Eden sdl implementation uses 3 and 4 for right stick axis values with XInput
-                if (controller.IsXInputDevice && stickName == "rstick")
+                if (controller.IsXInputDevice && stickName == "rstick" && _norawinput)
                 {
                     edenleftval = 3;
                     edentopval = 4;

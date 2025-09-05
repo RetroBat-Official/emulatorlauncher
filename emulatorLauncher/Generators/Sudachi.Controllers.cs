@@ -11,6 +11,8 @@ namespace EmulatorLauncher
 {
     partial class SudachiGenerator : Generator
     {
+        private static bool _norawinput = false;
+
         private Dictionary<string, int> _samePad = new Dictionary<string, int>();
 
         /// <summary>
@@ -21,7 +23,7 @@ namespace EmulatorLauncher
         {
             var hints = new List<string>();
 
-            if (ini.GetValue("Controls", "enable_raw_input\\default") != "false" || ini.GetValue("Controls", "enable_raw_input") == "false")
+            if (_norawinput)
                 hints.Add("SDL_HINT_JOYSTICK_RAWINPUT = 1");
 
             if (ini.GetValue("Controls", "enable_joycon_driver\\default") == "true" || ini.GetValue("Controls", "enable_joycon_driver") != "false")
@@ -44,6 +46,20 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
+            }
+
+            if (SystemConfig.getOptBoolean("sudachi_norawinput"))
+                _norawinput = true;
+
+            if (_norawinput)
+            {
+                ini.WriteValue("Controls", "enable_raw_input\\default", "true");
+                ini.WriteValue("Controls", "enable_raw_input", "false");
+            }
+            else
+            {
+                ini.WriteValue("Controls", "enable_raw_input\\default", "false");
+                ini.WriteValue("Controls", "enable_raw_input", "true");
             }
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Sudachi");
@@ -90,22 +106,23 @@ namespace EmulatorLauncher
                 return;
 
             var guid = controller.GetSdlGuid(SdlVersion.SDL2_0_X, true);
+            var sudachiGuid = guid.ToString().ToLowerInvariant();
 
             // Sudachi deactivates RAWINPUT with SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, 0) when enable_raw_input is set to false (default value) 
             // Convert Guid to XInput
-            if (ini.GetValue("Controls", "enable_raw_input\\default") != "false" || ini.GetValue("Controls", "enable_raw_input") == "false")
+            if (_norawinput)
             {
                 if (controller.SdlWrappedTechID == SdlWrappedTechId.RawInput && controller.XInput != null)
                     guid = guid.ToXInputGuid(controller.XInput.SubType);
+
+                sudachiGuid = guid.ToString().ToLowerInvariant();
+
+                string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+                string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "sudachi");
+
+                if (newGuid != null)
+                    sudachiGuid = newGuid;
             }
-
-            var sudachiGuid = guid.ToString().ToLowerInvariant();
-
-            string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "sudachi");
-
-            if (newGuid != null)
-                sudachiGuid = newGuid;
 
             if (!_samePad.ContainsKey(sudachiGuid))
                 _samePad.Add(sudachiGuid, 0);
@@ -308,7 +325,7 @@ namespace EmulatorLauncher
             else if (input.Type == "axis")
             {
                 //sudachi sdl implementation uses "2" as axis value for left trigger for XInput
-                if (controller.IsXInputDevice)
+                if (controller.IsXInputDevice && _norawinput)
                 {
                     long newID = input.Id;
                     if (input.Id == 4)
@@ -340,7 +357,7 @@ namespace EmulatorLauncher
                 long sudachitopval = topVal.Id;
 
                 //sudachi sdl implementation uses 3 and 4 for right stick axis values with XInput
-                if (controller.IsXInputDevice && stickName == "rstick")
+                if (controller.IsXInputDevice && stickName == "rstick" && _norawinput)
                 {
                     sudachileftval = 3;
                     sudachitopval = 4;
