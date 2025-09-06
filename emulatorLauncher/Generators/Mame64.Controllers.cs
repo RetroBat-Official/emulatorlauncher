@@ -2221,6 +2221,8 @@ namespace EmulatorLauncher
             { "r3",             "BUTTON10"},
             { "l2",             "RZAXIS_NEG_SWITCH" },  //differs
             { "r2",             "ZAXIS_NEG_SWITCH"},    //differs
+            { "l2trigger",      "RZAXIS_NEG_SWITCH" },  //differs
+            { "r2trigger",      "ZAXIS_NEG_SWITCH"},    //differs
             { "north",          "BUTTON4" },
             { "south",          "BUTTON1" },
             { "west",           "BUTTON3" },
