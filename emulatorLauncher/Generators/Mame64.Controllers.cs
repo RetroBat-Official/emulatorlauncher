@@ -135,12 +135,11 @@ namespace EmulatorLauncher
             }
 
             // GUNS & MOUSES
-            var guninput = new XElement("input");
             bool multigun = false;
             if (guns.Length > 0)
             {
                 _multigun = guns.Length > 1;
-                ConfigureGunRemap(guninput, guns, multigun);
+                ConfigureGunRemap(input, guns, multigun);
             }
 
             if (SystemConfig.getOptBoolean("mame_forceOneGun"))
@@ -161,7 +160,7 @@ namespace EmulatorLauncher
             }
 
             if (!mameControllers.Any(c => !c.IsKeyboard))
-                ConfigureLightguns(guninput, mouseIndex1, mouseIndex2, multigun, hbmame);
+                ConfigureLightguns(input, mouseIndex1, mouseIndex2, multigun, hbmame);
 
             // Generate controller mapping
             foreach (var controller in mameControllers)
@@ -261,8 +260,6 @@ namespace EmulatorLauncher
             XDocument xdoc = new XDocument(new XDeclaration("1.0", null, null));
             xdoc.Add(mameconfig);
             mameconfig.Add(system);
-            if (guns.Length > 0 && guninput.HasElements)
-                system.Add(guninput);
 
             if (input.HasElements)
                 system.Add(input);

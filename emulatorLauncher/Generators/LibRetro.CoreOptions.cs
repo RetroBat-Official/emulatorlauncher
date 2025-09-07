@@ -2214,7 +2214,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "kronos")
                 return;
 
-            coreSettings["kronos_use_beetle_saves"] = "enabled";
+            BindBoolFeatureOn(coreSettings, "kronos_use_beetle_saves", "kronos_use_beetle_saves", "enabled", "disabled");
 
             coreSettings["kronos_multitap_port1"] = "disabled";
             coreSettings["kronos_multitap_port2"] = "disabled";
@@ -2741,6 +2741,9 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["beetle_psx_hw_widescreen_hack_aspect_ratio"] = "16:9";
                 }
             }
+            // MEMCARDS
+            BindBoolFeature(coreSettings, "beetle_psx_hw_enable_memcard1", "beetle_psx_hw_enable_memcard1", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "beetle_psx_hw_shared_memory_cards", "beetle_psx_hw_shared_memory_cards", "enabled", "disabled");
 
             // PGXP
             if (SystemConfig.isOptSet("mednafen_pgxp") && SystemConfig.getOptBoolean("mednafen_pgxp"))
@@ -2843,8 +2846,9 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             coreSettings["beetle_saturn_autortc"] = "enabled";
-            coreSettings["beetle_saturn_shared_ext"] = "enabled";
-            coreSettings["beetle_saturn_shared_int"] = "enabled";
+
+            BindBoolFeatureOn(coreSettings, "beetle_saturn_shared_ext", "beetle_saturn_shared_ext", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "beetle_saturn_shared_int", "beetle_saturn_shared_int", "enabled", "disabled");
 
             BindFeature(coreSettings, "beetle_saturn_autortc_lang", "beetle_saturn_autortc_lang", "english");
             BindFeature(coreSettings, "beetle_saturn_cart", "beetle_saturn_cart", "Auto Detect");
@@ -3781,6 +3785,7 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "pcsx_rearmed_show_bios_bootlogo", "pcsx_rearmed_show_bios_bootlogo", "disabled", "enabled");
             BindFeature(coreSettings, "pcsx_rearmed_spu_interpolation", "pcsx_rearmed_spu_interpolation", "simple");
             BindBoolFeature(coreSettings, "pcsx_rearmed_icache_emulation", "pcsx_rearmed_icache_emulation", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx_rearmed_memcard2", "pcsx_rearmed_memcard2", "enabled", "disabled");
 
             // Game fixes
             coreSettings["pcsx_rearmed_idiablofix"] = "disabled";
