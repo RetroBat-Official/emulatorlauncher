@@ -3628,7 +3628,7 @@ namespace EmulatorLauncher.Libretro
                 new KeyValuePair<string, string>("dinopark tycoon", "hack_timing_3"),
                 new KeyValuePair<string, string>("microcosm", "hack_timing_5"),
                 new KeyValuePair<string, string>("aloneinthedark", "hack_timing_6"),
-                new KeyValuePair<string, string>("samuraishowdown", "hack_graphics_step_y")
+                new KeyValuePair<string, string>("samuraishodown", "hack_graphics_step_y")
             };
 
         private void ConfigureOpera(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -3636,17 +3636,22 @@ namespace EmulatorLauncher.Libretro
             if (core != "opera")
                 return;
 
-            coreSettings["opera_dsp_threaded"] = "enabled";
-
+            BindBoolFeatureOn(coreSettings, "opera_dsp_threaded", "opera_dsp_threaded", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "opera_high_resolution", "high_resolution", "enabled", "disabled");
             BindFeature(coreSettings, "opera_cpu_overclock", "cpu_overclock", "1.0x (12.50Mhz)");
             BindFeature(coreSettings, "opera_bios", "opera_bios", "panafz1.bin");
             BindFeature(coreSettings, "opera_region", "opera_region", "ntsc");
+            BindFeature(coreSettings, "opera_madam_matrix_engine", "opera_madam_matrix_engine", "hardware");
 
             // Game hacks
             string rom = SystemConfig["rom"].AsIndexedRomName();
             foreach (var hackName in operaHacks.Select(h => h.Value).Distinct())
                 coreSettings["opera_" + hackName] = operaHacks.Any(h => h.Value == hackName && rom.Contains(h.Key)) ? "enabled" : "disabled";
+            if (SystemConfig.isOptSet("opera_hack") && !string.IsNullOrEmpty(SystemConfig["opera_hack"]))
+            {
+                string hack = "opera_" + SystemConfig["opera_hack"];
+                coreSettings[hack] = "enabled";
+            }
 
             // If ROM includes the word 'Disc', assume it's a multi disc game, and enable shared nvram if the option isn't set.
             if (Features.IsSupported("opera_nvram_storage"))
