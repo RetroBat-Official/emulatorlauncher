@@ -79,7 +79,7 @@ namespace EmulatorLauncher
             if (mesenSystem == "none")
                 return;
 
-            json["FirstRun"] = "false";
+            json["FirstRun"] = false;
 
             // System preferences
             var systemSection = GetOrCreateContainer(json, mesenSystem);
@@ -94,40 +94,40 @@ namespace EmulatorLauncher
             // Emulator preferences
             var preference = GetOrCreateContainer(json, "Preferences");
 
-            preference["AutomaticallyCheckForUpdates"] = "false";
-            preference["SingleInstance"] = "true";
-            preference["PauseWhenInBackground"] = "true";
-            preference["PauseWhenInMenusAndConfig"] = "true";
-            preference["AllowBackgroundInput"] = "true";
-            preference["ConfirmExitResetPower"] = "false";
-            preference["AssociateSnesRomFiles"] = "false";
-            preference["AssociateSnesMusicFiles"] = "false";
-            preference["AssociateNesRomFiles"] = "false";
-            preference["AssociateNesMusicFiles"] = "false";
-            preference["AssociateGbRomFiles"] = "false";
-            preference["AssociateGbMusicFiles"] = "false";
-            preference["AssociatePceRomFiles"] = "false";
-            preference["AssociatePceMusicFiles"] = "false";
+            preference["AutomaticallyCheckForUpdates"] = false;
+            preference["SingleInstance"] = true;
+            preference["PauseWhenInBackground"] = true;
+            preference["PauseWhenInMenusAndConfig"] = true;
+            preference["AllowBackgroundInput"] = true;
+            preference["ConfirmExitResetPower"] = false;
+            preference["AssociateSnesRomFiles"] = false;
+            preference["AssociateSnesMusicFiles"] = false;
+            preference["AssociateNesRomFiles"] = false;
+            preference["AssociateNesMusicFiles"] = false;
+            preference["AssociateGbRomFiles"] = false;
+            preference["AssociateGbMusicFiles"] = false;
+            preference["AssociatePceRomFiles"] = false;
+            preference["AssociatePceMusicFiles"] = false;
 
             if (SystemConfig.isOptSet("mesen_autosave") && SystemConfig["mesen_autosave"] != "false")
             {
-                preference["EnableAutoSaveState"] = "true";
-                preference["AutoSaveStateDelay"] = SystemConfig["mesen_autosave"];
+                preference["EnableAutoSaveState"] = true;
+                preference["AutoSaveStateDelay"] = SystemConfig["mesen_autosave"].ToInteger();
             }
             else
-                preference["EnableAutoSaveState"] = "false";
+                preference["EnableAutoSaveState"] = false;
 
-            BindBoolFeatureOn(preference, "AutoLoadPatches", "mesen_patches", "true", "false");
-            BindBoolFeature(preference, "EnableRewind", "rewind", "true", "false");
-            BindBoolFeatureOn(preference, "DisableOsd", "mesen_osd", "false", "true");
-            BindBoolFeature(preference, "ShowGameTimer", "mesen_timecounter", "true", "false");
-            BindBoolFeature(preference, "ShowFps", "mesen_fps", "true", "false");
+            BindBoolFeatureOn(preference, "AutoLoadPatches", "mesen_patches");
+            BindBoolFeature(preference, "EnableRewind", "rewind");
+            BindBoolFeatureDefaultFalse(preference, "DisableOsd", "mesen_osd");
+            BindBoolFeature(preference, "ShowGameTimer", "mesen_timecounter");
+            BindBoolFeature(preference, "ShowFps", "mesen_fps");
 
             // define folders
             string gamesFolder = Path.GetDirectoryName(rom);
             if (!string.IsNullOrEmpty(gamesFolder) && Directory.Exists(gamesFolder))
             {
-                preference["OverrideGameFolder"] = "true";
+                preference["OverrideGameFolder"] = true;
                 preference["GameFolder"] = gamesFolder;
             }
 
@@ -136,7 +136,7 @@ namespace EmulatorLauncher
                 catch { }
             if (!string.IsNullOrEmpty(recordsFolder) && Directory.Exists(recordsFolder))
             {
-                preference["OverrideAviFolder"] = "true";
+                preference["OverrideAviFolder"] = true;
                 preference["AviFolder"] = recordsFolder;
             }
 
@@ -145,7 +145,7 @@ namespace EmulatorLauncher
                 catch { }
             if (!string.IsNullOrEmpty(savesFolder) && Directory.Exists(savesFolder))
             {
-                preference["OverrideSaveDataFolder"] = "true";
+                preference["OverrideSaveDataFolder"] = true;
                 preference["SaveDataFolder"] = savesFolder;
             }
 
@@ -154,7 +154,7 @@ namespace EmulatorLauncher
                 catch { }
             if (!string.IsNullOrEmpty(saveStateFolder) && Directory.Exists(saveStateFolder))
             {
-                preference["OverrideSaveStateFolder"] = "true";
+                preference["OverrideSaveStateFolder"] = true;
                 preference["SaveStateFolder"] = saveStateFolder;
             }
 
@@ -163,7 +163,7 @@ namespace EmulatorLauncher
                 catch { }
             if (!string.IsNullOrEmpty(screenshotsFolder) && Directory.Exists(screenshotsFolder))
             {
-                preference["OverrideScreenshotFolder"] = "true";
+                preference["OverrideScreenshotFolder"] = true;
                 preference["ScreenshotFolder"] = screenshotsFolder;
             }
 
@@ -171,19 +171,19 @@ namespace EmulatorLauncher
             var video = GetOrCreateContainer(json, "Video");
             BindFeature(video, "VideoFilter", "mesen_filter", "None");
             BindFeature(video, "AspectRatio", "mesen_ratio", "Auto");
-            BindBoolFeature(video, "UseBilinearInterpolation", "bilinear_filtering", "true", "false");
-            BindBoolFeatureOn(video, "VerticalSync", "mesen_vsync", "true", "false");
-            BindFeatureSlider(video, "ScanlineIntensity", "mesen_scanlines", "0");
-            BindBoolFeature(video, "FullscreenForceIntegerScale", "integerscale", "true", "false");
-            BindBoolFeature(video, "UseExclusiveFullscreen", "exclusivefs", "true", "false");
+            BindBoolFeature(video, "UseBilinearInterpolation", "bilinear_filtering");
+            BindBoolFeatureOn(video, "VerticalSync", "mesen_vsync");
+            BindFeatureSliderInt(video, "ScanlineIntensity", "mesen_scanlines", "0");
+            BindBoolFeature(video, "FullscreenForceIntegerScale", "integerscale");
+            BindBoolFeature(video, "UseExclusiveFullscreen", "exclusivefs");
 
             // Emulation menu
             var emulation = GetOrCreateContainer(json, "Emulation");
-            BindFeatureSlider(emulation, "RunAheadFrames", "mesen_runahead", "0");
+            BindFeatureSliderInt(emulation, "RunAheadFrames", "mesen_runahead", "0");
 
             // Input menu
             var input = GetOrCreateContainer(json, "Input");
-            BindBoolFeature(input, "HidePointerForLightGuns", "mesen_target", "false", "true");
+            BindBoolFeatureOn(input, "HidePointerForLightGuns", "mesen_target");
 
             // Controllers configuration
             SetupControllers(preference, systemSection, mesenSystem);
@@ -197,16 +197,16 @@ namespace EmulatorLauncher
         {
             if (system != "nes" && system != "fds" && system != "famicom")
                 return;
-            section["AutoConfigureInput"] = "false";
-            BindBoolFeature(section, "EnableHdPacks", "mesen_customtextures", "true", "false");
+            section["AutoConfigureInput"] = false;
+            BindBoolFeature(section, "EnableHdPacks", "mesen_customtextures");
             BindFeature(section, "Region", "mesen_region", "Auto");
-            BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
+            BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit");
 
             if (system == "fds")
             {
-                BindBoolFeature(section, "FdsAutoInsertDisk", "mesen_fdsautoinsertdisk", "true", "false");
-                BindBoolFeature(section, "FdsFastForwardOnLoad", "mesen_fdsfastforwardload", "true", "false");
-                section["FdsAutoLoadDisk"] = "true";
+                BindBoolFeature(section, "FdsAutoInsertDisk", "mesen_fdsautoinsertdisk");
+                BindBoolFeature(section, "FdsFastForwardOnLoad", "mesen_fdsfastforwardload");
+                section["FdsAutoLoadDisk"] = true;
             }
         }
 
@@ -216,8 +216,8 @@ namespace EmulatorLauncher
                 return;
             BindFeature(section, "Region", "mesen_region", "Auto");
             BindFeature(section, "Revision", "mesen_sms_revision", "Compatibility");
-            BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
-            BindBoolFeatureOn(section, "EnableFmAudio", "mesen_sms_fmaudio", "true", "false");
+            BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit");
+            BindBoolFeatureOn(section, "EnableFmAudio", "mesen_sms_fmaudio");
         }
 
         private void ConfigurePCEngine(JObject section, string system, string path)
@@ -225,7 +225,7 @@ namespace EmulatorLauncher
             if (system != "pcengine" && system != "pcenginecd" && system != "turbografx" && system != "turbografxcd" && system != "turbografx16")
                 return;
 
-            BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit", "true", "false");
+            BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit");
             BindFeature(section, "ConsoleType", "mesen_pce_console", "Auto");
 
             if (system == "pcenginecd" || system == "turbografxcd")
@@ -258,8 +258,8 @@ namespace EmulatorLauncher
             else if (system == "sgb")
             {
                 section["Model"] = "SuperGameboy";
-                BindBoolFeatureOn(section, "UseSgb2", "mesen_sgb2", "true", "false");
-                BindBoolFeature(section, "HideSgbBorders", "mesen_hidesgbborders", "true", "false");
+                BindBoolFeatureOn(section, "UseSgb2", "mesen_sgb2");
+                BindBoolFeature(section, "HideSgbBorders", "mesen_hidesgbborders");
 
                 // Firmwares for sgb need to be copied to emulator folder
                 string targetFirmwarePath = Path.Combine(path, "Firmware");
@@ -286,7 +286,7 @@ namespace EmulatorLauncher
             if (system != "gba")
                 return;
 
-            BindBoolFeature(section, "SkipBootScreen", "mesen_gba_skipboot", "true", "false");
+            BindBoolFeature(section, "SkipBootScreen", "mesen_gba_skipboot");
 
             // Firmware for gba needs to be copied to emulator folder
             string targetFirmwarePath = Path.Combine(path, "Firmware");

@@ -712,7 +712,7 @@ namespace EmulatorLauncher
             }
         }
 
-        // json bindfeatures
+        // Dynamic json bindfeatures
         protected void BindFeature(DynamicJson cfg, string settingName, string featureName, string defaultValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
@@ -796,59 +796,6 @@ namespace EmulatorLauncher
             }
         }
 
-        protected void BindFeature(dynamic json, string settingsName, string featureName, string defaultValue, bool force = false)
-        {
-            if (force || Features.IsSupported(featureName))
-                json[settingsName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
-        }
-
-        protected void BindFeatureInt(dynamic json, string settingsName, string featureName, int defaultValue, bool force = false)
-        {
-            if (force || Features.IsSupported(featureName))
-            {
-                string value = SystemConfig.GetValueOrDefault(featureName, defaultValue.ToString());
-                if (int.TryParse(value, out int ret))
-                    json[settingsName] = ret;
-                else
-                    json[settingsName] = defaultValue;
-            }
-        }
-
-        protected void BindBoolFeatureDefaultFalse(dynamic json, string settingsName, string featureName,bool force = false)
-        {
-            if (force || Features.IsSupported(featureName))
-            {
-                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
-                    json[settingsName] = true;
-                else
-                    json[settingsName] = false;
-            }
-        }
-
-        protected void BindBoolFeatureAuto(dynamic json, string settingsName, string featureName, string trueValue, string falseValue, string autoValue, bool force = false) // use when there is an "auto" value !
-        {
-            if (force || Features.IsSupported(featureName))
-            {
-                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
-                    json[settingsName] = trueValue;
-                else if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
-                    json[settingsName] = falseValue;
-                else
-                    json[settingsName] = autoValue;
-            }
-        }
-
-        protected void BindBoolFeatureDefaultTrue(dynamic json, string settingsName, string featureName, bool force = false)
-        {
-            if (force || Features.IsSupported(featureName))
-            {
-                if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
-                    json[settingsName] = false;
-                else
-                    json[settingsName] = true;
-            }
-        }
-
         protected void BindBoolFeatureInt(JObject json, string settingsName, string featureName, string trueValue, string falseValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
@@ -860,14 +807,14 @@ namespace EmulatorLauncher
             }
         }
 
-        protected void BindBoolFeatureOn(JObject json, string settingsName, string featureName, string trueValue, string falseValue, bool force = false)
+        protected void BindBoolFeatureOn(JObject json, string settingsName, string featureName, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
             {
                 if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
-                    json[settingsName] = falseValue;
+                    json[settingsName] = false;
                 else
-                    json[settingsName] = trueValue;
+                    json[settingsName] = true;
             }
         }
 
@@ -957,6 +904,60 @@ namespace EmulatorLauncher
                 }
                 else
                     json[settingsName] = SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue).ToInteger();
+            }
+        }
+
+        // Dynamic Json
+        protected void BindFeature(dynamic json, string settingsName, string featureName, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+                json[settingsName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+        }
+
+        protected void BindFeatureInt(dynamic json, string settingsName, string featureName, int defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                string value = SystemConfig.GetValueOrDefault(featureName, defaultValue.ToString());
+                if (int.TryParse(value, out int ret))
+                    json[settingsName] = ret;
+                else
+                    json[settingsName] = defaultValue;
+            }
+        }
+
+        protected void BindBoolFeatureDefaultFalse(dynamic json, string settingsName, string featureName,bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    json[settingsName] = true;
+                else
+                    json[settingsName] = false;
+            }
+        }
+
+        protected void BindBoolFeatureAuto(dynamic json, string settingsName, string featureName, string trueValue, string falseValue, string autoValue, bool force = false) // use when there is an "auto" value !
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    json[settingsName] = trueValue;
+                else if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    json[settingsName] = falseValue;
+                else
+                    json[settingsName] = autoValue;
+            }
+        }
+
+        protected void BindBoolFeatureDefaultTrue(dynamic json, string settingsName, string featureName, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    json[settingsName] = false;
+                else
+                    json[settingsName] = true;
             }
         }
 
