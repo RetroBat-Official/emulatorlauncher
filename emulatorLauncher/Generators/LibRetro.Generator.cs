@@ -1126,6 +1126,8 @@ namespace EmulatorLauncher.Libretro
             else
                 retroarchConfig["video_hdr_enable"] = "false";
 
+            BindFeature(retroarchConfig, "input_menu_toggle_gamepad_combo", "input_menu_toggle_gamepad_combo", "0");
+
             // Custom overrides : allow the user to configure directly retroarch.cfg via batocera.conf via lines like : snes.retroarch.menu_driver=rgui
             foreach (var user_config in SystemConfig)
                 if (user_config.Name.StartsWith("retroarch."))

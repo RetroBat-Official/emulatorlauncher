@@ -40,14 +40,14 @@ namespace EmulatorLauncher
                 if (portSection != null)
                 {
                     portSection["Type"] = "None";
-                    portSection["TurboSpeed"] = "0";
+                    portSection["TurboSpeed"] = 0;
                     for (int i = 1; i < 5; i++)
                     {
                         var mappingSection = GetOrCreateContainer(portSection, "Mapping" + i);
                         if (mappingSection != null)
                         {
                             foreach (string button in mesenButtons)
-                                mappingSection[button] = "0";
+                                mappingSection[button] = 0;
 
                             if (mesenSystem == "Cv")
                             {
@@ -165,8 +165,8 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    mapping["TurboA"] = "0";
-                    mapping["TurboB"] = "0";
+                    mapping["TurboA"] = 0;
+                    mapping["TurboB"] = 0;
                 }
             }
 
@@ -350,7 +350,7 @@ namespace EmulatorLauncher
                 var a = keyboard[k];
                 if (a != null)
                 {
-                    v[w] = SdlToKeyCode(a.Id).ToString();
+                    v[w] = SdlToKeyCode(a.Id).ToString().ToInteger();
                 }
                 else
                     v[w] = "Unbound";
@@ -756,7 +756,7 @@ namespace EmulatorLauncher
             var ffkeys = GetOrCreateContainer(ffshortcut, "KeyCombination2");
             ffkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             ffkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.right])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.right])).ToString();
-            ffkeys["Key3"] = "0";
+            ffkeys["Key3"] = 0;
             shortcuts.Add(ffshortcut);
 
             JObject rewshortcut = new JObject();
@@ -764,7 +764,7 @@ namespace EmulatorLauncher
             var rewkeys = GetOrCreateContainer(rewshortcut, "KeyCombination2");
             rewkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             rewkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.left])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.left])).ToString();
-            rewkeys["Key3"] = "0";
+            rewkeys["Key3"] = 0;
             shortcuts.Add(rewshortcut);
 
             JObject shotshortcut = new JObject();
@@ -772,7 +772,7 @@ namespace EmulatorLauncher
             var shotkeys = GetOrCreateContainer(shotshortcut, "KeyCombination2");
             shotkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             shotkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.r3])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.r3])).ToString();
-            shotkeys["Key3"] = "0";
+            shotkeys["Key3"] = 0;
             shortcuts.Add(shotshortcut);
 
             JObject pauseshortcut = new JObject();
@@ -780,7 +780,7 @@ namespace EmulatorLauncher
             var pausekeys = GetOrCreateContainer(pauseshortcut, "KeyCombination2");
             pausekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             pausekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.b])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.b])).ToString();
-            pausekeys["Key3"] = "0";
+            pausekeys["Key3"] = 0;
             shortcuts.Add(pauseshortcut);
 
             JObject nextslotshortcut = new JObject();
@@ -788,7 +788,7 @@ namespace EmulatorLauncher
             var nextslotkeys = GetOrCreateContainer(nextslotshortcut, "KeyCombination2");
             nextslotkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             nextslotkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.up])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.up])).ToString();
-            nextslotkeys["Key3"] = "0";
+            nextslotkeys["Key3"] = 0;
             shortcuts.Add(nextslotshortcut);
 
             JObject prevslotshortcut = new JObject();
@@ -796,7 +796,7 @@ namespace EmulatorLauncher
             var prevslotkeys = GetOrCreateContainer(prevslotshortcut, "KeyCombination2");
             prevslotkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             prevslotkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.down])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.down])).ToString();
-            prevslotkeys["Key3"] = "0";
+            prevslotkeys["Key3"] = 0;
             shortcuts.Add(prevslotshortcut);
 
             JObject savestateshortcut = new JObject();
@@ -804,7 +804,7 @@ namespace EmulatorLauncher
             var savekeys = GetOrCreateContainer(savestateshortcut, "KeyCombination2");
             savekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             savekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.y])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.y])).ToString();
-            savekeys["Key3"] = "0";
+            savekeys["Key3"] = 0;
             shortcuts.Add(savestateshortcut);
 
             JObject loadstateshortcut = new JObject();
@@ -812,7 +812,7 @@ namespace EmulatorLauncher
             var loadkeys = GetOrCreateContainer(loadstateshortcut, "KeyCombination2");
             loadkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             loadkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.x])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.x])).ToString();
-            loadkeys["Key3"] = "0";
+            loadkeys["Key3"] = 0;
             shortcuts.Add(loadstateshortcut);
 
             JObject toggleffshortcut = new JObject();
@@ -820,7 +820,7 @@ namespace EmulatorLauncher
             var fftogglekeys = GetOrCreateContainer(toggleffshortcut, "KeyCombination2");
             fftogglekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             fftogglekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.pagedown])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.pagedown])).ToString();
-            fftogglekeys["Key3"] = "0";
+            fftogglekeys["Key3"] = 0;
             shortcuts.Add(toggleffshortcut);
 
             JObject togglerewshortcut = new JObject();
@@ -828,7 +828,7 @@ namespace EmulatorLauncher
             var rewtogglekeys = GetOrCreateContainer(togglerewshortcut, "KeyCombination2");
             rewtogglekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             rewtogglekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.pageup])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.pageup])).ToString();
-            rewtogglekeys["Key3"] = "0";
+            rewtogglekeys["Key3"] = 0;
             shortcuts.Add(togglerewshortcut);
 
             JObject exitshortcut = new JObject();
@@ -836,7 +836,7 @@ namespace EmulatorLauncher
             var exitkeys = GetOrCreateContainer(exitshortcut, "KeyCombination2");
             exitkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select])).ToString();
             exitkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.start])).ToString() : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.start])).ToString();
-            exitkeys["Key3"] = "0";
+            exitkeys["Key3"] = 0;
             shortcuts.Add(exitshortcut);
 
             pref["ShortcutKeys"] = shortcuts;
