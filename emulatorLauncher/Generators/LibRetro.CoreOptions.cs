@@ -922,7 +922,8 @@ namespace EmulatorLauncher.Libretro
             }            
 
             // Virtual Keyboard by default (select+start) change to (start+Y)
-            coreSettings["cap32_combokey"] = "y";
+            BindFeature(coreSettings, "cap32_combokey", "cap32_combokey", "y");
+            BindBoolFeature(coreSettings, "cap32_keyboard_transparency", "cap32_keyboard_transparency", "enabled", "disabled");
 
             //  Auto Select Model
             if (system == "gx4000")
@@ -1937,7 +1938,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "genesis_plus_gx_ym2612", "ym2612", "mame (ym2612)");
             BindFeature(coreSettings, "genesis_plus_gx_blargg_ntsc_filter", "ntsc_filter", "disabled");
             BindBoolFeature(coreSettings, "genesis_plus_gx_lcd_filter", "gen_lcd_filter", "enabled", "disabled");
-            BindFeature(coreSettings, "genesis_plus_gx_overscan", "overscan", "disabled");
+            BindFeature(coreSettings, "genesis_plus_gx_overscan", "genesis_plus_gx_overscan", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_render", "render", "single field");
             BindBoolFeatureOn(coreSettings, "genesis_plus_gx_force_dtack", "genesis_plus_gx_force_dtack", "enabled", "disabled");
             BindFeatureSlider(coreSettings, "genesis_plus_gx_overclock", "genesis_plus_gx_overclock", "100");
@@ -1946,6 +1947,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "genesis_plus_gx_add_on", "genesis_plus_gx_add_on", "auto");
             BindFeature(coreSettings, "genesis_plus_gx_left_border", "genesis_plus_gx_left_border", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_region_detect", "genesis_plus_gx_region", "auto");
+            BindFeature(coreSettings, "genesis_plus_gx_vdp_mode", "genesis_plus_gx_vdp_mode", "auto");
 
             // Audio Filter
             if (Features.IsSupported("gen_audio_filter"))
@@ -2032,7 +2034,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "genesis_plus_gx_wide_ym2612", "ym2612", "mame (ym2612)");
             BindFeature(coreSettings, "genesis_plus_gx_wide_blargg_ntsc_filter", "ntsc_filter", "disabled");
             BindBoolFeature(coreSettings, "genesis_plus_gx_wide_lcd_filter", "gen_lcd_filter", "enabled", "disabled");
-            BindFeature(coreSettings, "genesis_plus_gx_wide_overscan", "overscan", "disabled");
+            BindFeature(coreSettings, "genesis_plus_gx_wide_overscan", "genesis_plus_gx_overscan", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_render", "render", "single field");
             BindBoolFeatureOn(coreSettings, "genesis_plus_gx_wide_force_dtack", "genesis_plus_gx_force_dtack", "enabled", "disabled");
             BindFeatureSlider(coreSettings, "genesis_plus_gx_wide_overclock", "genesis_plus_gx_overclock", "100");
@@ -2042,6 +2044,7 @@ namespace EmulatorLauncher.Libretro
             BindFeatureSlider(coreSettings, "genesis_plus_gx_wide_h40_extra_columns", "gen_h40_extra_columns", "10");
             BindFeature(coreSettings, "genesis_plus_gx_wide_left_border", "genesis_plus_gx_left_border", "disabled");
             BindFeature(coreSettings, "genesis_plus_gx_wide_region_detect", "genesis_plus_gx_region", "auto");
+            BindFeature(coreSettings, "genesis_plus_gx_wide_vdp_mode", "genesis_plus_gx_vdp_mode", "auto");
 
             // Audio Filter
             if (Features.IsSupported("gen_audio_filter"))
