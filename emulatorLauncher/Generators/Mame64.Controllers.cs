@@ -65,6 +65,9 @@ namespace EmulatorLauncher
             string cfgFile = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg", Path.GetFileNameWithoutExtension(rom) + ".cfg");
             if (File.Exists(cfgFile))
                 DeleteInputincfgFile(cfgFile);
+            string defaultcfgFile = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg", "default.cfg");
+            if (File.Exists(defaultcfgFile))
+                DeleteInputincfgFile(defaultcfgFile);
 
             // Get specific mapping if it exists
             string MappingFileName = Path.GetFileNameWithoutExtension(rom) + ".xml";
