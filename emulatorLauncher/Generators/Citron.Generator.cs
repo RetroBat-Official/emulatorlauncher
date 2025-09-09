@@ -167,6 +167,8 @@ namespace EmulatorLauncher
 
                 ini.WriteValue("WebService", "enable_telemetry\\default", "true");
                 ini.WriteValue("WebService", "enable_telemetry", "false");
+                ini.WriteValue("WebService", "enable_auto_update_check\\default", "false");
+                ini.WriteValue("WebService", "enable_auto_update_check", "false");
                 ini.WriteValue("UI", "confirmStop\\default", "false");
                 ini.WriteValue("UI", "confirmStop", "2");
 
