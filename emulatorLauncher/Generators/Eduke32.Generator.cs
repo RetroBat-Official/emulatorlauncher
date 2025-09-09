@@ -15,6 +15,8 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = false;
         }
 
+        private bool _dirArgInFile = false;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("eduke32");
@@ -31,10 +33,18 @@ namespace EmulatorLauncher
 
             var commandArray = new List<string>();
 
+            string gamegrp = null;
             if (Path.GetExtension(rom).ToLower() == ".eduke32")
             {
-                var edukeArgs = Eduke32Arg.ParseConfig(rom, Path.GetDirectoryName(rom));
+                var edukeArgs = Eduke32Arg.ParseConfig(rom, Path.GetDirectoryName(rom), out gamegrp, out _dirArgInFile);
                 commandArray.AddRange(edukeArgs);
+
+                if (gamegrp != null && !_dirArgInFile)
+                {
+                    string dirPath = Path.GetDirectoryName(gamegrp);
+                    commandArray.Add("-j");
+                    commandArray.Add("\"" + dirPath + "\"");
+                }
             }
 
             else
@@ -132,13 +142,16 @@ namespace EmulatorLauncher
         public bool Single { get; set; }
 
 
-        public static List<string> ParseConfig(string filePath, string basePath)
+        public static List<string> ParseConfig(string filePath, string basePath, out string gamegrp, out bool dirArgInFile)
         {
+            gamegrp = null;
+            dirArgInFile = false;
             var lines = File.ReadAllLines(filePath);
             var argsList = new List<string>();
 
             var availableArgs = new List<Eduke32Arg>(Eduke32Args);
 
+            int i = 0;
             foreach (var line in lines)
             {
                 if (string.IsNullOrWhiteSpace(line) || !line.Contains("="))
@@ -153,15 +166,30 @@ namespace EmulatorLauncher
                 {
                     argsList.Add(argDef.Argument);
 
+                    if (argDef.Key == "DIR")
+                        dirArgInFile = true;
+
                     if (value.StartsWith("/") || value.StartsWith("\\"))
                     {
                         value = value.Substring(1);
                         string fullPath = Path.Combine(basePath, value);
                         argsList.Add(fullPath);
+                        if (argDef.Argument == "-gamegrp" && i != 1)
+                        {
+                            i = 1;
+                            gamegrp = fullPath;
+                        }
                     }
 
                     else
+                    {
                         argsList.Add(value);
+                        if (argDef.Argument == "-gamegrp" && i != 1)
+                        {
+                            i = 1;
+                            gamegrp = value;
+                        }
+                    }
 
                     // Ensure we do not add twice a single-use argument
                     if (argDef.Single)

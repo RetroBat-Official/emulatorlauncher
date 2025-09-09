@@ -61,10 +61,19 @@ namespace EmulatorLauncher.Libretro
 
             if (core == "mame")
             {
+                // default
+                string defaultcfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", "default.cfg");
+                string defaultctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", "default.cfg");
+                if (File.Exists(defaultcfgFile))
+                    DeleteDefaultInputincfgFile(defaultcfgFile, defaultctrlFile);
+                else if (File.Exists(defaultctrlFile) && !File.Exists(defaultcfgFile) && !mameAuto)
+                    try { File.Copy(defaultctrlFile, defaultcfgFile); } catch { }
+
+                // game cfg
                 string cfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", romName + ".cfg");
-                string ctrlFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "ctrlr", romName + ".cfg");
+                string ctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", romName + ".cfg");
                 if (File.Exists(cfgFile))
-                    DeleteInputincfgFile(cfgFile, ctrlFile);
+                    DeleteInputincfgFile(cfgFile, ctrlFile, defaultcfgFile);
                 else if (File.Exists(ctrlFile) && !File.Exists(cfgFile) && !mameAuto)
                     try { File.Copy(ctrlFile, cfgFile); } catch { }
             }
@@ -737,15 +746,15 @@ namespace EmulatorLauncher.Libretro
             catch { }
         }
 
-        private static void DeleteInputincfgFile(string cfgFile, string ctrlFile)
+        private static void DeleteInputincfgFile(string cfgFile, string ctrlFile, string defaultcfgFile = null)
         {
             try
             {
                 XDocument doc = XDocument.Load(cfgFile);
+                XElement gameSystemElement = doc.Root?.Element("system");
+                gameSystemElement?.Element("input")?.Remove();
 
-                XElement systemElement = doc.Root?.Element("system");
-
-                systemElement?.Element("input")?.Remove();
+                List<XElement> allPorts = new List<XElement>();
 
                 if (File.Exists(ctrlFile))
                 {
@@ -755,9 +764,89 @@ namespace EmulatorLauncher.Libretro
                     .Element("system")?
                     .Element("input");
 
-                    if (ctrlinputElement != null && systemElement != null)
+                    if (ctrlinputElement != null && gameSystemElement != null)
                     {
-                        systemElement.Add(new XElement(ctrlinputElement));
+                        allPorts = ctrlinputElement.Elements("port").ToList();
+
+                        var uiPorts = allPorts.Where(p => (string)p.Attribute("type") != null && ((string)p.Attribute("type")).StartsWith("UI"));
+                        var nonUIPorts = allPorts.Where(p => (string)p.Attribute("type") != null && !((string)p.Attribute("type")).StartsWith("UI"));
+
+                        if (nonUIPorts.Any())
+                        {
+                            XElement newInput = new XElement("input", nonUIPorts);
+                            gameSystemElement.Add(newInput);
+                        }
+
+                        if (uiPorts.Any() && defaultcfgFile != null && File.Exists(defaultcfgFile))
+                        {
+                            XDocument defaultdoc = XDocument.Load(defaultcfgFile);
+                            XElement defaultSystemElement = defaultdoc.Root?.Element("system");
+
+                            bool menuPort = uiPorts.Any(p => (string)p.Attribute("type") == "UI_MENU");
+
+                            if (defaultSystemElement != null)
+                            {
+                                XElement defaultInput = defaultSystemElement?.Descendants("input").FirstOrDefault();
+
+                                if (defaultInput != null)
+                                {
+                                    defaultInput.Elements("port").Where(p => (string)p.Attribute("type") == "UI_MENU").Remove();
+                                    defaultInput.Add(uiPorts);
+                                }
+                                else
+                                {
+                                    defaultInput = new XElement("input", uiPorts);
+                                    defaultSystemElement.Add(defaultInput);
+                                }
+                            }
+                            else
+                            {
+                                defaultSystemElement = new XElement("system", new XAttribute("name", "default"));
+                                XElement defaultInput = new XElement("input", uiPorts);
+                                defaultSystemElement.Add(defaultInput);
+                                defaultdoc.Root?.Add(defaultSystemElement);
+                            }
+
+                            defaultdoc.Save(defaultcfgFile);
+                        }
+                    }
+                }
+
+                doc.Save(cfgFile);
+            }
+            catch { }
+        }
+
+        private static void DeleteDefaultInputincfgFile(string cfgFile, string ctrlFile)
+        {
+            try
+            {
+                XDocument doc = XDocument.Load(cfgFile);
+                XElement gameSystemElement = doc.Root?.Element("system");
+                gameSystemElement?.Element("input")?.Remove();
+
+                List<XElement> allPorts = new List<XElement>();
+
+                if (File.Exists(ctrlFile))
+                {
+                    XDocument ctrldoc = XDocument.Load(ctrlFile);
+
+                    XElement ctrlinputElement = ctrldoc.Root?
+                    .Element("system")?
+                    .Element("input");
+
+                    if (ctrlinputElement != null && gameSystemElement != null)
+                    {
+                        allPorts = ctrlinputElement.Elements("port").ToList();
+
+                        var uiPorts = allPorts.Where(p => (string)p.Attribute("type") != null && ((string)p.Attribute("type")).StartsWith("UI"));
+                        var nonUIPorts = allPorts.Where(p => (string)p.Attribute("type") != null && !((string)p.Attribute("type")).StartsWith("UI"));
+
+                        if (uiPorts.Any())
+                        {
+                            XElement newInput = new XElement("input", uiPorts);
+                            gameSystemElement.Add(newInput);
+                        }
                     }
                 }
 
