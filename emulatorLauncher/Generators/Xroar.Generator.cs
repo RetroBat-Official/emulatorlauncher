@@ -151,7 +151,6 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("xroar_run_command") && !string.IsNullOrEmpty(SystemConfig["xroar_run_command"]))
                     run = SystemConfig["xroar_run_command"];
 
-                addCommands.Add("-type");
                 addCommands.Add("\"" + load + "\"\"" + romName + "\"\"" + "\r" + run + "\r" + "\"");
                 return true;
             }
