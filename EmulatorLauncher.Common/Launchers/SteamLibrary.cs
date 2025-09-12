@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Steam_Library_Manager.Framework;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -11,7 +12,9 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace EmulatorLauncher.Common.Launchers
 {
@@ -87,10 +90,12 @@ namespace EmulatorLauncher.Common.Launchers
                     SimpleLogger.Instance.Error("[Steam] Error reading steam.apikey file: " + ex.Message, ex);
                 }
 
+                string steamId64 = GetSteamId64();
+
                 // 2. Call the API if the key exists
                 if (!string.IsNullOrEmpty(apiKey))
                 {
-                    string steamId64 = GetSteamId64();
+
                     if (string.IsNullOrEmpty(steamId64))
                     {
                         SimpleLogger.Instance.Error("[Steam] Could not find user SteamID64. Cannot fetch game list from API.");
@@ -163,6 +168,81 @@ namespace EmulatorLauncher.Common.Launchers
                         }
                     }
                 }
+                else
+                {
+                    SimpleLogger.Instance.Info("[Steam] API Key not found, trying public profile.");
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(steamId64))
+                        {
+                            string xmlUrl = $"https://steamcommunity.com/profiles/{steamId64}/games/?tab=all&xml=1";
+
+                            SimpleLogger.Instance.Info("[Steam] Fetching games from public profile XML: " + xmlUrl);
+
+                            XDocument doc;
+                            using (var wc = new WebClient { Encoding = System.Text.Encoding.UTF8 })
+                            {
+                                string xml = wc.DownloadString(xmlUrl);
+                                doc = XDocument.Parse(xml);
+                            }
+
+                            var xmlGames = doc.Descendants("game").ToList();
+                            var allAppIds = xmlGames.Select(g => g.Element("appID")?.Value).Where(id => !string.IsNullOrEmpty(id));
+
+                            var parallelOpts = new ParallelOptions { MaxDegreeOfParallelism = 8 };
+
+                            Parallel.ForEach(xmlGames, parallelOpts, g =>
+                            {
+                                string appId = g.Element("appID")?.Value;
+                                string name = g.Element("name")?.Value;
+                                string iconURL = g.Element("img_icon_url")?.Value;
+
+                                if (string.IsNullOrEmpty(appId) || string.IsNullOrEmpty(name))
+                                    return;
+
+                                string icoPath = Path.Combine(Path.GetTempPath(), $"{appId}.ico");
+                                string tempJpg = Path.Combine(Path.GetTempPath(), $"{appId}.jpg");
+                                string jpgUrl = $"http://media.steampowered.com/steamcommunity/public/images/apps/{appId}/{iconURL}.jpg";
+
+                                try
+                                {
+                                    if (!string.IsNullOrEmpty(iconURL) && DownloadImage(jpgUrl, tempJpg))
+                                    {
+                                        using (Bitmap bmp = new Bitmap(tempJpg))
+                                            SaveBitmapAsIcon(bmp, icoPath);
+                                        File.Delete(tempJpg);
+                                    }
+                                }
+                                catch { }
+
+                                var gameToAdd = new LauncherGameInfo()
+                                {
+                                    Id = appId,
+                                    Name = name,
+                                    LauncherUrl = string.Format(GameLaunchUrl, appId),
+                                    PreviewImageUrl = string.Format(HeaderImageUrl, appId),
+                                    Launcher = GameLauncherType.Steam,
+                                    IconPath = File.Exists(icoPath) ? icoPath : null
+                                };
+
+                                lock (allGames) // protect shared dictionary + list
+                                {
+                                    if (!allGames.ContainsKey(appId))
+                                    {
+                                        ownedGamesFromApi.Add(gameToAdd);
+                                        allGames.Add(appId, gameToAdd);
+                                    }
+                                }
+                            });
+
+                            SimpleLogger.Instance.Info("[Steam] Added " + ownedGamesFromApi.Count + " games from public profile XML.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Instance.Warning("[Steam] Failed to fetch games from public profile XML: " + ex.Message);
+                    }
+                }
             }
 
             // First, add installed games. They have more accurate information.
@@ -227,6 +307,7 @@ namespace EmulatorLauncher.Common.Launchers
                 return false;
             }
         }
+
 
         private static string GetSteamId64()
         {
