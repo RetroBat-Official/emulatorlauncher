@@ -148,10 +148,20 @@ namespace EmulatorLauncher
             {
                 string load = SystemConfig["xroar_load_command"];
                 string run = "";
+                bool exec = false;
                 if (SystemConfig.isOptSet("xroar_run_command") && !string.IsNullOrEmpty(SystemConfig["xroar_run_command"]))
+                {
                     run = SystemConfig["xroar_run_command"];
 
-                addCommands.Add("\"" + load + "\"\"" + romName + "\"\"" + "\r" + run + "\r" + "\"");
+                    if (run.ToLowerInvariant().Contains("exec"))
+                        exec = true;
+                }
+
+                if (!exec)
+                    addCommands.Add("\"" + load + "\"\"" + romName + "\"\"" + "\\r" + run + "\\r" + "\"");
+                else
+                    addCommands.Add(load + "\\\"" + romName + "\\\"" + ":" + run + "\\r");
+                
                 return true;
             }
 
