@@ -36,12 +36,22 @@ namespace EmulatorLauncher.Libretro
         public override int RunAndWait(ProcessStartInfo path)
         {
             int ret = base.RunAndWait(path);
+            bool generic = false;
             if (ret == 1 && File.Exists(LogFile))
             {
                 var line = File.ReadAllLines(LogFile).FirstOrDefault(s => s != null && s.StartsWith("[libretro ERROR]"));
+                if (string.IsNullOrEmpty(line))
+                {
+                    line = File.ReadAllLines(LogFile).FirstOrDefault(s => s != null && s.StartsWith("[ERROR]"));
+                    generic = true;
+                }
+
                 if (!string.IsNullOrEmpty(line))
                 {
-                    base.SetCustomError(line.Replace("[libretro ERROR]", "").Trim());
+                    if (generic)
+                        base.SetCustomError(line.Replace("[ERROR]", "").Trim());
+                    else
+                        base.SetCustomError(line.Replace("[libretro ERROR]", "").Trim());
                     ExitCode = ExitCodes.CustomError;
                     Environment.ExitCode = (int)ExitCode;
                     return 0;
