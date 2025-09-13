@@ -151,6 +151,9 @@ namespace EmulatorLauncher
                     wiiMapping[InputKey.l2] = "Shake/X";
                     wiiMapping[InputKey.l2] = "Shake/Y";
                     wiiMapping[InputKey.l2] = "Shake/Z";
+                    wiiMapping[InputKey.r2] = "Nunchuk/Shake/X";
+                    wiiMapping[InputKey.r2] = "Nunchuk/Shake/Y";
+                    wiiMapping[InputKey.r2] = "Nunchuk/Shake/Z";
                 }
 
                 string[] nunchukLastTags = { ".in.", ".sn.", ".tn." };
@@ -164,9 +167,9 @@ namespace EmulatorLauncher
                     wiiMapping[InputKey.r3] = "Nunchuk/Stick/Modifier";
                     wiiMapping[InputKey.select] = "Buttons/-";
                     wiiMapping[InputKey.start] = "Buttons/+";
-                    wiiMapping[InputKey.l2] = "Shake/X";
-                    wiiMapping[InputKey.l2] = "Shake/Y";
-                    wiiMapping[InputKey.l2] = "Shake/Z";
+                    wiiMapping[InputKey.r2] = "Nunchuk/Shake/X";
+                    wiiMapping[InputKey.r2] = "Nunchuk/Shake/Y";
+                    wiiMapping[InputKey.r2] = "Nunchuk/Shake/Z";
                 }
 
                 // udraw : uDraw tablet

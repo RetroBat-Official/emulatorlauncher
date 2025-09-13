@@ -72,8 +72,8 @@ namespace EmulatorLauncher
             // Get specific mapping if it exists
             string MappingFileName = Path.GetFileNameWithoutExtension(rom) + ".xml";
             string layout = "default";
-            if (SystemConfig.isOptSet("mame_controller_layout") && !string.IsNullOrEmpty(SystemConfig["mame_controller_layout"]))
-                layout = SystemConfig["mame_controller_layout"];
+            if (SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(SystemConfig["controller_layout"]))
+                layout = SystemConfig["controller_layout"];
 
             string specificMappingPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "user", "inputmapping", "mame", MappingFileName);
             if (!File.Exists(specificMappingPath))
@@ -1708,6 +1708,7 @@ namespace EmulatorLauncher
         private string GetSpecificMappingX(string joy, string mouseindex, string mapping, int player)
         {
             string ret = "";
+            bool reverse = false;
 
             string[] parts = mapping.Split(new string[] { "OR" }, StringSplitOptions.None);
 
@@ -1721,6 +1722,10 @@ namespace EmulatorLauncher
                     if (mapParts.Length > 1)
                     {
                         string source = mapParts[1];
+
+                        if (mapParts.Length > 2 && mapParts[2] == "reverse")
+                            reverse = true;
+
                         string target = null;
 
                         if (specificToXinput.ContainsKey(source))
@@ -1730,10 +1735,14 @@ namespace EmulatorLauncher
                         {
                             target = xInputMapping[source];
 
+                            string toAdd = joy + target;
+                            if (reverse)
+                                toAdd += "_REVERSE";
+
                             if (string.IsNullOrEmpty(ret))
-                                ret += joy + target;
+                                ret += toAdd;
                             else
-                                ret += " OR " + joy + target;
+                                ret += " OR " + toAdd;
                         }
                     }
                 }
@@ -1791,6 +1800,7 @@ namespace EmulatorLauncher
         private string GetSpecificMappingD(SdlToDirectInput c, string joy, string mouseindex, string mapping, int player, bool isXinput)
         {
             string ret = "";
+            bool reverse = false;
 
             string[] parts = mapping.Split(new string[] { "OR" }, StringSplitOptions.None);
 
@@ -1806,6 +1816,9 @@ namespace EmulatorLauncher
                         int axisDirection = 0;
                         string source = mapParts[1];
                         string target = null;
+
+                        if (mapParts.Length > 2 && mapParts[2] == "reverse")
+                            reverse = true;
 
                         if (source.EndsWith("trigger"))
                         {
@@ -1892,6 +1905,9 @@ namespace EmulatorLauncher
                         }
 
                         target = GetDinputMapping(c, source, isXinput, axisDirection);
+
+                        if (reverse)
+                            target += "_REVERSE";
 
                         if (!string.IsNullOrEmpty(target))
                         {

@@ -72,6 +72,14 @@ namespace EmulatorLauncher.Libretro
                 // game cfg
                 string cfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", romName + ".cfg");
                 string ctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", romName + ".cfg");
+
+                if (!File.Exists(ctrlFile))
+                {
+                    string cfgDir = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame");
+                    string[] cfgFiles = Directory.GetFiles(cfgDir, "*.cfg", SearchOption.TopDirectoryOnly);
+                    ctrlFile = cfgFiles.Where(c => romName.StartsWith(Path.GetFileNameWithoutExtension(c))).OrderByDescending(c => Path.GetFileNameWithoutExtension(c).Length).FirstOrDefault();
+                }
+
                 if (File.Exists(cfgFile))
                     DeleteInputincfgFile(cfgFile, ctrlFile, defaultcfgFile);
                 else if (File.Exists(ctrlFile) && !File.Exists(cfgFile) && !mameAuto)
@@ -625,8 +633,8 @@ namespace EmulatorLauncher.Libretro
                 return false;
 
             string controLayout = "";
-            if (Program.SystemConfig.isOptSet("mame_controller_layout") && !string.IsNullOrEmpty(Program.SystemConfig["mame_controller_layout"]))
-                controLayout = Program.SystemConfig["mame_controller_layout"];
+            if (Program.SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))
+                controLayout = Program.SystemConfig["controller_layout"];
 
             string searchYml = romName;
 
@@ -756,7 +764,7 @@ namespace EmulatorLauncher.Libretro
 
                 List<XElement> allPorts = new List<XElement>();
 
-                if (File.Exists(ctrlFile))
+                if (ctrlFile != null && File.Exists(ctrlFile))
                 {
                     XDocument ctrldoc = XDocument.Load(ctrlFile);
 

@@ -41,7 +41,12 @@ namespace EmulatorLauncher
                 Directory.CreateDirectory(dir);
 
                 var files = new HashSet<string>(new[] { "*.url", "*.lnk" }.SelectMany(ext => Directory.GetFiles(dir, ext)));
-           
+
+                List<String> ignoreList = new List<String>();
+                string ignoreListPath = Path.Combine(dir, name + "_ignore.txt");
+                if (File.Exists(ignoreListPath))
+                    ignoreList = File.ReadAllLines(ignoreListPath).ToList();
+
                 dynamic shell = null;
 
                 foreach (var game in getInstalledGames())
@@ -56,9 +61,17 @@ namespace EmulatorLauncher
                         if (uri.Scheme == "file")
                             path = Path.Combine(dir, gameName + ".lnk");
 
+                        // If shortcut already exists, do not recreate it
                         if (files.Contains(path))
                         {
                             files.Remove(path);
+                            continue;
+                        }
+
+                        // Remove ignored games
+                        if (ignoreList.Contains(game.Id))
+                        {
+                            SimpleLogger.Instance.Info("[ImportStore] " + name + " app " + game.Id + " ignored.");
                             continue;
                         }
 

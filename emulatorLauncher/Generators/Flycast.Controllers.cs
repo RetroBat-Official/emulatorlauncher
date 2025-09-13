@@ -135,8 +135,6 @@ namespace EmulatorLauncher
                     }
                 };
 
-                bool fightGame6Buttons = SystemConfig.isOptSet("flycast_fightgame6buttons") && SystemConfig.getOptBoolean("flycast_fightgame6buttons");
-
                 ctrlini.ClearSection("digital");
                 ctrlini.ClearSection("emulator");
                 ctrlini.ClearSection("analog");
@@ -144,8 +142,8 @@ namespace EmulatorLauncher
                 if (_isArcade)
                 {
                     WriteKeyboardMapping(0, InputKey.l2, "btn_trigger_left");                                       // left trigger
-                    WriteKeyboardMapping(1, fightGame6Buttons ? InputKey.x : InputKey.b, "btn_b");                  // button 2
-                    WriteKeyboardMapping(10, fightGame6Buttons ? InputKey.y : InputKey.a, "btn_a");                 // button 1
+                    WriteKeyboardMapping(1, InputKey.b, "btn_b");                  // button 2
+                    WriteKeyboardMapping(10, InputKey.a, "btn_a");                 // button 1
                     WriteKeyboardMapping(11, InputKey.r2, "btn_trigger_right");                                     // right trigger
                     ctrlini.WriteValue("digital", "bind12", "34:btn_d");                                            // coin (5)
                     WriteKeyboardMapping(13, InputKey.start, "btn_start");                                          // start
@@ -155,7 +153,7 @@ namespace EmulatorLauncher
                     ctrlini.WriteValue("digital", "bind17", "59:btn_dpad2_down");                                   // test (F2)
                     WriteKeyboardMapping(18, InputKey.right, "btn_dpad1_right");
                     WriteKeyboardMapping(19, InputKey.left, "btn_dpad1_left");
-                    WriteKeyboardMapping(2, fightGame6Buttons ? InputKey.b : InputKey.pagedown, "btn_y");           // button 5 (strong or medium kick)
+                    WriteKeyboardMapping(2, InputKey.pagedown, "btn_y");           // button 5 (strong or medium kick)
                     WriteKeyboardMapping(20, InputKey.down, "btn_dpad1_down");
                     WriteKeyboardMapping(21, InputKey.up, "btn_dpad1_up");
                     ctrlini.WriteValue("digital", "bind22", "90:axis2_down");                                       // right stick down (numpad 2)
@@ -165,13 +163,13 @@ namespace EmulatorLauncher
                     ctrlini.WriteValue("digital", "bind26", "41:btn_escape");                               
                     ctrlini.WriteValue("digital", "bind27", "60:btn_jump_state");                                   // F3 load state
                     ctrlini.WriteValue("digital", "bind28", "61:btn_quick_save");                                   // F4 save state
-                    WriteKeyboardMapping(3, fightGame6Buttons ? InputKey.pagedown : InputKey.pageup, "btn_z");      // button 6
+                    WriteKeyboardMapping(3, InputKey.pageup, "btn_z");      // button 6
                     ctrlini.WriteValue("digital", "bind4", "12:btn_analog_up");                                     // analog stick up (i)
                     ctrlini.WriteValue("digital", "bind5", "13:btn_analog_left");                                   // analog stick up (j)
                     ctrlini.WriteValue("digital", "bind6", "14:btn_analog_down");                                   // analog stick up (k)
                     ctrlini.WriteValue("digital", "bind7", "15:btn_analog_right");                                  // analog stick up (l)
-                    WriteKeyboardMapping(8, fightGame6Buttons ? InputKey.a : InputKey.x, "btn_x");                  // button 4
-                    WriteKeyboardMapping(9, fightGame6Buttons ? InputKey.pageup : InputKey.y, "btn_c");             // button 3
+                    WriteKeyboardMapping(8, InputKey.x, "btn_x");                  // button 4
+                    WriteKeyboardMapping(9, InputKey.y, "btn_c");             // button 3
                 }
                 else
                 {
@@ -372,6 +370,7 @@ namespace EmulatorLauncher
                 List<string> analogBinds = new List<string>();
                 List<string> digitalBinds = new List<string>();
                 YmlContainer game = null;
+                YmlContainer gameLayout = null;
 
                 if (_isArcade)
                 {
@@ -390,14 +389,42 @@ namespace EmulatorLauncher
                             break;
                     }
 
+                    string controLayout = "";
+                    if (Program.SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))
+                        controLayout = Program.SystemConfig["controller_layout"];
+
                     if (File.Exists(flycastMapping))
                     {
                         YmlFile ymlFile = YmlFile.Load(flycastMapping);
 
                         game = ymlFile.Elements.Where(c => c.Name == _romName).FirstOrDefault() as YmlContainer;
 
-                        if (game == null)
+                        if (game != null)
+                        {
+                            string searchYmlLayout = _romName + "_" + controLayout;
+                            gameLayout = ymlFile.Elements.Where(c => c.Name == searchYmlLayout).FirstOrDefault() as YmlContainer;
+                            if (gameLayout != null)
+                                game = gameLayout;
+                        }
+
+                        else if (game == null)
+                        {
                             game = ymlFile.Elements.Where(g => _romName.StartsWith(g.Name)).OrderByDescending(g => g.Name.Length).FirstOrDefault() as YmlContainer;
+                            if (game != null)
+                            {
+                                string searchYmlLayout = game.Name + "_" + controLayout;
+                                gameLayout = ymlFile.Elements.Where(c => c.Name == searchYmlLayout).FirstOrDefault() as YmlContainer;
+                                if (gameLayout != null)
+                                    game = gameLayout;
+                            }
+                        }
+
+                        string defsearch = "default_" + system;
+                        if (!string.IsNullOrEmpty(controLayout))
+                            defsearch = defsearch + "_" + controLayout;
+
+                        if (game == null)
+                            game = ymlFile.Elements.Where(g => g.Name == defsearch).FirstOrDefault() as YmlContainer;
 
                         if (game == null)
                             game = ymlFile.Elements.Where(g => g.Name == "default_" + system).FirstOrDefault() as YmlContainer;
