@@ -633,8 +633,8 @@ namespace EmulatorLauncher.Libretro
                 return false;
 
             string controLayout = "";
-            if (Program.SystemConfig.isOptSet("mame_controller_layout") && !string.IsNullOrEmpty(Program.SystemConfig["mame_controller_layout"]))
-                controLayout = Program.SystemConfig["mame_controller_layout"];
+            if (Program.SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))
+                controLayout = Program.SystemConfig["controller_layout"];
 
             string searchYml = romName;
 

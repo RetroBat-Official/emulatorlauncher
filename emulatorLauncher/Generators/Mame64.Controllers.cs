@@ -72,8 +72,8 @@ namespace EmulatorLauncher
             // Get specific mapping if it exists
             string MappingFileName = Path.GetFileNameWithoutExtension(rom) + ".xml";
             string layout = "default";
-            if (SystemConfig.isOptSet("mame_controller_layout") && !string.IsNullOrEmpty(SystemConfig["mame_controller_layout"]))
-                layout = SystemConfig["mame_controller_layout"];
+            if (SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(SystemConfig["controller_layout"]))
+                layout = SystemConfig["controller_layout"];
 
             string specificMappingPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "user", "inputmapping", "mame", MappingFileName);
             if (!File.Exists(specificMappingPath))
