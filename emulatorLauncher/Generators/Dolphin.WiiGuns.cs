@@ -124,8 +124,8 @@ namespace EmulatorLauncher
             { "Nunchuk/Tilt/Modifier/Range", "50." },
             { "uDraw/Stylus/Modifier/Range", "50." },
             { "Drawsome/Stylus/Modifier/Range", "50." },
-            { "Buttons/1", "`Click 2`" },
-            { "Buttons/2", "`2`" },
+            { "Buttons/1", "`1`" },
+            { "Buttons/2", "`5`" },
             { "D-Pad/Up", "UP" },
             { "D-Pad/Down", "DOWN" },
             { "D-Pad/Left", "LEFT" },
@@ -145,9 +145,9 @@ namespace EmulatorLauncher
             { "Nunchuk/Stick/Left", "A" },
             { "Nunchuk/Stick/Right", "D" },
             { "Nunchuk/Stick/Calibration", "100.00 141.42 100.00 141.42 100.00 141.42 100.00 141.42" },
-            { "Nunchuk/Shake/X", "`Click 2`" },
-            { "Nunchuk/Shake/Y", "`Click 2`" },
-            { "Nunchuk/Shake/Z", "`Click 2`" },
+            //{ "Nunchuk/Shake/X", "`Click 2`" },
+            //{ "Nunchuk/Shake/Y", "`Click 2`" },
+            //{ "Nunchuk/Shake/Z", "`Click 2`" }
         };
 
         static readonly Dictionary<string, string> gunMapping = new Dictionary<string, string>
