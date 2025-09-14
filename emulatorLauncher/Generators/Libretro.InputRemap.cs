@@ -760,7 +760,15 @@ namespace EmulatorLauncher.Libretro
             {
                 XDocument doc = XDocument.Load(cfgFile);
                 XElement gameSystemElement = doc.Root?.Element("system");
-                gameSystemElement?.Element("input")?.Remove();
+
+                // Keep only DIPSWITCH ports from the existing input
+                XElement inputElement = gameSystemElement?.Element("input");
+                if (inputElement != null)
+                {
+                    inputElement.Elements()
+                        .Where(p => (string)p.Attribute("type") != "DIPSWITCH")
+                        .Remove();
+                }
 
                 List<XElement> allPorts = new List<XElement>();
 

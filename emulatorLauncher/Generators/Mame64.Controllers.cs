@@ -69,6 +69,7 @@ namespace EmulatorLauncher
             if (File.Exists(defaultcfgFile))
                 DeleteInputincfgFile(defaultcfgFile);
 
+
             // Get specific mapping if it exists
             string MappingFileName = Path.GetFileNameWithoutExtension(rom) + ".xml";
             string layout = "default";
@@ -1600,7 +1601,14 @@ namespace EmulatorLauncher
                     .Element("system")?
                     .Element("input");
 
-                inputElement?.Remove();
+                if (inputElement != null)
+                {
+                    // Remove all child elements that are not DIPSWITCH
+                    inputElement.Elements()
+                        .Where(e => (string)e.Attribute("type") != "DIPSWITCH")
+                        .Remove();
+                }
+
                 doc.Save(cfgFile);
             }
             catch { }
