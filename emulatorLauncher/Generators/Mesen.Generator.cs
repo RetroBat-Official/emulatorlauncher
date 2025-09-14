@@ -183,7 +183,10 @@ namespace EmulatorLauncher
 
             // Input menu
             var input = GetOrCreateContainer(json, "Input");
-            BindBoolFeatureOn(input, "HidePointerForLightGuns", "mesen_target");
+            if (SystemConfig.getOptBoolean("mesen_target"))
+                input["HidePointerForLightGuns"] = false;
+            else
+                input["HidePointerForLightGuns"] = true;
 
             // Controllers configuration
             SetupControllers(preference, systemSection, mesenSystem);
@@ -362,7 +365,7 @@ namespace EmulatorLauncher
                     };
                     mapping["ZapperButtons"] = new JArray(mouseID);
 
-                    portSection["Type"] = "Zapper";
+                    portSection["Type"] = "NesZapper";
                 }
             }
 

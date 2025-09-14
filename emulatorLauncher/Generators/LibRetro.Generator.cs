@@ -1800,7 +1800,8 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["video_message_pos_y"] = infos.messagey.Value.ToString(CultureInfo.InvariantCulture);
             }
 
-            if (retroarchConfig["video_fullscreen"] != "true")
+            bool showcursor = SystemConfig.getOptBoolean("ShowCursor");
+            if (retroarchConfig["video_fullscreen"] != "true" || showcursor)
                 retroarchConfig["input_overlay_show_mouse_cursor"] = "true";
             else
                 retroarchConfig["input_overlay_show_mouse_cursor"] = "false";
