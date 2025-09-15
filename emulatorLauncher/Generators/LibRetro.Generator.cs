@@ -1900,6 +1900,31 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
+            if (_cfgFilesToRestore != null)
+            {
+                foreach (var f in _cfgFilesToRestore)
+                {
+                    string backupFile = f + ".backup";
+
+                    if (File.Exists(backupFile))
+                    {
+                        try
+                        {
+                            string cfgBackupPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfgbackup");
+                            if (!Directory.Exists(cfgBackupPath))
+                                try { Directory.CreateDirectory(cfgBackupPath); } catch { }
+                            string filename = Path.GetFileName(f);
+                            string target = Path.Combine(cfgBackupPath, filename);
+
+                            File.Copy(f, target, true);
+                            File.Copy(backupFile, f, true);
+                            File.Delete(backupFile);
+                        }
+                        catch { }
+                    }
+                }
+            }
+
             base.Cleanup();
         }
 

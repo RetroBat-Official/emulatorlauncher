@@ -367,6 +367,19 @@ namespace EmulatorLauncher
 
                     portSection["Type"] = "NesZapper";
                 }
+                else if (SystemConfig.getOptBoolean("use_guns"))
+                {
+                    var portSection = GetOrCreateContainer(section, "Port2");
+                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
+                    List<int> mouseID = new List<int>
+                    {
+                        512,
+                        513
+                    };
+                    mapping["ZapperButtons"] = new JArray(mouseID);
+
+                    portSection["Type"] = "NesZapper";
+                }
             }
 
             else if (mesenSystem == "Sms")
@@ -391,6 +404,20 @@ namespace EmulatorLauncher
 
                     portSection["Type"] = "SmsLightPhaser";
                 }
+
+                else if (SystemConfig.getOptBoolean("use_guns"))
+                {
+                    var portSection = GetOrCreateContainer(section, "Port1");
+                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
+                    List<int> mouseID = new List<int>
+                    {
+                        512,
+                        513
+                    };
+                    mapping["LightPhaserButtons"] = new JArray(mouseID);
+
+                    portSection["Type"] = "SmsLightPhaser";
+                }
             }
 
             else if (mesenSystem == "Snes")
@@ -405,6 +432,22 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("mesen_superscope") && !string.IsNullOrEmpty(SystemConfig["mesen_superscope"]) && SystemConfig["mesen_superscope"] != "none")
                 {
                     var portSection = GetOrCreateContainer(section, SystemConfig["mesen_superscope"]);
+                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
+                    List<int> mouseID = new List<int>
+                    {
+                        512,
+                        513,
+                        514,
+                        6
+                    };
+                    mapping["SuperScopeButtons"] = new JArray(mouseID);
+
+                    portSection["Type"] = "SuperScope";
+                }
+
+                else if (SystemConfig.getOptBoolean("use_guns"))
+                {
+                    var portSection = GetOrCreateContainer(section, "Port1");
                     var mapping = GetOrCreateContainer(portSection, "Mapping1");
                     List<int> mouseID = new List<int>
                     {

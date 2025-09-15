@@ -672,6 +672,31 @@ namespace EmulatorLauncher
             if (_sindenSoft)
                 Guns.KillSindenSoftware();
 
+            if (_filesToRestore != null)
+            {
+                foreach (var f in _filesToRestore)
+                {
+                    string backupFile = f + ".backup";
+
+                    if (File.Exists(backupFile))
+                    {
+                        try
+                        {
+                            string cfgBackupPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfgbackupmame64");
+                            if (!Directory.Exists(cfgBackupPath))
+                                try { Directory.CreateDirectory(cfgBackupPath); } catch { }
+                            string filename = Path.GetFileName(f);
+                            string target = Path.Combine(cfgBackupPath, filename);
+
+                            File.Copy(f, target, true);
+                            File.Copy(backupFile, f, true);
+                            File.Delete(backupFile);
+                        }
+                        catch { }
+                    }
+                }
+            }
+
             base.Cleanup();
         }
     }

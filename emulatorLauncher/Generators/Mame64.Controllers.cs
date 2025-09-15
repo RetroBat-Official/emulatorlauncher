@@ -18,6 +18,7 @@ namespace EmulatorLauncher
         private bool _sindenSoft = false;
         private GameMapping _gameMapping = null;
         private Layout _gameLayout = null;
+        private List<string> _filesToRestore = new List<string>();
 
         private void UpdateSdlControllersWithHints()
         {
@@ -1593,6 +1594,16 @@ namespace EmulatorLauncher
 
         private void DeleteInputincfgFile(string cfgFile)
         {
+            // Backup cfgfile
+            string backup = cfgFile + ".backup";
+            try
+            {
+                File.Copy(cfgFile, backup, true);
+                _filesToRestore.Add(cfgFile);
+            }
+            catch { }
+
+            // Modify cfgfile
             try
             {
                 XDocument doc = XDocument.Load(cfgFile);

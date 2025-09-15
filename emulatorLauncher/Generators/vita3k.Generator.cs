@@ -52,8 +52,12 @@ namespace EmulatorLauncher
             
             if (ext == ".vpk" || ext == ".psvita")
             {
-                gameID = rom.Substring(rom.IndexOf('[') + 1, rom.IndexOf(']') - rom.IndexOf('[') - 1);
+                if (rom.Contains('['))
+                    gameID = rom.Substring(rom.IndexOf('[') + 1, rom.IndexOf(']') - rom.IndexOf('[') - 1);
             }
+
+            if (string.IsNullOrEmpty(gameID))
+                SimpleLogger.Instance.Warning("[WARNING] No game ID specified, running vita3k without game.");
 
             List<string> commandArray = new List<string>();
 
@@ -78,7 +82,7 @@ namespace EmulatorLauncher
             if (!Directory.Exists(gamepath) && (ext == ".vpk" || ext == ".psvita"))
                 commandArray.Add("-path " + "\"" + rom + "\"");     //path used to install the game
 
-            if (Directory.Exists(gamepath) || ext == ".m3u")
+            if (!string.IsNullOrEmpty(gameID) && (Directory.Exists(gamepath) || ext == ".m3u"))
                 commandArray.Add("-r " + gameID);                    //r used to run installed games
 
             string args = string.Join(" ", commandArray);

@@ -28,6 +28,7 @@ namespace EmulatorLauncher.Libretro
         private static int _maxCount = 2;
         private static string _gameRemapName = null;
         private bool _noRemap = false;
+        private static List<string> _cfgFilesToRestore = new List<string>();
 
         public static void GenerateCoreInputRemap(string system, string core, Dictionary<string, string> inputremap, ConfigFile coreSettings, bool mameAuto = false)
         {
@@ -756,6 +757,15 @@ namespace EmulatorLauncher.Libretro
 
         private static void DeleteInputincfgFile(string cfgFile, string ctrlFile, string defaultcfgFile = null)
         {
+            // Backup cfgfile
+            string backup = cfgFile + ".backup";
+            try
+            {
+                File.Copy(cfgFile, backup, true);
+                _cfgFilesToRestore.Add(cfgFile);
+            }
+            catch { }
+            
             try
             {
                 XDocument doc = XDocument.Load(cfgFile);
@@ -835,6 +845,16 @@ namespace EmulatorLauncher.Libretro
 
         private static void DeleteDefaultInputincfgFile(string cfgFile, string ctrlFile)
         {
+            // Backup cfgfile
+            string backupDefault = cfgFile + ".backup";
+            try 
+            { 
+                File.Copy(cfgFile, backupDefault, true);
+                _cfgFilesToRestore.Add(cfgFile);
+            } 
+            catch { }
+
+            // Modify cfgfile
             try
             {
                 XDocument doc = XDocument.Load(cfgFile);

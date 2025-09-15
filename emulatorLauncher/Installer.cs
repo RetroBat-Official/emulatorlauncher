@@ -91,7 +91,7 @@ namespace EmulatorLauncher
             { new Installer("pdark", "pdark", "pd.x86_64.exe") },
             { new Installer("phoenix", "phoenix", "PhoenixEmuProject.exe") },
             { new Installer("play", "play", "Play.exe") },
-            { new Installer("powerbomberman", "powerbomberman", "Power Bomberman.exe") },
+            { new Installer("powerbomberman", "powerbomberman", "Power Bomberman.exe", "700MO") },
             { new Installer("ppsspp", "ppsspp", "PPSSPPWindows64.exe") },
             { new Installer("project64", "project64") },
             { new Installer("ps3", "rpcs3") },
@@ -126,7 +126,7 @@ namespace EmulatorLauncher
             { new Installer("triforce", new string[] { "dolphin-triforce"}, new string[] { "dolphinWX.exe", "dolphin.exe" }) },
             { new Installer("tsugaru", "tsugaru", "tsugaru_cui.exe") },
             { new Installer("vita3k", "vita3k", "Vita3K.exe") },
-            { new Installer("vpinball", new string[] {"vpinball" }, new string[] { "VPinballX.exe", "vpinballx.exe", "VPinballX64.exe" }) },
+            { new Installer("vpinball", new string[] {"vpinball" }, new string[] { "VPinballX.exe", "vpinballx.exe", "VPinballX64.exe" }, "900MO" )},
             { new Installer("winarcadia", "winarcadia", "WinArcadia.exe") },
             { new Installer("winuae", "winuae", "winuae64.exe") },
             { new Installer("xbox", new string[] { "cxbx-reloaded", "cxbx-r" }, "cxbx.exe") },
@@ -151,10 +151,11 @@ namespace EmulatorLauncher
         public string Emulator { get; private set; }
         public string[] Folders { get; private set; }
         public string[] Executables { get; private set; }
+        public string EmulatorSize { get; set; }
         public string DefaultFolderName { get { return Folders[0]; } }
         public string ServerVersion { get; private set; }
         public string ServerFileName { get; set; }
-
+        
         public string PackageUrl
         {
             get
@@ -236,6 +237,14 @@ namespace EmulatorLauncher
             Executables = new string[] { exe == null ? folder + ".exe" : exe };
         }
 
+        private Installer(string emulator, string folder, string exe, string size = null)
+        {
+            Emulator = emulator;
+            Folders = new string[] { folder };
+            Executables = new string[] { exe == null ? folder + ".exe" : exe };
+            EmulatorSize = size;
+        }
+
         private Installer(string emulator, string[] folders, string exe = null)
         {
             Emulator = emulator;
@@ -248,6 +257,14 @@ namespace EmulatorLauncher
             Emulator = emulator;
             Folders = folders.ToArray();
             Executables = executables;
+        }
+
+        private Installer(string emulator, string[] folders, string[] executables, string size = null)
+        {
+            Emulator = emulator;
+            Folders = folders.ToArray();
+            Executables = executables;
+            EmulatorSize = size;
         }
         #endregion
 
