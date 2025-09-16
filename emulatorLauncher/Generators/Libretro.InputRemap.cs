@@ -29,6 +29,7 @@ namespace EmulatorLauncher.Libretro
         private static string _gameRemapName = null;
         private bool _noRemap = false;
         private static List<string> _cfgFilesToRestore = new List<string>();
+        private static string _inputRemapSave = null;
 
         public static void GenerateCoreInputRemap(string system, string core, Dictionary<string, string> inputremap, ConfigFile coreSettings, bool mameAuto = false)
         {
@@ -743,11 +744,14 @@ namespace EmulatorLauncher.Libretro
 
             string dir = Path.Combine(RetroarchPath, "config", "remaps", cleanSystemName);
             string path = _gameRemapName != null ? Path.Combine(dir, _gameRemapName + ".rmp") : Path.Combine(dir, cleanSystemName + ".rmp");
-
+            _inputRemapSave = path;
+            
             try
             {
                 if (File.Exists(path))
+                {
                     File.Delete(path);
+                }
 
                 if (Directory.Exists(dir) && Directory.GetFiles(dir).Length == 0)
                     Directory.Delete(dir);

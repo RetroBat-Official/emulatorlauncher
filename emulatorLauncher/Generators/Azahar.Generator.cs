@@ -45,7 +45,7 @@ namespace EmulatorLauncher
             if (File.Exists(sdl2))
                 _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
 
-            string[] extensions = new string[] { ".3ds", ".3dsx", ".elf", ".axf", ".cci", ".cxi", ".app" };
+            string[] extensions = new string[] { ".3ds", ".3dsx", ".elf", ".axf", ".cci", ".cxi", ".app", ".z3dsx", ".zcia", ".zcxi", ".zcci" };
             if (Path.GetExtension(rom).ToLowerInvariant() == ".zip" || Path.GetExtension(rom).ToLowerInvariant() == ".7z" || Path.GetExtension(rom).ToLowerInvariant() == ".squashfs")
             {
                 string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);

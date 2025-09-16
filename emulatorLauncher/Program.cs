@@ -365,7 +365,7 @@ namespace EmulatorLauncher
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
             SystemConfig.ImportOverrides(SystemConfig.LoadAll("global"));
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"]));
-            SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileName(SystemConfig["rom"]) + "\"]"));
+            SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileName(SystemConfig["rom"]).Replace("=","").Replace("#","") + "\"]"));
             SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
             // Log Retrobat version && emulatorlauncher version
