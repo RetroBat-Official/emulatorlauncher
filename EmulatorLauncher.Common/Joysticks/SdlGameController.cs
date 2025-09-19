@@ -395,8 +395,14 @@ namespace EmulatorLauncher.Common.Joysticks
         TRIGGERRIGHT = 5
     }
 
+
     public class Sdl3GameController
     {
+        [StructLayout(LayoutKind.Sequential, Size = 16)]
+        public struct SdlJoystickGuid
+        {
+        }
+
         static Dictionary<Guid, SdlGameController> _controllersByGuid;
         static Dictionary<string, SdlGameController> _controllersByPath;
         static StringBuilder _joyInfos = new StringBuilder();
@@ -406,6 +412,7 @@ namespace EmulatorLauncher.Common.Joysticks
         public SdlJoystickGuid Guid { get; set; }
         public string Name { get; set; }
         public string Path { get; set; }
+        public string RawPath { get; set; }
 
         private const string SDL3_DLL = "SDL3.dll";  // Ensure this is correct
 
@@ -440,6 +447,26 @@ namespace EmulatorLauncher.Common.Joysticks
 
         [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern void SDL_free(IntPtr ptr);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern SdlJoystickGuid SDL_GetJoystickGUIDForID(int instance_id);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void SDL_GUIDToString(
+            SdlJoystickGuid guid,
+            StringBuilder pszGUID,
+            int cbGUID
+        );
+
+        public string GuidString
+        {
+            get
+            {
+                StringBuilder sb = new StringBuilder(33); // 32 chars + null
+                SDL_GUIDToString(Guid, sb, sb.Capacity);
+                return sb.ToString();
+            }
+        }
 
         private const uint SDL_INIT_JOYSTICK = 0x00000200;
 
@@ -477,13 +504,29 @@ namespace EmulatorLauncher.Common.Joysticks
                         ushort vendorID = SDL_GetJoystickVendorForID(instance_id);
                         ushort productID = SDL_GetJoystickProductForID(instance_id);
 
-                        controllers.Add(new Sdl3GameController
+                        try
                         {
-                            Index = index,
-                            Name = name,
-                            Path = path,
-                            InstanceID = instance_id
-                        });
+                            var guid = SDL_GetJoystickGUIDForID(instance_id);
+
+                            controllers.Add(new Sdl3GameController
+                            {
+                                Index = index,
+                                Name = name,
+                                Path = path,
+                                InstanceID = instance_id,
+                                Guid = guid
+                            });
+                        }
+                        catch
+                        {
+                            controllers.Add(new Sdl3GameController
+                            {
+                                Index = index,
+                                Name = name,
+                                Path = path,
+                                InstanceID = instance_id
+                            });
+                        }
                     }
 
                     SDL_free(joysticksPtr);
