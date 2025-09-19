@@ -1192,8 +1192,9 @@ namespace EmulatorLauncher.Libretro
         {
             if (!Features.IsSupported("video_driver"))
                 return;
-            
-            _video_driver = retroarchConfig["video_driver"];
+
+            // Default to gl, as it's the safest if nothing is set
+            retroarchConfig["video_driver"] = _video_driver = "gl";
 
             // Return if driver was forced in core settings
             if (_coreVideoDriverForce)
