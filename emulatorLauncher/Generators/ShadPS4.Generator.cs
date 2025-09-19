@@ -5,6 +5,7 @@ using System.Diagnostics;
 using EmulatorLauncher.Common;
 using System;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher
 {
@@ -48,6 +49,7 @@ namespace EmulatorLauncher
 
             //settings
             SetupConfiguration(path, rom, fullscreen, resolution);
+            SetupUI(path);
 
             var commandArray = new List<string>();
 
@@ -158,16 +160,70 @@ namespace EmulatorLauncher
                     try { Directory.CreateDirectory(dlcPath); } catch { }
                 toml.WriteValue("GUI", "addonInstallDir", "\"" + dlcPath.Replace("\\", "\\\\") + "\"");
 
+                SetupController(toml);
+
                 toml.Save();
             }
 
             string uiSettingsFile = Path.Combine(userFolder, "qt_ui.ini");
+        }
 
-            using (IniFile ini = new IniFile(uiSettingsFile))
+        private void SetupUI(string path)
+        {
+            string uiFile = Path.Combine(path, "user", "qt_ui.ini");
+
+            using (var ini = new IniFile(uiFile))
             {
-                ini.WriteValue("General", "autoUpdate", "false");
+                ini.WriteValue("general_settings", "checkForUpdates", "false");
+                ini.WriteValue("general_settings", "showChangeLog", "false");
+
                 ini.Save();
             }
+        }
+
+        private void SetupController(IniFile toml)
+        {
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                return;
+            }
+
+            var ctrl = this.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
+
+            if (ctrl?.Config == null)
+                return;
+
+            // Check SDL3 dll Get list of SDL3 controllers
+            bool sdl3 = Controller.CheckSDL3dll();
+
+            if (!sdl3)
+                return;
+
+            Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers);
+
+            if (Sdl3Controllers == null || Sdl3Controllers.Count == 0)
+                return;
+
+            Sdl3GameController sdl3Controller;
+
+            string cPath = ctrl.DirectInput.DevicePath;
+
+            if (ctrl.IsXInputDevice)
+            {
+                cPath = "xinput#" + ctrl.DeviceIndex.ToString();
+                sdl3Controller = Sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
+            }
+            else
+            {
+                sdl3Controller = Sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == ctrl.DirectInput.DevicePath);
+            }
+
+            if (sdl3Controller == null || string.IsNullOrEmpty(sdl3Controller.GuidString))
+                return;
+
+            toml.WriteValue("Input", "useUnifiedInputConfig", "true");
+            toml.WriteValue("General", "defaultControllerID", "\"" + sdl3Controller.GuidString + "\"");
         }
 
         private string Getps4LangFromEnvironment()
