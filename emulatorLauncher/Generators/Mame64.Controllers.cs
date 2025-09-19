@@ -4,7 +4,6 @@ using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.Lightguns;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -16,8 +15,22 @@ namespace EmulatorLauncher
     partial class Mame64Generator
     {
         private bool _sindenSoft = false;
+        private bool _messcfgInput = false;
         private GameMapping _gameMapping = null;
         private Layout _gameLayout = null;
+        private List<string> _filesToRestore = new List<string>();
+        private string _messSystem = null;
+        static readonly Dictionary<string, string> messFiles = new Dictionary<string, string>()
+            {
+                { "advision", "advision"},
+                { "apfm1000", "apfm1000"},
+                { "arcadia", "arcadia"},
+                { "astrocade", "astrocde"},
+                { "casloopy", "casloopy"},
+                { "crvision", "crvision"},
+                { "gamecom", "gamecom"},
+                { "supracan", "supracan"}
+            };
 
         private void UpdateSdlControllersWithHints()
         {
@@ -30,7 +43,7 @@ namespace EmulatorLauncher
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }
 
-        private bool ConfigureMameControllers(string path, bool hbmame, string rom)
+        private bool ConfigureMameControllers(string path, bool hbmame, string rom, string messSystem)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
@@ -62,16 +75,33 @@ namespace EmulatorLauncher
             UpdateSdlControllersWithHints();
 
             // Delete input that would be in cfg file
-            string cfgFile = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg", Path.GetFileNameWithoutExtension(rom) + ".cfg");
+            string cfgFile;
+            if (messFiles.ContainsKey(messSystem))
+            {
+                string messCfgFile = messFiles[messSystem] + ".cfg";
+                cfgFile = _separatecfg ? Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg64", messCfgFile) : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg", messCfgFile);
+            }
+            else
+                cfgFile = _separatecfg ? Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg64", Path.GetFileNameWithoutExtension(rom) + ".cfg") : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg", Path.GetFileNameWithoutExtension(rom) + ".cfg");
+            
             if (File.Exists(cfgFile))
                 DeleteInputincfgFile(cfgFile);
-            string defaultcfgFile = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg", "default.cfg");
+            string defaultcfgFile = _separatecfg ? Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg64", "default.cfg") : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg", "default.cfg");
             if (File.Exists(defaultcfgFile))
                 DeleteInputincfgFile(defaultcfgFile);
 
 
             // Get specific mapping if it exists
-            string MappingFileName = Path.GetFileNameWithoutExtension(rom) + ".xml";
+            string MappingFileName;
+            if (messFiles.ContainsKey(messSystem))
+            {
+                MappingFileName = messFiles[messSystem] + ".xml";
+                _messcfgInput = true;
+                _messSystem = messFiles[messSystem];
+            }
+            else
+                MappingFileName = Path.GetFileNameWithoutExtension(rom) + ".xml";
+            
             string layout = "default";
             if (SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(SystemConfig["controller_layout"]))
                 layout = SystemConfig["controller_layout"];
@@ -80,6 +110,15 @@ namespace EmulatorLauncher
             if (!File.Exists(specificMappingPath))
                 specificMappingPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mame", MappingFileName);
 
+            if (!File.Exists(specificMappingPath))
+            {
+                string defaultFile = "default.xml";
+                if (layout != "default")
+                    defaultFile = "default_" + layout + ".xml";
+
+                specificMappingPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mame", defaultFile);
+            }
+
             if (File.Exists(specificMappingPath))
             {
                 var gameMapping = GameMapping.LoadGameFromXml(specificMappingPath);
@@ -87,6 +126,10 @@ namespace EmulatorLauncher
                 if (gameMapping != null)
                 {
                     var gameLayout = gameMapping.Layouts.Where(l => l.Type == layout).FirstOrDefault();
+                    if (gameLayout == null)
+                    {
+                        gameLayout = gameMapping.Layouts.Where(l => l.Type == "default").FirstOrDefault();
+                    }
 
                     if (gameLayout != null)
                     {
@@ -255,6 +298,67 @@ namespace EmulatorLauncher
                         ConfigurePlayersXInput(i, input, mapping, joy, mouseIndex2, hbmame, dpadonly);
                     else
                         ConfigurePlayersDInput(i, input, ctrlr, joy, mouseIndex2, dpadonly, xinputCtrl);
+                }
+
+                // mess does not accept ctrlr overrides, so copy to cfg file
+                if (_messcfgInput)
+                {
+                    string sysName = messFiles[messSystem];
+
+                    if (File.Exists(cfgFile))
+                    {
+                        try
+                        {
+                            XDocument doc = XDocument.Load(cfgFile);
+
+                            XElement systemElement = doc.Root?
+                                .Element("system");
+
+                            XElement inputElement = doc.Root?
+                                .Element("system")?
+                                .Element("input");
+
+                            if (inputElement != null)
+                                inputElement.Remove();
+
+                            if (systemElement == null)
+                            {
+                                doc.Root.Add(new XElement("system",
+                                        new XAttribute("name", sysName), input
+                                ));
+                            }
+
+                            else
+                                systemElement.Add(input);
+
+                            doc.Save(cfgFile);
+                        }
+                        catch 
+                        {
+                            XDocument doc = new XDocument(
+                            new XComment("This file is autogenerated; comments and unknown tags will be stripped"),
+                            new XElement("mameconfig",
+                                new XAttribute("version", "10"),
+                                new XElement("system",
+                                    new XAttribute("name", "gamecom"), input
+                            )));
+
+                            doc.Save(cfgFile);
+                        }
+                    }
+
+                    else
+                    {
+                        XDocument doc = new XDocument(
+                            new XComment("This file is autogenerated; comments and unknown tags will be stripped"),
+                            new XElement("mameconfig",
+                                new XAttribute("version", "10"),
+                                new XElement("system",
+                                    new XAttribute("name", "gamecom"), input
+                        )));
+
+                        doc.Save(cfgFile);
+                    }
                 }
 
                 SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
@@ -1024,6 +1128,8 @@ namespace EmulatorLauncher
                         continue;
                     if (button.Type.Contains("COIN1"))
                         continue;
+                    if (_messcfgInput && button.Type == "OTHER")
+                        continue;
 
                     var port = new XElement("port",
                         new XAttribute("type", button.Type),
@@ -1305,6 +1411,8 @@ namespace EmulatorLauncher
                     if (button.Type.Contains("START1"))
                         continue;
                     if (button.Type.Contains("COIN1"))
+                        continue;
+                    if (_messcfgInput && button.Type == "OTHER")
                         continue;
 
                     var port = new XElement("port",
@@ -1593,6 +1701,16 @@ namespace EmulatorLauncher
 
         private void DeleteInputincfgFile(string cfgFile)
         {
+            // Backup cfgfile
+            string backup = cfgFile + ".backup";
+            try
+            {
+                File.Copy(cfgFile, backup, true);
+                _filesToRestore.Add(cfgFile);
+            }
+            catch { }
+
+            // Modify cfgfile
             try
             {
                 XDocument doc = XDocument.Load(cfgFile);

@@ -600,6 +600,12 @@ namespace EmulatorLauncher
                 // Disable auto-update
                 ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");
 
+                // Message positions
+                ini.WriteValue("EmuCore/GS", "OsdMessagesPos", "8");
+                ini.WriteValue("EmuCore/GS", "OsdPerformancePos", "2");
+                ini.WriteValue("Achievements", "OverlayPosition", "7");
+                ini.WriteValue("Achievements", "NotificationPosition", "2");
+
                 // Enable cheevos is needed
                 if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
                 {
@@ -609,6 +615,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("Achievements", "UnofficialTestMode", SystemConfig.getOptBoolean("retroachievements.unofficial") ? "true" : "false");
                     ini.WriteValue("Achievements", "Notifications", "true");
                     ini.WriteValue("Achievements", "LeaderboardNotifications", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
+                    ini.WriteValue("Achievements", "LBOverlays", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
                     ini.WriteValue("Achievements", "SoundEffects", "true");
                     ini.WriteValue("Achievements", "Overlays", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "true" : "false");
                     

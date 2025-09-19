@@ -535,6 +535,15 @@ namespace EmulatorLauncher
                                 newMapping["z"] = InputKey.x;
                             }
                             break;
+                        case "lr_by":
+                            {
+                                newMapping["a"] = InputKey.a;
+                                newMapping["b"] = InputKey.pageup;
+                                newMapping["x"] = InputKey.y;
+                                newMapping["y"] = InputKey.pagedown;
+                                newMapping["z"] = InputKey.x;
+                            }
+                            break;
                     }
                 }
             }

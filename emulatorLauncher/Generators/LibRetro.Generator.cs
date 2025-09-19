@@ -58,6 +58,9 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
+            if (_inputRemapSave != null)
+                try { File.Copy(_inputRemapSave, _inputRemapSave + ".backup", true); } catch { }
+
             return ret;
         }
 
@@ -446,11 +449,12 @@ namespace EmulatorLauncher.Libretro
             {
                 string videoDriver = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"))["video_driver"];
                 bool isOpenGL = (emulator != "angle") && (videoDriver == "gl") && (!coreNoGL.Contains(core));
+                bool dx12 = videoDriver == "d3d12";
 
                 string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
                 if (File.Exists(path))
                 {
-                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], isOpenGL);
+                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], isOpenGL, dx12);
                     if (!string.IsNullOrEmpty(renderconfig))
                         SystemConfig["shader"] = renderconfig;
                 }
@@ -1150,12 +1154,12 @@ namespace EmulatorLauncher.Libretro
         private void ConfigureRunahead(string system, string core, ConfigFile retroarchConfig)
         {
             if (coreNoPreemptiveFrames.Contains(core) && SystemConfig.isOptSet("preemptive_frames") && SystemConfig.getOptBoolean("preemptive_frames"))
-                SimpleLogger.Instance.Info("[INFO] Core not compatible with preemptive frames");
+                SimpleLogger.Instance.Info("[INFO] Core might not be compatible with preemptive frames");
 
             if (systemNoRunahead.Contains(system) && SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToIntegerString().ToInteger() > 0)
                 SimpleLogger.Instance.Info("[INFO] System not compatible with run-ahead");
 
-            if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToIntegerString().ToInteger() > 0 && SystemConfig.isOptSet("preemptive_frames") && SystemConfig.getOptBoolean("preemptive_frames") && !coreNoPreemptiveFrames.Contains(core))
+            if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToIntegerString().ToInteger() > 0 && SystemConfig.isOptSet("preemptive_frames") && SystemConfig.getOptBoolean("preemptive_frames"))
             {
                 retroarchConfig["run_ahead_enabled"] = "false";
                 retroarchConfig["run_ahead_frames"] = SystemConfig["runahead"].ToIntegerString();
@@ -1188,8 +1192,9 @@ namespace EmulatorLauncher.Libretro
         {
             if (!Features.IsSupported("video_driver"))
                 return;
-            
-            _video_driver = retroarchConfig["video_driver"];
+
+            // Default to gl, as it's the safest if nothing is set
+            retroarchConfig["video_driver"] = _video_driver = "gl";
 
             // Return if driver was forced in core settings
             if (_coreVideoDriverForce)
@@ -1897,6 +1902,31 @@ namespace EmulatorLauncher.Libretro
                         p.Kill();
                     }
                     catch { }
+                }
+            }
+
+            if (_cfgFilesToRestore != null)
+            {
+                foreach (var f in _cfgFilesToRestore)
+                {
+                    string backupFile = f + ".backup";
+
+                    if (File.Exists(backupFile))
+                    {
+                        try
+                        {
+                            string cfgBackupPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfgbackup");
+                            if (!Directory.Exists(cfgBackupPath))
+                                try { Directory.CreateDirectory(cfgBackupPath); } catch { }
+                            string filename = Path.GetFileName(f);
+                            string target = Path.Combine(cfgBackupPath, filename);
+
+                            File.Copy(f, target, true);
+                            File.Copy(backupFile, f, true);
+                            File.Delete(backupFile);
+                        }
+                        catch { }
+                    }
                 }
             }
 

@@ -99,11 +99,11 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
-            // Check SDL3 dll Get list of SDL3 controllers
+            /* Check SDL3 dll Get list of SDL3 controllers
             bool sdl3 = Controller.CheckSDL3dll();
 
             if (sdl3 && Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
-                _sdl3Controllers = Sdl3Controllers;
+                _sdl3Controllers = Sdl3Controllers;*/
 
             var input = bml.GetOrCreateContainer("Input");
 

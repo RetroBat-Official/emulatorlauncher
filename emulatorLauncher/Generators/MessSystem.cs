@@ -707,20 +707,21 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Artwork path
-            commandArray.Add("-artpath");
-
-            string artwork = Path.Combine(Path.GetDirectoryName(rom), "artwork");
-            if (Directory.Exists(artwork))
-            { 
-                artwork = Path.Combine(Path.GetDirectoryName(rom), ".artwork");
-                commandArray.Add(artwork + ";" + EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
-            }   
+            // Disable artwork path
+            if (SystemConfig.getOptBoolean("disable_artwork"))
+            {
+                commandArray.Add("-artpath");
+                commandArray.Add("NONE");
+            }
             else
-                commandArray.Add(EnsureDirectoryExists(Path.Combine(saves, "mame", "artwork")));
+            {
+                string artpath = Path.Combine(saves, "mame", "artwork");
+                commandArray.Add("-artpath");
+                commandArray.Add(artpath);
+            }
 
             // Specific modules for some systems (manage system slots)
-            
+
             Action<string, string> addSlot = (v, w) =>
             {
                 if (SystemConfig.isOptSet(v) && SystemConfig.getOptBoolean(v))

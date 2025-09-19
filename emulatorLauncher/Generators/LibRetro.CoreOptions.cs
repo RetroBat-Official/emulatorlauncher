@@ -1,13 +1,16 @@
-﻿using System;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
 using static EmulatorLauncher.Mame64Generator;
-using System.ComponentModel;
+using static EmulatorLauncher.PadToKeyboard.SendKey;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -1862,8 +1865,48 @@ namespace EmulatorLauncher.Libretro
 
             BindBoolFeatureOn(coreSettings, "gambatte_gb_bootloader", "gambatte_gb_bootloader", "enabled", "disabled");
             BindFeature(coreSettings, "gambatte_mix_frames", "gambatte_mix_frames", "lcd_ghosting");
-            BindFeature(coreSettings, "gambatte_gb_internal_palette", "gambatte_gb_internal_palette", "GB - DMG");
             BindFeature(coreSettings, "gambatte_gb_colorization", "gambatte_gb_colorization", "disabled");
+
+            if (SystemConfig.isOptSet("gambatte_gb_internal_palette") && !string.IsNullOrEmpty(SystemConfig["gambatte_gb_internal_palette"]))
+            {
+                string palette = SystemConfig["gambatte_gb_internal_palette"];
+                coreSettings["gambatte_gb_colorization"] = "internal";
+
+                if (palette.StartsWith("TWB64"))
+                {
+                    var firstSplit = palette.Split(new[] { ' ' }, 2);
+                    var secondSplit = firstSplit[1].Split(new string[] { " - " }, 2, StringSplitOptions.None);
+                    if (int.TryParse(secondSplit[0], out int result))
+                    {
+                        if (result < 101)
+                        {
+                            coreSettings["gambatte_gb_internal_palette"] = "TWB64 - Pack 1";
+                            coreSettings["gambatte_gb_palette_twb64_1"] = palette;
+                        }
+                        else if (result < 201)
+                        {
+                            coreSettings["gambatte_gb_internal_palette"] = "TWB64 - Pack 2";
+                            coreSettings["gambatte_gb_palette_twb64_2"] = palette;
+                        }
+                        else if (result < 301)
+                        {
+                            coreSettings["gambatte_gb_internal_palette"] = "TWB64 - Pack 3";
+                            coreSettings["gambatte_gb_palette_twb64_3"] = palette;
+                        }
+                    }
+                    
+                }
+                else if (palette.StartsWith("Pixel"))
+                {
+                    coreSettings["gambatte_gb_internal_palette"] = "PixelShift - Pack 1";
+                    coreSettings["gambatte_gb_palette_pixelshift_1"] = palette;
+                }
+
+                else
+                    coreSettings["gambatte_gb_internal_palette"] = palette;
+
+            }
+            
             if (SystemConfig["gambatte_gb_colorization"] == "automatic")
                 coreSettings["gambatte_gb_colorization"] = "auto";
         }
@@ -2425,7 +2468,7 @@ namespace EmulatorLauncher.Libretro
             try
             {
                 // Remove image_directories node in cfg file
-                string cfgPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "cfg", messSystem.MachineName + ".cfg");
+                string cfgPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg", messSystem.MachineName + ".cfg");
                 if (File.Exists(cfgPath))
                 {
                     XDocument xml = XDocument.Load(cfgPath);
@@ -3491,55 +3534,58 @@ namespace EmulatorLauncher.Libretro
             if (core != "nestopia")
                 return;
 
-            if (Features.IsSupported("nestopia_cropoverscan"))
+            if (SystemConfig.isOptSet("nestopia_cropoverscan") && !string.IsNullOrEmpty(SystemConfig["nestopia_cropoverscan"]))
             {
-                if (SystemConfig.isOptSet("nestopia_cropoverscan") && SystemConfig["nestopia_cropoverscan"] == "none")
+                if (SystemConfig["nestopia_cropoverscan"] == "none")
                 {
                     coreSettings["nestopia_overscan_h_left"] = "0";
                     coreSettings["nestopia_overscan_h_right"] = "0";
                     coreSettings["nestopia_overscan_v_bottom"] = "0";
                     coreSettings["nestopia_overscan_v_top"] = "0";
-                }
-                else if (SystemConfig.isOptSet("nestopia_cropoverscan") && SystemConfig["nestopia_cropoverscan"] == "h")
-                {
-                    coreSettings["nestopia_overscan_h_left"] = "8";
-                    coreSettings["nestopia_overscan_h_right"] = "8";
-                    coreSettings["nestopia_overscan_v_bottom"] = "0";
-                    coreSettings["nestopia_overscan_v_top"] = "0";
-                }
-                else if (SystemConfig.isOptSet("nestopia_cropoverscan") && SystemConfig["nestopia_cropoverscan"] == "v")
-                {
-                    coreSettings["nestopia_overscan_h_left"] = "0";
-                    coreSettings["nestopia_overscan_h_right"] = "0";
-                    coreSettings["nestopia_overscan_v_bottom"] = "8";
-                    coreSettings["nestopia_overscan_v_top"] = "8";
-                }
-                else if (SystemConfig.isOptSet("nestopia_cropoverscan") && SystemConfig["nestopia_cropoverscan"] == "both")
-                {
-                    coreSettings["nestopia_overscan_h_left"] = "8";
-                    coreSettings["nestopia_overscan_h_right"] = "8";
-                    coreSettings["nestopia_overscan_v_bottom"] = "8";
-                    coreSettings["nestopia_overscan_v_top"] = "8";
                 }
                 else
                 {
-                    coreSettings["nestopia_overscan_h_left"] = "0";
-                    coreSettings["nestopia_overscan_h_right"] = "0";
-                    coreSettings["nestopia_overscan_v_bottom"] = "8";
-                    coreSettings["nestopia_overscan_v_top"] = "8";
+                    string crop = SystemConfig["nestopia_cropoverscan"];
+                    var cropDict = new Dictionary<string, string>()
+                    {
+                        { "t" , "8" },
+                        { "b" , "8" },
+                        { "l" , "0" },
+                        { "r" , "0" }
+                    };
+
+                    foreach (var part in crop.Split('_'))
+                    {
+                        string key = part.Substring(0, 1);
+                        string value = part.Substring(1);
+
+                        cropDict[key] = value;
+                    }
+
+                    coreSettings["nestopia_overscan_h_left"] = cropDict["l"];
+                    coreSettings["nestopia_overscan_h_right"] = cropDict["r"];
+                    coreSettings["nestopia_overscan_v_bottom"] = cropDict["b"];
+                    coreSettings["nestopia_overscan_v_top"] = cropDict["t"];
                 }
+            }
+            else
+            {
+                coreSettings["nestopia_overscan_h_left"] = "0";
+                coreSettings["nestopia_overscan_h_right"] = "0";
+                coreSettings["nestopia_overscan_v_bottom"] = "8";
+                coreSettings["nestopia_overscan_v_top"] = "8";
             }
 
             BindBoolFeature(coreSettings, "nestopia_nospritelimit", "nestopia_nospritelimit", "enabled", "disabled");
             BindFeature(coreSettings, "nestopia_palette", "nestopia_palette", "consumer");
             BindFeature(coreSettings, "nestopia_blargg_ntsc_filter", "nestopia_blargg_ntsc_filter", "disabled");
             BindFeature(coreSettings, "nestopia_overclock", "nestopia_overclock", "1x");
-            BindFeature(coreSettings, "nestopia_select_adapter", "nestopia_select_adapter", "auto");
-            BindBoolFeature(coreSettings, "nestopia_show_crosshair", "nestopia_show_crosshair", "enabled", "disabled");
             BindFeature(coreSettings, "nestopia_favored_system", "nestopia_favored_system", "auto");
-            BindBoolFeature(coreSettings, "nestopia_button_shift", "rotate_buttons", "disabled", "enabled");
 
             // Controls
+            BindBoolFeature(coreSettings, "nestopia_show_crosshair", "nestopia_show_crosshair", "enabled", "disabled");
+            BindFeature(coreSettings, "nestopia_select_adapter", "nestopia_select_adapter", "auto");
+            BindBoolFeature(coreSettings, "nestopia_button_shift", "rotate_buttons", "disabled", "enabled");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "nestopia_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "nestopia_controller2", "1");
 
@@ -4636,6 +4682,7 @@ namespace EmulatorLauncher.Libretro
             _forcenobias = true;
 
             // Lightgun
+            BindBoolFeature(coreSettings, "stella_lightgun_crosshair", "stella_lightgun_crosshair", "enabled", "disabled");
             SetupLightGuns(retroarchConfig, "4", core);
         }
 

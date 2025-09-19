@@ -59,9 +59,17 @@ namespace EmulatorLauncher
         {
             if (installer == null)
                 return;
-            
+
             if (string.IsNullOrEmpty(installer.ServerVersion))
-                label1.Text = string.Format(Properties.Resources.EmulatorNotInstalled, installer.DefaultFolderName);
+            {
+                if (!string.IsNullOrEmpty(installer.EmulatorSize))
+                {
+                    string textToDisplay = installer.DefaultFolderName + " (" + installer.EmulatorSize + ")";
+                    label1.Text = string.Format(Properties.Resources.EmulatorNotInstalled, textToDisplay);
+                }
+                else
+                    label1.Text = string.Format(Properties.Resources.EmulatorNotInstalled, installer.DefaultFolderName);
+            }
             else
                 label1.Text = string.Format(Properties.Resources.UpdateAvailable, installer.DefaultFolderName, installer.ServerVersion, installer.GetInstalledVersion());
 

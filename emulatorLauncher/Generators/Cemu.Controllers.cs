@@ -146,6 +146,10 @@ namespace EmulatorLauncher
             writer.WriteStartDocument();
             writer.WriteStartElement("emulated_controller");
             writer.WriteElementString("type", "Wii U GamePad");
+
+            if (Program.SystemConfig.getOptBoolean("cemu_toggle_display"))
+                writer.WriteElementString("toggle_display", "1");
+
             writer.WriteStartElement("controller");
             writer.WriteElementString("api", "Keyboard");
             writer.WriteElementString("uuid", "keyboard");
@@ -411,6 +415,9 @@ namespace EmulatorLauncher
             writer.WriteStartDocument();
             writer.WriteStartElement("emulated_controller");
             writer.WriteElementString("type", type);
+
+            if (SystemConfig.getOptBoolean("cemu_toggle_display"))
+                writer.WriteElementString("toggle_display", "1");
 
             if (emulatedWiimote)
             {
