@@ -299,6 +299,14 @@ namespace EmulatorLauncher.Libretro
                                 inputremap["input_player" + i + "_btn_x"] = "11";
                                 inputremap["input_player" + i + "_btn_y"] = "10";
                             }
+                            else if (Program.SystemConfig["megadrive_control_layout"] == "lr_by")
+                            {
+                                inputremap["input_player" + i + "_btn_b"] = "1";
+                                inputremap["input_player" + i + "_btn_l"] = "0";
+                                inputremap["input_player" + i + "_btn_r"] = "9";
+                                inputremap["input_player" + i + "_btn_x"] = "11";
+                                inputremap["input_player" + i + "_btn_y"] = "10";
+                            }
                             break;
                         case "fbneo":
                             if (Program.SystemConfig["megadrive_control_layout"] == "lr_zc")
@@ -319,6 +327,13 @@ namespace EmulatorLauncher.Libretro
                                 inputremap["input_player" + i + "_btn_a"] = "11";
                                 inputremap["input_player" + i + "_btn_l"] = "9";
                                 inputremap["input_player" + i + "_btn_r"] = "8";
+                                inputremap["input_player" + i + "_btn_x"] = "10";
+                            }
+                            else if (Program.SystemConfig["megadrive_control_layout"] == "lr_by")
+                            {
+                                inputremap["input_player" + i + "_btn_a"] = "11";
+                                inputremap["input_player" + i + "_btn_l"] = "8";
+                                inputremap["input_player" + i + "_btn_r"] = "9";
                                 inputremap["input_player" + i + "_btn_x"] = "10";
                             }
                             else

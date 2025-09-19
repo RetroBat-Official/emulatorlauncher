@@ -200,6 +200,16 @@ namespace EmulatorLauncher
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pageup));
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.x));
                 }
+                else if (SystemConfig.isOptSet("megadrive_control_layout") && SystemConfig["megadrive_control_layout"] == "lr_by")
+                {
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.a));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pageup));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.b));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.start));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.y));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.pagedown));
+                    buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.x));
+                }
                 else
                 {
                     buttonMapping.Add(GetInputCode(controller, ctrl, InputKey.y));

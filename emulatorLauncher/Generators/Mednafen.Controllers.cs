@@ -2092,6 +2092,14 @@ namespace EmulatorLauncher
                     newMapping["y"] = InputKey.pageup;
                     newMapping["z"] = InputKey.x;
                 }
+                else if (Program.SystemConfig["megadrive_control_layout"] == "lr_by")
+                {
+                    newMapping["a"] = InputKey.a;
+                    newMapping["b"] = InputKey.pageup;
+                    newMapping["x"] = InputKey.y;
+                    newMapping["y"] = InputKey.pagedown;
+                    newMapping["z"] = InputKey.x;
+                }
             }
             else if (mednafenCore == "sms")
             {
