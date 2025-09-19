@@ -23,6 +23,17 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> systemFBneo = new List<string>() { "cave", "cps1", "cps2", "cps3", "fbneo", "neogeo" };
         static readonly List<string> megadrive3ButtonsList = new List<string>() { "2", "257", "1025", "1537", "773" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
+        static readonly Dictionary<string,string> messFiles = new Dictionary<string,string>()
+            {
+                { "advision", "advision"},
+                { "apfm1000", "apfm1000"},
+                { "arcadia", "arcadia"},
+                { "astrocade", "astrocde"},
+                { "casloopy", "casloopy"},
+                { "crvision", "crvision"},
+                { "gamecom", "gamecom"},
+                { "supracan", "supracan"}
+            };
 
         private static int _playerCount = 1;
         private static int _maxCount = 2;
@@ -71,15 +82,27 @@ namespace EmulatorLauncher.Libretro
                 else if (File.Exists(defaultctrlFile) && !File.Exists(defaultcfgFile) && !mameAuto)
                     try { File.Copy(defaultctrlFile, defaultcfgFile); } catch { }
 
-                // game cfg
-                string cfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", romName + ".cfg");
-                string ctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", romName + ".cfg");
+                // Per system/game
+                string cfgFile;
+                string ctrlFile;
 
-                if (!File.Exists(ctrlFile))
+                if (messFiles.ContainsKey(system))
                 {
-                    string cfgDir = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame");
-                    string[] cfgFiles = Directory.GetFiles(cfgDir, "*.cfg", SearchOption.TopDirectoryOnly);
-                    ctrlFile = cfgFiles.Where(c => romName.StartsWith(Path.GetFileNameWithoutExtension(c))).OrderByDescending(c => Path.GetFileNameWithoutExtension(c).Length).FirstOrDefault();
+                    string messcfgFile = messFiles[system] + ".cfg";
+                    cfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", messcfgFile);
+                    ctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", messcfgFile);
+                }
+
+                else
+                {
+                    cfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", romName + ".cfg");
+                    ctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", romName + ".cfg");
+                    if (!File.Exists(ctrlFile))
+                    {
+                        string cfgDir = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame");
+                        string[] cfgFiles = Directory.GetFiles(cfgDir, "*.cfg", SearchOption.TopDirectoryOnly);
+                        ctrlFile = cfgFiles.Where(c => romName.StartsWith(Path.GetFileNameWithoutExtension(c))).OrderByDescending(c => Path.GetFileNameWithoutExtension(c).Length).FirstOrDefault();
+                    }
                 }
 
                 if (File.Exists(cfgFile))
@@ -785,6 +808,7 @@ namespace EmulatorLauncher.Libretro
                 }
 
                 List<XElement> allPorts = new List<XElement>();
+                List<XElement> keyboards = new List<XElement>();
 
                 if (ctrlFile != null && File.Exists(ctrlFile))
                 {
@@ -797,6 +821,7 @@ namespace EmulatorLauncher.Libretro
                     if (ctrlinputElement != null && gameSystemElement != null)
                     {
                         allPorts = ctrlinputElement.Elements("port").ToList();
+                        keyboards = ctrlinputElement.Elements("keyboard").ToList();
 
                         var uiPorts = allPorts.Where(p => (string)p.Attribute("type") != null && ((string)p.Attribute("type")).StartsWith("UI"));
                         var nonUIPorts = allPorts.Where(p => (string)p.Attribute("type") != null && !((string)p.Attribute("type")).StartsWith("UI"));
@@ -805,6 +830,12 @@ namespace EmulatorLauncher.Libretro
                         {
                             XElement newInput = new XElement("input", nonUIPorts);
                             gameSystemElement.Add(newInput);
+
+                            if (keyboards.Any())
+                            {
+                                foreach (var keyboard in keyboards)
+                                    newInput.Add(keyboard);
+                            }
                         }
 
                         if (uiPorts.Any() && defaultcfgFile != null && File.Exists(defaultcfgFile))

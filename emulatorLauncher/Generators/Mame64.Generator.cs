@@ -16,6 +16,7 @@ namespace EmulatorLauncher
 
         private bool _multigun = false;
         private bool _mouseGun = false;
+        private bool _separatecfg = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -36,6 +37,7 @@ namespace EmulatorLauncher
             }
 
             bool hbmame = system == "hbmame";
+            _separatecfg = SystemConfig.getOptBoolean("mame_separate_cfg");
 
             // Get MAME executable path
             string path = AppConfig.GetFullPath("mame");
@@ -139,7 +141,11 @@ namespace EmulatorLauncher
                 }
 
                 // cfg directory
-                string cfgPath = hbmame ? Path.Combine(AppConfig.GetFullPath("saves"), "hbmame", "cfg") : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg");
+                string cfgPath = _separatecfg ? Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg64") : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg");
+
+                if (hbmame)
+                    cfgPath = Path.Combine(AppConfig.GetFullPath("saves"), "hbmame", "cfg");
+
                 if (!Directory.Exists(cfgPath)) try { Directory.CreateDirectory(cfgPath); }
                     catch { }
                 if (!string.IsNullOrEmpty(cfgPath) && Directory.Exists(cfgPath))
@@ -182,7 +188,7 @@ namespace EmulatorLauncher
                 /// -crosshairpath
                 /// -swpath
 
-                commandArray.AddRange(GetCommonMame64Arguments(rom, hbmame, resolution));
+                commandArray.AddRange(GetCommonMame64Arguments(rom, hbmame, system, resolution));
 
                 // Unknown system, try to run with rom name only
                 commandArray.Add(Path.GetFileNameWithoutExtension(rom));
@@ -192,7 +198,7 @@ namespace EmulatorLauncher
             else
             {
                 var commandArray = messMode.GetMameCommandLineArguments(system, rom, true);
-                commandArray.AddRange(GetCommonMame64Arguments(rom, hbmame, resolution));
+                commandArray.AddRange(GetCommonMame64Arguments(rom, hbmame, system, resolution));
 
                 args = commandArray.JoinArguments();
             }
@@ -206,7 +212,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private List<string> GetCommonMame64Arguments(string rom, bool hbmame, ScreenResolution resolution = null)
+        private List<string> GetCommonMame64Arguments(string rom, bool hbmame, string system, ScreenResolution resolution = null)
         {
             var retList = new List<string>();
 
@@ -531,17 +537,8 @@ namespace EmulatorLauncher
                 {
                     string romName = Path.GetFileNameWithoutExtension(rom);
                     ctrlrProfile = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr", romName + ".cfg");
-                    string biosctrlrProfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "cfg", romName + ".cfg");
                     if (File.Exists(ctrlrProfile))
                     {
-                        retList.Add("-ctrlr");
-                        retList.Add(romName);
-                    }
-                    else if (File.Exists(biosctrlrProfile))
-                    {
-                        try { File.Copy(biosctrlrProfile, ctrlrProfile); }
-                        catch { }
-                        
                         retList.Add("-ctrlr");
                         retList.Add(romName);
                     }
@@ -550,7 +547,7 @@ namespace EmulatorLauncher
             
             else if (!SystemConfig.isOptSet("mame_ctrlr_profile") || SystemConfig["mame_ctrlr_profile"] == "retrobat_auto")
             {
-                if (ConfigureMameControllers(ctrlrPath, hbmame, rom))
+                if (ConfigureMameControllers(ctrlrPath, hbmame, rom, system))
                 {
                     retList.Add("-ctrlr");
                     retList.Add("retrobat_auto");
