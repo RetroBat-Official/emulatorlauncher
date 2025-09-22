@@ -1572,6 +1572,7 @@ namespace EmulatorLauncher
             { InputKey.select,              "Select" },
             { InputKey.start,               "Start" },
             { InputKey.r2,                  "Touch" },
+            { InputKey.l2,                  "Microphone" }
         };
 
         private static readonly InputKeyMapping nesMapping = new InputKeyMapping()
@@ -2148,6 +2149,7 @@ namespace EmulatorLauncher
             { "nds", "NDS Controller" },
             { "nes", "NES Controller" },
             { "ngp", "NeoGeo Portable Controller" },
+            { "ngpc", "NeoGeo Portable Controller" },
             { "odyssey2", "O2 Joystick" },
             { "pcengine", "PC Engine Controller" },
             { "pcenginecd", "PC Engine Controller" },
@@ -2160,6 +2162,7 @@ namespace EmulatorLauncher
             { "sgb", "Gameboy Controller" },
             { "snes", "SNES Controller" },
             { "superfamicom", "SNES Controller" },
+            { "supergrafx", "PC Engine Controller" },
             { "tic80", "TIC-80 Controller" },
             { "turbografx", "PC Engine Controller" },
             { "turbografxcd", "PC Engine Controller" },
@@ -2196,6 +2199,7 @@ namespace EmulatorLauncher
             { "nds", ndsMapping },
             { "nes", nesMapping },
             { "ngp", ngpMapping },
+            { "ngpc", ngpMapping },
             { "odyssey2", o2Mapping },
             { "pcengine", pceMapping },
             { "pcenginecd", pceMapping },
@@ -2208,6 +2212,7 @@ namespace EmulatorLauncher
             { "sgb", gbMapping },
             { "snes", snesMapping },
             { "superfamicom", snesMapping },
+            { "supergrafx", pceMapping },
             { "tic80", tic80Mapping },
             { "turbografx", pceMapping },
             { "turbografxcd", pceMapping },

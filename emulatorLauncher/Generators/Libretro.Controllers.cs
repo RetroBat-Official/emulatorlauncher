@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace EmulatorLauncher.Libretro
 {
@@ -60,17 +61,10 @@ namespace EmulatorLauncher.Libretro
 
             foreach (var controller in Program.Controllers)
             {
-                if (controller.DirectInput != null && controller.Name != null)
-                    try { SimpleLogger.Instance.Info("[CONTROLLERS] Dinput index for controller " + controller.Name + " is: " + controller.DirectInput.DeviceIndex); } catch { }
-                if (controller.SdlController != null && controller.Name != null)
-                    try { SimpleLogger.Instance.Info("[CONTROLLERS] SDL index for controller " + controller.Name + " is: " + controller.SdlController.Index); } catch { }
-                if (controller.XInput != null && controller.Name != null)
-                    try { SimpleLogger.Instance.Info("[CONTROLLERS] Xinput index for controller " + controller.Name + " is: " + controller.XInput.DeviceIndex); } catch { }
-
                 WriteControllerConfig(retroconfig, controller, system, core);
             }
 
-            // Check for duplicate indexes and log it
+            // Check for duplicate indexes and log it (and try and fix it)
             try
             {
                 var duplicatesWithKeys = _indexes
@@ -85,6 +79,18 @@ namespace EmulatorLauncher.Libretro
                 {
                     foreach (var pair in duplicatesWithKeys)
                         SimpleLogger.Instance.Warning($"[WARNING] Value {pair.Key} is duplicated for keys: {string.Join(", ", pair.Value)}");
+
+                    // Replace sdlcontroller index with deviceindex, we don't understand why sdl is not null and returns same index 0 for all controllers !
+                    if (_inputDriver == "sdl2")
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Trying to fix duplicate index.");
+
+                        foreach (var controller in Program.Controllers)
+                        {
+                            int index = controller.DeviceIndex;
+                            retroconfig[string.Format("input_player{0}_joypad_index", controller.PlayerIndex)] = index.ToString();
+                        }
+                    }
                 }
             }
             catch { SimpleLogger.Instance.Warning("[WARNING] Failed duplicate index check"); }
