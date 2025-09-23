@@ -518,7 +518,6 @@ namespace EmulatorLauncher
                 return;
             }
 
-
             if (args.Any(a => "-makeiso".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
                 IsoFile.ConvertToIso(SystemConfig["makeiso"]);
