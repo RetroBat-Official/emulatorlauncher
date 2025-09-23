@@ -198,12 +198,26 @@ namespace EmulatorLauncher
 
         private void SetupGeneralConfig(DynamicJson json, string system, string core, string rom, string emulator, bool fullscreen)
         {
+            List<string> necList = new List<string>() { "PCE", "PCECD", "SGX", "SGXCD" };
+            List<string> gbList = new List<string>() { "GB", "GBC", "GBL" };
+
             // First, set core to use !
             if (bizhawkPreferredCore.ContainsKey(system))
             {
                 string systemName = bizhawkPreferredCore[system];
                 var preferredcores = json.GetOrCreateContainer("PreferredCores");
                 preferredcores[systemName] = core;
+
+                if (necList.Contains(systemName))
+                {
+                    foreach (var nec in necList)
+                        preferredcores[nec] = core;
+                }
+                else if (gbList.Contains(systemName))
+                {
+                    foreach (var gb in gbList)
+                        preferredcores[gb] = core;
+                }
             }
 
             // If using some extensions, config file needs to be updated to specify the system to autorun

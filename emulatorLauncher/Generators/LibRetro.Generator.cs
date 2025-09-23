@@ -58,9 +58,6 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            if (_inputRemapSave != null)
-                try { File.Copy(_inputRemapSave, _inputRemapSave + ".backup", true); } catch { }
-
             return ret;
         }
 

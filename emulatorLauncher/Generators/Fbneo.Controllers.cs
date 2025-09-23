@@ -49,18 +49,40 @@ namespace EmulatorLauncher
             {
                 YmlFile ymlFile = YmlFile.Load(fbneoMapping);
 
+                string layout = "";
+                if (SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(SystemConfig["controller_layout"]))
+                    layout = SystemConfig["controller_layout"];
+
                 if (decocassGames.Contains(_romName))
                     game = ymlFile.Elements.Where(g => g.Name == "decocass").FirstOrDefault() as YmlContainer;
-                else if(decomlcGames.Contains(_romName))
+                else if (decomlcGames.Contains(_romName))
                     game = ymlFile.Elements.Where(g => g.Name == "decomlc").FirstOrDefault() as YmlContainer;
+                else if (!string.IsNullOrEmpty(layout))
+                {
+                    string searchYml = _romName + "_" + layout;
+                    game = ymlFile.Elements.Where(g => g.Name == searchYml).FirstOrDefault() as YmlContainer;
+                }
                 else
+                {
                     game = ymlFile.Elements.Where(g => g.Name == _romName).FirstOrDefault() as YmlContainer;
+                }
 
                 if (game == null)
+                {
                     game = ymlFile.Elements.Where(g => _romName.StartsWith(g.Name) && g.Name != "").OrderByDescending(g => g.Name.Length).FirstOrDefault() as YmlContainer;
+                    YmlContainer newGame = null;
+                    if (game != null && !string.IsNullOrEmpty(layout))
+                    {
+                        string searchYml = game.Name + "_" + layout;
+                        newGame = ymlFile.Elements.Where(g => g.Name == searchYml).FirstOrDefault() as YmlContainer;
+
+                        if (newGame != null)
+                            game = newGame;
+                    }
+                }
 
                 if (game == null)
-                    game = ymlFile.Elements.Where(g => g.Name == "default_" + system).FirstOrDefault() as YmlContainer;
+                    game = ymlFile.Elements.Where(g => g.Name == "default_" + layout).FirstOrDefault() as YmlContainer;
 
                 if (game == null)
                     game = ymlFile.Elements.Where(g => g.Name == "default").FirstOrDefault() as YmlContainer;

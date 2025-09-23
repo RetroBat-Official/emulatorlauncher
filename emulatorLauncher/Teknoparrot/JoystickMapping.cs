@@ -70,6 +70,11 @@ namespace TeknoParrotUi.Common
         ExtensionOne16,
         ExtensionOne17,
         ExtensionOne18,
+        ExtensionOne19,
+        ExtensionOne20,
+        ExtensionOne21,
+        ExtensionOne27,
+        ExtensionOne28,
         ExtensionTwo1,
         ExtensionTwo2,
         ExtensionTwo3,
@@ -82,6 +87,8 @@ namespace TeknoParrotUi.Common
         ExtensionTwo16,
         ExtensionTwo17,
         ExtensionTwo18,
+        ExtensionTwo21,
+        ExtensionTwo22,
         Analog0Special1,
         Analog0Special2,
         Analog2Special1,
@@ -223,7 +230,10 @@ namespace TeknoParrotUi.Common
         IDZGearChange4,
         IDZGearChange5,
         IDZGearChange6,
-        Wmmt3InsertCard
+        Wmmt3InsertCard,
+        Rotary1,
+        Rotary1Left,
+        Rotary1Right
     }
 
     public enum AnalogType

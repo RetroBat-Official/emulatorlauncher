@@ -23,6 +23,7 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private bool _triforce = false;
         private bool _namco2x6 = false;
+        private bool _namco3xx = false;
 
         static readonly Dictionary<string, string> executables = new Dictionary<string, string>()
         {
@@ -178,6 +179,8 @@ namespace EmulatorLauncher
                 _triforce = true;
             else if (core == "namco2x6")
                 _namco2x6 = true;
+            else if (core == "namco3xx")
+                _namco3xx = true;
 
             if (!_namco2x6)
                 rom = this.TryUnZipGameIfNeeded(system, rom);
@@ -185,7 +188,7 @@ namespace EmulatorLauncher
             string gameName = Path.GetFileNameWithoutExtension(rom);
             SimpleLogger.Instance.Info("[INFO] Game name : " + gameName);
 
-            GameProfile profile = FindGameProfile(path, rom, gameName, _triforce, _namco2x6);
+            GameProfile profile = FindGameProfile(path, rom, gameName, _triforce, _namco2x6, _namco3xx);
             if (profile == null)
             {
                 SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable to find gameprofile for " + rom);
@@ -226,6 +229,15 @@ namespace EmulatorLauncher
                 userProfile.GamePath = rom;
             }
 
+            else if (_namco3xx)
+            {
+                string gamePath = Directory.GetFiles(rom, userProfile.ExecutableName, SearchOption.AllDirectories).FirstOrDefault();
+                if (gamePath != null)
+                {
+                    userProfile.GamePath = gamePath;
+                }
+            }
+
             if (userProfile.GamePath == null || !File.Exists(userProfile.GamePath))
             {
                 SimpleLogger.Instance.Info("[INFO] Searching for Game executable.");
@@ -239,7 +251,7 @@ namespace EmulatorLauncher
                     }
                 }
 
-                RetryWithSecondExe:
+            RetryWithSecondExe:
                 userProfile.GamePath = FindExecutable(rom, Path.GetFileNameWithoutExtension(userProfile.FileName));
 
                 if (userProfile.ExecutableName == "game")
@@ -400,6 +412,8 @@ namespace EmulatorLauncher
 
             if (_namco2x6)
                 ConfigurePlay(userProfile);
+            if (_namco3xx)
+                ConfigureRpcs3(userProfile, path);
 
             JoystickHelper.SerializeGameProfile(userProfile, userProfilePath);
 
@@ -547,6 +561,46 @@ namespace EmulatorLauncher
                 resolution.FieldValue = "480p";
         }
 
+        private static void ConfigureRpcs3(GameProfile userProfile, string emuPath)
+        {
+            var graphicsBackend = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Graphics Backend");
+            if (graphicsBackend != null && Program.SystemConfig.isOptSet("tp_rpcs3_gpuapi") && !string.IsNullOrEmpty(Program.SystemConfig["tp_rpcs3_gpuapi"]))
+                graphicsBackend.FieldValue = Program.SystemConfig["tp_rpcs3_gpuapi"];
+            else
+                graphicsBackend.FieldValue = "Vulkan";
+
+            string rpcs3Config = Path.Combine(emuPath, "RPCS3", "config", "config.yml");
+
+            if (File.Exists(rpcs3Config))
+            {
+                YmlFile yml = YmlFile.Load(rpcs3Config);
+                YmlContainer misc = yml.GetOrCreateContainer("Miscellaneous");
+
+                misc["Automatically start games after boot"] = "true";
+                misc["Exit RPCS3 when process finishes"] = "true";
+                misc["Prevent display sleep while running games"] = "true";
+
+                yml.Save();
+            }
+
+            string rpcs3guiConfig = Path.Combine(emuPath, "RPCS3", "GuiConfigs", "CurrentSettings.ini");
+
+            if (File.Exists(rpcs3guiConfig))
+            {
+                using (var ini = new IniFile(rpcs3guiConfig))
+                {
+                    ini.WriteValue("main_window", "confirmationBoxExitGame", "false");
+                    ini.WriteValue("main_window", "infoBoxEnabledInstallPUP", "false");
+                    ini.WriteValue("main_window", "infoBoxEnabledWelcome", "false");
+                    ini.WriteValue("main_window", "confirmationBoxBootGame", "false");
+                    ini.WriteValue("main_window", "infoBoxEnabledInstallPKG", "false");
+                    ini.WriteValue("Meta", "checkUpdateStart", "false");
+
+                    ini.Save();
+                }
+            }
+        }
+
         private static string RootDirectory(string path)
         {
             string tmp = Path.GetDirectoryName(path);
@@ -570,7 +624,7 @@ namespace EmulatorLauncher
             return path;
         }
 
-        private static GameProfile FindGameProfile(string path, string romPath, string gameName, bool triforce = false, bool namco2x6 = false)
+        private static GameProfile FindGameProfile(string path, string romPath, string gameName, bool triforce = false, bool namco2x6 = false, bool namco3xx = false)
         {
             string currentFolderName = Path.GetFileNameWithoutExtension(romPath);
 
@@ -602,7 +656,35 @@ namespace EmulatorLauncher
                     if (profile != null)
                         return profile;
                 }
+            }
 
+            if (namco3xx)
+            {
+                string profileFile = Directory.GetFiles(romPath, "*.tprofile", SearchOption.TopDirectoryOnly).FirstOrDefault();
+
+                if (File.Exists(profileFile))
+                {
+                    string profileName = Path.GetFileNameWithoutExtension(profileFile);
+                    
+                    SimpleLogger.Instance.Info("[INFO] Profile file found: " + profileFile);
+                    
+                    if (File.Exists(Path.Combine(path, "GameProfiles", profileName + ".xml")))
+                    {
+                        var profile = JoystickHelper.DeSerializeGameProfile(Path.Combine(path, "GameProfiles", profileName + ".xml"), false);
+                        if (profile != null)
+                            return profile;
+                    }
+                }
+
+                if (!File.Exists(profileFile))
+                {
+                    string profileName = Path.GetFileNameWithoutExtension(romPath);
+                    SimpleLogger.Instance.Info("[INFO] Using folder name to find Game Profile.");
+
+                    var profile = JoystickHelper.DeSerializeGameProfile(Path.Combine(path, "GameProfiles", profileName + ".xml"), false);
+                    if (profile != null)
+                        return profile;
+                }
             }
 
             foreach (var exe in executables)
@@ -1013,6 +1095,9 @@ namespace EmulatorLauncher
 
             if (_triforce)
                 KillProcessTree("Dolphin");
+
+            if (_namco3xx)
+                KillProcessTree("rpcs3");
 
             return 0;
         }

@@ -757,6 +757,10 @@ namespace EmulatorLauncher.Libretro
         {
             if (string.IsNullOrEmpty(cleanSystemName))
                 return;
+            
+            // Don't delete remap file is controller autoconfig is off
+            if (SystemConfig.isOptSet("disableautocontrollers") && SystemConfig.getOptBoolean("disableautocontrollers"))
+                return;
 
             DeleteInputRemap(cleanSystemName);
             if (createRemap == null || _noRemap)
@@ -768,7 +772,7 @@ namespace EmulatorLauncher.Libretro
 
             string path = _gameRemapName != null ? Path.Combine(dir, _gameRemapName + ".rmp") : Path.Combine(dir, cleanSystemName + ".rmp");
 
-            this.AddFileForRestoration(path);
+            //this.AddFileForRestoration(path);
 
             var cfg = ConfigFile.FromFile(path, new ConfigFileOptions() { CaseSensitive = true });
             createRemap(cfg);
@@ -780,14 +784,19 @@ namespace EmulatorLauncher.Libretro
             if (string.IsNullOrEmpty(cleanSystemName))
                 return;
 
+            // Don't delete remap file is controller autoconfig is off
+            if (SystemConfig.isOptSet("disableautocontrollers") && SystemConfig.getOptBoolean("disableautocontrollers"))
+                return;
+
             string dir = Path.Combine(RetroarchPath, "config", "remaps", cleanSystemName);
             string path = _gameRemapName != null ? Path.Combine(dir, _gameRemapName + ".rmp") : Path.Combine(dir, cleanSystemName + ".rmp");
-            _inputRemapSave = path;
             
             try
             {
                 if (File.Exists(path))
                 {
+                    try { File.Copy(path, path + ".backup", true); } catch { }
+                    AddFileForRestoration(path);
                     File.Delete(path);
                 }
 
