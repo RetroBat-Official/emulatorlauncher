@@ -132,10 +132,13 @@ namespace EmulatorLauncher
                     else
                         ini.AppendValue("General", "discord", "false");
 
-                    if (SystemConfig.isOptSet("xenia_patches") && SystemConfig.getOptBoolean("xenia_patches"))
-                        ini.AppendValue("General", "apply_patches", "true");
-                    else
-                        ini.AppendValue("General", "apply_patches", "false");
+                    if (_canary)
+                    {
+                        if (SystemConfig.isOptSet("xenia_patches") && SystemConfig.getOptBoolean("xenia_patches"))
+                            ini.AppendValue("General", "apply_patches", "true");
+                        else
+                            ini.AppendValue("General", "apply_patches", "false");
+                    }
 
                     //D3D12 section
                     if (SystemConfig.isOptSet("xenia_allow_variable_refresh_rate_and_tearing") && !SystemConfig.getOptBoolean("xenia_allow_variable_refresh_rate_and_tearing"))
@@ -151,13 +154,17 @@ namespace EmulatorLauncher
 
                     if (SystemConfig.isOptSet("d3d12_readback_resolve") && SystemConfig.getOptBoolean("d3d12_readback_resolve"))
                     {
-                        ini.AppendValue("D3D12", "d3d12_readback_resolve", "true");
-                        ini.AppendValue("GPU", "readback_resolve", "true");
+                        if (_canary)
+                            ini.AppendValue("GPU", "readback_resolve", "true");
+                        else
+                            ini.AppendValue("D3D12", "d3d12_readback_resolve", "true");
                     }
                     else if (Features.IsSupported("d3d12_readback_resolve"))
                     {
-                        ini.AppendValue("D3D12", "d3d12_readback_resolve", "false");
-                        ini.AppendValue("GPU", "readback_resolve", "false");
+                        if (_canary)
+                            ini.AppendValue("GPU", "readback_resolve", "false");
+                        else
+                            ini.AppendValue("D3D12", "d3d12_readback_resolve", "false");
                     }
 
                     if (SystemConfig.isOptSet("xenia_queue_priority") && !string.IsNullOrEmpty(SystemConfig["xenia_queue_priority"]))
@@ -190,7 +197,7 @@ namespace EmulatorLauncher
                         ini.AppendValue("GPU", "draw_resolution_scale_y", "1");
                     }
 
-                    if (SystemConfig.isOptSet("xenia_internal_display_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_internal_display_resolution"]))
+                    if (_canary && SystemConfig.isOptSet("xenia_internal_display_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_internal_display_resolution"]))
                         ini.AppendValue("Video", "internal_display_resolution", SystemConfig["xenia_internal_display_resolution"]);
                     else if (Features.IsSupported("xenia_internal_display_resolution"))
                         ini.AppendValue("Video", "internal_display_resolution", "8");
@@ -234,41 +241,65 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("vsync"))
                         ini.AppendValue("GPU", "vsync", "true");
 
-                    if (SystemConfig.isOptSet("query_occlusion_fake_sample_count") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_fake_sample_count"]))
-                        ini.AppendValue("GPU", "query_occlusion_fake_sample_count", SystemConfig["query_occlusion_fake_sample_count"]);
-                    else if (Features.IsSupported("query_occlusion_fake_sample_count"))
-                        ini.AppendValue("GPU", "query_occlusion_fake_sample_count", "1000");
+                    if (_canary)
+                    {
+                        if (SystemConfig.isOptSet("query_occlusion_sample_lower_threshold") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_sample_lower_threshold"]))
+                            ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", SystemConfig["query_occlusion_sample_lower_threshold"]);
+                        else if (Features.IsSupported("query_occlusion_sample_lower_threshold"))
+                            ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", "80");
 
-                    if (SystemConfig.isOptSet("xenia_clear_memory_page_state") && SystemConfig.getOptBoolean("xenia_clear_memory_page_state"))
-                        ini.AppendValue("GPU", "clear_memory_page_state", "true");
-                    else if (Features.IsSupported("xenia_clear_memory_page_state"))
-                        ini.AppendValue("GPU", "clear_memory_page_state", "false");
+                        if (SystemConfig.isOptSet("query_occlusion_sample_upper_threshold") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_sample_upper_threshold"]))
+                        {
+                            ini.AppendValue("GPU", "query_occlusion_sample_upper_threshold", SystemConfig["query_occlusion_sample_upper_threshold"]);
 
-                    if (SystemConfig.isOptSet("xenia_framerate_limit") && !string.IsNullOrEmpty(SystemConfig["xenia_framerate_limit"]))
-                        ini.AppendValue("GPU", "framerate_limit", SystemConfig["xenia_framerate_limit"]);
-                    else if (Features.IsSupported("xenia_framerate_limit"))
-                        ini.AppendValue("GPU", "framerate_limit", "60");
+                            if (SystemConfig["query_occlusion_sample_upper_threshold"] == "0")
+                                ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", "0");
+                        }
+                        else if (Features.IsSupported("query_occlusion_sample_upper_threshold"))
+                            ini.AppendValue("GPU", "query_occlusion_sample_upper_threshold", "100");
+
+                        if (SystemConfig.isOptSet("xenia_clear_memory_page_state") && SystemConfig.getOptBoolean("xenia_clear_memory_page_state"))
+                            ini.AppendValue("GPU", "clear_memory_page_state", "true");
+                        else if (Features.IsSupported("xenia_clear_memory_page_state"))
+                            ini.AppendValue("GPU", "clear_memory_page_state", "false");
+
+                        if (SystemConfig.isOptSet("xenia_framerate_limit") && !string.IsNullOrEmpty(SystemConfig["xenia_framerate_limit"]))
+                            ini.AppendValue("GPU", "framerate_limit", SystemConfig["xenia_framerate_limit"]);
+                        else if (Features.IsSupported("xenia_framerate_limit"))
+                            ini.AppendValue("GPU", "framerate_limit", "60");
+                    }
+                    else
+                    {
+                        if (SystemConfig.isOptSet("query_occlusion_fake_sample_count") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_fake_sample_count"]))
+                            ini.AppendValue("GPU", "query_occlusion_fake_sample_count", SystemConfig["query_occlusion_fake_sample_count"]);
+                        else if (Features.IsSupported("query_occlusion_fake_sample_count"))
+                            ini.AppendValue("GPU", "query_occlusion_fake_sample_count", "1000");
+                    }
 
                     // Video section
-                    if (SystemConfig.isOptSet("xenia_video_standard") && !string.IsNullOrEmpty(SystemConfig["xenia_video_standard"]))
-                        ini.AppendValue("Video", "video_standard", SystemConfig["xenia_video_standard"]);
-                    else if (Features.IsSupported("xenia_video_standard"))
-                        ini.AppendValue("Video", "video_standard", "1");
+                    if (_canary)
+                    {
+                        if (SystemConfig.isOptSet("xenia_video_standard") && !string.IsNullOrEmpty(SystemConfig["xenia_video_standard"]))
+                            ini.AppendValue("Video", "video_standard", SystemConfig["xenia_video_standard"]);
+                        else if (Features.IsSupported("xenia_video_standard"))
+                            ini.AppendValue("Video", "video_standard", "1");
 
-                    if (SystemConfig.isOptSet("xenia_avpack") && !string.IsNullOrEmpty(SystemConfig["xenia_avpack"]))
-                        ini.AppendValue("Video", "avpack", SystemConfig["xenia_avpack"]);
-                    else if (Features.IsSupported("xenia_avpack"))
-                        ini.AppendValue("Video", "avpack", "8");
+                        if (SystemConfig.isOptSet("xenia_avpack") && !string.IsNullOrEmpty(SystemConfig["xenia_avpack"]))
+                            ini.AppendValue("Video", "avpack", SystemConfig["xenia_avpack"]);
+                        else if (Features.IsSupported("xenia_avpack"))
+                            ini.AppendValue("Video", "avpack", "8");
 
-                    if (SystemConfig.isOptSet("xenia_widescreen") && !string.IsNullOrEmpty(SystemConfig["xenia_widescreen"]))
-                        ini.AppendValue("Video", "widescreen", SystemConfig["xenia_widescreen"]);
-                    else if (Features.IsSupported("xenia_widescreen"))
-                        ini.AppendValue("Video", "widescreen", "true");
 
-                    if (SystemConfig.isOptSet("xenia_pal50") && SystemConfig.getOptBoolean("xenia_pal50"))
-                        ini.AppendValue("Video", "use_50Hz_mode", "true");
-                    else if (Features.IsSupported("xenia_pal50"))
-                        ini.AppendValue("Video", "use_50Hz_mode", "false");
+                        if (SystemConfig.isOptSet("xenia_widescreen") && !string.IsNullOrEmpty(SystemConfig["xenia_widescreen"]))
+                            ini.AppendValue("Video", "widescreen", SystemConfig["xenia_widescreen"]);
+                        else if (Features.IsSupported("xenia_widescreen"))
+                            ini.AppendValue("Video", "widescreen", "true");
+
+                        if (SystemConfig.isOptSet("xenia_pal50") && SystemConfig.getOptBoolean("xenia_pal50"))
+                            ini.AppendValue("Video", "use_50Hz_mode", "true");
+                        else if (Features.IsSupported("xenia_pal50"))
+                            ini.AppendValue("Video", "use_50Hz_mode", "false");
+                    }
 
                     // Memory section
                     if (SystemConfig.isOptSet("scribble_heap") && SystemConfig.getOptBoolean("scribble_heap"))
