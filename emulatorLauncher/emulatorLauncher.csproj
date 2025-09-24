@@ -348,6 +348,9 @@
     </Compile>
     <Compile Include="Generators\MessSystem.cs" />
     <Compile Include="Generators\mGBA.Generator.cs" />
+    <Compile Include="Generators\mGBA.Controllers.cs">
+      <DependentUpon>mGBA.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Model2.Generator.cs" />
     <Compile Include="Generators\Model2.Controllers.cs">
       <DependentUpon>Model2.Generator.cs</DependentUpon>

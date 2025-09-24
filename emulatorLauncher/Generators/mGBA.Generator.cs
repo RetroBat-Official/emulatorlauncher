@@ -1,12 +1,14 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
-    class MGBAGenerator : Generator
+    partial class MGBAGenerator : Generator
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
@@ -146,6 +148,7 @@ namespace EmulatorLauncher
 
                 // Internal resolution
                 BindIniFeature(ini, "ports.qt", "videoScale", "internal_resolution", "4");
+                BindBoolIniFeature(ini, "ports.qt", "interframeBlending", "mgba_s_interframe_blending", "1", "0");
 
                 // Shaders
                 if (SystemConfig.isOptSet("mgba_shader") && !string.IsNullOrEmpty(SystemConfig["mgba_shader"]))
@@ -161,8 +164,10 @@ namespace EmulatorLauncher
 
                 BindBoolIniFeature(ini, "ports.qt", "lockIntegerScaling", "integerscale", "1", "0");
 
-            }
+                ConfigureControllers(ini);
 
+                ini.Save();
+            }
         }
     }
 }
