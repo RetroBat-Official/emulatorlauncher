@@ -186,9 +186,6 @@ namespace EmulatorLauncher
         #region 1.6 version
         private void SetupPaths(bool fullscreen)
         {
-            if (SystemConfig.getOptBoolean("disableautoconfig"))
-                return;
-
             var biosList = new string[] { 
                             "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC", 
                             "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };
@@ -309,9 +306,6 @@ namespace EmulatorLauncher
 
         private void SetupLilyPad()
         {
-            if (SystemConfig.getOptBoolean("disableautoconfig"))
-                return;
-
             string iniFile = Path.Combine(_path, "inis", "LilyPad.ini");
 
             try
@@ -325,9 +319,6 @@ namespace EmulatorLauncher
         //Setup PCSX2_vm.ini file
         private void SetupVM()
         {
-            if (SystemConfig.getOptBoolean("disableautoconfig"))
-                return;
-
             string iniFile = Path.Combine(_path, "inis", "PCSX2_vm.ini");
 
             try
@@ -361,9 +352,6 @@ namespace EmulatorLauncher
         //Setup GSdx.ini file
         private void SetupGSDx(ScreenResolution resolution)
         {
-            if (SystemConfig.getOptBoolean("disableautoconfig"))
-                return;
-
             string iniFile = Path.Combine(_path, "inis", "GSdx.ini");
 
             try
@@ -580,9 +568,6 @@ namespace EmulatorLauncher
         /// <param name="path"></param>
         private void SetupConfigurationQT(string path, string rom, string system, bool fullscreen)
         {
-            if (SystemConfig.getOptBoolean("disableautoconfig"))
-                return;
-
             var biosList = new string[] { "ps2-0230a-20080220.bin", "ps2-0230e-20080220.bin", "ps2-0250e-20100415.bin", "ps2-0230j-20080220.bin", "ps3_ps2_emu_bios.bin", 
                 "SCPH30004R.bin", "scph39001.bin", "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };
 

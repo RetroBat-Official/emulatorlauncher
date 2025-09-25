@@ -100,9 +100,6 @@ namespace EmulatorLauncher
         //Setup toml configuration file (using AppendValue because config file is very sensitive to values that do not exist and both emulators are still under heavy development)
         private void SetupConfiguration(string path, string emulator)
         {
-            if (SystemConfig.getOptBoolean("disableautoconfig"))
-                return;
-
             SimpleLogger.Instance.Info("[Generator] Writing RetroBat configuration to .toml config file.");
 
             try

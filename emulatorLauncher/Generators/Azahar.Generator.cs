@@ -89,9 +89,6 @@ namespace EmulatorLauncher
 
         private void SetupConfigurationAzahar(string path, string rom, bool fullscreen = true)
         {
-            if (SystemConfig.getOptBoolean("disableautoconfig"))
-                return;
-
             string userconfigPath = Path.Combine(path, "user", "config");
             if (!Directory.Exists(userconfigPath))
                 try { Directory.CreateDirectory(userconfigPath); } catch {}
