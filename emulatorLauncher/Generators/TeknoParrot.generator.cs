@@ -569,16 +569,38 @@ namespace EmulatorLauncher
             else
                 graphicsBackend.FieldValue = "Vulkan";
 
+            var resolution = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Resolution Scale");
+            if (resolution != null && Program.SystemConfig.isOptSet("tp_rpcs3_resolution") && !string.IsNullOrEmpty(Program.SystemConfig["tp_rpcs3_resolution"]))
+            {
+                string resolutionValue = Program.SystemConfig["tp_rpcs3_resolution"].ToIntegerString();
+                resolution.FieldValue = resolutionValue;
+            }
+            else
+                resolution.FieldValue = "100";
+
+            var rotaryDigital = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Use Buttons For Rotary Encoders");
+            if (rotaryDigital != null && Program.SystemConfig.getOptBoolean("tp_digitalrotary"))
+            {
+                rotaryDigital.FieldValue = "1";
+            }
+            else
+                rotaryDigital.FieldValue = "0";
+
             string rpcs3Config = Path.Combine(emuPath, "RPCS3", "config", "config.yml");
 
             if (File.Exists(rpcs3Config))
             {
                 YmlFile yml = YmlFile.Load(rpcs3Config);
                 YmlContainer misc = yml.GetOrCreateContainer("Miscellaneous");
+                YmlContainer video = yml.GetOrCreateContainer("Video");
 
                 misc["Automatically start games after boot"] = "true";
                 misc["Exit RPCS3 when process finishes"] = "true";
                 misc["Prevent display sleep while running games"] = "true";
+                if (Program.SystemConfig.isOptSet("tp_rpcs3_writecolorbuffers") && !string.IsNullOrEmpty(Program.SystemConfig["tp_rpcs3_writecolorbuffers"]))
+                    video["Write Color Buffers"] = Program.SystemConfig.getOptBoolean("tp_rpcs3_writecolorbuffers") ? "true" : "false";
+                else
+                    video["Write Color Buffers"] = "false";
 
                 yml.Save();
             }
