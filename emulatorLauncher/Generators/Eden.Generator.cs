@@ -55,9 +55,6 @@ namespace EmulatorLauncher
 
         private void SetupConfigurationEden(string path, string rom, bool fullscreen)
         {
-            if (SystemConfig.isOptSet("disableautoconfig") && SystemConfig.getOptBoolean("disableautoconfig"))
-                return;
-
             string conf = Path.Combine(path, "user", "config", "qt-config.ini");
 
             using (var ini = new IniFile(conf))

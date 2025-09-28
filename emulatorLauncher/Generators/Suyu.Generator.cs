@@ -108,9 +108,6 @@ namespace EmulatorLauncher
 
         private void SetupConfigurationSuyu(string path, string rom, bool fullscreen)
         {
-            if (SystemConfig.isOptSet("disableautoconfig") && SystemConfig.getOptBoolean("disableautoconfig"))
-                return;
-
             string userFolder = Path.Combine(path, "user");
             if (!Directory.Exists(userFolder))
                 try { Directory.CreateDirectory(userFolder); }

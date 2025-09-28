@@ -104,6 +104,10 @@ namespace EmulatorLauncher.Libretro
             if (GetBestMameCore(system, subCore, core, emulator, rom, out string newCore))
                 core = newCore;
 
+            // Cleanup Core override file
+            if (SystemConfig.getOptBoolean("game_specific_options"))
+                CleanUpCoreOverrideFile(RetroarchPath, core, rom);
+
             // specific management for some extensions
             if (Path.GetExtension(rom).ToLowerInvariant() == ".game")
                 core = Path.GetFileNameWithoutExtension(rom);
@@ -471,7 +475,8 @@ namespace EmulatorLauncher.Libretro
                 if (!File.Exists(videoShader) && !isOpenGL && shaderFilename.Contains("zfast-"))
                     videoShader = Path.Combine(RetroarchPath, "shaders", isOpenGL ? "shaders_glsl" : "shaders_slang", "crt/crt-geom.slangp").Replace("/", "\\");
 
-                if (File.Exists(videoShader))
+                bool shaderoverride = SystemConfig.getOptBoolean("use_shader_override") && ShaderOverrideExists(RetroarchPath, rom, core, isOpenGL);
+                if (File.Exists(videoShader) && !shaderoverride)
                 {
                     commandArray.Add("--set-shader");
                     commandArray.Add("\"" + videoShader + "\"");
@@ -725,6 +730,7 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["input_driver"] = "dinput";
 
             BindBoolFeature(retroarchConfig, "game_specific_options", "game_specific_options", "true", "false");
+            BindBoolFeature(retroarchConfig, "auto_overrides_enable", "game_specific_options", "true", "false");
             BindBoolFeature(retroarchConfig, "pause_on_disconnect", "pause_on_disconnect", "true", "false");
             BindBoolFeature(retroarchConfig, "pause_nonactive", "use_guns", "true", "false", true); // Pause when calibrating gun...
             BindBoolFeature(retroarchConfig, "input_autodetect_enable", "disableautocontrollers", "true", "false", true);
@@ -734,6 +740,11 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["input_remap_binds_enable"] = "true";
             retroarchConfig["input_remap_sort_by_controller_enable"] = "false";
             retroarchConfig["input_remapping_directory"] = ":\\config\\remaps";
+
+            if (SystemConfig["shader"] == "None")
+                retroarchConfig["auto_shaders_enable"] = "false";
+            else
+                retroarchConfig["auto_shaders_enable"] = "true";
 
             SetupUIMode(retroarchConfig);
 
@@ -952,6 +963,8 @@ namespace EmulatorLauncher.Libretro
 
             // Shaders
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
+                retroarchConfig["video_shader_enable"] = "true";
+            else if (SystemConfig.getOptBoolean("use_shader_override"))
                 retroarchConfig["video_shader_enable"] = "true";
             else if (Features.IsSupported("shaderset"))
                 retroarchConfig["video_shader_enable"] = "false";
@@ -1928,6 +1941,125 @@ namespace EmulatorLauncher.Libretro
             }
 
             base.Cleanup();
+        }
+
+        private void CleanUpCoreOverrideFile(string emulatorPath, string core, string rom)
+        {
+            try
+            {
+                string cleanCoreName = GetCoreName(core);
+                string overridePath = Path.Combine(emulatorPath, "config", cleanCoreName);
+                string overrideFile = null;
+
+                if (!Directory.Exists(overridePath))
+                    return;
+
+                // First check core override file
+                string coreOverrideFile = Path.Combine(overridePath, cleanCoreName + ".cfg");
+                if (File.Exists(coreOverrideFile))
+                    overrideFile = coreOverrideFile;
+
+                // Next check directory override file
+                string contentFolder = Path.GetDirectoryName(rom);
+                if (contentFolder != null)
+                {
+                    string lastDirectory = new DirectoryInfo(contentFolder).Name;
+                    if (!string.IsNullOrEmpty(lastDirectory))
+                    {
+                        string dirOverrideFile = Path.Combine(overridePath, lastDirectory + ".cfg");
+                        if (File.Exists(dirOverrideFile))
+                            overrideFile = dirOverrideFile;
+                    }
+                }
+
+                // Last check game config file
+                string gameName = Path.GetFileNameWithoutExtension(rom);
+                string gameOverrideFile = Path.Combine(overridePath, gameName + ".cfg");
+
+                if (File.Exists(gameOverrideFile))
+                    overrideFile = gameOverrideFile;
+
+                if (overrideFile != null && File.Exists(overrideFile))
+                {
+                    var overrideCfg = ConfigFile.FromFile(overrideFile, new ConfigFileOptions() { CaseSensitive = true, UseSpaces = true });
+                    overrideCfg.DisableAll("input_player");
+                    foreach (var specialkey in LibretroControllers.retroarchspecials)
+                        overrideCfg.DisableAll("input_" + specialkey.Value);
+                    overrideCfg.DisableAll("input_toggle_fast_forward");
+
+                    overrideCfg.Save(overrideFile);
+                }
+            }
+            catch { }
+        }
+
+        private bool ShaderOverrideExists(string emulatorPath, string rom, string core, bool gl)
+        {
+            try
+            {
+                string cleanCoreName = GetCoreName(core);
+                string overridePath = Path.Combine(emulatorPath, "config", cleanCoreName);
+                if (!Directory.Exists(overridePath))
+                    return false;
+
+                // First check gameoverride
+                string gameName = Path.GetFileNameWithoutExtension(rom);
+                if (gl)
+                {
+                    string gameOverride = gameName + ".glslp";
+                    string gameOverrideFile = Path.Combine(overridePath, gameOverride);
+                    if (File.Exists(gameOverrideFile))
+                        return true;
+                }
+                else
+                {
+                    string gameOverride = gameName + ".slangp";
+                    string gameOverrideFile = Path.Combine(overridePath, gameOverride);
+                    if (File.Exists(gameOverrideFile))
+                        return true;
+                }
+
+                // Now check content folder override
+                string contentFolder = Path.GetDirectoryName(rom);
+                if (contentFolder != null)
+                {
+                    string lastDirectory = new DirectoryInfo(contentFolder).Name;
+
+                    if (gl)
+                    {
+                        string dirOverride = lastDirectory + ".glslp";
+                        string dirOverrideFile = Path.Combine(overridePath, dirOverride);
+                        if (File.Exists(dirOverrideFile))
+                            return true;
+                    }
+                    else
+                    {
+                        string dirOverride = lastDirectory + ".slangp";
+                        string dirOverrideFile = Path.Combine(overridePath, dirOverride);
+                        if (File.Exists(dirOverrideFile))
+                            return true;
+                    }
+                }
+
+                // Last check core override file
+                if (gl)
+                {
+                    string coreOverride = cleanCoreName + ".glslp";
+                    string coreOverrideFile = Path.Combine(overridePath, coreOverride);
+                    if (File.Exists(coreOverrideFile))
+                        return true;
+                }
+                else
+                {
+                    string coreOverride = cleanCoreName + ".slangp";
+                    string coreOverrideFile = Path.Combine(overridePath, coreOverride);
+                    if (File.Exists(coreOverrideFile))
+                        return true;
+                }
+
+                return false;
+            }
+            catch { return false; }
         }
 
         class UIModeSetting

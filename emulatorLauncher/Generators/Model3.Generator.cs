@@ -13,6 +13,7 @@ namespace EmulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private string _romName = null;
 
         private void ConfigureMameHook()
         {
@@ -59,6 +60,7 @@ namespace EmulatorLauncher
                 return null;
 
             bool isWideScreen;
+            _romName = Path.GetFileNameWithoutExtension(rom);
 
             List<string> commandArray = new List<string>();
 
@@ -207,9 +209,9 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, " Global ", "MultiThreaded", "m3_thread", "0", "1");
                     BindIniFeatureSlider(ini, " Global ", "PowerPCFrequency", "m3_ppc_frequency", "50");
                     BindBoolIniFeature(ini, " Global ", "ShowFrameRate", "m3_fps", "1", "0");
-                    BindBoolIniFeature(ini, " Global ", "WideBackground", "widescreen", "true", "false");
-                    BindBoolIniFeature(ini, " Global ", "QuadRendering", "quadRendering", "true", "false");
-                    BindBoolIniFeatureOn(ini, " Global ", "VSync", "m3_vsync", "true", "false");
+                    BindBoolIniFeature(ini, " Global ", "WideBackground", "widescreen", "1", "0");
+                    BindBoolIniFeature(ini, " Global ", "QuadRendering", "quadRendering", "1", "0");
+                    BindBoolIniFeatureOn(ini, " Global ", "VSync", "m3_vsync", "1", "0");
 
                     if (SystemConfig.isOptSet("supermodel_output") && !string.IsNullOrEmpty(SystemConfig["supermodel_output"]))
                         ini.WriteValue(" Global ", "Outputs", SystemConfig["supermodel_output"]);

@@ -97,9 +97,6 @@ namespace EmulatorLauncher
 
         private void SetupConfigurationCitra(string path, string rom, bool fullscreen = true)
         {
-            if (SystemConfig.getOptBoolean("disableautoconfig"))
-                return;
-
             string userconfigPath = Path.Combine(path, "user", "config");
             if (!Directory.Exists(userconfigPath))
                 Directory.CreateDirectory(userconfigPath);

@@ -291,6 +291,8 @@ namespace EmulatorLauncher
                             ret = "gba";
                         break;
                     case "mgba":
+                        ret = "gba";
+                        break;
                     case "nosgba":
                         ret = "unknown";
                         break;

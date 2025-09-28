@@ -307,15 +307,22 @@ namespace EmulatorLauncher.Libretro
         {
             if (SystemConfig.isOptSet("game_specific_options") && SystemConfig.getOptBoolean("game_specific_options"))
             {
-                string retroArchOptFileFolder = Path.Combine(AppConfig.GetFullPath("retroarch"), "config", GetCoreName(core));
+                string cleanCoreName = GetCoreName(core);
+                string retroArchOptFileFolder = Path.Combine(AppConfig.GetFullPath("retroarch"), "config", cleanCoreName);
                 string romName = Path.GetFileNameWithoutExtension(SystemConfig["rom"]);
+                string contentFolder = Path.GetDirectoryName(SystemConfig["rom"]);
+                string contentFolderName = contentFolder != null ? new DirectoryInfo(contentFolder).Name : "";
 
-                if (File.Exists(Path.Combine(retroArchOptFileFolder, romName + ".opt")))
-                    SimpleLogger.Instance.Warning("[WARNING] A core .opt file exists for the game, RetroBat might not work correctly");
-                if (File.Exists(Path.Combine(retroArchOptFileFolder, system + ".opt")))
-                    SimpleLogger.Instance.Warning("[WARNING] A core .opt file exists for the content dir, RetroBat might not work correctly");
-                if (File.Exists(Path.Combine(retroArchOptFileFolder, romName + ".opt")))
-                    SimpleLogger.Instance.Warning("[WARNING] A core .opt file exists for the core, RetroBat might not work correctly");
+                try
+                {
+                    if (File.Exists(Path.Combine(retroArchOptFileFolder, romName + ".opt")) || File.Exists(Path.Combine(retroArchOptFileFolder, romName + ".cfg")))
+                        SimpleLogger.Instance.Warning("[WARNING] A core cfg file exists for the game, RetroBat might not work correctly");
+                    if (File.Exists(Path.Combine(retroArchOptFileFolder, contentFolder + ".opt")) || File.Exists(Path.Combine(retroArchOptFileFolder, contentFolder + ".cfg")))
+                        SimpleLogger.Instance.Warning("[WARNING] A core cfg file exists for the content dir, RetroBat might not work correctly");
+                    if (File.Exists(Path.Combine(retroArchOptFileFolder, cleanCoreName + ".opt")) || File.Exists(Path.Combine(retroArchOptFileFolder, cleanCoreName + ".cfg")))
+                        SimpleLogger.Instance.Warning("[WARNING] A core cfg file exists for the core, RetroBat might not work correctly");
+                }
+                catch { }
             }
 
             InputRemap = new Dictionary<string, string>();
