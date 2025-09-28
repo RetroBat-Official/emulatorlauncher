@@ -566,7 +566,7 @@ namespace EmulatorLauncher
             var graphicsBackend = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Graphics Backend");
             if (graphicsBackend != null && Program.SystemConfig.isOptSet("tp_rpcs3_gpuapi") && !string.IsNullOrEmpty(Program.SystemConfig["tp_rpcs3_gpuapi"]))
                 graphicsBackend.FieldValue = Program.SystemConfig["tp_rpcs3_gpuapi"];
-            else
+            else if (graphicsBackend != null)
                 graphicsBackend.FieldValue = "Vulkan";
 
             var resolution = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Resolution Scale");
@@ -575,7 +575,7 @@ namespace EmulatorLauncher
                 string resolutionValue = Program.SystemConfig["tp_rpcs3_resolution"].ToIntegerString();
                 resolution.FieldValue = resolutionValue;
             }
-            else
+            else if (resolution != null)
                 resolution.FieldValue = "100";
 
             var rotaryDigital = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Use Buttons For Rotary Encoders");
@@ -583,7 +583,7 @@ namespace EmulatorLauncher
             {
                 rotaryDigital.FieldValue = "1";
             }
-            else
+            else if (rotaryDigital != null)
                 rotaryDigital.FieldValue = "0";
 
             string rpcs3Config = Path.Combine(emuPath, "RPCS3", "config", "config.yml");
