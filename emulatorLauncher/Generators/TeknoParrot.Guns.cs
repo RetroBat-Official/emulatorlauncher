@@ -472,6 +472,40 @@ namespace EmulatorLauncher
                                     if (!useKb && !ts_nogun)
                                         keyboard = _gunsKbAssociation.ContainsKey(iGun) ? _gunsKbAssociation[iGun] : FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard);
 
+                                    string wiiButton = button.Value;
+                                    // Use normal keyboard
+                                    if (!WiiKBKeys.Contains(wiiButton) || useKb || ts_nogun)
+                                    {
+                                        var tempKb = _orgKeyboard;
+
+                                        xmlPlace.RawInputButton = new RawInputButton
+                                        {
+                                            DevicePath = tempKb.DevicePath.ToString(),
+                                            DeviceType = RawDeviceType.Keyboard,
+                                            MouseButton = RawMouseButton.None
+                                        };
+
+                                        string kbkey = button.Value.Split('_')[1];
+                                        if (Enum.TryParse(kbkey, true, out Keys key))
+                                            xmlPlace.RawInputButton.KeyboardKey = key;
+
+                                        kbName = tempKb.FriendlyName;
+                                        kbSuffix = tempKb.Manufacturer;
+                                        string kbNameOverride = null;
+                                        string deviceToOverride = GetVIDPID(tempKb.DevicePath);
+                                        string overridePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+                                        string newName = GetDescriptionFromFile(overridePath, deviceToOverride);
+                                        if (newName != null)
+                                            kbNameOverride = newName;
+
+                                        if (kbNameOverride != null)
+                                            xmlPlace.BindName = xmlPlace.BindNameRi = kbNameOverride + " " + key.ToString();
+                                        else
+                                            xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " " + key.ToString();
+
+                                        continue;
+                                    }
+
                                     // Get Keyboard ID
                                     int firstIndex = keyboard.DevicePath.IndexOf('#');
                                     int secondIndex = keyboard.DevicePath.IndexOf('#', firstIndex + 1);
@@ -480,10 +514,6 @@ namespace EmulatorLauncher
 
                                     kbName = keyboard.DevicePath.Substring(secondIndex, lastIndex - secondIndex).ToUpperInvariant();
                                     kbSuffix = "Mayflash DolphinBar";
-                                    string wiiButton = button.Value;
-
-                                    if (!WiiKBKeys.Contains(wiiButton))
-                                        continue;
 
                                     xmlPlace.RawInputButton = new RawInputButton
                                     {
