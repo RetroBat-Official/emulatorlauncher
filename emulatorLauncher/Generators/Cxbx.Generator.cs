@@ -293,11 +293,20 @@ namespace EmulatorLauncher
             for (int i = 0; i < toSet.Length; i++)
                 bytes[144] = toSet[i];
 
+            if (SystemConfig.isOptSet("xbox_videostandard") && !string.IsNullOrEmpty(SystemConfig["xbox_videostandard"]))
+            {
+                VideoStandard vs = (VideoStandard)Enum.Parse(typeof(VideoStandard), SystemConfig["xbox_videostandard"]);
+                byte[] vsBytes = BitConverter.GetBytes((uint)vs);
+                Array.Copy(vsBytes, 0, bytes, 0x58, 4);
+            }
+
             uint UserSectionChecksum = ~ChecksumCalculate(bytes, 0x64, 0x5C);
 
-            byte[] userchecksum = BitConverter.GetBytes(UserSectionChecksum);
-            for (int i = 0; i < userchecksum.Length; i++)
-                bytes[96 + i] = userchecksum[i];
+            uint userSum = ~ChecksumCalculate(bytes, 0x64, 0x5C);
+            Array.Copy(BitConverter.GetBytes(userSum), 0, bytes, 0x60, 4);
+
+            uint factorySum = ~ChecksumCalculate(bytes, 0x34, 0x2C);
+            Array.Copy(BitConverter.GetBytes(factorySum), 0, bytes, 0x30, 4);
 
             File.WriteAllBytes(path, bytes);
         }
@@ -469,5 +478,14 @@ namespace EmulatorLauncher
 
             base.Cleanup();
         }
+    }
+
+    public enum VideoStandard
+    {
+        Unknown = 0,
+        NtscM = 0x00400100,
+        NtscJ = 0x00400200,
+        PalI = 0x00800300,
+        PalM = 0x00400400
     }
 }

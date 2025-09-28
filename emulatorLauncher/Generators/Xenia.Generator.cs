@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -49,26 +50,44 @@ namespace EmulatorLauncher
 
             _canary = exeName == "xenia_canary.exe";
 
+            // Manage case where rom is a folder
+            if (Directory.Exists(rom))
+            {
+                rom = Directory.GetFiles(rom, "*.*", SearchOption.AllDirectories)
+                   .FirstOrDefault(f =>
+                       string.Equals(Path.GetExtension(f), ".iso", StringComparison.OrdinalIgnoreCase));
+
+                if (rom == null)
+                {
+                    throw new ApplicationException("Unable to find any iso file in the folder");
+                }
+            }
+
+            string romdir = Path.GetDirectoryName(rom);
+            
+            if (Path.GetExtension(rom).ToLower() == ".m3u" || Path.GetExtension(rom).ToLower() == ".xbox360")
+            {
+                SimpleLogger.Instance.Info("[INFO] game file is .m3u, reading content of file.");
+                var lines = File.ReadAllLines(rom);
+
+                if (lines.Length > 0)
+                {
+                    rom = lines[0];
+
+                    if (rom.StartsWith(".") || rom.StartsWith("/") || rom.StartsWith("\\") || rom.StartsWith("#"))
+                        rom = rom.Substring(1);
+
+                    rom = Path.Combine(romdir, rom);
+                    SimpleLogger.Instance.Info("[INFO] path to rom : " + (rom != null ? rom : "null"));
+                }
+            }
+
             if (useXeniaManagerConfig(AppConfig.GetFullPath(folderName), rom))
             {
                 _xeniaManagerConfig = true;
             }
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
-
-            string romdir = Path.GetDirectoryName(rom);
-			
-			if (Path.GetExtension(rom).ToLower() == ".m3u" || Path.GetExtension(rom).ToLower() == ".xbox360")
-            {
-                SimpleLogger.Instance.Info("[INFO] game file is .m3u, reading content of file.");
-                rom = File.ReadAllText(rom);
-
-                if (rom.StartsWith(".") || rom.StartsWith("/") || rom.StartsWith("\\") || rom.StartsWith("#"))
-                    rom = rom.Substring(1);
-
-                rom = Path.Combine(romdir, rom);
-                SimpleLogger.Instance.Info("[INFO] path to rom : " + (rom != null ? rom : "null"));
-            }
 
             if (!_xeniaManagerConfig)
                 SetupConfiguration(path, emulator);
