@@ -4574,7 +4574,6 @@ namespace EmulatorLauncher.Libretro
             if (SystemConfig.isOptSet("Snes9x_UnsafeHacks") && SystemConfig.getOptBoolean("Snes9x_UnsafeHacks"))
             {
                 coreSettings["snes9x_echo_buffer_hack"] = "enabled";
-                coreSettings["snes9x_overclock_cycles"] = "enabled";
                 coreSettings["snes9x_randomize_memory"] = "enabled";
                 coreSettings["snes9x_reduce_sprite_flicker"] = "enabled";
                 coreSettings["snes9x_block_invalid_vram_access"] = "disabled";
@@ -4582,12 +4581,12 @@ namespace EmulatorLauncher.Libretro
             else
             {
                 coreSettings["snes9x_echo_buffer_hack"] = "disabled";
-                coreSettings["snes9x_overclock_cycles"] = "disabled";
                 coreSettings["snes9x_randomize_memory"] = "disabled";
                 coreSettings["snes9x_reduce_sprite_flicker"] = "disabled";
                 coreSettings["snes9x_block_invalid_vram_access"] = "enabled";
             }
 
+            BindFeature(coreSettings, "snes9x_overclock_cycles", "snes9x_overclock_cycles", "disabled");
             BindBoolFeature(coreSettings, "snes9x_echo_buffer_hack", "snes9x_echo_buffer_hack", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "snes9x_block_invalid_vram_access", "snes9x_block_invalid_vram_access", "enabled", "disabled");
 
