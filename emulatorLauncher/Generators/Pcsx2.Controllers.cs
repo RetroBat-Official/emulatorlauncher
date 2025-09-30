@@ -28,7 +28,7 @@ namespace EmulatorLauncher
                 "SDL_JOYSTICK_HIDAPI_WII = 1"
             };
 
-            if (pcsx2ini.GetValue("InputSources", "SDLControllerEnhancedMode") == "true")
+            if (Program.SystemConfig.getOptBoolean("ps_controller_enhanced"))
             {
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
@@ -120,22 +120,21 @@ namespace EmulatorLauncher
                 pcsx2ini.WriteValue("InputSources", "DInput", "true");
                 pcsx2ini.WriteValue("InputSources", "XInput", "false");
                 pcsx2ini.WriteValue("InputSources", "SDL", "false");
-                pcsx2ini.WriteValue("InputSources", "SDLControllerEnhancedMode", "false");
             }
             else if (_forceSDL)
             {
                 pcsx2ini.WriteValue("InputSources", "DInput", "false");
                 pcsx2ini.WriteValue("InputSources", "XInput", "false");
                 pcsx2ini.WriteValue("InputSources", "SDL", "true");
-                pcsx2ini.WriteValue("InputSources", "SDLControllerEnhancedMode", "true");
             }
             else
             {
                 pcsx2ini.WriteValue("InputSources", "XInput", Controllers.Any(c => c.IsXInputDevice) ? "true" : "false");
                 pcsx2ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true" : "false");
                 pcsx2ini.WriteValue("InputSources", "DInput", "false");
-                pcsx2ini.WriteValue("InputSources", "SDLControllerEnhancedMode", "true");
             }
+
+            BindBoolIniFeature(pcsx2ini, "InputSources", "SDLControllerEnhancedMode", "ps_controller_enhanced", "true", "false");
 
             // Reset hotkeys
             ResetHotkeysToDefault(pcsx2ini);

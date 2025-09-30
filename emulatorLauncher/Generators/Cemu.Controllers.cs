@@ -22,15 +22,19 @@ namespace EmulatorLauncher
             {
                 "SDL_HINT_JOYSTICK_HIDAPI_PS4 = 1",
                 "SDL_HINT_JOYSTICK_HIDAPI_PS5 = 1",
-                "SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1",
-                "SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1",
                 "SDL_HINT_JOYSTICK_HIDAPI_GAMECUBE = 1",
                 "SDL_HINT_JOYSTICK_HIDAPI_SWITCH = 1",
                 "SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1",
                 "SDL_HINT_JOYSTICK_HIDAPI_STADIA = 1",
                 "SDL_HINT_JOYSTICK_HIDAPI_STEAM = 1",
                 "SDL_HINT_JOYSTICK_HIDAPI_LUNA = 1"
-            };            
+            };
+
+            if (SystemConfig.getOptBoolean("ps_controller_enhanced"))
+            {
+                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+            }
 
             _sdlMapping = SdlDllControllersMapping.FromDll(_sdl2dll, string.Join(",", hints));
             if (_sdlMapping == null)

@@ -120,45 +120,41 @@ namespace EmulatorLauncher
 				else
 					ini.WriteValue(@"Display\Win", "Stretch:BilinearFilter", "FALSE");
 
-				// Ratio
-				if (SystemConfig.isOptSet("snes9x_ratio") && !string.IsNullOrEmpty(SystemConfig["snes9x_ratio"]))
+                // Ratio
+                ini.WriteValue(@"Display\Win", "Stretch:Enabled", "TRUE");
+                if (SystemConfig.isOptSet("snes9x_ratio") && !string.IsNullOrEmpty(SystemConfig["snes9x_ratio"]))
                 {
 
 					if (SystemConfig["snes9x_ratio"] == "stretch")
 					{
-                        ini.WriteValue(@"Display\Win", "Stretch:Enabled", "TRUE");
                         ini.WriteValue(@"Display\Win", "Stretch:MaintainAspectRatio", "FALSE");
 					}
 					else if (SystemConfig["snes9x_ratio"] == "full_43")
                     {
-                        ini.WriteValue(@"Display\Win", "Stretch:Enabled", "TRUE");
                         ini.WriteValue(@"Display\Win", "Stretch:MaintainAspectRatio", "TRUE");
                         ini.WriteValue(@"Display\Win", "Stretch:AspectRatioBaseWidth", "299");
                     }
 
 					else if (SystemConfig["snes9x_ratio"] == "full_87")
 					{
-                        ini.WriteValue(@"Display\Win", "Stretch:Enabled", "TRUE");
                         ini.WriteValue(@"Display\Win", "Stretch:MaintainAspectRatio", "TRUE");
                         ini.WriteValue(@"Display\Win", "Stretch:AspectRatioBaseWidth", "256");
                     }
 
 					else if (SystemConfig["snes9x_ratio"] == "8/7")
 					{
-                        ini.WriteValue(@"Display\Win", "Stretch:Enabled", "FALSE");
                         ini.WriteValue(@"Display\Win", "Stretch:MaintainAspectRatio", "TRUE");
                         ini.WriteValue(@"Display\Win", "Stretch:AspectRatioBaseWidth", "256");
 					}
                     else if (SystemConfig["snes9x_ratio"] == "4/3")
                     {
-                        ini.WriteValue(@"Display\Win", "Stretch:Enabled", "FALSE");
                         ini.WriteValue(@"Display\Win", "Stretch:MaintainAspectRatio", "TRUE");
                         ini.WriteValue(@"Display\Win", "Stretch:AspectRatioBaseWidth", "299");
                     }
                 }
 				else
                 {
-                    ini.WriteValue(@"Display\Win", "Stretch:Enabled", "FALSE");
+                    
                     ini.WriteValue(@"Display\Win", "Stretch:MaintainAspectRatio", "TRUE");
 					ini.WriteValue(@"Display\Win", "Stretch:AspectRatioBaseWidth", "299");
 				}
