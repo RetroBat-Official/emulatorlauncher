@@ -263,10 +263,10 @@ namespace EmulatorLauncher
                             regionbios = "bios_CD_E.bin";
                             break;
                         case "Americas":
-                            regionbios = "bios_CD_J.bin";
+                            regionbios = "bios_CD_U.bin";
                             break;
                         case "Japan":
-                            regionbios = "bios_CD_U.bin";
+                            regionbios = "bios_CD_J.bin";
                             break;
                     }
                 }
