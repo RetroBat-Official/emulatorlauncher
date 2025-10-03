@@ -832,6 +832,15 @@ namespace EmulatorLauncher
                 ("port", new XAttribute("type", "TILT1"),
                     new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_T")));
 
+            // Start & coin
+            input.Add(new XElement
+                ("port", new XAttribute("type", "START" + i),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "start", xinputCtrl) + " OR KEYCODE_1")));
+
+            input.Add(new XElement
+                ("port", new XAttribute("type", "COIN" + i),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " OR KEYCODE_5")));
+
             // Specific mapping if available
             if (!hbmame && _gameLayout != null)
             {
@@ -1111,11 +1120,21 @@ namespace EmulatorLauncher
 
         private void ConfigurePlayersXInput(int i, XElement input, Dictionary<string, string> mapping, string joy, string mouseIndex2, bool hbmame, bool dpadonly)
         {
+            int j = i + 4;
+
             // Specific mapping if available
             if (!hbmame && _gameLayout != null)
             {
                 if (_gameMapping.Name != null)
                     SimpleLogger.Instance.Info("[INFO] Performing specific mapping (xinput) for: " + _gameMapping.Name);
+
+                input.Add(new XElement
+                ("port", new XAttribute("type", "START" + i),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["start"] + " OR KEYCODE_" + i)));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "COIN" + i),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " OR KEYCODE_" + j)));
 
                 foreach (var button in _gameLayout.Buttons)
                 {
@@ -1292,11 +1311,11 @@ namespace EmulatorLauncher
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "START" + i),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["start"])));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["start"] + " OR KEYCODE_" + i)));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "COIN" + i),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"])));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " OR KEYCODE_" + j)));
 
             // Pedals and other devices
             if (hbmame)
@@ -1396,10 +1415,20 @@ namespace EmulatorLauncher
 
         private void ConfigurePlayersDInput(int i, XElement input, SdlToDirectInput ctrlr, string joy, string mouseIndex2, bool dpadonly, bool xinputCtrl)
         {
+            int j = i + 4;
+
             if (_gameLayout != null)
             {
                 if (_gameMapping.Name != null)
                     SimpleLogger.Instance.Info("[INFO] Performing specific mapping (dinput) for: " + _gameMapping.Name);
+
+                input.Add(new XElement
+                ("port", new XAttribute("type", "START" + i),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "start", xinputCtrl) + " OR KEYCODE_" + i)));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "COIN" + i),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " OR KEYCODE_" + j)));
 
                 foreach (var button in _gameLayout.Buttons)
                 {
@@ -1577,11 +1606,11 @@ namespace EmulatorLauncher
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "START" + i),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "start", xinputCtrl))));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "start", xinputCtrl) + " OR KEYCODE_" + i)));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "COIN" + i),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl))));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " OR KEYCODE_" + j)));
 
             // Pedals and other devices
             input.Add(new XElement
