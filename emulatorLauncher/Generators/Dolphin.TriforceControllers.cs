@@ -76,7 +76,6 @@ namespace EmulatorLauncher
                         if (pad.IsXInputDevice)
                         {
                             xinputAsSdl = true;
-                            tech = "XInput";
                         }
 
                         deviceName = pad.Name ?? "";
