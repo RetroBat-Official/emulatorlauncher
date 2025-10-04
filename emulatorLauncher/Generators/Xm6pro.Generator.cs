@@ -55,7 +55,7 @@ namespace EmulatorLauncher
             {
                 using (var ini = new IniFile(iniFile))
                 {
-
+                    ini.Remove("SASI", "File0");
                     ini.WriteValue("Window", "Full", fullscreen ? "1" : "0");  
                     ini.WriteValue("Resume", "Screen", "1");
                     ini.WriteValue("Basic", "AutoMemSw", "1");

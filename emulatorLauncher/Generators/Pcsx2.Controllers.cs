@@ -283,7 +283,7 @@ namespace EmulatorLauncher
 
                 if (ctrl.IsXInputDevice)
                 {
-                    cPath = "xinput#" + ctrl.DeviceIndex.ToString();
+                    cPath = "xinput#" + ctrl.XInput.DeviceIndex.ToString();
                     sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
                 }
                 else

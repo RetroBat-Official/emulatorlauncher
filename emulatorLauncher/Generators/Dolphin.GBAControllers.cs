@@ -69,7 +69,6 @@ namespace EmulatorLauncher
                         if (pad.IsXInputDevice)
                         {
                             xinputAsSdl = true;
-                            tech = "XInput";
                         }
 
                         deviceName = pad.Name ?? "";
@@ -180,110 +179,17 @@ namespace EmulatorLauncher
                                     ini.WriteValue(gcpad, reverseAxis, xInputMapping[mapping]);
                             }
                         }
-                        else if (forceSDL)
-                        {
-                            var input = pad.Config[x.Key];
-
-                            if (input == null)
-                                continue;
-
-                            if (input.Type == "button")
-                            {
-                                if (input.Id == 0) // invert A&B
-                                    ini.WriteValue(gcpad, value, "`Button 1`");
-                                else if (input.Id == 1) // invert A&B
-                                    ini.WriteValue(gcpad, value, "`Button 0`");
-                                else
-                                    ini.WriteValue(gcpad, value, "`Button " + input.Id.ToString() + "`");
-                            }
-
-                            else if (input.Type == "axis")
-                            {
-                                Func<Input, bool, string> axisValue = (inp, revertAxis) =>
-                                {
-                                    string axis = "`Axis ";
-
-                                    if (inp.Id == 0 || inp.Id == 1 || inp.Id == 2 || inp.Id == 3)
-                                        axis += inp.Id;
-
-                                    if ((!revertAxis && inp.Value > 0) || (revertAxis && inp.Value < 0))
-                                        axis += "+";
-                                    else
-                                        axis += "-";
-
-                                    if (inp.Id == 4 || inp.Id == 5)
-                                        axis = "`Full Axis " + inp.Id + "+";
-
-                                    return axis + "`";
-                                };
-
-                                ini.WriteValue(gcpad, value, axisValue(input, false));
-
-                                if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
-                                    ini.WriteValue(gcpad, reverseAxis, axisValue(input, true));
-                            }
-
-                            else if (input.Type == "hat")
-                            {
-                                Int64 pid = input.Value;
-                                switch (pid)
-                                {
-                                    case 1:
-                                        ini.WriteValue(gcpad, value, "`Hat " + input.Id.ToString() + " N`");
-                                        break;
-                                    case 2:
-                                        ini.WriteValue(gcpad, value, "`Hat " + input.Id.ToString() + " E`");
-                                        break;
-                                    case 4:
-                                        ini.WriteValue(gcpad, value, "`Hat " + input.Id.ToString() + " S`");
-                                        break;
-                                    case 8:
-                                        ini.WriteValue(gcpad, value, "`Hat " + input.Id.ToString() + " W`");
-                                        break;
-                                }
-                            }
-                        }
 
                         else // SDL
                         {
                             var input = pad.GetSdlMapping(x.Key);
 
-                            if (input == null)
-                                continue;
+                            ini.WriteValue(gcpad, value, dolphinSDLMapping[x.Key]);
 
-                            if (input.Type == "button")
+                            if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
                             {
-                                if (input.Id == 0) // invert A&B
-                                    ini.WriteValue(gcpad, value, "`Button 1`");
-                                else if (input.Id == 1) // invert A&B
-                                    ini.WriteValue(gcpad, value, "`Button 0`");
-                                else
-                                    ini.WriteValue(gcpad, value, "`Button " + input.Id.ToString() + "`");
-                            }
-                            else if (input.Type == "axis")
-                            {
-                                Func<Input, bool, string> axisValue = (inp, revertAxis) =>
-                                {
-                                    string axis = "`Axis ";
-
-                                    if (inp.Id == 0 || inp.Id == 1 || inp.Id == 2 || inp.Id == 3)
-                                        axis += inp.Id;
-
-                                    if ((!revertAxis && inp.Value > 0) || (revertAxis && inp.Value < 0))
-                                        axis += "+";
-                                    else
-                                        axis += "-";
-
-                                    if (inp.Id == 4 || inp.Id == 5)
-                                        axis = "`Full Axis " + inp.Id + "+";
-
-                                    return axis + "`";
-                                };
-
-                                ini.WriteValue(gcpad, value, axisValue(input, false));
-
-                                if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
-                                    ini.WriteValue(gcpad, reverseAxis, axisValue(input, true));
+                                var revertKey = joyRevertAxis[x.Key];
+                                ini.WriteValue(gcpad, reverseAxis, dolphinSDLMapping[revertKey]);
                             }
                         }
                     }

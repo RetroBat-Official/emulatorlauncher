@@ -155,7 +155,7 @@ namespace EmulatorLauncher
                     var s = c1.SdlController;
                     if (s != null)
                     {
-                        tech = xinputAsSdl? "XInput" : "SDL";
+                        tech = "SDL";
                         deviceName = s.Name;
                     }
 
@@ -177,14 +177,14 @@ namespace EmulatorLauncher
                         ini.WriteValue("Hotkeys", "Device", "SDL" + "/" + _p1sdlindex + "/" + deviceName);
                     else
                         ini.WriteValue("Hotkeys", "Device", tech + "/" + xIndex + "/" + deviceName);
-                    ini.WriteValue("Hotkeys", "General/Toggle Pause", c1.IsXInputDevice? "@(Back+`Button B`)" : "@(Back+`Button E`)");
-                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", c1.IsXInputDevice ? "@(Back+`Button A`)" : "@(Back+`Button S`)");
+                    ini.WriteValue("Hotkeys", "General/Toggle Pause", tech == "XInput" ? "@(Back+`Button B`)" : "@(Back+`Button E`)");
+                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", tech == "XInput" ? "@(Back+`Button A`)" : "@(Back+`Button S`)");
                     ini.WriteValue("Hotkeys", "General/Exit", "@(Back+Start)");
 
                     // SaveStates
-                    ini.WriteValue("Hotkeys", "General/Take Screenshot", c1.IsXInputDevice ? "@(Back+`Button X`)" : "@(Back+`Button W`)"); // Use Same value as SaveState....
-                    ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", c1.IsXInputDevice ? "@(Back+`Button X`)" : "@(Back+`Button W`)");
-                    ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", c1.IsXInputDevice ? "@(Back+`Button Y`)" : "@(Back+`Button N`)");
+                    ini.WriteValue("Hotkeys", "General/Take Screenshot", tech == "XInput" ? "@(Back+`Button X`)" : "@(Back+`Button W`)"); // Use Same value as SaveState....
+                    ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", tech == "XInput" ? "@(Back+`Button X`)" : "@(Back+`Button W`)");
+                    ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", tech == "XInput" ? "@(Back+`Button Y`)" : "@(Back+`Button N`)");
                     ini.WriteValue("Hotkeys", "Other State Hotkeys/Increase Selected State Slot", "@(Back+`Pad N`)");
                     ini.WriteValue("Hotkeys", "Other State Hotkeys/Decrease Selected State Slot", "@(Back+`Pad S`)");
 
@@ -365,6 +365,35 @@ namespace EmulatorLauncher
 
             return null;
         }
+
+        static Dictionary<InputKey, string> dolphinSDLMapping = new Dictionary<InputKey, string>()
+        {
+            { InputKey.l3,              "`Thumb L`"},
+            { InputKey.r3,              "`Thumb R`"},
+            { InputKey.l2,              "`Trigger L`" },
+            { InputKey.r2,              "`Trigger R`"},
+            { InputKey.y,               "`Button W`" },
+            { InputKey.b,               "`Button S`" },
+            { InputKey.x,               "`Button N`" },
+            { InputKey.a,               "`Button E`" },
+            { InputKey.start,           "Start" },
+            { InputKey.pagedown,        "`Shoulder R`" },
+            { InputKey.pageup,          "`Shoulder L`" },
+            { InputKey.up,              "`Pad N`" },
+            { InputKey.down,            "`Pad S`" },
+            { InputKey.left,            "`Pad W`" },
+            { InputKey.right,           "`Pad E`" },
+            { InputKey.joystick1up,     "`Left Y+`" },
+            { InputKey.joystick1left,   "`Left X-`" },
+            { InputKey.joystick1down,   "`Left Y-`" },
+            { InputKey.joystick1right,  "`Left X+`" },
+            { InputKey.joystick2up,     "`Right Y+`" },
+            { InputKey.joystick2left,   "`Right X-`"},
+            { InputKey.joystick2down,   "`Right Y-`" },
+            { InputKey.joystick2right,  "`Right X+`" },
+            { InputKey.hotkey,          "Back" },
+            { InputKey.select,          "Back" }
+        };
 
         static readonly Dictionary<XINPUTMAPPING, string> xInputMapping = new Dictionary<XINPUTMAPPING, string>()
         {

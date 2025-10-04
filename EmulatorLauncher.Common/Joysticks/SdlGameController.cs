@@ -413,10 +413,12 @@ namespace EmulatorLauncher.Common.Joysticks
         public string Name { get; set; }
         public string Path { get; set; }
         public string RawPath { get; set; }
+        public string Serial { get; set; }
 
-        private const string SDL3_DLL = "SDL3.dll";  // Ensure this is correct
+        private const string SDL3_DLL = "SDL3.dll";
 
         public const uint SDL_INIT_GAMECONTROLLER = 0x00002000;
+        public const uint SDL_INIT_JOYSTICK = 0x00000200;
 
         [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern int SDL_InitSubSystem(uint flags);
@@ -458,6 +460,15 @@ namespace EmulatorLauncher.Common.Joysticks
             int cbGUID
         );
 
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr SDL_OpenGamepad(int instance_id);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern void SDL_CloseGamepad(IntPtr gamepad);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr SDL_GetGamepadSerial(IntPtr gamepad);
+
         public string GuidString
         {
             get
@@ -467,8 +478,6 @@ namespace EmulatorLauncher.Common.Joysticks
                 return sb.ToString();
             }
         }
-
-        private const uint SDL_INIT_JOYSTICK = 0x00000200;
 
         public static bool ListJoysticks(out List<Sdl3GameController> controllers)
         {
@@ -504,6 +513,17 @@ namespace EmulatorLauncher.Common.Joysticks
                         ushort vendorID = SDL_GetJoystickVendorForID(instance_id);
                         ushort productID = SDL_GetJoystickProductForID(instance_id);
 
+                        string serial = "Unknown";
+                        IntPtr pad = SDL_OpenGamepad(instance_id);
+                        if (pad != IntPtr.Zero)
+                        {
+                            IntPtr serialPtr = SDL_GetGamepadSerial(pad);
+                            if (serialPtr != IntPtr.Zero)
+                                serial = Marshal.PtrToStringAnsi(serialPtr) ?? "Unknown";
+
+                            SDL_CloseGamepad(pad);
+                        }
+
                         try
                         {
                             var guid = SDL_GetJoystickGUIDForID(instance_id);
@@ -514,6 +534,7 @@ namespace EmulatorLauncher.Common.Joysticks
                                 Name = name,
                                 Path = path,
                                 InstanceID = instance_id,
+                                Serial = serial,
                                 Guid = guid
                             });
                         }
@@ -524,7 +545,8 @@ namespace EmulatorLauncher.Common.Joysticks
                                 Index = index,
                                 Name = name,
                                 Path = path,
-                                InstanceID = instance_id
+                                InstanceID = instance_id,
+                                Serial = serial
                             });
                         }
                     }
@@ -541,6 +563,5 @@ namespace EmulatorLauncher.Common.Joysticks
                 return false;
             }
         }
-
     }
 }
