@@ -142,7 +142,7 @@ namespace EmulatorLauncher
 
                 byteList.Add((byte)xIndex);
             }
-            else
+            else if (ctrl.DirectInput != null)
             {
                 int dIndex = ctrl.DirectInput.DeviceIndex + _xinputCount;
                 byteList.Add((byte)dIndex);

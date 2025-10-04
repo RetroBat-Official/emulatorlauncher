@@ -285,6 +285,12 @@ namespace EmulatorLauncher
             }
             controllerAssignment.Add(cPath);
             profile["dinput"] = false;
+
+            int deadzone = 5;
+            if (SystemConfig.isOptSet("gopher64_deadzone") && !string.IsNullOrEmpty(SystemConfig["gopher64_deadzone"]))
+                deadzone = SystemConfig["gopher64_deadzone"].ToIntegerString().ToInteger();
+
+            profile["deadzone"] = deadzone;
         }
 
         private static Dictionary<InputKey, InputKey> revertedAxis = new Dictionary<InputKey, InputKey>()

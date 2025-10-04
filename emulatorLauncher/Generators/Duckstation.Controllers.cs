@@ -27,11 +27,10 @@ namespace EmulatorLauncher
                 "SDL_HINT_JOYSTICK_HIDAPI_PS3 = 1"
             };
 
-            if (ini.GetValue("InputSources", "SDLControllerEnhancedMode") == "true")
+            if (SystemConfig.getOptBoolean("ps_controller_enhanced"))
             {
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
-                //hints.Add("SDL_HINT_JOYSTICK_ENHANCED_REPORTS = 1");
             }
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
@@ -40,7 +39,7 @@ namespace EmulatorLauncher
 
         private void CreateControllerConfiguration(IniFile ini)
         {
-            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            if (SystemConfig.isOptSet("disableautocontrollers") && SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
@@ -48,7 +47,7 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for DuckStation");
 
-            if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
+            if (SystemConfig.isOptSet("input_forceSDL") && SystemConfig.getOptBoolean("input_forceSDL"))
                 _forceSDL = true;
 
             UpdateSdlControllersWithHints(ini);
@@ -84,7 +83,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("InputSources", "SDL", Controllers.Any(c => !c.IsKeyboard && !c.IsXInputDevice) ? "true" : "false");
             }
 
-            ini.WriteValue("InputSources", "SDLControllerEnhancedMode", "true");
+            BindBoolIniFeature(ini, "InputSources", "SDLControllerEnhancedMode", "ps_controller_enhanced", "true", "false");
 
             // Check SDL3 dll Get list of SDL3 controllers
             bool sdl3 = Controller.CheckSDL3dll();

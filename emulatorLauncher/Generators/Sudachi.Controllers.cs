@@ -31,8 +31,12 @@ namespace EmulatorLauncher
             else 
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1");
 
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+            if (Program.SystemConfig.getOptBoolean("ps_controller_enhanced"))
+            {
+                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+            }
+
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_SWITCH = 1");
             hints.Add("SDL_HINT_JOYSTICK_HIDAPI_XBOX = 0");
 

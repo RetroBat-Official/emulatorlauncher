@@ -1204,9 +1204,11 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "dosbox_pure_conf", "dosbox_pure_conf", "false");
             BindFeature(coreSettings, "dosbox_pure_voodoo", "dosbox_pure_voodoo", "off");
             BindFeature(coreSettings, "dosbox_pure_voodoo_perf", "dosbox_pure_voodoo_perf", "auto");
-            BindBoolFeature(coreSettings, "dosbox_pure_bootos_ramdisk", "dosbox_pure_bootos_ramdisk", "true", "false");
+            
             BindBoolFeature(coreSettings, "dosbox_pure_bootos_forcenormal", "dosbox_pure_bootos_forcenormal", "true", "false");
             BindBoolFeature(coreSettings, "dosbox_pure_auto_mapping", "dosbox_pure_auto_mapping", "true", "false");
+
+            BindFeature(coreSettings, "dosbox_pure_bootos_ramdisk", "dosbox_pure_bootos_ramdisk", "false");
 
             if (!SystemConfig.isOptSet("dosbox_pure_on_screen_keyboard") || SystemConfig.getOptBoolean("dosbox_pure_on_screen_keyboard"))
                 coreSettings["dosbox_pure_on_screen_keyboard"] = "true";
@@ -4574,7 +4576,6 @@ namespace EmulatorLauncher.Libretro
             if (SystemConfig.isOptSet("Snes9x_UnsafeHacks") && SystemConfig.getOptBoolean("Snes9x_UnsafeHacks"))
             {
                 coreSettings["snes9x_echo_buffer_hack"] = "enabled";
-                coreSettings["snes9x_overclock_cycles"] = "enabled";
                 coreSettings["snes9x_randomize_memory"] = "enabled";
                 coreSettings["snes9x_reduce_sprite_flicker"] = "enabled";
                 coreSettings["snes9x_block_invalid_vram_access"] = "disabled";
@@ -4582,12 +4583,12 @@ namespace EmulatorLauncher.Libretro
             else
             {
                 coreSettings["snes9x_echo_buffer_hack"] = "disabled";
-                coreSettings["snes9x_overclock_cycles"] = "disabled";
                 coreSettings["snes9x_randomize_memory"] = "disabled";
                 coreSettings["snes9x_reduce_sprite_flicker"] = "disabled";
                 coreSettings["snes9x_block_invalid_vram_access"] = "enabled";
             }
 
+            BindFeature(coreSettings, "snes9x_overclock_cycles", "snes9x_overclock_cycles", "disabled");
             BindBoolFeature(coreSettings, "snes9x_echo_buffer_hack", "snes9x_echo_buffer_hack", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "snes9x_block_invalid_vram_access", "snes9x_block_invalid_vram_access", "enabled", "disabled");
 

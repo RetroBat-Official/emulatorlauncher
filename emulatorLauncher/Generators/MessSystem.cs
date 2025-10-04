@@ -538,6 +538,7 @@ namespace EmulatorLauncher
                 new MessSystem("gameandwatch" ,""         ,""      ),
                 new MessSystem("lcdgames"     ,"%romname%",""      ),
                 new MessSystem("mame"         ,"%romname%",""      ),
+                new MessSystem("neogeo64"     ,"%romname%",""      ),
                 new MessSystem("segastv"      ,"%romname%",""      ),
                 new MessSystem("model2"       ,"%romname%",""      ),
                 new MessSystem("zinc"         ,"%romname%",""      ),

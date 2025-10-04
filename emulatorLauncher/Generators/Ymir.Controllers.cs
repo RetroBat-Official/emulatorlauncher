@@ -268,7 +268,9 @@ namespace EmulatorLauncher
             { "PauseResume", "F6" },
             { "Rewind", "F4" },
             { "ToggleFullScreen", "Alt+Return" },
-            { "TurboSpeed", "F5" }
+            { "TurboSpeed", "F5" },
+            { "TakeScreenshot", "F7" },
+            { "ExitApp", "Ctrl+F12" }
         };
 
         private Dictionary<string, string> stateKeys = new Dictionary<string, string>()
@@ -280,14 +282,10 @@ namespace EmulatorLauncher
         private void ConfigureHotkeys(IniFile ini)
         {
             foreach (var hk in hotkeys)
-            {
                 ini.WriteValue("Hotkeys", hk.Key, "[ '" + hk.Value + "' ]");
-            }
 
             foreach (var hk in stateKeys)
-            {
                 ini.WriteValue("Hotkeys.SaveStates", hk.Key, "[ '" + hk.Value + "' ]");
-            }
         }
     }
 }

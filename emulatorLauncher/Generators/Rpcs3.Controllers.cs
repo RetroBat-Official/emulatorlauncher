@@ -18,6 +18,12 @@ namespace EmulatorLauncher
                 "SDL_HINT_JOYSTICK_THREAD = 1"
             };
 
+            if (SystemConfig.getOptBoolean("ps_controller_enhanced"))
+            {
+                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+            }
+
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }

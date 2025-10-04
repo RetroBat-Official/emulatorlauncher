@@ -24,13 +24,17 @@ namespace EmulatorLauncher
 
             var hints = new List<string>
             {
-                "SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1",
-                "SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1",
                 "SDL_HINT_JOYSTICK_HIDAPI_SWITCH_HOME_LED = 0",
                 "SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1",
                 "SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS = 1"
-            };            
-            
+            };
+
+            if (SystemConfig.getOptBoolean("ps_controller_enhanced"))
+            {
+                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+            }
+
             _sdlMapping = SdlDllControllersMapping.FromDll(dllPath, string.Join(",", hints));
             if (_sdlMapping == null)
             {
