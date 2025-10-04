@@ -1,13 +1,17 @@
-﻿using System.IO;
-using System.Linq;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
     partial class Mupen64Generator
     {
+        private List<Sdl3GameController> _sdl3Controllers = new List<Sdl3GameController>();
+
         /// <summary>
         /// Cf. https://github.com/Rosalie241/RMG/tree/master/Source/RMG-Input/Utilities
         /// </summary>
@@ -31,6 +35,12 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for RMG Mupen64");
 
             // UpdateSdlControllersWithHints();     // No hints found in emulator code
+
+            // Check SDL3 dll Get list of SDL3 controllers
+            bool sdl3 = Controller.CheckSDL3dll();
+
+            if (sdl3 && Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
+                _sdl3Controllers = Sdl3Controllers;
 
             for (int i = 0; i < 4; i++)
             {
@@ -62,7 +72,26 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
+            Sdl3GameController sdl3Controller = null;
+            if (_sdl3Controllers.Count > 0)
+            {
+                string cPath = controller.DirectInput.DevicePath;
+                
+                if (controller.IsXInputDevice)
+                {
+                    cPath = "xinput#" + controller.XInput.DeviceIndex.ToString();
+                    sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
+                }
+                else
+                {
+                    sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == controller.DirectInput.DevicePath);
+                }
+            }
+
             string devicename = joy.DeviceName;
+
+            if (controller.IsXInputDevice)
+                devicename = "XInput Controller";
 
             // override devicename
             string newNamePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
@@ -93,7 +122,25 @@ namespace EmulatorLauncher
 
             ini.WriteValue(iniSection, "PluggedIn", "True");
             ini.WriteValue(iniSection, "DeviceName", devicename);
-            ini.WriteValue(iniSection, "DeviceNum", index.ToString());
+            ini.WriteValue(iniSection, "DeviceType", "4");
+
+            // DevicePath
+            string devPath = controller.DevicePath.Replace("hid", "HID").Replace("vid", "VID").Replace("pid", "PID");
+            string serial = "";
+
+            if (sdl3Controller != null && !controller.IsXInputDevice)
+            {
+                devPath = sdl3Controller.RawPath;
+                serial = sdl3Controller.Serial;
+            }
+
+            if (controller.IsXInputDevice && sdl3Controller != null)
+                devPath = sdl3Controller.Path;
+            else if (controller.IsXInputDevice)
+                devPath = "XInput#" + controller.XInput.DeviceIndex.ToString();
+            
+            ini.WriteValue(iniSection, "DevicePath", devPath);
+            ini.WriteValue(iniSection, "DeviceSerial", serial);
             ini.WriteValue(iniSection, "Deadzone", deadzone);
             ini.WriteValue(iniSection, "Sensitivity", sensitivity);
             ini.WriteValue(iniSection, "UseProfile", "");

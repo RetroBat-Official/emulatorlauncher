@@ -221,7 +221,7 @@ namespace EmulatorLauncher
                 Sdl3GameController sdl3Controller;
                 if (ctrl.IsXInputDevice)
                 {
-                    cPath = "xinput#" + ctrl.DeviceIndex.ToString();
+                    cPath = "xinput#" + ctrl.XInput.DeviceIndex.ToString();
                     sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
                 }
 
@@ -446,7 +446,7 @@ namespace EmulatorLauncher
         {
             switch (sdlCode)
             {
-                case 0x0D: return "Return";
+                case 0x0D: return "Enter";
                 case 0x00: return "\"\"";
                 case 0x08: return "Backspace";
                 case 0x09: return "Tab";
@@ -537,10 +537,10 @@ namespace EmulatorLauncher
                 case 0x4000004B: return "PageUp";
                 case 0x4000004D: return "End";
                 case 0x4000004E: return "PageDown";
-                case 0x4000004F: return "Right";
-                case 0x40000050: return "Left";
-                case 0x40000051: return "Down";
-                case 0x40000052: return "Up";
+                case 0x4000004F: return "RightArrow";
+                case 0x40000050: return "LeftArrow";
+                case 0x40000051: return "DownArrow";
+                case 0x40000052: return "UpArrow";
                 case 0x40000053: return "NumLock";
                 case 0x40000054: return "Num+/";
                 case 0x40000055: return "Num+*";

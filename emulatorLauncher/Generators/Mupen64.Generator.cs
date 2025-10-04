@@ -197,6 +197,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("Rosalie's Mupen GUI", "AutomaticFullscreen", fullscreen ? "True" : "False");
                 ini.WriteValue("Rosalie's Mupen GUI", "ShowVerboseLogMessages", "False");
                 ini.WriteValue("Rosalie's Mupen GUI", "CheckForUpdates", "False");
+                ini.WriteValue("Rosalie's Mupen GUI", "ConfirmExitWhileInGame", "False");
 
                 // CPU Emulator (n64dd does not worked with dynamic recompiler)
                 if (system == "n64dd" && (!SystemConfig.isOptSet("cpucore") || SystemConfig["cpucore"] == "2"))
