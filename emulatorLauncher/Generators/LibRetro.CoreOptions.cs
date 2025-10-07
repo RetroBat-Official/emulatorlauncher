@@ -3128,19 +3128,46 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["mupen64plus-rsp-plugin"] = "hle";
 
             // Overscan (Glide)
-            if (SystemConfig.isOptSet("mupen_CropOverscan") && SystemConfig.getOptBoolean("mupen_CropOverscan"))
+            if (SystemConfig.isOptSet("mupen_CropOverscan") && !string.IsNullOrEmpty(SystemConfig["mupen_CropOverscan"]))
+            {
+                if (SystemConfig["mupen_CropOverscan"] == "none")
+                {
+                    coreSettings["mupen64plus-OverscanBottom"] = "0";
+                    coreSettings["mupen64plus-OverscanLeft"] = "0";
+                    coreSettings["mupen64plus-OverscanRight"] = "0";
+                    coreSettings["mupen64plus-OverscanTop"] = "0";
+                }
+                else
+                {
+                    string crop = SystemConfig["mupen_CropOverscan"];
+                    var cropDict = new Dictionary<string, string>()
+                        {
+                            { "t" , "0" },
+                            { "b" , "0" },
+                            { "l" , "0" },
+                            { "r" , "0" }
+                        };
+
+                    foreach (var part in crop.Split('_'))
+                    {
+                        string key = part.Substring(0, 1);
+                        string value = part.Substring(1);
+
+                        cropDict[key] = value;
+                    }
+
+                    coreSettings["mupen64plus-OverscanBottom"] = cropDict["b"];
+                    coreSettings["mupen64plus-OverscanLeft"] = cropDict["l"];
+                    coreSettings["mupen64plus-OverscanRight"] = cropDict["r"];
+                    coreSettings["mupen64plus-OverscanTop"] = cropDict["t"];
+                }
+            }
+            else
             {
                 coreSettings["mupen64plus-OverscanBottom"] = "0";
                 coreSettings["mupen64plus-OverscanLeft"] = "0";
                 coreSettings["mupen64plus-OverscanRight"] = "0";
                 coreSettings["mupen64plus-OverscanTop"] = "0";
-            }
-            else
-            {
-                coreSettings["mupen64plus-OverscanBottom"] = "15";
-                coreSettings["mupen64plus-OverscanLeft"] = "18";
-                coreSettings["mupen64plus-OverscanRight"] = "13";
-                coreSettings["mupen64plus-OverscanTop"] = "12";
             }
 
             // Performance presets
