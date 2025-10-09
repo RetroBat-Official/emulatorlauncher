@@ -801,6 +801,24 @@ namespace EmulatorLauncher
                 for (int i = 0; i < 8; i++)
                     portDevices[i.ToString()] = "dualshock";
             }
+
+            if (SystemConfig.isOptSet("bizhawk_psx_mouse") && !string.IsNullOrEmpty(SystemConfig["bizhawk_psx_mouse"]))
+            {
+                string mouseInfo = SystemConfig["bizhawk_psx_mouse"];
+                switch (mouseInfo)
+                {
+                    case "1":
+                        portDevices["0"] = "mouse";
+                        break;
+                    case "2":
+                        portDevices["1"] = "mouse";
+                        break;
+                    case "both":
+                        portDevices["0"] = "mouse";
+                        portDevices["1"] = "mouse";
+                        break;
+                }
+            }
         }
 
         private void ConfigureOctoshock(DynamicJson coreSettings, DynamicJson coreSyncSettings, string core)

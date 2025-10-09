@@ -2861,20 +2861,30 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["beetle_psx_hw_override_bios"] = "disabled";
 
             // Controls
-            if (SystemConfig.isOptSet("mednafen_controller") && !string.IsNullOrEmpty(SystemConfig["mednafen_controller"]))
+            for (int i = 1; i < 5; i++)
             {
-                for (int i = 1; i < 9; i++)
+                string cPlayerType = "mednafen_controller_p" + i.ToString();
+                if (SystemConfig.isOptSet(cPlayerType) && !string.IsNullOrEmpty(SystemConfig[cPlayerType]))
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig[cPlayerType];
+                else
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+            }
+
+            if (SystemConfig.isOptSet("mednafen_controller_p4") && !string.IsNullOrEmpty(SystemConfig["mednafen_controller_p4"]))
+            {
+                for (int i = 5; i < 9; i++)
                 {
-                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["mednafen_controller"];
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["mednafen_controller_p4"];
                 }
             }
             else
             {
-                for (int i = 1; i < 9; i++)
+                for (int i = 5; i < 9; i++)
                 {
                     retroarchConfig["input_libretro_device_p" + i] = "1";
                 }
             }
+
             BindFeature(coreSettings, "beetle_psx_hw_gun_input_mode", "gun_input_mode", "lightgun");
             BindFeature(coreSettings, "beetle_psx_hw_gun_cursor", "gun_cursor", "cross");
             BindFeature(coreSettings, "beetle_psx_hw_analog_toggle_combo", "beetle_psx_hw_analog_toggle_combo", "l1+r1+start");
@@ -3898,16 +3908,26 @@ namespace EmulatorLauncher.Libretro
             // Controls
             BindBoolFeature(coreSettings, "pcsx_rearmed_vibration", "pcsx_rearmed_vibration", "enabled", "disabled");
 
-            if (SystemConfig.isOptSet("pcsx_controller") && !string.IsNullOrEmpty(SystemConfig["pcsx_controller"]))
+            for (int i = 1; i < 5; i++)
             {
-                for (int i = 1; i < 9; i++)
+                string cPlayerType = "pcsx_controller_p" + i;
+
+                if (SystemConfig.isOptSet(cPlayerType) && !string.IsNullOrEmpty(SystemConfig[cPlayerType]))
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig[cPlayerType];
+                else
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+            }
+
+            if (SystemConfig.isOptSet("pcsx_controller_p4") && !string.IsNullOrEmpty(SystemConfig["pcsx_controller_p4"]))
+            {
+                for (int i = 5; i < 9; i++)
                 {
-                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["pcsx_controller"];
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["pcsx_controller_p4"];
                 }
             }
             else
             {
-                for (int i = 1; i < 9; i++)
+                for (int i = 5; i < 9; i++)
                 {
                     retroarchConfig["input_libretro_device_p" + i] = "1";
                 }
@@ -4816,16 +4836,26 @@ namespace EmulatorLauncher.Libretro
             }
 
             // Controls
-            if (SystemConfig.isOptSet("swanstation_controller") && !string.IsNullOrEmpty(SystemConfig["swanstation_controller"]))
+            for (int i = 1; i < 5; i++)
             {
-                for (int i = 1; i < 9; i++)
+                string cPlayerType = "swanstation_controller_p" + i;
+                
+                if (SystemConfig.isOptSet(cPlayerType) && !string.IsNullOrEmpty(SystemConfig[cPlayerType]))
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig[cPlayerType];
+                else
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+            }
+
+            if (SystemConfig.isOptSet("swanstation_controller_p4") && !string.IsNullOrEmpty(SystemConfig["swanstation_controller_p4"]))
+            {
+                for (int i = 5; i < 9; i++)
                 {
-                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["swanstation_controller"];
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["swanstation_controller_p4"];
                 }
             }
             else
             {
-                for (int i = 1; i < 9; i++)
+                for (int i = 5; i < 9; i++)
                 {
                     retroarchConfig["input_libretro_device_p" + i] = "1";
                 }
