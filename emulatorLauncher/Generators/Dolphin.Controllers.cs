@@ -7,6 +7,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System.ComponentModel.Design;
 
 namespace EmulatorLauncher
 {
@@ -29,6 +30,8 @@ namespace EmulatorLauncher
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }
+
+        private static Dictionary<string, string> _gcSpecialHotkeys = new Dictionary<string, string>();
 
         public static bool WriteControllersConfig(string path, IniFile ini, string system, string rom, bool triforce, out bool sindenSoft)
         {
@@ -119,7 +122,7 @@ namespace EmulatorLauncher
             return true;
         }
 
-        private static void ResetHotkeysToDefault(string iniFile)
+        private static void ResetHotkeysToDefault(string iniFile, Dictionary<string, string> specialHK = null)
         {
             if (Program.Controllers.Count == 0)
                 return;
@@ -130,6 +133,18 @@ namespace EmulatorLauncher
 
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
+                ini.ClearSection("Hotkeys");
+
+                if (specialHK != null && specialHK.Count > 1)
+                {
+                    foreach (var hk in specialHK)
+                    {
+                        ini.WriteValue("Hotkeys", hk.Key, hk.Value);
+                    }
+
+                    return;
+                }
+
                 var c1 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
 
                 string tech = "XInput";
@@ -177,6 +192,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Hotkeys", "Device", "SDL" + "/" + _p1sdlindex + "/" + deviceName);
                     else
                         ini.WriteValue("Hotkeys", "Device", tech + "/" + xIndex + "/" + deviceName);
+                    
                     ini.WriteValue("Hotkeys", "General/Toggle Pause", tech == "XInput" ? "@(Back+`Button B`)" : "@(Back+`Button E`)");
                     ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", tech == "XInput" ? "@(Back+`Button A`)" : "@(Back+`Button S`)");
                     ini.WriteValue("Hotkeys", "General/Exit", "@(Back+Start)");
@@ -191,7 +207,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("Hotkeys", "Emulation Speed/Decrease Emulation Speed", "@(Back+`Shoulder L`)");
                     ini.WriteValue("Hotkeys", "Emulation Speed/Increase Emulation Speed", "@(Back+`Shoulder R`)");
                 }
-                else        // Keyboard
+                else // Keyboard
                 {
                     ini.WriteValue("Hotkeys", "Device", "DInput/0/Keyboard Mouse");
                     ini.WriteValue("Hotkeys", "General/Toggle Pause", "`F10`");

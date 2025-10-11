@@ -397,6 +397,7 @@ namespace EmulatorLauncher
             int barPos = 0;
             int ratio = 1;
             int progScan = 0;
+            int irSensitivity = 3;
 
             if (SystemConfig.isOptSet("wii_language") && !string.IsNullOrEmpty(SystemConfig["wii_language"]))
                 langId = SystemConfig["wii_language"].ToInteger();
@@ -408,6 +409,9 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("wii_tvmode") && !string.IsNullOrEmpty(SystemConfig["wii_tvmode"]))
                 ratio = SystemConfig["wii_tvmode"].ToInteger();
+
+            if (SystemConfig.isOptSet("wii_irsensitivity") && !string.IsNullOrEmpty(SystemConfig["wii_irsensitivity"]))
+                irSensitivity = SystemConfig["wii_irsensitivity"].ToIntegerString().ToInteger();
 
             if (SystemConfig.isOptSet("wii_progscan") && SystemConfig.getOptBoolean("wii_progscan"))
                 progScan = 1;
@@ -458,6 +462,17 @@ namespace EmulatorLauncher
                     bytes[index4 + i] = toSet[i];
             }
             SimpleLogger.Instance.Info("[INFO] Writing wii Progressive Scan " + progScan.ToString() + " to wii system nand");
+
+            // Search BT.SENS pattern and replace with target sensitivity
+            byte[] irSensitivityPattern = new byte[] { 0x42, 0x54, 0x2E, 0x53, 0x45, 0x4E, 0x53 };
+            int index5 = bytes.IndexOf(irSensitivityPattern);
+            if (index5 >= 0 && index5 + irSensitivityPattern.Length + 1 < bytes.Length)
+            {
+                var toSet = new byte[] { 0x42, 0x54, 0x2E, 0x53, 0x45, 0x4E, 0x53, 0x00, 0x00, 0x00, (byte)irSensitivity };
+                for (int i = 0; i < toSet.Length; i++)
+                    bytes[index5 + i] = toSet[i];
+            }
+            SimpleLogger.Instance.Info("[INFO] Writing wii IR sensitivity " + irSensitivity.ToString() + " to wii system nand");
 
             File.WriteAllBytes(path, bytes);
         }
