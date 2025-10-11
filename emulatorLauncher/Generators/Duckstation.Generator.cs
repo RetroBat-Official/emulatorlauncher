@@ -499,6 +499,23 @@ namespace EmulatorLauncher
                     // Gun configuration
                     CreateGunConfiguration(ini);
 
+                    // Manage mouse
+                    for (int i = 1; i < 3; i++)
+                    {
+                        string cType = "duck_controller" + i;
+                        if (SystemConfig[cType] == "PlayStationMouse" && !(SystemConfig.isOptSet("disableautocontrollers") && SystemConfig["disableautocontrollers"] == "1"))
+                        {
+                            ini.WriteValue("UI", "EnableMouseMapping", "true");
+
+                            string section = "Pad" + i;
+                            ini.ClearSection(section);
+                            ini.WriteValue(section, "Type", "PlayStationMouse");
+                            ini.WriteValue(section, "Pointer", "Pointer-0");
+                            ini.WriteValue(section, "Left", "Pointer-0/LeftButton");
+                            ini.WriteValue(section, "Right", "Pointer-0/RightButton");
+                        }
+                    }
+
                     ini.Save();
                 }
                 

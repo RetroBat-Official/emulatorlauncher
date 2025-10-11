@@ -258,6 +258,9 @@ namespace EmulatorLauncher
                         ini.WriteValue("Video-Parallel", "Upscaling", SystemConfig["parallel_upscaling"]);
                     else
                         ini.WriteValue("Video-Parallel", "Upscaling", "1");
+
+                    BindBoolIniFeature(ini, "Video-Parallel", "NativeTextLOD", "mupen64plus-parallel-rdp-native-texture-lod", "True", "False");
+                    BindBoolIniFeatureOn(ini, "Video-Parallel", "NativeTextRECT", "rmg_NativeTextRECT", "True", "False");
                 }
 
                 else if (SystemConfig.isOptSet("gfxplugin") && SystemConfig["gfxplugin"] == "angrylion")
@@ -353,6 +356,52 @@ namespace EmulatorLauncher
 
                 if (!SystemConfig.isOptSet("inputplugin") || SystemConfig["inputplugin"] == "RMG-Input.dll")
                     CreateControllerConfiguration(ini);
+
+                // OVERSCAN
+                if (SystemConfig.isOptSet("mupen_CropOverscan") && !string.IsNullOrEmpty(SystemConfig["mupen_CropOverscan"]))
+                {
+                    if (SystemConfig["mupen_CropOverscan"] == "none")
+                    {
+                        ini.WriteValue("Video-Parallel", "CropOverscanEnable", "False");
+                        ini.WriteValue("Video-Parallel", "CropOverscanLeft", "0");
+                        ini.WriteValue("Video-Parallel", "CropOverscanRight", "0");
+                        ini.WriteValue("Video-Parallel", "CropOverscanTop", "0");
+                        ini.WriteValue("Video-Parallel", "CropOverscanBottom", "0");
+                    }
+                    else
+                    {
+                        string crop = SystemConfig["mupen_CropOverscan"];
+                        var cropDict = new Dictionary<string, string>()
+                        {
+                            { "t" , "0" },
+                            { "b" , "0" },
+                            { "l" , "0" },
+                            { "r" , "0" }
+                        };
+
+                        foreach (var part in crop.Split('_'))
+                        {
+                            string key = part.Substring(0, 1);
+                            string value = part.Substring(1);
+
+                            cropDict[key] = value;
+                        }
+
+                        ini.WriteValue("Video-Parallel", "CropOverscanEnable", "True");
+                        ini.WriteValue("Video-Parallel", "CropOverscanLeft", cropDict["l"]);
+                        ini.WriteValue("Video-Parallel", "CropOverscanRight", cropDict["r"]);
+                        ini.WriteValue("Video-Parallel", "CropOverscanTop", cropDict["t"]);
+                        ini.WriteValue("Video-Parallel", "CropOverscanBottom", cropDict["b"]);
+                    }
+                }
+                else
+                {
+                    ini.WriteValue("Video-Parallel", "CropOverscanEnable", "False");
+                    ini.WriteValue("Video-Parallel", "CropOverscanLeft", "0");
+                    ini.WriteValue("Video-Parallel", "CropOverscanRight", "0");
+                    ini.WriteValue("Video-Parallel", "CropOverscanTop", "0");
+                    ini.WriteValue("Video-Parallel", "CropOverscanBottom", "0");
+                }
             }
         }
 
@@ -411,6 +460,67 @@ namespace EmulatorLauncher
                     ini.WriteValue("User", "textureFilter\\txHiresEnable", "1");
                 else
                     ini.WriteValue("User", "textureFilter\\txHiresEnable", "0");
+
+                // OVERSCAN
+                if (SystemConfig.isOptSet("mupen_CropOverscan") && !string.IsNullOrEmpty(SystemConfig["mupen_CropOverscan"]))
+                {
+                    if (SystemConfig["mupen_CropOverscan"] == "none")
+                    {
+                        ini.WriteValue("User", "frameBufferEmulation\\enableOverscan", "0");
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanPalLeft", "0");
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanNtscLeft", "0");
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanPalRight", "0");
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanNtscRight", "0");
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanPalTop", "0");
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanNtscTop", "0");
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanPalBottom", "0");
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanNtscBottom", "0");
+                    }
+                    else
+                    {
+                        string crop = SystemConfig["mupen_CropOverscan"];
+                        var cropDict = new Dictionary<string, string>()
+                        {
+                            { "t" , "0" },
+                            { "b" , "0" },
+                            { "l" , "0" },
+                            { "r" , "0" }
+                        };
+                        
+                        foreach (var part in crop.Split('_'))
+                        {
+                            string key = part.Substring(0, 1);
+                            string value = part.Substring(1);
+
+                            cropDict[key] = value;
+                        }
+
+                        ini.WriteValue("User", "frameBufferEmulation\\enableOverscan", "1");
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanPalLeft", cropDict["l"]);
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanNtscLeft", cropDict["l"]);
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanPalRight", cropDict["r"]);
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanNtscRight", cropDict["r"]);
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanPalTop", cropDict["t"]);
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanNtscTop", cropDict["t"]);
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanPalBottom", cropDict["b"]);
+                        ini.WriteValue("User", "frameBufferEmulation\\overscanNtscBottom", cropDict["b"]);
+                    }
+                }
+                else
+                {
+                    ini.WriteValue("User", "frameBufferEmulation\\enableOverscan", "0");
+                    ini.WriteValue("User", "frameBufferEmulation\\overscanPalLeft", "0");
+                    ini.WriteValue("User", "frameBufferEmulation\\overscanNtscLeft", "0");
+                    ini.WriteValue("User", "frameBufferEmulation\\overscanPalRight", "0");
+                    ini.WriteValue("User", "frameBufferEmulation\\overscanNtscRight", "0");
+                    ini.WriteValue("User", "frameBufferEmulation\\overscanPalTop", "0");
+                    ini.WriteValue("User", "frameBufferEmulation\\overscanNtscTop", "0");
+                    ini.WriteValue("User", "frameBufferEmulation\\overscanPalBottom", "0");
+                    ini.WriteValue("User", "frameBufferEmulation\\overscanNtscBottom", "0");
+                }
+
+                BindBoolIniFeature(ini, "User", "generalEmulation\\enableLOD", "mupen64plus-parallel-rdp-native-texture-lod", "1", "0");
+                BindBoolIniFeatureOn(ini, "User", "graphics2D\\enableNativeResTexrects", "rmg_NativeTextRECT", "1", "0");
             }
         }
 

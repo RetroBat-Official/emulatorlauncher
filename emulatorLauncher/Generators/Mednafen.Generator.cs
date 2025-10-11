@@ -194,6 +194,25 @@ namespace EmulatorLauncher
             // controllers
             CreateControllerConfiguration(cfg, mednafenCore, system);
 
+            // Manage mouse
+            if (SystemConfig.isOptSet("mednafen_psx_mouse") && !string.IsNullOrEmpty(SystemConfig["mednafen_psx_mouse"]))
+            {
+                string mouseCfg = SystemConfig["mednafen_psx_mouse"];
+                switch (mouseCfg)
+                {
+                    case "1":
+                        cfg["psx.input.port1"] = "mouse";
+                        break;
+                    case "2":
+                        cfg["psx.input.port2"] = "mouse";
+                        break;
+                    case "both":
+                        cfg["psx.input.port1"] = "mouse";
+                        cfg["psx.input.port2"] = "mouse";
+                        break;
+                }
+            }
+
             cfg.Save();
         }
 
