@@ -285,6 +285,10 @@ namespace EmulatorLauncher
                                 break;
                         }
                     }
+                    if (input.Name.ToString() == "select" || input.Name.ToString() == "hotkey")
+                    {
+                        sdlret = mapping.FirstOrDefault(m => m.Input != null && m.Input.Type == input.Type && m.Button == SDL_CONTROLLER_BUTTON.BACK);
+                    }
                 }
             }
 

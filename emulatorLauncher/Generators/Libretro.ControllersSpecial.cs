@@ -694,7 +694,11 @@ namespace EmulatorLauncher.Libretro
                     catch { }
                 }
             }
-            return false;
+
+            if (_specialController)
+                return true;
+            else
+                return false;
         }
 
         static readonly string[] mappingPaths =

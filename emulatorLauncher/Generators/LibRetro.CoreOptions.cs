@@ -3260,7 +3260,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mupen64plus-BilinearMode", "BilinearMode", "3point");
             BindFeature(coreSettings, "mupen64plus-MultiSampling", "MultiSampling", "0");
             BindFeature(coreSettings, "mupen64plus-txFilterMode", "Texture_filter", "None");
-            BindBoolFeatureOn(coreSettings, "mupen64plus-EnableTexCoordBounds", "mupen64plus-EnableTexCoordBounds", "True", "False");
+            BindBoolFeature(coreSettings, "mupen64plus-EnableTexCoordBounds", "mupen64plus-EnableTexCoordBounds", "True", "False");
             BindFeature(coreSettings, "mupen64plus-EnableNativeResTexrects", "mupen64plus-EnableNativeResTexrects", "Disabled");
 
             // Parallel
