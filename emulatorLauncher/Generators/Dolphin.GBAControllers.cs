@@ -43,11 +43,10 @@ namespace EmulatorLauncher
                     var prod = pad.ProductID;
                     string gamecubepad = "gamecubepad" + (pad.PlayerIndex - 1);
 
-                    if (gcAdapters.ContainsKey(guid) && Program.SystemConfig[gamecubepad] != "12" && Program.SystemConfig[gamecubepad] != "13")
-                    {
-                        ConfigureGCAdapter(gcpad, guid, pad, ini);
+                    Dictionary<string, string> specialHK = null;
+
+                    if (ConfigureGCAdapter(gcpad, gamecubepad, guid, pad, ini, out specialHK))
                         continue;
-                    }
 
                     string tech = "XInput";
                     string deviceName = "Gamepad";

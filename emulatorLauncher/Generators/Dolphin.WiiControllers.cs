@@ -476,6 +476,7 @@ namespace EmulatorLauncher
             int nsamepad = 0;
 
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
+            Dictionary<string, string> specialHK = null;
 
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
@@ -494,9 +495,16 @@ namespace EmulatorLauncher
                     var prod = pad.ProductID;
                     string gamecubepad = "gamecubepad" + (pad.PlayerIndex - 1);
 
-                    if (gcAdapters.ContainsKey(guid) && Program.SystemConfig[gamecubepad] != "12" && Program.SystemConfig[gamecubepad] != "13")
+                    if (ConfigureGCAdapter(gcpad, gamecubepad, guid, pad, ini, out specialHK))
                     {
-                        ConfigureGCAdapter(gcpad, guid, pad, ini);
+                        if (specialHK != null)
+                        {
+                            foreach (var hk in specialHK)
+                            {
+                                if (!_gcSpecialHotkeys.ContainsKey(hk.Key))
+                                    _gcSpecialHotkeys.Add(hk.Key, hk.Value);
+                            }
+                        }
                         continue;
                     }
 
@@ -905,7 +913,7 @@ namespace EmulatorLauncher
             // Reset hotkeys
             string hotkeyini = Path.Combine(path, "User", "Config", "Hotkeys.ini");
             if (File.Exists(hotkeyini))
-                ResetHotkeysToDefault(hotkeyini);
+                ResetHotkeysToDefault(hotkeyini, _gcSpecialHotkeys);
         }
 
         private static void SetWiimoteHotkeys(string iniFile)

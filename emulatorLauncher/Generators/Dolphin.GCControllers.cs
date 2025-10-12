@@ -25,6 +25,7 @@ namespace EmulatorLauncher
             int nsamepad = 0;
 
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
+            Dictionary<string, string> specialHK = null;
 
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
@@ -46,9 +47,16 @@ namespace EmulatorLauncher
                     var prod = pad.ProductID;
                     string gamecubepad = "gamecubepad" + (pad.PlayerIndex - 1);
 
-                    if (gcAdapters.ContainsKey(guid) && Program.SystemConfig[gamecubepad] != "12" && Program.SystemConfig[gamecubepad] != "13")
+                    if (ConfigureGCAdapter(gcpad, gamecubepad, guid, pad, ini, out specialHK))
                     {
-                        ConfigureGCAdapter(gcpad, guid, pad, ini);
+                        if (specialHK != null)
+                        {
+                            foreach (var hk in specialHK)
+                            {
+                                if (!_gcSpecialHotkeys.ContainsKey(hk.Key))
+                                    _gcSpecialHotkeys.Add(hk.Key, hk.Value);
+                            }
+                        }
                         continue;
                     }
 
@@ -338,7 +346,7 @@ namespace EmulatorLauncher
             // Reset hotkeys
             string hotkeyini = Path.Combine(path, "User", "Config", "Hotkeys.ini");
             if (File.Exists(hotkeyini))
-                ResetHotkeysToDefault(hotkeyini);
+                ResetHotkeysToDefault(hotkeyini, _gcSpecialHotkeys);
         }
 
         private static void RemoveControllerConfig_gamecube(string path, IniFile ini)
@@ -410,97 +418,92 @@ namespace EmulatorLauncher
             { InputKey.joystick2left,   InputKey.joystick2right },
         };
 
-        private static void ConfigureGCAdapter(string gcpad, string guid, Controller pad, IniFile ini)
+        private static bool ConfigureGCAdapter(string gcpad, string gamecubepad, string guid, Controller pad, IniFile ini, out Dictionary<string, string> specialHK)
         {
-            ini.WriteValue(gcpad, "Main Stick/Modifier/Range", "50.");
-            ini.WriteValue(gcpad, "C-Stick/Modifier/Range", "50.");
+            specialHK = null;
 
-            string deviceName = pad.DirectInput.Name;
+            if (Program.SystemConfig[gamecubepad] == "12" || Program.SystemConfig[gamecubepad] == "13")
+                return false;
 
-            if (deviceName == null)
-                return;
+            string gcjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "GCControllers.json");
+            if (!File.Exists(gcjson))
+                return false;
 
-            string tech = "SDL";
+            SimpleLogger.Instance.Info("[Controller] Checking specific Gamecube mapping for controller " + guid);
 
-            int padIndex = Program.Controllers.Where(g => g.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant() == guid).OrderBy(o => o.DeviceIndex).ToList().IndexOf(pad);
+            bool needGCActivationSwitch = false;
+            bool gc_pad = Program.SystemConfig.getOptBoolean("gc_pad");
 
-            ini.WriteValue(gcpad, "Device", tech + "/" + padIndex + "/" + pad.DirectInput.Name);
+            try
+            {
+                var gcControllers = GCController.LoadControllersFromJson(gcjson);
 
-            Dictionary<string, string> buttons = gcAdapters[guid];
+                if (gcControllers == null)
+                    return false;
 
-            foreach (var button in buttons)
-                ini.WriteValue(gcpad, button.Key, button.Value);
+                GCController gcGamepad = GCController.GetGCController("dolphin", guid, gcControllers);
+
+                if (gcGamepad == null)
+                {
+                    SimpleLogger.Instance.Info("[Controller] No specific Gamecube mapping found for controller " + guid);
+                    return false;
+                }
+
+                if (gcGamepad.ControllerInfo != null)
+                {
+                    if (gcGamepad.ControllerInfo.ContainsKey("needActivationSwitch") && gcGamepad.ControllerInfo["needActivationSwitch"] == "true")
+                        needGCActivationSwitch = gcGamepad.ControllerInfo["needActivationSwitch"] == "true";
+
+                    if (needGCActivationSwitch && !gc_pad)
+                    {
+                        SimpleLogger.Instance.Info("[Controller] Specific Gamecube mapping needs to be activated for this controller.");
+                        return false;
+                    }
+
+                    SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + gcGamepad.Name);
+
+                    if (gcGamepad.Mapping == null)
+                    {
+                        SimpleLogger.Instance.Info("[Controller] Mapping empty for " + gcGamepad.Name);
+                        return false;
+                    }
+
+                    ini.WriteValue(gcpad, "Main Stick/Modifier/Range", "50.");
+                    ini.WriteValue(gcpad, "C-Stick/Modifier/Range", "50.");
+
+                    string deviceName = gcGamepad.Name;
+
+                    if (deviceName == null)
+                    {
+                        SimpleLogger.Instance.Info("[Controller] Name missing for " + gcGamepad.Name);
+                        return false;
+                    }
+
+                    string tech = "SDL";
+
+                    if (gcGamepad.Driver != null)
+                        tech = gcGamepad.Driver;
+
+                    int padIndex = Program.Controllers.Where(g => g.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant() == guid).OrderBy(o => o.DeviceIndex).ToList().IndexOf(pad);
+
+                    string device = tech + "/" + padIndex + "/" + deviceName;
+                    ini.WriteValue(gcpad, "Device", device);
+
+                    foreach (var button in gcGamepad.Mapping)
+                        ini.WriteValue(gcpad, button.Key, button.Value);
+
+                    if (gcpad.EndsWith("1"))
+                    {
+                        specialHK = gcGamepad.HotKeyMapping;
+                        specialHK.Add("Device", device);
+                    }
+
+                    return true;
+                }
+            }
+            catch { return false; }
+
+            return false;
         }
-
-        static readonly Dictionary<string, Dictionary<string, string>> gcAdapters = new Dictionary<string, Dictionary<string, string>>()
-        {
-            {
-                "030000009b2800006500000000000000",
-                new Dictionary<string, string>()
-                {
-                    { "Buttons/A", "`Button 0`" },
-                    { "Buttons/B", "`Button 1`" },
-                    { "Buttons/X", "`Button 7`" },
-                    { "Buttons/Y", "`Button 8`" },
-                    { "Buttons/Z", "`Button 2`" },
-                    { "Buttons/Start", "`Button 3`" },
-                    { "D-Pad/Up", "`Button 10`" },
-                    { "D-Pad/Down", "`Button 11`" },
-                    { "D-Pad/Left", "`Button 12`" },
-                    { "D-Pad/Right", "`Button 13`" },
-                    { "Main Stick/Up", "`Axis 1-`" },
-                    { "Main Stick/Down", "`Axis 1+`" },
-                    { "Main Stick/Left", "`Axis 0-`" },
-                    { "Main Stick/Right", "`Axis 0+`" },
-                    { "Main Stick/Calibration", "99.27 96.28 95.41 98.50 105.10 101.56 97.09 96.92 99.47 97.29 97.14 98.38 102.95 95.99 93.28 94.23 93.71 91.04 90.65 93.92 100.78 94.03 92.17 93.97 98.00 93.31 93.19 96.03 102.50 96.33 93.79 95.22" },
-                    { "C-Stick/Up", "`Axis 4-`" },
-                    { "C-Stick/Down", "`Axis 4+`" },
-                    { "C-Stick/Left", "`Axis 3-`" },
-                    { "C-Stick/Right", "`Axis 3+`" },
-                    { "C-Stick/Calibration", "90.54 87.42 87.39 89.59 95.36 91.17 88.92 90.16 93.68 89.71 89.36 90.43 89.88 84.17 82.25 83.56 87.00 83.71 82.29 84.69 89.54 86.49 84.83 85.69 91.00 88.88 88.76 92.16 97.58 90.57 87.72 88.07" },
-                    { "Triggers/L", "`Full Axis 5+`" },
-                    { "Triggers/R", "`Full Axis 2+`" },
-                    { "Triggers/L-Analog", "`Full Axis 5+`" },
-                    { "Triggers/R-Analog", "`Full Axis 2+`" },
-                    { "Triggers/Threshold", "85." },
-                    { "Triggers/Dead Zone", "6." },
-                    { "Rumble/Motor", "Constant" },
-                }
-            },
-
-            {
-                "03000000790000004318000000016800",
-                new Dictionary<string, string>()
-                {
-                    { "Buttons/A", "`Button 1`" },
-                    { "Buttons/B", "`Button 2`" },
-                    { "Buttons/X", "`Button 0`" },
-                    { "Buttons/Y", "`Button 3`" },
-                    { "Buttons/Z", "`Button 7`" },
-                    { "Buttons/Start", "`Button 9`" },
-                    { "D-Pad/Up", "`Button 12`" },
-                    { "D-Pad/Down", "`Button 14`" },
-                    { "D-Pad/Left", "`Button 15`" },
-                    { "D-Pad/Right", "`Button 13`" },
-                    { "Main Stick/Up", "`Axis 1-`" },
-                    { "Main Stick/Down", "`Axis 1+`" },
-                    { "Main Stick/Left", "`Axis 0-`" },
-                    { "Main Stick/Right", "`Axis 0+`" },
-                    { "Main Stick/Calibration", "75.42 74.28 73.52 76.21 82.13 79.47 76.23 76.20 79.88 79.52 78.29 79.31 82.97 76.86 74.57 75.04 78.75 76.38 75.33 77.47 83.20 77.96 75.92 77.09 79.96 77.32 76.31 78.33 80.81 75.37 73.05 73.61" },
-                    { "C-Stick/Up", "`Axis 2-`" },
-                    { "C-Stick/Down", "`Axis 2+`" },
-                    { "C-Stick/Left", "`Axis 5-`" },
-                    { "C-Stick/Right", "`Axis 5+`" },
-                    { "C-Stick/Calibration", "63.12 61.50 61.87 63.75 68.25 65.24 63.84 64.95 68.10 69.10 68.34 69.84 74.34 68.89 66.25 66.80 69.53 67.22 66.31 68.01 72.16 68.16 67.01 68.33 70.91 67.61 66.56 68.48 70.69 65.43 63.17 61.72" },
-                    { "Triggers/L", "`Full Axis 3+`" },
-                    { "Triggers/R", "`Full Axis 4+`" },
-                    { "Triggers/L-Analog", "`Full Axis 3+`" },
-                    { "Triggers/R-Analog", "`Full Axis 4+`" },
-                    { "Triggers/Threshold", "85." },
-                    { "Triggers/Dead Zone", "7." },
-                    { "Rumble/Motor", "Motor" },
-                }
-            },
-        };
     }
 }

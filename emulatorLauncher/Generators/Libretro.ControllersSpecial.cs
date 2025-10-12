@@ -103,7 +103,7 @@ namespace EmulatorLauncher.Libretro
 
         BypassUserController:
 
-            // specific mapping for arcade sticks*
+            // specific mapping for arcade sticks
             if (useArcadeStick)
             {
                 string stickjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "arcade_sticks.json");
@@ -380,6 +380,106 @@ namespace EmulatorLauncher.Libretro
                         }
                         else
                             SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + mdGamepad.Name);
+
+                        if (inputConfig.ContainsKey("input_joypad_driver") && inputConfig["input_joypad_driver"] != null)
+                            _inputDriver = inputConfig["input_joypad_driver"];
+
+                        _specialController = true;
+                        return true;
+                    }
+                    catch { }
+                }
+            }
+
+            // Specific mapping for gamecube-like controllers
+            else if (system == "gamecube" || system == "gc")
+            {
+                string gcjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "GCControllers.json");
+                bool needActivationSwitch = false;
+                bool gc_pad = Program.SystemConfig.getOptBoolean("gc_pad");
+
+                foreach (var path in mappingPaths)
+                {
+                    string result = path
+                        .Replace("{systempath}", "system")
+                        .Replace("{userpath}", "user");
+
+                    string gcjson2 = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result, "GCControllers.json");
+
+                    if (File.Exists(gcjson2))
+                    {
+                        gcjson = gcjson2;
+                        break;
+                    }
+                }
+
+                if (!File.Exists(gcjson))
+                {
+                    SimpleLogger.Instance.Info("[Controller] No Gamecube JSON file found.");
+                    return false;
+                }
+
+                else
+                {
+                    try
+                    {
+                        var gcControllers = GCController.LoadControllersFromJson(gcjson);
+
+                        if (gcControllers == null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] Error loading JSON file.");
+                            return false;
+                        }
+
+                        GCController gcGamepad = GCController.GetGCController("libretro", guid, _inputDriver, gcControllers);
+                        if (gcGamepad == null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] No specific mapping found for Gamecube controller.");
+                            return false;
+                        }
+
+                        if (gcGamepad.Mapping == null)
+                        {
+                            SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro : " + gcGamepad.Name);
+                            return false;
+                        }
+
+                        if (gcGamepad.ControllerInfo != null)
+                        {
+                            if (gcGamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                                needActivationSwitch = gcGamepad.ControllerInfo["needActivationSwitch"] == "true";
+                            if (gcGamepad.ControllerInfo.ContainsKey("input_analog_sensitivity"))
+                                retroconfig["input_analog_sensitivity"] = gcGamepad.ControllerInfo["input_analog_sensitivity"];
+                            if (gcGamepad.ControllerInfo.ContainsKey("input_joypad_driver"))
+                                inputConfig["input_joypad_driver"] = gcGamepad.ControllerInfo["input_joypad_driver"];
+
+                            if (needActivationSwitch && !gc_pad)
+                            {
+                                SimpleLogger.Instance.Info("[Controller] Specific Gamecube mapping needs to be activated for this controller.");
+                                return false;
+                            }
+                        }
+
+                        SimpleLogger.Instance.Info("[Controller] Performing specific Gamecube mapping for " + gcGamepad.Name);
+
+                        foreach (var button in gcGamepad.Mapping)
+                        {
+                            if (analogDpad && digitalDpadStrings.Contains(button.Key))
+                                continue;
+                            else if (!analogDpad && analogDpadStrings.Contains(button.Key))
+                                continue;
+
+                            inputConfig[string.Format("input_player{0}_{1}", controller.PlayerIndex, button.Key)] = button.Value;
+                        }
+
+                        if (gcGamepad.HotKeyMapping != null && controller.PlayerIndex == 1)
+                        {
+                            foreach (var hotkey in gcGamepad.HotKeyMapping)
+                                inputConfig[hotkey.Key] = hotkey.Value;
+                            _specialControllerHotkey = true;
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[Controller] Missing mapping for libretro hotkeys : " + gcGamepad.Name);
 
                         if (inputConfig.ContainsKey("input_joypad_driver") && inputConfig["input_joypad_driver"] != null)
                             _inputDriver = inputConfig["input_joypad_driver"];
