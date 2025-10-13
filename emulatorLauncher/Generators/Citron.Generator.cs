@@ -194,13 +194,13 @@ namespace EmulatorLauncher
                 BindQtIniFeature(ini, "Audio", "output_engine", "audio_backend", "auto");
                 BindQtIniFeature(ini, "System", "sound_index", "sound_index", "1");            
                 BindQtIniFeature(ini, "Renderer", "backend", "backend", "1");
-                BindQtIniFeature(ini, "Renderer", "resolution_setup", "resolution_setup", "2");
+                BindQtIniFeature(ini, "Renderer", "resolution_setup", "resolution_setup", "3");
                 BindQtIniFeature(ini, "Renderer", "aspect_ratio", "citron_ratio", "0");
                 BindQtIniFeature(ini, "Renderer", "max_anisotropy", "citron_anisotropy", "0");
                 BindQtIniFeature(ini, "Renderer", "use_vsync", "use_vsync", "2");
                 BindQtIniFeature(ini, "Renderer", "anti_aliasing", "anti_aliasing", "0");
                 BindQtIniFeature(ini, "Renderer", "scaling_filter", "scaling_filter", "1");
-                BindQtIniFeature(ini, "Renderer", "gpu_accuracy", "gpu_accuracy", "1");
+                BindQtIniFeature(ini, "Renderer", "gpu_accuracy", "gpu_accuracy", "2");
                 
                 if (SystemConfig.isOptSet("use_asynchronous_shaders") && !SystemConfig.getOptBoolean("use_asynchronous_shaders"))
                 {

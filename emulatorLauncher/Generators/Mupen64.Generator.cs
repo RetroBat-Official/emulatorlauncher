@@ -260,7 +260,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Video-Parallel", "Upscaling", "1");
 
                     BindBoolIniFeature(ini, "Video-Parallel", "NativeTextLOD", "mupen64plus-parallel-rdp-native-texture-lod", "True", "False");
-                    BindBoolIniFeatureOn(ini, "Video-Parallel", "NativeTextRECT", "rmg_NativeTextRECT", "True", "False");
+                    BindBoolIniFeature(ini, "Video-Parallel", "NativeTextRECT", "rmg_NativeTextRECT", "True", "False");
                 }
 
                 else if (SystemConfig.isOptSet("gfxplugin") && SystemConfig["gfxplugin"] == "angrylion")
@@ -520,7 +520,7 @@ namespace EmulatorLauncher
                 }
 
                 BindBoolIniFeature(ini, "User", "generalEmulation\\enableLOD", "mupen64plus-parallel-rdp-native-texture-lod", "1", "0");
-                BindBoolIniFeatureOn(ini, "User", "graphics2D\\enableNativeResTexrects", "rmg_NativeTextRECT", "1", "0");
+                BindBoolIniFeature(ini, "User", "graphics2D\\enableNativeResTexrects", "rmg_NativeTextRECT", "1", "0");
             }
         }
 

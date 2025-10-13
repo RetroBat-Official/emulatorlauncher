@@ -3260,7 +3260,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mupen64plus-BilinearMode", "BilinearMode", "3point");
             BindFeature(coreSettings, "mupen64plus-MultiSampling", "MultiSampling", "0");
             BindFeature(coreSettings, "mupen64plus-txFilterMode", "Texture_filter", "None");
-            BindBoolFeatureOn(coreSettings, "mupen64plus-EnableTexCoordBounds", "mupen64plus-EnableTexCoordBounds", "True", "False");
+            BindBoolFeature(coreSettings, "mupen64plus-EnableTexCoordBounds", "mupen64plus-EnableTexCoordBounds", "True", "False");
             BindFeature(coreSettings, "mupen64plus-EnableNativeResTexrects", "mupen64plus-EnableNativeResTexrects", "Disabled");
 
             // Parallel
@@ -4277,6 +4277,15 @@ namespace EmulatorLauncher.Libretro
             {
                 using (var ini = new IniFile(iniFile, IniOptions.KeepEmptyValues))
                 {
+                    // Cleaning
+                    ini.WriteValue("WinX68k", "StartDir", null);
+                    ini.WriteValue("WinX68k", "FDD0", null);
+                    ini.WriteValue("WinX68k", "FDD1", null);
+                    
+                    for (int i = 0; i < 16; i++)
+                        ini.WriteValue("WinX68k", "HDD" + i, null);
+
+                    // Writing values
                     if (SystemConfig["rom"] != null)
                     {
                         string rom = SystemConfig["rom"];

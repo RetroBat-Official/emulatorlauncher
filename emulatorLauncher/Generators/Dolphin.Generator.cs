@@ -302,6 +302,8 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Settings", "SSAA", "ssaa", "True", "False");
                     BindBoolIniFeature(ini, "Settings", "Crop", "dolphin_crop", "True", "False");
                     BindBoolIniFeature(ini, "Enhancements", "HDROutput", "enable_hdr", "True", "False");
+                    BindBoolIniFeature(ini, "Settings", "EnableGPUTextureDecoding", "EnableGPUTextureDecoding", "True", "False");
+                    BindIniFeature(ini, "Settings", "SafeTextureCacheColorSamples", "SafeTextureCacheColorSamples", "128");
 
                     if (SystemConfig["dolphin_shaders"] == "AutoHDR" || SystemConfig["dolphin_shaders"] == "PerceptualHDR")
                         ini.WriteValue("Enhancements", "HDROutput", "True");
