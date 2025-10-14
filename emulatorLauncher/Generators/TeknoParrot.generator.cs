@@ -385,9 +385,25 @@ namespace EmulatorLauncher
                 int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
                 int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
 
-                customResolution.FieldValue = "1";
-                resolutionWidth.FieldValue = resX.ToString();
-                resolutionHeight.FieldValue = resY.ToString();
+                if (SystemConfig.isOptSet("tp_useScreenres") && SystemConfig.getOptBoolean("tp_useScreenres"))
+                {
+                    customResolution.FieldValue = "1";
+                    resolutionWidth.FieldValue = resX.ToString();
+                    resolutionHeight.FieldValue = resY.ToString();
+                }
+                else
+                {
+                    var profileWidth = profile.ConfigValues.FirstOrDefault(c => c.FieldName == "ResolutionWidth");
+                    var profileHeight = profile.ConfigValues.FirstOrDefault(c => c.FieldName == "ResolutionHeight");
+                    
+                    customResolution.FieldValue = "0";
+
+                    if (profileWidth != null && profileHeight != null)
+                    {
+                        resolutionWidth.FieldValue = profileWidth.FieldValue;
+                        resolutionHeight.FieldValue = profileHeight.FieldValue;
+                    }
+                }
             }
 
             // Option to disable RequiresAdmin tag

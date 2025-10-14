@@ -59,6 +59,9 @@ namespace EmulatorLauncher.Libretro
             else
                 retroconfig["input_max_users"] = (controllerNb + 1).ToString();
 
+            if (Program.SystemConfig.getOptBoolean("revertXIndex"))
+                Controller.SetXinputReversedIndex(Program.Controllers);
+
             foreach (var controller in Program.Controllers)
             {
                 WriteControllerConfig(retroconfig, controller, system, core);
@@ -640,7 +643,12 @@ namespace EmulatorLauncher.Libretro
                 else if (_inputDriver == "dinput" && controller.DirectInput != null && controller.DirectInput.DeviceIndex > -1)
                     index = controller.DirectInput.DeviceIndex;
                 else if (_inputDriver == "xinput" && controller.XInput != null && controller.XInput.DeviceIndex > -1)
-                    index = controller.XInput.DeviceIndex;
+                {
+                    if (Program.SystemConfig.getOptBoolean("revertXIndex") && controller.xIndexReversed != -1)
+                        index = controller.xIndexReversed;
+                    else
+                        index = controller.XInput.DeviceIndex;
+                }
             }
 
             if (!_indexes.ContainsKey(controller.PlayerIndex))

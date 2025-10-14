@@ -14,6 +14,7 @@ namespace EmulatorLauncher
         public Controller()
         {
             DeviceIndex = -1;
+            xIndexReversed = -1;
         }
 
         public int PlayerIndex { get; set; }
@@ -24,7 +25,8 @@ namespace EmulatorLauncher
         public int NbButtons { get; set; }
         public int NbHats { get; set; }
         public int NbAxes { get; set; }
-        
+        public int xIndexReversed { get; set; }
+
         public bool IsKeyboard { get { return "Keyboard".Equals(Name, StringComparison.InvariantCultureIgnoreCase); } }
 
         public SdlToDirectInput dinputCtrl = null;
@@ -474,6 +476,32 @@ namespace EmulatorLauncher
             return input;
         }
 
+        public static void SetXinputReversedIndex(List<Controller> controllers)
+        {
+            try
+            {
+                var xinputControllers = controllers.Where(x => x.XInput != null).ToList();
+                var duplicateGroups = xinputControllers
+                .GroupBy(c => c.Guid.ToGuid())
+                .Where(g => g.Count() > 1).ToList();
+
+                foreach (var group in duplicateGroups)
+                {
+                    var pair = group.Take(2).ToList();
+
+                    if (pair.Count == 2)
+                    {
+                        int c1Index = pair[0].XInput.DeviceIndex;
+                        int c2Index = pair[1].XInput.DeviceIndex;
+
+                        pair[0].xIndexReversed = c2Index;
+                        pair[1].xIndexReversed = c1Index;
+                    }
+                }
+            }
+            catch { }
+        }
+
         public static string GetSystemYmlMappingFile(string emulator, string core, string system, string[] mappingPaths)
         {
             string ret = null;
@@ -558,6 +586,5 @@ namespace EmulatorLauncher
             var sdlDev = SdlGameController.GetGameControllerByPath(ctrl.DevicePath);
             return sdlDev != null ? sdlDev.Index : ctrl.DeviceIndex;
         }
-
     }
 }
