@@ -17,7 +17,7 @@ namespace batocera_services
 
         private static string GetAutoMarqueePath()
         {
-            return Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), ".emulationstation", "scripts", "automarquee.bat");
+            return Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), ".emulationstation", "scripts", "automarquee-nowait.bat");
         }
 
         /// <summary>
