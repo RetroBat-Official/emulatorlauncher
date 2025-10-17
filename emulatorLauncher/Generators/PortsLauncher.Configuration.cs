@@ -37,6 +37,7 @@ namespace EmulatorLauncher
             ConfigureSonicMania(rom, exe);
             ConfigureSonicRetro(rom, exe);
             ConfigureStarship(rom, exe);
+            ConfigurevkQuake(commandArray, rom);
         }
 
         #region ports
@@ -1382,6 +1383,42 @@ namespace EmulatorLauncher
             fs["Enabled"] = _fullscreen ? true : false;
 
             File.WriteAllText(settingsFile, jsonObj.ToString(Formatting.Indented));
+        }
+
+        private void ConfigurevkQuake(List<string> commandArray, string rom)
+        {
+            if (_emulator != "vkquake")
+                return;
+
+            bool hipnotic = false;
+            bool rogue = false;
+
+            commandArray.Add("-basedir");
+            string rompath =Path.Combine(AppConfig.GetFullPath("roms"), "quake");
+
+            commandArray.Add("\"" + rompath + "\"");
+
+            if (rom.ToLowerInvariant().Contains("scourge") || rom.ToLowerInvariant().Contains("hipnotic"))
+            {
+                commandArray.Add("-hipnotic");
+                hipnotic = true;
+            }
+            else if (rom.ToLowerInvariant().Contains("dissolution") || rom.ToLowerInvariant().Contains("rogue"))
+            {
+                commandArray.Add("-rogue");
+                rogue = true;
+            }
+
+            if (_fullscreen)
+                commandArray.Add("-fullscreen");
+
+            // Config file
+            string vkquakecfg = Path.Combine(rompath, "id1", "vkQuake.cfg");
+
+            if (hipnotic)
+                vkquakecfg = Path.Combine(rompath, "hipnotic", "vkQuake.cfg");
+            else if (rogue)
+                vkquakecfg = Path.Combine(rompath, "rogue", "vkQuake.cfg");
         }
         #endregion
     }

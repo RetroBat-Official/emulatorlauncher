@@ -139,22 +139,49 @@ namespace EmulatorLauncher.Libretro
                     rom = Path.Combine(Path.GetDirectoryName(rom), pakSubPath);
                 }
             }
+            else if (core == "tyrquake")
+            {
+                if (Path.GetExtension(rom).ToLowerInvariant() == ".quake")
+                {
+                    if (rom.ToLowerInvariant().Contains("scourge") || rom.ToLowerInvariant().Contains("hipnotic"))
+                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake", "hipnotic", "pak0.pak");
+                    else if (rom.ToLowerInvariant().Contains("dissolution") || rom.ToLowerInvariant().Contains("rogue"))
+                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake", "rogue", "pak0.pak");
+                    else
+                    {
+                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake", "id1", "pak1.pak");
+
+                        if (!File.Exists(rom))
+                            rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake", "id1", "pak0.pak");
+                    }
+                }
+            }
             else if (core == "vitaquake2")
             {
                 string pakPath = Path.GetDirectoryName(rom);
-                int index = pakPath.IndexOf("vitaquake2");
-                if (index != -1)
-                {
-                    string endOfPakPath = pakPath.Substring(index + 10);
-                    if (endOfPakPath.StartsWith("\\"))
-                        endOfPakPath = endOfPakPath.Substring(1);
+               
+                if (rom.ToLowerInvariant().Contains("rogue"))
+                    core = "vitaquake2-rogue";
+                else if (rom.ToLowerInvariant().Contains("xatrix"))
+                    core = "vitaquake2-xatrix";
+                else if (rom.ToLowerInvariant().Contains("zaero"))
+                    core = "vitaquake2-zaero";
 
-                    if (endOfPakPath.Contains("rogue"))
-                        core = "vitaquake2-rogue";
-                    else if (endOfPakPath.Contains("xatrix"))
-                        core = "vitaquake2-xatrix";
-                    else if (endOfPakPath.Contains("zaero"))
-                        core = "vitaquake2-zaero";
+                if (Path.GetExtension(rom).ToLowerInvariant() == ".quake2")
+                {
+                    if (rom.ToLowerInvariant().Contains("rogue"))
+                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "rogue", "pak0.pak");
+                    else if (rom.ToLowerInvariant().Contains("xatrix"))
+                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "xatrix", "pak0.pak");
+                    else if (rom.ToLowerInvariant().Contains("zaero"))
+                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "zaero", "pak0.pak");
+                    else
+                    {
+                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "baseq2", "pak0.pak");
+
+                        if (!File.Exists(rom))
+                            rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "baseq2", "pak1.pak");
+                    }
                 }
             }
             else if (core == "geolith" && Path.GetExtension(rom).ToLower() == ".zip")

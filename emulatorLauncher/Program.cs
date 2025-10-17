@@ -161,6 +161,7 @@ namespace EmulatorLauncher
             { "triforce", () => new DolphinGenerator() },
             { "tsugaru", () => new TsugaruGenerator() },
             { "vita3k", () => new Vita3kGenerator() },
+            { "vkquake", () => new vkQuakeGenerator() },
             { "vpinball", () => new VPinballGenerator() },
             { "wiiu", () => new CemuGenerator() },
             { "winarcadia", () => new WinArcadiaGenerator() },

@@ -126,6 +126,7 @@ namespace EmulatorLauncher
             { new Installer("triforce", new string[] { "dolphin-triforce"}, new string[] { "dolphinWX.exe", "dolphin.exe" }) },
             { new Installer("tsugaru", "tsugaru", "tsugaru_cui.exe") },
             { new Installer("vita3k", "vita3k", "Vita3K.exe") },
+            { new Installer("vkquake", "vkquake", "vkQuake.exe") },
             { new Installer("vpinball", new string[] {"vpinball" }, new string[] { "VPinballX.exe", "vpinballx.exe", "VPinballX64.exe" }, "900MO" )},
             { new Installer("winarcadia", "winarcadia", "WinArcadia.exe") },
             { new Installer("winuae", "winuae", "winuae64.exe") },
