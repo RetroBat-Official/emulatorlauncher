@@ -3444,6 +3444,26 @@ namespace EmulatorLauncher.Libretro
                         coreSettings["melonds_screen_layout7"] = "top";
                         coreSettings["melonds_screen_layout8"] = "bottom";
                         break;
+                    case "flipped-hybrid-top":
+                        coreSettings["melonds_screen_layout1"] = "flipped-hybrid-top";
+                        coreSettings["melonds_screen_layout2"] = "flipped-hybrid-bottom";
+                        coreSettings["melonds_screen_layout3"] = "top-bottom";
+                        coreSettings["melonds_screen_layout4"] = "bottom-top";
+                        coreSettings["melonds_screen_layout5"] = "left-right";
+                        coreSettings["melonds_screen_layout6"] = "right-left";
+                        coreSettings["melonds_screen_layout7"] = "top";
+                        coreSettings["melonds_screen_layout8"] = "bottom";
+                        break;
+                    case "flipped-hybrid-bottom":
+                        coreSettings["melonds_screen_layout1"] = "flipped-hybrid-bottom";
+                        coreSettings["melonds_screen_layout2"] = "flipped-hybrid-top";
+                        coreSettings["melonds_screen_layout3"] = "top-bottom";
+                        coreSettings["melonds_screen_layout4"] = "bottom-top";
+                        coreSettings["melonds_screen_layout5"] = "left-right";
+                        coreSettings["melonds_screen_layout6"] = "right-left";
+                        coreSettings["melonds_screen_layout7"] = "top";
+                        coreSettings["melonds_screen_layout8"] = "bottom";
+                        break;
                     case "rotate-left":
                         coreSettings["melonds_screen_layout1"] = "rotate-left";
                         coreSettings["melonds_screen_layout2"] = "rotate-right";
