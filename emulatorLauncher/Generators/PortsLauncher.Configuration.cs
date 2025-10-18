@@ -386,7 +386,7 @@ namespace EmulatorLauncher
 
             ConfigureDhewm3Controls(changes);
 
-            ConfigEditor.ChangeConfigValues(cfgFile, changes);
+            ConfigEditorDhewm3.ChangeConfigValues(cfgFile, changes);
 
             // Cleanup if disabled autoconfigure
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -1392,6 +1392,7 @@ namespace EmulatorLauncher
 
             bool hipnotic = false;
             bool rogue = false;
+            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
 
             commandArray.Add("-basedir");
             string rompath =Path.Combine(AppConfig.GetFullPath("roms"), "quake");
@@ -1419,6 +1420,30 @@ namespace EmulatorLauncher
                 vkquakecfg = Path.Combine(rompath, "hipnotic", "vkQuake.cfg");
             else if (rogue)
                 vkquakecfg = Path.Combine(rompath, "rogue", "vkQuake.cfg");
+
+            var changes = new List<vkQuakeConfigChange>();
+            var height = _resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height;
+            var width = _resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width;
+
+            changes.Add(new vkQuakeConfigChange("vid_width", "", width.ToString()));
+            changes.Add(new vkQuakeConfigChange("vid_height", "", height.ToString()));
+
+            if (SystemConfig.isOptSet("vkquake_vsync") && !string.IsNullOrEmpty(SystemConfig["vkquake_vsync"]))
+                changes.Add(new vkQuakeConfigChange("vid_vsync", "", SystemConfig["vkquake_vsync"]));
+            else
+                changes.Add(new vkQuakeConfigChange("vid_vsync", "", "0"));
+
+            if (_fullscreen)
+                changes.Add(new vkQuakeConfigChange("vid_fullscreen", "", "1"));
+            else
+                changes.Add(new vkQuakeConfigChange("vid_fullscreen", "", "0"));
+
+            if (exclusivefs)
+                changes.Add(new vkQuakeConfigChange("vid_borderless", "", "0"));
+            else
+                changes.Add(new vkQuakeConfigChange("vid_borderless", "", "1"));
+
+            ConfigEditorvkQuake.ChangeConfigValues(vkquakecfg, changes);
         }
         #endregion
     }
@@ -1438,7 +1463,7 @@ namespace EmulatorLauncher
         }
     }
 
-    class ConfigEditor
+    class ConfigEditorDhewm3
     {
         public static void ChangeConfigValues(string filePath, List<Dhewm3ConfigChange> changes)
         {
@@ -1476,6 +1501,72 @@ namespace EmulatorLauncher
             }
 
             // Write all updated lines back to the file
+            File.WriteAllLines(filePath, lines);
+        }
+    }
+    #endregion
+
+    #region vkQuake config class
+    class vkQuakeConfigChange
+    {
+        public string Type { get; set; }
+        public string Key { get; set; }
+        public string NewValue { get; set; }
+
+        public vkQuakeConfigChange(string type, string key, string newValue)
+        {
+            Type = type;
+            Key = key;
+            NewValue = newValue;
+        }
+    }
+
+    class ConfigEditorvkQuake
+    {
+        public static void ChangeConfigValues(string filePath, List<vkQuakeConfigChange> changes)
+        {
+            if (!File.Exists(filePath))
+                return;
+
+            var lines = new List<string>(File.ReadAllLines(filePath));
+            bool[] found = new bool[changes.Count];
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                string original = lines[i];
+                string line = original.Trim();
+
+                for (int j = 0; j < changes.Count; j++)
+                {
+                    var change = changes[j];
+
+                    // If it's a bind-style change (e.g. bind "SPACE" "+jump")
+                    if (!string.IsNullOrEmpty(change.Type) && change.Type.Equals("bind", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(change.Key))
+                    {
+                        // ^\s*bind\s+"KEY"\s+"(value)"(\s*;.*)?$
+                        string bindPattern = $@"^\s*{Regex.Escape(change.Type)}\s+""{Regex.Escape(change.Key)}""\s+""(.*?)""(?:\s*;.*)?$";
+                        if (Regex.IsMatch(line, bindPattern))
+                        {
+                            lines[i] = $"{change.Type} \"{change.Key}\" \"{change.NewValue}\"";
+                            found[j] = true;
+                        }
+                    }
+                    else
+                    {
+                        // var-style: Type is the variable name, value may or may not be quoted
+                        if (!string.IsNullOrEmpty(change.Type))
+                        {
+                            string varPattern = $@"^\s*{Regex.Escape(change.Type)}\s+(""?.*?""?)(?:\s*;.*)?$";
+                            if (Regex.IsMatch(original, varPattern, RegexOptions.IgnoreCase))
+                            {
+                                lines[i] = $"{change.Type} \"{change.NewValue}\"";
+                                found[j] = true;
+                            }
+                        }
+                    }
+                }
+            }
+
             File.WriteAllLines(filePath, lines);
         }
     }
