@@ -384,40 +384,26 @@ namespace EmulatorLauncher
 
             using (var ini = IniFile.FromFile(cfg, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
+                var inisections = ini.EnumerateSections().Where(s => !s.StartsWith("Sound") && !s.StartsWith("Input") && !s.StartsWith("P1") && !s.StartsWith("P2"));
 
-                if (!string.IsNullOrEmpty(ini.GetValue("Config", "GameWidth")))
+                foreach (var section in inisections)
                 {
-                    ini.WriteValue("Config", "GameWidth", resolution.Width.ToString());
-                    ini.WriteValue("Config", "GameHeight", resolution.Height.ToString());
-                }
+                    var height = ini.EnumerateKeys(section).Where(s => s.Contains("Height")).FirstOrDefault();
+                    var width = ini.EnumerateKeys(section).Where(s => s.Contains("Width")).FirstOrDefault();
 
-                if (SystemConfig["resolution"] == "480p")
-                {
-                    ini.WriteValue("Config", "GameWidth", "640");
-                    ini.WriteValue("Config", "GameHeight", "480");
-                }
-                else if (SystemConfig["resolution"] == "720p")
-                {
-                    ini.WriteValue("Config", "GameWidth", "960");
-                    ini.WriteValue("Config", "GameHeight", "720");
-                }
-                else if (SystemConfig["resolution"] == "960p")
-                {
-                    ini.WriteValue("Config", "GameWidth", "1280");
-                    ini.WriteValue("Config", "GameHeight", "960");
-                }
-                else
-                {
-                    ini.WriteValue("Config", "GameWidth", resolution.Width.ToString());
-                    ini.WriteValue("Config", "GameHeight", resolution.Height.ToString());
-                }
+                    if (height != null)
+                        ini.WriteValue(section, height, resolution.Height.ToString());
+                    if (width != null)
+                        ini.WriteValue(section, width, resolution.Width.ToString());
 
-                //ini.WriteValue("Video", "Width", resolution.Width.ToString());
-                //ini.WriteValue("Video", "Height", resolution.Height.ToString());
+                    var vretrace = ini.EnumerateKeys(section).Where(s => s.Contains("VRetrace")).FirstOrDefault();
+                    if (vretrace != null)
+                        BindBoolIniFeatureOn(ini, section, vretrace, "VRetrace", "1", "0");
 
-                BindBoolIniFeatureOn(ini, "Video", "VRetrace", "VRetrace", "1", "0");
-                ini.WriteValue("Video", "FullScreen", fullscreen ? "1" : "0");
-
+                    var fs = ini.EnumerateKeys(section).Where(s => s.Equals("FullScreen")).FirstOrDefault();
+                    if (fs != null)
+                        ini.WriteValue(section, fs, fullscreen ? "1" : "0");
+                }
             }
         }
 

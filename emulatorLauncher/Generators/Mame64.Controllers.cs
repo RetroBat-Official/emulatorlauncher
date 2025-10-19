@@ -271,7 +271,7 @@ namespace EmulatorLauncher
                 var mapping = hbmame ? hbxInputMapping : xInputMapping;
 
                 // Invert player 1 & 2 with feature
-                bool invert = SystemConfig.getOptBoolean("mame_indexswitch") && mameControllers.Count > 1;
+                bool invert = SystemConfig.getOptBoolean("revertXIndex") && mameControllers.Count > 1;
                 if (invert)
                 {
                     if (i == 1)

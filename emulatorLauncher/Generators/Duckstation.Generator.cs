@@ -467,6 +467,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Main", "RunaheadFrameCount", "0");
 
                     ini.WriteValue("Main", "ConfirmPowerOff", "false");
+                    BindIniFeatureSlider(ini, "Main", "EmulationSpeed", "duck_EmulationSpeed", "1", 1);
 
                     // fullscreen (disable fullscreen start option, workaround for people with multi-screen that cannot get emulator to start fullscreen on the correct monitor)
 

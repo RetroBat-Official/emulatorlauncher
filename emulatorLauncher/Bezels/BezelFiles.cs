@@ -459,8 +459,14 @@ namespace EmulatorLauncher
                             case "melondsds":
                                 if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "left-right" || Program.SystemConfig["melondsds_screen_layout"] == "right-left"))
                                     return "nds_side_by_side";
-                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "hybrid-top" || Program.SystemConfig["melondsds_screen_layout"] == "hybrid-bottom"))
+                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && Program.SystemConfig["melondsds_screen_layout"] == "hybrid-top")
                                     return "nds_lr_hybrid";
+                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && Program.SystemConfig["melondsds_screen_layout"] == "hybrid-bottom")
+                                    return "nds_lr_hybrid_bottom";
+                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && Program.SystemConfig["melondsds_screen_layout"] == "flipped-hybrid-top")
+                                    return "nds_lr_flipped_hybrid";
+                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && Program.SystemConfig["melondsds_screen_layout"] == "flipped-hybrid-bottom")
+                                    return "nds_lr_flipped_hybrid_bottom";
                                 else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "top" || Program.SystemConfig["melondsds_screen_layout"] == "bottom"))
                                     return "nds_single_screen";
                                 break;
