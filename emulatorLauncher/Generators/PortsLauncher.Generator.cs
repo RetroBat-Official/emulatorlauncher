@@ -8,6 +8,9 @@ using System;
 
 namespace EmulatorLauncher
 {
+    partial class BStoneGenerator : PortsLauncherGenerator
+    { public BStoneGenerator() { _exeName = "bstone.exe"; DependsOnDesktopResolution = false; } }
+
     partial class OpenJazzGenerator : PortsLauncherGenerator
     { public OpenJazzGenerator() { _exeName = "OpenJazz.exe"; DependsOnDesktopResolution = true; } }
 
@@ -159,6 +162,7 @@ namespace EmulatorLauncher
 
         private readonly Dictionary<string, string> exeDictionnary = new Dictionary<string, string>
         {
+            { "bstone", "bstone.exe"},
             { "cdogs", "cdogs-sdl.exe"},
             { "cgenius", "CGenius.exe"},
             { "corsixth", "CorsixTH.exe"},
@@ -179,6 +183,7 @@ namespace EmulatorLauncher
 
         private readonly Dictionary<string, string> systemBezels = new Dictionary<string, string>
         {
+            { "bstone", "no"},
             { "cdogs", "no"},
             { "cgenius", "yes"},
             { "corsixth", "yes"},

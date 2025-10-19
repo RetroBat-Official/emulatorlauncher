@@ -53,6 +53,7 @@ namespace EmulatorLauncher
             { "bam", () => new FpinballGenerator() },
             { "bigpemu", () => new BigPEmuGenerator() },
             { "bizhawk", () => new BizhawkGenerator() },
+            { "bstone", () => new BStoneGenerator() },
             { "capriceforever", () => new CapriceForeverGenerator() },
             { "cdogs", () => new CDogsGenerator() },
             { "cemu", () => new CemuGenerator() },
