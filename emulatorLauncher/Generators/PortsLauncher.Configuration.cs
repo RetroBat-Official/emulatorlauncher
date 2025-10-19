@@ -1,16 +1,17 @@
-﻿using System;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Windows.Forms;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
-using EmulatorLauncher.Common.EmulationStation;
+using System.Windows.Forms;
 
 namespace EmulatorLauncher
 {
@@ -38,6 +39,7 @@ namespace EmulatorLauncher
             ConfigureSonicRetro(rom, exe);
             ConfigureStarship(rom, exe);
             ConfigurevkQuake(commandArray, rom);
+            ConfigurevkQuake2(commandArray, rom);
         }
 
         #region ports
@@ -1421,29 +1423,151 @@ namespace EmulatorLauncher
             else if (rogue)
                 vkquakecfg = Path.Combine(rompath, "rogue", "vkQuake.cfg");
 
-            var changes = new List<vkQuakeConfigChange>();
+            var cfg = new QuakeConfig(vkquakecfg);
             var height = _resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height;
             var width = _resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width;
 
-            changes.Add(new vkQuakeConfigChange("vid_width", "", width.ToString()));
-            changes.Add(new vkQuakeConfigChange("vid_height", "", height.ToString()));
+            cfg["vid_width"] = width.ToString();
+            cfg["vid_height"] = height.ToString();
 
             if (SystemConfig.isOptSet("vkquake_vsync") && !string.IsNullOrEmpty(SystemConfig["vkquake_vsync"]))
-                changes.Add(new vkQuakeConfigChange("vid_vsync", "", SystemConfig["vkquake_vsync"]));
+                cfg["vid_vsync"] = SystemConfig["vkquake_vsync"];
             else
-                changes.Add(new vkQuakeConfigChange("vid_vsync", "", "0"));
+                cfg["vid_vsync"] = "0";
 
             if (_fullscreen)
-                changes.Add(new vkQuakeConfigChange("vid_fullscreen", "", "1"));
+                cfg["vid_fullscreen"] = "1";
             else
-                changes.Add(new vkQuakeConfigChange("vid_fullscreen", "", "0"));
+                cfg["vid_fullscreen"] = "0";
 
             if (exclusivefs)
-                changes.Add(new vkQuakeConfigChange("vid_borderless", "", "0"));
+                cfg["vid_borderless"] = "0";
             else
-                changes.Add(new vkQuakeConfigChange("vid_borderless", "", "1"));
+                cfg["vid_borderless"] = "1";
 
-            ConfigEditorvkQuake.ChangeConfigValues(vkquakecfg, changes);
+            cfg.Save();
+        }
+
+        private void ConfigurevkQuake2(List<string> commandArray, string rom)
+        {
+            if (_emulator != "vkquake2")
+                return;
+
+            bool zaero = false;
+            bool xatrix = false;
+            bool smd = false;
+            bool rogue = false;
+            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
+            string rompath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2");
+
+            if (rom.ToLowerInvariant().Contains("zaero"))
+            {
+                commandArray.Add("+set game zaero");
+                zaero = true;
+                try
+                {
+                    string sourcePath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "zaero", "pak0.pak");
+                    string targetPath = Path.Combine(_path, "zaero", "pak0.pak");
+
+                    if (File.Exists(sourcePath) && !File.Exists(targetPath))
+                        try { File.Copy(sourcePath, targetPath, true); } catch { }
+                }
+                catch { }
+            }
+            else if (rom.ToLowerInvariant().Contains("xatrix"))
+            {
+                commandArray.Add("+set game xatrix");
+                xatrix = true;
+                try
+                {
+                    string sourcePath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "xatrix", "pak0.pak");
+                    string targetPath = Path.Combine(_path, "xatrix", "pak0.pak");
+
+                    if (File.Exists(sourcePath) && !File.Exists(targetPath))
+                        try { File.Copy(sourcePath, targetPath, true); } catch { }
+                }
+                catch { }
+            }
+            else if (rom.ToLowerInvariant().Contains("rogue"))
+            {
+                commandArray.Add("+set game rogue");
+                rogue = true;
+                try
+                {
+                    string sourcePath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "rogue", "pak0.pak");
+                    string targetPath = Path.Combine(_path, "rogue", "pak0.pak");
+
+                    if (File.Exists(sourcePath) && !File.Exists(targetPath))
+                        try { File.Copy(sourcePath, targetPath, true); } catch { }
+                }
+                catch { }
+            }
+            else if (rom.ToLowerInvariant().Contains("smd"))
+            {
+                commandArray.Add("+set game smd");
+                smd = true;
+                try
+                {
+                    string sourcePath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "smd", "pak0.pak");
+                    string targetPath = Path.Combine(_path, "smd", "pak0.pak");
+
+                    if (File.Exists(sourcePath) && !File.Exists(targetPath))
+                        try { File.Copy(sourcePath, targetPath, true); } catch { }
+                }
+                catch { }
+            }
+            else
+            {
+                try
+                {
+                    string sourcePath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "baseq2", "pak0.pak");
+                    string targetPath = Path.Combine(_path, "baseq2", "pak0.pak");
+
+                    if (File.Exists(sourcePath) && !File.Exists(targetPath))
+                        try { File.Copy(sourcePath, targetPath, true); } catch { }
+                }
+                catch { }
+            }
+
+            if (_fullscreen)
+                commandArray.Add("-fullscreen");
+
+            // Config file
+            string vkquake2cfg = Path.Combine(_path, "baseq2", "config.cfg");
+
+            if (zaero)
+                vkquake2cfg = Path.Combine(_path, "zaero", "config.cfg");
+            else if (xatrix)
+                vkquake2cfg = Path.Combine(_path, "xatrix", "config.cfg");
+            else if (smd)
+                vkquake2cfg = Path.Combine(_path, "smd", "config.cfg");
+            else if (rogue)
+                vkquake2cfg = Path.Combine(_path, "rogue", "config.cfg");
+
+            var cfg = new QuakeConfig(vkquake2cfg);
+            var height = _resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height;
+            var width = _resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width;
+
+            cfg["set vk_mode"] = "-1";
+            cfg["set r_customwidth"] = width.ToString();
+            cfg["set r_customheight"] = height.ToString();
+
+            if (SystemConfig.isOptSet("vkquake2_vsync") && SystemConfig.getOptBoolean("vkquake2_vsync"))
+                cfg["set vk_vsync"] = "1";
+            else
+                cfg["set vk_vsync"] = "0";
+
+            if (_fullscreen)
+                cfg["set vid_fullscreen"] = "1";
+            else
+                cfg["set vid_fullscreen"] = "0";
+
+            if (exclusivefs)
+                cfg["set vk_fullscreen_exclusive"] = "1";
+            else
+                cfg["set vk_fullscreen_exclusive"] = "0";
+
+            cfg.Save();
         }
         #endregion
     }
@@ -1507,68 +1631,205 @@ namespace EmulatorLauncher
     #endregion
 
     #region vkQuake config class
-    class vkQuakeConfigChange
+    public class QuakeConfig
     {
-        public string Type { get; set; }
-        public string Key { get; set; }
-        public string NewValue { get; set; }
-
-        public vkQuakeConfigChange(string type, string key, string newValue)
+        private class Line
         {
-            Type = type;
-            Key = key;
-            NewValue = newValue;
+            public string Raw;
+            public string Key;
+            public string Value;
+            public bool IsSet;     // set lines
+            public bool IsBind;    // bind lines
         }
-    }
 
-    class ConfigEditorvkQuake
-    {
-        public static void ChangeConfigValues(string filePath, List<vkQuakeConfigChange> changes)
+        private readonly List<Line> _lines = new List<Line>();
+        private readonly string _filePath;
+
+        public bool AppendIfMissing = false;
+
+        public QuakeConfig(string filePath)
         {
-            if (!File.Exists(filePath))
-                return;
+            _filePath = filePath;
 
-            var lines = new List<string>(File.ReadAllLines(filePath));
-            bool[] found = new bool[changes.Count];
-
-            for (int i = 0; i < lines.Count; i++)
+            if (File.Exists(filePath))
             {
-                string original = lines[i];
-                string line = original.Trim();
-
-                for (int j = 0; j < changes.Count; j++)
+                string[] all = File.ReadAllLines(filePath, Encoding.UTF8);
+                for (int i = 0; i < all.Length; i++)
                 {
-                    var change = changes[j];
+                    _lines.Add(ParseLine(all[i]));
+                }
+            }
+            else
+            {
+                // file does not exist — create empty config
+                _lines = new List<Line>();
+            }
+        }
 
-                    // If it's a bind-style change (e.g. bind "SPACE" "+jump")
-                    if (!string.IsNullOrEmpty(change.Type) && change.Type.Equals("bind", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(change.Key))
-                    {
-                        // ^\s*bind\s+"KEY"\s+"(value)"(\s*;.*)?$
-                        string bindPattern = $@"^\s*{Regex.Escape(change.Type)}\s+""{Regex.Escape(change.Key)}""\s+""(.*?)""(?:\s*;.*)?$";
-                        if (Regex.IsMatch(line, bindPattern))
-                        {
-                            lines[i] = $"{change.Type} \"{change.Key}\" \"{change.NewValue}\"";
-                            found[j] = true;
-                        }
-                    }
+        // indexer: "set key", "bind KEY", "key"
+        public string this[string requestedKey]
+        {
+            get
+            {
+                string type, key;
+                SplitKey(requestedKey, out type, out key);
+                Line line = FindLine(type, key);
+                return line != null ? line.Value : null;
+            }
+            set
+            {
+                string type, key;
+                SplitKey(requestedKey, out type, out key);
+                Line line = FindLine(type, key);
+                if (line != null)
+                {
+                    // Only update the value, keep original spacing, comments, etc.
+                    line.Raw = UpdateRawValue(line.Raw, value);
+                    line.Value = value;
+                }
+                else if (AppendIfMissing)
+                {
+                    // append at end
+                    Line newLine = new Line();
+                    if (type == "set")
+                        newLine.Raw = "set " + key + " \"" + value + "\"";
+                    else if (type == "bind")
+                        newLine.Raw = "bind \"" + key + "\" \"" + value + "\"";
                     else
-                    {
-                        // var-style: Type is the variable name, value may or may not be quoted
-                        if (!string.IsNullOrEmpty(change.Type))
-                        {
-                            string varPattern = $@"^\s*{Regex.Escape(change.Type)}\s+(""?.*?""?)(?:\s*;.*)?$";
-                            if (Regex.IsMatch(original, varPattern, RegexOptions.IgnoreCase))
-                            {
-                                lines[i] = $"{change.Type} \"{change.NewValue}\"";
-                                found[j] = true;
-                            }
-                        }
-                    }
+                        newLine.Raw = key + " \"" + value + "\"";
+                    newLine.Key = key;
+                    newLine.Value = value;
+                    newLine.IsSet = type == "set";
+                    newLine.IsBind = type == "bind";
+                    _lines.Add(newLine);
+                }
+            }
+        }
+
+        public void Save()
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < _lines.Count; i++)
+            {
+                if (i > 0)
+                    sb.Append(Environment.NewLine);
+                sb.Append(_lines[i].Raw);
+            }
+            File.WriteAllText(_filePath, sb.ToString(), new UTF8Encoding(false));
+        }
+
+        #region Helpers
+
+        private Line FindLine(string type, string key)
+        {
+            for (int i = 0; i < _lines.Count; i++)
+            {
+                Line ln = _lines[i];
+                if (type == "set" && ln.IsSet && string.Equals(ln.Key, key, StringComparison.OrdinalIgnoreCase))
+                    return ln;
+                if (type == "bind" && ln.IsBind && string.Equals(ln.Key, key, StringComparison.OrdinalIgnoreCase))
+                    return ln;
+                if (type == "var" && !ln.IsBind && !ln.IsSet && string.Equals(ln.Key, key, StringComparison.OrdinalIgnoreCase))
+                    return ln;
+            }
+            return null;
+        }
+
+        private void SplitKey(string requestedKey, out string type, out string key)
+        {
+            type = "var";
+            key = requestedKey.Trim();
+            if (key.StartsWith("set "))
+            {
+                type = "set";
+                key = key.Substring(4).Trim();
+            }
+            else if (key.StartsWith("bind "))
+            {
+                type = "bind";
+                key = key.Substring(5).Trim().Trim('"');
+            }
+        }
+
+        private Line ParseLine(string raw)
+        {
+            Line line = new Line();
+            line.Raw = raw;
+
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                line.Key = null;  // mark as non-editable
+                return line;
+            }
+
+            string trimmed = raw.TrimStart();
+            if (trimmed.StartsWith("set "))
+            {
+                line.IsSet = true;
+                string rest = trimmed.Substring(4);
+                int space = rest.IndexOf(' ');
+                if (space > 0)
+                {
+                    line.Key = rest.Substring(0, space);
+                    line.Value = ExtractValue(rest.Substring(space + 1));
+                }
+            }
+            else if (trimmed.StartsWith("bind "))
+            {
+                line.IsBind = true;
+                string rest = trimmed.Substring(5);
+                int space = rest.IndexOf(' ');
+                if (space > 0)
+                {
+                    line.Key = Unquote(rest.Substring(0, space));
+                    line.Value = ExtractValue(rest.Substring(space + 1));
+                }
+            }
+            else
+            {
+                // treat as plain variable, e.g., "vid_fullscreen "0""
+                int space = trimmed.IndexOf(' ');
+                if (space > 0)
+                {
+                    line.Key = trimmed.Substring(0, space);
+                    line.Value = ExtractValue(trimmed.Substring(space + 1));
                 }
             }
 
-            File.WriteAllLines(filePath, lines);
+            return line;
         }
+
+        private string ExtractValue(string raw)
+        {
+            string val = raw.Trim();
+            if (val.StartsWith("\"") && val.EndsWith("\"") && val.Length >= 2)
+                val = val.Substring(1, val.Length - 2);
+            return val;
+        }
+
+        private string Unquote(string raw)
+        {
+            string s = raw.Trim();
+            if (s.StartsWith("\"") && s.EndsWith("\"") && s.Length >= 2)
+                return s.Substring(1, s.Length - 2);
+            return s;
+        }
+
+        private string UpdateRawValue(string raw, string newValue)
+        {
+            // find first " after key
+            int quoteStart = raw.IndexOf('"');
+            if (quoteStart < 0)
+                return raw; // cannot parse, leave unchanged
+
+            int quoteEnd = raw.IndexOf('"', quoteStart + 1);
+            if (quoteEnd < 0)
+                return raw;
+
+            return raw.Substring(0, quoteStart + 1) + newValue + raw.Substring(quoteEnd);
+        }
+
+        #endregion
     }
     #endregion
 }

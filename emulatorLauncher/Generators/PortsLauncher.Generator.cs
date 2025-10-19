@@ -38,6 +38,9 @@ namespace EmulatorLauncher
     partial class vkQuakeGenerator : PortsLauncherGenerator
     { public vkQuakeGenerator() { _exeName = "vkQuake.exe"; DependsOnDesktopResolution = false; } }
 
+    partial class vkQuake2Generator : PortsLauncherGenerator
+    { public vkQuake2Generator() { _exeName = "quake2.exe"; DependsOnDesktopResolution = false; } }
+
     partial class PortsLauncherGenerator : Generator
     {
         private ScreenResolution _resolution;
@@ -170,7 +173,8 @@ namespace EmulatorLauncher
             { "sonicretro", "RSDKv4_64.exe"},
             { "sonicretrocd", "RSDKv3_64.exe"},
             { "starship", "Starship.exe"},
-            { "vkquake", "vkQuake.exe"}
+            { "vkquake", "vkQuake.exe"},
+            { "vkquake2", "quake2.exe" }
         };
 
         private readonly Dictionary<string, string> systemBezels = new Dictionary<string, string>
@@ -188,7 +192,8 @@ namespace EmulatorLauncher
             { "openjazz", "no"},
             { "soh", "yes"},
             { "starship", "yes"},
-            { "vkquake", "no"}
+            { "vkquake", "no"},
+            { "vkquake2", "no"}
         };
 
         // Dictionaries to use if a port uses Reshade to specify platform and type

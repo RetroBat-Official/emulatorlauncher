@@ -162,6 +162,7 @@ namespace EmulatorLauncher
             { "tsugaru", () => new TsugaruGenerator() },
             { "vita3k", () => new Vita3kGenerator() },
             { "vkquake", () => new vkQuakeGenerator() },
+            { "vkquake2", () => new vkQuake2Generator() },
             { "vpinball", () => new VPinballGenerator() },
             { "wiiu", () => new CemuGenerator() },
             { "winarcadia", () => new WinArcadiaGenerator() },
