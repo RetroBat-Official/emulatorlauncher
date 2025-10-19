@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Security.Cryptography;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Compression;
+using es_update;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace RetrobatUpdater
 {
@@ -189,6 +190,11 @@ namespace RetrobatUpdater
                 string upgradeXMLFile = Path.Combine(rootPath, "system", "upgrade.xml");
                 if (File.Exists(upgradeXMLFile))
                     try { File.Delete(upgradeXMLFile); } catch { }
+
+                // Update RetroBat.ini file
+                string rbIniFile = Path.Combine(rootPath, "retrobat.ini");
+                if (File.Exists(rbIniFile))
+                    RetroBatIni.UpgradeRBIniFile(rbIniFile, rootPath);
 
                 ConsoleOutput("UPDATE DONE");
                 return 0;
