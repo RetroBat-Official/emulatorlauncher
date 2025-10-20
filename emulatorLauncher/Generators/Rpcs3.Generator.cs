@@ -5,8 +5,6 @@ using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common.EmulationStation;
-using static EmulatorLauncher.PadToKeyboard.SendKey;
 
 namespace EmulatorLauncher
 {
@@ -35,48 +33,56 @@ namespace EmulatorLauncher
             if (!Directory.Exists(savesPath))
                 savesPath = path;
 
-            if (Directory.Exists(rom))
+            try
             {
-                rom = Directory.GetFiles(rom, "EBOOT.BIN", SearchOption.AllDirectories).FirstOrDefault();
-
-                if (!File.Exists(rom))
-                    throw new ApplicationException("Unable to find any game in the provided folder");
-            }
-
-            else if (Path.GetExtension(rom).ToLower() == ".m3u")
-            {
-                string romPath = Path.GetDirectoryName(rom);
-                string[] lines = File.ReadAllLines(rom);
-
-                if (lines == null || lines.Length == 0)
-                    throw new ApplicationException("Unable to find any path in the m3u.");
-
-                rom = lines[0];
-
-                if (rom.StartsWith("EMULATORPATH"))
-                    rom = Path.Combine(path, rom.Substring(13));
-                else if (rom.StartsWith("SAVESPATH"))
-                    rom = Path.Combine(savesPath, rom.Substring(10));
-                else if (rom.StartsWith("ROMPATH"))
-                    rom = Path.Combine(romPath, rom.Substring(8));
-                else if (rom.StartsWith(".\\") || rom.StartsWith("./"))
-                    rom = Path.Combine(romPath, rom.Substring(2));
-                else if (rom.StartsWith("\\") || rom.StartsWith("/"))
-                    rom = Path.Combine(savesPath, rom.Substring(1));
-                else if (rom.StartsWith("GAMEID"))
+                if (Directory.Exists(rom))
                 {
-                    int colonIndex = rom.IndexOf(':');
-                    if (colonIndex != -1)
+                    rom = Directory.GetFiles(rom, "EBOOT.BIN", SearchOption.AllDirectories).FirstOrDefault();
+
+                    if (!File.Exists(rom))
+                        throw new ApplicationException("Unable to find any game in the provided folder");
+                }
+
+                else if (Path.GetExtension(rom).ToLower() == ".m3u")
+                {
+                    string romPath = Path.GetDirectoryName(rom);
+                    string line = FileTools.ReadFirstValidLine(rom);
+
+                    if (string.IsNullOrEmpty(line))
+                        throw new ApplicationException("Unable to find any path in the m3u.");
+
+                    rom = line.Trim();
+
+                    if (rom.StartsWith("EMULATORPATH", StringComparison.OrdinalIgnoreCase))
+                        rom = Path.Combine(path, rom.Substring(13));
+                    else if (rom.StartsWith("SAVESPATH", StringComparison.OrdinalIgnoreCase))
+                        rom = Path.Combine(savesPath, rom.Substring(10));
+                    else if (rom.StartsWith("ROMPATH", StringComparison.OrdinalIgnoreCase))
+                        rom = Path.Combine(romPath, rom.Substring(8));
+                    else if (rom.StartsWith(".\\") || rom.StartsWith("./"))
+                        rom = Path.Combine(romPath, rom.Substring(2));
+                    else if (rom.StartsWith("\\") || rom.StartsWith("/"))
+                        rom = Path.Combine(savesPath, rom.Substring(1));
+                    else if (rom.StartsWith("GAMEID", StringComparison.OrdinalIgnoreCase))
                     {
-                        string gameID = rom.Substring(colonIndex + 1);
-                        rom = "%RPCS3_GAMEID%:" + gameID;
-                    }
-                    else
-                    {
-                        string gameID = rom.Substring(6).Trim();
-                        rom = "%RPCS3_GAMEID%:" + gameID;
+                        int colonIndex = rom.IndexOf(':');
+                        if (colonIndex != -1)
+                        {
+                            string gameID = rom.Substring(colonIndex + 1).Trim();
+                            rom = "%RPCS3_GAMEID%:" + gameID;
+                        }
+                        else
+                        {
+                            string gameID = rom.Substring(6).Trim();
+                            rom = "%RPCS3_GAMEID%:" + gameID;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[Generator] Error processing ROM path: " + ex.Message);
+                throw new ApplicationException("Error parsing m3u file: " + ex.Message);
             }
 
             // Fullscreen
@@ -84,7 +90,7 @@ namespace EmulatorLauncher
 
             List<string> commandArray = new List<string>
             {
-                "\"" + rom + "\"",
+                StringExtensions.QuoteString(rom),
             };
 
             if (!SystemConfig.getOptBoolean("rpcs3_gui"))
@@ -101,7 +107,7 @@ namespace EmulatorLauncher
             if (!useCustomConfig)
             {
                 commandArray.Add("--config");
-                commandArray.Add("\"" + configFilePath + "\"");
+                commandArray.Add(StringExtensions.QuoteString(configFilePath));
             }
 
             string args = string.Join(" ", commandArray);
@@ -142,7 +148,7 @@ namespace EmulatorLauncher
                 };
             }
 
-            if (Path.GetExtension(rom).ToLower() == ".lnk")
+            if (FileTools.IsExtension(rom, ".lnk"))
             {
                 return new ProcessStartInfo()
                 {
@@ -165,7 +171,7 @@ namespace EmulatorLauncher
             foreach (Process px in Process.GetProcessesByName("rpcs3"))
             {
                 try { px.Kill(); }
-                catch { }
+                catch (Exception ex) { SimpleLogger.Instance.Warning("[RunAndWait] Unable to kill existing rpcs3 process: " + ex.Message); }
             }
 
             Process process = Process.Start(path);
@@ -182,65 +188,82 @@ namespace EmulatorLauncher
         }
 
         /// <summary>
-        /// Set 6 options in rpcs3 GUI settings to disable prompts (updates, exit, launching game...)
+        /// Set options in rpcs3 GUI settings to disable prompts (updates, exit, launching game...)
         /// </summary>
         /// <param name="path"></param>
         private void SetupGuiConfiguration(string path)
         {
-            SimpleLogger.Instance.Info("[GENERATOR] Writing to GuiConfigs\\CurrentSettings.ini file.");
-
-            string guiSettings = Path.Combine(path, "GuiConfigs", "CurrentSettings.ini");
-            using (IniFile ini = new IniFile(guiSettings))
+            try
             {
-                ini.WriteValue("main_window", "confirmationBoxExitGame", "false");
-                ini.WriteValue("main_window", "infoBoxEnabledInstallPUP", "false");
-                ini.WriteValue("main_window", "infoBoxEnabledWelcome", "false");
-                ini.WriteValue("main_window", "confirmationBoxBootGame", "false");
-                ini.WriteValue("main_window", "infoBoxEnabledInstallPKG", "false");
-                ini.WriteValue("Meta", "checkUpdateStart", "false");
+                SimpleLogger.Instance.Info("[GENERATOR] Writing to GuiConfigs\\CurrentSettings.ini file.");
 
-                if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
-                    ini.WriteValue("Meta", "useRichPresence", "true");
-                else
-                    ini.WriteValue("Meta", "useRichPresence", "false");
-
-                if (SystemConfig.isOptSet("rpcs3_guns") && SystemConfig.getOptBoolean("rpcs3_guns"))
-                    ini.WriteValue("GSFrame", "lockMouseInFullscreen", "false");
-                else
-                    ini.WriteValue("GSFrame", "lockMouseInFullscreen", "true");
-
-                ini.WriteValue("GSFrame", "disableMouse", "true");
-
-                if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+                string guiSettings = Path.Combine(path, "GuiConfigs", "CurrentSettings.ini");
+                using (IniFile ini = new IniFile(guiSettings))
                 {
-                    int index = SystemConfig["MonitorIndex"].ToInteger();
+                    ini.WriteValue("main_window", "confirmationBoxExitGame", "false");
+                    ini.WriteValue("main_window", "infoBoxEnabledInstallPUP", "false");
+                    ini.WriteValue("main_window", "infoBoxEnabledWelcome", "false");
+                    ini.WriteValue("main_window", "confirmationBoxBootGame", "false");
+                    ini.WriteValue("main_window", "infoBoxEnabledInstallPKG", "false");
+                    ini.WriteValue("Meta", "checkUpdateStart", "false");
 
-                    if (index != -1)
+                    if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                        ini.WriteValue("Meta", "useRichPresence", "true");
+                    else
+                        ini.WriteValue("Meta", "useRichPresence", "false");
+
+                    if (SystemConfig.isOptSet("rpcs3_guns") && SystemConfig.getOptBoolean("rpcs3_guns"))
+                        ini.WriteValue("GSFrame", "lockMouseInFullscreen", "false");
+                    else
+                        ini.WriteValue("GSFrame", "lockMouseInFullscreen", "true");
+
+                    ini.WriteValue("GSFrame", "disableMouse", "true");
+
+                    if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
                     {
-                        index = index - 1;
-                        ini.WriteValue("GSFrame", "screen", index.ToString());
+                        int index = SystemConfig["MonitorIndex"].ToInteger();
+
+                        if (index != -1)
+                        {
+                            index = index - 1;
+                            ini.WriteValue("GSFrame", "screen", index.ToString());
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[GENERATOR] Error writing to GuiConfigs\\CurrentSettings.ini file: " + ex.Message);
             }
         }
 
         private void SetupVFSConfiguration(string path, string savesPath)
         {
-            SimpleLogger.Instance.Info("[GENERATOR] Writing to vfs.yml file.");
+            try
+            {
+                SimpleLogger.Instance.Info("[GENERATOR] Writing to vfs.yml file.");
 
-            YmlFile yml = YmlFile.Load(Path.Combine(path, "config", "vfs.yml"));
+                string configDir = Path.Combine(path, "config");
+                FileTools.EnsureDirectoryExists(configDir);
 
-            string hdd0Path = Path.Combine(savesPath, "dev_hdd0");
-            if (!Directory.Exists(hdd0Path))
-                try { Directory.CreateDirectory(hdd0Path); }
-                catch { }
+                YmlFile yml = YmlFile.Load(Path.Combine(path, "config", "vfs.yml"));
 
-            yml["/dev_hdd0/"] = hdd0Path.Replace("\\", "/");
+                string hdd0Path = Path.Combine(savesPath, "dev_hdd0");
+                if (!Directory.Exists(hdd0Path))
+                    try { Directory.CreateDirectory(hdd0Path); }
+                    catch { }
 
-            SimpleLogger.Instance.Info("[Generator] Setting '" + hdd0Path + "' as content path for the emulator");
+                yml["/dev_hdd0/"] = hdd0Path.Replace("\\", "/");
 
-            // Save to yml file
-            yml.Save();
+                SimpleLogger.Instance.Info("[Generator] Setting '" + hdd0Path + "' as content path for the emulator");
+
+                // Save to yml file
+                yml.Save();
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[GENERATOR] Error writing to vfs.yml file: " + ex.Message);
+            }
         }
 
         /// <summary>
@@ -249,162 +272,171 @@ namespace EmulatorLauncher
         /// <param name="path"></param>
         private void SetupConfiguration(string path, bool fullscreen)
         {
-            SimpleLogger.Instance.Info("[GENERATOR] Writing to config.yml file.");
-
-            YmlFile yml = YmlFile.Load(Path.Combine(path, "config", "config.yml"));
-            // Initialize IO settings
-            YmlContainer io = yml.GetOrCreateContainer("Input/Output");
-            BindFeature(io, "Keyboard", "rpcs3_keyboard", "\"Null\"");
-            BindFeature(io, "Mouse", "rpcs3_mouse", "\"Null\"");
-            BindFeature(io, "Move", "rpcs3_move", "\"Null\"");
-            BindFeature(io, "Keyboard", "rpcs3_keyboard", "\"Null\"");
-            BindFeature(io, "Camera", "rpcs3_camera", "\"Null\"");
-
-            if (SystemConfig.isOptSet("rpcs3_cameraType") && !string.IsNullOrEmpty(SystemConfig["rpcs3_cameraType"]))
+            try
             {
-                io["Camera type"] = SystemConfig["rpcs3_cameraType"];
-                if (!SystemConfig.isOptSet("rpcs3_camera"))
-                    io["Camera"] = "Fake";
+                SimpleLogger.Instance.Info("[GENERATOR] Writing to config.yml file.");
 
-                string camera = io["Camera ID"];
+                string configDir = Path.Combine(path, "config");
+                FileTools.EnsureDirectoryExists(configDir);
 
-                if (string.IsNullOrEmpty(camera) || camera == "\"\"")
-                    io["Camera ID"] = "Default";
+                YmlFile yml = YmlFile.Load(Path.Combine(path, "config", "config.yml"));
+                // Initialize IO settings
+                YmlContainer io = yml.GetOrCreateContainer("Input/Output");
+                BindFeature(io, "Keyboard", "rpcs3_keyboard", "\"Null\"");
+                BindFeature(io, "Mouse", "rpcs3_mouse", "\"Null\"");
+                BindFeature(io, "Move", "rpcs3_move", "\"Null\"");
+                BindFeature(io, "Camera", "rpcs3_camera", "\"Null\"");
+
+                if (SystemConfig.isOptSet("rpcs3_cameraType") && !string.IsNullOrEmpty(SystemConfig["rpcs3_cameraType"]))
+                {
+                    io["Camera type"] = SystemConfig["rpcs3_cameraType"];
+                    if (!SystemConfig.isOptSet("rpcs3_camera"))
+                        io["Camera"] = "Fake";
+
+                    string camera = io["Camera ID"];
+
+                    if (string.IsNullOrEmpty(camera) || camera == "\"\"")
+                        io["Camera ID"] = "Default";
+                }
+
+                // Handle Core part of yml file
+                YmlContainer core = yml.GetOrCreateContainer("Core");
+                BindFeature(core, "PPU Decoder", "ppudecoder", "Recompiler (LLVM)");
+                BindBoolFeatureOn(core, "LLVM Precompilation", "lvmprecomp", "true", "false");
+                BindFeature(core, "SPU Decoder", "spudecoder", "Recompiler (LLVM)");
+                BindFeatureSlider(core, "Preferred SPU Threads", "sputhreads", "0");
+                BindBoolFeature(core, "SPU loop detection", "spuloopdetect", "true", "false");
+                BindFeature(core, "SPU Block Size", "spublocksize", "Safe");
+                BindBoolFeature(core, "Accurate RSX reservation access", "accuratersx", "true", "false");
+                BindFeature(core, "RSX FIFO Accuracy", "rpcs3_rsxfifoaccuracy", "Fast");
+                BindBoolFeature(core, "PPU Accurate Vector NaN Values", "vectornan", "true", "false");
+                BindFeature(core, "XFloat Accuracy", "rpcs3_xfloat", "Accurate");
+
+                // Handle Video part of yml file
+                YmlContainer video = yml.GetOrCreateContainer("Video");
+                BindFeature(video, "Renderer", "gfxbackend", "Vulkan");
+                video["Resolution"] = "1280x720";
+                BindFeature(video, "Resolution Scale", "rpcs3_internal_resolution", "100");
+                BindFeature(video, "Aspect ratio", "rpcs3_ratio", "16:9");
+                BindFeature(video, "Frame limit", "framelimit", "Auto");
+                BindBoolFeatureOn(video, "MSAA", "msaa", "Auto", "Disabled");
+                BindFeature(video, "Shader Mode", "shadermode", "Async Shader Recompiler");
+                BindBoolFeature(video, "Write Color Buffers", "writecolorbuffers", "true", "false");
+                BindBoolFeature(video, "Write Depth Buffer", "writedepthbuffers", "true", "false");
+                BindBoolFeature(video, "Read Color Buffers", "readcolorbuffers", "true", "false");
+                BindBoolFeature(video, "Read Depth Buffer", "readdepthbuffers", "true", "false");
+                BindBoolFeatureOn(video, "VSync", "rpcs3_vsync", "true", "false");
+                BindBoolFeature(video, "Stretch To Display Area", "stretchtodisplay", "true", "false");
+                BindBoolFeature(video, "Strict Rendering Mode", "strict_rendering", "true", "false");
+                BindBoolFeature(video, "Disable Vertex Cache", "disablevertex", "true", "false");
+                BindBoolFeature(video, "Multithreaded RSX", "multithreadedrsx", "true", "false");
+                BindFeature(video, "Output Scaling Mode", "rpcs3_scaling_filter", "Bilinear");
+                BindFeature(video, "3D Display Mode", "enable3d", "Disabled");
+
+                BindFeature(video, "Anisotropic Filter Override", "anisotropicfilter", "0");
+                BindFeature(video, "Shader Precision", "shader_quality", "Auto");
+                BindFeatureSlider(video, "Driver Wake-Up Delay", "driver_wake", "0");
+                BindBoolFeature(video, "Force CPU Blit", "cpu_blit", "true", "false");
+                BindBoolFeature(video, "Disable ZCull Occlusion Queries", "disable_zcull_queries", "true", "false");
+                BindFeatureSlider(video, "Minimum Scalable Dimension", "rpcs3_resolution_scale", "16");
+
+                // ZCULL Accuracy
+                if (SystemConfig.isOptSet("zcull_accuracy") && (SystemConfig["zcull_accuracy"] == "Approximate"))
+                {
+                    video["Relaxed ZCULL Sync"] = "false";
+                    video["Accurate ZCULL stats"] = "false";
+                }
+                else if (SystemConfig.isOptSet("zcull_accuracy") && (SystemConfig["zcull_accuracy"] == "Relaxed"))
+                {
+                    video["Relaxed ZCULL Sync"] = "true";
+                    video["Accurate ZCULL stats"] = "false";
+                }
+                else if (Features.IsSupported("zcull_accuracy"))
+                {
+                    video["Relaxed ZCULL Sync"] = "false";
+                    video["Accurate ZCULL stats"] = "true";
+                }
+
+                // Handle Vulkan part of yml file
+                YmlContainer vulkan = video.GetOrCreateContainer("Vulkan");
+                BindBoolFeature(vulkan, "Asynchronous Texture Streaming 2", "asynctexturestream", "true", "false");
+
+                if (SystemConfig.getOptBoolean("exclusivefs"))
+                    vulkan["Exclusive Fullscreen Mode"] = "Enable";
+
+                BindFeature(vulkan, "Exclusive Fullscreen Mode", "rpcs3_fullscreen_mode", "Automatic");
+
+                // Handle Performance Overlay part of yml file
+                YmlContainer performance = video.GetOrCreateContainer("Performance Overlay");
+                if (SystemConfig.isOptSet("performance_overlay") && (SystemConfig["performance_overlay"] == "detailed"))
+                {
+                    performance["Enabled"] = "true";
+                    performance["Enable Framerate Graph"] = "true";
+                    performance["Enable Frametime Graph"] = "true";
+                }
+                else if (SystemConfig.isOptSet("performance_overlay") && (SystemConfig["performance_overlay"] == "simple"))
+                {
+                    performance["Enabled"] = "true";
+                    performance["Enable Framerate Graph"] = "false";
+                    performance["Enable Frametime Graph"] = "false";
+                }
+                else if (Features.IsSupported("performance_overlay"))
+                {
+                    performance["Enabled"] = "false";
+                    performance["Enable Framerate Graph"] = "false";
+                    performance["Enable Frametime Graph"] = "false";
+                }
+
+                // Handle Audio part of yml file
+                YmlContainer audio = yml.GetOrCreateContainer("Audio");
+                BindFeature(audio, "Renderer", "audiobackend", "Cubeb");
+                BindFeature(audio, "Audio Format", "audiochannels", "Stereo");
+                BindBoolFeatureOn(audio, "Enable Buffering", "audio_buffering", "true", "false");
+                if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "low"))
+                {
+                    audio["Enable time stretching"] = "true";
+                    audio["Time Stretching Threshold"] = "25";
+                }
+                else if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "medium"))
+                {
+                    audio["Enable time stretching"] = "true";
+                    audio["Time Stretching Threshold"] = "50";
+                }
+                else if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "high"))
+                {
+                    audio["Enable time stretching"] = "true";
+                    audio["Time Stretching Threshold"] = "75";
+                }
+                else if (Features.IsSupported("time_stretching"))
+                {
+                    audio["Enable time stretching"] = "false";
+                    audio["Time Stretching Threshold"] = "75";
+                }
+
+                // Handle System part of yml file
+                YmlContainer system_region = yml.GetOrCreateContainer("System");
+                BindFeature(system_region, "License Area", "ps3_region", "SCEE");
+                BindFeature(system_region, "Language", "ps3_language", GetDefaultPS3Language());
+
+                // Handle Miscellaneous part of yml file
+                YmlContainer misc = yml.GetOrCreateContainer("Miscellaneous");
+                misc["Start games in fullscreen mode"] = fullscreen ? "true" : "false";
+                BindBoolFeatureOn(misc, "Show trophy popups", "show_trophy", "true", "false");
+                misc["Automatically start games after boot"] = "true";
+                misc["Exit RPCS3 when process finishes"] = "true";
+                misc["Prevent display sleep while running games"] = "true";
+                BindBoolFeature(misc, "Show shader compilation hint", "rpcs3_hidehints", "false", "true");
+                BindBoolFeature(misc, "Show PPU compilation hint", "rpcs3_hidehints", "false", "true");
+
+                SetupGuns(path, yml, vulkan);
+
+                // Save to yml file
+                yml.Save();
             }
-
-            // Handle Core part of yml file
-            YmlContainer core = yml.GetOrCreateContainer("Core");
-            BindFeature(core, "PPU Decoder", "ppudecoder", "Recompiler (LLVM)");
-            BindBoolFeatureOn(core, "LLVM Precompilation", "lvmprecomp", "true", "false");
-            BindFeature(core, "SPU Decoder", "spudecoder", "Recompiler (LLVM)");
-            BindFeatureSlider(core, "Preferred SPU Threads", "sputhreads", "0");
-            BindBoolFeature(core, "SPU loop detection", "spuloopdetect", "true", "false");
-            BindFeature(core, "SPU Block Size", "spublocksize", "Safe");
-            BindBoolFeature(core, "Accurate RSX reservation access", "accuratersx", "true", "false");
-            BindFeature(core, "RSX FIFO Accuracy", "rpcs3_rsxfifoaccuracy", "Fast");
-            BindBoolFeature(core, "PPU Accurate Vector NaN Values", "vectornan", "true", "false");
-            BindFeature(core, "XFloat Accuracy", "rpcs3_xfloat", "Accurate");
-
-            // Handle Video part of yml file
-            YmlContainer video = yml.GetOrCreateContainer("Video");
-            BindFeature(video, "Renderer", "gfxbackend", "Vulkan");
-            video["Resolution"] = "1280x720";
-            BindFeature(video, "Resolution Scale", "rpcs3_internal_resolution", "100");
-            BindFeature(video, "Aspect ratio", "rpcs3_ratio", "16:9");
-            BindFeature(video, "Frame limit", "framelimit", "Auto");
-            BindBoolFeatureOn(video, "MSAA", "msaa", "Auto", "Disabled");
-            BindFeature(video, "Shader Mode", "shadermode", "Async Shader Recompiler");
-            BindBoolFeature(video, "Write Color Buffers", "writecolorbuffers", "true", "false");
-            BindBoolFeature(video, "Write Depth Buffer", "writedepthbuffers", "true", "false");
-            BindBoolFeature(video, "Read Color Buffers", "readcolorbuffers", "true", "false");
-            BindBoolFeature(video, "Read Depth Buffer", "readdepthbuffers", "true", "false");
-            BindBoolFeatureOn(video, "VSync", "rpcs3_vsync", "true", "false");
-            BindBoolFeature(video, "Stretch To Display Area", "stretchtodisplay", "true", "false");
-            BindBoolFeature(video, "Strict Rendering Mode", "strict_rendering", "true", "false");
-            BindBoolFeature(video, "Disable Vertex Cache", "disablevertex", "true", "false");
-            BindBoolFeature(video, "Multithreaded RSX", "multithreadedrsx", "true", "false");
-            BindFeature(video, "Output Scaling Mode", "rpcs3_scaling_filter", "Bilinear");
-            BindFeature(video, "3D Display Mode", "enable3d", "Disabled");
-            
-            BindFeature(video, "Anisotropic Filter Override", "anisotropicfilter", "0");
-            BindFeature(video, "Shader Precision", "shader_quality", "Auto");
-            BindFeatureSlider(video, "Driver Wake-Up Delay", "driver_wake", "0");
-            BindBoolFeature(video, "Force CPU Blit", "cpu_blit", "true", "false");
-            BindBoolFeature(video, "Disable ZCull Occlusion Queries", "disable_zcull_queries", "true", "false");
-            BindFeatureSlider(video, "Minimum Scalable Dimension", "rpcs3_resolution_scale", "16");
-
-            // ZCULL Accuracy
-            if (SystemConfig.isOptSet("zcull_accuracy") && (SystemConfig["zcull_accuracy"] == "Approximate"))
+            catch (Exception ex)
             {
-                video["Relaxed ZCULL Sync"] = "false";
-                video["Accurate ZCULL stats"] = "false";
+                SimpleLogger.Instance.Error("[GENERATOR] Error writing to config.yml file: " + ex.Message);
             }
-            else if (SystemConfig.isOptSet("zcull_accuracy") && (SystemConfig["zcull_accuracy"] == "Relaxed"))
-            {
-                video["Relaxed ZCULL Sync"] = "true";
-                video["Accurate ZCULL stats"] = "false";
-            }
-            else if (Features.IsSupported("zcull_accuracy"))
-            {
-                video["Relaxed ZCULL Sync"] = "false";
-                video["Accurate ZCULL stats"] = "true";
-            }
-
-            // Handle Vulkan part of yml file
-            YmlContainer vulkan = video.GetOrCreateContainer("Vulkan");
-            BindBoolFeature(vulkan, "Asynchronous Texture Streaming 2", "asynctexturestream", "true", "false");
-            
-            if (SystemConfig.getOptBoolean("exclusivefs"))
-                vulkan["Exclusive Fullscreen Mode"] = "Enable";
-
-            BindFeature(vulkan, "Exclusive Fullscreen Mode", "rpcs3_fullscreen_mode", "Automatic");            
-
-            // Handle Performance Overlay part of yml file
-            YmlContainer performance = video.GetOrCreateContainer("Performance Overlay");
-            if (SystemConfig.isOptSet("performance_overlay") && (SystemConfig["performance_overlay"] == "detailed"))
-            {
-                performance["Enabled"] = "true";
-                performance["Enable Framerate Graph"] = "true";
-                performance["Enable Frametime Graph"] = "true";
-            }
-            else if (SystemConfig.isOptSet("performance_overlay") && (SystemConfig["performance_overlay"] == "simple"))
-            {
-                performance["Enabled"] = "true";
-                performance["Enable Framerate Graph"] = "false";
-                performance["Enable Frametime Graph"] = "false";
-            }
-            else if (Features.IsSupported("performance_overlay"))
-            {
-                performance["Enabled"] = "false";
-                performance["Enable Framerate Graph"] = "false";
-                performance["Enable Frametime Graph"] = "false";
-            }
-
-            // Handle Audio part of yml file
-            YmlContainer audio = yml.GetOrCreateContainer("Audio");
-            BindFeature(audio, "Renderer", "audiobackend", "Cubeb");
-            BindFeature(audio, "Audio Format", "audiochannels", "Stereo");
-            BindBoolFeatureOn(audio, "Enable Buffering", "audio_buffering", "true", "false");
-            if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "low"))
-            {
-                audio["Enable time stretching"] = "true";
-                audio["Time Stretching Threshold"] = "25";
-            }
-            else if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "medium"))
-            {
-                audio["Enable time stretching"] = "true";
-                audio["Time Stretching Threshold"] = "50";
-            }
-            else if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "high"))
-            {
-                audio["Enable time stretching"] = "true";
-                audio["Time Stretching Threshold"] = "75";
-            }
-            else if (Features.IsSupported("time_stretching"))
-            {
-                audio["Enable time stretching"] = "false";
-                audio["Time Stretching Threshold"] = "75";
-            }
-
-            // Handle System part of yml file
-            YmlContainer system_region = yml.GetOrCreateContainer("System");
-            BindFeature(system_region, "License Area", "ps3_region", "SCEE");
-            BindFeature(system_region, "Language", "ps3_language", GetDefaultPS3Language());
-
-            // Handle Miscellaneous part of yml file
-            YmlContainer misc = yml.GetOrCreateContainer("Miscellaneous");
-            misc["Start games in fullscreen mode"] = fullscreen ? "true" : "false";
-            BindBoolFeatureOn(misc, "Show trophy popups", "show_trophy", "true", "false");
-            misc["Automatically start games after boot"] = "true";
-            misc["Exit RPCS3 when process finishes"] = "true";
-            misc["Prevent display sleep while running games"] = "true";
-            BindBoolFeature(misc, "Show shader compilation hint", "rpcs3_hidehints", "false", "true");
-            BindBoolFeature(misc, "Show PPU compilation hint", "rpcs3_hidehints", "false", "true");
-
-            SetupGuns(path, yml, vulkan);
-
-            // Save to yml file
-            yml.Save();
         }
 
         private string GetDefaultPS3Language()

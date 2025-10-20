@@ -12,6 +12,31 @@ namespace EmulatorLauncher.Common
 {
     public static class FileTools
     {
+        public static string ReadFirstValidLine(string file)
+        {
+            try
+            {
+                var lines = File.ReadAllLines(file);
+                if (lines == null || lines.Length == 0)
+                    return null;
+
+                foreach (var l in lines)
+                {
+                    if (string.IsNullOrWhiteSpace(l))
+                        continue;
+                    var t = l.Trim();
+                    if (t.StartsWith("#"))
+                        continue;
+                    return t;
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[FILETOOLS] Error reading file " + file + " : " + ex.Message);
+            }
+            return null;
+        }
+
         /// <summary>
         /// Get MD5 hash
         /// </summary>
@@ -384,6 +409,27 @@ namespace EmulatorLauncher.Common
             catch
             {
                 return "";
+            }
+        }
+
+        public static bool IsExtension(string filename, string ext)
+        {
+            if (string.IsNullOrEmpty(filename))
+                return false;
+            try { return string.Equals(Path.GetExtension(filename), ext, StringComparison.OrdinalIgnoreCase); }
+            catch { return false; }
+        }
+
+        public static void EnsureDirectoryExists(string path)
+        {
+            try
+            {
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[FileTools] Unable to create directory " + path + " : " + ex.Message);
             }
         }
     }

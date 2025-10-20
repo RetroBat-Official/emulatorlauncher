@@ -178,6 +178,15 @@ namespace EmulatorLauncher.Common
             return ret.ToString().Trim();
         }
 
-
+        public static string QuoteString(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return "\"\"";
+            if (name.StartsWith("\"") && name.EndsWith("\""))
+                return name;
+            if (name.Contains(" ") || name.Contains("\t"))
+                return "\"" + name + "\"";
+            return name;
+        }
     }
 }
