@@ -31,6 +31,7 @@ namespace EmulatorLauncher
             { new Installer("bam", "fpinball", "Future Pinball.exe") },
             { new Installer("bigpemu", "bigpemu", "BigPEmu.exe") },
             { new Installer("bizhawk", "bizhawk", "EmuHawk.exe") },
+            { new Installer("bstone", "bstone", "bstone.exe") },
             { new Installer("capriceforever", "capriceforever", "Caprice64.exe") },
             { new Installer("cdogs", new string[] { "cdogs", "cdogs/bin" }, "cdogs-sdl.exe") },
             { new Installer("cemu", "cemu", "Cemu.exe") },

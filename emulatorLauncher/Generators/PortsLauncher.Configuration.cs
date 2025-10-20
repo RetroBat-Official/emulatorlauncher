@@ -25,6 +25,7 @@ namespace EmulatorLauncher
             // If the port allows controller configuration, create the controller configuration method in PortsLauncher.Controller.cs and call it from the port configuration method
             // Keep alphabetical order
 
+            ConfigureBStone(commandArray, rom);
             ConfigureCDogs(commandArray, rom);
             Configurecgenius(commandArray, rom);
             Configurecorsixth(commandArray, rom);
@@ -43,6 +44,87 @@ namespace EmulatorLauncher
         }
 
         #region ports
+        private void ConfigureBStone(List<string> commandArray, string rom)
+        {
+            if (_emulator != "bstone")
+                return;
+
+            // Get romPath
+            string dataDir = Path.GetDirectoryName(rom);
+
+            // Settings file update
+            string configFile = Path.Combine(_path, "bstone_config.txt");
+
+            var height = _resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height;
+            var width = _resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width;
+
+            commandArray.Add("--data_dir");
+            commandArray.Add("\"" + dataDir + "\"");
+            commandArray.Add("--profile_dir");
+            commandArray.Add("\"" + _path + "\"");
+
+            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
+
+            commandArray.Add("--vid_window_mode value");
+            if (_fullscreen)
+            {
+                commandArray.Add(exclusivefs ? "fullscreen" : "fake_fullscreen");
+            }
+            else
+                commandArray.Add("windowed");
+
+            var cfg = new QuakeConfig(configFile);
+            cfg.AppendIfMissing = true;
+            
+            if (SystemConfig.isOptSet("bstone_renderer") && !string.IsNullOrEmpty(SystemConfig["bstone_renderer"]))
+                cfg["vid_renderer"] = SystemConfig["bstone_renderer"];
+            else
+                cfg["vid_renderer"] = "gles_2_0";
+
+            cfg["vid_is_vsync"] = SystemConfig.getOptBoolean("bstone_vsync") ? "1" : "0";
+            cfg["vid_is_widescreen"] = SystemConfig.getOptBoolean("bstone_widescreen") ? "1" : "0";
+            cfg["vid_width"] = width.ToString();
+            cfg["vid_height"] = height.ToString();
+
+            if (SystemConfig.isOptSet("bstone_antialiasing") && !string.IsNullOrEmpty(SystemConfig["bstone_antialiasing"]))
+                cfg["vid_aa_degree"] = SystemConfig["bstone_antialiasing"];
+            else
+                cfg["vid_aa_degree"] = "2";
+
+            if (SystemConfig.isOptSet("bstone_upscale_filter") && !string.IsNullOrEmpty(SystemConfig["bstone_upscale_filter"]))
+            {
+                string x = SystemConfig["bstone_upscale_filter"];
+                cfg["vid_texture_upscale_filter"] = x == "none" ? "none" : "xbrz";
+                cfg["vid_texture_upscale_xbrz_degree"] = x == "none" ? "2" : x;
+            }
+            else
+            {
+                cfg["vid_texture_upscale_filter"] = "none";
+                cfg["vid_texture_upscale_xbrz_degree"] = "2";
+            }
+
+            if (SystemConfig.isOptSet("bstone_anisotropy") && !string.IsNullOrEmpty(SystemConfig["bstone_anisotropy"]))
+                cfg["vid_3d_texture_anisotropy"] = SystemConfig["bstone_anisotropy"];
+            else
+                cfg["vid_3d_texture_anisotropy"] = "1";
+
+            if (SystemConfig.isOptSet("bstone_texture_filter") && !string.IsNullOrEmpty(SystemConfig["bstone_texture_filter"]))
+            {
+                string x = SystemConfig["bstone_texture_filter"];
+                cfg["vid_2d_texture_filter"] = x;
+                cfg["vid_3d_texture_image_filter"] = x;
+                cfg["vid_3d_texture_mipmap_filter"] = x;
+            }
+            else
+            {
+                cfg["vid_2d_texture_filter"] = "nearest";
+                cfg["vid_3d_texture_image_filter"] = "nearest";
+                cfg["vid_3d_texture_mipmap_filter"] = "nearest";
+            }
+
+            cfg.Save();
+        }
+
         private void ConfigureCDogs(List<string> commandArray, string rom)
         {
             if (_emulator != "cdogs")
@@ -1424,6 +1506,7 @@ namespace EmulatorLauncher
                 vkquakecfg = Path.Combine(rompath, "rogue", "vkQuake.cfg");
 
             var cfg = new QuakeConfig(vkquakecfg);
+            cfg.AppendIfMissing = true;
             var height = _resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height;
             var width = _resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width;
 
@@ -1645,7 +1728,7 @@ namespace EmulatorLauncher
         private readonly List<Line> _lines = new List<Line>();
         private readonly string _filePath;
 
-        public bool AppendIfMissing = false;
+        public bool AppendIfMissing = true;
 
         public QuakeConfig(string filePath)
         {
