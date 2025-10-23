@@ -59,8 +59,13 @@ namespace EmulatorLauncher
 
             using (var ini = new IniFile(conf))
             {
-                /* Set up paths
-                string switchSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "switch");
+                // Set up paths
+                bool mutualize = SystemConfig.getOptBoolean("yuzu_mutualize");
+
+                string switchSavesPath = Path.Combine(path, "user");
+                if (mutualize)
+                    switchSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "switch");
+
                 if (!Directory.Exists(switchSavesPath)) try { Directory.CreateDirectory(switchSavesPath); }
                     catch { }
 
@@ -102,7 +107,7 @@ namespace EmulatorLauncher
                 {
                     ini.WriteValue("Data%20Storage", "load_directory\\default", "false");
                     ini.WriteValue("Data%20Storage", "load_directory", loadPath.Replace("\\", "/"));
-                }*/
+                }
 
                 ini.WriteValue("UI", "check_for_updates\\default", "false");
                 ini.WriteValue("UI", "check_for_updates", "false");
@@ -164,6 +169,9 @@ namespace EmulatorLauncher
                     ini.WriteValue("System", "use_docked_mode\\default", "true");
                     ini.WriteValue("System", "use_docked_mode", "1");
                 }
+
+                ini.WriteValue("System", "hide_nca_verification_popup\\default", "false");
+                ini.WriteValue("System", "hide_nca_verification_popup", "true");
 
                 ini.WriteValue("UI", "confirmStop\\default", "false");
                 ini.WriteValue("UI", "confirmStop", "2");
