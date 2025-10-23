@@ -73,6 +73,8 @@ namespace EmulatorLauncher
             { "dhewm3", () => new Dhewm3Generator() },
             { "dolphin", () => new DolphinGenerator() },
             { "dosbox", () => new DosBoxGenerator() },
+            { "dosbox-pure", () => new DosBoxPureGenerator() },
+            { "dosbox-staging", () => new DosBoxStagingGenerator() },
             { "duckstation", () => new DuckstationGenerator() },
             { "easyrpg", () => new EasyRpgGenerator() },
             { "eden", () => new EdenGenerator() },

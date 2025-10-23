@@ -15,6 +15,7 @@ namespace EmulatorLauncher
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             string batFile = Path.Combine(rom, "dosbox.bat");
 
@@ -59,29 +60,17 @@ namespace EmulatorLauncher
                 commandArray.Add("\"" + Path.Combine(path, "dosbox.conf") + "\"");
             }
 
+            if (fullscreen)
+                commandArray.Add("-fullscreen");
+
             string args = string.Join(" ", commandArray);
 
             return new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = args + " -fullscreen -noconsole -exit -c \"set ROOT=" + rom + "\" ",
+                Arguments = args + " -noconsole -exit -c \"set ROOT=" + rom + "\" ",
             };
-            /*
-            commandArray = [batoceraFiles.batoceraBins[system.config['emulator']], 
-			    "-userconf", 
-			    "-exit", 
-			    """{}""".format(batFile),
-			    "-c", """set ROOT={}""".format(gameDir)]
-             * 
-            if os.path.isfile(gameConfFile):
-                commandArray.append("-conf")
-                commandArray.append("""{}""".format(gameConfFile))
-            else:
-                commandArray.append("-conf")
-                commandArray.append("""{}""".format(batoceraFiles.dosboxConfig))
-
-            return Command.Command(array=commandArray, env={"SDL_VIDEO_GL_DRIVER":"/usr/lib/libGLESv2.so"})*/
         }
     }
 }
