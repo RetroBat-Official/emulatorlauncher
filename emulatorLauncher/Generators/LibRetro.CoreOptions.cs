@@ -1182,31 +1182,35 @@ namespace EmulatorLauncher.Libretro
             coreSettings["dosbox_pure_savestate"] = "on";
             retroarchConfig["video_font_enable"] = "false"; // Disable OSD for dosbox_pure
 
-            BindFeature(coreSettings, "dosbox_pure_aspect_correction", "dosbox_ratio", "true");
+            BindFeature(coreSettings, "dosbox_pure_aspect_correction", "dosbox_pure_aspect_correction", "true");
             BindFeature(coreSettings, "dosbox_pure_cga", "cga", "early_auto");
-            BindFeature(coreSettings, "dosbox_pure_cpu_core", "cpu_core", "auto");
-            BindFeature(coreSettings, "dosbox_pure_cpu_type", "cpu_type", "auto");
-            BindFeature(coreSettings, "dosbox_pure_cycles", "cycles", "auto");
-            BindBoolFeature(coreSettings, "dosbox_pure_gus", "gus", "true", "false");
+            BindFeature(coreSettings, "dosbox_pure_cpu_core", "dosbox_pure_cpu_core", "auto");
+            BindFeature(coreSettings, "dosbox_pure_cpu_type", "dosbox_pure_cpu_type", "auto");
+            BindFeature(coreSettings, "dosbox_pure_cycles", "dosbox_pure_cycles", "auto");
+            BindBoolFeature(coreSettings, "dosbox_pure_gus", "dosbox_pure_gus", "true", "false");
+            BindBoolFeature(coreSettings, "dosbox_pure_tandysound", "dosbox_pure_tandysound", "on", "off");
             BindFeature(coreSettings, "dosbox_pure_hercules", "hercules", "white");
-            BindFeature(coreSettings, "dosbox_pure_machine", "machine", "svga");
-            BindFeature(coreSettings, "dosbox_pure_memory_size", "memory_size", "16");
+            BindFeature(coreSettings, "dosbox_pure_overscan", "dosbox_pure_overscan", "0");
+            BindFeature(coreSettings, "dosbox_pure_machine", "dosbox_pure_machine", "svga");
+            BindFeature(coreSettings, "dosbox_pure_memory_size", "dosbox_pure_memory_size", "16");
             BindFeature(coreSettings, "dosbox_pure_menu_time", "menu_time", "5");
             BindFeature(coreSettings, "dosbox_pure_midi", "midi", "scummvm/extra/Roland_SC-55.sf2");
-            BindFeature(coreSettings, "dosbox_pure_sblaster_adlib_emu", "sblaster_adlib_emu", "default");
-            BindFeature(coreSettings, "dosbox_pure_sblaster_adlib_mode", "sblaster_adlib_mode", "auto");
-            BindFeature(coreSettings, "dosbox_pure_sblaster_conf", "sblaster_conf", "A220 I7 D1 H5");
-            BindFeature(coreSettings, "dosbox_pure_sblaster_type", "sblaster_type", "sb16");
-            BindFeature(coreSettings, "dosbox_pure_svga", "svga", "vesa_nolfb");
+            BindFeature(coreSettings, "dosbox_pure_sblaster_adlib_emu", "dosbox_pure_sblaster_adlib_emu", "default");
+            BindFeature(coreSettings, "dosbox_pure_sblaster_adlib_mode", "dosbox_pure_sblaster_adlib_mode", "auto");
+            BindFeature(coreSettings, "dosbox_pure_sblaster_conf", "dosbox_sblaster_conf", "A220 I7 D1 H5");
+            BindFeature(coreSettings, "dosbox_pure_sblaster_type", "dosbox_pure_sblaster_type", "sb16");
+            BindFeature(coreSettings, "dosbox_pure_svga", "dosbox_pure_svga", "svga_s3");
+            BindFeature(coreSettings, "dosbox_pure_svgamem", "dosbox_pure_svgamem", "2");
             BindFeature(coreSettings, "dosbox_pure_keyboard_layout", "keyboard_layout", "us");
             BindBoolFeature(coreSettings, "dosbox_pure_force60fps", "dosbox_pure_force60fps", "true", "false");
             BindFeature(coreSettings, "dosbox_pure_perfstats", "dosbox_pure_perfstats", "none");
             BindFeature(coreSettings, "dosbox_pure_conf", "dosbox_pure_conf", "false");
-            BindFeature(coreSettings, "dosbox_pure_voodoo", "dosbox_pure_voodoo", "off");
-            BindFeature(coreSettings, "dosbox_pure_voodoo_perf", "dosbox_pure_voodoo_perf", "auto");
-            
+            BindFeature(coreSettings, "dosbox_pure_voodoo", "dosbox_pure_voodoo", "8mb");
+            BindFeature(coreSettings, "dosbox_pure_voodoo_perf", "dosbox_pure_voodoo_perf", "4");
+            BindFeature(coreSettings, "dosbox_pure_voodoo_scale", "dosbox_pure_voodoo_scale", "1");
+
             BindBoolFeature(coreSettings, "dosbox_pure_bootos_forcenormal", "dosbox_pure_bootos_forcenormal", "true", "false");
-            BindBoolFeature(coreSettings, "dosbox_pure_auto_mapping", "dosbox_pure_auto_mapping", "true", "false");
+            BindFeature(coreSettings, "dosbox_pure_auto_mapping", "dosbox_pure_auto_mapping", "true");
 
             BindFeature(coreSettings, "dosbox_pure_bootos_ramdisk", "dosbox_pure_bootos_ramdisk", "false");
 

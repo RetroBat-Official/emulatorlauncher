@@ -213,6 +213,8 @@
       <DependentUpon>Dolphin.Controllers.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\DosBox.Generator.cs" />
+    <Compile Include="Generators\DosBoxPure.Generator.cs" />
+    <Compile Include="Generators\DosBoxStaging.Generator.cs" />
     <Compile Include="Generators\Duckstation.Generator.cs" />
     <Compile Include="Generators\Duckstation.Controllers.cs">
       <DependentUpon>Duckstation.Generator.cs</DependentUpon>

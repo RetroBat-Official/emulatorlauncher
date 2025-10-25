@@ -749,10 +749,6 @@
     "name": "Nintendo Family Computer Disk System",
     "biosFiles": [
       {
-        "md5": "7bfe8c0540ed4bd6a0f1e2a0f0118ced",
-        "file": "bios/NstDatabase.xml"
-      },
-      {
         "md5": "ca30b50f880eb660a320674ed365ef7a",
         "file": "bios/disksys.rom"
       }
@@ -1765,7 +1761,7 @@
     "name": "Super A Can",
     "biosFiles": [
       {
-        "md5": "f6f0b2ccbbeb2e1d6e843acb145490f8",
+        "md5": "f8fb3fac59db534a3ba099a9f232e733",
         "file": "bios/supracan.zip"
       },
       {
