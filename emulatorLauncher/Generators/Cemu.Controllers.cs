@@ -589,6 +589,21 @@ namespace EmulatorLauncher
                     WriteMappingXinput("23", "46");
                     WriteMappingXinput("24", "40");
 
+                    if (SystemConfig.isOptSet("cemu_gamepadmic") && !string.IsNullOrEmpty(SystemConfig["cemu_gamepadmic"]))
+                    {
+                        string micButton = SystemConfig["cemu_gamepadmic"];
+
+                        switch (micButton)
+                        {
+                            case "leftstick":
+                                WriteMappingXinput("25", "7");
+                                break;
+                            case "rightstick":
+                                WriteMappingXinput("25", "8");
+                                break;
+                        }
+                    }
+
                     if (SystemConfig.isOptSet("cemu_gamepadscreen") && !string.IsNullOrEmpty(SystemConfig["cemu_gamepadscreen"]))
                     {
                         string screenButton = SystemConfig["cemu_gamepadscreen"];
@@ -670,9 +685,9 @@ namespace EmulatorLauncher
                     WriteMapping("23", InputKey.rightanalogleft, false);
                     WriteMapping("24", InputKey.rightanalogleft, true);
 
-                    if (SystemConfig.isOptSet("cemu_gamepadscreen") && !string.IsNullOrEmpty(SystemConfig["cemu_gamepadscreen"]))
+                    if (SystemConfig.isOptSet("cemu_gamepadmic") && !string.IsNullOrEmpty(SystemConfig["cemu_gamepadmic"]))
                     {
-                        string screenButton = SystemConfig["cemu_gamepadscreen"];
+                        string screenButton = SystemConfig["cemu_gamepadmic"];
 
                         switch (screenButton)
                         {
@@ -684,6 +699,21 @@ namespace EmulatorLauncher
                                 break;
                             case "select":
                                 WriteMapping("26", InputKey.select, false);
+                                break;
+                        }
+                    }
+
+                    if (SystemConfig.isOptSet("cemu_gamepadscreen") && !string.IsNullOrEmpty(SystemConfig["cemu_gamepadscreen"]))
+                    {
+                        string micButton = SystemConfig["cemu_gamepadscreen"];
+
+                        switch (micButton)
+                        {
+                            case "leftstick":
+                                WriteMapping("25", InputKey.l3, false);
+                                break;
+                            case "rightstick":
+                                WriteMapping("25", InputKey.r3, false);
                                 break;
                         }
                     }

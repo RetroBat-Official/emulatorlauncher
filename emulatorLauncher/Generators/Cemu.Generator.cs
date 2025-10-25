@@ -211,6 +211,8 @@ namespace EmulatorLauncher
             var audio = xdoc.GetOrCreateElement("Audio");
             BindFeature(audio, "api", "audio_renderer", "0"); // Audio driver (0 for DirectSound / 2 for XAudio2 / 3 for Cubeb)
             BindFeature(audio, "TVChannels", "channels", "1"); // Audio channels (0 for Mono / 1 for Stereo / 2 for Surround)
+            if (SystemConfig.isOptSet("cemu_microphone") && SystemConfig.getOptBoolean("cemu_microphone"))
+                audio.SetElementValue("InputDevice", "default");
 
             //Statistics (3 options : full, fps only or none / full shows FPS, CPU & ram usage)
             if (Features.IsSupported("overlay"))
