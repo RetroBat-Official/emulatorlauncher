@@ -16,6 +16,7 @@ namespace EmulatorLauncher
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
             string path = AppConfig.GetFullPath("dosbox-pure");
             if (string.IsNullOrEmpty(path))
@@ -25,7 +26,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            SetupConfiguration(path);
+            SetupConfiguration(path, fullscreen);
             SearchAndCopySoundFiles(path);
 
             List<string> commandArray = new List<string>
@@ -43,12 +44,10 @@ namespace EmulatorLauncher
             };
         }
 
-        private void SetupConfiguration(string path)
+        private void SetupConfiguration(string path, bool fullscreen)
         {
             try
             {
-                bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
-
                 string dosBoxcfg = Path.Combine(path, "DOSBoxPure.cfg");
                 JObject root;
 
