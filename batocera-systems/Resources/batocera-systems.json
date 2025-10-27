@@ -1765,6 +1765,10 @@
         "file": "bios/supracan.zip"
       },
       {
+        "md5": "da6cebe6b22a91a34a67074adbbec3a3",
+        "file": "bios/umc6650.zip"
+      },
+      {
         "md5": "",
         "file": "bios/mame/hash/supracan.xml"
       }

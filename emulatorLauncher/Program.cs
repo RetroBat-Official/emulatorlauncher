@@ -171,6 +171,7 @@ namespace EmulatorLauncher
             { "winarcadia", () => new WinArcadiaGenerator() },
             { "windows", () => new ExeLauncherGenerator() },
             { "winuae", () => new UaeGenerator() },
+            { "xash3d", () => new Xash3DGenerator() },
             { "xbox", () => new CxbxGenerator() },
             { "xemu", () => new XEmuGenerator() },
             { "xenia", () => new XeniaGenerator() },

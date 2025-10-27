@@ -134,6 +134,7 @@ namespace EmulatorLauncher
             { new Installer("vpinball", new string[] {"vpinball" }, new string[] { "VPinballX.exe", "vpinballx.exe", "VPinballX64.exe" }, "900MO" )},
             { new Installer("winarcadia", "winarcadia", "WinArcadia.exe") },
             { new Installer("winuae", "winuae", "winuae64.exe") },
+            { new Installer("xash3d", "xash3d", "xash3d.exe") },
             { new Installer("xbox", new string[] { "cxbx-reloaded", "cxbx-r" }, "cxbx.exe") },
             { new Installer("xemu", "xemu") },
             { new Installer("xenia", "xenia", "xenia.exe") },

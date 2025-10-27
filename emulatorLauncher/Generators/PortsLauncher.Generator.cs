@@ -11,17 +11,23 @@ namespace EmulatorLauncher
     partial class BStoneGenerator : PortsLauncherGenerator
     { public BStoneGenerator() { _exeName = "bstone.exe"; DependsOnDesktopResolution = false; } }
 
-    partial class OpenJazzGenerator : PortsLauncherGenerator
-    { public OpenJazzGenerator() { _exeName = "OpenJazz.exe"; DependsOnDesktopResolution = true; } }
-
-    partial class OpenGoalGenerator : PortsLauncherGenerator
-    { public OpenGoalGenerator() { _exeName = "gk.exe"; DependsOnDesktopResolution = true; } }
-
     partial class CDogsGenerator : PortsLauncherGenerator
     { public CDogsGenerator() { _exeName = "bin\\cdogs-sdl.exe"; DependsOnDesktopResolution = true; } }
 
     partial class CGeniusGenerator : PortsLauncherGenerator
     { public CGeniusGenerator() { _exeName = "CGenius.exe"; DependsOnDesktopResolution = true; } }
+
+    partial class CorsixTHGenerator : PortsLauncherGenerator
+    { public CorsixTHGenerator() { _exeName = "CorsixTH.exe"; DependsOnDesktopResolution = true; } }
+
+    partial class Dhewm3Generator : PortsLauncherGenerator
+    { public Dhewm3Generator() { _exeName = "dhewm3.exe"; DependsOnDesktopResolution = false; } }
+
+    partial class OpenJazzGenerator : PortsLauncherGenerator
+    { public OpenJazzGenerator() { _exeName = "OpenJazz.exe"; DependsOnDesktopResolution = true; } }
+
+    partial class OpenGoalGenerator : PortsLauncherGenerator
+    { public OpenGoalGenerator() { _exeName = "gk.exe"; DependsOnDesktopResolution = true; } }
 
     partial class PDarkGenerator : PortsLauncherGenerator
     { public PDarkGenerator() { DependsOnDesktopResolution = false; } }
@@ -32,17 +38,14 @@ namespace EmulatorLauncher
     partial class StarshipGenerator : PortsLauncherGenerator
     { public StarshipGenerator() { _exeName = "Starship.exe"; DependsOnDesktopResolution = true; } }
 
-    partial class CorsixTHGenerator : PortsLauncherGenerator
-    { public CorsixTHGenerator() { _exeName = "CorsixTH.exe"; DependsOnDesktopResolution = true; } }
-
-    partial class Dhewm3Generator : PortsLauncherGenerator
-    { public Dhewm3Generator() { _exeName = "dhewm3.exe"; DependsOnDesktopResolution = false; } }
-
     partial class vkQuakeGenerator : PortsLauncherGenerator
     { public vkQuakeGenerator() { _exeName = "vkQuake.exe"; DependsOnDesktopResolution = false; } }
 
     partial class vkQuake2Generator : PortsLauncherGenerator
     { public vkQuake2Generator() { _exeName = "quake2.exe"; DependsOnDesktopResolution = false; } }
+
+    partial class Xash3DGenerator : PortsLauncherGenerator
+    { public Xash3DGenerator() { _exeName = "xash3d.exe"; DependsOnDesktopResolution = false; } }
 
     partial class PortsLauncherGenerator : Generator
     {
@@ -178,7 +181,8 @@ namespace EmulatorLauncher
             { "sonicretrocd", "RSDKv3_64.exe"},
             { "starship", "Starship.exe"},
             { "vkquake", "vkQuake.exe"},
-            { "vkquake2", "quake2.exe" }
+            { "vkquake2", "quake2.exe" },
+            { "xash3d", "xash3d.exe" }
         };
 
         private readonly Dictionary<string, string> systemBezels = new Dictionary<string, string>
@@ -198,7 +202,8 @@ namespace EmulatorLauncher
             { "soh", "yes"},
             { "starship", "yes"},
             { "vkquake", "no"},
-            { "vkquake2", "no"}
+            { "vkquake2", "no"},
+            { "xash3d", "no"}
         };
 
         // Dictionaries to use if a port uses Reshade to specify platform and type
