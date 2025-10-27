@@ -151,7 +151,7 @@ namespace EmulatorLauncher
         };
 
         // Some emulators do not set correctly version in executable and require specific treatment !
-        static readonly List<string>noVersionExe = new List<string> { "eduke32", "fbneo", "fbneo64", "flycast", "melonds", "play", "rmg" };
+        static readonly List<string>noVersionExe = new List<string> { "eduke32", "fbneo", "fbneo64", "flycast", "melonds", "play", "rmg", "xash3d" };
 
         #region Properties
         public string Emulator { get; private set; }
