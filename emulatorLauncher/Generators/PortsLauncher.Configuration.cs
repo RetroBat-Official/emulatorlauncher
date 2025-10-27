@@ -41,6 +41,7 @@ namespace EmulatorLauncher
             ConfigureStarship(rom, exe);
             ConfigurevkQuake(commandArray, rom);
             ConfigurevkQuake2(commandArray, rom);
+            ConfigureXash3d(commandArray, rom);
         }
 
         #region ports
@@ -1543,89 +1544,44 @@ namespace EmulatorLauncher
             bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
             string rompath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2");
 
+            commandArray.Add("+set basedir");
+            commandArray.Add("\"" + rompath + "\"");
+
             if (rom.ToLowerInvariant().Contains("zaero"))
             {
                 commandArray.Add("+set game zaero");
                 zaero = true;
-                try
-                {
-                    string sourcePath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "zaero", "pak0.pak");
-                    string targetPath = Path.Combine(_path, "zaero", "pak0.pak");
-
-                    if (File.Exists(sourcePath) && !File.Exists(targetPath))
-                        try { File.Copy(sourcePath, targetPath, true); } catch { }
-                }
-                catch { }
             }
             else if (rom.ToLowerInvariant().Contains("xatrix"))
             {
                 commandArray.Add("+set game xatrix");
                 xatrix = true;
-                try
-                {
-                    string sourcePath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "xatrix", "pak0.pak");
-                    string targetPath = Path.Combine(_path, "xatrix", "pak0.pak");
-
-                    if (File.Exists(sourcePath) && !File.Exists(targetPath))
-                        try { File.Copy(sourcePath, targetPath, true); } catch { }
-                }
-                catch { }
             }
             else if (rom.ToLowerInvariant().Contains("rogue"))
             {
                 commandArray.Add("+set game rogue");
                 rogue = true;
-                try
-                {
-                    string sourcePath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "rogue", "pak0.pak");
-                    string targetPath = Path.Combine(_path, "rogue", "pak0.pak");
-
-                    if (File.Exists(sourcePath) && !File.Exists(targetPath))
-                        try { File.Copy(sourcePath, targetPath, true); } catch { }
-                }
-                catch { }
             }
             else if (rom.ToLowerInvariant().Contains("smd"))
             {
                 commandArray.Add("+set game smd");
                 smd = true;
-                try
-                {
-                    string sourcePath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "smd", "pak0.pak");
-                    string targetPath = Path.Combine(_path, "smd", "pak0.pak");
-
-                    if (File.Exists(sourcePath) && !File.Exists(targetPath))
-                        try { File.Copy(sourcePath, targetPath, true); } catch { }
-                }
-                catch { }
-            }
-            else
-            {
-                try
-                {
-                    string sourcePath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "baseq2", "pak0.pak");
-                    string targetPath = Path.Combine(_path, "baseq2", "pak0.pak");
-
-                    if (File.Exists(sourcePath) && !File.Exists(targetPath))
-                        try { File.Copy(sourcePath, targetPath, true); } catch { }
-                }
-                catch { }
             }
 
             if (_fullscreen)
                 commandArray.Add("-fullscreen");
 
             // Config file
-            string vkquake2cfg = Path.Combine(_path, "baseq2", "config.cfg");
+            string vkquake2cfg = Path.Combine(rompath, "baseq2", "config.cfg");
 
             if (zaero)
-                vkquake2cfg = Path.Combine(_path, "zaero", "config.cfg");
+                vkquake2cfg = Path.Combine(rompath, "zaero", "config.cfg");
             else if (xatrix)
-                vkquake2cfg = Path.Combine(_path, "xatrix", "config.cfg");
+                vkquake2cfg = Path.Combine(rompath, "xatrix", "config.cfg");
             else if (smd)
-                vkquake2cfg = Path.Combine(_path, "smd", "config.cfg");
+                vkquake2cfg = Path.Combine(rompath, "smd", "config.cfg");
             else if (rogue)
-                vkquake2cfg = Path.Combine(_path, "rogue", "config.cfg");
+                vkquake2cfg = Path.Combine(rompath, "rogue", "config.cfg");
 
             var cfg = new QuakeConfig(vkquake2cfg);
             var height = _resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height;
@@ -1650,7 +1606,116 @@ namespace EmulatorLauncher
             else
                 cfg["set vk_fullscreen_exclusive"] = "0";
 
+            if (SystemConfig.isOptSet("vkquake2_soundhighquality") && !SystemConfig.getOptBoolean("vkquake2_soundhighquality"))
+                cfg["set s_khz"] = "11";
+            else
+                cfg["set s_khz"] = "22";
+
+            if (SystemConfig.getOptBoolean("vkquake2_usejoy"))
+                cfg["set in_joystick"] = "1";
+            else
+                cfg["set in_joystick"] = "0";
+
+            if (SystemConfig.getOptBoolean("vkquake2_invmouse"))
+                cfg["set m_pitch"] = "-0.022000";
+            else
+                cfg["set m_pitch"] = "0.022000";
+
+            if (SystemConfig.isOptSet("vkquake2_antialiasing") && !string.IsNullOrEmpty(SystemConfig["vkquake2_antialiasing"]))
+                cfg["set vk_msaa"] = SystemConfig["vkquake2_antialiasing"];
+            else
+                cfg["set vk_msaa"] = "0";
+
             cfg.Save();
+        }
+
+        private void ConfigureXash3d(List<string> commandArray, string rom)
+        {
+            if (_emulator != "xash3d")
+                return;
+
+            string rompath = Path.Combine(AppConfig.GetFullPath("roms"), "halflife");
+
+            // Set environment variable for xash3d base directory
+            Environment.SetEnvironmentVariable("XASH3D_BASEDIR", rompath, EnvironmentVariableTarget.User);
+
+            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
+            
+            if (_fullscreen && exclusivefs)
+                commandArray.Add("-fullscreen");
+            else if (_fullscreen)
+                commandArray.Add("-borderless");
+            else
+                commandArray.Add("-windowed");
+
+            string game = Path.GetFileNameWithoutExtension(rom);
+            commandArray.Add("-game");
+            commandArray.Add(game);
+
+            var height = _resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height;
+            var width = _resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width;
+
+            // Config file
+            string cfgSubPath = Path.Combine(rompath, "valve");
+
+            if (!game.ToLowerInvariant().Contains("life") || !game.ToLowerInvariant().Contains("half"))
+                cfgSubPath = Path.Combine(rompath, game);
+
+            string videoConf = Path.Combine(cfgSubPath, "video.cfg");
+            var vcfg = new QuakeConfig(videoConf);
+            vcfg["height"] = _fullscreen ? height.ToString() : ScreenResolution.CurrentResolution.Height.ToString();
+            vcfg["width"] = _fullscreen ? width.ToString() : ScreenResolution.CurrentResolution.Width.ToString();
+            vcfg.Save();
+
+            string gameConf = Path.Combine(cfgSubPath, "config.cfg");
+            var gcfg = new QuakeConfig(gameConf);
+            
+            if (SystemConfig.getOptBoolean("xash3d_showfps"))
+                gcfg["cl_showfps"] = "1";
+            else
+                gcfg["cl_showfps"] = "0";
+
+            if (SystemConfig.getOptBoolean("xash3d_vsync"))
+                gcfg["gl_vsync"] = "1";
+            else
+                gcfg["gl_vsync"] = "0";
+
+            if (SystemConfig.getOptBoolean("xash3d_invmouse"))
+                gcfg["m_pitch"] = "-0.022000";
+            else
+                gcfg["m_pitch"] = "0.022000";
+
+            if (SystemConfig.isOptSet("xash3d_crosshair") && !SystemConfig.getOptBoolean("xash3d_crosshair"))
+                gcfg["crosshair"] = "0";
+            else
+                gcfg["crosshair"] = "1";
+
+            if (SystemConfig.getOptBoolean("xash3d_autoaim"))
+                gcfg["sv_aim"] = "1";
+            else
+                gcfg["sv_aim"] = "0";
+
+            if (SystemConfig.getOptBoolean("xash3d_disabledsp"))
+                gcfg["room_off"] = "1";
+            else
+                gcfg["room_off"] = "0";
+
+            if (SystemConfig.isOptSet("xash3d_sensitivity") && !string.IsNullOrEmpty(SystemConfig["xash3d_sensitivity"]))
+                gcfg["sensitivity"] = SystemConfig["xash3d_sensitivity"];
+            else
+                gcfg["sensitivity"] = "3";
+
+            gcfg.Save();
+
+            string oglConf = Path.Combine(cfgSubPath, "opengl.cfg");
+            var glcfg = new QuakeConfig(oglConf);
+
+            if (SystemConfig.getOptBoolean("smooth"))
+                glcfg["gl_texture_nearest"] = "1";
+            else
+                glcfg["gl_texture_nearest"] = "0";
+
+            glcfg.Save();
         }
         #endregion
     }
