@@ -82,12 +82,14 @@ namespace EmulatorLauncher
 
                 if (lines.Length > 0)
                 {
-                    rom = lines[0];
+                    string romExt = FileTools.ReadFirstValidLine(rom);
 
-                    if (rom.StartsWith(".") || rom.StartsWith("/") || rom.StartsWith("\\") || rom.StartsWith("#"))
-                        rom = rom.Substring(1);
+                    if (romExt.StartsWith("/") || romExt.StartsWith("\\") || romExt.StartsWith("#"))
+                        romExt = romExt.Substring(1);
+                    else if (romExt.StartsWith(".\\") || romExt.StartsWith("./"))
+                        romExt = romExt.Substring(2);
 
-                    rom = Path.Combine(romdir, rom);
+                    rom = Path.Combine(romdir, romExt);
                     SimpleLogger.Instance.Info("[INFO] path to rom : " + (rom != null ? rom : "null"));
                 }
             }
