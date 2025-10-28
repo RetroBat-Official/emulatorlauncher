@@ -113,10 +113,10 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("[INFO] Using Xenia Manager Configuration file, RetroBat will not append configuration.");
                 commandArray.Add("--config");
-                commandArray.Add("\"" + _xeniaManagerConfigFile + "\"");
+                commandArray.Add(StringExtensions.QuoteString(_xeniaManagerConfigFile));
             }
 
-            commandArray.Add("\"" + rom + "\"");
+            commandArray.Add(StringExtensions.QuoteString(rom));
 
             string args = string.Join(" ", commandArray);
 
@@ -144,7 +144,7 @@ namespace EmulatorLauncher
                 using (IniFile ini = new IniFile(Path.Combine(path, iniFile), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
                 {
                     //APU section
-                    string audio_driver = "\"" + SystemConfig["apu"] + "\"";
+                    string audio_driver = StringExtensions.QuoteString(SystemConfig["apu"], true);
                     if (SystemConfig.isOptSet("apu") && !string.IsNullOrEmpty(SystemConfig["apu"]))
                         ini.AppendValue("APU", "apu", audio_driver);
                     else if (Features.IsSupported("apu"))
@@ -208,7 +208,7 @@ namespace EmulatorLauncher
                         ini.AppendValue("D3D12", "d3d12_debug", "false");
 
                     //Display section
-                    string fxaa = "\"" + SystemConfig["postprocess_antialiasing"] + "\"";
+                    string fxaa = StringExtensions.QuoteString(SystemConfig["postprocess_antialiasing"], true);
                     if (SystemConfig.isOptSet("postprocess_antialiasing") && !string.IsNullOrEmpty(SystemConfig["postprocess_antialiasing"]))
                         ini.AppendValue("Display", "postprocess_antialiasing", fxaa);
                     else if (Features.IsSupported("postprocess_antialiasing"))
@@ -239,7 +239,7 @@ namespace EmulatorLauncher
                         ini.AppendValue("CPU", "break_on_unimplemented_instructions", "false");
 
                     //GPU section
-                    string video_driver = "\"" + SystemConfig["gpu"] + "\"";
+                    string video_driver = StringExtensions.QuoteString(SystemConfig["gpu"], true);
                     if (SystemConfig.isOptSet("gpu") && !string.IsNullOrEmpty(SystemConfig["gpu"]))
                         ini.AppendValue("GPU", "gpu", video_driver);
                     else if (Features.IsSupported("gpu"))
@@ -247,13 +247,13 @@ namespace EmulatorLauncher
 
                     if (SystemConfig.isOptSet("render_target_path") && (SystemConfig["render_target_path"] == "rtv"))
                     {
-                        ini.AppendValue("GPU", "render_target_path_d3d12", "\"rtv\"");
-                        ini.AppendValue("GPU", "render_target_path_vulkan", "\"fbo\"");
+                        ini.AppendValue("GPU", "render_target_path_d3d12", StringExtensions.QuoteString("rtv", true));
+                        ini.AppendValue("GPU", "render_target_path_vulkan", StringExtensions.QuoteString("fbo", true));
                     }
                     else if (SystemConfig.isOptSet("render_target_path") && (SystemConfig["render_target_path"] == "rov"))
                     {
-                        ini.AppendValue("GPU", "render_target_path_d3d12", "\"rov\"");
-                        ini.AppendValue("GPU", "render_target_path_vulkan", "\"fsi\"");
+                        ini.AppendValue("GPU", "render_target_path_d3d12", StringExtensions.QuoteString("rov", true));
+                        ini.AppendValue("GPU", "render_target_path_vulkan", StringExtensions.QuoteString("fsi", true));
                     }
                     else
                     {
@@ -346,7 +346,7 @@ namespace EmulatorLauncher
                     string contentPath = Path.Combine(AppConfig.GetFullPath("saves"), "xbox360", "xenia", "content");
                     if (Directory.Exists(contentPath))
                     {
-                        ini.AppendValue("Storage", "content_root", "\"" + contentPath.Replace("\\", "/") + "\"");
+                        ini.AppendValue("Storage", "content_root", StringExtensions.QuoteString(contentPath.Replace("\\", "/"), true));
                         SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
                     }
                     else
@@ -362,13 +362,13 @@ namespace EmulatorLauncher
 
                     // Controllers section (HID)
                     if (SystemConfig.isOptSet("xenia_hid") && !string.IsNullOrEmpty(SystemConfig["xenia_hid"]))
-                        ini.AppendValue("HID", "hid", "\"" + SystemConfig["xenia_hid"] + "\"");
+                        ini.AppendValue("HID", "hid", StringExtensions.QuoteString(SystemConfig["xenia_hid"], true));
                     else if (Features.IsSupported("xenia_hid"))
                         ini.AppendValue("HID", "hid", "\"any\"");
 
                     // Console language
                     if (SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
-                        ini.AppendValue("XConfig", "user_language", _edge ? "\"" + EdgeLanguages[SystemConfig["xenia_lang"]] + "\"" : SystemConfig["xenia_lang"]);
+                        ini.AppendValue("XConfig", "user_language", _edge ? StringExtensions.QuoteString(EdgeLanguages[SystemConfig["xenia_lang"]], true) : SystemConfig["xenia_lang"]);
                     else if (Features.IsSupported("xenia_lang"))
                         ini.AppendValue("XConfig", "user_language", GetXboxLangFromEnvironment());
 
@@ -392,7 +392,7 @@ namespace EmulatorLauncher
                             
                             string setting = "logged_profile_slot_" + (i - 1) + "_xuid";
                             if (SystemConfig.isOptSet(profileHint) && !string.IsNullOrEmpty(SystemConfig[profileHint]))
-                                ini.AppendValue("Profiles", setting, "\"" + profile + "\"");
+                                ini.AppendValue("Profiles", setting, StringExtensions.QuoteString(profile, true));
                         }
                     }
                 }
@@ -463,7 +463,7 @@ namespace EmulatorLauncher
 
             // Special case for Taiwanese which is zh_TW
             if (SystemConfig["Language"] == "zh_TW")
-                return _edge ? "\"TChinese\"" :"17";
+                return _edge ? StringExtensions.QuoteString("TChinese", true) :"17";
 
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
@@ -471,14 +471,14 @@ namespace EmulatorLauncher
                 if (_edge)
                 {
                     if (edgeavailableLanguages.TryGetValue(lang, out string ret))
-                        return "\"" + ret + "\"";
+                        return StringExtensions.QuoteString(ret, true);
                 }
                 
                 else if (availableLanguages.TryGetValue(lang, out string ret))
                     return ret;
             }
 
-            return _edge ? "\"English\"" : "1";
+            return _edge ? StringExtensions.QuoteString("English", true) : "1";
         }
 
         private bool useXeniaManagerConfig(string path, string rom)
