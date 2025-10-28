@@ -17,6 +17,7 @@ namespace EmulatorLauncher
         }
 
         private bool _canary = false;
+        private bool _edge = false;
         private bool _xeniaManagerConfig = false;
         private string _xeniaManagerConfigFile = null;
 
@@ -39,6 +40,9 @@ namespace EmulatorLauncher
                 case "xenia-canary":
                     exeName = "xenia_canary.exe";
                     break;
+                case "xenia-edge":
+                    exeName = "xenia_edge.exe";
+                    break;
                 case "xenia-manager":
                     exeName = "xenia_canary.exe";
                     break;
@@ -47,8 +51,14 @@ namespace EmulatorLauncher
             string exe = Path.Combine(path, exeName);
             if (!File.Exists(exe))
                 return null;
-
+            
             _canary = exeName == "xenia_canary.exe";
+            _edge = exeName == "xenia_edge.exe";
+
+            // Create portable file if not exists
+            string portableFile = Path.Combine(path, "portable.txt");
+            if (!File.Exists(portableFile))
+                File.WriteAllText(portableFile, "");
 
             // Manage case where rom is a folder
             if (Directory.Exists(rom))
@@ -124,7 +134,9 @@ namespace EmulatorLauncher
             try
             {
                 string iniFile = "xenia-canary.config.toml";
-                if (emulator == "xenia")
+                if (_edge)
+                    iniFile = "xenia-edge.config.toml";
+                else if (emulator == "xenia")
                     iniFile = "xenia.config.toml";
 
                 using (IniFile ini = new IniFile(Path.Combine(path, iniFile), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
@@ -148,7 +160,7 @@ namespace EmulatorLauncher
                     else
                         ini.AppendValue("General", "discord", "false");
 
-                    if (_canary)
+                    if (_canary || _edge)
                     {
                         if (SystemConfig.isOptSet("xenia_patches") && SystemConfig.getOptBoolean("xenia_patches"))
                             ini.AppendValue("General", "apply_patches", "true");
@@ -170,14 +182,14 @@ namespace EmulatorLauncher
 
                     if (SystemConfig.isOptSet("d3d12_readback_resolve") && SystemConfig.getOptBoolean("d3d12_readback_resolve"))
                     {
-                        if (_canary)
+                        if (_canary || _edge)
                             ini.AppendValue("GPU", "readback_resolve", "true");
                         else
                             ini.AppendValue("D3D12", "d3d12_readback_resolve", "true");
                     }
                     else if (Features.IsSupported("d3d12_readback_resolve"))
                     {
-                        if (_canary)
+                        if (_canary || _edge)
                             ini.AppendValue("GPU", "readback_resolve", "false");
                         else
                             ini.AppendValue("D3D12", "d3d12_readback_resolve", "false");
@@ -213,7 +225,7 @@ namespace EmulatorLauncher
                         ini.AppendValue("GPU", "draw_resolution_scale_y", "1");
                     }
 
-                    if (_canary && SystemConfig.isOptSet("xenia_internal_display_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_internal_display_resolution"]))
+                    if ((_canary || _edge) && SystemConfig.isOptSet("xenia_internal_display_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_internal_display_resolution"]))
                         ini.AppendValue("Video", "internal_display_resolution", SystemConfig["xenia_internal_display_resolution"]);
                     else if (Features.IsSupported("xenia_internal_display_resolution"))
                         ini.AppendValue("Video", "internal_display_resolution", "8");
@@ -257,7 +269,7 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("vsync"))
                         ini.AppendValue("GPU", "vsync", "true");
 
-                    if (_canary)
+                    if (_canary || _edge)
                     {
                         if (SystemConfig.isOptSet("query_occlusion_sample_lower_threshold") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_sample_lower_threshold"]))
                             ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", SystemConfig["query_occlusion_sample_lower_threshold"]);
@@ -293,7 +305,7 @@ namespace EmulatorLauncher
                     }
 
                     // Video section
-                    if (_canary)
+                    if (_canary || _edge)
                     {
                         if (SystemConfig.isOptSet("xenia_video_standard") && !string.IsNullOrEmpty(SystemConfig["xenia_video_standard"]))
                             ini.AppendValue("Video", "video_standard", SystemConfig["xenia_video_standard"]);
@@ -354,12 +366,12 @@ namespace EmulatorLauncher
 
                     // Console language
                     if (SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
-                        ini.AppendValue("XConfig", "user_language", SystemConfig["xenia_lang"]);
+                        ini.AppendValue("XConfig", "user_language", _edge ? "\"" + EdgeLanguages[SystemConfig["xenia_lang"]] + "\"" : SystemConfig["xenia_lang"]);
                     else if (Features.IsSupported("xenia_lang"))
                         ini.AppendValue("XConfig", "user_language", GetXboxLangFromEnvironment());
 
                     // Profiles
-                    if (_canary)
+                    if (_canary || _edge)
                     {
                         for (int i = 1; i < 4; i++)
                         {
@@ -386,6 +398,27 @@ namespace EmulatorLauncher
             catch { }
          }
 
+        private Dictionary<string, string> EdgeLanguages = new Dictionary<string, string>()
+            {
+                { "1", "English" },
+                { "2", "Japanese" },
+                { "3", "Japanese" },
+                { "4", "German" },
+                { "5", "French" },
+                { "6", "Spanish" },
+                { "7", "Italian" },
+                { "8", "Korean" },
+                { "9", "TChinese" },
+                { "10", "Portuguese" },
+                { "11", "Polish" },
+                { "12", "Russian" },
+                { "13", "English" },
+                { "14", "English" },
+                { "15", "English" },
+                { "16", "English" },
+                { "17", "SChinese" }
+            };
+
         private string GetXboxLangFromEnvironment()
         {
             var availableLanguages = new Dictionary<string, string>()
@@ -407,18 +440,43 @@ namespace EmulatorLauncher
                 { "nl", "16" }
             };
 
+            var edgeavailableLanguages = new Dictionary<string, string>()
+            {
+                { "en", "English" },
+                { "jp", "Japanese" },
+                { "ja", "Japanese" },
+                { "de", "German" },
+                { "fr", "French" },
+                { "es", "Spanish" },
+                { "it", "Italian" },
+                { "ko", "Korean" },
+                { "zh", "TChinese" },
+                { "pt", "Portuguese" },
+                { "pl", "Polish" },
+                { "ru", "Russian" },
+                { "sv", "English" },
+                { "tr", "English" },
+                { "nl", "English" }
+            };
+
             // Special case for Taiwanese which is zh_TW
             if (SystemConfig["Language"] == "zh_TW")
-                return "17";
+                return _edge ? "\"TChinese\"" :"17";
 
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
             {
-                if (availableLanguages.TryGetValue(lang, out string ret))
+                if (_edge)
+                {
+                    if (edgeavailableLanguages.TryGetValue(lang, out string ret))
+                        return "\"" + ret + "\"";
+                }
+                
+                else if (availableLanguages.TryGetValue(lang, out string ret))
                     return ret;
             }
 
-            return "1";
+            return _edge ? "\"English\"" : "1";
         }
 
         private bool useXeniaManagerConfig(string path, string rom)
