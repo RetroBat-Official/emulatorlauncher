@@ -1055,7 +1055,15 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["rewind_enable"] = "false";
 
             // Audio
-            BindFeature(retroarchConfig, "audio_driver", "audio_driver", "xaudio"); // Audio driver
+            // xaudio only works if dx9 is installed on the system
+
+            string systemFolder = Environment.SystemDirectory;
+            string d3d9Path = Path.Combine(systemFolder, "d3d9.dll");
+            string defaultaudioDriver = "xaudio";
+            if (!File.Exists(d3d9Path))
+                defaultaudioDriver = "wasapi";
+
+            BindFeature(retroarchConfig, "audio_driver", "audio_driver", defaultaudioDriver);
             BindFeature(retroarchConfig, "audio_resampler", "audio_resampler", "sinc");
             BindFeature(retroarchConfig, "audio_resampler_quality", "audio_resampler_quality", "3");
             BindFeature(retroarchConfig, "audio_volume", "audio_volume", "0.000000");
