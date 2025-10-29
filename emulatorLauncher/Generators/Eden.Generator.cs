@@ -198,7 +198,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("UI", "Screenshots\\screenshot_path", screenshotpath);
                 }
 
-                BindQtIniFeature(ini, "Audio", "output_engine", "audio_backend", "auto");
+                BindQtIniFeature(ini, "Audio", "output_engine", "audio_backend", "0");
                 BindQtIniFeature(ini, "System", "sound_index", "sound_index", "1");            
                 BindQtIniFeature(ini, "Renderer", "backend", "backend", "1");
                 BindQtIniFeature(ini, "Renderer", "resolution_setup", "resolution_setup", "3");

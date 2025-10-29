@@ -21,6 +21,8 @@ namespace EmulatorLauncher
 
             string exe = Path.Combine(path, "mgba.exe");
             if (!File.Exists(exe))
+                exe = Path.Combine(path, "mGBA.exe");
+            if (!File.Exists(exe))
                 return null;
 
             //Applying bezels
