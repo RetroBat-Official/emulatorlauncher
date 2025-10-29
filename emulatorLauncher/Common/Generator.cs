@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Diagnostics;
-using System.IO;
-using System.Drawing;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Compression;
-using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.PadToKeyboard;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace EmulatorLauncher
 {
@@ -174,7 +175,7 @@ namespace EmulatorLauncher
                     try 
                     {
                         string parent = Path.GetDirectoryName(extractionPath);
-                        if (Directory.Exists(parent))
+                        if (Directory.Exists(parent) && !Directory.EnumerateFileSystemEntries(parent).Any())
                         {
                             SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + parent + ", false)");
                             Directory.Delete(parent);
@@ -187,7 +188,7 @@ namespace EmulatorLauncher
 
                     try
                     {
-                        if (Directory.Exists(uncompressedFolderPath))
+                        if (Directory.Exists(uncompressedFolderPath) && !Directory.EnumerateFileSystemEntries(uncompressedFolderPath).Any())
                         {
                             SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + uncompressedFolderPath + ", false)");
                             Directory.Delete(uncompressedFolderPath);
