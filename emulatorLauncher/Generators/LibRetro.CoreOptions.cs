@@ -780,6 +780,9 @@ namespace EmulatorLauncher.Libretro
             else
                 coreSettings["bluemsx_msxtype"] = "Auto";
 
+            if (SystemConfig.isOptSet("bluemsx_msxtype") && !string.IsNullOrEmpty(SystemConfig["bluemsx_msxtype"]))
+                coreSettings["bluemsx_msxtype"] = SystemConfig["bluemsx_msxtype"];
+
             BindFeature(coreSettings, "bluemsx_vdp_synctype", "bluemsx_vdp_synctype", "Auto");
             BindBoolFeature(coreSettings, "bluemsx_nospritelimits", "bluemsx_nospritelimits", "ON", "OFF");
 
