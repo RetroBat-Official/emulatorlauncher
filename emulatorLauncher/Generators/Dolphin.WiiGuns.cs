@@ -101,8 +101,7 @@ namespace EmulatorLauncher
 
             // Reset hotkeys
             string hotkeyini = Path.Combine(path, "User", "Config", "Hotkeys.ini");
-            if (File.Exists(hotkeyini))
-                ResetHotkeysToDefault(hotkeyini);
+            ResetHotkeysToDefault(hotkeyini);
         }
 
         static readonly Dictionary<string, string> defaultGunMapping = new Dictionary<string, string>

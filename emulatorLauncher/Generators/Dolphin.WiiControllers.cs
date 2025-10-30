@@ -912,8 +912,7 @@ namespace EmulatorLauncher
 
             // Reset hotkeys
             string hotkeyini = Path.Combine(path, "User", "Config", "Hotkeys.ini");
-            if (File.Exists(hotkeyini))
-                ResetHotkeysToDefault(hotkeyini, _gcSpecialHotkeys);
+            ResetHotkeysToDefault(hotkeyini, _gcSpecialHotkeys);
         }
 
         private static void SetWiimoteHotkeys(string iniFile)

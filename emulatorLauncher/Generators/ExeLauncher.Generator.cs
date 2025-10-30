@@ -42,6 +42,9 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            if (Path.GetExtension(rom).ToLower() == ".wsquashfs")
+                _gameExeFile = GetProcessFromFile(rom);
+
             rom = this.TryUnZipGameIfNeeded(system, rom);
 
             _systemName = system.ToLowerInvariant();
@@ -84,14 +87,13 @@ namespace EmulatorLauncher
                     if (_isGameExePath)
                         SimpleLogger.Instance.Info("[INFO] Link target file found.");
 
-                    // executable process to monitor might be different from the target - user can specify true process executable in a .gameexe file
                     _gameExeFile = GetProcessFromFile(rom);
                 }
 
                 // if the target is not found in the link, see if a .gameexe file or a .uwp file exists
                 else
                 {
-                    // First case : use has directly specified the executable name in a .gameexe file
+                    // First case : user has directly specified the executable name in a .gameexe file
                     _gameExeFile = GetProcessFromFile(rom);
 
                     // Second case : user has specified the UWP app name in a .uwp file
@@ -256,6 +258,8 @@ namespace EmulatorLauncher
 
             if (Directory.Exists(rom)) // If rom is a directory ( .pc .win .windows, .wine )
             {
+                _gameExeFile = GetProcessFromFile(rom);
+
                 path = rom;
 
                 if (File.Exists(Path.Combine(rom, "autorun.cmd")))
@@ -471,7 +475,11 @@ namespace EmulatorLauncher
                 return false;
             else
             {
-                _exename = lines[0].ToString();
+                string line = FileTools.ReadFirstValidLine(executableFile);
+                if (line.ToLowerInvariant().EndsWith(".exe"))
+                    line = line.Substring(0, line.Length - 4);
+                
+                _exename = line;
                 SimpleLogger.Instance.Info("[INFO] Executable name specified in .gameexe file: " + _exename);
                 return true;
             }
