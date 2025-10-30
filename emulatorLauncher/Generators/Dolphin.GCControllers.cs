@@ -345,8 +345,7 @@ namespace EmulatorLauncher
 
             // Reset hotkeys
             string hotkeyini = Path.Combine(path, "User", "Config", "Hotkeys.ini");
-            if (File.Exists(hotkeyini))
-                ResetHotkeysToDefault(hotkeyini, _gcSpecialHotkeys);
+            ResetHotkeysToDefault(hotkeyini, _gcSpecialHotkeys);
         }
 
         private static void RemoveControllerConfig_gamecube(string path, IniFile ini)

@@ -11,6 +11,8 @@ namespace EmulatorLauncher
 {
     partial class DolphinControllers
     {
+        private static bool _triforcectrl = false;
+
         private static void GenerateControllerConfig_triforce(string path)
         {
             //string path = Program.AppConfig.GetFullPath("dolphin");
@@ -174,17 +176,52 @@ namespace EmulatorLauncher
                             }
                         }
 
-                        else // SDL
+                        else
                         {
                             var input = pad.GetSdlMapping(x.Key);
+                            if (xinputAsSdl)
+                                input = pad.Config[x.Key];
 
-                            ini.WriteValue(gcpad, value, dolphinSDLMapping[x.Key]);
+                            if (input == null)
+                                continue;
 
-                            if (gamecubeReverseAxes.TryGetValue(value, out string reverseAxis))
+                            if (input.Type == "button")
                             {
-                                var revertKey = joyRevertAxis[x.Key];
-                                ini.WriteValue(gcpad, reverseAxis, dolphinSDLMapping[revertKey]);
+                                if (input.Id == 0) // invert A&B
+                                    ini.WriteValue(gcpad, value, "`Button 1`");
+                                else if (input.Id == 1) // invert A&B
+                                    ini.WriteValue(gcpad, value, "`Button 0`");
+                                else
+                                    ini.WriteValue(gcpad, value, "`Button " + input.Id.ToString() + "`");
                             }
+                            else if (input.Type == "axis")
+                            {
+                                Func<Input, bool, string> axisValue = (inp, revertAxis) =>
+                                {
+                                    string axis = "`Axis ";
+
+                                    if (inp.Id == 0 || inp.Id == 1 || inp.Id == 2 || inp.Id == 3)
+                                        axis += inp.Id;
+
+                                    if ((!revertAxis && inp.Value > 0) || (revertAxis && inp.Value < 0))
+                                        axis += "+";
+                                    else
+                                        axis += "-";
+
+                                    if (inp.Id == 4 || inp.Id == 5)
+                                        axis = "`Full Axis " + inp.Id + "+";
+
+                                    return axis + "`";
+                                };
+
+                                ini.WriteValue(gcpad, value, axisValue(input, false));
+
+                                if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
+                                    ini.WriteValue(gcpad, reverseAxis, axisValue(input, true));
+                            }
+
+                            // Z button is used to access test menu, do not map it with R1
+                            ini.WriteValue(gcpad, "Buttons/Z", "@(`Button 7`+`Button 8`)");
                         }
                     }
 
@@ -263,10 +300,11 @@ namespace EmulatorLauncher
                 ini.Save();
             }
 
+            _triforcectrl = true;
+
             // Reset hotkeys
             string hotkeyini = Path.Combine(path, "User", "Config", "Hotkeys.ini");
-            if (File.Exists(hotkeyini))
-                ResetHotkeysToDefault(hotkeyini);
+            ResetHotkeysToDefault(hotkeyini);
         }
 
         static readonly InputKeyMapping triforceMapping = new InputKeyMapping()
