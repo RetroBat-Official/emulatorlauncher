@@ -116,6 +116,13 @@ namespace EmulatorLauncher
                 commandArray.Add(StringExtensions.QuoteString(_xeniaManagerConfigFile));
             }
 
+            if (_edge && SystemConfig.getOptBoolean("edge_ignore_optimized_settings"))
+            {
+                SimpleLogger.Instance.Info("[INFO] Ignoring optimized settings for Xenia Edge.");
+                commandArray.Add("--config");
+                commandArray.Add("\"xenia-edge.config.toml\"");
+            }
+
             commandArray.Add(StringExtensions.QuoteString(rom));
 
             string args = string.Join(" ", commandArray);
