@@ -182,23 +182,27 @@ namespace EmulatorLauncher
                         ini.AppendValue("Vulkan", "vulkan_allow_present_mode_immediate", "true");
                     }
 
-                    if (SystemConfig.isOptSet("d3d12_readback_resolve") && SystemConfig.getOptBoolean("d3d12_readback_resolve"))
+                    if (!_edge && SystemConfig.isOptSet("d3d12_readback_resolve") && SystemConfig.getOptBoolean("d3d12_readback_resolve"))
                     {
-                        if (_edge)
-                            ini.AppendValue("GPU", "readback_resolve", "fast");
-                        else if (_canary)
+                        if (_canary)
                             ini.AppendValue("GPU", "readback_resolve", "true");
                         else
                             ini.AppendValue("D3D12", "d3d12_readback_resolve", "true");
                     }
-                    else if (Features.IsSupported("d3d12_readback_resolve"))
+                    else if (Features.IsSupported("d3d12_readback_resolve") && !_edge)
                     {
-                        if (_edge)
-                            ini.Remove("GPU", "readback_resolve");
-                        else if (_canary)
-                            ini.AppendValue("GPU", "readback_resolve", "false");
+                        if (_canary)
+                            ini.AppendValue("", "readback_resolve", "false");
                         else
                             ini.AppendValue("D3D12", "d3d12_readback_resolve", "false");
+                    }
+
+                    if (_edge)
+                    {
+                        if (SystemConfig.isOptSet("readback_resolve") && !string.IsNullOrEmpty(SystemConfig["readback_resolve"]))
+                            ini.AppendValue("GPU", "readback_resolve", "\"" + SystemConfig["readback_resolve"] + "\"" );
+                        else if (Features.IsSupported("readback_resolve"))
+                            ini.AppendValue("GPU", "readback_resolve", "\"fast\"");
                     }
 
                     if (SystemConfig.isOptSet("xenia_queue_priority") && !string.IsNullOrEmpty(SystemConfig["xenia_queue_priority"]))
@@ -371,9 +375,14 @@ namespace EmulatorLauncher
                         ini.AppendValue("HID", "hid", "\"any\"");
 
                     // Console language
-                    if (SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
-                        ini.AppendValue("XConfig", "user_language", _edge ? StringExtensions.QuoteString(EdgeLanguages[SystemConfig["xenia_lang"]], true) : SystemConfig["xenia_lang"]);
-                    else if (Features.IsSupported("xenia_lang"))
+                    if (!_edge && SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
+                        ini.AppendValue("XConfig", "user_language", SystemConfig["xenia_lang"]);
+                    else if (!_edge && Features.IsSupported("xenia_lang"))
+                        ini.AppendValue("XConfig", "user_language", GetXboxLangFromEnvironment());
+
+                    if (_edge && SystemConfig.isOptSet("xenia_lang_edge") && !string.IsNullOrEmpty(SystemConfig["xenia_lang_edge"]))
+                        ini.AppendValue("XConfig", "user_language", "\"" + SystemConfig["xenia_lang_edge"] + "\"");
+                    else if (_edge && Features.IsSupported("xenia_lang_edge"))
                         ini.AppendValue("XConfig", "user_language", GetXboxLangFromEnvironment());
 
                     // Profiles
@@ -403,27 +412,6 @@ namespace EmulatorLauncher
             }
             catch { }
          }
-
-        private Dictionary<string, string> EdgeLanguages = new Dictionary<string, string>()
-            {
-                { "1", "English" },
-                { "2", "Japanese" },
-                { "3", "German" },
-                { "4", "French" },
-                { "5", "Spanish" },
-                { "6", "Italian" },
-                { "7", "Korean" },
-                { "8", "TChinese" }, 
-                { "9", "Portuguese" },
-                { "10", "Polish" },
-                { "11", "Russian" },
-                { "12", "English" },
-                { "13", "English" },
-                { "14", "English" },
-                { "15", "English" },
-                { "16", "English" },
-                { "17", "SChinese" }
-            };
 
         private string GetXboxLangFromEnvironment()
         {
