@@ -106,7 +106,7 @@ namespace EmulatorLauncher
             { new Installer("ruffle", "ruffle", "ruffle.exe") },
             { new Installer("ryujinx", "ryujinx", "Ryujinx.exe") },
             { new Installer("scummvm") },
-            { new Installer("shadps4", "shadps4", "shadPS4.exe") },
+            { new Installer("shadps4", new string[] { "shadps4"}, new string[] { "shadPS4QtLauncher.exe", "shadPS4.exe" }) },
             { new Installer("simcoupe") },
             { new Installer("simple64", "simple64", "simple64-gui.exe") },
             { new Installer("singe2", "singe2", "Singe-v2.10-Windows-x86_64.exe") },

@@ -28,6 +28,7 @@ namespace EmulatorLauncher
         private bool _gameExeFile; // When exe is specified in a .gameexe file
         private bool _nonSteam = false;
         private bool _batfile = false;
+        private bool _batfileNoWait = false;
 
         private GameLauncher _gameLauncher;
 
@@ -341,6 +342,13 @@ namespace EmulatorLauncher
             
             if (ext == ".bat" || ext == ".cmd")
             {
+                if (GetExecutableName(rom, out string exeName) && !_gameExeFile)
+                {
+                    _exename = exeName;
+                    _batfileNoWait = true;
+                    SimpleLogger.Instance.Info("[INFO] Executable name found in batch file: " + _exename);
+                }
+
                 _batfile = true;
                 ret.WindowStyle = ProcessWindowStyle.Hidden;
                 ret.UseShellExecute = true;
@@ -592,7 +600,7 @@ namespace EmulatorLauncher
                 return 0;
             }
 
-            else if (!_batfile && (_systemName == "windows" || _gameLauncher != null))
+            else if ((!_batfile || _batfileNoWait) && (_systemName == "windows" || _gameLauncher != null))
             {
                 using (var frm = new System.Windows.Forms.Form())
                 {
@@ -757,6 +765,20 @@ namespace EmulatorLauncher
                     }
                 }
             }
+        }
+
+        private bool GetExecutableName(string batFilePath, out string executableName)
+        {
+            executableName = null;
+            var content = File.ReadAllText(batFilePath);
+
+            var match = Regex.Match(content, @"(?:""([^""]+\.exe)""|([^\s]+\.exe))", RegexOptions.IgnoreCase);
+            if (match.Success && !content.Contains("tasklist|findstr"))
+            {
+                executableName = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
+                return true;
+            }
+            return false;
         }
 
         abstract class GameLauncher
