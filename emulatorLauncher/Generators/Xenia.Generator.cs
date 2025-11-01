@@ -184,14 +184,18 @@ namespace EmulatorLauncher
 
                     if (SystemConfig.isOptSet("d3d12_readback_resolve") && SystemConfig.getOptBoolean("d3d12_readback_resolve"))
                     {
-                        if (_canary || _edge)
+                        if (_edge)
+                            ini.AppendValue("GPU", "readback_resolve", "fast");
+                        else if (_canary)
                             ini.AppendValue("GPU", "readback_resolve", "true");
                         else
                             ini.AppendValue("D3D12", "d3d12_readback_resolve", "true");
                     }
                     else if (Features.IsSupported("d3d12_readback_resolve"))
                     {
-                        if (_canary || _edge)
+                        if (_edge)
+                            ini.Remove("GPU", "readback_resolve");
+                        else if (_canary)
                             ini.AppendValue("GPU", "readback_resolve", "false");
                         else
                             ini.AppendValue("D3D12", "d3d12_readback_resolve", "false");
@@ -404,16 +408,16 @@ namespace EmulatorLauncher
             {
                 { "1", "English" },
                 { "2", "Japanese" },
-                { "3", "Japanese" },
-                { "4", "German" },
-                { "5", "French" },
-                { "6", "Spanish" },
-                { "7", "Italian" },
-                { "8", "Korean" },
-                { "9", "TChinese" },
-                { "10", "Portuguese" },
-                { "11", "Polish" },
-                { "12", "Russian" },
+                { "3", "German" },
+                { "4", "French" },
+                { "5", "Spanish" },
+                { "6", "Italian" },
+                { "7", "Korean" },
+                { "8", "TChinese" }, 
+                { "9", "Portuguese" },
+                { "10", "Polish" },
+                { "11", "Russian" },
+                { "12", "English" },
                 { "13", "English" },
                 { "14", "English" },
                 { "15", "English" },
