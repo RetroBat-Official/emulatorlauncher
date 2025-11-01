@@ -1,16 +1,22 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
-using System;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace EmulatorLauncher
 {
     partial class ShadPS4Generator : Generator
     {
+        private bool _useLauncher = false;
+        private bool _default = false;
+        private string _versionselected = null;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
@@ -19,11 +25,26 @@ namespace EmulatorLauncher
             if (!Directory.Exists(path))
                 return null;
 
-            string exe = Path.Combine(path, "shadPS4.exe");
-            if (!File.Exists(exe))
+            string launcherFolder = Path.Combine(path, "launcher");
+            if (!Directory.Exists(launcherFolder))
+                try { Directory.CreateDirectory(launcherFolder); } catch { }
+
+            string launcherExe = Path.Combine(path, "shadPS4QtLauncher.exe");
+            string exe = null;
+
+            if (File.Exists(launcherExe))
+            {
+                exe = GetShadPS4Executable(path);
+                _useLauncher = true;
+            }
+            else
+                exe = Path.Combine(path, "shadPS4.exe");
+            
+            if (exe == null || !File.Exists(exe))
                 return null;
 
             string targetRom = "";
+            string exePath = Path.GetDirectoryName(exe);
 
             if (Directory.Exists(rom))
             {
@@ -53,24 +74,50 @@ namespace EmulatorLauncher
 
             var commandArray = new List<string>();
 
-            if (SystemConfig.getOptBoolean("shadps4_gui"))
-                commandArray.Add("-s");
-
-            if (Path.GetExtension(rom).ToLower() == ".lnk")
+            if (!_useLauncher)
             {
-                commandArray.Add(targetRom);
+                if (SystemConfig.getOptBoolean("shadps4_gui"))
+                    commandArray.Add("-s");
+
+                if (Path.GetExtension(rom).ToLower() == ".lnk")
+                {
+                    commandArray.Add(targetRom.Replace("/", "\\"));
+                }
+                else
+                {
+                    //commandArray.Add("-g");
+                    commandArray.Add("\"" + rom + "\"");
+                }
             }
             else
             {
-                //commandArray.Add("-g");
-                commandArray.Add("\"" + rom + "\"");
+                if (Path.GetExtension(rom).ToLower() == ".lnk")
+                {
+                    commandArray.Add(targetRom.Replace("/", "\\"));
+                }
+                else
+                {
+                    commandArray.Add("-g");
+                    commandArray.Add("\"" + rom + "\"");
+                }
+
+                if (_default)
+                    commandArray.Add("-d");
+                else
+                {
+                    commandArray.Add("-e");
+                    commandArray.Add("\"" + exe + "\"");
+                }
+
+                if (SystemConfig.getOptBoolean("shadps4_gui"))
+                    commandArray.Add("-s");
             }
 
             string args = string.Join(" ", commandArray);
 
             return new ProcessStartInfo()
             {
-                FileName = exe,
+                FileName = _useLauncher ? launcherExe : exe,
                 Arguments = args,
                 WorkingDirectory = path,
             };
@@ -120,10 +167,12 @@ namespace EmulatorLauncher
                 else
                     toml.WriteValue("GPU", "Fullscreen", "false");
 
-                if (SystemConfig.getOptBoolean("exclusivefs"))
+                if (fullscreen && SystemConfig.getOptBoolean("exclusivefs"))
                     toml.WriteValue("GPU", "FullscreenMode", "\"Fullscreen\"");
-                else
+                else if (fullscreen)
                     toml.WriteValue("GPU", "FullscreenMode", "\"Fullscreen (Borderless)\"");
+                else
+                    toml.WriteValue("GPU", "FullscreenMode", "\"Windowed\"");
 
                 // Settings section
                 string ps4Lang = Getps4LangFromEnvironment();
@@ -133,9 +182,11 @@ namespace EmulatorLauncher
 
                 // GUI section
                 string currentDirs = toml.GetValue("GUI", "installDirs");
-                
+
+                string escaped = Regex.Replace(romPath, @"(?<!\\)\\(?!\\)", @"\\");
+
                 if (currentDirs == null || currentDirs == "[]")
-                    toml.WriteValue("GUI", "installDirs", "[\"" + romPath + "\"]");
+                    toml.WriteValue("GUI", "installDirs", "[\"" + escaped + "\"]");
                 else
                 {
                     currentDirs = currentDirs.Substring(1, currentDirs.Length - 2);
@@ -143,8 +194,8 @@ namespace EmulatorLauncher
                     List<string> newDirs = dirs.Select(dir => dir.TrimStart()).ToList();
                     newDirs = newDirs.Where(s => !string.IsNullOrEmpty(s)).ToList();
 
-                    if (newDirs.Count > 0 && !newDirs.Contains("\"" + romPath + "\""))
-                        newDirs.Add("\"" + romPath + "\"");
+                    if (newDirs.Count > 0 && !newDirs.Contains("\"" + escaped + "\""))
+                        newDirs.Add("\"" + escaped + "\"");
                     string finalDirList = string.Join(", ", newDirs);
                     toml.WriteValue("GUI", "installDirs", "[" + finalDirList + "]");
                 }
@@ -164,16 +215,26 @@ namespace EmulatorLauncher
 
                 toml.Save();
             }
-
-            string uiSettingsFile = Path.Combine(userFolder, "qt_ui.ini");
         }
 
         private void SetupUI(string path)
         {
-            string uiFile = Path.Combine(path, "user", "qt_ui.ini");
+            string uiFile = Path.Combine(path, "launcher", "qt_ui.ini");
+
+            if (!_useLauncher)
+                uiFile = Path.Combine(path, "user", "qt_ui.ini");
 
             using (var ini = new IniFile(uiFile))
             {
+                string versionPath = Path.Combine(path, "launcher", "versions");
+                string escaped = Regex.Replace(versionPath, @"(?<!\\)\\(?!\\)", @"\\");
+                ini.WriteValue("version_manager", "versionPath", escaped);
+
+                string selectedVersion = ini.GetValue("version_manager", "selectedVersion");
+
+                if (string.IsNullOrEmpty(selectedVersion) && _versionselected != null)
+                    ini.WriteValue("version_manager", "versionSelected", _versionselected);
+
                 ini.WriteValue("general_settings", "checkForUpdates", "false");
                 ini.WriteValue("general_settings", "showChangeLog", "false");
 
@@ -273,5 +334,122 @@ namespace EmulatorLauncher
 
             return 1.ToString();
         }
+
+        private string GetShadPS4Executable(string path)
+        {
+            string requestedVersion = null;
+
+            if (SystemConfig.isOptSet("shadps4_version") && !string.IsNullOrEmpty(SystemConfig["shadps4_version"]))
+                requestedVersion = SystemConfig["shadps4_version"];
+
+            if (requestedVersion == "default")
+                _default = true;
+
+            string jsonFile = Path.Combine(path, "launcher", "versions.json");
+            if (!File.Exists(jsonFile))
+            {
+                SimpleLogger.Instance.Warning("versions.json not found!");
+                string exeFile = Directory.GetFiles(path, "*", SearchOption.AllDirectories).FirstOrDefault(f => Path.GetFileName(f).Equals("shadPS4.exe", StringComparison.OrdinalIgnoreCase) && (requestedVersion == null || Path.GetDirectoryName(f).Contains(requestedVersion)));
+
+                if (exeFile != null)
+                    return exeFile;
+                else
+                    return null;
+            }
+            else
+            {
+                List<ShadPS4Version> versions = null;
+                try
+                {
+                    var json = File.ReadAllText(jsonFile);
+                    versions = JsonConvert.DeserializeObject<List<ShadPS4Version>>(json);
+
+                    var versionRegex = new Regex(@"v\.?(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)", RegexOptions.IgnoreCase);
+
+                    var parsed = versions.Select(v =>
+                    {
+                        Version ver = null;
+                        var match = versionRegex.Match(v.name ?? "");
+                        if (match.Success)
+                        {
+                            ver = new Version(
+                                int.Parse(match.Groups["major"].Value),
+                                int.Parse(match.Groups["minor"].Value),
+                                int.Parse(match.Groups["patch"].Value));
+                        }
+
+                        DateTime.TryParse(v.date, out var parsedDate);
+                        return new
+                        {
+                            Entry = v,
+                            Version = ver,
+                            Date = parsedDate
+                        };
+                    }).ToList();
+
+                    dynamic target = null;
+
+                    // If user requested something specific
+                    if (!string.IsNullOrEmpty(requestedVersion))
+                    {
+                        if (requestedVersion.Equals("pre-release", StringComparison.OrdinalIgnoreCase))
+                        {
+                            target = parsed
+                                .Where(x => x.Entry.type == 1)
+                                .OrderByDescending(x => x.Date)
+                                .FirstOrDefault();
+                        }
+                        else
+                        {
+                            target = parsed.FirstOrDefault(x =>
+                                x.Version != null && x.Version.ToString() == requestedVersion);
+                        }
+                    }
+
+                    if (target == null)
+                    {
+                        target = parsed
+                            .Where(x => x.Version != null)
+                            .OrderByDescending(x => x.Version)
+                            .FirstOrDefault();
+                    }
+
+                    if (target == null)
+                    {
+                        string exeFile = Directory.GetFiles(path, "*", SearchOption.AllDirectories).FirstOrDefault(f => Path.GetFileName(f).Equals("shadPS4.exe", StringComparison.OrdinalIgnoreCase) && (requestedVersion == null || Path.GetDirectoryName(f).Contains(requestedVersion)));
+
+                        if (exeFile != null)
+                            return exeFile;
+                        else
+                            return null;
+                    }
+
+                    else
+                    {
+                        _versionselected = target.Entry.path;
+
+                        if ((target.Entry.path).StartsWith("./"))
+                            return Path.Combine(path, target.Entry.path.Replace("./", "").Replace("/", "\\"));
+                        else
+                            return target.Entry.path;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error parsing versions.json: {ex.Message}");
+                }
+            }
+            
+            return null;
+        }
+    }
+
+    public class ShadPS4Version
+    {
+        public string codename { get; set; }
+        public string date { get; set; }
+        public string name { get; set; }
+        public string path { get; set; }
+        public int type { get; set; } // 1 = Pre-release, 0 = Stable
     }
 }
