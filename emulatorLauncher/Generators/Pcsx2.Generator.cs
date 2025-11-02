@@ -586,10 +586,10 @@ namespace EmulatorLauncher
                 ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");
 
                 // Message positions
-                ini.WriteValue("EmuCore/GS", "OsdMessagesPos", "8");
-                ini.WriteValue("EmuCore/GS", "OsdPerformancePos", "2");
+                BindIniFeature(ini, "EmuCore/GS", "OsdMessagesPos", "pcsx2_osdposition", "8");
+                BindIniFeature(ini, "EmuCore/GS", "OsdPerformancePos", "pcsx2_perfposition", "2");
+                BindIniFeature(ini, "Achievements", "NotificationPosition", "pcsx2_achievposition", "2");
                 ini.WriteValue("Achievements", "OverlayPosition", "7");
-                ini.WriteValue("Achievements", "NotificationPosition", "2");
 
                 // Enable cheevos is needed
                 if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
