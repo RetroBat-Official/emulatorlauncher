@@ -1631,10 +1631,15 @@ namespace EmulatorLauncher
 
         private void ConfigureXash3d(List<string> commandArray, string rom)
         {
+            List<string> args = new List<string>();
+
             if (_emulator != "xash3d")
                 return;
 
             string rompath = Path.Combine(AppConfig.GetFullPath("roms"), "halflife");
+
+            // Copy emulator to roms folder
+            CopyFolderContent(_path, rompath);
 
             // Set environment variable for xash3d base directory
             Environment.SetEnvironmentVariable("XASH3D_BASEDIR", rompath, EnvironmentVariableTarget.User);
@@ -1718,6 +1723,41 @@ namespace EmulatorLauncher
             glcfg.Save();
         }
         #endregion
+
+        private static void CopyFolderContent(string sourceDir, string destDir)
+        {
+            try { Directory.CreateDirectory(destDir); } catch { }
+
+            foreach (var sourceFile in Directory.GetFiles(sourceDir))
+            {
+                string fileName = Path.GetFileName(sourceFile);
+                string destFile = Path.Combine(destDir, fileName);
+
+                bool shouldCopy = false;
+
+                if (!File.Exists(destFile))
+                {
+                    shouldCopy = true; // doesn't exist — copy it
+                }
+                else
+                {
+                    DateTime srcTime = File.GetLastWriteTimeUtc(sourceFile);
+                    DateTime dstTime = File.GetLastWriteTimeUtc(destFile);
+
+                    // Compare by time (within 2-second tolerance to avoid FAT/NTFS rounding)
+                    if (Math.Abs((srcTime - dstTime).TotalSeconds) > 2)
+                        shouldCopy = true;
+                }
+
+                if (shouldCopy)
+                {
+                    File.Copy(sourceFile, destFile, true);
+                    SimpleLogger.Instance.Info($"[INFO] Copied file: {destFile}");
+                }
+            }
+
+            SimpleLogger.Instance.Info($"[INFO] Copy Complete");
+        }
     }
 
     #region dhew3 config class
