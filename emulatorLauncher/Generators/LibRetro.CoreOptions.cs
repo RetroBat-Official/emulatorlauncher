@@ -4992,7 +4992,8 @@ namespace EmulatorLauncher.Libretro
             // vice_xplus4 specific features
             else if (core == "vice_xplus4")
             {
-                BindFeature(coreSettings, "vice_plus4_model", "vice_plus4_model", "PLUS4 PAL");
+                bool c16 = system == "c16";
+                BindFeature(coreSettings, "vice_plus4_model", "vice_plus4_model", c16 ? "C16 PAL" : "PLUS4 PAL");
                 BindFeature(coreSettings, "vice_plus4_external_palette", "vice_plus4_external_palette", "colodore_ted");
             }
 
