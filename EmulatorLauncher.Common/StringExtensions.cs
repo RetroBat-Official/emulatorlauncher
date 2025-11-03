@@ -178,7 +178,7 @@ namespace EmulatorLauncher.Common
             return ret.ToString().Trim();
         }
 
-        public static string QuoteString(string name, bool force = false)
+        public static string QuoteString(this string name, bool force = false)
         {
             if (string.IsNullOrEmpty(name))
                 return "\"\"";
