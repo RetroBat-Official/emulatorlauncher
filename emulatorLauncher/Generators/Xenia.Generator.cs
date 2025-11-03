@@ -222,12 +222,17 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("xenia_d3d12_debug"))
                         ini.AppendValue("D3D12", "d3d12_debug", "false");
 
-                    //Display section
-                    string fxaa = StringExtensions.QuoteString(SystemConfig["postprocess_antialiasing"], true);
+                    // Display section
                     if (SystemConfig.isOptSet("postprocess_antialiasing") && !string.IsNullOrEmpty(SystemConfig["postprocess_antialiasing"]))
-                        ini.AppendValue("Display", "postprocess_antialiasing", fxaa);
+                        ini.AppendValue("Display", "postprocess_antialiasing", SystemConfig["postprocess_antialiasing"].QuoteString(true));
                     else if (Features.IsSupported("postprocess_antialiasing"))
                         ini.AppendValue("Display", "postprocess_antialiasing", "\"\"");
+
+                    // Scaling filter
+                    if (SystemConfig.isOptSet("postprocess_scaling_and_sharpening") && !string.IsNullOrEmpty(SystemConfig["postprocess_scaling_and_sharpening"]))
+                        ini.AppendValue("Display", "postprocess_antialiasing", SystemConfig["postprocess_scaling_and_sharpening"].QuoteString(true));
+                    else if (Features.IsSupported("postprocess_scaling_and_sharpening"))
+                        ini.AppendValue("Display", "postprocess_scaling_and_sharpening", "\"\"");
 
                     // Resolution
                     if (SystemConfig.isOptSet("xenia_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_resolution"]))
