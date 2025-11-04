@@ -1761,11 +1761,11 @@
     "name": "Super A Can",
     "biosFiles": [
       {
-        "md5": "f8fb3fac59db534a3ba099a9f232e733",
+        "md5": "",
         "file": "bios/supracan.zip"
       },
       {
-        "md5": "da6cebe6b22a91a34a67074adbbec3a3",
+        "md5": "",
         "file": "bios/umc6650.zip"
       },
       {

@@ -31,6 +31,8 @@ namespace RetrobatUpdater
                 if (string.IsNullOrEmpty(branch))
                     branch = "stable";
 
+                string localZipFile = args.SkipWhile(a => a != "-uselocalzip").Skip(1).FirstOrDefault();
+
                 string localVersion = RetrobatVersion.GetLocalVersion();
                 if (string.IsNullOrEmpty(localVersion))
                 {
@@ -78,25 +80,43 @@ namespace RetrobatUpdater
                 }
                 catch { SimpleLogger.Instance.Error("[ERROR] Unable to create temp folder: " + tempDirectory); }
 
-                // Download Zip Archive
+                string file = null;
                 int lastPercent = -1;
-                SimpleLogger.Instance.Info("[INFO] Downloading update from: " + url);
-                string file = WebTools.DownloadFile(url, tempDirectory, (o, e) =>
-                {
-                    int percent = e.ProgressPercentage;
-                    if (percent != lastPercent)
-                    {
-                        ConsoleOutput("Downloading >>> " + percent.ToString() + "%");
-                        lastPercent = percent;
-                    }
-                });
 
-                if (string.IsNullOrEmpty(file))
+                if (!string.IsNullOrEmpty(localZipFile))
                 {
-                    SimpleLogger.Instance.Error("[ERROR] Failed to download update");
-                    ConsoleOutput("Failed to download update");
-                    return 1;
-                }       
+                    if (File.Exists(localZipFile))
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Using local update file: " + localZipFile);
+                        file = localZipFile;
+                    }
+                    else
+                    {
+                        SimpleLogger.Instance.Error("[WARN] Local zip file not found: " + localZipFile + " — falling back to online download.");
+                    }
+                }
+                else
+                {
+                    // Download Zip Archive
+                    lastPercent = -1;
+                    SimpleLogger.Instance.Info("[INFO] Downloading update from: " + url);
+                    file = WebTools.DownloadFile(url, tempDirectory, (o, e) =>
+                    {
+                        int percent = e.ProgressPercentage;
+                        if (percent != lastPercent)
+                        {
+                            ConsoleOutput("Downloading >>> " + percent.ToString() + "%");
+                            lastPercent = percent;
+                        }
+                    });
+
+                    if (string.IsNullOrEmpty(file))
+                    {
+                        SimpleLogger.Instance.Error("[ERROR] Failed to download update");
+                        ConsoleOutput("Failed to download update");
+                        return 1;
+                    }
+                }
 
                 // Extract zip archive
                 lastPercent = -1;
