@@ -376,7 +376,7 @@ namespace EmulatorLauncher
             else if (_gameLauncher != null) 
                 return _gameLauncher.SetupCustomPadToKeyMapping(mapping);
 
-            else if (_systemName != "mugen" || _systemName != "ikemen" || string.IsNullOrEmpty(_exename))
+            else if ((_systemName != "mugen" || _systemName != "ikemen") && string.IsNullOrEmpty(_exename))
                 return mapping;
 
             return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");

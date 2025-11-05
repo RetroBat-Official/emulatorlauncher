@@ -277,6 +277,8 @@ namespace EmulatorLauncher
                         cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, updatedValue ?? button.Value, joy, index);
                         continue;
                     }
+                    else
+                        continue;
                 }
 
                 else if (p2strings.Contains(button.Key))
@@ -286,6 +288,8 @@ namespace EmulatorLauncher
                         cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, updatedValue ?? button.Value, joy, index);
                         continue;
                     }
+                    else
+                        continue;
                 }
 
                 else if (p3strings.Contains(button.Key))
@@ -295,6 +299,8 @@ namespace EmulatorLauncher
                         cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, updatedValue ?? button.Value, joy, index);
                         continue;
                     }
+                    else
+                        continue;
                 }
 
                 else if (p4strings.Contains(button.Key))
@@ -304,6 +310,8 @@ namespace EmulatorLauncher
                         cfg["input  " + "\"" + button.Key + "\""] = GetDinputMapping(dinputCtrl, updatedValue ?? button.Value, joy, index);
                         continue;
                     }
+                    else
+                        continue;
                 }
 
                 if (gunValues.Contains(button.Value))
