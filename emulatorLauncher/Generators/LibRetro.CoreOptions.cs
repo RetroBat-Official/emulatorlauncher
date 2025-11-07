@@ -558,6 +558,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "4do_controller2", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p3", "4do_controller3", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p4", "4do_controller4", "1");
+            if (SystemConfig["4do_controller2"] == "2")
+                retroarchConfig["input_player2_mouse_index"] = "0";
 
             // Lightgun
             SetupLightGuns(retroarchConfig, "260", core);
@@ -863,6 +865,8 @@ namespace EmulatorLauncher.Libretro
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "SnesControllerP1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "SnesControllerP2", "1");
+            if (SystemConfig["SnesControllerP2"] == "2")
+                retroarchConfig["input_player2_mouse_index"] = "0";
 
             // Gun configuration only for bsnes as bsnes_hd_beta does not have lightgun
             if (SystemConfig.getOptBoolean("use_guns"))
@@ -892,6 +896,12 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "bsnes_jg_rsqual", "bsnes_jg_rsqual", "fast");
             BindFeatureSlider(coreSettings, "bsnes_jg_runahead", "bsnes_jg_runahead", "0");
             BindBoolFeature(coreSettings, "bsnes_jg_hotfixes", "bsnes_jg_hotfixes", "on", "off");
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "SnesControllerP1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "SnesControllerP2", "1");
+            if (SystemConfig["SnesControllerP2"] == "2")
+                retroarchConfig["input_player2_mouse_index"] = "0";
 
             // Gun configuration
             if (SystemConfig.getOptBoolean("use_guns"))
@@ -2703,6 +2713,8 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "pce_multitap", "pce_multitap", "enabled", "disabled");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pce_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "pce_controller2", "1");
+            if (SystemConfig["pce_controller2"] == "2")
+                retroarchConfig["input_player2_mouse_index"] = "0";
 
             if (SystemConfig.isOptSet("pce_6button") && SystemConfig.getOptBoolean("pce_6button"))
             {
@@ -2733,7 +2745,9 @@ namespace EmulatorLauncher.Libretro
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pce_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "pce_controller2", "1");
-            
+            if (SystemConfig["pce_controller2"] == "2")
+                retroarchConfig["input_player2_mouse_index"] = "0";
+
             if (SystemConfig.isOptSet("pce_6button") && SystemConfig.getOptBoolean("pce_6button"))
             {
                 for (int i = 1; i < 6; i++)
@@ -2759,6 +2773,8 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pcfx_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "pcfx_controller2", "1");
+            if (SystemConfig["pcfx_controller2"] == "2")
+                retroarchConfig["input_player2_mouse_index"] = "0";
         }
 
         private void ConfigureMednafenPsxHW(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2876,6 +2892,8 @@ namespace EmulatorLauncher.Libretro
                 else
                     retroarchConfig["input_libretro_device_p" + i] = "1";
             }
+            if (SystemConfig["mednafen_controller_p2"] == "258")
+                retroarchConfig["input_player2_mouse_index"] = "0";
 
             if (SystemConfig.isOptSet("mednafen_controller_p4") && !string.IsNullOrEmpty(SystemConfig["mednafen_controller_p4"]))
             {
@@ -2979,6 +2997,8 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(retroarchConfig, "input_libretro_device_p1", "supergrafx_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "supergrafx_controller2", "1");
+            if (SystemConfig["supergrafx_controller2"] == "2")
+                retroarchConfig["input_player2_mouse_index"] = "0";
 
             if (SystemConfig.isOptSet("sgx_6button") && SystemConfig.getOptBoolean("sgx_6button"))
             {
@@ -3095,6 +3115,8 @@ namespace EmulatorLauncher.Libretro
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "mesen_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "mesen_controller2", "1");
+            if (SystemConfig["mesen_controller2"] == "770")
+                retroarchConfig["input_player2_mouse_index"] = "0";
 
             SetupLightGuns(retroarchConfig, "262", core, 2);
         }
@@ -3794,6 +3816,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "opera_controller2", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p3", "opera_controller3", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p4", "opera_controller4", "1");
+            if (SystemConfig["opera_controller2"] == "2")
+                retroarchConfig["input_player2_mouse_index"] = "0";
 
             // Lightgun
             SetupLightGuns(retroarchConfig, "260", core);
@@ -3944,6 +3968,8 @@ namespace EmulatorLauncher.Libretro
                 else
                     retroarchConfig["input_libretro_device_p" + i] = "1";
             }
+            if (SystemConfig["pcsx_controller_p2"] == "258")
+                retroarchConfig["input_player2_mouse_index"] = "0";
 
             if (SystemConfig.isOptSet("pcsx_controller_p4") && !string.IsNullOrEmpty(SystemConfig["pcsx_controller_p4"]))
             {
@@ -4723,6 +4749,8 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(retroarchConfig, "input_libretro_device_p1", "SnesControllerP1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "SnesControllerP2", "1");
+            if (SystemConfig["SnesControllerP2"] == "2")
+                retroarchConfig["input_player2_mouse_index"] = "0";
 
             if (Controllers.Count > 2)
             {
@@ -4881,6 +4909,8 @@ namespace EmulatorLauncher.Libretro
                 else
                     retroarchConfig["input_libretro_device_p" + i] = "1";
             }
+            if (SystemConfig["swanstation_controller_p2"] == "258")
+                retroarchConfig["input_player2_mouse_index"] = "0";
 
             if (SystemConfig.isOptSet("swanstation_controller_p4") && !string.IsNullOrEmpty(SystemConfig["swanstation_controller_p4"]))
             {
