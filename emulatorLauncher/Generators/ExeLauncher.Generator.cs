@@ -775,7 +775,8 @@ namespace EmulatorLauncher
             var match = Regex.Match(content, @"(?:""([^""]+\.exe)""|([^\s]+\.exe))", RegexOptions.IgnoreCase);
             if (match.Success && !content.Contains("tasklist|findstr"))
             {
-                executableName = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
+                var path = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
+                executableName = Path.GetFileNameWithoutExtension(path);
                 return true;
             }
             return false;
