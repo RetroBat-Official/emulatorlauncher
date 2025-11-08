@@ -661,8 +661,10 @@ namespace EmulatorLauncher
                         else
                         {
                             SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
-                            Process game = gamelist.OrderBy(p => p.StartTime).FirstOrDefault();
-                            game.WaitForExit();
+                            while (Process.GetProcessesByName(_exename).Any())
+                            {
+                                Thread.Sleep(1000);
+                            }
                         }
                         return 0;
                     }

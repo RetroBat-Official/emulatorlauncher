@@ -92,7 +92,7 @@ namespace EmulatorLauncher
             SetupGeneralConfig(path, system, emulator, core, rom);
             SetupGfxConfig(path);
             SetupStateSlotConfig(path);
-            SetupCheevos(path);
+            SetupCheevos(path, system);
 
             if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
                 rom = rom.Replace("\\", "/");
@@ -314,16 +314,17 @@ namespace EmulatorLauncher
             catch { }
         }
 
-        private void SetupCheevos(string path)
+        private void SetupCheevos(string path, string system)
         {
             string iniFile = Path.Combine(path, "User", "Config", "RetroAchievements.ini");
+            List<string> cheevosSystems = new List<string>() { "gc", "gamecube" };
 
             try
             {
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     // Enable cheevos is needed
-                    if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
+                    if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && cheevosSystems.Contains(system))
                     {
                         ini.WriteValue("Achievements", "Enabled", "True");
                         ini.WriteValue("Achievements", "EncoreEnabled", SystemConfig.getOptBoolean("retroachievements.encore") ? "True" : "False");

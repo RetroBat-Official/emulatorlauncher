@@ -250,6 +250,8 @@ namespace EmulatorLauncher
 
                 //audio
                 BindBoolIniFeature(ini, "audio", "use_dsp", "xemu_dsp", "true", "false");
+
+                ini.Save();
             }
 
             // Write xbox bios settings in eeprom.bin file
