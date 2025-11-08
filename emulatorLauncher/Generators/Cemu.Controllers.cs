@@ -692,14 +692,12 @@ namespace EmulatorLauncher
                         switch (screenButton)
                         {
                             case "leftstick":
-                                WriteMapping("26", InputKey.l3, false);
+                                WriteMapping("25", InputKey.l3, false);
                                 break;
                             case "rightstick":
-                                WriteMapping("26", InputKey.r3, false);
+                                WriteMapping("25", InputKey.r3, false);
                                 break;
-                            case "select":
-                                WriteMapping("26", InputKey.select, false);
-                                break;
+                            
                         }
                     }
 
@@ -710,10 +708,13 @@ namespace EmulatorLauncher
                         switch (micButton)
                         {
                             case "leftstick":
-                                WriteMapping("25", InputKey.l3, false);
+                                WriteMapping("26", InputKey.l3, false);
                                 break;
                             case "rightstick":
-                                WriteMapping("25", InputKey.r3, false);
+                                WriteMapping("26", InputKey.r3, false);
+                                break;
+                            case "select":
+                                WriteMapping("26", InputKey.select, false);
                                 break;
                         }
                     }
