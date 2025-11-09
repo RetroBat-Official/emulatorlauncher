@@ -33,7 +33,7 @@ ResetConfigMode=0
 Autostart=0
 
 ; Set the Start Delay for RetroBat to start automatically at startup (in milliseconds).
-AutoStartDelay=1000
+AutoStartDelay=0
 
 ; Run WiimoteGun at RetroBat's startup. You can use your wiimote as a gun and navigate through EmulationStation.
 WiimoteGun=0
