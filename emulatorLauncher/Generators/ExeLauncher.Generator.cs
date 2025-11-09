@@ -772,6 +772,10 @@ namespace EmulatorLauncher
         private bool GetExecutableName(string batFilePath, out string executableName)
         {
             executableName = null;
+
+            if (SystemConfig.getOptBoolean("batexesearch"))
+                return false;
+
             var content = File.ReadAllText(batFilePath);
 
             var match = Regex.Match(content, @"(?:""([^""]+\.exe)""|([^\s]+\.exe))", RegexOptions.IgnoreCase);
