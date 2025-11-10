@@ -26,6 +26,7 @@ namespace EmulatorLauncher
             // Keep alphabetical order
 
             ConfigureBStone(commandArray, rom);
+            ConfigureBSyndrome(commandArray, rom);
             ConfigureCDogs(commandArray, rom);
             Configurecgenius(commandArray, rom);
             Configurecorsixth(commandArray, rom);
@@ -124,6 +125,35 @@ namespace EmulatorLauncher
             }
 
             cfg.Save();
+        }
+
+        private void ConfigureBSyndrome(List<string> commandArray, string rom)
+        {
+            if (_emulator != "bsyndrome")
+                return;
+
+            // Get romPath
+            string dataDir = Path.Combine(Path.GetDirectoryName(rom), "DATA");
+            if (!Directory.Exists(dataDir))
+                throw new ApplicationException("DATA folder not found in roms\\bsyndrome\\DATA.");
+
+            string arg1 = "--datapath=\"" + dataDir + "\"";
+            commandArray.Add(arg1);
+
+            // SAVESPATH
+            string savesDir = Path.Combine(AppConfig.GetFullPath("saves"), "bsyndrome");
+            if (!Directory.Exists(dataDir))
+                try { Directory.CreateDirectory(savesDir); } catch { }
+
+            string arg2 = "--savepath=\"" + savesDir + "\"";
+            commandArray.Add(arg2);
+
+            // Settings file update
+            if (_fullscreen)
+                commandArray.Add("--fullscreen");
+
+            if (SystemConfig.isOptSet("bsyndrome_aspect") && !string.IsNullOrEmpty(SystemConfig["bsyndrome_aspect"]))
+                commandArray.Add("--widescreen=" + SystemConfig["bsyndrome_aspect"]);
         }
 
         private void ConfigureCDogs(List<string> commandArray, string rom)
