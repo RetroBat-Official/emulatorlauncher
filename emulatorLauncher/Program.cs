@@ -54,6 +54,7 @@ namespace EmulatorLauncher
             { "bigpemu", () => new BigPEmuGenerator() },
             { "bizhawk", () => new BizhawkGenerator() },
             { "bstone", () => new BStoneGenerator() },
+            { "bsyndrome", () => new BSyndromeGenerator() },
             { "capriceforever", () => new CapriceForeverGenerator() },
             { "cdogs", () => new CDogsGenerator() },
             { "cemu", () => new CemuGenerator() },

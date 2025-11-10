@@ -272,7 +272,7 @@ namespace EmulatorLauncher
                 else if (File.Exists(Path.Combine(rom, "autoexec.bat")))
                     rom = Path.Combine(rom, "autoexec.bat");
                 else
-                    rom = Directory.GetFiles(path, "*.exe").FirstOrDefault();
+                    rom = Directory.GetFiles(path, "*.exe").Where(f => !f.ToLowerInvariant().Contains("uninst")).FirstOrDefault();
 
                 if (Path.GetFileName(rom) == "autorun.cmd")
                 {
