@@ -142,13 +142,21 @@ namespace EmulatorLauncher
 
             // SAVESPATH
             string savesDir = Path.Combine(AppConfig.GetFullPath("saves"), "bsyndrome");
-            if (!Directory.Exists(dataDir))
+            if (!Directory.Exists(savesDir))
                 try { Directory.CreateDirectory(savesDir); } catch { }
 
             string arg2 = "--savepath=\"" + savesDir + "\"";
             commandArray.Add(arg2);
 
-            // Settings file update
+            // MUSICPATH
+            string musicDir = Path.Combine(AppConfig.GetFullPath("bios"), "bsyndrome", "MUSIC");
+            if (!Directory.Exists(musicDir))
+                try { Directory.CreateDirectory(musicDir); } catch { }
+
+            string arg3 = "--musicpath=\"" + musicDir + "\"";
+            commandArray.Add(arg3);
+
+            // Other command lines
             if (_fullscreen)
                 commandArray.Add("--fullscreen");
 
