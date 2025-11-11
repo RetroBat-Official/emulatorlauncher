@@ -473,7 +473,16 @@ namespace EmulatorLauncher
         // If .gameexe is used, the function to get the process name via launcher specific search is disabled
         private bool GetProcessFromFile(string rom)
         {
-            string executableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".gameexe");
+            string dir = Path.GetDirectoryName(rom);
+            string file = Path.GetFileNameWithoutExtension(rom);
+
+            if (string.IsNullOrEmpty(dir))
+                dir = rom;
+
+            if (string.IsNullOrEmpty(file))
+                file = "default";
+
+            string executableFile = Path.Combine(dir, file + ".gameexe");
 
             if (!File.Exists(executableFile))
                 return false;
