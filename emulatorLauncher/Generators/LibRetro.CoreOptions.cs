@@ -4651,15 +4651,6 @@ namespace EmulatorLauncher.Libretro
                             ini.WriteValue("scummvm", "speech_mute", "false");
                             ini.WriteValue("scummvm", "subtitles", "true");
                         }
-
-                        /* Render mode options through scummvm menu seems having no effects for now.
-                         * May be will be usefull later.
-                         
-                        if (SystemConfig.isOptSet("render_mode"))
-                            ini.WriteValue("scummvm", "render_mode", SystemConfig["render_mode"]);
-                        else
-                            ini.Remove("scummvm", "render_mode");
-                        */
                     }
                 }
             }

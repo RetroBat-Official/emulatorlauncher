@@ -642,7 +642,7 @@ namespace EmulatorLauncher
                 if (!File.Exists(Path.Combine(biosPath, biosFile)))             // if default does not exist, select first one that exists
                     biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, b)));
 
-                if (SystemConfig.isOptSet("pcsx2_forcebios") && !string.IsNullOrEmpty(SystemConfig["pcsx2_forcebios"]))                         // Precise bios to use through feature
+                if (SystemConfig.isOptSet("pcsx2_forcebios") && !string.IsNullOrEmpty(SystemConfig["pcsx2_forcebios"]))       // Precise bios to use through feature
                 {
                     string checkBiosFile = Path.Combine(biosPath, SystemConfig["pcsx2_forcebios"]);
                     if (File.Exists(checkBiosFile))
