@@ -881,6 +881,13 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["system_directory"] = AppConfig.GetFullPath("bios");
                 else if (retroarchConfig["system_directory"] != @":\system" && !Directory.Exists(retroarchConfig["system_directory"]))
                     retroarchConfig["system_directory"] = @":\system";
+
+                if (SystemConfig.isOptSet("bios_overrides") && !string.IsNullOrEmpty(SystemConfig["bios_overrides"]))
+                {
+                    string biosOverridePath = SystemConfig["bios_overrides"];
+                    if (Directory.Exists(biosOverridePath))
+                        retroarchConfig["system_directory"] = biosOverridePath;
+                }
             }
 
             if (!string.IsNullOrEmpty(AppConfig["thumbnails"]))
