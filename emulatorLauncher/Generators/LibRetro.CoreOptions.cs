@@ -5006,7 +5006,7 @@ namespace EmulatorLauncher.Libretro
             // vice_x64 specific features
             if (core == "vice_x64" || core == "vice_x64sc")
             {
-                BindFeature(coreSettings, "vice_c64_model", "c64_model", "C64 PAL auto");
+                BindFeature(coreSettings, "vice_c64_model", "c64_model", "C64 NTSC auto");
                 BindFeature(coreSettings, "vice_ram_expansion_unit", "vice_ram_expansion_unit", "none");
                 BindFeature(coreSettings, "vice_external_palette", "vice_external_palette", "colodore");
             }
@@ -5014,7 +5014,7 @@ namespace EmulatorLauncher.Libretro
             // vice_xvic specific features
             else if (core == "vice_xvic")
             {
-                BindFeature(coreSettings, "vice_vic20_model", "vic20_model", "VIC20 PAL auto");
+                BindFeature(coreSettings, "vice_vic20_model", "vic20_model", "VIC20 NTSC auto");
                 BindFeature(coreSettings, "vice_vic20_memory_expansions", "vic20_memexpansion", "none");
                 BindFeature(coreSettings, "vice_vic20_external_palette", "vic20_palette", "colodore_vic");
             }
@@ -5023,14 +5023,14 @@ namespace EmulatorLauncher.Libretro
             else if (core == "vice_xplus4")
             {
                 bool c16 = system == "c16";
-                BindFeature(coreSettings, "vice_plus4_model", "vice_plus4_model", c16 ? "C16 PAL" : "PLUS4 PAL");
+                BindFeature(coreSettings, "vice_plus4_model", "vice_plus4_model", c16 ? "C16 NTSC" : "PLUS4 NTSC");
                 BindFeature(coreSettings, "vice_plus4_external_palette", "vice_plus4_external_palette", "colodore_ted");
             }
 
             // vice_x128 specific features
             else if (core == "vice_x128")
             {
-                BindFeature(coreSettings, "vice_c128_model", "vice_c128_model", "C128 PAL");
+                BindFeature(coreSettings, "vice_c128_model", "vice_c128_model", "C128 NTSC");
                 BindFeature(coreSettings, "vice_c128_ram_expansion_unit", "vice_c128_ram_expansion_unit", "none");
                 BindFeature(coreSettings, "vice_external_palette", "vice_external_palette", "colodore");
             }
