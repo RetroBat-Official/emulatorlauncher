@@ -11,6 +11,8 @@ namespace EmulatorLauncher
 {
     partial class RyujinxGenerator : Generator
     {
+        private List<Sdl3GameController> _sdl3Controllers = new List<Sdl3GameController>();
+
         /// <summary>
         /// cf. https://github.com/Ryujinx/Ryujinx/blob/master/src/Ryujinx.SDL2.Common/SDL2Driver.cs#L56
         /// </summary>
@@ -56,6 +58,12 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Ryujinx");
 
             UpdateSdlControllersWithHints();
+
+            // Check SDL3 dll Get list of SDL3 controllers
+            bool sdl3 = Controller.CheckSDL3dll();
+
+            if (sdl3 && Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
+                _sdl3Controllers = Sdl3Controllers;
 
             //clear existing input_config section to avoid the same controller mapped to different players because of past mapping
             json.input_config = new Newtonsoft.Json.Linq.JArray();
@@ -366,7 +374,14 @@ namespace EmulatorLauncher
             }
 
             // Invert button positions for XBOX controllers
-            if (c.IsXInputDevice && Program.SystemConfig.isOptSet("ryujinx_gamepadbuttons") && Program.SystemConfig.getOptBoolean("ryujinx_gamepadbuttons"))
+            if (c.IsXInputDevice && Program.SystemConfig.getOptBoolean("ryujinx_gamepadbuttons"))
+            {
+                right_joycon["button_x"] = _sdl3 ? GetInputKeyName(c, InputKey.x, tech) : GetInputKeyName(c, InputKey.y, tech);
+                right_joycon["button_b"] = _sdl3 ? GetInputKeyName(c, InputKey.b, tech) : GetInputKeyName(c, InputKey.a, tech);
+                right_joycon["button_y"] = _sdl3 ? GetInputKeyName(c, InputKey.y, tech) : GetInputKeyName(c, InputKey.x, tech);
+                right_joycon["button_a"] = _sdl3 ? GetInputKeyName(c, InputKey.a, tech) : GetInputKeyName(c, InputKey.b, tech);
+            }
+            else if (_sdl3 && c.VendorID != USB_VENDOR.NINTENDO)
             {
                 right_joycon["button_x"] = GetInputKeyName(c, InputKey.y, tech);
                 right_joycon["button_b"] = GetInputKeyName(c, InputKey.a, tech);
@@ -404,9 +419,30 @@ namespace EmulatorLauncher
                 return;
             }
 
-            //guid = "03000000500400000002000000007200";
+            Sdl3GameController sdl3Controller = null;
+            if (_sdl3 && _sdl3Controllers.Count > 0)
+            {
+                string cPath = c.DirectInput.DevicePath;
+                
+                if (c.IsXInputDevice)
+                {
+                    cPath = "xinput#" + c.XInput.DeviceIndex.ToString();
+                    sdl3Controller = _sdl3Controllers.FirstOrDefault(j => j.Path.ToLowerInvariant() == cPath);
+                }
+                else
+                {
+                    sdl3Controller = _sdl3Controllers.FirstOrDefault(j => j.Path.ToLowerInvariant() == c.DirectInput.DevicePath);
+                }
+            }
 
             var newGuid = SdlJoystickGuidManager.FromSdlGuidString(guid);
+
+            if (sdl3Controller != null && sdl3Controller.GuidString != null)
+            {
+                guid = sdl3Controller.GuidString;
+                newGuid = SdlJoystickGuidManager.FromSdlGuidStringryujinx(guid);
+            }
+
             string ryuGuidString = newGuid.ToString();
 
             string overrideGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
@@ -418,7 +454,7 @@ namespace EmulatorLauncher
             }
 
             newInputConfig["version"] = 1;
-            newInputConfig["backend"] = "GamepadSDL2";
+            newInputConfig["backend"] = _sdl3 ? "GamepadSDL3" : "GamepadSDL2";
             newInputConfig["id"] = (index + "-" + ryuGuidString).ToString();
             newInputConfig["controller_type"] = playerType;
             newInputConfig["player_index"] = handheld ? "Handheld" : "Player" + playerIndex;

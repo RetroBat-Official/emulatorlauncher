@@ -18,6 +18,7 @@ namespace EmulatorLauncher
 
         private SdlVersion _sdlVersion = SdlVersion.SDL2_26;
         private string _emulatorPath;
+        private bool _sdl3 = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -58,6 +59,10 @@ namespace EmulatorLauncher
                 }
             }
             catch { }
+
+            string sdl3dll = Path.Combine(path, "SDL3.dll");
+            if (File.Exists(sdl3dll))
+                _sdl3 = true;
 
             string setupPath = Path.Combine(path, "portable");
 
