@@ -34,6 +34,7 @@ namespace EmulatorLauncher.Libretro
                 { "arduous", "Arduous" },
                 { "atari800", "Atari800" },
                 { "b2", "B2" },
+                { "bennugd", "Bennugd" },
                 { "bk", "bk" },
                 { "blastem", "BlastEm" },
                 { "bluemsx", "blueMSX" },
@@ -340,6 +341,7 @@ namespace EmulatorLauncher.Libretro
             Configurea5200(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureB2(retroarchConfig, coreSettings, system, core);
+            ConfigureBennuGD(retroarchConfig, coreSettings, system, core);
             ConfigureBoom3(retroarchConfig, coreSettings, system, core);
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
@@ -747,6 +749,15 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["b2_autoboot"] = "true";
             BindFeature(coreSettings, "b2_model", "b2_model", "B/Acorn 1770");
+        }
+
+        private void ConfigureBennuGD(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "bennugd")
+                return;
+
+            BindFeature(coreSettings, "bennugd_override_scaling", "bennugd_override_scaling", "off");
+            BindBoolFeature(coreSettings, "bennugd_force_frame_limiter", "bennugd_force_frame_limiter", "true", "false");
         }
 
         private void ConfigureBoom3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
