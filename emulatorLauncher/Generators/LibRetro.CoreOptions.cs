@@ -34,6 +34,7 @@ namespace EmulatorLauncher.Libretro
                 { "arduous", "Arduous" },
                 { "atari800", "Atari800" },
                 { "b2", "B2" },
+                { "bennugd", "Bennugd" },
                 { "bk", "bk" },
                 { "blastem", "BlastEm" },
                 { "bluemsx", "blueMSX" },
@@ -340,6 +341,7 @@ namespace EmulatorLauncher.Libretro
             Configurea5200(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureB2(retroarchConfig, coreSettings, system, core);
+            ConfigureBennuGD(retroarchConfig, coreSettings, system, core);
             ConfigureBoom3(retroarchConfig, coreSettings, system, core);
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
@@ -747,6 +749,15 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["b2_autoboot"] = "true";
             BindFeature(coreSettings, "b2_model", "b2_model", "B/Acorn 1770");
+        }
+
+        private void ConfigureBennuGD(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "bennugd")
+                return;
+
+            BindFeature(coreSettings, "bennugd_override_scaling", "bennugd_override_scaling", "off");
+            BindBoolFeature(coreSettings, "bennugd_force_frame_limiter", "bennugd_force_frame_limiter", "true", "false");
         }
 
         private void ConfigureBoom3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -4651,15 +4662,6 @@ namespace EmulatorLauncher.Libretro
                             ini.WriteValue("scummvm", "speech_mute", "false");
                             ini.WriteValue("scummvm", "subtitles", "true");
                         }
-
-                        /* Render mode options through scummvm menu seems having no effects for now.
-                         * May be will be usefull later.
-                         
-                        if (SystemConfig.isOptSet("render_mode"))
-                            ini.WriteValue("scummvm", "render_mode", SystemConfig["render_mode"]);
-                        else
-                            ini.Remove("scummvm", "render_mode");
-                        */
                     }
                 }
             }
@@ -5006,7 +5008,7 @@ namespace EmulatorLauncher.Libretro
             // vice_x64 specific features
             if (core == "vice_x64" || core == "vice_x64sc")
             {
-                BindFeature(coreSettings, "vice_c64_model", "c64_model", "C64 PAL auto");
+                BindFeature(coreSettings, "vice_c64_model", "c64_model", "C64 NTSC auto");
                 BindFeature(coreSettings, "vice_ram_expansion_unit", "vice_ram_expansion_unit", "none");
                 BindFeature(coreSettings, "vice_external_palette", "vice_external_palette", "colodore");
             }
@@ -5014,7 +5016,7 @@ namespace EmulatorLauncher.Libretro
             // vice_xvic specific features
             else if (core == "vice_xvic")
             {
-                BindFeature(coreSettings, "vice_vic20_model", "vic20_model", "VIC20 PAL auto");
+                BindFeature(coreSettings, "vice_vic20_model", "vic20_model", "VIC20 NTSC auto");
                 BindFeature(coreSettings, "vice_vic20_memory_expansions", "vic20_memexpansion", "none");
                 BindFeature(coreSettings, "vice_vic20_external_palette", "vic20_palette", "colodore_vic");
             }
@@ -5023,14 +5025,14 @@ namespace EmulatorLauncher.Libretro
             else if (core == "vice_xplus4")
             {
                 bool c16 = system == "c16";
-                BindFeature(coreSettings, "vice_plus4_model", "vice_plus4_model", c16 ? "C16 PAL" : "PLUS4 PAL");
+                BindFeature(coreSettings, "vice_plus4_model", "vice_plus4_model", c16 ? "C16 NTSC" : "PLUS4 NTSC");
                 BindFeature(coreSettings, "vice_plus4_external_palette", "vice_plus4_external_palette", "colodore_ted");
             }
 
             // vice_x128 specific features
             else if (core == "vice_x128")
             {
-                BindFeature(coreSettings, "vice_c128_model", "vice_c128_model", "C128 PAL");
+                BindFeature(coreSettings, "vice_c128_model", "vice_c128_model", "C128 NTSC");
                 BindFeature(coreSettings, "vice_c128_ram_expansion_unit", "vice_c128_ram_expansion_unit", "none");
                 BindFeature(coreSettings, "vice_external_palette", "vice_external_palette", "colodore");
             }

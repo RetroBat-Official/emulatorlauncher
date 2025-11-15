@@ -1110,7 +1110,6 @@ namespace EmulatorLauncher.Libretro
            { SDL.SDL_Keycode.SDLK_END, retro_key.RETROK_END },
            { SDL.SDL_Keycode.SDLK_PAGEUP, retro_key.RETROK_PAGEUP },
            { SDL.SDL_Keycode.SDLK_PAGEDOWN, retro_key.RETROK_PAGEDOWN },
-          
            { SDL.SDL_Keycode.SDLK_F1, retro_key.RETROK_F1 },
            { SDL.SDL_Keycode.SDLK_F2, retro_key.RETROK_F2 },
            { SDL.SDL_Keycode.SDLK_F3, retro_key.RETROK_F3 },

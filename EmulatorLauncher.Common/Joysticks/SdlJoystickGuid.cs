@@ -1,11 +1,12 @@
-﻿using System;
-using System.Linq;
-using System.Text;
+﻿using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
-using EmulatorLauncher.Common.FileFormats;
-using System.Collections.Generic;
 
 namespace EmulatorLauncher.Common.Joysticks
 {
@@ -413,6 +414,32 @@ namespace EmulatorLauncher.Common.Joysticks
                     "-" +
                     esGuidString.Substring(10, 2) +
                     esGuidString.Substring(8, 2) +
+                    "-" +
+                    esGuidString.Substring(14, 2) +
+                    esGuidString.Substring(12, 2) +
+                    "-" +
+                    esGuidString.Substring(16, 4) +
+                    "-" +
+                    esGuidString.Substring(20);
+
+                try { return new System.Guid(guid); }
+                catch { }
+            }
+
+            return Guid.Empty;
+        }
+
+        public static System.Guid FromSdlGuidStringryujinx(this string esGuidString)
+        {
+            if (esGuidString.Length == 32)
+            {
+                string guid =
+                    "0000" +
+                    esGuidString.Substring(4, 2) +
+                    esGuidString.Substring(6, 2) +
+                    "-" +
+                    esGuidString.Substring(8, 2) +
+                    esGuidString.Substring(10, 2) +
                     "-" +
                     esGuidString.Substring(14, 2) +
                     esGuidString.Substring(12, 2) +
