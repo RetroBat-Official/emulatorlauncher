@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
-using EmulatorLauncher.Common;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using static EmulatorLauncher.PadToKeyboard.SendKey;
 
 namespace EmulatorLauncher
 {
@@ -376,13 +377,6 @@ namespace EmulatorLauncher
             // Invert button positions for XBOX controllers
             if (c.IsXInputDevice && Program.SystemConfig.getOptBoolean("ryujinx_gamepadbuttons"))
             {
-                right_joycon["button_x"] = _sdl3 ? GetInputKeyName(c, InputKey.x, tech) : GetInputKeyName(c, InputKey.y, tech);
-                right_joycon["button_b"] = _sdl3 ? GetInputKeyName(c, InputKey.b, tech) : GetInputKeyName(c, InputKey.a, tech);
-                right_joycon["button_y"] = _sdl3 ? GetInputKeyName(c, InputKey.y, tech) : GetInputKeyName(c, InputKey.x, tech);
-                right_joycon["button_a"] = _sdl3 ? GetInputKeyName(c, InputKey.a, tech) : GetInputKeyName(c, InputKey.b, tech);
-            }
-            else if (_sdl3 && c.VendorID != USB_VENDOR.NINTENDO)
-            {
                 right_joycon["button_x"] = GetInputKeyName(c, InputKey.y, tech);
                 right_joycon["button_b"] = GetInputKeyName(c, InputKey.a, tech);
                 right_joycon["button_y"] = GetInputKeyName(c, InputKey.x, tech);
@@ -437,10 +431,14 @@ namespace EmulatorLauncher
 
             var newGuid = SdlJoystickGuidManager.FromSdlGuidString(guid);
 
-            if (sdl3Controller != null && sdl3Controller.GuidString != null)
+            if (!c.IsXInputDevice && sdl3Controller != null && sdl3Controller.GuidString != null)
             {
-                guid = sdl3Controller.GuidString;
-                newGuid = SdlJoystickGuidManager.FromSdlGuidStringryujinx(guid);
+                guid = sdl3Controller.GuidString.Remove(4, 4).Insert(4, "0000");
+                newGuid = SdlJoystickGuidManager.FromSdlGuidString(guid);
+            }
+            else if (_sdl3 && c.SdlWrappedTechID == SdlWrappedTechId.RawInput && c.XInput != null)
+            {
+                newGuid = c.Guid.ToXInputGuid(c.XInput.SubType);
             }
 
             string ryuGuidString = newGuid.ToString();
