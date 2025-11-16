@@ -82,6 +82,10 @@ namespace EmulatorLauncher
                     wiiMapping[InputKey.start] = "Buttons/+";
                     wiiMapping[InputKey.pageup] = "Tilt/Left";
                     wiiMapping[InputKey.pagedown] = "Tilt/Right";
+                    wiiMapping.RemoveAll(x => x.Key == InputKey.joystick1up);
+                    wiiMapping.RemoveAll(x => x.Key == InputKey.joystick1left);
+                    wiiMapping.RemoveAll(x => x.Key == InputKey.joystick2up);
+                    wiiMapping.RemoveAll(x => x.Key == InputKey.joystick2left);
                 }
 
                 // i: infrared, s: swing, t: tilt, n: nunchuk
@@ -636,8 +640,11 @@ namespace EmulatorLauncher
 
                             if(anyReverseAxes.TryGetValue(value, out string reverseAxis))
                             {
-                                var revertKey = joyRevertAxis[x.Key];
-                                ini.WriteValue(gcpad, reverseAxis, dolphinSDLMapping[revertKey]);
+                                if (joyRevertAxis.ContainsKey(x.Key))
+                                {
+                                    var revertKey = joyRevertAxis[x.Key];
+                                    ini.WriteValue(gcpad, reverseAxis, dolphinSDLMapping[revertKey]);
+                                }
                             }
                         }
                     }
@@ -753,8 +760,11 @@ namespace EmulatorLauncher
 
                             if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
                             {
-                                var revertKey = joyRevertAxis[y.Value];
-                                ini.WriteValue(gcpad, reverseAxis, dolphinSDLMapping[revertKey]);
+                                if (joyRevertAxis.ContainsKey(y.Value))
+                                {
+                                    var revertKey = joyRevertAxis[y.Value];
+                                    ini.WriteValue(gcpad, reverseAxis, dolphinSDLMapping[revertKey]);
+                                }
                             }
                         }
                     }
