@@ -187,8 +187,11 @@ namespace EmulatorLauncher
 
                             if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
                             {
-                                var revertKey = joyRevertAxis[x.Key];
-                                ini.WriteValue(gcpad, reverseAxis, dolphinSDLMapping[revertKey]);
+                                if (joyRevertAxis.ContainsKey(x.Key))
+                                {
+                                    var revertKey = joyRevertAxis[x.Key];
+                                    ini.WriteValue(gcpad, reverseAxis, dolphinSDLMapping[revertKey]);
+                                }
                             }
                         }
                     }
