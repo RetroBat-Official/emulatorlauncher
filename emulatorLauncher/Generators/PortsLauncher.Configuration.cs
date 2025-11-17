@@ -996,8 +996,15 @@ namespace EmulatorLauncher
                 }
             }
 
-            var changes = new List<Dhewm3ConfigChange>();
             string cfgFile = Path.Combine(_romPath, "realrtcwconfig.cfg");
+            if (!File.Exists(cfgFile))
+            {
+                string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "rtcw", "realrtcwconfig.cfg");
+                if (File.Exists(templateFile))
+                    try { File.Copy(templateFile, cfgFile); } catch { }
+            }
+
+            var changes = new List<Dhewm3ConfigChange>();
 
             if (SystemConfig.isOptSet("rtcw_resolution") && !string.IsNullOrEmpty(SystemConfig["rtcw_resolution"]))
                 changes.Add(new Dhewm3ConfigChange("seta", "r_mode", SystemConfig["rtcw_resolution"]));
