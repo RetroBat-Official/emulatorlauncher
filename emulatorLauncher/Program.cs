@@ -139,6 +139,7 @@ namespace EmulatorLauncher
             { "redream", () => new RedreamGenerator() },
             { "retrobat", () => new RetrobatLauncherGenerator() },
             { "rpcs3", () => new Rpcs3Generator() },
+            { "rtcw", () => new RTCWGenerator() },
             { "ruffle", () => new RuffleGenerator() },
             { "ryujinx", () => new RyujinxGenerator() },
             { "scummvm", () => new ScummVmGenerator() },

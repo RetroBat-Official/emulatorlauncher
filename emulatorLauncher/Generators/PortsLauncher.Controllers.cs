@@ -527,6 +527,133 @@ namespace EmulatorLauncher
         }
         #endregion
 
+        #region rtcw
+        private void ConfigureRTCWControls(List<Dhewm3ConfigChange> changes)
+        {
+            if (_emulator != "rtcw")
+                return;
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                return;
+            }
+
+            bool azerty = false;
+            List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
+            if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId))
+                azerty = true;
+
+            // Keyboard defaults
+            changes.Add(new Dhewm3ConfigChange("bind", "TAB", "notebook"));
+            changes.Add(new Dhewm3ConfigChange("bind", "ENTER", "+activate"));
+            changes.Add(new Dhewm3ConfigChange("bind", "ESCAPE", "togglemenu"));
+            changes.Add(new Dhewm3ConfigChange("bind", "SPACE", "+moveup"));
+            changes.Add(new Dhewm3ConfigChange("bind", "-", "zoomout"));
+            changes.Add(new Dhewm3ConfigChange("bind", "0", "weaponbank 10"));
+            changes.Add(new Dhewm3ConfigChange("bind", "1", "weaponbank 1"));
+            changes.Add(new Dhewm3ConfigChange("bind", "2", "weaponbank 2"));
+            changes.Add(new Dhewm3ConfigChange("bind", "3", "weaponbank 3"));
+            changes.Add(new Dhewm3ConfigChange("bind", "4", "weaponbank 4"));
+            changes.Add(new Dhewm3ConfigChange("bind", "5", "weaponbank 5"));
+            changes.Add(new Dhewm3ConfigChange("bind", "6", "weaponbank 6"));
+            changes.Add(new Dhewm3ConfigChange("bind", "7", "weaponbank 7"));
+            changes.Add(new Dhewm3ConfigChange("bind", "8", "weaponbank 8"));
+            changes.Add(new Dhewm3ConfigChange("bind", "9", "weaponbank 9"));
+            changes.Add(new Dhewm3ConfigChange("bind", "=", "zoomin"));
+            changes.Add(new Dhewm3ConfigChange("bind", "[", "weapnext"));
+            changes.Add(new Dhewm3ConfigChange("bind", "\\", "+mlook"));
+            changes.Add(new Dhewm3ConfigChange("bind", "]", "weapprev"));
+            changes.Add(new Dhewm3ConfigChange("bind", "`", "toggleconsole"));
+            changes.Add(new Dhewm3ConfigChange("bind", "a", azerty ? "+leanleft" : "+moveleft"));
+            changes.Add(new Dhewm3ConfigChange("bind", "b", "+zoom"));
+            changes.Add(new Dhewm3ConfigChange("bind", "c", "+movedown"));
+            changes.Add(new Dhewm3ConfigChange("bind", "d", "+moveright"));
+            changes.Add(new Dhewm3ConfigChange("bind", "e", "+leanright"));
+            changes.Add(new Dhewm3ConfigChange("bind", "f", "+activate"));
+            changes.Add(new Dhewm3ConfigChange("bind", "g", "+quickgren"));
+            changes.Add(new Dhewm3ConfigChange("bind", "q", azerty ? "+moveleft" : "+leanleft"));
+            changes.Add(new Dhewm3ConfigChange("bind", "r", "+reload"));
+            changes.Add(new Dhewm3ConfigChange("bind", "s", "+back"));
+            changes.Add(new Dhewm3ConfigChange("bind", "v", "+kick"));
+            changes.Add(new Dhewm3ConfigChange("bind", "w", "+forward"));
+            changes.Add(new Dhewm3ConfigChange("bind", "z", azerty ? "+forward" : "weapalt"));
+            changes.Add(new Dhewm3ConfigChange("bind", "~", "toggleconsole"));
+            changes.Add(new Dhewm3ConfigChange("bind", "CAPSLOCK", "+speed"));
+            changes.Add(new Dhewm3ConfigChange("bind", "PAUSE", "pause"));
+            changes.Add(new Dhewm3ConfigChange("bind", "UPARROW", "+forward"));
+            changes.Add(new Dhewm3ConfigChange("bind", "DOWNARROW", "+back"));
+            changes.Add(new Dhewm3ConfigChange("bind", "LEFTARROW", "+moveLeft"));
+            changes.Add(new Dhewm3ConfigChange("bind", "RIGHTARROW", "+moveright"));
+            changes.Add(new Dhewm3ConfigChange("bind", "ALT", "+strafe"));
+            changes.Add(new Dhewm3ConfigChange("bind", "CTRL", "+attack"));
+            changes.Add(new Dhewm3ConfigChange("bind", "SHIFT", "+sprint"));
+            changes.Add(new Dhewm3ConfigChange("bind", "DEL", "+lookdown"));
+            changes.Add(new Dhewm3ConfigChange("bind", "PGDN", "+lookup"));
+            changes.Add(new Dhewm3ConfigChange("bind", "END", "centerview"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F1", "itemprev"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F2", "itemnext"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F3", "+useitem"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F4", "+scores"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F5", "savegame quicksave"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F9", "loadgame quicksave"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F10", "loadgame lastcheckpoint"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F11", "screenshot"));
+            changes.Add(new Dhewm3ConfigChange("bind", "MOUSE1", "+attack"));
+            changes.Add(new Dhewm3ConfigChange("bind", "MOUSE2", "+attack2"));
+            changes.Add(new Dhewm3ConfigChange("bind", "MOUSE3", "weapalt"));
+            changes.Add(new Dhewm3ConfigChange("bind", "MWHEELDOWN", "weapnext"));
+            changes.Add(new Dhewm3ConfigChange("bind", "MWHEELUP", "weapprev"));
+
+            if (azerty)
+            {
+                changes.Add(new Dhewm3ConfigChange("bind", "^", "weapnext"));
+                changes.Add(new Dhewm3ConfigChange("bind", "$", "weapprev"));
+            }
+
+            // Controller defaults
+            int controllerCount = Controllers.Where(c => !c.IsKeyboard).Count();
+            if (controllerCount > 0)
+            {
+                var c1 = Controllers.Where(c => !c.IsKeyboard && c.PlayerIndex == 1).FirstOrDefault();
+                string index = c1 != null ? c1.DeviceIndex.ToString() : "0";
+                bool nintendo = c1.VendorID == USB_VENDOR.NINTENDO;
+
+                changes.Add(new Dhewm3ConfigChange("seta", "in_joystick", "1"));
+                changes.Add(new Dhewm3ConfigChange("seta", "in_joystickNo", index));
+                changes.Add(new Dhewm3ConfigChange("seta", "in_joystickUseAnalog", "1"));
+
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_B", nintendo ? "+moveup" : "+movedown"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_A", nintendo ? "+movedown" : "+moveup"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_X", nintendo ? "+activate" : "+reload"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_X", nintendo ? "+reload" : "+activate"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_BACK", "notebook"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_START", "togglemenu"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_LEFTSTICK_CLICK", "+sprint"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_RIGHTSTICK_CLICK", "+kick"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_LEFTSHOULDER", "weapprev"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_RIGHTSHOULDER", "weapnext"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_RIGHT", "_moveRight"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_DPAD_UP", "savegame quicksave"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_DPAD_DOWN", "loadgame quicksave"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_DPAD_LEFT", "itemprev"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_DPAD_RIGHT", "+useitem"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_LEFTSTICK_LEFT", "+moveleft"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_LEFTSTICK_RIGHT", "+moveright"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_LEFTSTICK_UP", "+forward"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_LEFTSTICK_DOWN", "+back"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_RIGHTSTICK_LEFT", "+left"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_RIGHTSTICK_RIGHT", "+right"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_RIGHTSTICK_UP", "+lookup"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_RIGHTSTICK_DOWN", "+lookdown"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_LEFTTRIGGER", "weapalt"));
+                changes.Add(new Dhewm3ConfigChange("bind", "PAD0_RIGHTTRIGGER", "+attack"));
+            }
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "in_joystick", "0"));
+        }
+        #endregion
+
         #region soh
         private void ConfigureSOHControls(JObject controllers)
         {

@@ -35,6 +35,7 @@ namespace EmulatorLauncher
             ConfigureOpenJazz(commandArray, rom);
             ConfigurePDark(commandArray, rom);
             ConfigurePowerBomberman(rom, exe);
+            ConfigureRTCW(commandArray, rom);
             ConfigureSOH(rom, exe);
             ConfigureSonic3air(rom, exe);
             ConfigureSonicMania(rom, exe);
@@ -409,7 +410,17 @@ namespace EmulatorLauncher
                 return;
 
             string cfgPath = _path;
-            string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "doom3", "dhewm3");
+            
+            string[] pakFile = File.ReadAllLines(rom);
+            if (pakFile.Length < 1)
+            {
+                throw new ApplicationException("Empty game file.");
+            }
+
+            string pakSubPath = pakFile[0];
+            string game = pakSubPath.Split('\\')[0];
+
+            string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "doom3", "dhewm3", game);
             if (!Directory.Exists(savesPath))
                 try { Directory.CreateDirectory(savesPath); } catch { }
 
@@ -448,15 +459,6 @@ namespace EmulatorLauncher
                 commandArray.Add("r_fullscreenDesktop");
                 commandArray.Add("1");
             }
-
-            string[] pakFile = File.ReadAllLines(rom);
-            if (pakFile.Length < 1)
-            {
-                throw new ApplicationException("Empty game file.");
-            }
-
-            string pakSubPath = pakFile[0];
-            string game = pakSubPath.Split('\\')[0];
 
             commandArray.Add("+set");
             commandArray.Add("fs_game");
@@ -918,6 +920,151 @@ namespace EmulatorLauncher
 
                 ini.Save();
             }
+        }
+
+        private void ConfigureRTCW(List<string> commandArray, string rom)
+        {
+            if (_emulator != "rtcw")
+                return;
+
+            // Check engine files are available in roms folder
+            string engineMainPath = Path.Combine(AppConfig.GetFullPath("roms"), "rtcw", "Main");
+            string checkFile = Path.Combine(engineMainPath, "z_zrealrtcw_ui.pk3");
+            if (!File.Exists(checkFile))
+            {
+                throw new ApplicationException("RealRTCW engine files not found in roms/rtcw/Main folder.");
+            }
+
+            List<string> pakFiles = new List<string>() { "pak0.pk3", "sp_pak1.pk3", "sp_pak2.pk3", "sp_pak3.pk3", "sp_pak4.pk3" };
+
+            foreach (string pakFile in pakFiles)
+            {
+                string fileCheck = Path.Combine(engineMainPath, pakFile);
+
+                if (!File.Exists(fileCheck))
+                    throw new ApplicationException("Missing file: " + fileCheck);
+            }
+
+            string game = "Main";
+            string homePath = Path.Combine(AppConfig.GetFullPath("roms"), "rtcw");
+            string gameFolderName = Path.GetFileName(_romPath);
+
+            if (!string.IsNullOrEmpty(gameFolderName))
+                game = gameFolderName;
+
+            commandArray.Add("+set");
+            commandArray.Add("fs_homepath");
+            commandArray.Add(homePath.QuoteString(true));
+
+            if (_fullscreen)
+            {
+                commandArray.Add("+set");
+                commandArray.Add("r_fullscreen");
+                commandArray.Add("1");
+            }
+            else
+            {
+                commandArray.Add("+set");
+                commandArray.Add("r_fullscreen");
+                commandArray.Add("0");
+            }
+
+            if (_resolution != null)
+            {
+                commandArray.Add("+set");
+                commandArray.Add("r_noborder");
+                commandArray.Add("0");
+            }
+            else
+            {
+                commandArray.Add("+set");
+                commandArray.Add("r_noborder");
+                commandArray.Add("1");
+            }
+
+            commandArray.Add("+set");
+            commandArray.Add("fs_game");
+            commandArray.Add(game);
+
+            var lines = File.ReadAllLines(rom);
+            if (lines.Length > 0)
+            {
+                foreach (var line in lines)
+                {
+                    if (!string.IsNullOrEmpty(line.Trim()))
+                        commandArray.Add(line);
+                }
+            }
+
+            string cfgFile = Path.Combine(_romPath, "realrtcwconfig.cfg");
+            if (!File.Exists(cfgFile))
+            {
+                string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "rtcw", "realrtcwconfig.cfg");
+                if (File.Exists(templateFile))
+                    try { File.Copy(templateFile, cfgFile); } catch { }
+            }
+
+            var changes = new List<Dhewm3ConfigChange>();
+
+            if (SystemConfig.isOptSet("rtcw_resolution") && !string.IsNullOrEmpty(SystemConfig["rtcw_resolution"]))
+                changes.Add(new Dhewm3ConfigChange("seta", "r_mode", SystemConfig["rtcw_resolution"]));
+            else
+            {
+                changes.Add(new Dhewm3ConfigChange("seta", "r_mode", "-1"));
+                changes.Add(new Dhewm3ConfigChange("seta", "r_customwidth", ScreenResolution.CurrentResolution.Width.ToString()));
+                changes.Add(new Dhewm3ConfigChange("seta", "r_customheight", ScreenResolution.CurrentResolution.Height.ToString()));
+            }
+
+            if (_resolution != null)
+            {
+                changes.Add(new Dhewm3ConfigChange("seta", "r_mode", "-1"));
+                changes.Add(new Dhewm3ConfigChange("seta", "r_customwidth", _resolution.Width.ToString()));
+                changes.Add(new Dhewm3ConfigChange("seta", "r_customheight", _resolution.Height.ToString()));
+            }
+
+            if (!SystemConfig.isOptSet("rtcw_vsync") || SystemConfig.getOptBoolean("rtcw_vsync"))
+                changes.Add(new Dhewm3ConfigChange("seta", "r_swapInterval", "1"));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "r_swapInterval", "0"));
+
+            if (SystemConfig.isOptSet("rtcw_aspect") && !string.IsNullOrEmpty(SystemConfig["rtcw_aspect"]))
+                changes.Add(new Dhewm3ConfigChange("seta", "cg_fixedAspect", SystemConfig["rtcw_aspect"]));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "cg_fixedAspect", "0"));
+
+            if (SystemConfig.isOptSet("rtcw_showfps") && SystemConfig.getOptBoolean("rtcw_showfps"))
+                changes.Add(new Dhewm3ConfigChange("seta", "cg_drawFPS", "1"));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "cg_drawFPS", "0"));
+
+            if (!SystemConfig.isOptSet("rtcw_anisotropic") || SystemConfig.getOptBoolean("rtcw_anisotropic"))
+                changes.Add(new Dhewm3ConfigChange("seta", "r_ext_texture_filter_anisotropic", "1"));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "r_ext_texture_filter_anisotropic", "0"));
+
+            if (SystemConfig.isOptSet("rtcw_texturefilter") && !string.IsNullOrEmpty(SystemConfig["rtcw_texturefilter"]))
+                changes.Add(new Dhewm3ConfigChange("seta", "r_textureMode", SystemConfig["rtcw_texturefilter"]));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "r_textureMode", "GL_LINEAR_MIPMAP_LINEAR"));
+
+            if (SystemConfig.isOptSet("rtcw_texturequality") && !string.IsNullOrEmpty(SystemConfig["rtcw_texturequality"]))
+                changes.Add(new Dhewm3ConfigChange("seta", "r_picmip", SystemConfig["rtcw_texturequality"]));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "r_picmip", "0"));
+
+            if (SystemConfig.isOptSet("rtcw_subtitles") && SystemConfig.getOptBoolean("rtcw_subtitles"))
+                changes.Add(new Dhewm3ConfigChange("seta", "cg_drawSubtitles", "1"));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "cg_drawSubtitles", "0"));
+
+            if (SystemConfig.isOptSet("rtcw_lighting") && !string.IsNullOrEmpty(SystemConfig["rtcw_lighting"]))
+                changes.Add(new Dhewm3ConfigChange("seta", "r_vertexLight", SystemConfig["rtcw_lighting"]));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "r_vertexLight", "0"));
+
+            ConfigureRTCWControls(changes);
+
+            ConfigEditorDhewm3.ChangeConfigValues(cfgFile, changes);
         }
 
         private void ConfigureSOH(string rom, string exe)
