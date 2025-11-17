@@ -1116,8 +1116,6 @@ namespace EmulatorLauncher.Libretro
             {
                 coreSettings["desmume_hybrid_layout_scale"] = "3";
             }
-
-            
         }
 
         private void ConfigureDolphin(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

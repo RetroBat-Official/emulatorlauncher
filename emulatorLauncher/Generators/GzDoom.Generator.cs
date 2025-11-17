@@ -25,7 +25,6 @@ namespace EmulatorLauncher
 
             string configFile = Path.Combine(path, "gzdoom_portable.ini");
             string romPath = Path.GetDirectoryName(rom);
-            SetupConfiguration(configFile, romPath, fullscreen);
 
             var commandArray = new List<string>
             {
@@ -92,6 +91,8 @@ namespace EmulatorLauncher
             }
 
             string args = string.Join(" ", commandArray);
+
+            SetupConfiguration(configFile, romPath, fullscreen);
 
             return new ProcessStartInfo()
             {

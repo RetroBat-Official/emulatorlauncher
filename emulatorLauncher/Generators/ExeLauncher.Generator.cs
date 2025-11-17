@@ -782,7 +782,7 @@ namespace EmulatorLauncher
         {
             executableName = null;
 
-            if (SystemConfig.getOptBoolean("batexesearch"))
+            if (SystemConfig.isOptSet("batexesearch") && !SystemConfig.getOptBoolean("batexesearch"))
                 return false;
 
             var content = File.ReadAllText(batFilePath);
