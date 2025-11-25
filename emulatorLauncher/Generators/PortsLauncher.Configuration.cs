@@ -36,6 +36,7 @@ namespace EmulatorLauncher
             ConfigurePDark(commandArray, rom);
             ConfigurePowerBomberman(rom, exe);
             ConfigureRTCW(commandArray, rom);
+            ConfigureShip2(rom, exe);
             ConfigureSOH(rom, exe);
             ConfigureSonic3air(rom, exe);
             ConfigureSonicMania(rom, exe);
@@ -1067,27 +1068,40 @@ namespace EmulatorLauncher
             ConfigEditorDhewm3.ChangeConfigValues(cfgFile, changes);
         }
 
-        private void ConfigureSOH(string rom, string exe)
+        private void ConfigureShip2(string rom, string exe)
         {
-            if (_emulator != "soh")
+            if (_emulator != "2ship")
                 return;
 
+            _nobezels = true;
+
+            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
             var otrFiles = Directory.GetFiles(_path, "*.otr");
-            var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("soh.otr", StringComparison.OrdinalIgnoreCase));
+            var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("2ship.otr", StringComparison.OrdinalIgnoreCase));
 
             if (!gameOtrFiles.Any())
             {
                 string emulatorRom = Path.Combine(_path, Path.GetFileName(rom));
-                try { File.Copy(rom, emulatorRom); } catch { SimpleLogger.Instance.Warning("[WARNING] Impossible to copy game file to SOH folder."); }
+                try { File.Copy(rom, emulatorRom); } catch { SimpleLogger.Instance.Warning("[WARNING] Impossible to copy game file to 2ship folder."); }
             }
 
             // Settings
             JObject jsonObj;
             JObject cvars;
+            JObject itemtracker;
+            JObject gdevelopertools;
+            JObject grando;
+            JObject gsettings;
+            JObject advres;
+            JObject intscale;
             JObject controllers;
+            JObject gwindows;
             JObject window;
+            JObject wbackend;
             JObject fs;
-            string settingsFile = Path.Combine(_path, "shipofharkinian.json");
+            string settingsFile = Path.Combine(_path, "2ship2harkinian.json");
+            
+            // Initialize JSON structure
             if (File.Exists(settingsFile))
             {
                 string jsonString = File.ReadAllText(settingsFile);
@@ -1104,13 +1118,70 @@ namespace EmulatorLauncher
             else
                 cvars = (JObject)jsonObj["CVars"];
 
-            if (jsonObj["Controllers"] == null)
+            if (cvars["ItemTracker"] == null)
             {
-                controllers = new JObject();
-                jsonObj["Controllers"] = controllers;
+                itemtracker = new JObject();
+                cvars["ItemTracker"] = itemtracker;
             }
             else
-                controllers = (JObject)jsonObj["Controllers"];
+                itemtracker = (JObject)cvars["ItemTracker"];
+
+            if (cvars["gDeveloperTools"] == null)
+            {
+                gdevelopertools = new JObject();
+                cvars["gDeveloperTools"] = gdevelopertools;
+            }
+            else
+                gdevelopertools = (JObject)cvars["gDeveloperTools"];
+
+            if (cvars["gRando"] == null)
+            {
+                grando = new JObject();
+                cvars["gRando"] = grando;
+            }
+            else
+                grando = (JObject)cvars["gRando"];
+
+            if (cvars["gSettings"] == null)
+            {
+                gsettings = new JObject();
+                cvars["gSettings"] = gsettings;
+            }
+            else
+                gsettings = (JObject)cvars["gSettings"];
+
+            if (gsettings["AdvancedResolution"] == null)
+            {
+                advres = new JObject();
+                gsettings["AdvancedResolution"] = advres;
+            }
+            else
+                advres = (JObject)gsettings["AdvancedResolution"];
+
+            advres.Remove("IntegerScale");
+            if (advres["IntegerScale"] == null)
+            {
+                intscale = new JObject();
+                advres["IntegerScale"] = intscale;
+            }
+            else
+                intscale = (JObject)advres["IntegerScale"];
+
+            if (gsettings["Controllers"] == null)
+            {
+                controllers = new JObject();
+                gsettings["Controllers"] = controllers;
+            }
+            else
+                controllers = (JObject)gsettings["Controllers"];
+
+            if (cvars["gWindows"] == null)
+            {
+                gwindows = new JObject();
+                cvars["gWindows"] = gwindows;
+            }
+            else
+                gwindows = (JObject)cvars["gWindows"];
 
             if (jsonObj["Window"] == null)
             {
@@ -1120,6 +1191,14 @@ namespace EmulatorLauncher
             else
                 window = (JObject)jsonObj["Window"];
 
+            if (window["Backend"] == null)
+            {
+                wbackend = new JObject();
+                window["Backend"] = wbackend;
+            }
+            else
+                wbackend = (JObject)window["Backend"];
+
             if (window["Fullscreen"] == null)
             {
                 fs = new JObject();
@@ -1128,25 +1207,325 @@ namespace EmulatorLauncher
             else
                 fs = (JObject)window["Fullscreen"];
 
-            cvars["gOpenMenuBar"] = 0;
-            cvars["gTitleScreenTranslation"] = 1;
-
-            // Graphic options
-            double res = 1.0;
-            if (SystemConfig.isOptSet("soh_resolution") && !string.IsNullOrEmpty(SystemConfig["soh_resolution"]))
-                res = SystemConfig["soh_resolution"].ToDouble();
-            cvars["gInternalResolution"] = res;
+            // Settings
+            advres["Enabled"] = 1;
+            if (SystemConfig.getOptBoolean("integerscale"))
+            {
+                advres["PixelPerfectMode"] = 1;
+                intscale["FitAutomatically"] = 1;
+            }
+            else
+                advres["PixelPerfectMode"] = 0;
             
-            BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "vsync", "1", "0");
-            BindFeatureSliderInt(cvars, "gMSAAValue", "soh_msaa", "1");
-            BindFeatureSliderInt(cvars, "gInterpolationFPS", "soh_fps", "20");
+            if (SystemConfig.isOptSet("ship2_resolution") && !string.IsNullOrEmpty(SystemConfig["ship2_resolution"]))
+            {
+                string resString = SystemConfig["ship2_resolution"];
+                if (int.TryParse(resString, out int res))
+                    advres["VerticalPixelCount"] = res;
+            }
+            else
+                advres["VerticalPixelCount"] = 480;
+
+            // Aspect ratio
+            if (SystemConfig.isOptSet("ship2_ratio") && !string.IsNullOrEmpty(SystemConfig["ship2_ratio"]))
+            {
+                string ship2Ratio = SystemConfig["ship2_ratio"];
+                switch (ship2Ratio)
+                {
+                    case "off":
+                        advres["AspectRatioX"] = 0.0;
+                        advres["AspectRatioY"] = 0.0;
+                        break;
+                    case "native":
+                        advres["AspectRatioX"] = 4.0;
+                        advres["AspectRatioY"] = 3.0;
+                        _nobezels = false;
+                        break;
+                    case "widescreen":
+                        advres["AspectRatioX"] = 16.0;
+                        advres["AspectRatioY"] = 9.0;
+                        break;
+                    case "3ds":
+                        advres["AspectRatioX"] = 5.0;
+                        advres["AspectRatioY"] = 3.0;
+                        break;
+                    case "16:10":
+                        advres["AspectRatioX"] = 16.0;
+                        advres["AspectRatioY"] = 10.0;
+                        break;
+                    case "ultrawide":
+                        advres["AspectRatioX"] = 21.0;
+                        advres["AspectRatioY"] = 9.0;
+                        break;
+                }
+            }
+            else
+            {
+                advres["AspectRatioX"] = 0.0;
+                advres["AspectRatioY"] = 0.0;
+            }
+
+            advres["VerticalResolutionToggle"] = 1;
+            gsettings["SdlWindowedFullscreen"] = exclusivefs ? 0 : 1;
+
+            BindFeatureInt(gsettings, "TextureFilter", "ship2_texturefilter", "0");
+            BindBoolFeatureOnInt(gsettings, "VsyncEnabled", "vsync", "1", "0");
+            BindFeatureSliderInt(gsettings, "MSAAValue", "ship2_msaa", "1");
+            BindFeatureSliderInt(cvars, "gInterpolationFPS", "ship2_fps", "20");
+            BindBoolFeatureInt(cvars, "gMatchRefreshRate", "ship2_matchfps", "1", "0");
+
+            gsettings["OpenMenuBar"] = 0;
+            gwindows["Menu"] = 0;
+
+            BindFeature(window, "AudioBackend", "ship2_audiobackend", "wasapi");
+
+            if (SystemConfig.isOptSet("ship2_backend") && !string.IsNullOrEmpty(SystemConfig["ship2_backend"]))
+            {
+                string [] backends = SystemConfig["ship2_backend"].Split('_');
+                if (backends.Length > 1)
+                {
+                    int backendID = backends[0].ToInteger();
+                    string backendName = backends[1];
+
+                    wbackend["Id"] = backendID;
+                    wbackend["Name"] = backendName;
+                }
+
+                else
+                {
+                    wbackend["Id"] = 0;
+                    wbackend["Name"] = "DirectX";
+                }
+            }
+            else
+            {
+                wbackend["Id"] = 0;
+                wbackend["Name"] = "DirectX";
+            }
+
+            fs["Enabled"] = _fullscreen ? true : false;
+
+            // Controllers
+            ConfigureShipControls(controllers);
+
+            File.WriteAllText(settingsFile, jsonObj.ToString(Formatting.Indented));
+        }
+
+        private void ConfigureSOH(string rom, string exe)
+        {
+            if (_emulator != "soh")
+                return;
+
+            _nobezels = true;
+
+            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
+            var otrFiles = Directory.GetFiles(_path, "*.otr");
+            var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("soh.otr", StringComparison.OrdinalIgnoreCase));
+
+            if (!gameOtrFiles.Any())
+            {
+                string emulatorRom = Path.Combine(_path, Path.GetFileName(rom));
+                try { File.Copy(rom, emulatorRom); } catch { SimpleLogger.Instance.Warning("[WARNING] Impossible to copy game file to SOH folder."); }
+            }
+
+            // Settings
+            JObject jsonObj;
+            JObject cvars;
+            //JObject itemtracker;
+            //JObject gdevelopertools;
+            //JObject grando;
+            JObject gsettings;
+            JObject advres;
+            JObject intscale;
+            JObject controllers;
+            JObject gwindows;
+            JObject window;
+            JObject wbackend;
+            JObject fs;
+
+            string settingsFile = Path.Combine(_path, "shipofharkinian.json");
+            
+            // Initialize JSON structure
+            if (File.Exists(settingsFile))
+            {
+                string jsonString = File.ReadAllText(settingsFile);
+                try { jsonObj = JObject.Parse(jsonString); } catch { jsonObj = new JObject(); }
+            }
+            else
+                jsonObj = new JObject();
+
+            if (jsonObj["CVars"] == null)
+            {
+                cvars = new JObject();
+                jsonObj["CVars"] = cvars;
+            }
+            else
+                cvars = (JObject)jsonObj["CVars"];
+
+            if (cvars["gSettings"] == null)
+            {
+                gsettings = new JObject();
+                cvars["gSettings"] = gsettings;
+            }
+            else
+                gsettings = (JObject)cvars["gSettings"];
+
+            if (cvars["gOpenWindows"] == null)
+            {
+                gwindows = new JObject();
+                cvars["gOpenWindows"] = gwindows;
+            }
+            else
+                gwindows = (JObject)cvars["gOpenWindows"];
+
+            if (gsettings["AdvancedResolution"] == null)
+            {
+                advres = new JObject();
+                gsettings["AdvancedResolution"] = advres;
+            }
+            else
+                advres = (JObject)gsettings["AdvancedResolution"];
+
+            advres.Remove("IntegerScale");
+            if (advres["IntegerScale"] == null)
+            {
+                intscale = new JObject();
+                advres["IntegerScale"] = intscale;
+            }
+            else
+                intscale = (JObject)advres["IntegerScale"];
+
+            if (gsettings["Controllers"] == null)
+            {
+                controllers = new JObject();
+                gsettings["Controllers"] = controllers;
+            }
+            else
+                controllers = (JObject)gsettings["Controllers"];
+
+            if (jsonObj["Window"] == null)
+            {
+                window = new JObject();
+                jsonObj["Window"] = window;
+            }
+            else
+                window = (JObject)jsonObj["Window"];
+
+            if (window["Backend"] == null)
+            {
+                wbackend = new JObject();
+                window["Backend"] = wbackend;
+            }
+            else
+                wbackend = (JObject)window["Backend"];
+
+            if (window["Fullscreen"] == null)
+            {
+                fs = new JObject();
+                window["Fullscreen"] = fs;
+            }
+            else
+                fs = (JObject)window["Fullscreen"];
+
+            gwindows["Menu"] = 0;
+
+            // Settings
+            advres["Enabled"] = 1;
+            if (SystemConfig.getOptBoolean("integerscale"))
+            {
+                advres["PixelPerfectMode"] = 1;
+                intscale["FitAutomatically"] = 1;
+            }
+            else
+                advres["PixelPerfectMode"] = 0;
+
+            if (SystemConfig.isOptSet("soh_resolution") && !string.IsNullOrEmpty(SystemConfig["soh_resolution"]))
+            {
+                string resString = SystemConfig["soh_resolution"];
+                if (int.TryParse(resString, out int res))
+                    advres["VerticalPixelCount"] = res;
+            }
+            else
+                advres["VerticalPixelCount"] = 480;
+
+            // Aspect ratio
+            if (SystemConfig.isOptSet("soh_Ratio") && !string.IsNullOrEmpty(SystemConfig["sohRatio"]))
+            {
+                string sohRatio = SystemConfig["soh_Ratio"];
+                switch (sohRatio)
+                {
+                    case "off":
+                        advres["AspectRatioX"] = 0.0;
+                        advres["AspectRatioY"] = 0.0;
+                        break;
+                    case "native":
+                        advres["AspectRatioX"] = 4.0;
+                        advres["AspectRatioY"] = 3.0;
+                        _nobezels = false;
+                        break;
+                    case "widescreen":
+                        advres["AspectRatioX"] = 16.0;
+                        advres["AspectRatioY"] = 9.0;
+                        break;
+                    case "3ds":
+                        advres["AspectRatioX"] = 5.0;
+                        advres["AspectRatioY"] = 3.0;
+                        break;
+                    case "16:10":
+                        advres["AspectRatioX"] = 16.0;
+                        advres["AspectRatioY"] = 10.0;
+                        break;
+                    case "ultrawide":
+                        advres["AspectRatioX"] = 21.0;
+                        advres["AspectRatioY"] = 9.0;
+                        break;
+                }
+            }
+            else
+            {
+                advres["AspectRatioX"] = 0.0;
+                advres["AspectRatioY"] = 0.0;
+            }
+
+            advres["VerticalResolutionToggle"] = 1;
+            gsettings["SdlWindowedFullscreen"] = exclusivefs ? 0 : 1;
+
+            BindFeatureInt(gsettings, "TextureFilter", "soh_texturefilter", "0");
+            BindBoolFeatureOnInt(gsettings, "VsyncEnabled", "vsync", "1", "0");
+            BindFeatureSliderInt(gsettings, "MSAAValue", "soh_msaa", "1");
+            BindFeatureSliderInt(gsettings, "InterpolationFPS", "soh_fps", "20");
+            BindBoolFeatureInt(gsettings, "MatchRefreshRate", "soh_matchfps", "1", "0");
+
+            BindFeature(window, "AudioBackend", "soh_audiobackend", "wasapi");
+
+            if (SystemConfig.isOptSet("soh_backend") && !string.IsNullOrEmpty(SystemConfig["soh_backend"]))
+            {
+                string[] backends = SystemConfig["soh_backend"].Split('_');
+                if (backends.Length > 1)
+                {
+                    int backendID = backends[0].ToInteger();
+                    string backendName = backends[1];
+
+                    wbackend["Id"] = backendID;
+                    wbackend["Name"] = backendName;
+                }
+
+                else
+                {
+                    wbackend["Id"] = 0;
+                    wbackend["Name"] = "DirectX";
+                }
+            }
+            else
+            {
+                wbackend["Id"] = 0;
+                wbackend["Name"] = "DirectX";
+            }
+
             fs["Enabled"] = _fullscreen ? true : false;
 
             // Language
-            BindFeatureInt(cvars, "gLanguages", "soh_language", "0");
-
-            // Controls
-            //BindBoolFeatureInt(cvars, "gControlNav", "soh_menucontrol", "1", "0");
+            BindFeatureInt(gsettings, "Languages", "soh_language", "0");
 
             ConfigureSOHControls(controllers);
 
