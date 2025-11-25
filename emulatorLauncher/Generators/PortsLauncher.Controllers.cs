@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Controls;
+using static EmulatorLauncher.PadToKeyboard.SendKey;
 
 namespace EmulatorLauncher
 {
@@ -654,6 +655,851 @@ namespace EmulatorLauncher
         }
         #endregion
 
+        #region ship
+        private Dictionary<string, InputKey> shipLayout = new Dictionary<string, InputKey>()
+        {
+            { "ls_d0", InputKey.leftanalogleft },       // stick left
+            { "ls_d1", InputKey.leftanalogright },      // stick right
+            { "ls_d2", InputKey.leftanalogdown },       // stick up
+            { "ls_d3", InputKey.leftanalogdown },       // stick down
+            { "button_1", InputKey.rightanalogright },  // C right
+            { "button_1024", InputKey.down },           // D-pad down
+            { "button_16", InputKey.pagedown },         // R1
+            { "button_16384", InputKey.y },             // West B
+            { "button_2", InputKey.rightanalogleft },   // C left
+            { "button_2048", InputKey.up },             // D-pad up
+            { "button_256", InputKey.right },           // D-pad right
+            { "button_32", InputKey.pageup },           // L1
+            { "button_32768", InputKey.a },             // South A
+            { "button_4", InputKey.rightanalogdown },   // C down
+            { "button_4096", InputKey.start },          // Start
+            { "button_512", InputKey.left },            // D-pad left
+            { "button_8", InputKey.rightanalogup },     // C up
+            { "button_8192", InputKey.l2 },             // L2 Z
+        };
+        private Dictionary<string, string> shipLayoutSDL = new Dictionary<string, string>()
+        {
+            { "ls_d0", "SDLA0-ADN" },       // stick left
+            { "ls_d1", "SDLA0-ADP" },       // stick right
+            { "ls_d2", "SDLA1-ADN" },       // stick up
+            { "ls_d3", "SDLA1-ADP" },       // stick down
+            { "button_1", "SDLA2-ADP" },    // C right
+            { "button_1024", "SDLB12" },    // D-pad down
+            { "button_16", "SDLB10" },      // R1
+            { "button_16384", "SDLB2" },    // West B
+            { "button_2", "SDLA2-ADN" },    // C left
+            { "button_2048", "SDLB11" },    // D-pad up
+            { "button_256", "SDLB14" },     // D-pad right
+            { "button_32", "SDLB9" },       // L1
+            { "button_32768", "SDLB0" },    // South A
+            { "button_4", "SDLA3-ADP" },    // C down
+            { "button_4096", "SDLB6" },     // Start
+            { "button_512", "SDLB13" },     // D-pad left
+            { "button_8", "SDLA3-ADN" },    // C up
+            { "button_8192", "SDLA4-ADP" }, // L2 Z
+        };
+
+        private void ConfigureShipControls(JObject controllers)
+        {
+            if (_emulator != "2ship")
+                return;
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                return;
+            }
+            int controllerCount = this.Controllers.Where(c => !c.IsKeyboard).Count();
+
+            if (controllerCount == 0)
+            {
+                SimpleLogger.Instance.Info("[INFO] No controller available.");
+                return;
+            }
+
+            var controller = this.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
+
+            if (controller.SdlController == null)
+            {
+                SimpleLogger.Instance.Info("[CONTROLS] Player 1 controller not known in SDL database, no configuration possible.");
+                return;
+            }
+
+            // clear existing pad sections of ini file
+            controllers.Remove("AxisDirectionMappings");
+            controllers.Remove("ButtonMappings");
+            controllers.Remove("GyroMappings");
+            controllers.Remove("Port1");
+            controllers.Remove("Port2");
+            controllers.Remove("RumbleMappings");
+
+            string n64guid = controller.Guid.ToLowerInvariant();
+            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
+            N64Controller n64Gamepad = null;
+
+            if (File.Exists(n64json))
+            {
+                try
+                {
+                    var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
+
+                    if (n64Controllers != null)
+                        n64Gamepad = N64Controller.GetN64Controller("ship2", n64guid, n64Controllers);
+                }
+                catch { }
+            }
+
+            ConfigureShipInput(controllers, controller, controllerCount, n64Gamepad);
+        }
+
+        private void ConfigureShipInput(JObject controllers, Controller ctrl, int count, N64Controller n64Gamepad)
+        {
+            if (ctrl == null || ctrl.Config == null)
+                return;
+
+            if (ctrl.IsKeyboard)
+                return;
+
+            var cconfig = ctrl.Config;
+
+            int deadzone = 20;
+            int rumblestrength = 50;
+            float gyrosensitivity = 1.0f;
+
+            if (SystemConfig.isOptSet("ship2_deadzone") && !string.IsNullOrEmpty(SystemConfig["ship2_deadzone"]))
+                deadzone = (int)double.Parse(SystemConfig["ship2_deadzone"], CultureInfo.InvariantCulture);
+            if (SystemConfig.isOptSet("ship2_rumblestrength") && !string.IsNullOrEmpty(SystemConfig["ship2_rumblestrength"]))
+                rumblestrength = (int)double.Parse(SystemConfig["ship2_rumblestrength"], CultureInfo.InvariantCulture);
+            if (SystemConfig.isOptSet("ship2_gyroSensivity") && !string.IsNullOrEmpty(SystemConfig["ship2_gyroSensivity"]))
+                gyrosensitivity = float.Parse(SystemConfig["ship2_gyroSensivity"], CultureInfo.InvariantCulture);
+
+            SimpleLogger.Instance.Info("[CONTROLS] Configuring controller " + ctrl.Guid == null ? ctrl.DevicePath.ToString() : ctrl.Guid.ToString());
+
+            JObject axisdirectionmappings;
+            JObject buttonmappings;
+            JObject gyromappings;
+            JObject port1;
+            JObject p1buttons;
+            JObject p1leftstick;
+            JObject p1rightstick;
+            JObject p1gyro;
+            JObject rumblemappings;
+
+            axisdirectionmappings = new JObject();
+            controllers["AxisDirectionMappings"] = axisdirectionmappings;
+
+            buttonmappings = new JObject();
+            controllers["ButtonMappings"] = buttonmappings;
+
+            gyromappings = new JObject();
+            controllers["GyroMappings"] = gyromappings;
+
+            port1 = new JObject();
+            controllers["Port1"] = port1;
+
+            p1buttons = new JObject();
+            port1["Buttons"] = p1buttons;
+
+            p1leftstick = new JObject();
+            port1["LeftStick"] = p1leftstick;
+
+            p1rightstick = new JObject();
+            port1["RightStick"] = p1rightstick;
+
+            p1gyro = new JObject();
+            port1["Gyro"] = p1gyro;
+
+            rumblemappings = new JObject();
+            controllers["RumbleMappings"] = rumblemappings;
+
+            if (n64Gamepad != null)
+            {
+                SimpleLogger.Instance.Info("[CONTROLS] Using N64 mapping for controller " + ctrl.Guid.ToString());
+
+                if (n64Gamepad.Mapping == null)
+                {
+                    SimpleLogger.Instance.Info("[CONTROLS] Mapping empty for controller " + ctrl.Guid.ToString());
+                    return;
+                }
+
+                var layout = n64Gamepad.Mapping;
+                if (n64Gamepad.ControllerInfo != null && n64Gamepad.ControllerInfo.ContainsKey("switch_trigger"))
+                {
+                    if (SystemConfig.isOptSet("ship2_controllayout") && SystemConfig["ship2_controllayout"] == "z_right")
+                        layout["button_8192"] = n64Gamepad.ControllerInfo["switch_trigger"];
+                }
+
+                foreach (var line in layout)
+                {
+                    string button = line.Value;
+                    string shipButton = line.Key;
+
+                    JObject mapping = new JObject();
+
+                    if (shipButton.StartsWith("ls_"))
+                    {
+                        if (button.EndsWith("ADN"))
+                            mapping["AxisDirection"] = -1;
+                        else
+                            mapping["AxisDirection"] = 1;
+
+                        mapping["AxisDirectionMappingClass"] = "SDLAxisDirectionToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "ls_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "ls_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "ls_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerAxis"] = button.Substring(4, 1).ToInteger();
+                        mapping["Stick"] = 0;
+
+                        string key = "P0-S0-" + shipButton.Substring(3).ToUpperInvariant() + "-" + button;
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                p1leftstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d1":
+                                p1leftstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d2":
+                                p1leftstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d3":
+                                p1leftstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1leftstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (shipButton.StartsWith("rs_"))
+                    {
+                        if (button.EndsWith("ADN"))
+                            mapping["AxisDirection"] = -1;
+                        else
+                            mapping["AxisDirection"] = 1;
+
+                        mapping["AxisDirectionMappingClass"] = "SDLAxisDirectionToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "rs_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "rs_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "rs_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerAxis"] = button.Substring(4, 1).ToInteger();
+                        mapping["Stick"] = 1;
+
+                        string key = "P0-S1-" + shipButton.Substring(3).ToUpperInvariant() + "-" + button;
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                p1rightstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d1":
+                                p1rightstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d2":
+                                p1rightstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d3":
+                                p1rightstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1rightstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (shipButton.StartsWith("button_"))
+                    {
+                        string mask = shipButton.Substring(7);
+                        int bitmask = mask.ToInteger();
+
+                        if (button.StartsWith("SDLA"))
+                        {
+                            if (button.EndsWith("ADN"))
+                                mapping["AxisDirection"] = -1;
+                            else
+                                mapping["AxisDirection"] = 1;
+                        }
+
+                        mapping["Bitmask"] = bitmask;
+
+                        if (button.StartsWith("SDLA"))
+                        {
+                            mapping["ButtonMappingClass"] = "SDLAxisDirectionToButtonMapping";
+                            mapping["SDLControllerAxis"] = button.Substring(4, 1).ToInteger();
+                        }
+                        else
+                        {
+                            mapping["ButtonMappingClass"] = "SDLButtonToButtonMapping";
+                            mapping["SDLControllerButton"] = button.Substring(4).ToInteger();
+                        }
+
+                        string key = "P0-B" + mask + "-" + button;
+                        
+                        buttonmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        string buttonkey = mask + "ButtonMappingIds";
+                        p1buttons[buttonkey] = newKey;
+                    }
+                    else
+                        continue;
+                }
+            }
+
+            else if (SystemConfig.getOptBoolean("ship2_noSDL"))
+            {
+                if (SystemConfig.isOptSet("ship2_controllayout") && SystemConfig["ship2_controllayout"] == "z_right")
+                {
+                    shipLayout["button_8192"] = InputKey.r2;
+                }
+                
+                foreach (var line in shipLayout)
+                {
+                    var button = line.Value;
+                    string shipButton = line.Key;
+
+                    bool isAxis = cconfig[button].Type == "axis";
+                    bool isHat = cconfig[button].Type == "hat";
+                    long inputID = cconfig[button].Id;
+                    long inputValue = cconfig[button].Value;
+
+                    if (isHat)
+                    {
+                        switch (inputValue)
+                        {
+                            case 1:
+                                inputID = 11;
+                                inputValue = 1;
+                                break;
+                            case 2:
+                                inputID = 14;
+                                inputValue = 1;
+                                break;
+                            case 4:
+                                inputID = 12;
+                                inputValue = 1;
+                                break;
+                            case 8:
+                                inputID = 13;
+                                inputValue = 1;
+                                break;
+                        }
+                    }
+
+                    JObject mapping = new JObject();
+
+                    if (isAxis && shipButton.StartsWith("ls_"))
+                    {
+                        mapping["AxisDirection"] = inputValue;
+                        mapping["AxisDirectionMappingClass"] = "SDLAxisDirectionToAxisDirectionMapping";
+                        
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "ls_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "ls_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "ls_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerAxis"] = inputID;
+                        mapping["Stick"] = 0;
+                        
+                        string key = "P0-S0-" + shipButton.Substring(3).ToUpperInvariant() + "-SDLA" + inputID.ToString() + "-AD" + (inputValue < 0 ? "N" : "P");
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                p1leftstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d1":
+                                p1leftstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d2":
+                                p1leftstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d3":
+                                p1leftstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1leftstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (isAxis && shipButton.StartsWith("rs_"))
+                    {
+                        mapping["AxisDirection"] = inputValue;
+                        mapping["AxisDirectionMappingClass"] = "SDLAxisDirectionToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "rs_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "rs_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "rs_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerAxis"] = inputID;
+                        mapping["Stick"] = 1;
+
+                        string key = "P0-S1-" + shipButton.Substring(3).ToUpperInvariant() + "-SDLA" + inputID.ToString() + "-AD" + (inputValue < 0 ? "N" : "P");
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                p1rightstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d1":
+                                p1rightstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d2":
+                                p1rightstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d3":
+                                p1rightstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1rightstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (isAxis && shipButton.StartsWith("button_"))
+                    {
+                        string mask = shipButton.Substring(7);
+                        int bitmask = mask.ToInteger();
+
+                        mapping["AxisDirection"] = inputValue;
+                        mapping["Bitmask"] = bitmask;
+                        mapping["ButtonMappingClass"] = "SDLAxisDirectionToButtonMapping";
+                        mapping["SDLControllerAxis"] = inputID;
+
+                        string key = "P0-B" + mask + "-SDLA" + inputID.ToString() + "-AD" + (inputValue < 0 ? "N" : "P");
+                        buttonmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        string buttonkey = mask + "ButtonMappingIds";
+                        p1buttons[buttonkey] = newKey;
+                    }
+                    else if (!isAxis && shipButton.StartsWith("ls_"))
+                    {
+                        mapping["AxisDirectionMappingClass"] = "SDLButtonToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "ls_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "ls_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "ls_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerButton"] = inputID;
+                        mapping["Stick"] = 0;
+
+                        string key = "P0-S0-D" + shipButton.Substring(3).ToUpperInvariant() + "-SDLB" + inputID.ToString();
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                p1leftstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d1":
+                                p1leftstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d2":
+                                p1leftstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d3":
+                                p1leftstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1leftstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (!isAxis && shipButton.StartsWith("rs_"))
+                    {
+                        mapping["AxisDirectionMappingClass"] = "SDLButtonToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "rs_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "rs_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "rs_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerButton"] = inputID;
+                        mapping["Stick"] = 1;
+
+                        string key = "P0-S1-D" + shipButton.Substring(3).ToUpperInvariant() + "-SDLB" + inputID.ToString();
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                p1rightstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d1":
+                                p1rightstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d2":
+                                p1rightstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d3":
+                                p1rightstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1rightstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (!isAxis && shipButton.StartsWith("button_"))
+                    {
+                        string mask = shipButton.Substring(7);
+                        int bitmask = mask.ToInteger();
+
+                        mapping["Bitmask"] = bitmask;
+                        mapping["ButtonMappingClass"] = "SDLButtonToButtonMapping";
+                        mapping["SDLControllerButton"] = inputID;
+
+                        string key = "P0-B" + mask + "-SDLB" + inputID.ToString();
+                        buttonmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        string buttonkey = mask + "ButtonMappingIds";
+                        p1buttons[buttonkey] = newKey;
+                    }
+
+                    else
+                        continue;
+                }
+            }
+            else
+            {
+                if (SystemConfig.isOptSet("ship2_controllayout") && SystemConfig["ship2_controllayout"] == "z_right")
+                {
+                    shipLayoutSDL["button_8192"] = "SDLA5-ADP";
+                }
+
+                foreach (var line in shipLayoutSDL)
+                {
+                    string button = line.Value;
+                    string shipButton = line.Key;
+                    bool isNintendo = ctrl.VendorID == USB_VENDOR.NINTENDO;
+
+                    if (isNintendo)
+                    {
+                        switch (button)
+                        {
+                            case "SDLB0":
+                                button = "SDLB1";
+                                break;
+                            case "SDLB2":
+                                button = "SDLB3";
+                                break;
+                            case "SDLB1":
+                                button = "SDLB0";
+                                break;
+                            case "SDLB3":
+                                button = "SDLB2";
+                                break;
+                        }
+                    }
+
+                    JObject mapping = new JObject();
+
+                    if (shipButton.StartsWith("ls_"))
+                    {
+                        if (button.EndsWith("ADN"))
+                            mapping["AxisDirection"] = -1;
+                        else
+                            mapping["AxisDirection"] = 1;
+
+                        mapping["AxisDirectionMappingClass"] = "SDLAxisDirectionToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "ls_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "ls_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "ls_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerAxis"] = button.Substring(4, 1).ToInteger();
+                        mapping["Stick"] = 0;
+
+                        string key = "P0-S0-" + shipButton.Substring(3).ToUpperInvariant() + "-" + button;
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                p1leftstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d1":
+                                p1leftstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d2":
+                                p1leftstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d3":
+                                p1leftstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1leftstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (shipButton.StartsWith("rs_"))
+                    {
+                        if (button.EndsWith("ADN"))
+                            mapping["AxisDirection"] = -1;
+                        else
+                            mapping["AxisDirection"] = 1;
+
+                        mapping["AxisDirectionMappingClass"] = "SDLAxisDirectionToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "rs_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "rs_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "rs_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerAxis"] = button.Substring(4, 1).ToInteger();
+                        mapping["Stick"] = 1;
+
+                        string key = "P0-S1-" + shipButton.Substring(3).ToUpperInvariant() + "-" + button;
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                p1rightstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d1":
+                                p1rightstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d2":
+                                p1rightstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d3":
+                                p1rightstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1rightstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (shipButton.StartsWith("button_"))
+                    {
+                        string mask = shipButton.Substring(7);
+                        int bitmask = mask.ToInteger();
+
+                        if (button.StartsWith("SDLA"))
+                        {
+                            if (button.EndsWith("ADN"))
+                                mapping["AxisDirection"] = -1;
+                            else
+                                mapping["AxisDirection"] = 1;
+                        }
+                            
+                        mapping["Bitmask"] = bitmask;
+
+                        if (button.StartsWith("SDLA"))
+                        {
+                            mapping["ButtonMappingClass"] = "SDLAxisDirectionToButtonMapping";
+                            mapping["SDLControllerAxis"] = button.Substring(4, 1).ToInteger();
+                        }
+                        else
+                        {
+                            mapping["ButtonMappingClass"] = "SDLButtonToButtonMapping";
+                            mapping["SDLControllerButton"] = button.Substring(4).ToInteger();
+                        }
+                        
+                        string key = "P0-B" + mask + "-" + button;
+                        buttonmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        string buttonkey = mask + "ButtonMappingIds";
+                        p1buttons[buttonkey] = newKey;
+                    }
+                    else
+                        continue;
+                }
+            }
+
+            port1["HasConfig"] = 1;
+            port1["LEDMappingIds"] = "";
+
+            // Rumble
+            string rumbleID = "P0,";
+            for (int i = 1; i < count; i++)
+            {
+                rumbleID += "P0,";
+            }
+
+            if (SystemConfig.getOptBoolean("ship2_rumble"))
+            {
+                port1["RumbleMappingIds"] = rumbleID;
+
+                rumblemappings["P0"] = new JObject
+                    {
+                        { "HighFrequencyIntensity", rumblestrength },
+                        { "LowFrequencyIntensity", rumblestrength },
+                        { "RumbleMappingClass", "SDLRumbleMapping" }
+                    };
+            }
+            else
+                port1["RumbleMappingIds"] = "";
+
+            // Gyro
+            gyromappings["P0"] = new JObject
+            {
+                { "GyroMappingClass", "SDLGyroMapping" },
+                { "Sensitivity", gyrosensitivity }
+            };
+
+            if (SystemConfig.getOptBoolean("ship2_gyro"))
+                p1gyro["GyroMappingId"] = "P0";
+            else
+                p1gyro["GyroMappingId"] = "";
+        }
+        #endregion
+
         #region soh
         private void ConfigureSOHControls(JObject controllers)
         {
@@ -665,64 +1511,51 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
             }
+            int controllerCount = this.Controllers.Where(c => !c.IsKeyboard).Count();
 
-            JObject deck;
-
-            if (controllers["Deck"] == null)
+            if (controllerCount == 0)
             {
-                deck = new JObject();
-                controllers["Deck"] = deck;
+                SimpleLogger.Instance.Info("[INFO] No controller available.");
+                return;
             }
-            else
-                deck = (JObject)controllers["Deck"];
-            
+
+            var controller = this.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
+
+            if (controller.SdlController == null)
+            {
+                SimpleLogger.Instance.Info("[CONTROLS] Player 1 controller not known in SDL database, no configuration possible.");
+                return;
+            }
+
             // clear existing pad sections of ini file
-            for (int i = 0; i < 4; i++)
-                deck["Slot_" + i] = "Disconnected";
+            controllers.Remove("AxisDirectionMappings");
+            controllers.Remove("ButtonMappings");
+            controllers.Remove("GyroMappings");
+            controllers.Remove("Port1");
+            controllers.Remove("Port2");
+            controllers.Remove("RumbleMappings");
 
-            int slotindex = 0;
-            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
+            string n64guid = controller.Guid.ToLowerInvariant();
+            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
+            N64Controller n64Gamepad = null;
+
+            if (File.Exists(n64json))
             {
-                string n64guid = controller.Guid.ToLowerInvariant();
-                string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
-                bool needActivationSwitch = false;
-                bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
-                bool valid = false;
-                N64Controller n64Gamepad = null;
-
-                if (File.Exists(n64json))
+                try
                 {
-                    try
-                    {
-                        var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
+                    var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
 
-                        if (n64Controllers != null)
-                        {
-                            n64Gamepad = N64Controller.GetN64Controller("soh", n64guid, n64Controllers);
-
-                            if (n64Gamepad != null)
-                            {
-                                if (n64Gamepad.ControllerInfo != null)
-                                    valid = true;
-                            }
-                        }
-                    }
-                    catch { }
+                    if (n64Controllers != null)
+                        n64Gamepad = N64Controller.GetN64Controller("soh", n64guid, n64Controllers);
                 }
-
-                // Do not configure controllers that do not have analog stick
-                if (!valid && controller.Config[InputKey.rightanalogup] == null)
-                {
-                    SimpleLogger.Instance.Info("[CONTROLS] Ignoring controller " + controller.Guid.ToString() + " : no analog sticks.");
-                    continue;
-                }
-
-                ConfigureSOHInput(controllers, deck, controller, slotindex, n64Gamepad);
-                slotindex++;
+                catch { }
             }
+
+            ConfigureSOHInput(controllers, controller, controllerCount, n64Gamepad);
         }
 
-        private void ConfigureSOHInput(JObject controllers, JObject deck, Controller ctrl, int slotindex, N64Controller n64Gamepad)
+        private void ConfigureSOHInput(JObject controllers, Controller ctrl, int count, N64Controller n64Gamepad)
         {
             if (ctrl == null || ctrl.Config == null)
                 return;
@@ -730,180 +1563,742 @@ namespace EmulatorLauncher
             if (ctrl.IsKeyboard)
                 return;
 
-            if (ctrl.SdlController == null)
-            {
-                SimpleLogger.Instance.Info("[CONTROLS] Controller not known in SDL database, no configuration possible.");
-                return;
-            }
+            var cconfig = ctrl.Config;
+
+            int deadzone = 20;
+            int rumblestrength = 50;
+            float gyrosensitivity = 1.0f;
+
+            if (SystemConfig.isOptSet("soh_deadzone") && !string.IsNullOrEmpty(SystemConfig["soh_deadzone"]))
+                deadzone = (int)double.Parse(SystemConfig["soh_deadzone"], CultureInfo.InvariantCulture);
+            if (SystemConfig.isOptSet("soh_rumblestrength") && !string.IsNullOrEmpty(SystemConfig["soh_rumblestrength"]))
+                rumblestrength = (int)double.Parse(SystemConfig["soh_rumblestrength"], CultureInfo.InvariantCulture);
+            if (SystemConfig.isOptSet("soh_gyroSensivity") && !string.IsNullOrEmpty(SystemConfig["soh_gyroSensivity"]))
+                gyrosensitivity = float.Parse(SystemConfig["soh_gyroSensivity"], CultureInfo.InvariantCulture);
 
             SimpleLogger.Instance.Info("[CONTROLS] Configuring controller " + ctrl.Guid == null ? ctrl.DevicePath.ToString() : ctrl.Guid.ToString());
 
-            JObject jsonCtrl;
-            JObject ctrlSlot;
-            JObject gyro;
-            JObject mappings;
-            JObject rumble;
+            JObject axisdirectionmappings;
+            JObject buttonmappings;
+            JObject gyromappings;
+            JObject port1;
+            JObject p1buttons;
+            JObject p1leftstick;
+            JObject p1rightstick;
+            JObject p1gyro;
+            JObject rumblemappings;
 
-            InputConfig joy = ctrl.Config;
-            string guid = ctrl.GetSdlGuid(Common.Joysticks.SdlVersion.SDL2_30, true).ToLowerInvariant();
+            axisdirectionmappings = new JObject();
+            controllers["AxisDirectionMappings"] = axisdirectionmappings;
 
-            SimpleLogger.Instance.Info("[CONTROLS] Configuring slot : " + slotindex.ToString());
+            buttonmappings = new JObject();
+            controllers["ButtonMappings"] = buttonmappings;
 
-            deck["Slot_" + slotindex] = guid;
+            gyromappings = new JObject();
+            controllers["GyroMappings"] = gyromappings;
 
-            if (controllers[guid] == null)
-            {
-                jsonCtrl = new JObject();
-                controllers[guid] = jsonCtrl;
-            }
-            else
-                jsonCtrl = (JObject)controllers[guid];
+            port1 = new JObject();
+            controllers["Port1"] = port1;
 
-            if (jsonCtrl["Slot_" + slotindex] == null)
-            {
-                ctrlSlot = new JObject();
-                jsonCtrl["Slot_" + slotindex] = ctrlSlot;
-            }
-            else
-                ctrlSlot = (JObject)jsonCtrl["Slot_" + slotindex];
+            p1buttons = new JObject();
+            port1["Buttons"] = p1buttons;
 
-            double deadzone = 15.0;
-            if (SystemConfig.isOptSet("soh_deadzone") && !string.IsNullOrEmpty(SystemConfig["soh_deadzone"]))
-                deadzone = SystemConfig["soh_deadzone"].ToDouble();
+            p1leftstick = new JObject();
+            port1["LeftStick"] = p1leftstick;
 
-            // Set deadzones
-            List<double> axisdeadzones = new List<double>();
-            axisdeadzones.Add(deadzone);    // left stick
-            axisdeadzones.Add(deadzone);    // left stick
-            axisdeadzones.Add(deadzone);    // right stick
-            axisdeadzones.Add(deadzone);    // right stick
-            axisdeadzones.Add(deadzone);    // ?
-            axisdeadzones.Add(deadzone);    // ?
-            ctrlSlot["AxisDeadzones"] = JArray.FromObject(axisdeadzones);
+            p1rightstick = new JObject();
+            port1["RightStick"] = p1rightstick;
 
-            // Gyro
-            if (ctrlSlot["Gyro"] == null)
-            {
-                gyro = new JObject();
-                ctrlSlot["Gyro"] = gyro;
-            }
-            else
-                gyro = (JObject)ctrlSlot["Gyro"];
+            p1gyro = new JObject();
+            port1["Gyro"] = p1gyro;
 
-            double gyroSensitivity = 1.0;
-            if (SystemConfig.isOptSet("soh_gyroSensivity") && !string.IsNullOrEmpty(SystemConfig["soh_gyroSensivity"]))
-                gyroSensitivity = (SystemConfig["soh_gyroSensivity"].ToDouble() / 100);
+            rumblemappings = new JObject();
+            controllers["RumbleMappings"] = rumblemappings;
 
-            gyro["Enabled"] = SystemConfig.getOptBoolean("soh_gyro") ? true : false;
-
-            List<double> gyrodata = new List<double>();
-            gyrodata.Add(0.0);                  // driftX
-            gyrodata.Add(0.0);                  // driftY
-            gyrodata.Add(gyroSensitivity);      // Sensitivity
-            ctrlSlot["GyroData"] = JArray.FromObject(gyrodata);
-
-            // Mappings
-            SimpleLogger.Instance.Info("[CONTROLS] Re-creating mapping section for " + ctrl.Guid.ToString() + " and slot " + slotindex.ToString());
-            ctrlSlot.Remove("Mappings");
-            
-            if (ctrlSlot["Mappings"] == null)
-            {
-                mappings = new JObject();
-                ctrlSlot["Mappings"] = mappings;
-            }
-            else
-                mappings = (JObject)ctrlSlot["Mappings"];
-
-            // Special mapping for n64 style controllers
-            string n64guid = ctrl.Guid.ToLowerInvariant();
-            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
-            bool needActivationSwitch = false;
-            bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
-            
             if (n64Gamepad != null)
             {
-                try
+                SimpleLogger.Instance.Info("[CONTROLS] Using N64 mapping for controller " + ctrl.Guid.ToString());
+
+                if (n64Gamepad.Mapping == null)
                 {
-                    if (n64Gamepad.ControllerInfo != null)
-                    {
-                        if (n64Gamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
-                            needActivationSwitch = n64Gamepad.ControllerInfo["needActivationSwitch"] == "true";
-
-                        if (needActivationSwitch && !n64_pad)
-                        {
-                            SimpleLogger.Instance.Info("[Controller] Specific n64 mapping needs to be activated for this controller.");
-                            goto BypassSPecialControllers;
-                        }
-
-                        SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + n64Gamepad.Name);
-
-                        if (n64Gamepad.ControllerInfo.ContainsKey("switch_trigger") && !string.IsNullOrEmpty(n64Gamepad.ControllerInfo["switch_trigger"]))
-                        {
-                            if (Program.SystemConfig.getOptBoolean("n64_special_trigger"))
-                            {
-                                string[] switchZ = n64Gamepad.ControllerInfo["switch_trigger"].Split('_');
-                                if (switchZ.Length > 3)
-                                {
-                                    n64Gamepad.Mapping[switchZ[0]] = switchZ[1];
-                                    n64Gamepad.Mapping[switchZ[2]] = switchZ[3];
-                                }
-                            }
-                        }
-
-                        foreach (var button in n64Gamepad.Mapping)
-                            mappings[button.Key] = button.Value.ToInteger();
-
-                        goto Rumble;
-                    }
+                    SimpleLogger.Instance.Info("[CONTROLS] Mapping empty for controller " + ctrl.Guid.ToString());
+                    return;
                 }
-                catch { }
+
+                var layout = n64Gamepad.Mapping;
+                if (n64Gamepad.ControllerInfo != null && n64Gamepad.ControllerInfo.ContainsKey("switch_trigger"))
+                {
+                    if (SystemConfig.isOptSet("soh_controllayout") && SystemConfig["soh_controllayout"] == "z_right")
+                        layout["button_8192"] = n64Gamepad.ControllerInfo["switch_trigger"];
+                }
+
+                foreach (var line in layout)
+                {
+                    string button = line.Value;
+                    string shipButton = line.Key;
+
+                    JObject mapping = new JObject();
+
+                    if (shipButton.StartsWith("ls_"))
+                    {
+                        if (button.EndsWith("ADN"))
+                            mapping["AxisDirection"] = -1;
+                        else
+                            mapping["AxisDirection"] = 1;
+
+                        mapping["AxisDirectionMappingClass"] = "SDLAxisDirectionToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "ls_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "ls_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "ls_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerAxis"] = button.Substring(4, 1).ToInteger();
+                        mapping["Stick"] = 0;
+
+                        string key = "P0-S0-" + shipButton.Substring(3).ToUpperInvariant() + "-" + button;
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                p1leftstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d1":
+                                p1leftstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d2":
+                                p1leftstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d3":
+                                p1leftstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1leftstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (shipButton.StartsWith("rs_"))
+                    {
+                        if (button.EndsWith("ADN"))
+                            mapping["AxisDirection"] = -1;
+                        else
+                            mapping["AxisDirection"] = 1;
+
+                        mapping["AxisDirectionMappingClass"] = "SDLAxisDirectionToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "rs_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "rs_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "rs_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerAxis"] = button.Substring(4, 1).ToInteger();
+                        mapping["Stick"] = 1;
+
+                        string key = "P0-S1-" + shipButton.Substring(3).ToUpperInvariant() + "-" + button;
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                p1rightstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d1":
+                                p1rightstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d2":
+                                p1rightstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d3":
+                                p1rightstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1rightstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (shipButton.StartsWith("button_"))
+                    {
+                        string mask = shipButton.Substring(7);
+                        int bitmask = mask.ToInteger();
+
+                        if (button.StartsWith("SDLA"))
+                        {
+                            if (button.EndsWith("ADN"))
+                                mapping["AxisDirection"] = -1;
+                            else
+                                mapping["AxisDirection"] = 1;
+                        }
+
+                        mapping["Bitmask"] = bitmask;
+
+                        if (button.StartsWith("SDLA"))
+                        {
+                            mapping["ButtonMappingClass"] = "SDLAxisDirectionToButtonMapping";
+                            mapping["SDLControllerAxis"] = button.Substring(4, 1).ToInteger();
+                        }
+                        else
+                        {
+                            mapping["ButtonMappingClass"] = "SDLButtonToButtonMapping";
+                            mapping["SDLControllerButton"] = button.Substring(4).ToInteger();
+                        }
+
+                        string key = "P0-B" + mask + "-" + button;
+
+                        buttonmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        string buttonkey = mask + "ButtonMappingIds";
+                        p1buttons[buttonkey] = newKey;
+                    }
+                    else
+                        continue;
+                }
             }
 
-            BypassSPecialControllers:
-
-            SimpleLogger.Instance.Info("[CONTROLS] Configuring mapping section");
-            foreach (var button in sohMapping)
+            else if (SystemConfig.getOptBoolean("soh_noSDL"))
             {
-                bool forceAxisPlus = false;
-                InputKey key = button.Value;
-                var input = ctrl.Config[key];
+                if (SystemConfig.isOptSet("soh_controllayout") && SystemConfig["soh_controllayout"] == "z_right")
+                {
+                    shipLayout["button_8192"] = InputKey.r2;
+                }
 
-                if (input == null)
-                    continue;
+                foreach (var line in shipLayout)
+                {
+                    var button = line.Value;
+                    string shipButton = line.Key;
 
-                if (input != null && input.Type == "axis" && input.Value > 0)
-                    forceAxisPlus = true;
-                
-                string sdlID = GetSDLInputName(ctrl, key, "soh", forceAxisPlus);
+                    bool isAxis = cconfig[button].Type == "axis";
+                    bool isHat = cconfig[button].Type == "hat";
+                    long inputID = cconfig[button].Id;
+                    long inputValue = cconfig[button].Value;
 
-                if (sdlID == null || sdlID == "")
-                    continue;
+                    if (isHat)
+                    {
+                        switch (inputValue)
+                        {
+                            case 1:
+                                inputID = 11;
+                                inputValue = 1;
+                                break;
+                            case 2:
+                                inputID = 14;
+                                inputValue = 1;
+                                break;
+                            case 4:
+                                inputID = 12;
+                                inputValue = 1;
+                                break;
+                            case 8:
+                                inputID = 13;
+                                inputValue = 1;
+                                break;
+                        }
+                    }
 
-                mappings[sdlID] = button.Key;
-            }
+                    JObject mapping = new JObject();
 
+                    if (isAxis && shipButton.StartsWith("ls_"))
+                    {
+                        mapping["AxisDirection"] = inputValue;
+                        mapping["AxisDirectionMappingClass"] = "SDLAxisDirectionToAxisDirectionMapping";
 
-            // Rumble
-            Rumble:
-            if (ctrlSlot["Rumble"] == null)
-            {
-                rumble = new JObject();
-                ctrlSlot["Rumble"] = rumble;
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "ls_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "ls_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "ls_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerAxis"] = inputID;
+                        mapping["Stick"] = 0;
+
+                        string key = "P0-S0-" + shipButton.Substring(3).ToUpperInvariant() + "-SDLA" + inputID.ToString() + "-AD" + (inputValue < 0 ? "N" : "P");
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                p1leftstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d1":
+                                p1leftstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d2":
+                                p1leftstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d3":
+                                p1leftstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1leftstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (isAxis && shipButton.StartsWith("rs_"))
+                    {
+                        mapping["AxisDirection"] = inputValue;
+                        mapping["AxisDirectionMappingClass"] = "SDLAxisDirectionToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "rs_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "rs_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "rs_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerAxis"] = inputID;
+                        mapping["Stick"] = 1;
+
+                        string key = "P0-S1-" + shipButton.Substring(3).ToUpperInvariant() + "-SDLA" + inputID.ToString() + "-AD" + (inputValue < 0 ? "N" : "P");
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                p1rightstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d1":
+                                p1rightstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d2":
+                                p1rightstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d3":
+                                p1rightstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1rightstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (isAxis && shipButton.StartsWith("button_"))
+                    {
+                        string mask = shipButton.Substring(7);
+                        int bitmask = mask.ToInteger();
+
+                        mapping["AxisDirection"] = inputValue;
+                        mapping["Bitmask"] = bitmask;
+                        mapping["ButtonMappingClass"] = "SDLAxisDirectionToButtonMapping";
+                        mapping["SDLControllerAxis"] = inputID;
+
+                        string key = "P0-B" + mask + "-SDLA" + inputID.ToString() + "-AD" + (inputValue < 0 ? "N" : "P");
+                        buttonmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        string buttonkey = mask + "ButtonMappingIds";
+                        p1buttons[buttonkey] = newKey;
+                    }
+                    else if (!isAxis && shipButton.StartsWith("ls_"))
+                    {
+                        mapping["AxisDirectionMappingClass"] = "SDLButtonToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "ls_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "ls_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "ls_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerButton"] = inputID;
+                        mapping["Stick"] = 0;
+
+                        string key = "P0-S0-D" + shipButton.Substring(3).ToUpperInvariant() + "-SDLB" + inputID.ToString();
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                p1leftstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d1":
+                                p1leftstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d2":
+                                p1leftstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d3":
+                                p1leftstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1leftstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (!isAxis && shipButton.StartsWith("rs_"))
+                    {
+                        mapping["AxisDirectionMappingClass"] = "SDLButtonToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "rs_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "rs_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "rs_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerButton"] = inputID;
+                        mapping["Stick"] = 1;
+
+                        string key = "P0-S1-D" + shipButton.Substring(3).ToUpperInvariant() + "-SDLB" + inputID.ToString();
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                p1rightstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d1":
+                                p1rightstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d2":
+                                p1rightstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d3":
+                                p1rightstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1rightstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (!isAxis && shipButton.StartsWith("button_"))
+                    {
+                        string mask = shipButton.Substring(7);
+                        int bitmask = mask.ToInteger();
+
+                        mapping["Bitmask"] = bitmask;
+                        mapping["ButtonMappingClass"] = "SDLButtonToButtonMapping";
+                        mapping["SDLControllerButton"] = inputID;
+
+                        string key = "P0-B" + mask + "-SDLB" + inputID.ToString();
+                        buttonmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        string buttonkey = mask + "ButtonMappingIds";
+                        p1buttons[buttonkey] = newKey;
+                    }
+
+                    else
+                        continue;
+                }
             }
             else
-                rumble = (JObject)ctrlSlot["Rumble"];
+            {
+                if (SystemConfig.isOptSet("soh_controllayout") && SystemConfig["soh_controllayout"] == "z_right")
+                {
+                    shipLayoutSDL["button_8192"] = "SDLA5-ADP";
+                }
 
-            rumble["Enabled"] = SystemConfig.getOptBoolean("soh_rumble") ? true : false;
+                foreach (var line in shipLayoutSDL)
+                {
+                    string button = line.Value;
+                    string shipButton = line.Key;
+                    bool isNintendo = ctrl.VendorID == USB_VENDOR.NINTENDO;
 
-            double rumbleStrength = 1.0;
-            if (SystemConfig.isOptSet("soh_rumblestrength") && !string.IsNullOrEmpty(SystemConfig["soh_rumblestrength"]))
-                rumbleStrength = (SystemConfig["soh_rumblestrength"].ToDouble() / 100);
+                    if (isNintendo)
+                    {
+                        switch (button)
+                        {
+                            case "SDLB0":
+                                button = "SDLB1";
+                                break;
+                            case "SDLB2":
+                                button = "SDLB3";
+                                break;
+                            case "SDLB1":
+                                button = "SDLB0";
+                                break;
+                            case "SDLB3":
+                                button = "SDLB2";
+                                break;
+                        }
+                    }
 
-            rumble["Strength"] = rumbleStrength;
+                    JObject mapping = new JObject();
 
-            // Other
-            ctrlSlot["UseStickDeadzoneForButtons"] = true;
-            ctrlSlot["Version"] = 2;
+                    if (shipButton.StartsWith("ls_"))
+                    {
+                        if (button.EndsWith("ADN"))
+                            mapping["AxisDirection"] = -1;
+                        else
+                            mapping["AxisDirection"] = 1;
+
+                        mapping["AxisDirectionMappingClass"] = "SDLAxisDirectionToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "ls_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "ls_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "ls_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerAxis"] = button.Substring(4, 1).ToInteger();
+                        mapping["Stick"] = 0;
+
+                        string key = "P0-S0-" + shipButton.Substring(3).ToUpperInvariant() + "-" + button;
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "ls_d0":
+                                p1leftstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d1":
+                                p1leftstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d2":
+                                p1leftstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "ls_d3":
+                                p1leftstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1leftstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (shipButton.StartsWith("rs_"))
+                    {
+                        if (button.EndsWith("ADN"))
+                            mapping["AxisDirection"] = -1;
+                        else
+                            mapping["AxisDirection"] = 1;
+
+                        mapping["AxisDirectionMappingClass"] = "SDLAxisDirectionToAxisDirectionMapping";
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                mapping["Direction"] = 0;
+                                break;
+                            case "rs_d1":
+                                mapping["Direction"] = 1;
+                                break;
+                            case "rs_d2":
+                                mapping["Direction"] = 2;
+                                break;
+                            case "rs_d3":
+                                mapping["Direction"] = 3;
+                                break;
+                        }
+
+                        mapping["SDLControllerAxis"] = button.Substring(4, 1).ToInteger();
+                        mapping["Stick"] = 1;
+
+                        string key = "P0-S1-" + shipButton.Substring(3).ToUpperInvariant() + "-" + button;
+                        axisdirectionmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        switch (shipButton)
+                        {
+                            case "rs_d0":
+                                p1rightstick["LeftAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d1":
+                                p1rightstick["RightAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d2":
+                                p1rightstick["UpAxisDirectionMappingIds"] = newKey;
+                                break;
+                            case "rs_d3":
+                                p1rightstick["DownAxisDirectionMappingIds"] = newKey;
+                                break;
+                        }
+                        p1rightstick["DeadzonePercentage"] = deadzone;
+                    }
+                    else if (shipButton.StartsWith("button_"))
+                    {
+                        string mask = shipButton.Substring(7);
+                        int bitmask = mask.ToInteger();
+
+                        if (button.StartsWith("SDLA"))
+                        {
+                            if (button.EndsWith("ADN"))
+                                mapping["AxisDirection"] = -1;
+                            else
+                                mapping["AxisDirection"] = 1;
+                        }
+
+                        mapping["Bitmask"] = bitmask;
+
+                        if (button.StartsWith("SDLA"))
+                        {
+                            mapping["ButtonMappingClass"] = "SDLAxisDirectionToButtonMapping";
+                            mapping["SDLControllerAxis"] = button.Substring(4, 1).ToInteger();
+                        }
+                        else
+                        {
+                            mapping["ButtonMappingClass"] = "SDLButtonToButtonMapping";
+                            mapping["SDLControllerButton"] = button.Substring(4).ToInteger();
+                        }
+
+                        string key = "P0-B" + mask + "-" + button;
+                        buttonmappings[key] = mapping;
+
+                        string newKey = key + ",";
+                        for (int i = 1; i < count; i++)
+                        {
+                            newKey += key + ",";
+                        }
+
+                        string buttonkey = mask + "ButtonMappingIds";
+                        p1buttons[buttonkey] = newKey;
+                    }
+                    else
+                        continue;
+                }
+            }
+
+            port1["HasConfig"] = 1;
+            port1["LEDMappingIds"] = "";
+
+            // Rumble
+            string rumbleID = "P0,";
+            for (int i = 1; i < count; i++)
+            {
+                rumbleID += "P0,";
+            }
+
+            if (SystemConfig.getOptBoolean("soh_rumble"))
+            {
+                port1["RumbleMappingIds"] = rumbleID;
+
+                rumblemappings["P0"] = new JObject
+                    {
+                        { "HighFrequencyIntensity", rumblestrength },
+                        { "LowFrequencyIntensity", rumblestrength },
+                        { "RumbleMappingClass", "SDLRumbleMapping" }
+                    };
+            }
+            else
+                port1["RumbleMappingIds"] = "";
+
+            // Gyro
+            gyromappings["P0"] = new JObject
+            {
+                { "GyroMappingClass", "SDLGyroMapping" },
+                { "Sensitivity", gyrosensitivity }
+            };
+
+            if (SystemConfig.getOptBoolean("soh_gyro"))
+                p1gyro["GyroMappingId"] = "P0";
+            else
+                p1gyro["GyroMappingId"] = "";
         }
         #endregion
 

@@ -226,11 +226,11 @@ namespace EmulatorLauncher
                     if (SystemConfig.isOptSet("postprocess_antialiasing") && !string.IsNullOrEmpty(SystemConfig["postprocess_antialiasing"]))
                         ini.AppendValue("Display", "postprocess_antialiasing", SystemConfig["postprocess_antialiasing"].QuoteString(true));
                     else if (Features.IsSupported("postprocess_antialiasing"))
-                        ini.AppendValue("Display", "postprocess_antialiasing", "\"\"");
+                        ini.AppendValue("Display", "postprocess_antialiasing", "off");
 
                     // Scaling filter
                     if (SystemConfig.isOptSet("postprocess_scaling_and_sharpening") && !string.IsNullOrEmpty(SystemConfig["postprocess_scaling_and_sharpening"]))
-                        ini.AppendValue("Display", "postprocess_antialiasing", SystemConfig["postprocess_scaling_and_sharpening"].QuoteString(true));
+                        ini.AppendValue("Display", "postprocess_scaling_and_sharpening", SystemConfig["postprocess_scaling_and_sharpening"].QuoteString(true));
                     else if (Features.IsSupported("postprocess_scaling_and_sharpening"))
                         ini.AppendValue("Display", "postprocess_scaling_and_sharpening", "\"\"");
 
@@ -265,20 +265,30 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("gpu"))
                         ini.AppendValue("GPU", "gpu", "\"any\"");
 
-                    if (SystemConfig.isOptSet("render_target_path") && (SystemConfig["render_target_path"] == "rtv"))
+                    if (!_edge)
                     {
-                        ini.AppendValue("GPU", "render_target_path_d3d12", StringExtensions.QuoteString("rtv", true));
-                        ini.AppendValue("GPU", "render_target_path_vulkan", StringExtensions.QuoteString("fbo", true));
-                    }
-                    else if (SystemConfig.isOptSet("render_target_path") && (SystemConfig["render_target_path"] == "rov"))
-                    {
-                        ini.AppendValue("GPU", "render_target_path_d3d12", StringExtensions.QuoteString("rov", true));
-                        ini.AppendValue("GPU", "render_target_path_vulkan", StringExtensions.QuoteString("fsi", true));
+                        if (SystemConfig.isOptSet("render_target_path") && (SystemConfig["render_target_path"] == "performance"))
+                        {
+                            ini.AppendValue("GPU", "render_target_path_d3d12", StringExtensions.QuoteString("rtv", true));
+                            ini.AppendValue("GPU", "render_target_path_vulkan", StringExtensions.QuoteString("fbo", true));
+                        }
+                        else if (SystemConfig.isOptSet("render_target_path") && (SystemConfig["render_target_path"] == "accuracy"))
+                        {
+                            ini.AppendValue("GPU", "render_target_path_d3d12", StringExtensions.QuoteString("rov", true));
+                            ini.AppendValue("GPU", "render_target_path_vulkan", StringExtensions.QuoteString("fsi", true));
+                        }
+                        else
+                        {
+                            ini.AppendValue("GPU", "render_target_path_d3d12", "\"any\"");
+                            ini.AppendValue("GPU", "render_target_path_vulkan", "\"any\"");
+                        }
                     }
                     else
                     {
-                        ini.AppendValue("GPU", "render_target_path_d3d12", "\"\"");
-                        ini.AppendValue("GPU", "render_target_path_vulkan", "\"\"");
+                        if (SystemConfig.isOptSet("render_target_path") && (!string.IsNullOrEmpty(SystemConfig["render_target_path"])))
+                            ini.AppendValue("GPU", "render_target_path", StringExtensions.QuoteString(SystemConfig["render_target_path"], true));
+                        else
+                            ini.AppendValue("GPU", "render_target_path", "\"performance\"");
                     }
 
                     if (SystemConfig.isOptSet("gpu_allow_invalid_fetch_constants") && SystemConfig.getOptBoolean("gpu_allow_invalid_fetch_constants"))
@@ -384,7 +394,7 @@ namespace EmulatorLauncher
                     if (SystemConfig.isOptSet("xenia_hid") && !string.IsNullOrEmpty(SystemConfig["xenia_hid"]))
                         ini.AppendValue("HID", "hid", StringExtensions.QuoteString(SystemConfig["xenia_hid"], true));
                     else if (Features.IsSupported("xenia_hid"))
-                        ini.AppendValue("HID", "hid", "\"any\"");
+                        ini.AppendValue("HID", "hid", "\"sdl\"");
 
                     // Console language
                     if (!_edge && SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))

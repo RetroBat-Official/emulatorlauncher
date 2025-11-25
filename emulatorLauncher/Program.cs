@@ -40,6 +40,7 @@ namespace EmulatorLauncher
         /// </summary>
         static Dictionary<string, Func<Generator>> generators = new Dictionary<string, Func<Generator>>
         {
+            { "2ship", () => new Ship2Generator() },
             { "3dsen", () => new Nes3dGenerator() },
             { "altirra", () => new AltirraGenerator() },
             { "amigaforever", () => new AmigaForeverGenerator() },

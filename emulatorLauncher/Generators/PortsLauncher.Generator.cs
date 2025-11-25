@@ -39,6 +39,9 @@ namespace EmulatorLauncher
     partial class RTCWGenerator : PortsLauncherGenerator
     { public RTCWGenerator() { _exeName = "RealRTCW.x64.exe";  DependsOnDesktopResolution = false; } }
 
+    partial class Ship2Generator : PortsLauncherGenerator
+    { public Ship2Generator() { _exeName = "2ship.exe"; DependsOnDesktopResolution = true; } }
+
     partial class SohGenerator : PortsLauncherGenerator
     { public SohGenerator() { _exeName = "soh.exe"; DependsOnDesktopResolution = true; } }
 
@@ -172,6 +175,7 @@ namespace EmulatorLauncher
 
         private readonly Dictionary<string, string> exeDictionnary = new Dictionary<string, string>
         {
+            { "2ship", "2ship.exe"},
             { "bstone", "bstone.exe"},
             { "bsyndrome", "bs.exe"},
             { "cdogs", "cdogs-sdl.exe"},
@@ -196,6 +200,7 @@ namespace EmulatorLauncher
 
         private readonly Dictionary<string, string> systemBezels = new Dictionary<string, string>
         {
+            { "2ship", "yes"},
             { "bstone", "no"},
             { "bsyndrome", "no"},
             { "cdogs", "no"},

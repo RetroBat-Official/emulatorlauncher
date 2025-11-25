@@ -500,6 +500,10 @@ namespace EmulatorLauncher
                     }
                 }
             }
+
+            if (system == "soh" || system == "starship" || system == "2ship")
+                return "n64";
+            
             return system;
         }
 
