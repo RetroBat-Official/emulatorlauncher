@@ -130,7 +130,6 @@ namespace EmulatorLauncher
 
             if (sdl3Controller != null && !controller.IsXInputDevice)
             {
-                devPath = sdl3Controller.RawPath;
                 serial = sdl3Controller.Serial;
             }
 
@@ -231,177 +230,177 @@ namespace EmulatorLauncher
             // Default mapping
             if (SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && (SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face_zl"))
             {
-                ini.WriteValue(iniSection, "A_InputType", "0");
+                ini.WriteValue(iniSection, "A_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "A_Name", zAsRightTrigger ? "leftshoulder" : "rightshoulder");
-                ini.WriteValue(iniSection, "A_Data", zAsRightTrigger ? "9" : "10");
-                ini.WriteValue(iniSection, "A_ExtraData", "0");
-                ini.WriteValue(iniSection, "B_InputType", "1");
+                ini.WriteValue(iniSection, "A_Data", zAsRightTrigger ? "9".QuoteString(true) : "10".QuoteString(true));
+                ini.WriteValue(iniSection, "A_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "B_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "B_Name", zAsRightTrigger ? "lefttrigger+" : "righttrigger+");
-                ini.WriteValue(iniSection, "B_Data", zAsRightTrigger ? "4" : "5");
-                ini.WriteValue(iniSection, "B_ExtraData", "1");
-                ini.WriteValue(iniSection, "Start_InputType", "0");
+                ini.WriteValue(iniSection, "B_Data", zAsRightTrigger ? "4".QuoteString(true) : "5".QuoteString(true));
+                ini.WriteValue(iniSection, "B_ExtraData", "1".QuoteString(true));
+                ini.WriteValue(iniSection, "Start_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "Start_Name", "start");
-                ini.WriteValue(iniSection, "Start_Data", "6");
-                ini.WriteValue(iniSection, "Start_ExtraData", "0");
+                ini.WriteValue(iniSection, "Start_Data", "6".QuoteString(true));
+                ini.WriteValue(iniSection, "Start_ExtraData", "0".QuoteString(true));
 
-                ini.WriteValue(iniSection, "DpadUp_InputType", "0");
+                ini.WriteValue(iniSection, "DpadUp_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "DpadUp_Name", "dpup");
-                ini.WriteValue(iniSection, "DpadUp_Data", "11");
-                ini.WriteValue(iniSection, "DpadUp_ExtraData", "0");
-                ini.WriteValue(iniSection, "DpadDown_InputType", "0");
+                ini.WriteValue(iniSection, "DpadUp_Data", "11".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadUp_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadDown_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "DpadDown_Name", "dpdown");
-                ini.WriteValue(iniSection, "DpadDown_Data", "12");
-                ini.WriteValue(iniSection, "DpadDown_ExtraData", "0");
-                ini.WriteValue(iniSection, "DpadLeft_InputType", "0");
+                ini.WriteValue(iniSection, "DpadDown_Data", "12".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadDown_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadLeft_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "DpadLeft_Name", "dpleft");
-                ini.WriteValue(iniSection, "DpadLeft_Data", "13");
-                ini.WriteValue(iniSection, "DpadLeft_ExtraData", "0");
-                ini.WriteValue(iniSection, "DpadRight_InputType", "0");
+                ini.WriteValue(iniSection, "DpadLeft_Data", "13".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadLeft_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadRight_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "DpadRight_Name", "dpright");
-                ini.WriteValue(iniSection, "DpadRight_Data", "14");
-                ini.WriteValue(iniSection, "DpadRight_ExtraData", "0");
+                ini.WriteValue(iniSection, "DpadRight_Data", "14".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadRight_ExtraData", "0".QuoteString(true));
 
-                ini.WriteValue(iniSection, "CButtonUp_InputType", "0");
+                ini.WriteValue(iniSection, "CButtonUp_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonUp_Name", revertbuttons ? "x" : "y");
-                ini.WriteValue(iniSection, "CButtonUp_Data", revertbuttons ? "2" : "3");
-                ini.WriteValue(iniSection, "CButtonUp_ExtraData", "0");
-                ini.WriteValue(iniSection, "CButtonDown_InputType", "0");
+                ini.WriteValue(iniSection, "CButtonUp_Data", revertbuttons ? "2".QuoteString(true) : "3".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonUp_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonDown_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonDown_Name", revertbuttons ? "b" : "a");
-                ini.WriteValue(iniSection, "CButtonDown_Data", revertbuttons ? "1" : "0");
-                ini.WriteValue(iniSection, "CButtonDown_ExtraData", "0");
-                ini.WriteValue(iniSection, "CButtonLeft_InputType", "0");
+                ini.WriteValue(iniSection, "CButtonDown_Data", revertbuttons ? "1".QuoteString(true) : "0".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonDown_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonLeft_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonLeft_Name", revertbuttons ? "y" : "x");
-                ini.WriteValue(iniSection, "CButtonLeft_Data", revertbuttons ? "3" : "2");
-                ini.WriteValue(iniSection, "CButtonLeft_ExtraData", "0");
-                ini.WriteValue(iniSection, "CButtonRight_InputType", "0");
+                ini.WriteValue(iniSection, "CButtonLeft_Data", revertbuttons ? "3".QuoteString(true) : "2".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonLeft_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonRight_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonRight_Name", revertbuttons ? "a" : "b");
-                ini.WriteValue(iniSection, "CButtonRight_Data", revertbuttons ? "0" : "1");
-                ini.WriteValue(iniSection, "CButtonRight_ExtraData", "0");
+                ini.WriteValue(iniSection, "CButtonRight_Data", revertbuttons ? "0".QuoteString(true) : "1".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonRight_ExtraData", "0".QuoteString(true));
 
-                ini.WriteValue(iniSection, "LeftTrigger_InputType", "0");
+                ini.WriteValue(iniSection, "LeftTrigger_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "LeftTrigger_Name", "back");
-                ini.WriteValue(iniSection, "LeftTrigger_Data", "4");
-                ini.WriteValue(iniSection, "LeftTrigger_ExtraData", "0");
-                ini.WriteValue(iniSection, "RightTrigger_InputType", "0");
+                ini.WriteValue(iniSection, "LeftTrigger_Data", "4".QuoteString(true));
+                ini.WriteValue(iniSection, "LeftTrigger_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "RightTrigger_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "RightTrigger_Name", zAsRightTrigger ? "rightshoulder" : "leftshoulder");
-                ini.WriteValue(iniSection, "RightTrigger_Data", zAsRightTrigger ? "10" : "9");
-                ini.WriteValue(iniSection, "RightTrigger_ExtraData", "0");
-                ini.WriteValue(iniSection, "ZTrigger_InputType", "1");
+                ini.WriteValue(iniSection, "RightTrigger_Data", zAsRightTrigger ? "10".QuoteString(true) : "9".QuoteString(true));
+                ini.WriteValue(iniSection, "RightTrigger_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "ZTrigger_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "ZTrigger_Name", zAsRightTrigger ? "righttrigger+" : "lefttrigger+");
-                ini.WriteValue(iniSection, "ZTrigger_Data", zAsRightTrigger ? "5" : "4");
-                ini.WriteValue(iniSection, "ZTrigger_ExtraData", "1");
+                ini.WriteValue(iniSection, "ZTrigger_Data", zAsRightTrigger ? "5".QuoteString(true) : "4".QuoteString(true));
+                ini.WriteValue(iniSection, "ZTrigger_ExtraData", "1".QuoteString(true));
 
-                ini.WriteValue(iniSection, "AnalogStickUp_InputType", "1");
+                ini.WriteValue(iniSection, "AnalogStickUp_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "AnalogStickUp_Name", "lefty-");
-                ini.WriteValue(iniSection, "AnalogStickUp_Data", "1");
-                ini.WriteValue(iniSection, "AnalogStickUp_ExtraData", "0");
-                ini.WriteValue(iniSection, "AnalogStickDown_InputType", "1");
+                ini.WriteValue(iniSection, "AnalogStickUp_Data", "1".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickUp_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickDown_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "AnalogStickDown_Name", "lefty+");
-                ini.WriteValue(iniSection, "AnalogStickDown_Data", "1");
-                ini.WriteValue(iniSection, "AnalogStickDown_ExtraData", "1");
-                ini.WriteValue(iniSection, "AnalogStickLeft_InputType", "1");
+                ini.WriteValue(iniSection, "AnalogStickDown_Data", "1".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickDown_ExtraData", "1".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickLeft_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "AnalogStickLeft_Name", "leftx-");
-                ini.WriteValue(iniSection, "AnalogStickLeft_Data", "0");
-                ini.WriteValue(iniSection, "AnalogStickLeft_ExtraData", "0");
-                ini.WriteValue(iniSection, "AnalogStickRight_InputType", "1");
+                ini.WriteValue(iniSection, "AnalogStickLeft_Data", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickLeft_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickRight_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "AnalogStickRight_Name", "leftx+");
-                ini.WriteValue(iniSection, "AnalogStickRight_Data", "0");
-                ini.WriteValue(iniSection, "AnalogStickRight_ExtraData", "1");
+                ini.WriteValue(iniSection, "AnalogStickRight_Data", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickRight_ExtraData", "1".QuoteString(true));
             }
 
             else
             {
                 if (xboxLayout)
                 {
-                    ini.WriteValue(iniSection, "A_InputType", "0");
+                    ini.WriteValue(iniSection, "A_InputType", "0".QuoteString(true));
                     ini.WriteValue(iniSection, "A_Name", revertbuttons ? "b" : "a");
-                    ini.WriteValue(iniSection, "A_Data", revertbuttons ? "1" : "0");
-                    ini.WriteValue(iniSection, "A_ExtraData", "0");
-                    ini.WriteValue(iniSection, "B_InputType", "0");
+                    ini.WriteValue(iniSection, "A_Data", revertbuttons ? "1".QuoteString(true) : "0".QuoteString(true));
+                    ini.WriteValue(iniSection, "A_ExtraData", "0".QuoteString(true));
+                    ini.WriteValue(iniSection, "B_InputType", "0".QuoteString(true));
                     ini.WriteValue(iniSection, "B_Name", revertbuttons ? "a" : "b");
-                    ini.WriteValue(iniSection, "B_Data", revertbuttons ? "0" : "1");
-                    ini.WriteValue(iniSection, "B_ExtraData", "0");
+                    ini.WriteValue(iniSection, "B_Data", revertbuttons ? "0".QuoteString(true) : "1".QuoteString(true));
+                    ini.WriteValue(iniSection, "B_ExtraData", "0".QuoteString(true));
                 }
                 else
                 {
-                    ini.WriteValue(iniSection, "A_InputType", "0");
+                    ini.WriteValue(iniSection, "A_InputType", "0".QuoteString(true));
                     ini.WriteValue(iniSection, "A_Name", revertbuttons ? "b" : "a");
-                    ini.WriteValue(iniSection, "A_Data", revertbuttons ? "1" : "0");
-                    ini.WriteValue(iniSection, "A_ExtraData", "0");
-                    ini.WriteValue(iniSection, "B_InputType", "0");
+                    ini.WriteValue(iniSection, "A_Data", revertbuttons ? "1".QuoteString(true) : "0".QuoteString(true));
+                    ini.WriteValue(iniSection, "A_ExtraData", "0".QuoteString(true));
+                    ini.WriteValue(iniSection, "B_InputType", "0".QuoteString(true));
                     ini.WriteValue(iniSection, "B_Name", revertbuttons ? "y" : "x");
-                    ini.WriteValue(iniSection, "B_Data", revertbuttons ? "3" : "2");
-                    ini.WriteValue(iniSection, "B_ExtraData", "0");
+                    ini.WriteValue(iniSection, "B_Data", revertbuttons ? "3".QuoteString(true) : "2".QuoteString(true));
+                    ini.WriteValue(iniSection, "B_ExtraData", "0".QuoteString(true));
                 }
 
-                ini.WriteValue(iniSection, "Start_InputType", "0");
+                ini.WriteValue(iniSection, "Start_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "Start_Name", "start");
-                ini.WriteValue(iniSection, "Start_Data", "6");
-                ini.WriteValue(iniSection, "Start_ExtraData", "0");
+                ini.WriteValue(iniSection, "Start_Data", "6".QuoteString(true));
+                ini.WriteValue(iniSection, "Start_ExtraData", "0".QuoteString(true));
 
-                ini.WriteValue(iniSection, "DpadUp_InputType", "0");
+                ini.WriteValue(iniSection, "DpadUp_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "DpadUp_Name", "dpup");
-                ini.WriteValue(iniSection, "DpadUp_Data", "11");
-                ini.WriteValue(iniSection, "DpadUp_ExtraData", "0");
-                ini.WriteValue(iniSection, "DpadDown_InputType", "0");
+                ini.WriteValue(iniSection, "DpadUp_Data", "11".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadUp_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadDown_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "DpadDown_Name", "dpdown");
-                ini.WriteValue(iniSection, "DpadDown_Data", "12");
-                ini.WriteValue(iniSection, "DpadDown_ExtraData", "0");
-                ini.WriteValue(iniSection, "DpadLeft_InputType", "0");
+                ini.WriteValue(iniSection, "DpadDown_Data", "12".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadDown_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadLeft_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "DpadLeft_Name", "dpleft");
-                ini.WriteValue(iniSection, "DpadLeft_Data", "13");
-                ini.WriteValue(iniSection, "DpadLeft_ExtraData", "0");
-                ini.WriteValue(iniSection, "DpadRight_InputType", "0");
+                ini.WriteValue(iniSection, "DpadLeft_Data", "13".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadLeft_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadRight_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "DpadRight_Name", "dpright");
-                ini.WriteValue(iniSection, "DpadRight_Data", "14");
-                ini.WriteValue(iniSection, "DpadRight_ExtraData", "0");
+                ini.WriteValue(iniSection, "DpadRight_Data", "14".QuoteString(true));
+                ini.WriteValue(iniSection, "DpadRight_ExtraData", "0".QuoteString(true));
 
-                ini.WriteValue(iniSection, "CButtonUp_InputType", "1");
+                ini.WriteValue(iniSection, "CButtonUp_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonUp_Name", "righty-");
-                ini.WriteValue(iniSection, "CButtonUp_Data", "3");
-                ini.WriteValue(iniSection, "CButtonUp_ExtraData", "0");
-                ini.WriteValue(iniSection, "CButtonDown_InputType", "1");
+                ini.WriteValue(iniSection, "CButtonUp_Data", "3".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonUp_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonDown_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonDown_Name", "righty+");
-                ini.WriteValue(iniSection, "CButtonDown_Data", "3");
-                ini.WriteValue(iniSection, "CButtonDown_ExtraData", "1");
-                ini.WriteValue(iniSection, "CButtonLeft_InputType", "1");
+                ini.WriteValue(iniSection, "CButtonDown_Data", "3".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonDown_ExtraData", "1".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonLeft_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonLeft_Name", "rightx-");
-                ini.WriteValue(iniSection, "CButtonLeft_Data", "2");
-                ini.WriteValue(iniSection, "CButtonLeft_ExtraData", "0");
-                ini.WriteValue(iniSection, "CButtonRight_InputType", "1");
+                ini.WriteValue(iniSection, "CButtonLeft_Data", "2".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonLeft_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonRight_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonRight_Name", "rightx+");
-                ini.WriteValue(iniSection, "CButtonRight_Data", "2");
-                ini.WriteValue(iniSection, "CButtonRight_ExtraData", "1");
+                ini.WriteValue(iniSection, "CButtonRight_Data", "2".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonRight_ExtraData", "1".QuoteString(true));
 
-                ini.WriteValue(iniSection, "LeftTrigger_InputType", "0");
+                ini.WriteValue(iniSection, "LeftTrigger_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "LeftTrigger_Name", "leftshoulder");
-                ini.WriteValue(iniSection, "LeftTrigger_Data", "9");
-                ini.WriteValue(iniSection, "LeftTrigger_ExtraData", "0");
-                ini.WriteValue(iniSection, "RightTrigger_InputType", "0");
+                ini.WriteValue(iniSection, "LeftTrigger_Data", "9".QuoteString(true));
+                ini.WriteValue(iniSection, "LeftTrigger_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "RightTrigger_InputType", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "RightTrigger_Name", "rightshoulder");
-                ini.WriteValue(iniSection, "RightTrigger_Data", "10");
-                ini.WriteValue(iniSection, "RightTrigger_ExtraData", "0");
-                ini.WriteValue(iniSection, "ZTrigger_InputType", "1");
+                ini.WriteValue(iniSection, "RightTrigger_Data", "10".QuoteString(true));
+                ini.WriteValue(iniSection, "RightTrigger_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "ZTrigger_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "ZTrigger_Name", zAsRightTrigger ? "righttrigger+" : "lefttrigger+");
-                ini.WriteValue(iniSection, "ZTrigger_Data", zAsRightTrigger ? "5" : "4");
-                ini.WriteValue(iniSection, "ZTrigger_ExtraData", "1");
+                ini.WriteValue(iniSection, "ZTrigger_Data", zAsRightTrigger ? "5".QuoteString(true) : "4".QuoteString(true));
+                ini.WriteValue(iniSection, "ZTrigger_ExtraData", "1".QuoteString(true));
 
-                ini.WriteValue(iniSection, "AnalogStickUp_InputType", "1");
+                ini.WriteValue(iniSection, "AnalogStickUp_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "AnalogStickUp_Name", "lefty-");
-                ini.WriteValue(iniSection, "AnalogStickUp_Data", "1");
-                ini.WriteValue(iniSection, "AnalogStickUp_ExtraData", "0");
-                ini.WriteValue(iniSection, "AnalogStickDown_InputType", "1");
+                ini.WriteValue(iniSection, "AnalogStickUp_Data", "1".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickUp_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickDown_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "AnalogStickDown_Name", "lefty+");
-                ini.WriteValue(iniSection, "AnalogStickDown_Data", "1");
-                ini.WriteValue(iniSection, "AnalogStickDown_ExtraData", "1");
-                ini.WriteValue(iniSection, "AnalogStickLeft_InputType", "1");
+                ini.WriteValue(iniSection, "AnalogStickDown_Data", "1".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickDown_ExtraData", "1".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickLeft_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "AnalogStickLeft_Name", "leftx-");
-                ini.WriteValue(iniSection, "AnalogStickLeft_Data", "0");
-                ini.WriteValue(iniSection, "AnalogStickLeft_ExtraData", "0");
-                ini.WriteValue(iniSection, "AnalogStickRight_InputType", "1");
+                ini.WriteValue(iniSection, "AnalogStickLeft_Data", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickLeft_ExtraData", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickRight_InputType", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "AnalogStickRight_Name", "leftx+");
-                ini.WriteValue(iniSection, "AnalogStickRight_Data", "0");
-                ini.WriteValue(iniSection, "AnalogStickRight_ExtraData", "1");
+                ini.WriteValue(iniSection, "AnalogStickRight_Data", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "AnalogStickRight_ExtraData", "1".QuoteString(true));
             }
 
             if (playerIndex == 1)
@@ -614,7 +613,7 @@ namespace EmulatorLauncher
             }
 
             foreach (var button in n64Gamepad.Mapping)
-                ini.WriteValue(iniSection, button.Key, button.Value);
+                ini.WriteValue(iniSection, button.Key, "\"" + button.Value + "\"");
         }
 
         private void ConfigureHotkeysN64Controllers(IniFile ini, string iniSection, N64Controller n64Gamepad)

@@ -15,6 +15,7 @@ namespace EmulatorLauncher
         private bool _forceSDL = false;
         private bool _forceDInput = false;
         private bool _multitap = false;
+        private bool _dolphinbar = false;
         private List<Sdl3GameController> _sdl3Controllers = new List<Sdl3GameController>();
 
         /// <summary>
@@ -25,7 +26,7 @@ namespace EmulatorLauncher
         {
             var hints = new List<string>
             {
-                "SDL_JOYSTICK_HIDAPI_WII = 1"
+                "SDL_HINT_JOYSTICK_HIDAPI_WII = 1"
             };
 
             if (Program.SystemConfig.getOptBoolean("ps_controller_enhanced"))
@@ -58,6 +59,15 @@ namespace EmulatorLauncher
 
             if (sdl3 && Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
                 _sdl3Controllers = Sdl3Controllers;
+
+            // Check if dolphinbar is connected (if yes we will increase controller index by 4)
+            var rawdevices = RawInputDevice.GetRawInputDevices().Where(t => t.Type == RawInputDeviceType.GamePad).ToList();
+            if (rawdevices.Any(d => d.DevicePath.Contains("VID_057E&PID_0306")))
+            {
+                if (rawdevices[0].DevicePath.Contains("VID_057E&PID_0306") && rawdevices.Where(d => d.DevicePath.Contains("VID_057E&PID_0306")).Count() > 1)
+                    _dolphinbar = true;
+                SimpleLogger.Instance.Info("[INFO] DolphinBar in GamePad mode detected, changing controller index.");
+            }
 
             // clear existing pad sections of ini file
             for (int i = 1; i < 9; i++)
@@ -296,6 +306,9 @@ namespace EmulatorLauncher
 
             if (sdl3index == -1)
                 sdl3index = ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index;
+
+            if (_dolphinbar)
+                sdl3index += 4;
 
             //Define tech (SDL or XInput or DInput)
             SdlToDirectInput dinputController = null;
