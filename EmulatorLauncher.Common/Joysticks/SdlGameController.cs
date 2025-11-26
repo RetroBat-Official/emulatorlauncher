@@ -1,11 +1,12 @@
-﻿using System;
+﻿using EmulatorLauncher.Common.EmulationStation;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using EmulatorLauncher.Common.EmulationStation;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using static EmulatorLauncher.Common.SDL;
 
 namespace EmulatorLauncher.Common.Joysticks
 {
@@ -427,6 +428,9 @@ namespace EmulatorLauncher.Common.Joysticks
         private static extern void SDL_QuitSubSystem(uint flags);
 
         [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern SDL_bool SDL_SetHint(string name, string value);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr SDL_GetJoysticks(out int num_joysticks);
 
         [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
@@ -484,6 +488,7 @@ namespace EmulatorLauncher.Common.Joysticks
             controllers = new List<Sdl3GameController>();
             try
             {
+                SDL_SetHint("SDL_HINT_JOYSTICK_HIDAPI_WII", "1");
                 if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) < 0)
                 {
                     return false;
@@ -554,7 +559,7 @@ namespace EmulatorLauncher.Common.Joysticks
                     SDL_free(joysticksPtr);
                 }
 
-                SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+                SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 
                 return true;
             }
