@@ -745,7 +745,21 @@ namespace EmulatorLauncher
                     var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
 
                     if (n64Controllers != null)
+                    {
                         n64Gamepad = N64Controller.GetN64Controller("ship2", n64guid, n64Controllers);
+
+                        if (n64Gamepad.ControllerInfo != null && n64Gamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                        {
+                            if (n64Gamepad.ControllerInfo["needActivationSwitch"] == "true")
+                            {
+                                if (!n64_pad)
+                                {
+                                    SimpleLogger.Instance.Info("[CONTROLS] Controller needs activation switch to work as N64 pad. Enable n64_pad option.");
+                                    n64Gamepad = null;
+                                }
+                            }
+                        }
+                    }
                 }
                 catch { }
             }
@@ -1547,7 +1561,21 @@ namespace EmulatorLauncher
                     var n64Controllers = N64Controller.LoadControllersFromJson(n64json);
 
                     if (n64Controllers != null)
+                    {
                         n64Gamepad = N64Controller.GetN64Controller("soh", n64guid, n64Controllers);
+
+                        if (n64Gamepad.ControllerInfo != null && n64Gamepad.ControllerInfo.ContainsKey("needActivationSwitch"))
+                        {
+                            if (n64Gamepad.ControllerInfo["needActivationSwitch"] == "true")
+                            {
+                                if (!n64_pad)
+                                {
+                                    SimpleLogger.Instance.Info("[CONTROLS] Controller needs activation switch to work as N64 pad. Enable n64_pad option.");
+                                    n64Gamepad = null;
+                                }
+                            }
+                        }
+                    }
                 }
                 catch { }
             }

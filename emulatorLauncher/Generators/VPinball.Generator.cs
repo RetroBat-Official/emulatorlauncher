@@ -89,18 +89,43 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] using rompath: " + romPath);
 
             ScreenRes sr = ScreenRes.Load(Path.GetDirectoryName(rom));
-            if (sr != null)
+            if (sr != null && !SystemConfig.getOptBoolean("noscreenres"))
             {
-                sr.ScreenResX = resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width;
-                sr.ScreenResY = resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height;
+                if (SystemConfig.isOptSet("ScreenResX") && ! string.IsNullOrEmpty(SystemConfig["ScreenResX"]))
+                    sr.ScreenResX = SystemConfig["ScreenResX"].ToInteger();
+                else
+                    sr.ScreenResX = resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width;
 
-                Screen secondary = Screen.AllScreens.FirstOrDefault(s => !s.Primary);
-                if (secondary != null)
+                if (SystemConfig.isOptSet("ScreenResY") && !string.IsNullOrEmpty(SystemConfig["ScreenResY"]))
+                    sr.ScreenResY = SystemConfig["ScreenResY"].ToInteger();
+                else
+                    sr.ScreenResY = resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height;
+
+                if (SystemConfig.isOptSet("Screen2ResX") && !string.IsNullOrEmpty(SystemConfig["Screen2ResX"]) && SystemConfig.isOptSet("Screen2ResY") && !string.IsNullOrEmpty(SystemConfig["Screen2ResY"]))
                 {
-                    sr.Screen2ResX = secondary.Bounds.Width;
-                    sr.Screen2ResY = secondary.Bounds.Height;
+                    sr.Screen2ResX = SystemConfig["Screen2ResX"].ToInteger();
+                    sr.Screen2ResY = SystemConfig["Screen2ResY"].ToInteger();
                 }
-                sr.Monitor = Screen.AllScreens.Length == 1 ? 1 : 2;
+                else
+                {
+                    Screen secondary = Screen.AllScreens.FirstOrDefault(s => !s.Primary);
+                    if (secondary != null)
+                    {
+                        sr.Screen2ResX = secondary.Bounds.Width;
+                        sr.Screen2ResY = secondary.Bounds.Height;
+                    }
+                }
+
+                if (SystemConfig.isOptSet("Monitor") && !string.IsNullOrEmpty(SystemConfig["Monitor"]))
+                    sr.Monitor = SystemConfig["Monitor"].ToInteger();
+                else
+                    sr.Monitor = Screen.AllScreens.Length == 1 ? 1 : 2;
+
+                if (SystemConfig.isOptSet("DmdResX") && !string.IsNullOrEmpty(SystemConfig["DmdResX"]) && SystemConfig.isOptSet("DmdResY") && !string.IsNullOrEmpty(SystemConfig["DmdResY"]))
+                {
+                    sr.DmdResX = SystemConfig["DmdResX"].ToInteger();
+                    sr.DmdResY = SystemConfig["DmdResY"].ToInteger();
+                }
 
                 sr.Save();
             }
