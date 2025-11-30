@@ -155,7 +155,7 @@ namespace EmulatorLauncher
                     if (SystemConfig.isOptSet("apu") && !string.IsNullOrEmpty(SystemConfig["apu"]))
                         ini.AppendValue("APU", "apu", audio_driver);
                     else if (Features.IsSupported("apu"))
-                        ini.AppendValue("APU", "apu", "\"any\"");
+                        ini.AppendValue("APU", "apu", "any".QuoteString(true));
 
                     //Content section
                     if (SystemConfig.isOptSet("license_mask") && !string.IsNullOrEmpty(SystemConfig["license_mask"]))
@@ -199,7 +199,7 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("d3d12_readback_resolve") && !_edge)
                     {
                         if (_canary)
-                            ini.AppendValue("", "readback_resolve", "false");
+                            ini.AppendValue("GPU", "readback_resolve", "false");
                         else
                             ini.AppendValue("D3D12", "d3d12_readback_resolve", "false");
                     }
@@ -207,9 +207,9 @@ namespace EmulatorLauncher
                     if (_edge)
                     {
                         if (SystemConfig.isOptSet("readback_resolve") && !string.IsNullOrEmpty(SystemConfig["readback_resolve"]))
-                            ini.AppendValue("GPU", "readback_resolve", "\"" + SystemConfig["readback_resolve"] + "\"" );
+                            ini.AppendValue("GPU", "readback_resolve", SystemConfig["readback_resolve"].QuoteString(true));
                         else if (Features.IsSupported("readback_resolve"))
-                            ini.AppendValue("GPU", "readback_resolve", "\"fast\"");
+                            ini.AppendValue("GPU", "readback_resolve", "fast".QuoteString(true));
                     }
 
                     if (SystemConfig.isOptSet("xenia_queue_priority") && !string.IsNullOrEmpty(SystemConfig["xenia_queue_priority"]))
@@ -226,7 +226,7 @@ namespace EmulatorLauncher
                     if (SystemConfig.isOptSet("postprocess_antialiasing") && !string.IsNullOrEmpty(SystemConfig["postprocess_antialiasing"]))
                         ini.AppendValue("Display", "postprocess_antialiasing", SystemConfig["postprocess_antialiasing"].QuoteString(true));
                     else if (Features.IsSupported("postprocess_antialiasing"))
-                        ini.AppendValue("Display", "postprocess_antialiasing", "off");
+                        ini.AppendValue("Display", "postprocess_antialiasing", "off".QuoteString(true));
 
                     // Scaling filter
                     if (SystemConfig.isOptSet("postprocess_scaling_and_sharpening") && !string.IsNullOrEmpty(SystemConfig["postprocess_scaling_and_sharpening"]))
@@ -263,7 +263,7 @@ namespace EmulatorLauncher
                     if (SystemConfig.isOptSet("gpu") && !string.IsNullOrEmpty(SystemConfig["gpu"]))
                         ini.AppendValue("GPU", "gpu", video_driver);
                     else if (Features.IsSupported("gpu"))
-                        ini.AppendValue("GPU", "gpu", "\"any\"");
+                        ini.AppendValue("GPU", "gpu", "any".QuoteString(true));
 
                     if (!_edge)
                     {
@@ -288,7 +288,7 @@ namespace EmulatorLauncher
                         if (SystemConfig.isOptSet("render_target_path") && (!string.IsNullOrEmpty(SystemConfig["render_target_path"])))
                             ini.AppendValue("GPU", "render_target_path", StringExtensions.QuoteString(SystemConfig["render_target_path"], true));
                         else
-                            ini.AppendValue("GPU", "render_target_path", "\"performance\"");
+                            ini.AppendValue("GPU", "render_target_path", "performance".QuoteString(true));
                     }
 
                     if (SystemConfig.isOptSet("gpu_allow_invalid_fetch_constants") && SystemConfig.getOptBoolean("gpu_allow_invalid_fetch_constants"))
