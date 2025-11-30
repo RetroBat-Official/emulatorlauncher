@@ -15,6 +15,8 @@ namespace EmulatorLauncher.Common.Compression.SevenZip
             this.index = index;
         }
 
+        public uint Index { get { return index; } }
+
         /// <summary>
         /// Name of the file with its relative path within the archive
         /// </summary>

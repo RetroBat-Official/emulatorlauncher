@@ -73,7 +73,7 @@ namespace EmulatorLauncher.Common.Compression.Wrappers
             }
         }
 
-        public void Extract(string destination, string fileNameToExtract = null, ProgressChangedEventHandler progress = null, bool keepFolder = false)
+        public void Extract(string destination, string fileNameToExtract = null, ProgressChangedEventHandler progress = null, ArchiveExtractionMode mode = ArchiveExtractionMode.Normal)
         {
             if (fileNameToExtract != null)
             {
@@ -84,7 +84,7 @@ namespace EmulatorLauncher.Common.Compression.Wrappers
                 return;
             }
             
-            _sevenZipArchive.Extract(destination, progress, true);
+            _sevenZipArchive.Extract(destination, progress, true, null, mode);
         }
     }
 
@@ -239,7 +239,7 @@ namespace EmulatorLauncher.Common.Compression.Wrappers
             }
         }
 
-        public void Extract(string destination, string fileNameToExtract = null, ProgressChangedEventHandler progress = null, bool keepFolder = false)
+        public void Extract(string destination, string fileNameToExtract = null, ProgressChangedEventHandler progress = null, ArchiveExtractionMode mode = ArchiveExtractionMode.Normal)
         {
             var sevenZip = GetSevenZipPath();
             if (!File.Exists(sevenZip))
@@ -248,7 +248,7 @@ namespace EmulatorLauncher.Common.Compression.Wrappers
             string args = "x -bsp1 \"" + _filePath + "\" -y -o\"" + destination + "\"";
             if (!string.IsNullOrEmpty(fileNameToExtract))
             {
-                if (keepFolder)
+                if (mode != ArchiveExtractionMode.Flat)
                     args = "x -bsp1 \"" + _filePath + "\" \"" + fileNameToExtract + "\" -y -o\"" + destination + "\"";
                 else
                     args = "e -bsp1 \"" + _filePath + "\" \"" + fileNameToExtract + "\" -y -o\"" + destination + "\"";
