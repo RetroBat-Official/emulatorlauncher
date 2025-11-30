@@ -25,10 +25,16 @@ namespace EmulatorLauncher.Common.Compression.Wrappers
 
         public void Extract(string directory)
         {
+            Extract(directory, null);
+        }
+
+        internal void Extract(string directory, string path)
+        {
             if (!Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
 
-            string path = Path.GetFullPath(Path.Combine(directory, Filename));
+            if (path == null)
+                path = Path.GetFullPath(Path.Combine(directory, Filename));
 
             if (IsDirectory)
             {
@@ -197,7 +203,7 @@ namespace EmulatorLauncher.Common.Compression.Wrappers
                 _zipArchive.Dispose();
         }
 
-        public void Extract(string destination, string fileNameToExtract = null, ProgressChangedEventHandler progress = null, bool keepFolder = false)
+        public void Extract(string destination, string fileNameToExtract = null, ProgressChangedEventHandler progress = null, ArchiveExtractionMode mode = ArchiveExtractionMode.Normal)
         {
             var entries = this.Entries;
 
@@ -206,9 +212,29 @@ namespace EmulatorLauncher.Common.Compression.Wrappers
             {
                 if (fileNameToExtract == null || fileNameToExtract == entry.Filename)
                 {
-                    entry.Extract(destination);
-                }
+                    ZipArchiveFileEntry fe = entry as ZipArchiveFileEntry;
+                    if (fe == null)
+                        entry.Extract(destination);
+                    else
+                    {
+                        string path = null;
 
+                        if (mode == ArchiveExtractionMode.Flat)
+                            path = Path.Combine(destination, Path.GetFileName(entry.Filename));
+                        else if (mode == ArchiveExtractionMode.SkipRootFolder)
+                        {
+                            string normalized = entry.Filename.Replace('/', '\\');
+                            int index = normalized.IndexOf('\\');
+                            if (index < 0)
+                                continue;
+
+                            path = Path.Combine(destination, normalized.Substring(index + 1));
+                        }
+
+
+                        fe.Extract(destination, path);
+                    }
+                }
                 if (progress != null)
                     progress(this, new ProgressChangedEventArgs(idx * 100 / entries.Length, null));
 

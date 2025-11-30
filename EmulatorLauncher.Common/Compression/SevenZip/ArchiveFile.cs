@@ -84,12 +84,24 @@ namespace EmulatorLauncher.Common.Compression.SevenZip
         }
 
 
-        public void Extract(string outputFolder, ProgressChangedEventHandler progress = null, bool overwrite = false, string password = null)
+        public void Extract(string outputFolder, ProgressChangedEventHandler progress = null, bool overwrite = false, string password = null, ArchiveExtractionMode mode = ArchiveExtractionMode.Normal)
         {
             this.Extract(entry =>
             {
                 string fileName = Path.Combine(outputFolder, entry.FileName);
 
+                if (mode == ArchiveExtractionMode.Flat)
+                    fileName = Path.Combine(outputFolder, Path.GetFileName(entry.FileName));
+                else if (mode == ArchiveExtractionMode.SkipRootFolder)
+                {
+                    string normalized = entry.FileName.Replace('/', '\\');
+                    int index = normalized.IndexOf('\\');
+                    if (index < 0)
+                        return null;
+
+                    fileName = Path.Combine(outputFolder, normalized.Substring(index + 1)); 
+                }
+                
                 if (entry.IsFolder)
                 {
                     return fileName;
@@ -106,64 +118,22 @@ namespace EmulatorLauncher.Common.Compression.SevenZip
             password);
         }
 
-        public void Extract(Func<Entry, string> getOutputPath, ProgressChangedEventHandler progress = null, string password = null)
+        private void Extract(Func<Entry, string> getOutputPath, ProgressChangedEventHandler progress = null, string password = null)
         {
-            IList<Stream> fileStreams = new List<Stream>();
-
             try
             {
-                foreach (Entry entry in this.Entries)
+                using (var callback = new ExtractEntriesCallback(this.Entries, getOutputPath, password))
                 {
-                    string outputPath = getOutputPath(entry);
+                    if (progress != null)
+                        callback.Progress += (a, b) => progress(this, b);
 
-                    try
-                    {
-                        if (outputPath == null) // getOutputPath = null means SKIP
-                        {
-                            fileStreams.Add(null);
-                            continue;
-                        }
-
-                        if (entry.IsFolder)
-                        {
-                            Directory.CreateDirectory(outputPath);
-                            fileStreams.Add(null);
-                            continue;
-                        }
-
-                        string directoryName = Path.GetDirectoryName(outputPath);
-                        if (!string.IsNullOrWhiteSpace(directoryName))
-                            Directory.CreateDirectory(directoryName);
-
-                        fileStreams.Add(File.Create(outputPath));
-                    }
-                    catch (Exception ex)
-                    {
-                        SimpleLogger.Instance.Error("Failed to extract file " + outputPath, ex);
-                        fileStreams.Add(null);
-                    }
+                    this.archive.Extract(null, 0xFFFFFFFF, 0, callback);
                 }
-
-                var callback = new ArchiveStreamsCallback(fileStreams, password);
-                if (progress != null)
-                    callback.Progress += (a, b) => progress(this, b);
-
-                this.archive.Extract(null, 0xFFFFFFFF, 0, callback);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SimpleLogger.Instance.Error("Failed to extract archive", ex);
-            }
-            finally
-            {
-                foreach (Stream stream in fileStreams)
-                {
-                    if (stream != null)
-                    {
-                        stream.Dispose();
-                    }
-                }
-            }
+            }          
         }
 
         public IList<Entry> Entries

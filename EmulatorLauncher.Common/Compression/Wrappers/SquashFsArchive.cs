@@ -97,11 +97,14 @@ namespace EmulatorLauncher.Common.Compression.Wrappers
             }
         }
 
-        public void Extract(string destination, string fileNameToExtract = null, ProgressChangedEventHandler progress = null, bool keepFolder = false)
+        public void Extract(string destination, string fileNameToExtract = null, ProgressChangedEventHandler progress = null, ArchiveExtractionMode mode = ArchiveExtractionMode.Normal)
         {
             var rdsquashfs = GetRdSquashFSPath();
             if (!File.Exists(rdsquashfs))
                 return;
+
+            if (mode != ArchiveExtractionMode.Normal)
+                throw new ApplicationException("Unsupported extraction mode");
 
             HashSet<string> entries = null;
 

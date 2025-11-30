@@ -16,9 +16,9 @@ namespace EmulatorLauncher.Common.Compression
             string ext = Path.GetExtension(path).ToLowerInvariant();
             if (string.IsNullOrEmpty(ext))
                 return null;
-
+            
             if (ext.Contains("squashfs"))
-            {
+            {               
                 try
                 {
                     // Try to open with 7z
@@ -26,7 +26,7 @@ namespace EmulatorLauncher.Common.Compression
                         return SevenZipArchive.Open(path);
                 }
                 catch { }
-
+                
                 if (SquashFsArchive.IsSquashFsAvailable)
                     return SquashFsArchive.Open(path);
             }
@@ -38,7 +38,7 @@ namespace EmulatorLauncher.Common.Compression
                     return SevenZipArchive.Open(path);
             }
             catch { }
-
+            
             return ZipArchive.Open(path);
         }
 
@@ -95,14 +95,14 @@ namespace EmulatorLauncher.Common.Compression
 
         private static Dictionary<string, IArchiveEntry[]> _entriesCache = new Dictionary<string, IArchiveEntry[]>();
 
-        public static void Extract(string path, string destination, string fileNameToExtract = null, ProgressChangedEventHandler progress = null, bool keepFolder = false)
+        public static void Extract(string path, string destination, string fileNameToExtract = null, ProgressChangedEventHandler progress = null, ArchiveExtractionMode mode = ArchiveExtractionMode.Normal)
         {
             if (!IsCompressedFile(path))
                 return;
 
             using (var archive = Zip.Open(path))
                 if (archive != null)
-                    archive.Extract(destination, fileNameToExtract, progress, keepFolder);
+                    archive.Extract(destination, fileNameToExtract, progress, mode);
         }
 
         public static void CleanupUncompressedWSquashFS(string zipFile, string uncompressedPath)
