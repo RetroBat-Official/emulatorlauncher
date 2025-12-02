@@ -4317,6 +4317,8 @@ namespace EmulatorLauncher.Libretro
             BindFeatureSlider(coreSettings, "puae_mouse_speed", "puae_mouse_speed", "100");
             BindFeatureSlider(coreSettings, "puae_analogmouse_deadzone", "puae_analogmouse_deadzone", "20");
             BindBoolFeature(coreSettings, "puae_physical_keyboard_pass_through", "puae_keyboard_pass_through", "enabled", "disabled");
+            BindFeature(coreSettings, "puae_joyport_order", "puae_joyport_order", "1234");
+            BindFeature(coreSettings, "puae_joyport", "puae_joyport", "joystick");
         }
 
         private void ConfigurePX68k(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
