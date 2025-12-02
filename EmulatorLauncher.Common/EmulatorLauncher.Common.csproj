@@ -66,9 +66,8 @@
     <Compile Include="Compression\Wrappers\PortableZip.cs" />
     <Compile Include="Compression\Wrappers\SevenZipArchive.cs" />
     <Compile Include="Compression\SevenZip\ArchiveFile.cs" />
-    <Compile Include="Compression\SevenZip\ArchiveFileCallback.cs" />
     <Compile Include="Compression\SevenZip\ArchiveStreamCallback.cs" />
-    <Compile Include="Compression\SevenZip\ArchiveStreamsCallback.cs" />
+    <Compile Include="Compression\SevenZip\ExtractEntriesCallback.cs" />
     <Compile Include="Compression\SevenZip\Entry.cs" />
     <Compile Include="Compression\SevenZip\Formats.cs" />
     <Compile Include="Compression\SevenZip\IArchiveExtractCallback.cs" />

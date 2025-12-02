@@ -104,7 +104,7 @@ namespace Mount
 
                     string tmpFile = Path.GetFullPath(Path.Combine(tmpDirectory, source));
 
-                    Zip.Extract(FileSystem.FileName, tmpDirectory, source, null, true);
+                    Zip.Extract(FileSystem.FileName, tmpDirectory, source, null, ArchiveExtractionMode.Normal);
 
                     bool exists = File.Exists(tmpFile);
                     if (exists)

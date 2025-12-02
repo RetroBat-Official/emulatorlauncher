@@ -313,6 +313,32 @@ namespace EmulatorLauncher
         }
         #endregion
 
+        private bool GetVersionFromVerFile(string exe, out string ret)
+        {
+            string verFile = Path.ChangeExtension(exe, ".ver");
+            if (File.Exists(verFile) && new FileInfo(verFile).LastWriteTimeUtc == new FileInfo(exe).LastWriteTimeUtc)
+            {
+                var version = StringExtensions.FormatVersionString(File.ReadAllText(verFile));
+                var tmp = new Version(1, 0, 0, 0);
+                if (Version.TryParse(version, out tmp))
+                {
+                    ret = tmp.ToString();
+                    return true;
+                }
+            }
+            
+            ret = null;
+            return false;
+        }
+
+        private void SetVersionToVerFile(string exe, Version ver)
+        {
+            string verFile = Path.ChangeExtension(exe, ".ver");
+
+            File.WriteAllText(verFile, ver.ToString());
+            new FileInfo(verFile).LastWriteTimeUtc = new FileInfo(exe).LastWriteTimeUtc;
+        }
+
         public string GetInstalledVersion(bool versionCheck = false)
         {
             try
@@ -331,6 +357,9 @@ namespace EmulatorLauncher
                 // Retroarch specific
                 if (Path.GetFileNameWithoutExtension(exe).ToLower() == "retroarch")
                 {
+                    if (GetVersionFromVerFile(exe, out string vf))
+                        return vf;
+
                     var output = ProcessExtensions.RunWithOutput(exe, "--version");
 
                     string ret = output.ExtractString("Version:", " ("); 
@@ -341,19 +370,31 @@ namespace EmulatorLauncher
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))
+                    {
+                        SetVersionToVerFile(exe, ver);
                         return ver.ToString();
+                    }
                 }
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "demul")
                 {
+                    if (GetVersionFromVerFile(exe, out string vf))
+                        return vf;
+
                     var output = ProcessExtensions.RunWithOutput(exe, "--help");
                     output = StringExtensions.FormatVersionString(output.ExtractString(") v", "\r"));
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))
+                    {
+                        SetVersionToVerFile(exe, ver);
                         return ver.ToString();
+                    }
                 }
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "dolphin")
                 {
+                    if (GetVersionFromVerFile(exe, out string vf))
+                        return vf;
+
                     var output = ProcessExtensions.RunWithOutput(exe, "--version");
                     output = StringExtensions.FormatVersionString(output.ExtractString("Dolphin ", "\r"));
                     
@@ -370,10 +411,16 @@ namespace EmulatorLauncher
 
                     Version ver = new Version();
                     if (Version.TryParse(cleaned, out ver))
+                    {
+                        SetVersionToVerFile(exe, ver);
                         return ver.ToString();
+                    }
                 }
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "flycast")
                 {
+                    if (GetVersionFromVerFile(exe, out string vf))
+                        return vf;
+
                     var output = versionInfo.FileVersion.Substring(1);
                     Version ver = new Version();
                     int firstDashIndex = output.IndexOf('-');
@@ -391,53 +438,83 @@ namespace EmulatorLauncher
                     if (parts.Length == 4)
                     {
                         if (Version.TryParse(output, out ver))
+                        {
+                            SetVersionToVerFile(exe, ver);
                             return ver.ToString();
+                        }
                     }
                     else if (parts.Length == 3)
                     {
                         output = parts[0] + "." + parts[1] + ".0" + "." + parts[2];
                         if (Version.TryParse(output, out ver))
+                        {
+                            SetVersionToVerFile(exe, ver);
                             return ver.ToString();
+                        }
                     }
                     else if (parts.Length == 2)
                     {
                         output = parts[0] + "." + parts[1] + ".0" + ".0";
                         if (Version.TryParse(output, out ver))
+                        {
+                            SetVersionToVerFile(exe, ver);
                             return ver.ToString();
+                        }
                     }
                     else if (parts.Length == 1)
                     {
                         output = parts[0] + ".0" + ".0" + ".0";
                         if (Version.TryParse(output, out ver))
+                        {
+                            SetVersionToVerFile(exe, ver);
                             return ver.ToString();
+                        }
                     }
                     else if (parts.Length > 4)
                     {
                         output = parts[0] + "." + parts[1] + "." + parts[2] + "." + parts[3];
                         if (Version.TryParse(output, out ver))
+                        {
+                            SetVersionToVerFile(exe, ver);
                             return ver.ToString();
+                        }
                     }
 
                     if (Version.TryParse(output, out ver))
+                    {
+                        SetVersionToVerFile(exe, ver);
                         return ver.ToString();
+                    }
                 }
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "gsplus")
                 {
+                    if (GetVersionFromVerFile(exe, out string vf))
+                        return vf;
+
                     var output = ProcessExtensions.RunWithOutput(exe, "--help");
                     output = StringExtensions.FormatVersionString(output.ExtractString("GSplus v", " "));
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))
+                    {
+                        SetVersionToVerFile(exe, ver);
                         return ver.ToString();
+                    }
                 }
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "rmg")
                 {
+                    if (GetVersionFromVerFile(exe, out string vf))
+                        return vf;
+
                     var output = ProcessExtensions.RunWithOutput(exe, "-v");
                     output = StringExtensions.FormatVersionString(output.ExtractString("Rosalie's Mupen GUI v", "\r"));
 
                     Version ver = new Version();
                     if (Version.TryParse(output, out ver))
+                    {
+                        SetVersionToVerFile(exe, ver);
                         return ver.ToString();
+                    }
                 }
                 /*else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "play")
                 {
