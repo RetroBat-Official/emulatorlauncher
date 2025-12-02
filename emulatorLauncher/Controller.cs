@@ -439,7 +439,7 @@ namespace EmulatorLauncher
             return XInputButtonFlags.NONE;
         }
 
-        public Input GetDirectInputMapping(InputKey key)
+        public Input GetDirectInputMapping(InputKey key, bool buttonTrigger = false)
         {
             if (Config == null)
                 return null;
@@ -460,7 +460,7 @@ namespace EmulatorLauncher
 
                 if (dinputCtrl != null && dinputCtrl.ButtonMappings != null)
                 {
-                    Input sdlToDinput = SdlToDirectInput.GetDinputInput(dinputCtrl, key, input, isXinput);
+                    Input sdlToDinput = SdlToDirectInput.GetDinputInput(dinputCtrl, key, input, isXinput, buttonTrigger);
                     return sdlToDinput;
                 }
             }
