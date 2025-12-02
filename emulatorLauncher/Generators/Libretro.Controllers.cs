@@ -15,6 +15,7 @@ namespace EmulatorLauncher.Libretro
     partial class LibretroControllers
     {
         private static bool _specialController = false;
+        private static bool _buttonTrigger = false;
         private static bool _specialControllerHotkey = false;
         private static bool _noHotkey = false;
         private static bool _singleButtonShortcuts = false;
@@ -33,6 +34,8 @@ namespace EmulatorLauncher.Libretro
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return false;
             }
+
+            _buttonTrigger = Program.SystemConfig.getOptBoolean("buttonTrigger");
 
             _indexes.Clear();
 
@@ -527,7 +530,7 @@ namespace EmulatorLauncher.Libretro
                 return controller.GetSdlMapping(btnkey);
 
             if (_inputDriver == "dinput")
-                return controller.GetDirectInputMapping(btnkey);
+                return controller.GetDirectInputMapping(btnkey, _buttonTrigger);
 
             return controller.GetXInputInput(btnkey);
         }
