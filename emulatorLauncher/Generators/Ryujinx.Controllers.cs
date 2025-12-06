@@ -436,12 +436,11 @@ namespace EmulatorLauncher
                 guid = sdl3Controller.GuidString.Remove(4, 4).Insert(4, "0000");
                 newGuid = SdlJoystickGuidManager.FromSdlGuidString(guid);
             }
-            else if (_sdl3 && c.SdlWrappedTechID == SdlWrappedTechId.RawInput && c.XInput != null)
-            {
-                newGuid = c.Guid.ToXInputGuid(c.XInput.SubType);
-            }
 
             string ryuGuidString = newGuid.ToString();
+
+            if (_sdl3 && c.SdlWrappedTechID == SdlWrappedTechId.RawInput && c.XInput != null)
+                ryuGuidString = "0000" + SdlJoystickGuidManager.FromSdlGuidString(sdl3Controller.GuidString).ToString().Substring(4);
 
             string overrideGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
             string overrideGuid = SdlJoystickGuid.GetGuidFromFile(overrideGuidPath, c.SdlController, c.Guid, "ryujinx");
