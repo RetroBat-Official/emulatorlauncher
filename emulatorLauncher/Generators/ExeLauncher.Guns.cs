@@ -49,7 +49,9 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[GUNS] Game is compatible with DemulShooter, configuring...");
 
             // Start DemulShooter with appropriate parameters
-            Demulshooter.StartDemulshooter("exelauncher", system, gameName, guns.ElementAtOrDefault(0), guns.ElementAtOrDefault(1));
+            Demulshooter.StartDemulshooter("exelauncher", system, gameName, 
+                guns.ElementAtOrDefault(0), guns.ElementAtOrDefault(1), 
+                guns.ElementAtOrDefault(2), guns.ElementAtOrDefault(3));
         }
 
         public override void Cleanup()

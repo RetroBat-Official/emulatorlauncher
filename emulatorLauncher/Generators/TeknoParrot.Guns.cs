@@ -139,6 +139,28 @@ namespace EmulatorLauncher
                 _gunsKbAssociation.Add(orggun4, wiimote4kb);
             }
 
+            // Perform assignment of keyboards to Wiimote4Guns
+            if (orggun1 != null && orggun1.Type == RawLighGunType.Wiimote4Guns)
+            {
+                wiimote1kb = FindAssociatedKeyboard(orggun1.DevicePath, keyboards, keyboard);
+                _gunsKbAssociation.Add(orggun1, wiimote1kb);
+            }
+            if (orggun2 != null && orggun2.Type == RawLighGunType.Wiimote4Guns)
+            {
+                wiimote2kb = FindAssociatedKeyboard(orggun2.DevicePath, keyboards, keyboard);
+                _gunsKbAssociation.Add(orggun2, wiimote2kb);
+            }
+            if (orggun3 != null && orggun3.Type == RawLighGunType.Wiimote4Guns)
+            {
+                wiimote3kb = FindAssociatedKeyboard(orggun3.DevicePath, keyboards, keyboard);
+                _gunsKbAssociation.Add(orggun3, wiimote3kb);
+            }
+            if (orggun4 != null && orggun4.Type == RawLighGunType.Wiimote4Guns)
+            {
+                wiimote4kb = FindAssociatedKeyboard(orggun4.DevicePath, keyboards, keyboard);
+                _gunsKbAssociation.Add(orggun4, wiimote4kb);
+            }
+
             if (_gunsKbAssociation.Count > 1 && Program.SystemConfig.getOptBoolean("WiimoteKbOrder"))
             {
                 var enumerator = _gunsKbAssociation.GetEnumerator();
@@ -567,6 +589,54 @@ namespace EmulatorLauncher
                                             break;
                                     }
                                 }
+                                else if (iGun.Type == RawLighGunType.Wiimote4Guns)
+                                {
+                                    bool ts_nogun = false;
+                                    if (st_kb && (button.Key.ToLowerInvariant().Contains("service") || button.Key.ToLowerInvariant().Contains("test")))
+                                        ts_nogun = true;
+
+                                    // Find keyboard associated to lightgun
+                                    if (!useKb && !ts_nogun)
+                                        keyboard = _gunsKbAssociation.ContainsKey(iGun) ? _gunsKbAssociation[iGun] : FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard);
+
+                                    if (_orgKeyboard != null && (useKb || ts_nogun))
+                                    {
+                                        keyboard = _orgKeyboard;
+                                        kbName = keyboard.Name;
+                                        kbSuffix = keyboard.Manufacturer;
+                                    }
+                                    else
+                                    {
+                                        kbName = iGun.Name;
+                                        kbSuffix = "RetroBat"; // Fabricant RetroBat pour les claviers Wiimote4Guns
+                                    }
+
+                                    xmlPlace.RawInputButton = new RawInputButton
+                                    {
+                                        DevicePath = keyboard.DevicePath.ToString(),
+                                        DeviceType = RawDeviceType.Keyboard,
+                                        MouseButton = RawMouseButton.None
+                                    };
+
+                                    string kbkey = button.Value.Split('_')[1];
+                                    if (Numbers.Contains(kbkey))
+                                        kbkey = "D" + kbkey;
+
+                                    if (Enum.TryParse(kbkey, true, out Keys key))
+                                        xmlPlace.RawInputButton.KeyboardKey = key;
+
+                                    string kbNameOverride = null;
+                                    string deviceToOverride = GetVIDPID(keyboard.DevicePath);
+                                    string overridePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+                                    string newName = GetDescriptionFromFile(overridePath, deviceToOverride);
+                                    if (newName != null)
+                                        kbNameOverride = newName;
+
+                                    if (kbNameOverride != null)
+                                        xmlPlace.BindName = xmlPlace.BindNameRi = kbNameOverride + " " + key.ToString();
+                                    else
+                                        xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " " + key.ToString();
+                                }
                                 else
                                 {
                                     bool ts_nogun = false;
@@ -979,41 +1049,78 @@ namespace EmulatorLauncher
 
         private static RawInputDevice FindAssociatedKeyboard(string gunPath, List<RawInputDevice> keyboards, RawInputDevice keyboard)
         {
-            string mouseVIDPID = GetWiimoteVIDPID(gunPath);
-            string mouseChar = GetWiimoteAssociationChar(gunPath);
-            string toSearch = mouseVIDPID + "_" + mouseChar;
-            List<RawInputDevice> kbToIgnore = new List<RawInputDevice>();
+            // Handle Wiimote4Guns differently
+            if (gunPath.ToLowerInvariant().Contains("vmulti"))
+            {
+                string gunIdentifier = "";
+                if (gunPath.ToLowerInvariant().Contains("vmultia"))
+                    gunIdentifier = "vmultia";
+                else if (gunPath.ToLowerInvariant().Contains("vmultib"))
+                    gunIdentifier = "vmultib";
+                else if (gunPath.ToLowerInvariant().Contains("vmultic"))
+                    gunIdentifier = "vmultic";
+                else if (gunPath.ToLowerInvariant().Contains("vmultid"))
+                    gunIdentifier = "vmultid";
 
-            if (_gunsKbAssociation.Any(g => g.Key.DevicePath == gunPath))
-            {
-                var keyPair = _gunsKbAssociation.FirstOrDefault(g => g.Key.DevicePath == gunPath);
-                keyboard = keyPair.Value;
-                return keyboard;
-            }
-            else if (_gunsKbAssociation.Count > 0)
-            {
-                foreach (var pair in _gunsKbAssociation)
+                List<RawInputDevice> kbToIgnore = new List<RawInputDevice>();
+                if (_gunsKbAssociation.Count > 0)
                 {
-                    kbToIgnore.Add(pair.Value);
+                    foreach (var pair in _gunsKbAssociation)
+                    {
+                        kbToIgnore.Add(pair.Value);
+                    }
                 }
-            }
 
-            foreach (var kb in keyboards)
-            {
-                if (kbToIgnore.Contains(kb))
+                foreach (var kb in keyboards)
                 {
-                    continue;
-                }
-                
-                string kbVIDPID = GetWiimoteVIDPID(kb.DevicePath);
-                string kbChar = GetWiimoteAssociationChar(kb.DevicePath);
+                    if (kbToIgnore.Contains(kb))
+                        continue;
 
-                if (kbVIDPID != null && kbChar != null)
-                {
-                    string toFind = kbVIDPID + "_" + kbChar;
-                    if (toSearch.ToLowerInvariant() == toFind.ToLowerInvariant())
+                    if (kb.DevicePath.ToLowerInvariant().Contains(gunIdentifier))
                     {
                         return kb;
+                    }
+                }
+            }
+            else
+            {
+                // Original logic for MayFlashWiimote and other guns
+                string mouseVIDPID = GetWiimoteVIDPID(gunPath);
+                string mouseChar = GetWiimoteAssociationChar(gunPath);
+                string toSearch = mouseVIDPID + "_" + mouseChar;
+                List<RawInputDevice> kbToIgnore = new List<RawInputDevice>();
+
+                if (_gunsKbAssociation.Any(g => g.Key.DevicePath == gunPath))
+                {
+                    var keyPair = _gunsKbAssociation.FirstOrDefault(g => g.Key.DevicePath == gunPath);
+                    keyboard = keyPair.Value;
+                    return keyboard;
+                }
+                else if (_gunsKbAssociation.Count > 0)
+                {
+                    foreach (var pair in _gunsKbAssociation)
+                    {
+                        kbToIgnore.Add(pair.Value);
+                    }
+                }
+
+                foreach (var kb in keyboards)
+                {
+                    if (kbToIgnore.Contains(kb))
+                    {
+                        continue;
+                    }
+                    
+                    string kbVIDPID = GetWiimoteVIDPID(kb.DevicePath);
+                    string kbChar = GetWiimoteAssociationChar(kb.DevicePath);
+
+                    if (kbVIDPID != null && kbChar != null)
+                    {
+                        string toFind = kbVIDPID + "_" + kbChar;
+                        if (toSearch.ToLowerInvariant() == toFind.ToLowerInvariant())
+                        {
+                            return kb;
+                        }
                     }
                 }
             }

@@ -48,17 +48,30 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[INFO] Configuring DemulShooter");
                 var gun1 = guns.Length > 0 ? guns[0] : null;
                 var gun2 = guns.Length > 1 ? guns[1] : null;
+                var gun3 = guns.Length > 2 ? guns[2] : null;
+                var gun4 = guns.Length > 3 ? guns[3] : null;
 
                 if (gunindexrevert)
                 {
                     if (guns.Length > 1)
                     {
-                        gun1 = guns[1];
-                        gun2 = guns[2];
+                        // Simple inversion: shift by 1 position if possible
+                        if (guns.Length >= 3)
+                        {
+                            gun1 = guns[1];
+                            gun2 = guns[2];
+                            gun3 = guns[0];
+                            gun4 = guns.Length > 3 ? guns[3] : null;
+                        }
+                        else
+                        {
+                            gun1 = guns[1];
+                            gun2 = guns[0];
+                        }
                     }
                 }
 
-                Demulshooter.StartDemulshooter("flycast", system, _romName, gun1, gun2);
+                Demulshooter.StartDemulshooter("flycast", system, _romName, gun1, gun2, gun3, gun4);
                 return;
             }
 
@@ -429,7 +442,7 @@ namespace EmulatorLauncher
                         kbDic.Add(kb1, kb1desc);
                     }
                 }
-                if (kb2 != null)
+                if (kb2 != null && !kbDic.ContainsKey(kb2))
                 {
                     string devicepathHID4 = kb2.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
                     if (devicepathHID4.Length > 39)
@@ -445,7 +458,7 @@ namespace EmulatorLauncher
                     }
                 }
 
-                if (kb3 != null)
+                if (kb3 != null && !kbDic.ContainsKey(kb3))
                 {
                     string devicepathHID5 = kb3.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
                     if (devicepathHID5.Length > 39)
