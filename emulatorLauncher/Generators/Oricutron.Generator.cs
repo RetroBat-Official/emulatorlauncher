@@ -63,7 +63,7 @@ namespace EmulatorLauncher
 
             try
             {
-                using (var ini = new IniFile(configPath))
+                using (var ini = new IniFile(configPath, IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
                 {
                     BindIniFeature(ini, "", "machine", "oricutron_machine", "atmos");
                     BindIniFeature(ini, "", "rendermode", "oricutron_rendermode", "atmos");
