@@ -196,6 +196,20 @@ namespace EmulatorLauncher.Libretro
                         throw new ApplicationException("[ERROR] Geolith core requires a .neo file in the zip archive.");
                 }
             }
+            else if (core == "scummvm" && Path.GetExtension(rom).ToLower() == ".squashfs")
+            {
+                rom = this.TryUnZipGameIfNeeded(system, rom, true);
+                if (Directory.Exists(rom))
+                {
+                    string romFile = Directory.GetFiles(rom, "*.scummvm").FirstOrDefault();
+                    if (string.IsNullOrEmpty(romFile))
+                    {
+                        throw new ApplicationException("Libretro:scummvm requires a '.scummvm' game file to load the game.");
+                    }
+                    else
+                        rom = romFile;
+                }
+            }
 
             // Exit if no core is provided
             if (string.IsNullOrEmpty(core))
