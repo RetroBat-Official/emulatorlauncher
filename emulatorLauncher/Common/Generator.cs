@@ -324,14 +324,25 @@ namespace EmulatorLauncher
         public string GetUnzippedRomForSystem(string rom, string core, string system)
         {
             string[] psxExtensions = new string[] { ".m3u", ".cue", ".img", ".mdf", ".pbp", ".toc", ".cbn", ".ccd", ".iso", ".cso" };
+            string[] scummVMExtensions = new string[] { ".scummvm" };
             string[] extensions = new string[] { };
+            bool tryMount = false;
+            bool silent = false;
 
             if (system == "psx")
+            {
                 extensions = psxExtensions;
+                silent = false;
+            }
+            else if (core == "scummvm")
+            {
+                extensions = scummVMExtensions;
+                tryMount = true;
+            }
             else
                 return null;
 
-            string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+            string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, silent, tryMount);
             if (Directory.Exists(uncompressedRomPath))
             {
                 string[] romFiles = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories).OrderBy(file => Array.IndexOf(extensions, Path.GetExtension(file).ToLowerInvariant())).ToArray();

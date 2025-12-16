@@ -328,8 +328,8 @@ namespace EmulatorLauncher.Libretro
                 rom = Path.GetFullPath(datadir + "/roms/" + romName + ".zip");
             }
 
-            // unzip 7z for some cores
-            if (rom != null && core!=null && Path.GetExtension(rom).ToLower() == ".7z")
+            // Manage 7z and squashfs for some cores
+            if (rom != null && core!=null && (Path.GetExtension(rom).ToLower() == ".7z" || Path.GetExtension(rom).ToLower().Contains("squashfs")))
             {
                 string newRom = GetUnzippedRomForSystem(rom, core, system);
 
