@@ -140,13 +140,20 @@ namespace EmulatorLauncher
         {
             SimpleLogger.Instance.Info("[Generator] Writing RetroBat configuration to .toml config file.");
 
+            if (_canary)
+            {
+                SetupCanary(path);
+                return;
+            }
+            else if (_edge)
+            {
+                SetupEdge(path);
+                return;
+            }
+
             try
             {
-                string iniFile = "xenia-canary.config.toml";
-                if (_edge)
-                    iniFile = "xenia-edge.config.toml";
-                else if (emulator == "xenia")
-                    iniFile = "xenia.config.toml";
+                string iniFile = "xenia.config.toml";
 
                 using (IniFile ini = new IniFile(Path.Combine(path, iniFile), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
                 {
@@ -169,14 +176,6 @@ namespace EmulatorLauncher
                     else
                         ini.AppendValue("General", "discord", "false");
 
-                    if (_canary || _edge)
-                    {
-                        if (SystemConfig.isOptSet("xenia_patches") && SystemConfig.getOptBoolean("xenia_patches"))
-                            ini.AppendValue("General", "apply_patches", "true");
-                        else
-                            ini.AppendValue("General", "apply_patches", "false");
-                    }
-
                     //D3D12 section
                     if (SystemConfig.isOptSet("xenia_allow_variable_refresh_rate_and_tearing") && !SystemConfig.getOptBoolean("xenia_allow_variable_refresh_rate_and_tearing"))
                     {
@@ -189,28 +188,10 @@ namespace EmulatorLauncher
                         ini.AppendValue("Vulkan", "vulkan_allow_present_mode_immediate", "true");
                     }
 
-                    if (!_edge && SystemConfig.isOptSet("d3d12_readback_resolve") && SystemConfig.getOptBoolean("d3d12_readback_resolve"))
-                    {
-                        if (_canary)
-                            ini.AppendValue("GPU", "readback_resolve", "true");
-                        else
-                            ini.AppendValue("D3D12", "d3d12_readback_resolve", "true");
-                    }
-                    else if (Features.IsSupported("d3d12_readback_resolve") && !_edge)
-                    {
-                        if (_canary)
-                            ini.AppendValue("GPU", "readback_resolve", "false");
-                        else
-                            ini.AppendValue("D3D12", "d3d12_readback_resolve", "false");
-                    }
-
-                    if (_edge)
-                    {
-                        if (SystemConfig.isOptSet("readback_resolve") && !string.IsNullOrEmpty(SystemConfig["readback_resolve"]))
-                            ini.AppendValue("GPU", "readback_resolve", SystemConfig["readback_resolve"].QuoteString(true));
-                        else if (Features.IsSupported("readback_resolve"))
-                            ini.AppendValue("GPU", "readback_resolve", "fast".QuoteString(true));
-                    }
+                    if (SystemConfig.isOptSet("d3d12_readback_resolve") && SystemConfig.getOptBoolean("d3d12_readback_resolve"))
+                        ini.AppendValue("D3D12", "d3d12_readback_resolve", "true");
+                    else if (Features.IsSupported("d3d12_readback_resolve"))
+                        ini.AppendValue("D3D12", "d3d12_readback_resolve", "false");
 
                     if (SystemConfig.isOptSet("xenia_queue_priority") && !string.IsNullOrEmpty(SystemConfig["xenia_queue_priority"]))
                         ini.AppendValue("D3D12", "d3d12_queue_priority", SystemConfig["xenia_queue_priority"]);
@@ -247,11 +228,6 @@ namespace EmulatorLauncher
                         ini.AppendValue("GPU", "draw_resolution_scale_y", "1");
                     }
 
-                    if ((_canary || _edge) && SystemConfig.isOptSet("xenia_internal_display_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_internal_display_resolution"]))
-                        ini.AppendValue("Video", "internal_display_resolution", SystemConfig["xenia_internal_display_resolution"]);
-                    else if (Features.IsSupported("xenia_internal_display_resolution"))
-                        ini.AppendValue("Video", "internal_display_resolution", "8");
-
                     //CPU section
                     if (SystemConfig.isOptSet("break_on_unimplemented_instructions") && SystemConfig.getOptBoolean("break_on_unimplemented_instructions"))
                         ini.AppendValue("CPU", "break_on_unimplemented_instructions", "true");
@@ -265,30 +241,20 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("gpu"))
                         ini.AppendValue("GPU", "gpu", "any".QuoteString(true));
 
-                    if (!_edge)
+                    if (SystemConfig.isOptSet("render_target_path") && (SystemConfig["render_target_path"] == "performance"))
                     {
-                        if (SystemConfig.isOptSet("render_target_path") && (SystemConfig["render_target_path"] == "performance"))
-                        {
-                            ini.AppendValue("GPU", "render_target_path_d3d12", StringExtensions.QuoteString("rtv", true));
-                            ini.AppendValue("GPU", "render_target_path_vulkan", StringExtensions.QuoteString("fbo", true));
-                        }
-                        else if (SystemConfig.isOptSet("render_target_path") && (SystemConfig["render_target_path"] == "accuracy"))
-                        {
-                            ini.AppendValue("GPU", "render_target_path_d3d12", StringExtensions.QuoteString("rov", true));
-                            ini.AppendValue("GPU", "render_target_path_vulkan", StringExtensions.QuoteString("fsi", true));
-                        }
-                        else
-                        {
-                            ini.AppendValue("GPU", "render_target_path_d3d12", "\"any\"");
-                            ini.AppendValue("GPU", "render_target_path_vulkan", "\"any\"");
-                        }
+                        ini.AppendValue("GPU", "render_target_path_d3d12", StringExtensions.QuoteString("rtv", true));
+                        ini.AppendValue("GPU", "render_target_path_vulkan", StringExtensions.QuoteString("fbo", true));
+                    }
+                    else if (SystemConfig.isOptSet("render_target_path") && (SystemConfig["render_target_path"] == "accuracy"))
+                    {
+                        ini.AppendValue("GPU", "render_target_path_d3d12", StringExtensions.QuoteString("rov", true));
+                        ini.AppendValue("GPU", "render_target_path_vulkan", StringExtensions.QuoteString("fsi", true));
                     }
                     else
                     {
-                        if (SystemConfig.isOptSet("render_target_path") && (!string.IsNullOrEmpty(SystemConfig["render_target_path"])))
-                            ini.AppendValue("GPU", "render_target_path", StringExtensions.QuoteString(SystemConfig["render_target_path"], true));
-                        else
-                            ini.AppendValue("GPU", "render_target_path", "performance".QuoteString(true));
+                        ini.AppendValue("GPU", "render_target_path_d3d12", "\"any\"");
+                        ini.AppendValue("GPU", "render_target_path_vulkan", "\"any\"");
                     }
 
                     if (SystemConfig.isOptSet("gpu_allow_invalid_fetch_constants") && SystemConfig.getOptBoolean("gpu_allow_invalid_fetch_constants"))
@@ -301,65 +267,10 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("vsync"))
                         ini.AppendValue("GPU", "vsync", "true");
 
-                    if (_canary || _edge)
-                    {
-                        if (SystemConfig.isOptSet("query_occlusion_sample_lower_threshold") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_sample_lower_threshold"]))
-                            ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", SystemConfig["query_occlusion_sample_lower_threshold"]);
-                        else if (Features.IsSupported("query_occlusion_sample_lower_threshold"))
-                            ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", "80");
-
-                        if (SystemConfig.isOptSet("query_occlusion_sample_upper_threshold") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_sample_upper_threshold"]))
-                        {
-                            ini.AppendValue("GPU", "query_occlusion_sample_upper_threshold", SystemConfig["query_occlusion_sample_upper_threshold"]);
-
-                            if (SystemConfig["query_occlusion_sample_upper_threshold"] == "0")
-                                ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", "0");
-                        }
-                        else if (Features.IsSupported("query_occlusion_sample_upper_threshold"))
-                            ini.AppendValue("GPU", "query_occlusion_sample_upper_threshold", "100");
-
-                        if (SystemConfig.isOptSet("xenia_clear_memory_page_state") && SystemConfig.getOptBoolean("xenia_clear_memory_page_state"))
-                            ini.AppendValue("GPU", "clear_memory_page_state", "true");
-                        else if (Features.IsSupported("xenia_clear_memory_page_state"))
-                            ini.AppendValue("GPU", "clear_memory_page_state", "false");
-
-                        if (SystemConfig.isOptSet("xenia_framerate_limit") && !string.IsNullOrEmpty(SystemConfig["xenia_framerate_limit"]))
-                            ini.AppendValue("GPU", "framerate_limit", SystemConfig["xenia_framerate_limit"]);
-                        else if (Features.IsSupported("xenia_framerate_limit"))
-                            ini.AppendValue("GPU", "framerate_limit", "60");
-                    }
-                    else
-                    {
-                        if (SystemConfig.isOptSet("query_occlusion_fake_sample_count") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_fake_sample_count"]))
-                            ini.AppendValue("GPU", "query_occlusion_fake_sample_count", SystemConfig["query_occlusion_fake_sample_count"]);
-                        else if (Features.IsSupported("query_occlusion_fake_sample_count"))
-                            ini.AppendValue("GPU", "query_occlusion_fake_sample_count", "1000");
-                    }
-
-                    // Video section
-                    if (_canary || _edge)
-                    {
-                        if (SystemConfig.isOptSet("xenia_video_standard") && !string.IsNullOrEmpty(SystemConfig["xenia_video_standard"]))
-                            ini.AppendValue("Video", "video_standard", SystemConfig["xenia_video_standard"]);
-                        else if (Features.IsSupported("xenia_video_standard"))
-                            ini.AppendValue("Video", "video_standard", "1");
-
-                        if (SystemConfig.isOptSet("xenia_avpack") && !string.IsNullOrEmpty(SystemConfig["xenia_avpack"]))
-                            ini.AppendValue("Video", "avpack", SystemConfig["xenia_avpack"]);
-                        else if (Features.IsSupported("xenia_avpack"))
-                            ini.AppendValue("Video", "avpack", "8");
-
-
-                        if (SystemConfig.isOptSet("xenia_widescreen") && !string.IsNullOrEmpty(SystemConfig["xenia_widescreen"]))
-                            ini.AppendValue("Video", "widescreen", SystemConfig["xenia_widescreen"]);
-                        else if (Features.IsSupported("xenia_widescreen"))
-                            ini.AppendValue("Video", "widescreen", "true");
-
-                        if (SystemConfig.isOptSet("xenia_pal50") && SystemConfig.getOptBoolean("xenia_pal50"))
-                            ini.AppendValue("Video", "use_50Hz_mode", "true");
-                        else if (Features.IsSupported("xenia_pal50"))
-                            ini.AppendValue("Video", "use_50Hz_mode", "false");
-                    }
+                    if (SystemConfig.isOptSet("query_occlusion_fake_sample_count") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_fake_sample_count"]))
+                        ini.AppendValue("GPU", "query_occlusion_fake_sample_count", SystemConfig["query_occlusion_fake_sample_count"]);
+                    else if (Features.IsSupported("query_occlusion_fake_sample_count"))
+                        ini.AppendValue("GPU", "query_occlusion_fake_sample_count", "1000");
 
                     // Memory section
                     if (SystemConfig.isOptSet("scribble_heap") && SystemConfig.getOptBoolean("scribble_heap"))
@@ -397,43 +308,484 @@ namespace EmulatorLauncher
                         ini.AppendValue("HID", "hid", "\"sdl\"");
 
                     // Console language
-                    if (!_edge && SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
+                    if (SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
                         ini.AppendValue("XConfig", "user_language", SystemConfig["xenia_lang"]);
-                    else if (!_edge && Features.IsSupported("xenia_lang"))
+                    else if (Features.IsSupported("xenia_lang"))
                         ini.AppendValue("XConfig", "user_language", GetXboxLangFromEnvironment());
-
-                    if (_edge && SystemConfig.isOptSet("xenia_lang_edge") && !string.IsNullOrEmpty(SystemConfig["xenia_lang_edge"]))
-                        ini.AppendValue("XConfig", "user_language", "\"" + SystemConfig["xenia_lang_edge"] + "\"");
-                    else if (_edge && Features.IsSupported("xenia_lang_edge"))
-                        ini.AppendValue("XConfig", "user_language", GetXboxLangFromEnvironment());
-
-                    // Profiles
-                    if (_canary || _edge)
-                    {
-                        for (int i = 1; i < 4; i++)
-                        {
-                            string profileHint = "xenia_profile" + i;
-                            if (!SystemConfig.isOptSet(profileHint) || string.IsNullOrEmpty(SystemConfig[profileHint]))
-                                continue;
-                            string profileFolder = SystemConfig[profileHint];
-                            string profile = Path.GetFileNameWithoutExtension(profileFolder);
-
-                            if (!profileFolder.Contains(contentPath.Replace("\\", "/")))
-                            {
-                                SimpleLogger.Instance.Info("[Warning] Profile " + profile + " selected for Player " + i + " not in content path: " + contentPath);
-                                continue;
-                            }
-                            
-                            
-                            string setting = "logged_profile_slot_" + (i - 1) + "_xuid";
-                            if (SystemConfig.isOptSet(profileHint) && !string.IsNullOrEmpty(SystemConfig[profileHint]))
-                                ini.AppendValue("Profiles", setting, StringExtensions.QuoteString(profile, true));
-                        }
-                    }
                 }
             }
             catch { }
          }
+
+        private void SetupCanary(string path)
+        {
+            try
+            {
+                string iniFile = "xenia-canary.config.toml";
+
+                using (IniFile ini = new IniFile(Path.Combine(path, iniFile), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
+                {
+                    //APU section
+                    string audio_driver = StringExtensions.QuoteString(SystemConfig["apu"], true);
+                    if (SystemConfig.isOptSet("apu") && !string.IsNullOrEmpty(SystemConfig["apu"]))
+                        ini.AppendValue("APU", "apu", audio_driver);
+                    else if (Features.IsSupported("apu"))
+                        ini.AppendValue("APU", "apu", "any".QuoteString(true));
+
+                    //Content section
+                    if (SystemConfig.isOptSet("license_mask") && !string.IsNullOrEmpty(SystemConfig["license_mask"]))
+                        ini.AppendValue("Content", "license_mask", SystemConfig["license_mask"]);
+                    else if (Features.IsSupported("license_mask"))
+                        ini.AppendValue("Content", "license_mask", "1");
+
+                    //General section
+                    if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                        ini.AppendValue("General", "discord", "true");
+                    else
+                        ini.AppendValue("General", "discord", "false");
+
+                    if (SystemConfig.isOptSet("xenia_patches") && SystemConfig.getOptBoolean("xenia_patches"))
+                        ini.AppendValue("General", "apply_patches", "true");
+                    else
+                        ini.AppendValue("General", "apply_patches", "false");
+
+                    //D3D12 section
+                    if (SystemConfig.isOptSet("xenia_allow_variable_refresh_rate_and_tearing") && !SystemConfig.getOptBoolean("xenia_allow_variable_refresh_rate_and_tearing"))
+                    {
+                        ini.AppendValue("D3D12", "d3d12_allow_variable_refresh_rate_and_tearing", "false");
+                        ini.AppendValue("Vulkan", "vulkan_allow_present_mode_immediate", "false");
+                    }
+                    else if (Features.IsSupported("xenia_allow_variable_refresh_rate_and_tearing"))
+                    {
+                        ini.AppendValue("D3D12", "d3d12_allow_variable_refresh_rate_and_tearing", "true");
+                        ini.AppendValue("Vulkan", "vulkan_allow_present_mode_immediate", "true");
+                    }
+
+                    if (SystemConfig.isOptSet("readback_resolve") && !string.IsNullOrEmpty(SystemConfig["readback_resolve"]))
+                        ini.AppendValue("GPU", "readback_resolve", SystemConfig["readback_resolve"].QuoteString(true));
+                    else if (Features.IsSupported("readback_resolve"))
+                        ini.AppendValue("GPU", "readback_resolve", "fast".QuoteString(true));
+
+                    if (SystemConfig.isOptSet("xenia_queue_priority") && !string.IsNullOrEmpty(SystemConfig["xenia_queue_priority"]))
+                        ini.AppendValue("D3D12", "d3d12_queue_priority", SystemConfig["xenia_queue_priority"]);
+                    else if (Features.IsSupported("xenia_queue_priority"))
+                        ini.AppendValue("D3D12", "d3d12_queue_priority", "0");
+
+                    if (SystemConfig.isOptSet("xenia_d3d12_debug") && SystemConfig.getOptBoolean("xenia_d3d12_debug"))
+                        ini.AppendValue("D3D12", "d3d12_debug", "true");
+                    else if (Features.IsSupported("xenia_d3d12_debug"))
+                        ini.AppendValue("D3D12", "d3d12_debug", "false");
+
+                    // Display section
+                    if (SystemConfig.isOptSet("postprocess_antialiasing") && !string.IsNullOrEmpty(SystemConfig["postprocess_antialiasing"]))
+                        ini.AppendValue("Display", "postprocess_antialiasing", SystemConfig["postprocess_antialiasing"].QuoteString(true));
+                    else if (Features.IsSupported("postprocess_antialiasing"))
+                        ini.AppendValue("Display", "postprocess_antialiasing", "off".QuoteString(true));
+
+                    // Scaling filter
+                    if (SystemConfig.isOptSet("postprocess_scaling_and_sharpening") && !string.IsNullOrEmpty(SystemConfig["postprocess_scaling_and_sharpening"]))
+                        ini.AppendValue("Display", "postprocess_scaling_and_sharpening", SystemConfig["postprocess_scaling_and_sharpening"].QuoteString(true));
+                    else if (Features.IsSupported("postprocess_scaling_and_sharpening"))
+                        ini.AppendValue("Display", "postprocess_scaling_and_sharpening", "\"\"");
+
+                    // Resolution
+                    if (SystemConfig.isOptSet("xenia_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_resolution"]))
+                    {
+                        string[] res = SystemConfig["xenia_resolution"].Split('_');
+                        ini.AppendValue("GPU", "draw_resolution_scale_x", res[0]);
+                        ini.AppendValue("GPU", "draw_resolution_scale_y", res[1]);
+                    }
+                    else
+                    {
+                        ini.AppendValue("GPU", "draw_resolution_scale_x", "1");
+                        ini.AppendValue("GPU", "draw_resolution_scale_y", "1");
+                    }
+
+                    if (SystemConfig.isOptSet("xenia_internal_display_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_internal_display_resolution"]))
+                        ini.AppendValue("Video", "internal_display_resolution", SystemConfig["xenia_internal_display_resolution"]);
+                    else if (Features.IsSupported("xenia_internal_display_resolution"))
+                        ini.AppendValue("Video", "internal_display_resolution", "8");
+
+                    //CPU section
+                    if (SystemConfig.isOptSet("break_on_unimplemented_instructions") && SystemConfig.getOptBoolean("break_on_unimplemented_instructions"))
+                        ini.AppendValue("CPU", "break_on_unimplemented_instructions", "true");
+                    else if (Features.IsSupported("break_on_unimplemented_instructions"))
+                        ini.AppendValue("CPU", "break_on_unimplemented_instructions", "false");
+
+                    //GPU section
+                    string video_driver = StringExtensions.QuoteString(SystemConfig["gpu"], true);
+                    if (SystemConfig.isOptSet("gpu") && !string.IsNullOrEmpty(SystemConfig["gpu"]))
+                        ini.AppendValue("GPU", "gpu", video_driver);
+                    else if (Features.IsSupported("gpu"))
+                        ini.AppendValue("GPU", "gpu", "any".QuoteString(true));
+
+                    if (SystemConfig.isOptSet("render_target_path") && (SystemConfig["render_target_path"] == "performance"))
+                    {
+                        ini.AppendValue("GPU", "render_target_path_d3d12", StringExtensions.QuoteString("rtv", true));
+                        ini.AppendValue("GPU", "render_target_path_vulkan", StringExtensions.QuoteString("fbo", true));
+                    }
+                    else if (SystemConfig.isOptSet("render_target_path") && (SystemConfig["render_target_path"] == "accuracy"))
+                    {
+                        ini.AppendValue("GPU", "render_target_path_d3d12", StringExtensions.QuoteString("rov", true));
+                        ini.AppendValue("GPU", "render_target_path_vulkan", StringExtensions.QuoteString("fsi", true));
+                    }
+                    else
+                    {
+                        ini.AppendValue("GPU", "render_target_path_d3d12", "\"any\"");
+                        ini.AppendValue("GPU", "render_target_path_vulkan", "\"any\"");
+                    }
+
+                    if (SystemConfig.isOptSet("gpu_allow_invalid_fetch_constants") && SystemConfig.getOptBoolean("gpu_allow_invalid_fetch_constants"))
+                        ini.AppendValue("GPU", "gpu_allow_invalid_fetch_constants", "true");
+                    else if (Features.IsSupported("gpu_allow_invalid_fetch_constants"))
+                        ini.AppendValue("GPU", "gpu_allow_invalid_fetch_constants", "false");
+
+                    if (SystemConfig.isOptSet("vsync") && !SystemConfig.getOptBoolean("vsync"))
+                        ini.AppendValue("GPU", "vsync", "false");
+                    else if (Features.IsSupported("vsync"))
+                        ini.AppendValue("GPU", "vsync", "true");
+
+                    if (SystemConfig.isOptSet("query_occlusion_sample_lower_threshold") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_sample_lower_threshold"]))
+                        ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", SystemConfig["query_occlusion_sample_lower_threshold"]);
+                    else if (Features.IsSupported("query_occlusion_sample_lower_threshold"))
+                        ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", "80");
+
+                    if (SystemConfig.isOptSet("query_occlusion_sample_upper_threshold") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_sample_upper_threshold"]))
+                    {
+                        ini.AppendValue("GPU", "query_occlusion_sample_upper_threshold", SystemConfig["query_occlusion_sample_upper_threshold"]);
+
+                        if (SystemConfig["query_occlusion_sample_upper_threshold"] == "0")
+                            ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", "0");
+                    }
+                    else if (Features.IsSupported("query_occlusion_sample_upper_threshold"))
+                        ini.AppendValue("GPU", "query_occlusion_sample_upper_threshold", "100");
+
+                    if (SystemConfig.isOptSet("xenia_clear_memory_page_state") && SystemConfig.getOptBoolean("xenia_clear_memory_page_state"))
+                        ini.AppendValue("GPU", "clear_memory_page_state", "true");
+                    else if (Features.IsSupported("xenia_clear_memory_page_state"))
+                        ini.AppendValue("GPU", "clear_memory_page_state", "false");
+
+                    if (SystemConfig.isOptSet("xenia_framerate_limit") && !string.IsNullOrEmpty(SystemConfig["xenia_framerate_limit"]))
+                        ini.AppendValue("GPU", "framerate_limit", SystemConfig["xenia_framerate_limit"]);
+                    else if (Features.IsSupported("xenia_framerate_limit"))
+                        ini.AppendValue("GPU", "framerate_limit", "60");
+
+                    // Video section
+                    if (SystemConfig.isOptSet("xenia_video_standard") && !string.IsNullOrEmpty(SystemConfig["xenia_video_standard"]))
+                        ini.AppendValue("Video", "video_standard", SystemConfig["xenia_video_standard"]);
+                    else if (Features.IsSupported("xenia_video_standard"))
+                        ini.AppendValue("Video", "video_standard", "1");
+
+                    if (SystemConfig.isOptSet("xenia_avpack") && !string.IsNullOrEmpty(SystemConfig["xenia_avpack"]))
+                        ini.AppendValue("Video", "avpack", SystemConfig["xenia_avpack"]);
+                    else if (Features.IsSupported("xenia_avpack"))
+                        ini.AppendValue("Video", "avpack", "8");
+
+                    if (SystemConfig.isOptSet("xenia_widescreen") && !string.IsNullOrEmpty(SystemConfig["xenia_widescreen"]))
+                        ini.AppendValue("Video", "widescreen", SystemConfig["xenia_widescreen"]);
+                    else if (Features.IsSupported("xenia_widescreen"))
+                        ini.AppendValue("Video", "widescreen", "true");
+
+                    if (SystemConfig.isOptSet("xenia_pal50") && SystemConfig.getOptBoolean("xenia_pal50"))
+                        ini.AppendValue("Video", "use_50Hz_mode", "true");
+                    else if (Features.IsSupported("xenia_pal50"))
+                        ini.AppendValue("Video", "use_50Hz_mode", "false");
+
+                    // Memory section
+                    if (SystemConfig.isOptSet("scribble_heap") && SystemConfig.getOptBoolean("scribble_heap"))
+                        ini.AppendValue("Memory", "scribble_heap", "true");
+                    else if (Features.IsSupported("scribble_heap"))
+                        ini.AppendValue("Memory", "scribble_heap", "false");
+
+                    if (SystemConfig.isOptSet("protect_zero") && !SystemConfig.getOptBoolean("protect_zero"))
+                        ini.AppendValue("Memory", "protect_zero", "false");
+                    else if (Features.IsSupported("protect_zero"))
+                        ini.AppendValue("Memory", "protect_zero", "true");
+
+                    // Storage section
+                    string contentPath = Path.Combine(AppConfig.GetFullPath("saves"), "xbox360", "xenia", "content");
+                    if (Directory.Exists(contentPath))
+                    {
+                        ini.AppendValue("Storage", "content_root", StringExtensions.QuoteString(contentPath.Replace("\\", "/"), true));
+                        SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
+                    }
+                    else
+                    {
+                        contentPath = Path.Combine(path, "content");
+                        SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
+                    }
+
+                    if (SystemConfig.isOptSet("mount_cache") && SystemConfig.getOptBoolean("mount_cache"))
+                        ini.AppendValue("Storage", "mount_cache", "true");
+                    else if (Features.IsSupported("mount_cache"))
+                        ini.AppendValue("Storage", "mount_cache", "false");
+
+                    // Controllers section (HID)
+                    if (SystemConfig.isOptSet("xenia_hid") && !string.IsNullOrEmpty(SystemConfig["xenia_hid"]))
+                        ini.AppendValue("HID", "hid", StringExtensions.QuoteString(SystemConfig["xenia_hid"], true));
+                    else if (Features.IsSupported("xenia_hid"))
+                        ini.AppendValue("HID", "hid", "\"sdl\"");
+
+                    // Console language
+                    if (SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
+                        ini.AppendValue("XConfig", "user_language", SystemConfig["xenia_lang"]);
+                    else if (Features.IsSupported("xenia_lang"))
+                        ini.AppendValue("XConfig", "user_language", GetXboxLangFromEnvironment());
+
+                    // Profiles
+                    for (int i = 1; i < 4; i++)
+                    {
+                        string profileHint = "xenia_profile" + i;
+                        if (!SystemConfig.isOptSet(profileHint) || string.IsNullOrEmpty(SystemConfig[profileHint]))
+                            continue;
+                        string profileFolder = SystemConfig[profileHint];
+                        string profile = Path.GetFileNameWithoutExtension(profileFolder);
+
+                        if (!profileFolder.Contains(contentPath.Replace("\\", "/")))
+                        {
+                            SimpleLogger.Instance.Info("[Warning] Profile " + profile + " selected for Player " + i + " not in content path: " + contentPath);
+                            continue;
+                        }
+
+
+                        string setting = "logged_profile_slot_" + (i - 1) + "_xuid";
+                        if (SystemConfig.isOptSet(profileHint) && !string.IsNullOrEmpty(SystemConfig[profileHint]))
+                            ini.AppendValue("Profiles", setting, StringExtensions.QuoteString(profile, true));
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void SetupEdge(string path)
+        {
+            try
+            {
+                string iniFile = "xenia-edge.config.toml";
+
+                using (IniFile ini = new IniFile(Path.Combine(path, iniFile), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
+                {
+                    //APU section
+                    string audio_driver = StringExtensions.QuoteString(SystemConfig["apu"], true);
+                    if (SystemConfig.isOptSet("apu") && !string.IsNullOrEmpty(SystemConfig["apu"]))
+                        ini.AppendValue("APU", "apu", audio_driver);
+                    else if (Features.IsSupported("apu"))
+                        ini.AppendValue("APU", "apu", "any".QuoteString(true));
+
+                    //Content section
+                    if (SystemConfig.isOptSet("license_mask") && !string.IsNullOrEmpty(SystemConfig["license_mask"]))
+                        ini.AppendValue("Content", "license_mask", SystemConfig["license_mask"]);
+                    else if (Features.IsSupported("license_mask"))
+                        ini.AppendValue("Content", "license_mask", "1");
+
+                    //General section
+                    if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
+                        ini.AppendValue("General", "discord", "true");
+                    else
+                        ini.AppendValue("General", "discord", "false");
+
+                    if (SystemConfig.isOptSet("xenia_patches") && SystemConfig.getOptBoolean("xenia_patches"))
+                        ini.AppendValue("General", "apply_patches", "true");
+                    else
+                        ini.AppendValue("General", "apply_patches", "false");
+
+                    //D3D12 section
+                    if (SystemConfig.isOptSet("xenia_allow_variable_refresh_rate_and_tearing") && !SystemConfig.getOptBoolean("xenia_allow_variable_refresh_rate_and_tearing"))
+                    {
+                        ini.AppendValue("D3D12", "d3d12_allow_variable_refresh_rate_and_tearing", "false");
+                        ini.AppendValue("Vulkan", "vulkan_allow_present_mode_immediate", "false");
+                    }
+                    else if (Features.IsSupported("xenia_allow_variable_refresh_rate_and_tearing"))
+                    {
+                        ini.AppendValue("D3D12", "d3d12_allow_variable_refresh_rate_and_tearing", "true");
+                        ini.AppendValue("Vulkan", "vulkan_allow_present_mode_immediate", "true");
+                    }
+
+                    if (SystemConfig.isOptSet("readback_resolve") && !string.IsNullOrEmpty(SystemConfig["readback_resolve"]))
+                        ini.AppendValue("GPU", "readback_resolve", SystemConfig["readback_resolve"].QuoteString(true));
+                    else if (Features.IsSupported("readback_resolve"))
+                        ini.AppendValue("GPU", "readback_resolve", "fast".QuoteString(true));
+
+                    if (SystemConfig.isOptSet("xenia_queue_priority") && !string.IsNullOrEmpty(SystemConfig["xenia_queue_priority"]))
+                        ini.AppendValue("D3D12", "d3d12_queue_priority", SystemConfig["xenia_queue_priority"]);
+                    else if (Features.IsSupported("xenia_queue_priority"))
+                        ini.AppendValue("D3D12", "d3d12_queue_priority", "0");
+
+                    if (SystemConfig.isOptSet("xenia_d3d12_debug") && SystemConfig.getOptBoolean("xenia_d3d12_debug"))
+                        ini.AppendValue("D3D12", "d3d12_debug", "true");
+                    else if (Features.IsSupported("xenia_d3d12_debug"))
+                        ini.AppendValue("D3D12", "d3d12_debug", "false");
+
+                    // Display section
+                    if (SystemConfig.isOptSet("postprocess_antialiasing") && !string.IsNullOrEmpty(SystemConfig["postprocess_antialiasing"]))
+                        ini.AppendValue("Display", "postprocess_antialiasing", SystemConfig["postprocess_antialiasing"].QuoteString(true));
+                    else if (Features.IsSupported("postprocess_antialiasing"))
+                        ini.AppendValue("Display", "postprocess_antialiasing", "off".QuoteString(true));
+
+                    // Scaling filter
+                    if (SystemConfig.isOptSet("postprocess_scaling_and_sharpening") && !string.IsNullOrEmpty(SystemConfig["postprocess_scaling_and_sharpening"]))
+                        ini.AppendValue("Display", "postprocess_scaling_and_sharpening", SystemConfig["postprocess_scaling_and_sharpening"].QuoteString(true));
+                    else if (Features.IsSupported("postprocess_scaling_and_sharpening"))
+                        ini.AppendValue("Display", "postprocess_scaling_and_sharpening", "\"\"");
+
+                    // Resolution
+                    if (SystemConfig.isOptSet("xenia_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_resolution"]))
+                    {
+                        string[] res = SystemConfig["xenia_resolution"].Split('_');
+                        ini.AppendValue("GPU", "draw_resolution_scale_x", res[0]);
+                        ini.AppendValue("GPU", "draw_resolution_scale_y", res[1]);
+                    }
+                    else
+                    {
+                        ini.AppendValue("GPU", "draw_resolution_scale_x", "1");
+                        ini.AppendValue("GPU", "draw_resolution_scale_y", "1");
+                    }
+
+                    if (SystemConfig.isOptSet("xenia_internal_display_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_internal_display_resolution"]))
+                        ini.AppendValue("Video", "internal_display_resolution", SystemConfig["xenia_internal_display_resolution"]);
+                    else if (Features.IsSupported("xenia_internal_display_resolution"))
+                        ini.AppendValue("Video", "internal_display_resolution", "8");
+
+                    //CPU section
+                    if (SystemConfig.isOptSet("break_on_unimplemented_instructions") && SystemConfig.getOptBoolean("break_on_unimplemented_instructions"))
+                        ini.AppendValue("CPU", "break_on_unimplemented_instructions", "true");
+                    else if (Features.IsSupported("break_on_unimplemented_instructions"))
+                        ini.AppendValue("CPU", "break_on_unimplemented_instructions", "false");
+
+                    //GPU section
+                    string video_driver = StringExtensions.QuoteString(SystemConfig["gpu"], true);
+                    if (SystemConfig.isOptSet("gpu") && !string.IsNullOrEmpty(SystemConfig["gpu"]))
+                        ini.AppendValue("GPU", "gpu", video_driver);
+                    else if (Features.IsSupported("gpu"))
+                        ini.AppendValue("GPU", "gpu", "any".QuoteString(true));
+
+                    if (SystemConfig.isOptSet("render_target_path") && (!string.IsNullOrEmpty(SystemConfig["render_target_path"])))
+                        ini.AppendValue("GPU", "render_target_path", StringExtensions.QuoteString(SystemConfig["render_target_path"], true));
+                    else
+                        ini.AppendValue("GPU", "render_target_path", "performance".QuoteString(true));
+
+                    if (SystemConfig.isOptSet("gpu_allow_invalid_fetch_constants") && SystemConfig.getOptBoolean("gpu_allow_invalid_fetch_constants"))
+                        ini.AppendValue("GPU", "gpu_allow_invalid_fetch_constants", "true");
+                    else if (Features.IsSupported("gpu_allow_invalid_fetch_constants"))
+                        ini.AppendValue("GPU", "gpu_allow_invalid_fetch_constants", "false");
+
+                    if (SystemConfig.isOptSet("vsync") && !SystemConfig.getOptBoolean("vsync"))
+                        ini.AppendValue("GPU", "vsync", "false");
+                    else if (Features.IsSupported("vsync"))
+                        ini.AppendValue("GPU", "vsync", "true");
+
+                    if (SystemConfig.isOptSet("query_occlusion_sample_lower_threshold") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_sample_lower_threshold"]))
+                        ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", SystemConfig["query_occlusion_sample_lower_threshold"]);
+                    else if (Features.IsSupported("query_occlusion_sample_lower_threshold"))
+                        ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", "80");
+
+                    if (SystemConfig.isOptSet("query_occlusion_sample_upper_threshold") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_sample_upper_threshold"]))
+                    {
+                        ini.AppendValue("GPU", "query_occlusion_sample_upper_threshold", SystemConfig["query_occlusion_sample_upper_threshold"]);
+
+                        if (SystemConfig["query_occlusion_sample_upper_threshold"] == "0")
+                            ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", "0");
+                    }
+                    else if (Features.IsSupported("query_occlusion_sample_upper_threshold"))
+                        ini.AppendValue("GPU", "query_occlusion_sample_upper_threshold", "100");
+
+                    if (SystemConfig.isOptSet("xenia_clear_memory_page_state") && SystemConfig.getOptBoolean("xenia_clear_memory_page_state"))
+                        ini.AppendValue("GPU", "clear_memory_page_state", "true");
+                    else if (Features.IsSupported("xenia_clear_memory_page_state"))
+                        ini.AppendValue("GPU", "clear_memory_page_state", "false");
+
+                    if (SystemConfig.isOptSet("xenia_framerate_limit") && !string.IsNullOrEmpty(SystemConfig["xenia_framerate_limit"]))
+                        ini.AppendValue("GPU", "framerate_limit", SystemConfig["xenia_framerate_limit"]);
+                    else if (Features.IsSupported("xenia_framerate_limit"))
+                        ini.AppendValue("GPU", "framerate_limit", "60");
+
+                    // Video section
+                    if (SystemConfig.isOptSet("xenia_video_standard") && !string.IsNullOrEmpty(SystemConfig["xenia_video_standard"]))
+                        ini.AppendValue("Video", "video_standard", SystemConfig["xenia_video_standard"]);
+                    else if (Features.IsSupported("xenia_video_standard"))
+                        ini.AppendValue("Video", "video_standard", "1");
+
+                    if (SystemConfig.isOptSet("xenia_avpack") && !string.IsNullOrEmpty(SystemConfig["xenia_avpack"]))
+                        ini.AppendValue("Video", "avpack", SystemConfig["xenia_avpack"]);
+                    else if (Features.IsSupported("xenia_avpack"))
+                        ini.AppendValue("Video", "avpack", "8");
+
+
+                    if (SystemConfig.isOptSet("xenia_widescreen") && !string.IsNullOrEmpty(SystemConfig["xenia_widescreen"]))
+                        ini.AppendValue("Video", "widescreen", SystemConfig["xenia_widescreen"]);
+                    else if (Features.IsSupported("xenia_widescreen"))
+                        ini.AppendValue("Video", "widescreen", "true");
+
+                    if (SystemConfig.isOptSet("xenia_pal50") && SystemConfig.getOptBoolean("xenia_pal50"))
+                        ini.AppendValue("Video", "use_50Hz_mode", "true");
+                    else if (Features.IsSupported("xenia_pal50"))
+                        ini.AppendValue("Video", "use_50Hz_mode", "false");
+
+                    // Memory section
+                    if (SystemConfig.isOptSet("scribble_heap") && SystemConfig.getOptBoolean("scribble_heap"))
+                        ini.AppendValue("Memory", "scribble_heap", "true");
+                    else if (Features.IsSupported("scribble_heap"))
+                        ini.AppendValue("Memory", "scribble_heap", "false");
+
+                    if (SystemConfig.isOptSet("protect_zero") && !SystemConfig.getOptBoolean("protect_zero"))
+                        ini.AppendValue("Memory", "protect_zero", "false");
+                    else if (Features.IsSupported("protect_zero"))
+                        ini.AppendValue("Memory", "protect_zero", "true");
+
+                    // Storage section
+                    string contentPath = Path.Combine(AppConfig.GetFullPath("saves"), "xbox360", "xenia", "content");
+                    if (Directory.Exists(contentPath))
+                    {
+                        ini.AppendValue("Storage", "content_root", StringExtensions.QuoteString(contentPath.Replace("\\", "/"), true));
+                        SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
+                    }
+                    else
+                    {
+                        contentPath = Path.Combine(path, "content");
+                        SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
+                    }
+
+                    if (SystemConfig.isOptSet("mount_cache") && SystemConfig.getOptBoolean("mount_cache"))
+                        ini.AppendValue("Storage", "mount_cache", "true");
+                    else if (Features.IsSupported("mount_cache"))
+                        ini.AppendValue("Storage", "mount_cache", "false");
+
+                    // Controllers section (HID)
+                    if (SystemConfig.isOptSet("xenia_hid") && !string.IsNullOrEmpty(SystemConfig["xenia_hid"]))
+                        ini.AppendValue("HID", "hid", StringExtensions.QuoteString(SystemConfig["xenia_hid"], true));
+                    else if (Features.IsSupported("xenia_hid"))
+                        ini.AppendValue("HID", "hid", "\"sdl\"");
+
+                    // Console language
+                    if (SystemConfig.isOptSet("xenia_lang_edge") && !string.IsNullOrEmpty(SystemConfig["xenia_lang_edge"]))
+                        ini.AppendValue("XConfig", "user_language", "\"" + SystemConfig["xenia_lang_edge"] + "\"");
+                    else if (Features.IsSupported("xenia_lang_edge"))
+                        ini.AppendValue("XConfig", "user_language", GetXboxLangFromEnvironment());
+
+                    // Profiles
+                    for (int i = 1; i < 4; i++)
+                    {
+                        string profileHint = "xenia_profile" + i;
+                        if (!SystemConfig.isOptSet(profileHint) || string.IsNullOrEmpty(SystemConfig[profileHint]))
+                            continue;
+                        string profileFolder = SystemConfig[profileHint];
+                        string profile = Path.GetFileNameWithoutExtension(profileFolder);
+
+                        if (!profileFolder.Contains(contentPath.Replace("\\", "/")))
+                        {
+                            SimpleLogger.Instance.Info("[Warning] Profile " + profile + " selected for Player " + i + " not in content path: " + contentPath);
+                            continue;
+                        }
+
+
+                        string setting = "logged_profile_slot_" + (i - 1) + "_xuid";
+                        if (SystemConfig.isOptSet(profileHint) && !string.IsNullOrEmpty(SystemConfig[profileHint]))
+                            ini.AppendValue("Profiles", setting, StringExtensions.QuoteString(profile, true));
+                    }
+                }
+            }
+            catch { }
+        }
 
         private string GetXboxLangFromEnvironment()
         {

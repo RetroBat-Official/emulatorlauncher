@@ -4,6 +4,7 @@ using EmulatorLauncher.Common.Joysticks;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using static EmulatorLauncher.PadToKeyboard.SendKey;
@@ -267,8 +268,13 @@ namespace EmulatorLauncher
                 stick_button = GetInputKeyName(c, InputKey.r3, tech),
             };
 
-            newInputConfig["deadzone_left"] = 0.1;
-            newInputConfig["deadzone_right"] = 0.1;
+            double deadzone = 0.1;
+
+            if (SystemConfig.isOptSet("ryujinx_deadzone") && !string.IsNullOrEmpty(SystemConfig["ryujinx_deadzone"]))
+                deadzone = double.Parse(SystemConfig["ryujinx_deadzone"], CultureInfo.InvariantCulture);
+
+            newInputConfig["deadzone_left"] = deadzone;
+            newInputConfig["deadzone_right"] = deadzone;
             newInputConfig["range_left"] = 1;
             newInputConfig["range_right"] = 1;
             newInputConfig["trigger_threshold"] = 0.5;
@@ -436,12 +442,11 @@ namespace EmulatorLauncher
                 guid = sdl3Controller.GuidString.Remove(4, 4).Insert(4, "0000");
                 newGuid = SdlJoystickGuidManager.FromSdlGuidString(guid);
             }
-            else if (_sdl3 && c.SdlWrappedTechID == SdlWrappedTechId.RawInput && c.XInput != null)
-            {
-                newGuid = c.Guid.ToXInputGuid(c.XInput.SubType);
-            }
 
             string ryuGuidString = newGuid.ToString();
+
+            if (_sdl3 && c.SdlWrappedTechID == SdlWrappedTechId.RawInput && c.XInput != null)
+                ryuGuidString = "0000" + SdlJoystickGuidManager.FromSdlGuidString(sdl3Controller.GuidString).ToString().Substring(4);
 
             string overrideGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
             string overrideGuid = SdlJoystickGuid.GetGuidFromFile(overrideGuidPath, c.SdlController, c.Guid, "ryujinx");

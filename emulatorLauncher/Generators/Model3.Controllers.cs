@@ -369,6 +369,7 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Writing controls to emulator .ini file.");
 
+            #region mapping yml file
             // Check if a mapping exists for the game in yml file
             YmlContainer game = null;
             YmlContainer gameLayout = null;
@@ -648,10 +649,23 @@ namespace EmulatorLauncher
                         }
 
                         ini.WriteValue(" Global ", "InputSystem", tech);
+
+                        //deadzones - set 5 as default deadzone, good compromise to avoid joystick drift
+                        string deadzone = "5";
+                        if (SystemConfig.isOptSet("supermodel_joy_deadzone") && !string.IsNullOrEmpty(SystemConfig["supermodel_joy_deadzone"]))
+                            deadzone = SystemConfig["supermodel_joy_deadzone"].ToIntegerString();
+
+                        for (int i = 1; i <= 6; i++)
+                        {
+                            ini.WriteValue(" Global ", "InputJoy" + i + "XDeadZone", deadzone);
+                            ini.WriteValue(" Global ", "InputJoy" + i + "YDeadZone", deadzone);
+                        }
+
                         return;
                     }
                 }
             }
+            #endregion
 
             #region sdlgamepad
             //Now write buttons mapping for generic sdlgamepad case (when player 1 controller is NOT XINPUT)
@@ -937,12 +951,14 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "InputFishingTension", "\"NONE\"");
 
                 //deadzones - set 5 as default deadzone, good compromise to avoid joystick drift
-                ini.WriteValue(" Global ", "InputJoy" + j1index + "XDeadZone", "5");
-                ini.WriteValue(" Global ", "InputJoy" + j1index + "YDeadZone", "5");
-                if (multiplayer)
+                string deadzone = "5";
+                if (SystemConfig.isOptSet("supermodel_joy_deadzone") && !string.IsNullOrEmpty(SystemConfig["supermodel_joy_deadzone"]))
+                    deadzone = SystemConfig["supermodel_joy_deadzone"].ToIntegerString();
+
+                for (int i = 1; i <= 6; i++)
                 {
-                    ini.WriteValue(" Global ", "InputJoy" + j2index + "XDeadZone", "5");
-                    ini.WriteValue(" Global ", "InputJoy" + j2index + "YDeadZone", "5");
+                    ini.WriteValue(" Global ", "InputJoy" + i + "XDeadZone", deadzone);
+                    ini.WriteValue(" Global ", "InputJoy" + i + "YDeadZone", deadzone);
                 }
 
                 //other stuff
@@ -1238,12 +1254,14 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "InputFishingTension", "\"NONE\"");
 
                 //deadzones - set 5 as default deadzone, good compromise to avoid joystick drift
-                ini.WriteValue(" Global ", "InputJoy" + j1index + "XDeadZone", "5");
-                ini.WriteValue(" Global ", "InputJoy" + j1index + "YDeadZone", "5");
-                if (multiplayer)
+                string deadzone = "5";
+                if (SystemConfig.isOptSet("supermodel_joy_deadzone") && !string.IsNullOrEmpty(SystemConfig["supermodel_joy_deadzone"]))
+                    deadzone = SystemConfig["supermodel_joy_deadzone"].ToIntegerString();
+
+                for (int i = 1; i <= 6; i++)
                 {
-                    ini.WriteValue(" Global ", "InputJoy" + j2index + "XDeadZone", "5");
-                    ini.WriteValue(" Global ", "InputJoy" + j2index + "YDeadZone", "5");
+                    ini.WriteValue(" Global ", "InputJoy" + i + "XDeadZone", deadzone);
+                    ini.WriteValue(" Global ", "InputJoy" + i + "YDeadZone", deadzone);
                 }
 
                 //other stuff
@@ -1626,12 +1644,14 @@ namespace EmulatorLauncher
                     ini.WriteValue(" Global ", "InputFishingTension", "\"NONE\"");
 
                     //deadzones - set 5 as default deadzone, good compromise to avoid joystick drift
-                    ini.WriteValue(" Global ", "InputJoy" + j1index + "XDeadZone", "5");
-                    ini.WriteValue(" Global ", "InputJoy" + j1index + "YDeadZone", "5");
-                    if (multiplayer)
+                    string deadzone = "5";
+                    if (SystemConfig.isOptSet("supermodel_joy_deadzone") && !string.IsNullOrEmpty(SystemConfig["supermodel_joy_deadzone"]))
+                        deadzone = SystemConfig["supermodel_joy_deadzone"].ToIntegerString();
+
+                    for (int i = 1; i <= 6; i++)
                     {
-                        ini.WriteValue(" Global ", "InputJoy" + j2index + "XDeadZone", "5");
-                        ini.WriteValue(" Global ", "InputJoy" + j2index + "YDeadZone", "5");
+                        ini.WriteValue(" Global ", "InputJoy" + i + "XDeadZone", deadzone);
+                        ini.WriteValue(" Global ", "InputJoy" + i + "YDeadZone", deadzone);
                     }
 
                     //other stuff
@@ -2004,13 +2024,15 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "InputFishingSelect", "\"JOY" + j1index + "_BUTTON1\"");
                 ini.WriteValue(" Global ", "InputFishingTension", "\"NONE\"");
 
-                //deadzones
-                ini.WriteValue(" Global ", "InputJoy" + j1index + "XDeadZone", "5");
-                ini.WriteValue(" Global ", "InputJoy" + j1index + "YDeadZone", "5");
-                if (multiplayer)
+                //deadzones - set 5 as default deadzone, good compromise to avoid joystick drift
+                string deadzone = "5";
+                if (SystemConfig.isOptSet("supermodel_joy_deadzone") && !string.IsNullOrEmpty(SystemConfig["supermodel_joy_deadzone"]))
+                    deadzone = SystemConfig["supermodel_joy_deadzone"].ToIntegerString();
+
+                for (int i = 1; i <= 6; i++)
                 {
-                    ini.WriteValue(" Global ", "InputJoy" + j2index + "XDeadZone", "5");
-                    ini.WriteValue(" Global ", "InputJoy" + j2index + "YDeadZone", "5");
+                    ini.WriteValue(" Global ", "InputJoy" + i + "XDeadZone", deadzone);
+                    ini.WriteValue(" Global ", "InputJoy" + i + "YDeadZone", deadzone);
                 }
 
                 //other stuff

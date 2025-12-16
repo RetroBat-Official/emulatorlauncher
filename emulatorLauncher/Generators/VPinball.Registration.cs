@@ -76,28 +76,47 @@ namespace EmulatorLauncher
             {
                 var clsid = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"B2S.B2SPlayer\CLSID", null);
                 if (string.IsNullOrEmpty(clsid))
+                {
+                    SimpleLogger.Instance.Info("[INFO] B2S not registered: registering.");
                     return true;
+                }
 
                 var codeBase = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"CLSID\" + clsid + @"\InprocServer32", "CodeBase", view);
                 if (string.IsNullOrEmpty(codeBase))
+                {
+                    SimpleLogger.Instance.Info("[INFO] B2S not registered: registering.");
                     return true;
+                }
 
                 string localPath = new Uri(codeBase).LocalPath;
                 if (!File.Exists(localPath))
+                {
+                    SimpleLogger.Instance.Info("[INFO] B2S registering, local Path does not exist.");
                     return true;
+                }
 
                 // Path has changed ?
                 if (!localPath.Equals(path, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    SimpleLogger.Instance.Info("[INFO] B2S dll registered in different path, re-registering.");
                     return true;
+                }
 
                 // Version changed ?
                 var assembly = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"CLSID\" + clsid + @"\InprocServer32", "Assembly", view);
                 var assemblyName = System.Reflection.AssemblyName.GetAssemblyName(localPath).FullName;
 
-                return assembly != assemblyName;
+                if (assembly != assemblyName)
+                {
+                    SimpleLogger.Instance.Info("[INFO] Registered B2S dll assembly version different from RetroBat, re-registering.");
+                    return true;
+                }
+
+                return false;
             }
             catch
             {
+                SimpleLogger.Instance.Warning("[WARNING] Unable to determine if Backglass Server is registered.");
                 return true;
             }
         }

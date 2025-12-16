@@ -609,9 +609,13 @@ namespace EmulatorLauncher
                         digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pagedown, tech) + ":btn_trigger_right");
                     }
 
+                    if (tech == "SDL")
+                        digitalBinds.Add("5:btn_menu");
+                    else
+                        digitalBinds.Add("10:btn_menu");
+
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.x, tech) + ":btn_y");
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.y, tech) + ":btn_x");
-                    digitalBinds.Add(GetInputKeyName(ctrl, InputKey.l3, tech) + ":btn_menu");
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.start, tech) + ":btn_start");
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_d");
                     

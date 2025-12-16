@@ -59,6 +59,10 @@ namespace EmulatorLauncher
 
             using (var ini = new IniFile(conf))
             {
+                // disable update checks
+                ini.WriteValue("UI", "check_for_updates_on_start\\default", "false");
+                ini.WriteValue("UI", "check_for_updates_on_start", "false");
+
                 // Set up paths
                 bool mutualize = SystemConfig.getOptBoolean("yuzu_mutualize");
 
