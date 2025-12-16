@@ -85,6 +85,10 @@ namespace EmulatorLauncher.Common.Lightguns
                 string[] xenasDeviceIds = new string[] { "VID_023f30_PID&71ff", "VID_023f30_PID&72ff", "VID_023f30_PID&73ff", "VID_023f30_PID&74ff" };
                 if (xenasDeviceIds.Any(d => devicePath.Contains(d)))
                     return RawLighGunType.Xenas;
+
+                string[] wiimote4GunsDeviceIds = new string[] { "vmultia", "vmultib", "vmultic", "vmultid" };
+                if (wiimote4GunsDeviceIds.Any(d => devicePath.ToLowerInvariant().Contains(d.ToLowerInvariant())))
+                    return RawLighGunType.Wiimote4Guns;
             }
 
             return RawLighGunType.Mouse;
@@ -107,13 +111,38 @@ namespace EmulatorLauncher.Common.Lightguns
                      Index = index,
                      VendorId = device.VendorId,
                      ProductId = device.ProductId,
-                     Type = ExtractRawLighGunType(device.DevicePath) 
+                     Type = ExtractRawLighGunType(device.DevicePath)
                  });
                  index++;
             }
 
+            foreach (var mouse in mouseNames)
+            {
+                if (mouse.Type == RawLighGunType.Wiimote4Guns)
+                {
+                    int playerNumber = 1;
+                    if (mouse.DevicePath != null)
+                    {
+                        if (mouse.DevicePath.ToLowerInvariant().Contains("vmultia"))
+                            playerNumber = 1;
+                        else if (mouse.DevicePath.ToLowerInvariant().Contains("vmultib"))
+                            playerNumber = 2;
+                        else if (mouse.DevicePath.ToLowerInvariant().Contains("vmultic"))
+                            playerNumber = 3;
+                        else if (mouse.DevicePath.ToLowerInvariant().Contains("vmultid"))
+                            playerNumber = 4;
+                    }
+                    mouse.Name = "Wiimote4Guns P" + playerNumber;
+                    mouse.Manufacturer = "RetroBat";
+                }
+            }
+
             // Sort known lightguns first, then by physical index.
             mouseNames.Sort((x, y) => x.GetGunPriority().CompareTo(y.GetGunPriority()));
+
+            // Temporary log
+            foreach (var mouse in mouseNames)
+                SimpleLogger.Instance.Info("[RawLightGun] -> " + mouse.Name + " (" + mouse.Type + ") -> Priority : " + mouse.GetGunPriority());
 
             return mouseNames.ToArray();
         }
@@ -219,6 +248,18 @@ namespace EmulatorLauncher.Common.Lightguns
                 case RawLighGunType.MayFlashWiimote:
                     return 200 + Index;
 
+                case RawLighGunType.Wiimote4Guns:
+                    if (DevicePath != null && DevicePath.ToLowerInvariant().Contains("vmultia"))
+                        return 180;
+                    else if (DevicePath != null && DevicePath.ToLowerInvariant().Contains("vmultib"))
+                        return 181;
+                    else if (DevicePath != null && DevicePath.ToLowerInvariant().Contains("vmultic"))
+                        return 182;
+                    else if (DevicePath != null && DevicePath.ToLowerInvariant().Contains("vmultid"))
+                        return 183;
+                    else
+                        return 184 + Index;
+
                 default:
                     if (Name != null && Name.IndexOf("lightgun", StringComparison.InvariantCultureIgnoreCase) >= 0)
                         return 300 + Index;
@@ -249,6 +290,7 @@ namespace EmulatorLauncher.Common.Lightguns
         Blamcon,
         Aimtrak,
         Xenas,
+        Wiimote4Guns,
         Mouse
     }
 }

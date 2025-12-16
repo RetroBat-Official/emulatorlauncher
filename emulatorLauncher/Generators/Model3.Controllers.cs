@@ -1,3 +1,4 @@
+using System;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
@@ -13,6 +14,12 @@ namespace EmulatorLauncher
     partial class Model3Generator : Generator
     {
         private bool _sindenSoft = false;
+
+        // Gun configuration variables
+        private string mouse1 = "MOUSE1";
+        private string mouse2 = "MOUSE2";
+        private bool multigun = false;
+        private int gunCount = 0;
 
         /// <summary>
         /// Cf. https://github.com/trzy/Supermodel
@@ -67,6 +74,14 @@ namespace EmulatorLauncher
             }
             else if (Program.Controllers.Count == 0)
                 return;
+
+            // Handle guns configuration LAST (after all other mappings)
+            int gunCount = RawLightgun.GetUsableLightGunCount();
+            if (gunCount > 0)
+            {
+                SimpleLogger.Instance.Info("[GUNS] Found " + gunCount + " usable guns.");
+                ConfigureGunsForModel3(ini);
+            }
         }
 
         /// <summary>
@@ -118,61 +133,6 @@ namespace EmulatorLauncher
                 tech = "dinput";
 
             SimpleLogger.Instance.Info("[INFO] setting " + tech + " inputdriver in SuperModel.");
-
-            // Guns
-            int gunCount = RawLightgun.GetUsableLightGunCount();
-            SimpleLogger.Instance.Info("[GUNS] Found " + gunCount + " usable guns.");
-
-            var guns = RawLightgun.GetRawLightguns();
-
-            // default to multigun if we have more than one usable gun and the inputdriver is not set to sdl (which do not support multigun)
-            bool hasSdlInputDriverConfigured = SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"].StartsWith("sdl");
-            bool useGun = SystemConfig.getOptBoolean("use_guns");
-            bool multigun = useGun && gunCount > 1 && guns.Length > 1 && !hasSdlInputDriverConfigured;
-            if (SystemConfig.isOptSet("multigun"))
-                multigun = SystemConfig.getOptBoolean("multigun");
-            
-            if (multigun)
-            {
-                // multigun and sdl are incompatible, so change our input mapping to dinput by default.
-                if (tech.StartsWith("sdl"))
-                    tech = "dinput";
-                SimpleLogger.Instance.Info("[GUNS] Using multigun with input mappings from " + tech + ".");
-            }
-            else SimpleLogger.Instance.Info("[GUNS] Not using multigun.");
-
-            string mouseIndex1 = "1";
-            string mouseIndex2 = "2";
-
-            if (gunCount > 0 && guns.Length > 0)
-            {
-                // Adjust for Supermodel using a reverse iteration order: https://github.com/trzy/Supermodel/blob/master/Src/OSD/Windows/DirectInputSystem.cpp#L610
-                mouseIndex1 = (guns.Length - guns[0].Index).ToString();
-                if (gunCount > 1 && guns.Length > 1)
-                    mouseIndex2 = (guns.Length - guns[1].Index).ToString();
-
-                if (SystemConfig.isOptSet("use_guns") && guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
-                {
-                    Guns.StartSindenSoftware();
-                    _sindenSoft = true;
-                }
-            }
-
-            if (SystemConfig.isOptSet("supermodel_gun1") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun1"]))
-                mouseIndex1 = SystemConfig["supermodel_gun1"];
-            if (SystemConfig.isOptSet("supermodel_gun2") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun2"]))
-                mouseIndex2 = SystemConfig["supermodel_gun2"];
-
-            string mouse1 = "MOUSE" + mouseIndex1;
-            string mouse2 = "MOUSE" + mouseIndex2;
-
-            if (!multigun)
-            {
-                mouse1 = mouse2 = "MOUSE";
-                ini.WriteValue(" Global ", "Crosshairs", "1");
-            }
-            else
-                ini.WriteValue(" Global ", "Crosshairs", "3");
 
             // Wheels
             int wheelNb = 0;
@@ -859,46 +819,52 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "InputAnalogJoyEvent2", "\"NONE\"");
 
                 //Light guns (Lost World) - MOUSE
-                ini.WriteValue(" Global ", "InputGunLeft", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunRight", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunUp", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunDown", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunX", "\"" + mouse1 + "_XAXIS\"");
-                ini.WriteValue(" Global ", "InputGunY", "\"" + mouse1 + "_YAXIS\"");
-                ini.WriteValue(" Global ", "InputTrigger", "\"" + mouse1 + "_LEFT_BUTTON\"");
-                ini.WriteValue(" Global ", "InputOffscreen", "\"" + mouse1 + "_RIGHT_BUTTON\"");
-                ini.WriteValue(" Global ", "InputAutoTrigger", "1");
-                ini.WriteValue(" Global ", "InputGunLeft2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunRight2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunUp2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunDown2", "\"NONE\"");
+                if (!multigun)
+                {
+                    ini.WriteValue(" Global ", "InputGunLeft", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputGunRight", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputGunUp", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputGunDown", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputGunX", "\"" + mouse1 + "_XAXIS\"");
+                    ini.WriteValue(" Global ", "InputGunY", "\"" + mouse1 + "_YAXIS\"");
+                    ini.WriteValue(" Global ", "InputTrigger", "\"" + mouse1 + "_LEFT_BUTTON\"");
+                    ini.WriteValue(" Global ", "InputOffscreen", "\"" + mouse1 + "_RIGHT_BUTTON\"");
+                    ini.WriteValue(" Global ", "InputAutoTrigger", "1");
+                    ini.WriteValue(" Global ", "InputGunLeft2", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputGunRight2", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputGunUp2", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputGunDown2", "\"NONE\"");
 
-                // no multigun support in sdl, disable second mouse input
-                ini.WriteValue(" Global ", "InputGunX2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunY2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputTrigger2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputOffscreen2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAutoTrigger2", "1");
+                    // no multigun support in sdl, disable second mouse input
+                    ini.WriteValue(" Global ", "InputGunX2", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputGunY2", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputTrigger2", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputOffscreen2", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputAutoTrigger2", "1");
+                }
 
                 //Analog guns (Ocean Hunter, LA Machineguns) - MOUSE
-                ini.WriteValue(" Global ", "InputAnalogGunLeft", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunRight", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunUp", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunDown", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunX", "\"" + mouse1 + "_XAXIS\"");
-                ini.WriteValue(" Global ", "InputAnalogGunY", "\"" + mouse1 + "_YAXIS\"");
-                ini.WriteValue(" Global ", "InputAnalogTriggerLeft", "\"" + mouse1 + "_LEFT_BUTTON\"");
-                ini.WriteValue(" Global ", "InputAnalogTriggerRight", "\"" + mouse1 + "_RIGHT_BUTTON\"");
-                ini.WriteValue(" Global ", "InputAnalogGunLeft2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunRight2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunUp2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunDown2", "\"NONE\"");
+                if (!multigun)
+                {
+                    ini.WriteValue(" Global ", "InputAnalogGunLeft", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputAnalogGunRight", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputAnalogGunUp", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputAnalogGunDown", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputAnalogGunX", "\"" + mouse1 + "_XAXIS\"");
+                    ini.WriteValue(" Global ", "InputAnalogGunY", "\"" + mouse1 + "_YAXIS\"");
+                    ini.WriteValue(" Global ", "InputAnalogTriggerLeft", "\"" + mouse1 + "_LEFT_BUTTON\"");
+                    ini.WriteValue(" Global ", "InputAnalogTriggerRight", "\"" + mouse1 + "_RIGHT_BUTTON\"");
+                    ini.WriteValue(" Global ", "InputAnalogGunLeft2", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputAnalogGunRight2", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputAnalogGunUp2", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputAnalogGunDown2", "\"NONE\"");
 
-                // no multigun support in sdl, disable second mouse input
-                ini.WriteValue(" Global ", "InputAnalogGunX2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunY2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogTriggerLeft2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogTriggerRight2", "\"NONE\"");
+                    // no multigun support in sdl, disable second mouse input
+                    ini.WriteValue(" Global ", "InputAnalogGunX2", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputAnalogGunY2", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputAnalogTriggerLeft2", "\"NONE\"");
+                    ini.WriteValue(" Global ", "InputAnalogTriggerRight2", "\"NONE\"");
+                }
 
                 //Ski Champ controls
                 ini.WriteValue(" Global ", "InputSkiLeft", "\"NONE\"");
@@ -1907,75 +1873,6 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "InputAnalogJoyDown", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyX", "\"" + mouse1 + "_XAXIS_INV,JOY" + j1index + "_XAXIS_INV\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyY", "\"" + mouse1 + "_YAXIS,JOY" + j1index + "_YAXIS_INV\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyTrigger", "\"" + mouse1 + "_LEFT_BUTTON,JOY" + j1index + "_RZAXIS_POS,JOY" + j1index + "_BUTTON3\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyEvent", "\"" + mouse1 + "_RIGHT_BUTTON,JOY" + j1index + "_BUTTON1\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyTrigger2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyEvent2", "\"NONE\"");
-
-                //Light guns (Lost World)
-                ini.WriteValue(" Global ", "InputGunLeft", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunRight", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunUp", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunDown", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunX", "\"" + mouse1 + "_XAXIS\"");
-                ini.WriteValue(" Global ", "InputGunY", "\"" + mouse1 + "_YAXIS\"");
-                ini.WriteValue(" Global ", "InputTrigger", "\"" + mouse1 + "_LEFT_BUTTON\"");
-                ini.WriteValue(" Global ", "InputOffscreen", "\"" + mouse1 + "_RIGHT_BUTTON\"");
-                ini.WriteValue(" Global ", "InputAutoTrigger", "1");
-                ini.WriteValue(" Global ", "InputGunLeft2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunRight2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunUp2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputGunDown2", "\"NONE\"");
-
-                if (multigun)
-                {
-                    ini.WriteValue(" Global ", "InputGunX2", "\"" + mouse2 + "_XAXIS\"");
-                    ini.WriteValue(" Global ", "InputGunY2", "\"" + mouse2 + "_YAXIS\"");
-                    ini.WriteValue(" Global ", "InputTrigger2", "\"" + mouse2 + "_LEFT_BUTTON\"");
-                    ini.WriteValue(" Global ", "InputOffscreen2", "\"" + mouse2 + "_RIGHT_BUTTON\"");
-                }
-                else
-                {
-                    ini.WriteValue(" Global ", "InputGunX2", "\"NONE\"");
-                    ini.WriteValue(" Global ", "InputGunY2", "\"NONE\"");
-                    ini.WriteValue(" Global ", "InputTrigger2", "\"NONE\"");
-                    ini.WriteValue(" Global ", "InputOffscreen2", "\"NONE\"");
-                }
-
-                ini.WriteValue(" Global ", "InputAutoTrigger2", "1");
-
-                //Analog guns (Ocean Hunter, LA Machineguns)
-                ini.WriteValue(" Global ", "InputAnalogGunLeft", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunRight", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunUp", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunDown", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunX", "\"" + mouse1 + "_XAXIS\"");
-                ini.WriteValue(" Global ", "InputAnalogGunY", "\"" + mouse1 + "_YAXIS\"");
-                ini.WriteValue(" Global ", "InputAnalogTriggerLeft", "\"" + mouse1 + "_LEFT_BUTTON\"");
-                ini.WriteValue(" Global ", "InputAnalogTriggerRight", "\"" + mouse1 + "_RIGHT_BUTTON\"");
-                ini.WriteValue(" Global ", "InputAnalogGunLeft2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunRight2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunUp2", "\"NONE\"");
-                ini.WriteValue(" Global ", "InputAnalogGunDown2", "\"NONE\"");
-                
-                if (multigun)
-                {
-                    ini.WriteValue(" Global ", "InputAnalogGunX2", "\"" + mouse2 + "_XAXIS\"");
-                    ini.WriteValue(" Global ", "InputAnalogGunY2", "\"" + mouse2 + "_YAXIS\"");
-                    ini.WriteValue(" Global ", "InputAnalogTriggerLeft2", "\"" + mouse2 + "_LEFT_BUTTON\"");
-                    ini.WriteValue(" Global ", "InputAnalogTriggerRight2", "\"" + mouse2 + "_RIGHT_BUTTON\"");
-                }
-                else
-                {
-                    ini.WriteValue(" Global ", "InputAnalogGunX2", "\"NONE\"");
-                    ini.WriteValue(" Global ", "InputAnalogGunY2", "\"NONE\"");
-                    ini.WriteValue(" Global ", "InputAnalogTriggerLeft2", "\"NONE\"");
-                    ini.WriteValue(" Global ", "InputAnalogTriggerRight2", "\"NONE\"");
-                }
-
-
-                //Ski Champ controls
-                ini.WriteValue(" Global ", "InputSkiLeft", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputSkiRight", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputSkiUp", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputSkiDown", "\"NONE\"");
@@ -2742,5 +2639,228 @@ namespace EmulatorLauncher
             { "west", "BUTTON3" },
             { "east", "BUTTON2" }
         };
+
+        private static RawInputDevice FindAssociatedKeyboard(string gunPath, List<RawInputDevice> keyboards, RawInputDevice keyboard)
+        {
+            // Handle Wiimote4Guns differently
+            if (gunPath.ToLowerInvariant().Contains("vmulti"))
+            {
+                string gunIdentifier = "";
+                if (gunPath.ToLowerInvariant().Contains("vmultia"))
+                    gunIdentifier = "vmultia";
+                else if (gunPath.ToLowerInvariant().Contains("vmultib"))
+                    gunIdentifier = "vmultib";
+                else if (gunPath.ToLowerInvariant().Contains("vmultic"))
+                    gunIdentifier = "vmultic";
+                else if (gunPath.ToLowerInvariant().Contains("vmultid"))
+                    gunIdentifier = "vmultid";
+
+                foreach (var kb in keyboards)
+                {
+                    if (kb.DevicePath.ToLowerInvariant().Contains(gunIdentifier))
+                    {
+                        return kb;
+                    }
+                }
+            }
+            return keyboard;
+        }
+
+        private void ConfigureGunsForModel3(IniFile ini)
+        {
+            gunCount = RawLightgun.GetUsableLightGunCount();
+            var guns = RawLightgun.GetRawLightguns();
+            var hidDevices = RawInputDevice.GetRawInputDevices().ToList();
+            var keyboards = hidDevices.Where(t => t.Type == RawInputDeviceType.Keyboard).OrderBy(u => u.DevicePath).ToList();
+
+            // Keyboard association for Wiimote4Guns
+            Dictionary<RawLightgun, RawInputDevice> gunsKbAssociation = new Dictionary<RawLightgun, RawInputDevice>();
+            if (guns.Any(g => g.Type == RawLighGunType.Wiimote4Guns))
+            {
+                SimpleLogger.Instance.Info("[GUNS] Found " + keyboards.Count + " usable keyboards.");
+                
+                foreach (var gun in guns.Where(g => g.Type == RawLighGunType.Wiimote4Guns))
+                {
+                    var associatedKeyboard = FindAssociatedKeyboard(gun.DevicePath, keyboards, null);
+                    if (associatedKeyboard != null)
+                    {
+                        gunsKbAssociation.Add(gun, associatedKeyboard);
+                        SimpleLogger.Instance.Info("[GUNS] Associated keyboard for " + gun.Name + ": " + associatedKeyboard.FriendlyName);
+                    }
+                }
+            }
+
+            // default to multigun if we have more than one usable gun and the inputdriver is not set to sdl (which do not support multigun)
+            bool hasSdlInputDriverConfigured = SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"].StartsWith("sdl");
+            bool useGun = SystemConfig.getOptBoolean("use_guns");
+            multigun = useGun && gunCount > 1 && guns.Length > 1 && !hasSdlInputDriverConfigured;
+            if (SystemConfig.isOptSet("multigun"))
+                multigun = SystemConfig.getOptBoolean("multigun");
+            
+            string tech = "xinput";
+            if (SystemConfig.isOptSet("inputdriver"))
+            {
+                if (SystemConfig["inputdriver"] == "sdl")
+                    tech = "sdl";
+                else if (SystemConfig["inputdriver"] == "dinput")
+                    tech = "dinput";
+            }
+            
+            if (multigun)
+            {
+                // multigun and sdl are incompatible, so change our input mapping to dinput by default.
+                if (tech.StartsWith("sdl"))
+                    tech = "dinput";
+                SimpleLogger.Instance.Info("[GUNS] Using multigun with input mappings from " + tech + ".");
+            }
+            else SimpleLogger.Instance.Info("[GUNS] Not using multigun.");
+
+            string mouseIndex1 = "1";
+            string mouseIndex2 = "2";
+
+            if (gunCount > 0 && guns.Length > 0)
+            {
+                // Process guns based on their priority order from RawLightGun.cs
+                var wiimote4Guns = guns.Where(g => g.Type == RawLighGunType.Wiimote4Guns).ToArray();
+                
+                // Handle all guns with priority order (including non-Wiimote4Guns)
+                if (guns.Length > 0)
+                {
+                    // Map vmulti* identifiers to system indexes for Wiimote4Guns
+                    var vmultiToSystemIndex = new Dictionary<string, int>();
+                    for (int i = 0; i < guns.Length; i++)
+                    {
+                        if (guns[i].Type == RawLighGunType.Wiimote4Guns && guns[i].DevicePath != null)
+                        {
+                            string vmultiId = "";
+                            if (guns[i].DevicePath.ToLowerInvariant().Contains("vmultia"))
+                                vmultiId = "vmultia";
+                            else if (guns[i].DevicePath.ToLowerInvariant().Contains("vmultib"))
+                                vmultiId = "vmultib";
+                            else if (guns[i].DevicePath.ToLowerInvariant().Contains("vmultic"))
+                                vmultiId = "vmultic";
+                            else if (guns[i].DevicePath.ToLowerInvariant().Contains("vmultid"))
+                                vmultiId = "vmultid";
+                            
+                            if (!string.IsNullOrEmpty(vmultiId))
+                                vmultiToSystemIndex[vmultiId] = guns[i].Index + 1;
+                        }
+                    }
+                    
+                    // Apply Supermodel inversion: MOUSE(N) = TotalSouris - SystemIndex + 1
+                    int totalMice = guns.Length;
+                    
+                    // Find P1 and P2 by priority order
+                    int playerCount = 0;
+                    for (int i = 0; i < guns.Length && playerCount < 2; i++)
+                    {
+                        playerCount++;
+                        int systemIndex = guns[i].Index + 1;
+                        string supermodelIndex = (totalMice - systemIndex + 1).ToString();
+                        
+                        if (playerCount == 1)
+                            mouseIndex1 = supermodelIndex;
+                        else if (playerCount == 2)
+                            mouseIndex2 = supermodelIndex;
+                        
+                        // Log based on gun type
+                        if (guns[i].Type == RawLighGunType.Wiimote4Guns)
+                        {
+                            string vmultiId = "";
+                            if (guns[i].DevicePath.ToLowerInvariant().Contains("vmultia"))
+                                vmultiId = "vmultia";
+                            else if (guns[i].DevicePath.ToLowerInvariant().Contains("vmultib"))
+                                vmultiId = "vmultib";
+                            else if (guns[i].DevicePath.ToLowerInvariant().Contains("vmultic"))
+                                vmultiId = "vmultic";
+                            else if (guns[i].DevicePath.ToLowerInvariant().Contains("vmultid"))
+                                vmultiId = "vmultid";
+                            
+                            if (gunsKbAssociation.ContainsKey(guns[i]))
+                            {
+                                var kb = gunsKbAssociation[guns[i]];
+                                int kbIndex = keyboards.IndexOf(kb) + 1;
+                                SimpleLogger.Instance.Info("[GUNS] P" + playerCount + " (" + vmultiId + ") keyboard index: " + kbIndex);
+                            }
+                            SimpleLogger.Instance.Info("[GUNS] P" + playerCount + " (" + vmultiId + ") system index: " + systemIndex + " → Supermodel MOUSE" + supermodelIndex);
+                        }
+                        else
+                        {
+                            SimpleLogger.Instance.Info("[GUNS] P" + playerCount + " (" + guns[i].Type + ") system index: " + systemIndex + " → Supermodel MOUSE" + supermodelIndex);
+                        }
+                    }
+                    
+                    SimpleLogger.Instance.Info("[GUNS] Total mice: " + totalMice + " - Final mouse indexes - P1: " + mouseIndex1 + ", P2: " + mouseIndex2);
+                }
+                else
+                {
+                    // Adjust for Supermodel using a reverse iteration order for non-Wiimote4Guns
+                    mouseIndex1 = (guns.Length - guns[0].Index).ToString();
+                    if (gunCount > 1 && guns.Length > 1)
+                        mouseIndex2 = (guns.Length - guns[1].Index).ToString();
+                }
+
+                if (SystemConfig.isOptSet("use_guns") && guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+                {
+                    Guns.StartSindenSoftware();
+                    _sindenSoft = true;
+                }
+            }
+
+            if (SystemConfig.isOptSet("supermodel_gun1") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun1"]))
+                mouseIndex1 = SystemConfig["supermodel_gun1"];
+            if (SystemConfig.isOptSet("supermodel_gun2") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun2"]))
+                mouseIndex2 = SystemConfig["supermodel_gun2"];
+
+            mouse1 = "MOUSE" + mouseIndex1;
+            mouse2 = "MOUSE" + mouseIndex2;
+
+            if (!multigun)
+            {
+                mouse1 = mouse2 = "MOUSE";
+                ini.WriteValue(" Global ", "Crosshairs", "1");
+            }
+            else
+                ini.WriteValue(" Global ", "Crosshairs", "3");
+
+            // Set input system
+            if (multigun)
+            {
+                ini.WriteValue(" Global ", "InputSystem", "rawinput");
+                SimpleLogger.Instance.Info("[GUNS] Overriding emulator input driver : rawinput");
+            }
+            else if (SystemConfig.isOptSet("inputdriver"))
+                ini.WriteValue(" Global ", "InputSystem", SystemConfig["inputdriver"]);
+
+            // Write gun mappings
+            ini.WriteValue(" Global ", "InputGunX", "\"" + mouse1 + "_XAXIS\"");
+            ini.WriteValue(" Global ", "InputGunY", "\"" + mouse1 + "_YAXIS\"");
+            ini.WriteValue(" Global ", "InputTrigger", "\"" + mouse1 + "_LEFT_BUTTON\"");
+            ini.WriteValue(" Global ", "InputOffscreen", "\"" + mouse1 + "_RIGHT_BUTTON\"");
+            ini.WriteValue(" Global ", "InputAutoTrigger", "1");
+
+            if (multigun)
+            {
+                ini.WriteValue(" Global ", "InputGunX2", "\"" + mouse2 + "_XAXIS\"");
+                ini.WriteValue(" Global ", "InputGunY2", "\"" + mouse2 + "_YAXIS\"");
+                ini.WriteValue(" Global ", "InputTrigger2", "\"" + mouse2 + "_LEFT_BUTTON\"");
+                ini.WriteValue(" Global ", "InputOffscreen2", "\"" + mouse2 + "_RIGHT_BUTTON\"");
+                ini.WriteValue(" Global ", "InputAutoTrigger2", "1");
+            }
+
+            // Analog guns mappings
+            ini.WriteValue(" Global ", "InputAnalogGunX", "\"" + mouse1 + "_XAXIS\"");
+            ini.WriteValue(" Global ", "InputAnalogGunY", "\"" + mouse1 + "_YAXIS\"");
+            ini.WriteValue(" Global ", "InputAnalogTriggerLeft", "KEY_A," + mouse1 + "_LEFT_BUTTON");
+            ini.WriteValue(" Global ", "InputAnalogTriggerRight", "KEY_S," + mouse1 + "_RIGHT_BUTTON");
+
+            if (multigun)
+            {
+                ini.WriteValue(" Global ", "InputAnalogGunX2", "\"" + mouse2 + "_XAXIS\"");
+                ini.WriteValue(" Global ", "InputAnalogGunY2", "\"" + mouse2 + "_YAXIS\"");
+                ini.WriteValue(" Global ", "InputAnalogTriggerLeft2", mouse2 + "_LEFT_BUTTON");
+                ini.WriteValue(" Global ", "InputAnalogTriggerRight2", mouse2 + "_RIGHT_BUTTON");
+            }
+        }
     }
 }
