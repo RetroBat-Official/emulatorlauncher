@@ -2083,7 +2083,7 @@ namespace EmulatorLauncher.Libretro
                     }
                 }
 
-                // Last check core override file
+                // Then check core override file
                 if (gl)
                 {
                     string coreOverride = cleanCoreName + ".glslp";
@@ -2096,6 +2096,22 @@ namespace EmulatorLauncher.Libretro
                     string coreOverride = cleanCoreName + ".slangp";
                     string coreOverrideFile = Path.Combine(overridePath, coreOverride);
                     if (File.Exists(coreOverrideFile))
+                        return true;
+                }
+
+                // Finally check global override file
+                if (gl)
+                {
+                    string globalOverride = "global.glslp";
+                    string globalOverrideFile = Path.Combine(emulatorPath, "config", globalOverride);
+                    if (File.Exists(globalOverrideFile))
+                        return true;
+                }
+                else
+                {
+                    string globalOverride = "global.slangp";
+                    string globalOverrideFile = Path.Combine(emulatorPath, "config", globalOverride);
+                    if (File.Exists(globalOverrideFile))
                         return true;
                 }
 
