@@ -236,7 +236,13 @@ namespace EmulatorLauncher
                 if (lines.Length == 0)
                     throw new Exception("No path specified in .game file.");
                 else
+                {
                     linkTarget = lines[0];
+                    if (linkTarget.StartsWith(".\\") || linkTarget.StartsWith("./"))
+                        linkTarget = Path.Combine(path, linkTarget.Substring(2));
+                    else if (linkTarget.StartsWith("\\") || linkTarget.StartsWith("/"))
+                        linkTarget = Path.Combine(path, linkTarget.Substring(1));
+                }
 
                 if (lines.Length > 1)
                 {
@@ -250,6 +256,7 @@ namespace EmulatorLauncher
 
                 if (_isGameExePath)
                 {
+                    _gameExeFile = GetProcessFromFile(rom);
                     rom = linkTarget;
                     path = Path.GetDirectoryName(linkTarget);
                 }
