@@ -64,14 +64,12 @@ namespace EmulatorLauncher
 
                 if (system == "pinballm")
                     commandArray.Add("2337640");
-
             }
 
             if (core == "hack" || core == "nonsteam")
             {
                 path = AppConfig.GetFullPath(system);
                 exe = Path.Combine(path, _exename + ".exe");
-
             }
 
             if (system == "pinballfx" || system == "pinballm")

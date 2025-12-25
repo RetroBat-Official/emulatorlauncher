@@ -863,11 +863,14 @@ namespace EmulatorLauncher
             int endIndex = romname.IndexOf(']');
 
             if (SystemConfig.isOptSet("force_softlist") && !string.IsNullOrEmpty(SystemConfig["force_softlist"]))
+            {
+                romMedia = SystemConfig["force_softlist"];
                 hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", SystemConfig["force_softlist"] + ".xml");
+            }
             else if (softlists.ContainsKey(this.Name + "_" + romMedia))
             {
                 romMedia = softlists[this.Name + "_" + romMedia];
-                hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", romMedia  + ".xml");
+                hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", romMedia + ".xml");
             }
 
             // autorun file exists
@@ -909,13 +912,18 @@ namespace EmulatorLauncher
                             if (commandElement.Attribute("value").Value == "Load with *RUN")
                                 command = "*tape\\*RUN\\n";
                         }
-                        else if (romMedia == "bbc_cass" || romMedia == "atom_flop")
+                        else if (romMedia == "bbc_cass")
                         {
                             if (commandElement.Attribute("value").Value.StartsWith("Load with"))
                             {
                                 command = commandElement.Attribute("value").Value.Substring(10) + "\\n";
                                 command = command.Replace("\"", "\\\"");
                             }
+                        }
+                        else if (romMedia == "atom_flop")
+                        {
+                            if (commandElement.Attribute("value").Value.StartsWith("Load with *RUN"))
+                                command = "*DOS\\n*DIR\\n" + commandElement.Attribute("value").Value.Substring(10) + "\\n";
                         }
                         else if (romMedia == "atom_rom")
                         {
