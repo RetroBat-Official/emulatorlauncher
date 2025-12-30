@@ -1861,6 +1861,7 @@ namespace EmulatorLauncher
             JObject cvars;
             JObject advancedRes;
             JObject intScale;
+            JObject controllers;
             JObject window;
             JObject backend;
             JObject fs;
@@ -1897,6 +1898,14 @@ namespace EmulatorLauncher
             }
             else
                 intScale = (JObject)advancedRes["IntegerScale"];
+
+            if (cvars["gControllers"] == null)
+            {
+                controllers = new JObject();
+                cvars["gControllers"] = controllers;
+            }
+            else
+                controllers = (JObject)cvars["gControllers"];
 
             if (jsonObj["Window"] == null)
             {
