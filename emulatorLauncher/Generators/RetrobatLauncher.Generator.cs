@@ -56,7 +56,8 @@ namespace EmulatorLauncher
             var ret = new ProcessStartInfo()
             {
                 FileName = path,
-                WorkingDirectory = Path.GetDirectoryName(path)
+                WorkingDirectory = Path.GetDirectoryName(path),
+                UseShellExecute = false
             };
             
             if (lines.Length > 1)
