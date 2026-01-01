@@ -145,10 +145,10 @@ namespace EmulatorLauncher
 
             // Video
             var video = bml.GetOrCreateContainer("Video");
-            video["AspectCorrection"] = "true";
             video["AdaptiveSizing"] = "true";
             BindFeature(video, "Driver", "ares_renderer", "OpenGL 3.2");
             BindFeature(video, "Output", "ares_aspect", "Scale");
+            BindFeature(video, "AspectCorrectionMode", "ares_aspectcorrection", "Standard");
 
             // Sync options
             if (SystemConfig.isOptSet("ares_gpusync") && !string.IsNullOrEmpty(SystemConfig["ares_gpusync"]))
@@ -403,7 +403,7 @@ namespace EmulatorLauncher
                 if (File.Exists(biospcecd))
                 {
                     firmware["System-Card-3.0.US"] = biospcecd.Replace("\\", "/");
-                    firmware["Arcade-Card.Japan"] = biospcecd.Replace("\\", "/");
+                    firmware["System-Card-3.0.Japan"] = biospcecd.Replace("\\", "/");
                 }
                 if (File.Exists(biospcecd1))
                 {

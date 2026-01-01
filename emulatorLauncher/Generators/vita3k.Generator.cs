@@ -95,7 +95,8 @@ namespace EmulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = args,                
+                Arguments = args,
+                UseShellExecute = false,
             };
         }
 

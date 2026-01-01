@@ -1825,6 +1825,7 @@ namespace EmulatorLauncher
             if (_emulator != "starship")
                 return;
 
+            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
             var otrFiles = Directory.GetFiles(_path, "*.otr");
             var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("starship.otr", StringComparison.OrdinalIgnoreCase));
 
@@ -1861,6 +1862,7 @@ namespace EmulatorLauncher
             JObject cvars;
             JObject advancedRes;
             JObject intScale;
+            JObject controllers;
             JObject window;
             JObject backend;
             JObject fs;
@@ -1898,6 +1900,14 @@ namespace EmulatorLauncher
             else
                 intScale = (JObject)advancedRes["IntegerScale"];
 
+            if (cvars["gControllers"] == null)
+            {
+                controllers = new JObject();
+                cvars["gControllers"] = controllers;
+            }
+            else
+                controllers = (JObject)cvars["gControllers"];
+
             if (jsonObj["Window"] == null)
             {
                 window = new JObject();
@@ -1921,6 +1931,12 @@ namespace EmulatorLauncher
             }
             else
                 fs = (JObject)window["Fullscreen"];
+
+            // Ensure config windows are not opened
+            cvars["gAdvancedResolutionEditorEnabled"] = 0;
+            cvars["gAudioChannelsSetting"] = 0;
+            cvars["gConsoleEnabled"] = 0;
+            cvars["gControllerConfigurationEnabled"] = 0;
 
             // Aspect ratio
             if (SystemConfig.isOptSet("starship_ratio") && !string.IsNullOrEmpty(SystemConfig["starship_ratio"]))
@@ -2003,7 +2019,7 @@ namespace EmulatorLauncher
 
             BindFeatureSliderInt(cvars, "gMSAAValue", "starship_msaa", "1");
             cvars["gOpenMenuBar"] = 1;
-            cvars["gSdlWindowedFullscreen"] = 1;
+            cvars["gSdlWindowedFullscreen"] = exclusivefs ? 0 : 1;
             BindFeatureInt(cvars, "gTextureFilter", "starship_texturefilter", "1");
             BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "starship_vsync", "1", "0");
             BindFeature(window, "AudioBackend", "starship_audioapi", "wasapi");

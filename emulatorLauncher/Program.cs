@@ -729,7 +729,8 @@ namespace EmulatorLauncher
 
                     if (path != null)
                     {
-                        path.UseShellExecute = true;
+                        if (!path.UseShellExecute == false)
+                            path.UseShellExecute = true;
 
                         if (screenResolution != null && generator.DependsOnDesktopResolution)
                             screenResolution.Apply();

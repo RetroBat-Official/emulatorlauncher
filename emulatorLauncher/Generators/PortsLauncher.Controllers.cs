@@ -660,7 +660,7 @@ namespace EmulatorLauncher
         {
             { "ls_d0", InputKey.leftanalogleft },       // stick left
             { "ls_d1", InputKey.leftanalogright },      // stick right
-            { "ls_d2", InputKey.leftanalogdown },       // stick up
+            { "ls_d2", InputKey.leftanalogup },         // stick up
             { "ls_d3", InputKey.leftanalogdown },       // stick down
             { "button_1", InputKey.rightanalogright },  // C right
             { "button_1024", InputKey.down },           // D-pad down
@@ -2398,6 +2398,27 @@ namespace EmulatorLauncher
         }
         #endregion
 
+        #region starship
+        private void ConfigureStarshipControls(JObject controllers)
+        {
+            if (_emulator != "starship")
+                return;
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                return;
+            }
+            int controllerCount = this.Controllers.Where(c => !c.IsKeyboard).Count();
+
+            if (controllerCount == 0)
+            {
+                SimpleLogger.Instance.Info("[INFO] No controller available.");
+                return;
+            }
+        }
+        #endregion
+
         #region general tools
         /// <summary>
         /// Method to retrieve SDL button information
@@ -2656,32 +2677,6 @@ namespace EmulatorLauncher
         { "R_CBUTTONS", "L_CBUTTONS", "D_CBUTTONS", "U_CBUTTONS", "R_TRIG", "L_TRIG", "X_BUTTON", "Y_BUTTON", "R_JPAD", "L_JPAD", "D_JPAD", "U_JPAD", "START_BUTTON",
         "Z_TRIG", "B_BUTTON", "A_BUTTON", "STICK_XNEG", "STICK_XPOS", "STICK_YNEG", "STICK_YPOS", "ACCEPT_BUTTON", "CANCEL_BUTTON", "CK_0040",
         "CK_0080", "CK_0100", "CK_0200", "CK_0400", "CK_0800", "CK_1000", "CK_2000", "CK_4000", "CK_8000" };
-
-        private readonly Dictionary<int, InputKey> sohMapping = new Dictionary<int, InputKey>()
-        {
-            { 32768,      InputKey.a },                     // A
-            { 16384,      InputKey.y },                     // B
-            { 32,         InputKey.pageup },                // L
-            { 16,         InputKey.pagedown },              // R
-            { 8192,       InputKey.l2 },                    // Z
-            { 4096,       InputKey.start },                 // Start
-            { 2048,       InputKey.up },                    // D-PAD
-            { 1024,       InputKey.down },
-            { 512,        InputKey.left },
-            { 256,        InputKey.right },
-            { 524288,     InputKey.leftanalogup },          // Analog stick
-            { 262144,     InputKey.leftanalogdown },
-            { 65536,      InputKey.leftanalogleft },
-            { 131072,     InputKey.leftanalogright },
-            //{ 1048576,    InputKey.rightanalogup },       // right analog (not used)
-            //{ 2097152,    InputKey.rightanalogdown },
-            //{ 4194304,    InputKey.rightanalogleft },
-            //{ 8388608,    InputKey.rightanalogright },
-            { 8,          InputKey.rightanalogup },         // C-Stick
-            { 4,          InputKey.rightanalogdown },
-            { 2,          InputKey.rightanalogleft },
-            { 1,          InputKey.rightanalogright }
-        };
 
         private static readonly Dictionary<long, long> sohXinputRemap = new Dictionary<long, long>()
         {
