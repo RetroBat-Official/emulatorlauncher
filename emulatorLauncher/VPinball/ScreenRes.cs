@@ -19,6 +19,11 @@ namespace EmulatorLauncher.VPinballLauncher
         public object Screen2ResY { get; set; }
         public object ScreenResX { get; set; }
         public object ScreenResY { get; set; }
+        public object Screen2posXStart { get; set; }
+        public object Screen2posYStart { get; set; }
+        public object Screen2ResXStart { get; set; }
+        public object Screen2ResYStart { get; set; }
+        public object FramePath { get; set; }
 
         private string _fileName;
 
@@ -45,6 +50,11 @@ namespace EmulatorLauncher.VPinballLauncher
                 ret.DmdPosX = lines[9];
                 ret.DmdPosY = lines[10];
                 ret.DmdFlipY = lines[11];
+                ret.Screen2posXStart = lines[12];
+                ret.Screen2posYStart = lines[13];
+                ret.Screen2ResXStart = lines[14];
+                ret.Screen2ResYStart = lines[15];
+                ret.FramePath = lines[16];
             }
 
             return ret;
@@ -68,6 +78,11 @@ namespace EmulatorLauncher.VPinballLauncher
             sb.AppendLine(DmdPosX == null ? "0" : DmdPosX.ToString());
             sb.AppendLine(DmdPosY == null ? "0" : DmdPosY.ToString());
             sb.AppendLine(DmdFlipY == null ? "0" : DmdFlipY.ToString());
+            sb.AppendLine(Screen2posXStart == null ? "0" : Screen2posXStart.ToString());
+            sb.AppendLine(Screen2posYStart == null ? "0" : Screen2posYStart.ToString());
+            sb.AppendLine(Screen2ResXStart == null ? "0" : Screen2ResXStart.ToString());
+            sb.AppendLine(Screen2ResYStart == null ? "0" : Screen2ResYStart.ToString());
+            sb.AppendLine(FramePath == null ? "0" : FramePath.ToString());
 
             File.WriteAllText(_fileName, sb.ToString());
 

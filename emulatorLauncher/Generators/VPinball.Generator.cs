@@ -121,11 +121,45 @@ namespace EmulatorLauncher
                 else
                     sr.Monitor = Screen.AllScreens.Length == 1 ? 1 : 2;
 
+                if (SystemConfig.isOptSet("Screen2posX") && !string.IsNullOrEmpty(SystemConfig["Screen2posX"]) && SystemConfig.isOptSet("Screen2posY") && !string.IsNullOrEmpty(SystemConfig["Screen2posY"]))
+                {
+                    sr.Screen2posX = SystemConfig["Screen2posX"].ToInteger();
+                    sr.Screen2posY = SystemConfig["Screen2posY"].ToInteger();
+                }
+
                 if (SystemConfig.isOptSet("DmdResX") && !string.IsNullOrEmpty(SystemConfig["DmdResX"]) && SystemConfig.isOptSet("DmdResY") && !string.IsNullOrEmpty(SystemConfig["DmdResY"]))
                 {
                     sr.DmdResX = SystemConfig["DmdResX"].ToInteger();
                     sr.DmdResY = SystemConfig["DmdResY"].ToInteger();
                 }
+
+                if (SystemConfig.isOptSet("DmdposX") && !string.IsNullOrEmpty(SystemConfig["DmdposX"]) && SystemConfig.isOptSet("DmdposY") && !string.IsNullOrEmpty(SystemConfig["DmdposY"]))
+                {
+                    sr.DmdPosX = SystemConfig["DmdposX"].ToInteger();
+                    sr.DmdPosY = SystemConfig["DmdposY"].ToInteger();
+                }
+
+                if (SystemConfig.isOptSet("FlipLedDisplay") && SystemConfig.getOptBoolean("FlipLedDisplay"))
+                    sr.DmdFlipY = 1;
+                else
+                    sr.DmdFlipY = 0;
+
+                if (SystemConfig.isOptSet("Screen2posXStart") && !string.IsNullOrEmpty(SystemConfig["Screen2posXStart"]) && SystemConfig.isOptSet("Screen2posYStart") && !string.IsNullOrEmpty(SystemConfig["Screen2posYStart"]))
+                {
+                    sr.Screen2posXStart = SystemConfig["Screen2posXStart"].ToInteger();
+                    sr.Screen2posYStart = SystemConfig["Screen2posYStart"].ToInteger();
+                }
+
+                if (SystemConfig.isOptSet("Screen2ResXStart") && !string.IsNullOrEmpty(SystemConfig["Screen2ResXStart"]) && SystemConfig.isOptSet("Screen2ResYStart") && !string.IsNullOrEmpty(SystemConfig["Screen2ResYStart"]))
+                {
+                    sr.Screen2ResXStart = SystemConfig["Screen2ResXStart"].ToInteger();
+                    sr.Screen2ResYStart = SystemConfig["Screen2ResYStart"].ToInteger();
+                }
+
+                if (SystemConfig.isOptSet("FramePath") && !string.IsNullOrEmpty(SystemConfig["FramePath"]))
+                    sr.FramePath = SystemConfig["FramePath"];
+                else
+                    sr.FramePath = "#";
 
                 sr.Save();
             }
