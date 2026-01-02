@@ -308,7 +308,7 @@ namespace EmulatorLauncher
                 BindBoolFeature(core, "SPU loop detection", "spuloopdetect", "true", "false");
                 BindFeature(core, "SPU Block Size", "spublocksize", "Safe");
                 BindBoolFeature(core, "Accurate RSX reservation access", "accuratersx", "true", "false");
-                BindFeature(core, "RSX FIFO Accuracy", "rpcs3_rsxfifoaccuracy", "Fast");
+                BindFeature(core, "RSX FIFO Fetch Accuracy", "rpcs3_rsxfifoaccuracy", "Fast");
                 BindBoolFeature(core, "PPU Accurate Vector NaN Values", "vectornan", "true", "false");
                 BindFeature(core, "XFloat Accuracy", "rpcs3_xfloat", "Accurate");
 
@@ -332,6 +332,10 @@ namespace EmulatorLauncher
                 BindBoolFeature(video, "Multithreaded RSX", "multithreadedrsx", "true", "false");
                 BindFeature(video, "Output Scaling Mode", "rpcs3_scaling_filter", "Bilinear");
                 BindFeature(video, "3D Display Mode", "enable3d", "Disabled");
+                if (SystemConfig.isOptSet("enable3d") && (SystemConfig["enable3d"] != "Disabled"))
+                    video["3D Display Enabled"] = "true";
+                else
+                    video["3D Display Enabled"] = "false";
 
                 BindFeature(video, "Anisotropic Filter Override", "anisotropicfilter", "0");
                 BindFeature(video, "Shader Precision", "shader_quality", "Auto");

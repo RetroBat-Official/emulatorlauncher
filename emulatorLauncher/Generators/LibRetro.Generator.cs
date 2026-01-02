@@ -706,6 +706,7 @@ namespace EmulatorLauncher.Libretro
             return false;
         }
 
+        #region Configuration
         private void Configure(string system, string core, string rom, ScreenResolution resolution)
         {
             var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"), new ConfigFileOptions() { CaseSensitive = true });
@@ -742,6 +743,18 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["sort_savefiles_enable"] = "false";
             retroarchConfig["sort_savefiles_by_content_enable"] = "false";
 
+            BindBoolFeature(retroarchConfig, "game_specific_options", "game_specific_options", "true", "false");
+            BindBoolFeature(retroarchConfig, "auto_overrides_enable", "game_specific_options", "true", "false");
+            BindFeatureSlider(retroarchConfig, "fastforward_ratio", "fastforward_ratio", "0.000000");
+
+            if (SystemConfig["shader"] == "None")
+                retroarchConfig["auto_shaders_enable"] = "false";
+            else
+                retroarchConfig["auto_shaders_enable"] = "true";
+
+            SetupUIMode(retroarchConfig);
+
+            // Input
             // input driver set to raw if multigun is enabled
             if (SystemConfig.getOptBoolean("use_guns") && !SystemConfig.getOptBoolean("one_gun"))
             {
@@ -756,24 +769,14 @@ namespace EmulatorLauncher.Libretro
             else
                 retroarchConfig["input_driver"] = "dinput";
 
-            BindBoolFeature(retroarchConfig, "game_specific_options", "game_specific_options", "true", "false");
-            BindBoolFeature(retroarchConfig, "auto_overrides_enable", "game_specific_options", "true", "false");
             BindBoolFeature(retroarchConfig, "pause_on_disconnect", "pause_on_disconnect", "true", "false");
             BindBoolFeature(retroarchConfig, "pause_nonactive", "use_guns", "true", "false", true); // Pause when calibrating gun...
             BindBoolFeature(retroarchConfig, "input_autodetect_enable", "disableautocontrollers", "true", "false", true);
             BindFeature(retroarchConfig, "input_analog_deadzone", "analog_deadzone", "0.000000");
             BindFeature(retroarchConfig, "input_analog_sensitivity", "analog_sensitivity", "1.000000");
-            BindFeatureSlider(retroarchConfig, "fastforward_ratio", "fastforward_ratio", "0.000000");
             retroarchConfig["input_remap_binds_enable"] = "true";
             retroarchConfig["input_remap_sort_by_controller_enable"] = "false";
             retroarchConfig["input_remapping_directory"] = ":\\config\\remaps";
-
-            if (SystemConfig["shader"] == "None")
-                retroarchConfig["auto_shaders_enable"] = "false";
-            else
-                retroarchConfig["auto_shaders_enable"] = "true";
-
-            SetupUIMode(retroarchConfig);
 
             // Resolution & monitor
             bool forcefs = SystemConfig.getOptBoolean("forcefullscreen");
@@ -914,9 +917,6 @@ namespace EmulatorLauncher.Libretro
             
             if (core == "mame")
                 savePath = Path.Combine(AppConfig.GetFullPath("saves"));
-
-            //if (core == "dolphin" && system == "wii")
-            //    savePath = Path.Combine(AppConfig.GetFullPath("saves"), "dolphin");
 
             FileTools.TryCreateDirectory(savePath);                
             retroarchConfig["savefile_directory"] = savePath;
@@ -1890,6 +1890,7 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["video_viewport_bias_y"] = "0.000000";
             }
         }
+        #endregion
 
         private static Size GetImageSize(string file)
         {
@@ -2231,7 +2232,7 @@ namespace EmulatorLauncher.Libretro
 
             if (SystemConfig["UIMode"] == "Kid" || SystemConfig["UIMode"] == "Kiosk" || SystemConfig["OptionsMenu"] == "minimal")
                 type = UIModeType.Minimal;
-            else if (SystemConfig["OptionsMenu"] == "full")
+            else if (SystemConfig["OptionsMenu"] == "full" || retroarchConfig["game_specific_options"] == "true")
                 type = UIModeType.Full;
 
             foreach(var item in UIModes)

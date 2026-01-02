@@ -181,7 +181,9 @@ namespace EmulatorLauncher
                 else
                     cfg["nAudSelect"] = "0";
 
+                cfg["bSaveInputs"] = "1";
                 BindBoolFeature(cfg, "bForce60Hz", "fbneo_force60hz", "1", "0");
+                BindBoolFeature(cfg, "bVidIntegerScale", "integerscale", "1", "0");
                 BindBoolFeature(cfg, "bRunAhead", "fbneo_runahead", "1", "0");
                 BindBoolFeatureOn(cfg, "EnableHiscores", "fbneo_hiscore", "1", "0");
 

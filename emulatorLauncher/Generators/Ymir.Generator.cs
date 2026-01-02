@@ -132,6 +132,16 @@ namespace EmulatorLauncher
                     ini.WriteValue("General.PathOverrides", "SaveStates", "'" + savestatesPath + "'");
                     ini.WriteValue("General.PathOverrides", "Screenshots", "'" + screenshotPath + "'");
 
+                    ini.WriteValue("General", "CheckForUpdates", "false");
+
+                    // Create onboarded file
+                    string updatesPath = Path.Combine(statePath, "updates");
+                    if (!Directory.Exists(updatesPath))
+                        try { Directory.CreateDirectory(updatesPath); } catch { }
+                    string onboardedFile = Path.Combine(updatesPath, ".onboarded");
+                    if (!File.Exists(onboardedFile))
+                        File.WriteAllText(Path.Combine(updatesPath, ".onboarded"), "");
+
                     CreateControllerConfiguration(ini);
 
                     // Video
