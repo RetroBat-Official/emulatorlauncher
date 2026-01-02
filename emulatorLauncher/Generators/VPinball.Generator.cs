@@ -157,7 +157,7 @@ namespace EmulatorLauncher
                 }
 
                 if (SystemConfig.isOptSet("FramePath") && !string.IsNullOrEmpty(SystemConfig["FramePath"]))
-                    sr.FramePath = SystemConfig["FramePath"];
+                    sr.FramePath = SystemConfig["FramePath"].Replace('/', '\\');
                 else
                     sr.FramePath = "#";
 
