@@ -248,6 +248,9 @@ namespace EmulatorLauncher
             if (_dolphinbar)
                 sdl3index += 4;
 
+            // If controller is nintendo, A/B and X/Y are reversed
+            bool nintendo = (ctrl.VendorID == USB_VENDOR.NINTENDO);
+
             //Define tech (SDL or XInput)
             string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
 
@@ -283,10 +286,21 @@ namespace EmulatorLauncher
             else
                 ini.WriteValue(padNumber, "Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
 
-            ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
-            ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
-            ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
-            ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));
+            if (nintendo)
+            {
+                ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));
+                ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
+                ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
+                ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
+            }
+            else
+            {
+                ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
+                ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
+                ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
+                ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));
+            }
+
             ini.WriteValue(padNumber, "Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
             ini.WriteValue(padNumber, "Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
             ini.WriteValue(padNumber, "L1", techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
@@ -388,8 +402,6 @@ namespace EmulatorLauncher
         {
             Int64 pid;
 
-            // If controller is nintendo, A/B and X/Y are reversed
-            //bool revertbuttons = (c.VendorID == VendorId.USB_VENDOR_NINTENDO);
             key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
