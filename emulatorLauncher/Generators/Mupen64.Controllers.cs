@@ -104,7 +104,6 @@ namespace EmulatorLauncher
             }
 
             int index = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex;
-            bool revertbuttons = controller.VendorID == USB_VENDOR.NINTENDO;
             bool zAsRightTrigger = SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && (SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick");
             bool xboxLayout = SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && SystemConfig["mupen64_inputprofile" + playerIndex] == "xbox";
             string n64guid = controller.Guid.ToLowerInvariant();
@@ -261,20 +260,20 @@ namespace EmulatorLauncher
                 ini.WriteValue(iniSection, "DpadRight_ExtraData", "0".QuoteString(true));
 
                 ini.WriteValue(iniSection, "CButtonUp_InputType", "0".QuoteString(true));
-                ini.WriteValue(iniSection, "CButtonUp_Name", revertbuttons ? "x" : "y");
-                ini.WriteValue(iniSection, "CButtonUp_Data", revertbuttons ? "2".QuoteString(true) : "3".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonUp_Name", "y");
+                ini.WriteValue(iniSection, "CButtonUp_Data", "3".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonUp_ExtraData", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonDown_InputType", "0".QuoteString(true));
-                ini.WriteValue(iniSection, "CButtonDown_Name", revertbuttons ? "b" : "a");
-                ini.WriteValue(iniSection, "CButtonDown_Data", revertbuttons ? "1".QuoteString(true) : "0".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonDown_Name", "a");
+                ini.WriteValue(iniSection, "CButtonDown_Data", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonDown_ExtraData", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonLeft_InputType", "0".QuoteString(true));
-                ini.WriteValue(iniSection, "CButtonLeft_Name", revertbuttons ? "y" : "x");
-                ini.WriteValue(iniSection, "CButtonLeft_Data", revertbuttons ? "3".QuoteString(true) : "2".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonLeft_Name", "x");
+                ini.WriteValue(iniSection, "CButtonLeft_Data", "2".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonLeft_ExtraData", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonRight_InputType", "0".QuoteString(true));
-                ini.WriteValue(iniSection, "CButtonRight_Name", revertbuttons ? "a" : "b");
-                ini.WriteValue(iniSection, "CButtonRight_Data", revertbuttons ? "0".QuoteString(true) : "1".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonRight_Name", "b");
+                ini.WriteValue(iniSection, "CButtonRight_Data", "1".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonRight_ExtraData", "0".QuoteString(true));
 
                 ini.WriteValue(iniSection, "LeftTrigger_InputType", "0".QuoteString(true));
@@ -313,23 +312,23 @@ namespace EmulatorLauncher
                 if (xboxLayout)
                 {
                     ini.WriteValue(iniSection, "A_InputType", "0".QuoteString(true));
-                    ini.WriteValue(iniSection, "A_Name", revertbuttons ? "b" : "a");
-                    ini.WriteValue(iniSection, "A_Data", revertbuttons ? "1".QuoteString(true) : "0".QuoteString(true));
+                    ini.WriteValue(iniSection, "A_Name", "a");
+                    ini.WriteValue(iniSection, "A_Data", "0".QuoteString(true));
                     ini.WriteValue(iniSection, "A_ExtraData", "0".QuoteString(true));
                     ini.WriteValue(iniSection, "B_InputType", "0".QuoteString(true));
-                    ini.WriteValue(iniSection, "B_Name", revertbuttons ? "a" : "b");
-                    ini.WriteValue(iniSection, "B_Data", revertbuttons ? "0".QuoteString(true) : "1".QuoteString(true));
+                    ini.WriteValue(iniSection, "B_Name", "b");
+                    ini.WriteValue(iniSection, "B_Data", "1".QuoteString(true));
                     ini.WriteValue(iniSection, "B_ExtraData", "0".QuoteString(true));
                 }
                 else
                 {
                     ini.WriteValue(iniSection, "A_InputType", "0".QuoteString(true));
-                    ini.WriteValue(iniSection, "A_Name", revertbuttons ? "b" : "a");
-                    ini.WriteValue(iniSection, "A_Data", revertbuttons ? "1".QuoteString(true) : "0".QuoteString(true));
+                    ini.WriteValue(iniSection, "A_Name", "a");
+                    ini.WriteValue(iniSection, "A_Data", "0".QuoteString(true));
                     ini.WriteValue(iniSection, "A_ExtraData", "0".QuoteString(true));
                     ini.WriteValue(iniSection, "B_InputType", "0".QuoteString(true));
-                    ini.WriteValue(iniSection, "B_Name", revertbuttons ? "y" : "x");
-                    ini.WriteValue(iniSection, "B_Data", revertbuttons ? "3".QuoteString(true) : "2".QuoteString(true));
+                    ini.WriteValue(iniSection, "B_Name", "x");
+                    ini.WriteValue(iniSection, "B_Data", "2".QuoteString(true));
                     ini.WriteValue(iniSection, "B_ExtraData", "0".QuoteString(true));
                 }
 
