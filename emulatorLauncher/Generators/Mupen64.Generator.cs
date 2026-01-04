@@ -151,7 +151,7 @@ namespace EmulatorLauncher
                 // Other paths
                 string screenshotPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "mupen64");
                 FileTools.TryCreateDirectory(screenshotPath);                
-                ini.WriteValue("Core", "ScreenshotPath", screenshotPath.Replace("\\", "/"));
+                ini.WriteValue("Core", "ScreenshotPath", screenshotPath);
 
                 bool incrementSlot = SystemConfig["incrementalsavestates"] != "2";
 

@@ -83,8 +83,9 @@ namespace EmulatorLauncher
                     root["interface_speedtoggle"] = "hold";
 
                 SetOrRemove(root, "dosbox_pure_mouse_input", "dosbox_pure_mouse_input", "", "");
-                SetOrRemove(root, "dosbox_pure_auto_mapping", "dosbox_pure_auto_mapping", "true", "true");
                 SetOrRemove(root, "dosbox_pure_keyboard_layout", "dosbox_pure_keyboard_layout", "us", "us");
+                SetOrRemove(root, "dosbox_pure_auto_mapping", "dosbox_pure_auto_mapping", "true", "true");
+                SetOrRemove(root, "dosbox_pure_interface_lockmouse", "interface_lockmouse", "false", "false");
 
                 // VIDEO
                 SetOrRemove(root, "dosbox_pure_machine", "dosbox_pure_machine", "svga", "svga");
