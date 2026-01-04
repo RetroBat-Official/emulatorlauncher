@@ -710,6 +710,10 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("xenia_avpack"))
                         ini.AppendValue("Video", "avpack", "8");
 
+                    if (SystemConfig.isOptSet("async_shader_compilation") && SystemConfig.getOptBoolean("async_shader_compilation"))
+                        ini.AppendValue("Video", "async_shader_compilation", "true");
+                    else if (Features.IsSupported("async_shader_compilation"))
+                        ini.AppendValue("Video", "async_shader_compilation", "false");
 
                     if (SystemConfig.isOptSet("xenia_widescreen") && !string.IsNullOrEmpty(SystemConfig["xenia_widescreen"]))
                         ini.AppendValue("Video", "widescreen", SystemConfig["xenia_widescreen"]);

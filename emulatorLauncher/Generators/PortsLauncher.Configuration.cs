@@ -658,9 +658,9 @@ namespace EmulatorLauncher
 
                 BindFeature(displayConf, "display_id", "MonitorIndex", "0");
                 if (_fullscreen && SystemConfig.getOptBoolean("exclusivefs"))
-                    displayConf["display_mode"] = "2";
-                else if (_fullscreen)
                     displayConf["display_mode"] = "1";
+                else if (_fullscreen)
+                    displayConf["display_mode"] = "2";
                 else
                     displayConf["display_mode"] = "0";
 

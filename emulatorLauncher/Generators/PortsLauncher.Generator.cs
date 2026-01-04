@@ -170,6 +170,7 @@ namespace EmulatorLauncher
                 FileName = exe,
                 WorkingDirectory = _workingPath?? _path,
                 Arguments = args,
+                UseShellExecute = false
             };
         }
 
