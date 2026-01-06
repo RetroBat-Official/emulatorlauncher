@@ -2542,6 +2542,10 @@ namespace EmulatorLauncher.Libretro
 
         private void ConfigureMameini(string path)
         {
+            if (!Directory.Exists(path))
+                try { Directory.CreateDirectory(path); }
+                catch { return; }
+
             var ini = MameIniFile.FromFile(Path.Combine(path, "mame.ini"));
 
             if (ini["writeconfig"] != "0")
