@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common;
+using EmulatorLauncher.PadToKeyboard;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace EmulatorLauncher
@@ -18,6 +20,7 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private string _path;
         private string _system;
+        private bool _pad2Keyoverride = false;
         static List<string> _mdSystems = new List<string>() { "genesis", "megadrive", "mega32x", "megacd", "segacd", "sega32x" };
         static List<string> _n64Systems = new List<string>() { "n64", "n64dd" };
         static List<string> _m3uSystems = new List<string>() { "PCEngineCD" };
@@ -120,7 +123,7 @@ namespace EmulatorLauncher
             var bml = BmlFile.Load(Path.Combine(path, "settings.bml"));
             SetupConfiguration(bml, system, core, rom);
             SetupFirmwares(bml, system);
-            WriteKeyboardHotkeys(bml);
+            WriteKeyboardHotkeys(bml, core);
             CreateControllerConfiguration(bml);
 
             bml.Save();
@@ -284,22 +287,42 @@ namespace EmulatorLauncher
             BindBoolFeatureOn(n64bml, "ExpansionPak", "ares_ExpansionPak", "true", "false");
         }
 
-        private void WriteKeyboardHotkeys(BmlFile bml)
+        private void WriteKeyboardHotkeys(BmlFile bml, string core)
         {
-            // Use padtokey mapping to map these keys to controllers as Ares does not allow combos
             var hotkey = bml.GetOrCreateContainer("Hotkey");
-            hotkey["ToggleFullscreen"] = "0x1/0/90;;";      // TAB
-            hotkey["FastForward"] = "0x1/0/9;;";            // F9
-            hotkey["Rewind"] = "0x1/0/8;;";                 // F8
-            hotkey["ToggleFastForward"] = "0x1/0/10;;";     // F10
-            hotkey["FrameAdvance"] = "0x1/0/11;;";          // F11
-            hotkey["CaptureScreenshot"] = "0x1/0/5;;";      // F5
-            hotkey["SaveState"] = "0x1/0/1;;";              // F1
-            hotkey["LoadState"] = "0x1/0/2;;";              // F2
-            hotkey["DecrementStateSlot"] = "0x1/0/3;;";     // F3
-            hotkey["IncrementStateSlot"] = "0x1/0/4;;";     // F4
-            hotkey["PauseEmulation"] = "0x1/0/6;;";         // F6
-            hotkey["QuitEmulator"] = "0x1/0/12;;";          // F12
+            hotkey.Elements.Clear();
+
+            if (Hotkeys.GetHotKeysFromFile("ares", core, out Dictionary<string, HotkeyResult> hotkeys))
+            {
+                foreach (var h in hotkeys)
+                {
+                    hotkey[h.Value.EmulatorKey] = h.Value.EmulatorValue;
+                }
+
+                if (!hotkeys.ContainsKey("ToggleFullscreen"))
+                    hotkey["ToggleFullscreen"] = "0x1/0/40;;";      // F
+                
+                if (!hotkeys.ContainsKey("QuitEmulator"))
+                    hotkey["QuitEmulator"] = "0x1/0/0;;";           // Escape
+
+                _pad2Keyoverride = true;
+
+                return;
+            }
+
+            // Use padtokey mapping to map these keys to controllers as Ares does not allow combos
+            hotkey["ToggleFullscreen"] = "0x1/0/40;;";      // F
+            hotkey["FastForward"] = "0x1/0/46;;";           // L
+            hotkey["Rewind"] = "0x1/0/28;;";                // Backspace
+            hotkey["ToggleFastForward"] = "0x1/0/92;;";     // Space
+            hotkey["FrameAdvance"] = "0x1/0/45;;";          // K
+            hotkey["CaptureScreenshot"] = "0x1/0/8;;";      // F8
+            hotkey["SaveState"] = "0x1/0/2;;";              // F2
+            hotkey["LoadState"] = "0x1/0/4;;";              // F4
+            hotkey["DecrementStateSlot"] = "0x1/0/6;;";     // F6
+            hotkey["IncrementStateSlot"] = "0x1/0/7;;";     // F7
+            hotkey["PauseEmulation"] = "0x1/0/50;;";        // P
+            hotkey["QuitEmulator"] = "0x1/0/0;;";           // ESCAPE
         }
 
         private void SetupFirmwares(BmlFile bml, string system)
@@ -465,6 +488,16 @@ namespace EmulatorLauncher
             }
 
             return ret;
+        }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_pad2Keyoverride)
+            {
+                mapping = PadToKey.Load(Path.Combine(Path.GetTempPath(), "padToKey.xml"));
+            }
+            
+            return mapping;
         }
 
         private static readonly Dictionary<string, string> aresSystems = new Dictionary<string, string>
