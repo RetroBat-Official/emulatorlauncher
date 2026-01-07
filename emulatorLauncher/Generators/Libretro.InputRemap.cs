@@ -454,25 +454,116 @@ namespace EmulatorLauncher.Libretro
                 #region NES
                 if (systemNES.Contains(system))
                 {
-                    if (core == "fceumm" && !rotateButtons)
+                    if (core == "fceumm")
                     {
-                        inputremap["input_player" + i + "_btn_a"] = "9";
-                        inputremap["input_player" + i + "_btn_b"] = "8";
-                        inputremap["input_player" + i + "_btn_x"] = "1";
-                        inputremap["input_player" + i + "_btn_y"] = "0";
-                    }
+                        if (Program.SystemConfig.getOptBoolean("xbox_layout"))
+                        {
+                            if (Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                            {
+                                inputremap["input_player" + i + "_btn_y"] = "9";
+                                inputremap["input_player" + i + "_btn_x"] = "1";
+                            }
+                            else
+                            {
+                                inputremap["input_player" + i + "_btn_y"] = "-1";
+                                inputremap["input_player" + i + "_btn_x"] = "-1";
+                            }
 
-                    if (core == "nestopia" && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
-                    {
-                        if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                            inputremap["input_player" + i + "_btn_a"] = "0";
+                            inputremap["input_player" + i + "_btn_b"] = "8";
+                        }
+                        else if (!rotateButtons)
+                        {
+                            if (Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                            {
+                                inputremap["input_player" + i + "_btn_a"] = "9";
+                                inputremap["input_player" + i + "_btn_x"] = "1";
+                            }
+                            else
+                            {
+                                inputremap["input_player" + i + "_btn_a"] = "-1";
+                                inputremap["input_player" + i + "_btn_x"] = "-1";
+                            }
+
+                            inputremap["input_player" + i + "_btn_b"] = "8";
+                            inputremap["input_player" + i + "_btn_y"] = "0";
+                        }
+                        else if (!Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
                         {
                             inputremap["input_player" + i + "_btn_x"] = "-1";
                             inputremap["input_player" + i + "_btn_y"] = "-1";
                         }
-                        else
+
+
+                    }
+
+                    if (core == "nestopia")
+                    {
+                        if (!Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
                         {
-                            inputremap["input_player" + i + "_btn_x"] = "-1";
-                            inputremap["input_player" + i + "_btn_a"] = "-1";
+                            if (Program.SystemConfig.getOptBoolean("xbox_layout"))
+                            {
+                                if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                                {
+                                    inputremap["input_player" + i + "_btn_x"] = "-1";
+                                    inputremap["input_player" + i + "_btn_y"] = "-1";
+                                    inputremap["input_player" + i + "_btn_a"] = "0";
+                                    inputremap["input_player" + i + "_btn_b"] = "8";
+                                }
+                                else
+                                {
+                                    inputremap["input_player" + i + "_btn_a"] = "1";
+                                    inputremap["input_player" + i + "_btn_x"] = "-1";
+                                    inputremap["input_player" + i + "_btn_y"] = "-1";
+                                }
+                            }
+                            else
+                            {
+                                if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                                {
+                                    inputremap["input_player" + i + "_btn_x"] = "-1";
+                                    inputremap["input_player" + i + "_btn_y"] = "-1";
+                                }
+                                else
+                                {
+                                    inputremap["input_player" + i + "_btn_x"] = "-1";
+                                    inputremap["input_player" + i + "_btn_a"] = "-1";
+                                }
+                            }
+                        }
+                        else if (Program.SystemConfig.getOptBoolean("xbox_layout"))
+                        {
+                            if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                            {
+                                inputremap["input_player" + i + "_btn_x"] = "1";
+                                inputremap["input_player" + i + "_btn_y"] = "9";
+                                inputremap["input_player" + i + "_btn_a"] = "0";
+                                inputremap["input_player" + i + "_btn_b"] = "8";
+                            }
+                            else
+                            {
+                                inputremap["input_player" + i + "_btn_a"] = "1";
+                                inputremap["input_player" + i + "_btn_y"] = "8";
+                            }
+                        }
+                    }
+
+                    if (core == "mesen")
+                    {
+                        if (Program.SystemConfig.getOptBoolean("xbox_layout"))
+                        {
+                            if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
+                            {
+                                inputremap["input_player" + i + "_btn_a"] = "0";
+                                inputremap["input_player" + i + "_btn_b"] = "8";
+                                inputremap["input_player" + i + "_btn_x"] = "1";
+                                inputremap["input_player" + i + "_btn_y"] = "9";
+                            }
+                            else
+                            {
+                                inputremap["input_player" + i + "_btn_a"] = "1";
+                                inputremap["input_player" + i + "_btn_y"] = "8";
+                            }
                         }
                     }
                 }
