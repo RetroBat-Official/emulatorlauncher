@@ -2383,10 +2383,10 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["pcsx2_bios"] = pcsx2Bios;
 
+            BindBoolFeatureOn(coreSettings, "pcsx2_shared_memory_cards", "pcsx2_shared_memory_cards", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "pcsx2_fastboot", "lrps2_fastboot", "enabled", "disabled");
             BindBoolFeature(coreSettings, "pcsx2_fastcdvd", "lrps2_fastcdvd", "enabled", "disabled");
             BindBoolFeature(coreSettings, "pcsx2_enable_cheats", "lrps2_enable_cheats", "enabled", "disabled");
-            // pcsx2_hint_language_unlock
             BindFeature(coreSettings, "pcsx2_renderer", "lrps2_renderer", "Auto");
 
             if (SystemConfig["lrps2_renderer"] == "paraLLEl-GS")
@@ -2863,7 +2863,7 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "beetle_psx_hw_skip_bios", "skip_bios", "enabled", "disabled");
             BindFeature(coreSettings, "beetle_psx_hw_renderer", "mednafen_psx_renderer", "hardware");
             BindFeature(coreSettings, "beetle_psx_hw_gte_overclock", "beetle_psx_hw_gte_overclock", "disabled");
-            BindFeature(coreSettings, "beetle_psx_hw_cpu_freq_scale", "beetle_psx_hw_cpu_freq_scale", "100%(native)");
+            BindFeature(coreSettings, "beetle_psx_hw_cpu_freq_scale", "beetle_psx_hw_cpu_freq_scale", "100%");
             BindFeature(coreSettings, "beetle_psx_hw_cd_access_method", "beetle_psx_hw_cd_access_method", "async");
 
             // BIOS
