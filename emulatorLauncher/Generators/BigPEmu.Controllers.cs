@@ -65,9 +65,39 @@ namespace EmulatorLauncher
             // Analog deadzone
             BindFeatureSlider(input, "AnalDeadMice", "bigpemu_deadzone", "0.15", 2);
 
+            // Set keyboard hotkey values
+            bool custoHK = Hotkeys.GetHotKeysFromFile("bigpemu", "", out Dictionary<string, HotkeyResult> hotkeys);
+            Dictionary<string, string> hotkeyMapping = new Dictionary<string, string>();
+            foreach (var hk in hkList)
+            {
+                var hotkeyResult = hotkeys.Values.FirstOrDefault(v => v.EmulatorKey == hk.Key);
+
+                if (hotkeyResult != null && Hotkeys.TryParseHexLong(hotkeyResult.EmulatorValue, out long sdlCode))
+                {
+                    string hkValue = SdlKeyCode(sdlCode);
+                    if (!_useSdl)
+                        hkValue = SdlToDinputKeyCode(sdlCode);
+
+                    if (!string.IsNullOrEmpty(hkValue))
+                        hotkeyMapping[hk.Key] = hkValue;
+                    else
+                    {
+                        string[] hkValues = hk.Value.Split('_');
+                        if (hkValues.Length == 2)
+                            hotkeyMapping[hk.Key] = _useSdl ? hkValues[0] : hkValues[1];
+                    }
+                }
+                else
+                {
+                    string[] hkValues = hk.Value.Split('_');
+                    if (hkValues.Length == 2)
+                        hotkeyMapping[hk.Key] = _useSdl ? hkValues[0] : hkValues[1];
+                }
+            }
+
             //Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
-                ConfigureInput(input, controller);
+                ConfigureInput(input, controller, hotkeyMapping);
 
             input["InputVer"] = "2";
 
@@ -77,18 +107,18 @@ namespace EmulatorLauncher
                 input["InputPluginVer"] = "0";
 
         }
-        private void ConfigureInput(DynamicJson input, Controller controller)
+        private void ConfigureInput(DynamicJson input, Controller controller, Dictionary<string, string> hotkeyMapping)
         {
             if (controller == null || controller.Config == null)
                 return;
 
             if (controller.IsKeyboard)
-                ConfigureKeyboard(input, controller.Config);
+                ConfigureKeyboard(input, controller.Config, hotkeyMapping);
             else
-                ConfigureJoystick(input, controller, controller.PlayerIndex);
+                ConfigureJoystick(input, controller, controller.PlayerIndex, hotkeyMapping);
         }
 
-        private void ConfigureKeyboard(DynamicJson input, InputConfig keyboard)
+        private void ConfigureKeyboard(DynamicJson input, InputConfig keyboard, Dictionary<string, string> hotkeyMapping)
         {
             if (keyboard == null)
                 return;
@@ -145,15 +175,40 @@ namespace EmulatorLauncher
             triggerList.Add(35, null);
             triggerList.Add(36, null);
             triggerList.Add(37, null);
-            triggerList.Add(38, _useSdl ? "41" : "1");
-            triggerList.Add(39, _useSdl ? "59" : "60");
-            triggerList.Add(40, _useSdl ? "58" : "59");
-            triggerList.Add(41, _useSdl ? "60" : "61");
-            triggerList.Add(42, _useSdl ? "61" : "62");
-            triggerList.Add(43, _useSdl ? "62" : "63");
+
+            if (hotkeyMapping.ContainsKey("menu"))
+                triggerList[38] = hotkeyMapping["menu"];
+            else
+                triggerList.Add(38, _useSdl ? "58" : "59");
+
+            if (hotkeyMapping.ContainsKey("ff"))
+                triggerList[39] = hotkeyMapping["ff"];
+            else
+                triggerList.Add(39, _useSdl ? "15" : "38");
+
+            if (hotkeyMapping.ContainsKey("rewind"))
+                triggerList[40] = hotkeyMapping["rewind"];
+            else
+                triggerList.Add(40, _useSdl ? "42" : "14");
+
+            if (hotkeyMapping.ContainsKey("savestate"))
+                triggerList[41] = hotkeyMapping["savestate"];
+            else
+                triggerList.Add(41, _useSdl ? "59" : "60");
+
+            if (hotkeyMapping.ContainsKey("loadstate"))
+                triggerList[42] = hotkeyMapping["loadstate"];
+            else
+                triggerList.Add(42, _useSdl ? "61" : "62");
+
+            if (hotkeyMapping.ContainsKey("screenshot"))
+                triggerList[43] = hotkeyMapping["screenshot"];
+            else
+                triggerList.Add(43, _useSdl ? "65" : "66");
+
             triggerList.Add(44, null);
-            triggerList.Add(45, _useSdl ? "23" : "20");
-            triggerList.Add(46, null);
+            triggerList.Add(45, null);
+            triggerList.Add(46, _useSdl ? "23" : "20");
             triggerList.Add(47, null);
             triggerList.Add(48, null);
             triggerList.Add(49, null);
@@ -180,7 +235,7 @@ namespace EmulatorLauncher
             device.SetObject("Bindings", bindings);
         }
 
-        private void ConfigureJoystick(DynamicJson input, Controller ctrl, int playerindex)
+        private void ConfigureJoystick(DynamicJson input, Controller ctrl, int playerindex, Dictionary<string, string> hotkeyMapping)
         {
             if (ctrl == null || ctrl.DirectInput == null)
                 return;
@@ -346,8 +401,8 @@ namespace EmulatorLauncher
                 { 42, "loadstate" },
                 { 43, "screenshot" },
                 { 44, "overlay" },
-                { 45, "chat" },
-                { 46, null },
+                { 45, null },
+                { 46, "chat" },
                 { 47, null },
                 { 48, null },
                 { 49, null },
@@ -363,6 +418,20 @@ namespace EmulatorLauncher
             else if (ctrl.Config[InputKey.l2] == null)
                 hotkey = false;
 
+            Dictionary<string, string> padHKMapping = new Dictionary<string, string>()
+            {
+                { "menu", "a" },
+                { "ff", "right" },
+                { "rewind", "left" },
+                { "savestate", "y" },
+                { "loadstate", "x" },
+                { "screenshot", "r3" }
+            };
+
+            if (Hotkeys.GetPadHKFromFile("bigpemu", "", out var padHKDic))
+            {
+                padHKMapping = padHKDic;
+            }
 
             foreach (var x in triggerList)
             {
@@ -373,7 +442,7 @@ namespace EmulatorLauncher
                 var kbBinding = new DynamicJson();
                 if (x.Value != null && padAndKB.Contains(x.Value))
                 {
-                    string kbKey = GetkbKey(x.Value);
+                    string kbKey = GetkbKey(x.Value, hotkeyMapping);
 
                     if (kbKey != null)
                     {
@@ -675,7 +744,19 @@ namespace EmulatorLauncher
                         case "menu":
                             if (!hotkey)
                                 break;
-                            string menu_button = _useSdl ? GetSDLInputMapping(ctrl, InputKey.a, useHat) : GetDinputMapping(sdlController, "a", useHat);
+
+                            string menuSDLbutton = "a";
+                            if (padHKMapping.ContainsKey("menu"))
+                                menuSDLbutton = padHKMapping["menu"];
+                            string menuDIbutton = "a";
+                            if (buttonTodInput.ContainsKey(menuSDLbutton))
+                                menuDIbutton = buttonTodInput[menuSDLbutton];
+
+                            InputKey menuSDLkey = InputKey.a;
+                            if (Enum.TryParse<InputKey>(menuSDLbutton, ignoreCase: true, out var menukey))
+                                menuSDLkey = menukey;
+
+                            string menu_button = _useSdl ? GetSDLInputMapping(ctrl, menuSDLkey, useHat) : GetDinputMapping(sdlController, menuDIbutton, useHat);
                             string menu_hotkey = _useSdl ? GetSDLInputMapping(ctrl, InputKey.l2, useHat) : GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
                             
                             if (menu_hotkey != null && menu_button != null)
@@ -699,7 +780,19 @@ namespace EmulatorLauncher
                         case "ff":
                             if (!hotkey)
                                 break;
-                            string ff_button = _useSdl ? GetSDLInputMapping(ctrl, InputKey.right, useHat) : GetDinputMapping(sdlController, "dpright", useHat);
+
+                            string ffSDLbutton = "right";
+                            if (padHKMapping.ContainsKey("ff"))
+                                ffSDLbutton = padHKMapping["ff"];
+                            string ffDIbutton = "dpright";
+                            if (buttonTodInput.ContainsKey(ffSDLbutton))
+                                ffDIbutton = buttonTodInput[ffSDLbutton];
+
+                            InputKey ffSDLkey = InputKey.right;
+                            if (Enum.TryParse<InputKey>(ffSDLbutton, ignoreCase: true, out var ffkey))
+                                ffSDLkey = ffkey;
+
+                            string ff_button = _useSdl ? GetSDLInputMapping(ctrl, ffSDLkey, useHat) : GetDinputMapping(sdlController, ffDIbutton, useHat);
                             string ff_hotkey = _useSdl ? GetSDLInputMapping(ctrl, InputKey.l2, useHat) : GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
 
                             if (ff_hotkey != null && ff_button != null)
@@ -723,7 +816,19 @@ namespace EmulatorLauncher
                         case "rewind":
                             if (!hotkey)
                                 break;
-                            string rewind_button = _useSdl ? GetSDLInputMapping(ctrl, InputKey.left, useHat) : GetDinputMapping(sdlController, "dpleft", useHat);
+
+                            string rewindSDLbutton = "left";
+                            if (padHKMapping.ContainsKey("rewind"))
+                                rewindSDLbutton = padHKMapping["rewind"];
+                            string rewindDIbutton = "dpleft";
+                            if (buttonTodInput.ContainsKey(rewindSDLbutton))
+                                rewindDIbutton = buttonTodInput[rewindSDLbutton];
+
+                            InputKey rewindSDLkey = InputKey.left;
+                            if (Enum.TryParse<InputKey>(rewindSDLbutton, ignoreCase: true, out var rewindkey))
+                                rewindSDLkey = rewindkey;
+
+                            string rewind_button = _useSdl ? GetSDLInputMapping(ctrl, rewindSDLkey, useHat) : GetDinputMapping(sdlController, rewindDIbutton, useHat);
                             string rewind_hotkey = _useSdl ? GetSDLInputMapping(ctrl, InputKey.l2, useHat) : GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
 
                             if (rewind_hotkey != null && rewind_button != null)
@@ -747,7 +852,19 @@ namespace EmulatorLauncher
                         case "savestate":
                             if (!hotkey)
                                 break;
-                            string savestate_button = _useSdl ? GetSDLInputMapping(ctrl, InputKey.y, useHat) : GetDinputMapping(sdlController, "x", useHat);
+
+                            string ssSDLbutton = "y";
+                            if (padHKMapping.ContainsKey("savestate"))
+                                ssSDLbutton = padHKMapping["savestate"];
+                            string ssDIbutton = "x";
+                            if (buttonTodInput.ContainsKey(ssSDLbutton))
+                                ssDIbutton = buttonTodInput[ssSDLbutton];
+
+                            InputKey ssSDLkey = InputKey.y;
+                            if (Enum.TryParse<InputKey>(ssSDLbutton, ignoreCase: true, out var sskey))
+                                ssSDLkey = sskey;
+
+                            string savestate_button = _useSdl ? GetSDLInputMapping(ctrl, ssSDLkey, useHat) : GetDinputMapping(sdlController, ssDIbutton, useHat);
                             string savestate_hotkey = _useSdl ? GetSDLInputMapping(ctrl, InputKey.l2, useHat) : GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
 
                             if (savestate_hotkey != null && savestate_button != null)
@@ -771,7 +888,19 @@ namespace EmulatorLauncher
                         case "loadstate":
                             if (!hotkey)
                                 break;
-                            string loadstate_button = _useSdl ? GetSDLInputMapping(ctrl, InputKey.x, useHat) : GetDinputMapping(sdlController, "y", useHat);
+
+                            string lsSDLbutton = "x";
+                            if (padHKMapping.ContainsKey("loadstate"))
+                                lsSDLbutton = padHKMapping["loadstate"];
+                            string lsDIbutton = "y";
+                            if (buttonTodInput.ContainsKey(lsSDLbutton))
+                                lsDIbutton = buttonTodInput[lsSDLbutton];
+
+                            InputKey lsSDLkey = InputKey.x;
+                            if (Enum.TryParse<InputKey>(lsSDLbutton, ignoreCase: true, out var lskey))
+                                lsSDLkey = lskey;
+
+                            string loadstate_button = _useSdl ? GetSDLInputMapping(ctrl, lsSDLkey, useHat) : GetDinputMapping(sdlController, lsDIbutton, useHat);
                             string loadstate_hotkey = _useSdl ? GetSDLInputMapping(ctrl, InputKey.l2, useHat) : GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
 
                             if (loadstate_hotkey != null && loadstate_button != null)
@@ -795,7 +924,19 @@ namespace EmulatorLauncher
                         case "screenshot":
                             if (!hotkey)
                                 break;
-                            string screenshot_button = _useSdl ? GetSDLInputMapping(ctrl, InputKey.r3, useHat) : GetDinputMapping(sdlController, "rightstick", useHat);
+
+                            string shotSDLbutton = "r3";
+                            if (padHKMapping.ContainsKey("screenshot"))
+                                shotSDLbutton = padHKMapping["screenshot"];
+                            string shotDIbutton = "rightstick";
+                            if (buttonTodInput.ContainsKey(shotSDLbutton))
+                                shotDIbutton = buttonTodInput[shotSDLbutton];
+
+                            InputKey shotSDLkey = InputKey.r3;
+                            if (Enum.TryParse<InputKey>(shotSDLbutton, ignoreCase: true, out var shotkey))
+                                shotSDLkey = shotkey;
+
+                            string screenshot_button = _useSdl ? GetSDLInputMapping(ctrl, shotSDLkey, useHat) : GetDinputMapping(sdlController, shotDIbutton, useHat);
                             string screenshot_hotkey = _useSdl ? GetSDLInputMapping(ctrl, InputKey.l2, useHat) : GetDinputMapping(sdlController, "lefttrigger", useHat, 1);
 
                             if (screenshot_hotkey != null && screenshot_button != null)
@@ -1017,8 +1158,11 @@ namespace EmulatorLauncher
             return ret;
         }
 
-        private string GetkbKey(string key)
+        private string GetkbKey(string key, Dictionary<string, string> hotkeyMapping)
         {
+            if (hotkeyMapping.ContainsKey(key))
+                return hotkeyMapping[key];
+
             switch (key)
             {
                 case "C":
@@ -1064,17 +1208,17 @@ namespace EmulatorLauncher
                 case "pound":
                     return _useSdl ? "19" : "25";
                 case "menu":
-                    return _useSdl ? "41" : "1";
-                case "ff":
-                    return _useSdl ? "59" : "60";
-                case "rewind":
                     return _useSdl ? "58" : "59";
+                case "ff":
+                    return _useSdl ? "15" : "38";
+                case "rewind":
+                    return _useSdl ? "42" : "14";
                 case "savestate":
-                    return _useSdl ? "60" : "61";
+                    return _useSdl ? "59" : "60";
                 case "loadstate":
                     return _useSdl ? "61" : "62";
                 case "screenshot":
-                    return _useSdl ? "67" : "68";
+                    return _useSdl ? "65" : "66";
                 case "chat":
                     return _useSdl ? "23" : "20";
             }
@@ -1090,7 +1234,7 @@ namespace EmulatorLauncher
                 case 0x00: return "";
                 case 0x08: return "14"; // Backspace
                 case 0x09: return "15"; // Tab
-                case 0x1B: return "";   // Escape
+                case 0x1B: return "1";  // Escape
                 case 0x20: return "57"; // Space
                 case 0x21: return "53"; // Exclam
                 case 0x22: return "";
@@ -1137,7 +1281,7 @@ namespace EmulatorLauncher
                 case 0x66: return "33";
                 case 0x67: return "34";
                 case 0x68: return "35";
-                case 0x69: return "23";
+                case 0x69: return "23"; // I
                 case 0x6A: return "36";
                 case 0x6B: return "37"; // K
                 case 0x6C: return "38";
@@ -1148,7 +1292,7 @@ namespace EmulatorLauncher
                 case 0x71: return "30"; // Q
                 case 0x72: return "19";
                 case 0x73: return "31";
-                case 0x74: return "20";
+                case 0x74: return "20"; // T
                 case 0x75: return "22";
                 case 0x76: return "47";
                 case 0x77: return "44";
@@ -1248,7 +1392,7 @@ namespace EmulatorLauncher
                 case 0x00: return "";
                 case 0x08: return "42"; // Backspace
                 case 0x09: return "43"; // Tab
-                case 0x1B: return "41";   // Escape
+                case 0x1B: return "41"; // Escape
                 case 0x20: return "44"; // Space
                 case 0x21: return "";   // Exclam
                 case 0x22: return "";
@@ -1256,7 +1400,7 @@ namespace EmulatorLauncher
                 case 0x24: return "";   // Dollar
                 case 0x25: return "";   // Percent
                 case 0x26: return "";   // Ampersand (esperluette)
-                case 0x27: return "49";   // Antislash
+                case 0x27: return "";   // apostrophe (quote)
                 case 0x28: return "";   // Parent left
                 case 0x29: return "";   // Parent right
                 case 0x2A: return ""; // *
@@ -1275,14 +1419,14 @@ namespace EmulatorLauncher
                 case 0x37: return "36";
                 case 0x38: return "37";
                 case 0x39: return "38"; // 9
-                case 0x3A: return ""; // :
-                case 0x3B: return "51";
+                case 0x3A: return "";   // colon
+                case 0x3B: return "51"; // semicolon
                 case 0x3C: return "";
                 case 0x3D: return "46"; // Equals
                 case 0x3F: return "";   // >
                 case 0x40: return "";
                 case 0x5B: return "47";   // Left bracket
-                case 0x5C: return "49";   // Antislash
+                case 0x5C: return "49";   // Backslash
                 case 0x5D: return "48";   // Right bracket
                 case 0x5E: return "";   // Chapeau
                 case 0x5F: return "";   // Underscore
@@ -1298,7 +1442,7 @@ namespace EmulatorLauncher
                 case 0x69: return "12";
                 case 0x6A: return "13";
                 case 0x6B: return "14"; // K
-                case 0x6C: return "15";
+                case 0x6C: return "15"; // L
                 case 0x6D: return "16";
                 case 0x6E: return "17";
                 case 0x6F: return "18"; // O
@@ -1306,7 +1450,7 @@ namespace EmulatorLauncher
                 case 0x71: return "20"; // Q
                 case 0x72: return "21";
                 case 0x73: return "22";
-                case 0x74: return "23";
+                case 0x74: return "23"; // T
                 case 0x75: return "24";
                 case 0x76: return "25";
                 case 0x77: return "26";
@@ -1340,11 +1484,11 @@ namespace EmulatorLauncher
                 case 0x40000051: return "81";  // Down
                 case 0x40000052: return "82";  // Up
                 case 0x40000053: return "83";   // Numlock
-                case 0x40000054: return "84";  // Num divide
+                case 0x40000054: return "84";   // Num divide
                 case 0x40000055: return "85";   // Num multiply
                 case 0x40000056: return "86";   // Num -
                 case 0x40000057: return "87";   // Num+
-                case 0x40000058: return "88";  // Num ENTER
+                case 0x40000058: return "88";   // Num ENTER
                 case 0x40000059: return "89";   // Num 1
                 case 0x4000005A: return "90";
                 case 0x4000005B: return "91";
@@ -1398,8 +1542,56 @@ namespace EmulatorLauncher
             return "";
         }
 
+        private static Dictionary<string, InputKey> buttonToInputKey = new Dictionary<string, InputKey>()
+        {
+            { "a", InputKey.a },
+            { "b", InputKey.b },
+            { "x", InputKey.x },
+            { "y", InputKey.y },
+            { "pageup", InputKey.pageup },
+            { "pagedown", InputKey.pagedown },
+            { "r2", InputKey.r2 },
+            { "l3", InputKey.l3 },
+            { "r3", InputKey.r3 },
+            { "start", InputKey.start },
+            { "up", InputKey.up },
+            { "down", InputKey.down },
+            { "left", InputKey.left },
+            { "right", InputKey.right }
+        };
+
+        private static Dictionary<string, string> buttonTodInput = new Dictionary<string, string>()
+        {
+            { "a", "a" },
+            { "b", "b" },
+            { "x", "y" },
+            { "y", "x" },
+            { "pageup", "leftshoulder" },
+            { "pagedown", "rightshoulder" },
+            { "r2", "righttrigger" },
+            { "l3", "leftstick" },
+            { "r3", "rightstick" },
+            { "start", "l2" },
+            { "up", "dpup" },
+            { "down", "dpdown" },
+            { "left", "dpleft" },
+            { "right", "dpright" }
+        };
+
         private readonly List<string> padAndKB = new List<string>()
-        { "C", "B", "A", "pause", "option", "up", "down", "left", "right", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
-            "asterisk", "pound", "menu", "ff", "rewind", "savestate", "loadstate", "screenshot" };
+        { 
+            "C", "B", "A", "pause", "option", "up", "down", "left", "right", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+            "asterisk", "pound", "menu", "ff", "rewind", "savestate", "loadstate", "screenshot", "chat" 
+        };
+
+        private static readonly Dictionary<string, string> hkList = new Dictionary<string, string>()
+        {
+            { "menu", "58_59" },
+            { "ff", "15_38" },
+            { "rewind", "42_14" },
+            { "savestate", "59_60" },
+            { "loadstate", "61_62" },
+            { "screenshot", "65_66" }
+        };
     }
 }

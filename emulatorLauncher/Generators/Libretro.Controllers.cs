@@ -32,6 +32,7 @@ namespace EmulatorLauncher.Libretro
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                WriteKBHotKeyConfig(retroconfig, core, true);
                 return false;
             }
 
@@ -172,14 +173,6 @@ namespace EmulatorLauncher.Libretro
             { InputKey.right, "disk_next"}
         };
 
-        static public Dictionary<string, InputKey> turbobuttons = new Dictionary<string, InputKey>()
-        {
-            { "L1", InputKey.pageup},
-            { "R1", InputKey.pagedown},
-            { "L2", InputKey.l2},
-            { "R2", InputKey.r2}
-        };
-
         private static void CleanControllerConfig(ConfigFile retroconfig)
         {
             retroconfig.DisableAll("input_player");
@@ -193,7 +186,7 @@ namespace EmulatorLauncher.Libretro
             retroconfig.DisableAll("input_toggle_fast_forward");
         }
 
-        private static void WriteKBHotKeyConfig(ConfigFile config, string core)
+        private static void WriteKBHotKeyConfig(ConfigFile config, string core, bool onlyYml = false)
         {
             // Keyboard defaults
             config["input_enable_hotkey"] = "nul";
@@ -202,44 +195,18 @@ namespace EmulatorLauncher.Libretro
             config["input_exit_emulator"] = "tilde";
 #else
             config["input_exit_emulator"] = "escape";
-#endif            
-            // Overwrite hotkeys with a file
-            string kbHotkeyFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "user", "inputmapping", "retroarch_kb_hotkeys.yml");
-
-            if (!File.Exists(kbHotkeyFile))
-                kbHotkeyFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "retroarch_kb_hotkeys.yml");
-
-            if (File.Exists(kbHotkeyFile))
+#endif      
+            if (Hotkeys.GetHotKeysFromFile("retroarch", core, out Dictionary<string, HotkeyResult> hotkeys))
             {
-                YmlFile ymlFile = YmlFile.Load(kbHotkeyFile);
-
-                if (ymlFile != null)
+                foreach (var hotkey in hotkeys)
                 {
-                    YmlContainer kbHotkeyList = ymlFile.Elements.Where(c => c.Name == core).FirstOrDefault() as YmlContainer;
-
-                    if (kbHotkeyList == null)
-                        kbHotkeyList = ymlFile.Elements.Where(c => c.Name == "default").FirstOrDefault() as YmlContainer;
-
-                    if (kbHotkeyList != null)
-                    {
-                        SimpleLogger.Instance.Info("[GENERATOR] Overwriting keyboard hotkeys with values from : " + kbHotkeyFile);
-
-                        var kbHotkeys = kbHotkeyList.Elements;
-
-                        if (kbHotkeys != null & kbHotkeys.Count > 0)
-                        {
-                            foreach (var kbHotkey in kbHotkeys)
-                            {
-                                YmlElement hotkey = kbHotkey as YmlElement;
-
-                                if (hotkey != null && hotkey.Name.StartsWith("input_") && !hotkey.Name.EndsWith("_btn") && !hotkey.Name.EndsWith("_mbtn") && !hotkey.Name.EndsWith("_axis"))
-                                    config[hotkey.Name] = hotkey.Value;
-                            }
-                            return;
-                        }
-                    }
+                    config[hotkey.Key] = hotkey.Value.RetroArchValue;
                 }
+                return;
             }
+
+            if (onlyYml)
+                return;
 
             // If no file use RetroBat standard
             config["input_menu_toggle"] = "f1";
@@ -256,6 +223,7 @@ namespace EmulatorLauncher.Libretro
             config["input_bind_hold"] = "2";
             config["input_bind_timeout"] = "5";
         }
+
         private static void WriteHotKeyConfig(ConfigFile config)
         {
             var c0 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
@@ -456,9 +424,12 @@ namespace EmulatorLauncher.Libretro
 
                 // override shortcuts from file
                 string cHotkeyFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "user", "inputmapping", "retroarch_controller_hotkeys.yml");
-
                 if (!File.Exists(cHotkeyFile))
                     cHotkeyFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "retroarch_controller_hotkeys.yml");
+                if (!File.Exists(cHotkeyFile))
+                    cHotkeyFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "user", "inputmapping", "controller_hotkeys.yml");
+                if (!File.Exists(cHotkeyFile))
+                    cHotkeyFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "controller_hotkeys.yml");
 
                 if (File.Exists(cHotkeyFile))
                 {
@@ -563,53 +534,29 @@ namespace EmulatorLauncher.Libretro
             /// hold : Press and hold turbokey to act as turbo for turbo_default_button
             if (Program.SystemConfig.isOptSet("enable_turbo") && !string.IsNullOrEmpty(Program.SystemConfig["enable_turbo"]))
             {
+                retroconfig["input_turbo_enable"] = "true";
+                
                 // Define turbo mode
                 retroconfig["input_turbo_mode"] = Program.SystemConfig["enable_turbo"];
 
-                // Set up a default turbo button if selected (this is the target button to be turbo'd and is necessary in HOLD mode)
+                // In Retroarch 1.21 the target button turboe'd is "input_turbo_button"
+                // Also turboactivationbutton can be set with "input_turbo_bind"
                 if (Program.SystemConfig.isOptSet("turbo_default_button") && !string.IsNullOrEmpty(Program.SystemConfig["turbo_default_button"]))
-                    retroconfig["input_turbo_default_button"] = Program.SystemConfig["turbo_default_button"];
+                    retroconfig["input_turbo_button"] = Program.SystemConfig["turbo_default_button"];
                 else
-                    retroconfig["input_turbo_default_button"] = "0";
+                    retroconfig["input_turbo_button"] = "0";    // south by default
 
-                // In Retroarch 1.21 the target button turboe'd is "input_turbo_button" and the values change
-                // Also turboactivationbutton can be set with "input_turbo_bind" - not needing the code below
-
-                // Define turbo activation button based on joypad input key mapping (4 options available L1, R1, L2, R2)
                 if (Program.SystemConfig.isOptSet("turbo_button") && !string.IsNullOrEmpty(Program.SystemConfig["turbo_button"]))
-                {
-                    string turbobutton = Program.SystemConfig["turbo_button"];
-                    InputKey turbokey;
-                    if (turbobuttons.ContainsKey(turbobutton))
-                    {
-                        turbokey = turbobuttons[turbobutton];
-                        var input = GetInputCode(controller, turbokey);
-                        if (controller.Name == "Keyboard")
-                        {
-                            retroconfig[string.Format("input_player{0}_turbo", controller.PlayerIndex)] = GetConfigValue(input);
-                        }
-                        else
-                            retroconfig[string.Format("input_player{0}_turbo_{1}", controller.PlayerIndex, typetoname[input.Type])] = GetConfigValue(input);
-                    }
-
-                    else
-                    {
-                        retroconfig[string.Format("input_player{0}_turbo_btn", controller.PlayerIndex)] = "nul";
-                        retroconfig[string.Format("input_player{0}_turbo_axis", controller.PlayerIndex)] = "nul";
-                    }
-                }
+                    retroconfig["input_turbo_bind"] = Program.SystemConfig["turbo_button"];
                 else
-                {
-                    retroconfig[string.Format("input_player{0}_turbo_btn", controller.PlayerIndex)] = "nul";
-                    retroconfig[string.Format("input_player{0}_turbo_axis", controller.PlayerIndex)] = "nul";
-                }
+                    retroconfig["input_turbo_bind"] = "12";    // L2 by default
             }
             else
             {
+                retroconfig["input_turbo_enable"] = "false";
                 retroconfig["input_turbo_mode"] = "0";
-                retroconfig["input_turbo_default_button"] = "0";
-                retroconfig[string.Format("input_player{0}_turbo_btn", controller.PlayerIndex)] = "nul";
-                retroconfig[string.Format("input_player{0}_turbo_axis", controller.PlayerIndex)] = "nul";
+                retroconfig["input_turbo_button"] = "0";
+                retroconfig["input_turbo_bind"] = "-1";
             }
 
             if (controller.Name != null && controller.Name == "Keyboard")

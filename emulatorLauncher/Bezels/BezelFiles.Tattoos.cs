@@ -627,7 +627,11 @@ namespace EmulatorLauncher
                         {
                             case "fceumm":
                             case "nestopia":
-                                if (Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                                if (Program.SystemConfig.getOptBoolean("xbox_layout") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                                    ret = "nes_xbox_turbo";
+                                else if (Program.SystemConfig.getOptBoolean("xbox_layout") && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
+                                    ret = "nes_xbox";
+                                else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
                                     ret = "nes_rotate_turbo";
                                 else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !Program.SystemConfig.getOptBoolean("nes_turbo_enable"))
                                     ret = "nes_rotate";
@@ -636,7 +640,11 @@ namespace EmulatorLauncher
                                 break;
                             case "mesen":
                                 bool turbo = Program.SystemConfig["mesen_nes_turbo"] != "Disabled" || !Program.SystemConfig.isOptSet("mesen_nes_turbo");
-                                if (Program.SystemConfig.getOptBoolean("rotate_buttons") && turbo)
+                                if (Program.SystemConfig.getOptBoolean("xbox_layout") && turbo)
+                                    ret = "nes_xbox_turbo";
+                                else if (Program.SystemConfig.getOptBoolean("xbox_layout") && !turbo)
+                                    ret = "nes_xbox";
+                                else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && turbo)
                                     ret = "nes_rotate_turbo";
                                 else if (Program.SystemConfig.getOptBoolean("rotate_buttons") && !turbo)
                                     ret = "nes_rotate";

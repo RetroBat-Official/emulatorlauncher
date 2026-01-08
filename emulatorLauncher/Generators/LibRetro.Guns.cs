@@ -49,7 +49,17 @@ namespace EmulatorLauncher.Libretro
             bool useOneGun = SystemConfig.isOptSet("one_gun") && SystemConfig.getOptBoolean("one_gun");
 
             int gunCount = RawLightgun.GetUsableLightGunCount();
-            var guns = RawLightgun.GetRawLightguns();
+            var guns = RawLightgun.GetRawLightguns().OrderBy(g => g.Index).ToArray();
+
+            int maxIndex = guns.Length - 1;
+
+            for (int i = 0; i < guns.Length; i++)
+            {
+                guns[i].Index = maxIndex - i;
+            }
+
+            guns = guns.OrderBy(g => g.Priority).ToArray();
+
             SimpleLogger.Instance.Info("[LightGun] Found " + gunCount + " usable guns.");
 
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))

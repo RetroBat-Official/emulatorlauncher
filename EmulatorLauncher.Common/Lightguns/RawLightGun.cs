@@ -5,6 +5,7 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using EmulatorLauncher.Common.Joysticks;
+using SharpDX.DirectInput;
 
 namespace EmulatorLauncher.Common.Lightguns
 {
@@ -98,6 +99,19 @@ namespace EmulatorLauncher.Common.Lightguns
             return RawLighGunType.Mouse;
         }
 
+        private static int GetGamePadIndex(RawInputDevice device)
+        {
+            var gamepads = RawInputDevice.GetRawInputControllers();
+
+            for (int i = 0; i < gamepads.Length; i++)
+            {
+                var gp = gamepads[i];
+                if (gp.VendorId == device.VendorId && gp.ProductId == device.ProductId)
+                    return i;
+            }
+            return -1;
+        }
+
         private static RawLightgun[] _cache;
 
         private static RawLightgun[] GetRawLightgunsInternal()
@@ -107,17 +121,19 @@ namespace EmulatorLauncher.Common.Lightguns
             int index = 0;
             foreach (var device in RawInputDevice.GetRawInputDevices().Where(t => t.Type == RawInputDeviceType.Mouse))
             {
-                 mouseNames.Add(new RawLightgun() 
-                 { 
-                     Name = device.Name, 
-                     Manufacturer = device.Manufacturer, 
-                     DevicePath = device.DevicePath, 
-                     Index = index,
-                     VendorId = device.VendorId,
-                     ProductId = device.ProductId,
-                     Type = ExtractRawLighGunType(device.DevicePath)
-                 });
-                 index++;
+                mouseNames.Add(new RawLightgun()
+                {
+                    Name = device.Name,
+                    Manufacturer = device.Manufacturer,
+                    DevicePath = device.DevicePath,
+                    Index = index,
+                    VendorId = device.VendorId,
+                    ProductId = device.ProductId,
+                    Type = ExtractRawLighGunType(device.DevicePath),
+                    GamepadIndex = GetGamePadIndex(device)
+                });
+                    
+                index++;
             }
 
             foreach (var mouse in mouseNames)
@@ -160,131 +176,144 @@ namespace EmulatorLauncher.Common.Lightguns
         public USB_VENDOR VendorId { get; set; }
         public USB_PRODUCT ProductId { get; set; }
         public RawLighGunType Type { get; private set; }
+        public int Priority { get; set; }
+        public int GamepadIndex { get; set; }
 
         private int GetGunPriority()
         {
+            Priority = 1000 + Index;
             switch (Type)
             {
                 case RawLighGunType.Gun4Ir:
                     if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8042"))
-                        return 10;
+                        Priority = 10;
                     else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8044"))
-                        return 12;
+                        Priority = 12;
                     else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8046"))
-                        return 14;
+                        Priority = 14;
                     else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8043"))
-                        return 16;
+                        Priority = 16;
                     else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8045"))
-                        return 18;
+                        Priority = 18;
                     else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8047"))
-                        return 20;
+                        Priority = 20;
                     else
-                        return 22 + Index;
+                        Priority = 22 + Index;
+                    break;
 
                 case RawLighGunType.Blamcon:
                     if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0100"))
-                        return 40;
+                        Priority = 40;
                     else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0101"))
-                        return 42;
+                        Priority = 42;
                     else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0102"))
-                        return 44;
+                        Priority = 44;
                     else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0103"))
-                        return 46;
+                        Priority = 46;
                     else if (DevicePath != null && DevicePath.Contains("VID_3673&PID_0104"))
-                        return 48;
+                        Priority = 48;
                     else
-                        return 50 + Index;
+                        Priority = 50 + Index;
+                    break;
 
                 case RawLighGunType.SindenLightgun:
                     if (DevicePath != null && DevicePath.Contains("VID_16C0&PID_0F01"))
-                        return 60;
+                        Priority = 60;
                     else if (DevicePath != null && DevicePath.Contains("VID_16C0&PID_0F38"))
-                        return 62;
+                        Priority = 62;
                     else if (DevicePath != null && DevicePath.Contains("VID_16C0&PID_0F02"))
-                        return 64;
+                        Priority = 64;
                     else if (DevicePath != null && DevicePath.Contains("VID_16C0&PID_0F39"))
-                        return 66;
+                        Priority = 66;
                     else
-                        return 68 + Index;
+                        Priority = 68 + Index;
+                    break;
 
                 case RawLighGunType.AELightgun:
                     if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8037"))
-                        return 80;
+                        Priority = 80;
                     else if (DevicePath != null && DevicePath.Contains("VID_2341&PID_8038"))
-                        return 82;
+                        Priority = 82;
                     else
-                        return 90 + Index;
+                        Priority = 90 + Index;
+                    break;
 
                 case RawLighGunType.RetroShooter:
                     if (DevicePath != null && DevicePath.Contains("VID_0483&PID_5750"))
-                        return 100;
+                        Priority = 100;
                     else if (DevicePath != null && DevicePath.Contains("VID_0483&PID_5751"))
-                        return 102;
+                        Priority = 102;
                     else if (DevicePath != null && DevicePath.Contains("VID_0483&PID_5752"))
-                        return 104;
+                        Priority = 104;
                     else if (DevicePath != null && DevicePath.Contains("VID_0483&PID_5753"))
-                        return 106;
+                        Priority = 106;
                     else
-                        return 108 + Index;
+                        Priority = 108 + Index;
+                    break;
 
                 case RawLighGunType.Xenas:
                     if (DevicePath != null && DevicePath.Contains("VID_023f30_PID&71ff"))
-                        return 120;
+                        Priority = 120;
                     else if (DevicePath != null && DevicePath.Contains("VID_023f30_PID&72ff"))
-                        return 122;
+                        Priority = 122;
                     else if (DevicePath != null && DevicePath.Contains("VID_023f30_PID&73ff"))
-                        return 124;
+                        Priority = 124;
                     else if (DevicePath != null && DevicePath.Contains("VID_023f30_PID&74ff"))
-                        return 126;
+                        Priority = 126;
                     else
-                        return 128 + Index;
+                        Priority = 128 + Index;
+                    break;
 
                 case RawLighGunType.Aimtrak:
                     if (DevicePath != null && DevicePath.Contains("VID_D209&PID_1601"))
-                        return 140;
+                        Priority = 140;
                     else if (DevicePath != null && DevicePath.Contains("VID_D209&PID_1602"))
-                        return 142;
+                        Priority = 142;
                     else if (DevicePath != null && DevicePath.Contains("VID_D209&PID_1603"))
-                        return 144;
+                        Priority = 144;
                     else
-                        return 146 + Index;
+                        Priority = 146 + Index;
+                    break;
 
                 case RawLighGunType.Xgunner:
                     if (DevicePath != null && DevicePath.Contains("VID_1209&PID_0001"))
-                        return 160;
+                        Priority = 160;
                     else if (DevicePath != null && DevicePath.Contains("VID_1209&PID_0002"))
-                        return 162;
+                        Priority = 162;
                     else if (DevicePath != null && DevicePath.Contains("VID_1209&PID_0003"))
-                        return 164;
+                        Priority = 164;
                     else
-                        return 166 + Index;
+                        Priority = 166 + Index;
+                    break;
 
                 case RawLighGunType.Wiimote4Guns:
                     if (DevicePath != null && DevicePath.ToLowerInvariant().Contains("vmultia"))
-                        return 180;
+                        Priority = 180;
                     else if (DevicePath != null && DevicePath.ToLowerInvariant().Contains("vmultib"))
-                        return 181;
+                        Priority = 181;
                     else if (DevicePath != null && DevicePath.ToLowerInvariant().Contains("vmultic"))
-                        return 182;
+                        Priority = 182;
                     else if (DevicePath != null && DevicePath.ToLowerInvariant().Contains("vmultid"))
-                        return 183;
+                        Priority = 183;
                     else
-                        return 184 + Index;
+                        Priority = 184 + Index;
+                    break;
 
                 case RawLighGunType.MayFlashWiimote:
-                    return 200 + Index;
+                    Priority = 200 + Index;
+                    break;
 
                 default:
                     if (Name != null && Name.IndexOf("lightgun", StringComparison.InvariantCultureIgnoreCase) >= 0)
-                        return 300 + Index;
+                        Priority = 300 + Index;
 
                     if (Name != null && Name.IndexOf("wiimote", StringComparison.InvariantCultureIgnoreCase) >= 0)
-                        return 400 + Index;
+                        Priority = 400 + Index;
                     
                     break;
             }
 
-            return 1000 + Index;
+            return Priority;
         }
 
         public override string ToString()
