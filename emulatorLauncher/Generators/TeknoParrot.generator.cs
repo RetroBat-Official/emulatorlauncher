@@ -1,19 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Diagnostics;
-using System.Windows.Forms;
-using System.Threading;
-using TeknoParrotUi.Common;
-using EmulatorLauncher.PadToKeyboard;
-using System.Management;
-using System.Text.RegularExpressions;
-using EmulatorLauncher.VPinballLauncher;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.VPinballLauncher;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Management;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows.Forms;
 using System.Xml.Linq;
+using TeknoParrotUi.Common;
 
 namespace EmulatorLauncher
 {
@@ -847,7 +848,7 @@ namespace EmulatorLauncher
             try
             {
                 Process proc = Process.GetProcessById(pid);
-                proc.Kill();
+                try { proc.Kill(); } catch { }
             }
             catch (ArgumentException)
             {
@@ -866,8 +867,11 @@ namespace EmulatorLauncher
             {
                 if (regex.Match(p.ProcessName).Success)
                 {
-                    p.Kill();
-                    Console.WriteLine("killed amdaemon!");
+                    try
+                    {
+                        p.Kill();
+                        SimpleLogger.Instance.Info("killed amdaemon!");
+                    } catch { }
                 }
             }
 
@@ -877,8 +881,12 @@ namespace EmulatorLauncher
             {
                 if (regex.Match(p.ProcessName).Success)
                 {
-                    p.Kill();
-                    Console.WriteLine("killed game process!");
+                    try
+                    {
+                        p.Kill();
+                        SimpleLogger.Instance.Info("killed game process!");
+                    }
+                    catch { }
                 }
             }
 
@@ -888,8 +896,12 @@ namespace EmulatorLauncher
             {
                 if (regex.Match(p.ProcessName).Success)
                 {
-                    p.Kill();
-                    Console.WriteLine("killed serverbox!");
+                    try
+                    {
+                        p.Kill();
+                        SimpleLogger.Instance.Info("killed serverbox!");
+                    }
+                    catch { }
                 }
             }
 
@@ -899,8 +911,12 @@ namespace EmulatorLauncher
             {
                 if (regex.Match(p.ProcessName).Success)
                 {
-                    p.Kill();
-                    Console.WriteLine("killed inject.exe!");
+                    try
+                    {
+                        p.Kill();
+                        SimpleLogger.Instance.Info("killed inject.exe!");
+                    }
+                    catch { }
                 }
             }
 
@@ -910,8 +926,12 @@ namespace EmulatorLauncher
             {
                 if (regex.Match(p.ProcessName).Success)
                 {
-                    p.Kill();
-                    Console.WriteLine("killed nodeJS! (if you were running node, you may want to restart it)");
+                    try
+                    {
+                        p.Kill();
+                        SimpleLogger.Instance.Info("killed nodeJS! (if you were running node, you may want to restart it)");
+                    }
+                    catch { }
                 }
             }
         }
@@ -988,6 +1008,22 @@ namespace EmulatorLauncher
                 else return false;
             }
             catch { return false; }
+        }
+
+        static bool IsKillTaskInstalled()
+        {
+            var p = Process.Start(new ProcessStartInfo
+            {
+                FileName = "schtasks",
+                Arguments = "/Query /TN \"KillTeknoParrot\"",
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+
+            p.WaitForExit();
+            return p.ExitCode == 0;
         }
 
         private bool GetYmlExeInfo(string game, out string YmlExe)
@@ -1080,6 +1116,19 @@ namespace EmulatorLauncher
             return ret;
         }
 
+        static void RunKillTeknoParrotTask()
+        {
+            SimpleLogger.Instance.Info("[INFO] Running KillTeknoParrot scheduled task.");
+
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "schtasks",
+                Arguments = "/Run /TN \"KillTeknoParrot\"",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+        }
+
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
@@ -1106,12 +1155,24 @@ namespace EmulatorLauncher
                 return 0;
             }
 
-            int ret = base.RunAndWait(path);
+            base.RunAndWait(path);
 
             bezel?.Dispose();
 
-            KillProcessTree("TeknoParrotUI");
-            KillProcessTree(_exename);
+            if (IsKillTaskInstalled())
+                RunKillTeknoParrotTask();
+            else
+                KillProcessTree("TeknoParrotUI");
+
+            try
+            {
+                var exeProcesses = Process.GetProcessesByName(_exename);
+                foreach (var p in exeProcesses)
+                    try { p.Kill(); }
+                    catch { }
+            }
+            catch (ArgumentException)
+            { }
 
             if (Process.GetProcessesByName("OpenParrotLoader").Length > 0 || Process.GetProcessesByName("OpenParrotLoader64").Length > 0)
             {
