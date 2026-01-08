@@ -1297,14 +1297,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             if (SystemConfig["ratio"] == "custom")
-            {
-                if (_forcenobias)
-                    retroarchConfig["video_viewport_bias_y"] = "0.000000";
-                else if (_forceBias) // || driverYBias.Contains(SystemConfig["video_driver"]))
-                    retroarchConfig["video_viewport_bias_y"] = "1.000000";
-                else
-                    retroarchConfig["video_viewport_bias_y"] = "0.000000";
-            }
+                retroarchConfig["video_viewport_bias_y"] = "0.000000";
         }
 
         /// <summary>
@@ -1882,13 +1875,7 @@ namespace EmulatorLauncher.Libretro
             else
             {
                 retroarchConfig["video_viewport_bias_x"] = "0.000000";
-
-                if (_forcenobias)
-                    retroarchConfig["video_viewport_bias_y"] = "0.000000";
-                else if (_forceBias) // || driverYBias.Contains(_video_driver))
-                    retroarchConfig["video_viewport_bias_y"] = "1.000000";
-                else
-                    retroarchConfig["video_viewport_bias_y"] = "0.000000";
+                retroarchConfig["video_viewport_bias_y"] = "0.000000";
             }
         }
         #endregion
