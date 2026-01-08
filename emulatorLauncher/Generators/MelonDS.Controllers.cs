@@ -50,11 +50,12 @@ namespace EmulatorLauncher
             foreach (string x in hotkeys)
                 ini.WriteValue("Instance0.Joystick", x, "-1");
 
+            bool xbox = SystemConfig.getOptBoolean("xbox_layout");
             int index = (ctrl.SdlController == null ? ctrl.DeviceIndex : ctrl.SdlController.Index);
 
             ini.WriteValue("Instance0", "JoystickID", index.ToString());
-            ini.WriteValue("Instance0.Joystick", "A", GetInputKeyName(ctrl, InputKey.b));
-            ini.WriteValue("Instance0.Joystick", "B", GetInputKeyName(ctrl, InputKey.a));
+            ini.WriteValue("Instance0.Joystick", "A", xbox? GetInputKeyName(ctrl, InputKey.a) : GetInputKeyName(ctrl, InputKey.b));
+            ini.WriteValue("Instance0.Joystick", "B", xbox ? GetInputKeyName(ctrl, InputKey.b) : GetInputKeyName(ctrl, InputKey.a));
             ini.WriteValue("Instance0.Joystick", "Select", GetInputKeyName(ctrl, InputKey.select));
             ini.WriteValue("Instance0.Joystick", "Start", GetInputKeyName(ctrl, InputKey.start));
             
@@ -75,8 +76,8 @@ namespace EmulatorLauncher
 
             ini.WriteValue("Instance0.Joystick", "R", GetInputKeyName(ctrl, InputKey.pagedown));
             ini.WriteValue("Instance0.Joystick", "L", GetInputKeyName(ctrl, InputKey.pageup));
-            ini.WriteValue("Instance0.Joystick", "X", GetInputKeyName(ctrl, InputKey.x));
-            ini.WriteValue("Instance0.Joystick", "Y", GetInputKeyName(ctrl, InputKey.y));
+            ini.WriteValue("Instance0.Joystick", "X", xbox ? GetInputKeyName(ctrl, InputKey.y) : GetInputKeyName(ctrl, InputKey.x));
+            ini.WriteValue("Instance0.Joystick", "Y", xbox ? GetInputKeyName(ctrl, InputKey.x) : GetInputKeyName(ctrl, InputKey.y));
 
             ini.WriteValue("Instance0.Joystick", "HK_Lid", GetInputKeyName(ctrl, InputKey.l3));
             ini.WriteValue("Instance0.Joystick", "HK_Mic", GetInputKeyName(ctrl, InputKey.l2));
