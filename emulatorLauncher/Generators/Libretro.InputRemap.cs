@@ -861,13 +861,11 @@ namespace EmulatorLauncher.Libretro
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            string path = _gameRemapName != null ? Path.Combine(dir, _gameRemapName + ".rmp") : Path.Combine(dir, cleanSystemName + ".rmp");
+            string remapFilePath = Path.Combine(dir, cleanSystemName + ".rmp");
 
-            //this.AddFileForRestoration(path);
-
-            var cfg = ConfigFile.FromFile(path, new ConfigFileOptions() { CaseSensitive = true });
+            var cfg = ConfigFile.FromFile(remapFilePath, new ConfigFileOptions() { CaseSensitive = true });
             createRemap(cfg);
-            cfg.Save(path, true);
+            cfg.Save(remapFilePath, true);
         }
 
         private void DeleteInputRemap(string cleanSystemName)
@@ -880,7 +878,7 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             string dir = Path.Combine(RetroarchPath, "config", "remaps", cleanSystemName);
-            string path = _gameRemapName != null ? Path.Combine(dir, _gameRemapName + ".rmp") : Path.Combine(dir, cleanSystemName + ".rmp");
+            string path = Path.Combine(dir, cleanSystemName + ".rmp");
             
             try
             {
