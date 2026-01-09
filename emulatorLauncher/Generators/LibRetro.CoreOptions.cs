@@ -28,8 +28,9 @@ namespace EmulatorLauncher.Libretro
                 { "81", "EightyOne" },
                 { "a5200", "a5200" },
                 { "advanced_tests", "Advanced Test" },
+                { "anarch", "anarch" },
                 { "ardens", "Ardens" },
-                { "arduous", "Arduous" },
+                { "arduous", "arduous" },
                 { "atari800", "Atari800" },
                 { "b2", "B2" },
                 { "bennugd", "Bennugd" },
@@ -57,12 +58,12 @@ namespace EmulatorLauncher.Libretro
                 { "citra_canary", "Citra Canary/Experimental" },
                 { "citra", "Citra" },
                 { "craft", "Craft" },
-                { "crocods", "CrocoDS" },
+                { "crocods", "crocods" },
                 { "cruzes", "Cruzes" },
                 { "daphne", "Daphne" },
                 { "desmume2015", "DeSmuME 2015" },
                 { "desmume", "DeSmuME" },
-                { "dice", "Dice" },
+                { "dice", "dice" },
                 { "dinothawr", "Dinothawr" },
                 { "directxbox", "DirectXBox" },
                 { "dolphin_launcher", "Dolphin Launcher" },
@@ -113,7 +114,7 @@ namespace EmulatorLauncher.Libretro
                 { "genesis_plus_gx_wide", "Genesis Plus GX Wide" },
                 { "geolith", "Geolith" },
                 { "gme", "Game Music Emu" },
-                { "gong", "Gong" },
+                { "gong", "gong" },
                 { "gpsp", "gpSP" },
                 { "gw", "Game & Watch" },
                 { "handy", "Handy" },
@@ -129,7 +130,7 @@ namespace EmulatorLauncher.Libretro
                 { "jumpnbump", "jumpnbump" },
                 { "kronos", "Kronos" },
                 { "lowresnx", "LowRes NX" },
-                { "lutro", "Lutro" },
+                { "lutro", "lutro" },
                 { "m2000", "M2000" },
                 { "mame2000", "MAME 2000" },
                 { "mame2003", "MAME 2003 (0.78)" },
@@ -175,8 +176,8 @@ namespace EmulatorLauncher.Libretro
                 { "nekop2", "Neko Project II" },
                 { "neocd", "NeoCD" },
                 { "nestopia", "Nestopia" },
-                { "noods", "Noods" },
-                { "np2kai", "Neko Project II Kai" },
+                { "noods", "NooDS" },
+                { "np2kai", "Neko Project II kai" },
                 { "nxengine", "NXEngine" },
                 { "o2em", "O2EM" },
                 { "oberon", "Oberon" },
@@ -278,7 +279,7 @@ namespace EmulatorLauncher.Libretro
                 { "wasm4", "WASM-4" },
                 { "x1", "x1" },
                 { "x64sdl", "VICE SDL" },
-                { "xrick", "XRick" },
+                { "xrick", "xrick" },
                 { "yabasanshiro", "YabaSanshiro" },
                 { "yabause", "Yabause" }
             };
@@ -1122,6 +1123,40 @@ namespace EmulatorLauncher.Libretro
             }
         }
 
+        // Synchronize gamesettings ini files from dolphin standalone to libretro core
+        private void DolphinSyncCheats(string system)
+        {
+            try
+            {
+                string sourcePath = Path.Combine(AppConfig.GetFullPath("dolphin-emu"), "User", "GameSettings");
+                string targetPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "dolphin-emu", "User", "GameSettings");
+
+                if (!Directory.Exists(targetPath))
+                    try { Directory.CreateDirectory(targetPath); } catch { }
+
+                foreach (var file in Directory.GetFiles(sourcePath, "*.ini"))
+                {
+                    string fileName = Path.GetFileName(file);
+                    try
+                    {
+                        if (!File.Exists(Path.Combine(targetPath, fileName)))
+                            try { File.Copy(file, Path.Combine(targetPath, fileName), true); } catch { }
+                        else
+                        {
+                            var sourceInfo = new FileInfo(file);
+                            var destInfo = new FileInfo(Path.Combine(targetPath, fileName));
+
+                            if (sourceInfo.LastWriteTimeUtc > destInfo.LastWriteTimeUtc)
+                                try { File.Copy(file, Path.Combine(targetPath, fileName), true); } catch { }
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch
+            { }
+        }
+        
         private void ConfigureDolphin(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "dolphin")
@@ -1149,6 +1184,11 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "dolphin_enable_rumble", "dolphin_enable_rumble", "enabled", "disabled");
             BindBoolFeature(coreSettings, "dolphin_osd_enabled", "dolphin_osd_enabled", "enabled", "disabled");
             BindBoolFeature(coreSettings, "dolphin_cheats_enabled", "dolphin_cheats_enabled", "enabled", "disabled");
+            if (SystemConfig.getOptBoolean("dolphin_cheats_enabled"))
+            {
+                DolphinSyncCheats(system);
+            }
+
             BindBoolFeature(coreSettings, "dolphin_force_texture_filtering", "dolphin_force_texture_filtering", "enabled", "disabled");
             BindFeature(coreSettings, "dolphin_language", "dolphin_language", "English");
             BindBoolFeature(coreSettings, "dolphin_pal60", "dolphin_pal60", "enabled", "disabled");
@@ -1228,7 +1268,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "dosbox_pure_svga", "dosbox_pure_svga", "svga_s3");
             BindFeature(coreSettings, "dosbox_pure_svgamem", "dosbox_pure_svgamem", "2");
             BindFeature(coreSettings, "dosbox_pure_keyboard_layout", "keyboard_layout", "us");
-            BindBoolFeature(coreSettings, "dosbox_pure_force60fps", "dosbox_pure_force60fps", "true", "false");
+            BindFeature(coreSettings, "dosbox_pure_force60fps", "dosbox_pure_force60fps", "false");
             BindFeature(coreSettings, "dosbox_pure_perfstats", "dosbox_pure_perfstats", "none");
             BindFeature(coreSettings, "dosbox_pure_conf", "dosbox_pure_conf", "false");
             BindFeature(coreSettings, "dosbox_pure_voodoo", "dosbox_pure_voodoo", "8mb");
@@ -2383,10 +2423,10 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["pcsx2_bios"] = pcsx2Bios;
 
+            BindBoolFeatureOn(coreSettings, "pcsx2_shared_memory_cards", "pcsx2_shared_memory_cards", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "pcsx2_fastboot", "lrps2_fastboot", "enabled", "disabled");
             BindBoolFeature(coreSettings, "pcsx2_fastcdvd", "lrps2_fastcdvd", "enabled", "disabled");
             BindBoolFeature(coreSettings, "pcsx2_enable_cheats", "lrps2_enable_cheats", "enabled", "disabled");
-            // pcsx2_hint_language_unlock
             BindFeature(coreSettings, "pcsx2_renderer", "lrps2_renderer", "Auto");
 
             if (SystemConfig["lrps2_renderer"] == "paraLLEl-GS")
@@ -2863,7 +2903,7 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "beetle_psx_hw_skip_bios", "skip_bios", "enabled", "disabled");
             BindFeature(coreSettings, "beetle_psx_hw_renderer", "mednafen_psx_renderer", "hardware");
             BindFeature(coreSettings, "beetle_psx_hw_gte_overclock", "beetle_psx_hw_gte_overclock", "disabled");
-            BindFeature(coreSettings, "beetle_psx_hw_cpu_freq_scale", "beetle_psx_hw_cpu_freq_scale", "100%(native)");
+            BindFeature(coreSettings, "beetle_psx_hw_cpu_freq_scale", "beetle_psx_hw_cpu_freq_scale", "100%");
             BindFeature(coreSettings, "beetle_psx_hw_cd_access_method", "beetle_psx_hw_cd_access_method", "async");
 
             // BIOS

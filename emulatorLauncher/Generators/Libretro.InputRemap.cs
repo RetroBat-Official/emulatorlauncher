@@ -737,7 +737,6 @@ namespace EmulatorLauncher.Libretro
             if (core == null || system == null || romName == null || mameAuto)
                 return false;
 
-            Dictionary<string, Dictionary<string, string>> gameMapping = new Dictionary<string, Dictionary<string, string>>();
             YmlContainer game = null;
             string coreMapping = null;
 
@@ -825,7 +824,6 @@ namespace EmulatorLauncher.Libretro
                     buttonMap.Add(button.Name, button.Value);
                 }
             }
-            gameMapping.Add(gameName, buttonMap);
 
             if (buttonMap.Count == 0)
                 return false;

@@ -292,8 +292,8 @@ namespace EmulatorLauncher
                     if (Program.SystemConfig.getOptBoolean("tattoo"))
                     {
                         string newPngFile = Program.CurrentGame.Bezel.Replace(".png", "_tattoo.png");
-                        if (!Program.SystemConfig.isOptSet("disableautocontrollers") || Program.SystemConfig["disableautocontrollers"] != "1")
-                            customBz.PngFile = GetTattooImage(customBz.PngFile, newPngFile, emulator);
+                        //if (!Program.SystemConfig.isOptSet("disableautocontrollers") || Program.SystemConfig["disableautocontrollers"] != "1")
+                        customBz.PngFile = GetTattooImage(customBz.PngFile, newPngFile, emulator);
                     }
 
                     if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
@@ -363,7 +363,7 @@ namespace EmulatorLauncher
 
             var ret = new BezelFiles() { PngFile = overlay_png_file, InfoFile = overlay_info_file };
 
-            if (Program.SystemConfig.getOptBoolean("tattoo") && (!Program.SystemConfig.isOptSet("disableautocontrollers") || Program.SystemConfig["disableautocontrollers"] != "1"))
+            if (Program.SystemConfig.getOptBoolean("tattoo"))
             {
                 string newPngFile = overlay_png_file.Replace(".png", "_tattoo.png");
                 ret.PngFile = GetTattooImage(overlay_png_file, newPngFile, emulator);

@@ -17,6 +17,7 @@ namespace EmulatorLauncher
             Image tattoo = null;
             string system = Program.SystemConfig["system"];
             string core = Program.SystemConfig["core"];
+            bool userFile = true;
 
             string tattooName = GetTattooName(system, core, emulator);
 
@@ -30,9 +31,15 @@ namespace EmulatorLauncher
                     if (!File.Exists(tattooFile))
                         tattooFile = Path.Combine(Program.AppConfig.GetFullPath("user"), "tattoos", "default", system + ".png");
                     if (!File.Exists(tattooFile))
+                    {
+                        userFile = false;
                         tattooFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tattoos", "games", system, gameName + ".png");
+                    }
                     if (!File.Exists(tattooFile))
+                    {
+                        userFile = false;
                         tattooFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tattoos", "default", tattooName);
+                    }
                     if (!File.Exists(tattooFile))
                     {
                         SimpleLogger.Instance.Info("[GENERATOR] Tattoo file not found: " + tattooName);
@@ -40,11 +47,17 @@ namespace EmulatorLauncher
                     }
                     tattoo = Image.FromFile(tattooFile);
                 }
+
+                if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1" && !userFile)
+                {
+                    SimpleLogger.Instance.Info("[GENERATOR] Tattoo file not displayed, use 'user' folder to display tattoo when autoconfigure is off");
+                    return inputPng;
+                }
             }
             catch 
             { 
                 SimpleLogger.Instance.Info("[GENERATOR] Error loading tattoo file: " + tattooFile);
-                return inputPng; 
+                return inputPng;
             }
 
             Image back = Image.FromFile(inputPng);
@@ -522,9 +535,19 @@ namespace EmulatorLauncher
                         break;
                     case "melonds":
                         if (Program.SystemConfig.getOptBoolean("melonds_leftstick"))
-                            ret = "nds_melonds_standalone_ls";
+                        {
+                            if (Program.SystemConfig.getOptBoolean("xbox_layout"))
+                                ret = "nds_melonds_standalone_ls_invert";
+                            else
+                                ret = "nds_melonds_standalone_ls";
+                        }
                         else
-                            ret = "nds_melonds_standalone";
+                        {
+                            if (Program.SystemConfig.getOptBoolean("xbox_layout"))
+                                ret = "nds_melonds_standalone_invert";
+                            else
+                                ret = "nds_melonds_standalone";
+                        }
                         break;
                     case "bizhawk":
                         if (Program.SystemConfig.getOptBoolean("bizhawk_nds_mouse"))
