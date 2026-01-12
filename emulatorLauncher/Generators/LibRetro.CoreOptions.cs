@@ -32,8 +32,8 @@ namespace EmulatorLauncher.Libretro
                 { "ardens", "Ardens" },
                 { "arduous", "arduous" },
                 { "atari800", "Atari800" },
-                { "b2", "B2" },
-                { "bennugd", "Bennugd" },
+                { "b2", "b2" },
+                { "bennugd", "BennuGD" },
                 { "bk", "bk" },
                 { "blastem", "BlastEm" },
                 { "bluemsx", "blueMSX" },
@@ -204,7 +204,7 @@ namespace EmulatorLauncher.Libretro
                 { "prosystem", "ProSystem" },
                 { "puae2021", "PUAE 2021" },
                 { "puae", "PUAE" },
-                { "px68k", "PX68k" },
+                { "px68k", "PX68K" },
                 { "quasi88", "QUASI88" },
                 { "quicknes", "QuickNES" },
                 { "race", "RACE" },
@@ -1773,6 +1773,9 @@ namespace EmulatorLauncher.Libretro
         {
             if (core != "flycast")
                 return;
+
+            if (system == "dreamcast" || system == "dc")
+                FlycastGenerator.SyncVMUFiles();
 
             coreSettings["reicast_show_lightgun_settings"] = "enabled";
             coreSettings["reicast_network_output"] = "enabled"; // Enable controller force feedback

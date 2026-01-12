@@ -118,6 +118,33 @@ namespace EmulatorLauncher
                                     }
                                     break;
                                 }
+                            case "flycast":
+                                {
+                                    var emulatorHotkey = GetEmulatorHotkey("flycast");
+                                    if (emulatorHotkey == null)
+                                        break;
+
+                                    var hkInfo = emulatorHotkey.EmulatorHotkeys.FirstOrDefault(h => h.RetroArchHK.Equals(element.Name, StringComparison.OrdinalIgnoreCase));
+
+                                    if (hkInfo != null)
+                                    {
+                                        string value = hkInfo.DefaultValue;
+                                        string sourceKey = element.Value.ToLowerInvariant();
+
+                                        if (sdlKeycodeToHID.ContainsKey(sourceKey))
+                                        {
+                                            value = sdlKeycodeToHID[sourceKey];
+                                        }
+
+                                        hotkeys[element.Name] = new HotkeyResult
+                                        {
+                                            RetroArchValue = element.Value,
+                                            EmulatorKey = hkInfo.EmulatorHK,
+                                            EmulatorValue = value
+                                        };
+                                    }
+                                    break;
+                                }
                         }
                     }
                 }
@@ -189,18 +216,28 @@ namespace EmulatorLauncher
                                     switch (emulator)
                                     {
                                         case "bigpemu":
-                                            var emulatorHotkey = GetEmulatorHotkey("bigpemu");
+                                            var bigpemuHotkey = GetEmulatorHotkey("bigpemu");
 
-                                            if (emulatorHotkey == null)
+                                            if (bigpemuHotkey == null)
                                                 break;
 
-                                            var hkInfo = emulatorHotkey.EmulatorHotkeys
-                                            .FirstOrDefault(h => h.RetroArchHK.Equals(dicKey, StringComparison.OrdinalIgnoreCase));
+                                            var bigpemuhkInfo = bigpemuHotkey.EmulatorHotkeys.FirstOrDefault(h => h.RetroArchHK.Equals(dicKey, StringComparison.OrdinalIgnoreCase));
 
-                                            if (hkInfo != null)
-                                            {
-                                                padHKDic.Add(hkInfo.EmulatorHK, value);
-                                            }
+                                            if (bigpemuhkInfo != null)
+                                                padHKDic.Add(bigpemuhkInfo.EmulatorHK, value);
+
+                                            break;
+                                        
+                                        case "flycast":
+                                            var flycastHotkey = GetEmulatorHotkey("flycast");
+
+                                            if (flycastHotkey == null)
+                                                break;
+
+                                            var flycasthkInfo = flycastHotkey.EmulatorHotkeys.FirstOrDefault(h => h.RetroArchHK.Equals(dicKey, StringComparison.OrdinalIgnoreCase));
+
+                                            if (flycasthkInfo != null)
+                                                padHKDic.Add(flycasthkInfo.EmulatorHK, value);
 
                                             break;
                                     }

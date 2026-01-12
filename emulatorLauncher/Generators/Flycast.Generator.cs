@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -138,13 +140,44 @@ namespace EmulatorLauncher
                     ini.WriteValue("config", "Dreamcast.AutoSaveState", "no");
                 }
 
+                // Paths
                 string dcRomsPath = Path.Combine(AppConfig.GetFullPath("roms"), "dreamcast");
                 string naomiRomsPath = Path.Combine(AppConfig.GetFullPath("roms"), "naomi");
                 string naomi2RomsPath = Path.Combine(AppConfig.GetFullPath("roms"), "naomi2");
                 string atomiwaveRomsPath = Path.Combine(AppConfig.GetFullPath("roms"), "atomiswave");
+                string biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "dc");
+                string savePath = Path.Combine(AppConfig.GetFullPath("saves"), system, "reicast");
+                string statePath = Path.Combine(savePath, "states");
+                string vmuPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "flycast", "vmu");
+
+                if (!Directory.Exists(biosPath))
+                    try { Directory.CreateDirectory(biosPath); } catch { }
+                if (!Directory.Exists(savePath))
+                    try { Directory.CreateDirectory(savePath); } catch { }
+                if (!Directory.Exists(statePath))
+                    try { Directory.CreateDirectory(statePath); } catch { }
+                if (!Directory.Exists(vmuPath))
+                    try { Directory.CreateDirectory(vmuPath); } catch { }
 
                 ini.Remove("config", "Dreamcast.ContentPath");
                 ini.WriteValue("config", "Dreamcast.ContentPath", dcRomsPath + ";" + naomiRomsPath + ";" + naomi2RomsPath + ";" + atomiwaveRomsPath);
+
+                ini.Remove("config", "Dreamcast.BiosPath");
+                ini.WriteValue("config", "Dreamcast.BiosPath", biosPath);
+
+                ini.Remove("config", "Dreamcast.SavePath");
+                ini.WriteValue("config", "Dreamcast.SavePath", savePath);
+
+                ini.Remove("config", "Dreamcast.SavestatePath");
+                ini.WriteValue("config", "Dreamcast.SavestatePath", statePath);
+
+                ini.Remove("config", "Dreamcast.VMUPath");
+                ini.WriteValue("config", "Dreamcast.VMUPath", vmuPath);
+
+                ini.WriteValue("config", "Dreamcast.MappingsPath", null);
+
+                if (system == "dreamcast" || system == "dc")
+                    SyncVMUFiles();
 
                 // video
                 if (_fullscreen)
@@ -215,6 +248,8 @@ namespace EmulatorLauncher
                     }
                 }
 
+                BindBoolIniFeature(ini, "config", "rend.IntegerScale", "integerscale", "yes", "no");
+                BindBoolIniFeatureOn(ini, "config", "rend.LinearInterpolation", "flycast_linearinterpolation", "yes", "no");
                 BindIniFeature(ini, "config", "pvr.AutoSkipFrame", "flycast_autoframeskip", "0");
                 BindBoolIniFeature(ini, "config", "rend.ModifierVolumes", "flycast_shadows", "no", "yes");
                 BindBoolIniFeature(ini, "config", "rend.Fog", "flycast_fog", "no", "yes");
@@ -267,7 +302,6 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "config", "rend.Rotate90", "flycast_rotate", "yes", "no");
                 BindBoolIniFeature(ini, "config", "rend.ShowFPS", "flycast_fps", "yes", "no");
                 BindBoolIniFeatureOn(ini, "config", "rend.RenderToTextureBuffer", "flycast_copytovram", "yes", "no");
-                BindIniFeatureSlider(ini, "config", "rend.TextureUpscale", "flycast_texture_upscale", "1");
                 BindIniFeatureSlider(ini, "config", "pvr.MaxThreads", "flycast_threads", "3");
                 BindBoolIniFeature(ini, "config", "rend.CustomTextures", "flycast_custom_textures", "yes", "no");
                 BindIniFeature(ini, "config", "rend.Resolution", "flycast_resolution", "480");
@@ -330,6 +364,46 @@ namespace EmulatorLauncher
             }
         }
 
+        public static void SyncVMUFiles()
+        {
+            string flycastPath = Path.Combine(Program.AppConfig.GetFullPath("saves"), "dreamcast", "flycast", "vmu");
+            string libretroPath = Path.Combine(Program.AppConfig.GetFullPath("bios"), "dc");
+            if (!Directory.Exists(flycastPath) || !Directory.Exists(libretroPath))
+                return;
+
+            try
+            {
+                SimpleLogger.Instance.Info("[SAVES] Syncing vmu files between libretro and Flycast.");
+                
+                var flycastFiles = Directory.GetFiles(flycastPath, "*vmu*.bin");
+                var libretroFiles = Directory.GetFiles(libretroPath, "*vmu*.bin");
+                var allFiles = flycastFiles.Concat(libretroFiles).Select(Path.GetFileName).Distinct(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var fileName in allFiles)
+                {
+                    string flycastFile = Path.Combine(flycastPath, fileName);
+                    string libretroFile = Path.Combine(libretroPath, fileName);
+                    bool flycastExists = File.Exists(flycastFile);
+                    bool libretroExists = File.Exists(libretroFile);
+
+                    if (flycastExists && libretroExists)
+                    {
+                        DateTime flycastTime = File.GetLastWriteTimeUtc(flycastFile);
+                        DateTime libretroTime = File.GetLastWriteTimeUtc(libretroFile);
+
+                        if (flycastTime > libretroTime)
+                            try { File.Copy(flycastFile, libretroFile, overwrite: true); } catch { }
+                        else if (libretroTime > flycastTime)
+                            try { File.Copy(libretroFile, flycastFile, overwrite: true); } catch { }
+                    }
+                    else if (flycastExists)
+                        try { File.Copy(flycastFile, libretroFile); } catch { }
+                    else if (libretroExists)
+                        try { File.Copy(libretroFile, flycastFile); } catch { }
+                }
+            }
+            catch { SimpleLogger.Instance.Warning("[SAVES] Impossible to sync vmu files between libretro and Flycast."); }
+        }
         public override void Cleanup()
         {
             if (_saveStatesWatcher != null)
