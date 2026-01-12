@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -23,7 +24,7 @@ namespace EmulatorLauncher
             var hints = new List<string>();
 
             if (_norawinput)
-                hints.Add("SDL_HINT_JOYSTICK_RAWINPUT = 1");
+                hints.Add("SDL_HINT_JOYSTICK_RAWINPUT = 0");
 
             if (ini.GetValue("Controls", "enable_joycon_driver\\default") == "true" || ini.GetValue("Controls", "enable_joycon_driver") != "false")
                 hints.Add("SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 0");
@@ -68,6 +69,12 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Eden");
 
             UpdateSdlControllersWithHints(ini);
+
+            if (!_norawinput)
+            {
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.User);
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.Process);
+            }
 
             // Cleanup control part first
             for (int i=0; i<10; i++)
