@@ -19,6 +19,11 @@ namespace EmulatorLauncher.Common.Compression.Wrappers
             return Path.Combine(Path.GetDirectoryName(typeof(Zip).Assembly.Location), "rdsquashfs.exe");
         }
 
+        public static string GetRdSquashFSDllPath()
+        {
+            return Path.Combine(Path.GetDirectoryName(typeof(Zip).Assembly.Location), "libsquashfs.dll");
+        }
+
         private SquashFsArchive() { }
 
         public string FileName { get; private set; }
@@ -31,57 +36,79 @@ namespace EmulatorLauncher.Common.Compression.Wrappers
             return new SquashFsArchive() { FileName = path };
         }
 
-        private IArchiveEntry[] ListEntriesInternal()
+        private IArchiveEntry[] ListDllEntriesInternal()
         {
-                var sevenZip = GetRdSquashFSPath();
-                if (!File.Exists(sevenZip))
-                    return new IArchiveEntry[] { };
+            var ret = new List<IArchiveEntry>();
 
-                string output = ProcessExtensions.RunWithOutput(GetRdSquashFSPath(), "-d \"" + FileName + "\"");
-                if (output == null)
-                    return new IArchiveEntry[] { };
-
-                var ret = new List<IArchiveEntry>();
-
-                foreach (string str in output.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+            using (var img = SquashFS.Reader.SquashFsImage.Open(FileName))
+            {
+                return img.Entries.Select(e => new SquashFsArchiveEntry(this)
                 {
-                    var args = str.SplitCommandLine();
-                    if (args.Length < 5)
-                        continue;
+                    IsDirectory = e.IsDirectory,
+                    Filename = e.FullPath,
+                    Length = (long) e.Size,
+                    LastModified = e.ModificationDate                    
+                }).ToArray();               
+            }
+        }
 
-                    if (args[0] != "file" && args[0] != "dir")
-                        continue;
+        private IArchiveEntry[] ListEntriesInternal()
+        {            
+            if (File.Exists(GetRdSquashFSDllPath()))
+            {
+                try { return ListDllEntriesInternal(); }
+                catch { }
+            }
 
-                    SquashFsArchiveEntry e = new SquashFsArchiveEntry(this);
-                    e.Filename = args[1];
-                    e.IsDirectory = args[0] == "dir";
-                    if (e.IsDirectory)
-                        e.Length = 0;
+            var sevenZip = GetRdSquashFSPath();
+            if (!File.Exists(sevenZip))
+                return new IArchiveEntry[] { };
 
-                    if (args.Length >= 6)
+            string output = ProcessExtensions.RunWithOutput(GetRdSquashFSPath(), "-d \"" + FileName + "\"");
+            if (output == null)
+                return new IArchiveEntry[] { };
+
+            var ret = new List<IArchiveEntry>();
+
+            foreach (string str in output.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var args = str.SplitCommandLine();
+                if (args.Length < 5)
+                    continue;
+
+                if (args[0] != "file" && args[0] != "dir")
+                    continue;
+
+                SquashFsArchiveEntry e = new SquashFsArchiveEntry(this);
+                e.Filename = args[1];
+                e.IsDirectory = args[0] == "dir";
+                if (e.IsDirectory)
+                    e.Length = 0;
+
+                if (args.Length >= 6)
+                {
+                    long lastModifiedSpan;
+                    if (long.TryParse(args[5], out lastModifiedSpan))
                     {
-                        long lastModifiedSpan;
-                        if (long.TryParse(args[5], out lastModifiedSpan))
-                        {
-                            var dt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                            dt = dt.AddSeconds(lastModifiedSpan);
-                            e.LastModified = dt;
-                        }
-
-                        e.Length = 0;
+                        var dt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                        dt = dt.AddSeconds(lastModifiedSpan);
+                        e.LastModified = dt;
                     }
 
-                    if (args.Length >= 7)
-                    {
-                        long len;
-                        if (long.TryParse(args[6], out len))
-                            e.Length = len;
-                    }
-
-                    ret.Add(e);
+                    e.Length = 0;
                 }
 
-                return ret.ToArray();
+                if (args.Length >= 7)
+                {
+                    long len;
+                    if (long.TryParse(args[6], out len))
+                        e.Length = len;
+                }
+
+                ret.Add(e);
+            }
+
+            return ret.ToArray();
         }
 
         private IArchiveEntry[] _cache;

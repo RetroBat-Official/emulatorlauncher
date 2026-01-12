@@ -63,6 +63,11 @@
     <Compile Include="Compression\IArchive.cs" />
     <Compile Include="Compression\IArchiveEntry.cs" />
     <Compile Include="Compression\MountFile.cs" />
+    <Compile Include="Compression\SquashFs\SqfsNative.cs" />
+    <Compile Include="Compression\SquashFs\SqfsSuper.cs" />
+    <Compile Include="Compression\SquashFs\SquashFsEntry.cs" />
+    <Compile Include="Compression\SquashFs\SquashFsException.cs" />
+    <Compile Include="Compression\SquashFs\SquashFsImage.cs" />
     <Compile Include="Compression\Wrappers\PortableZip.cs" />
     <Compile Include="Compression\Wrappers\SevenZipArchive.cs" />
     <Compile Include="Compression\SevenZip\ArchiveFile.cs" />
