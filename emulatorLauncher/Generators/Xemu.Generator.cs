@@ -378,6 +378,7 @@ namespace EmulatorLauncher
             else
             {
                 var process = Process.Start(path);
+                Job.Current.AddProcess(process);
 
                 while (process != null)
                 {

@@ -382,6 +382,8 @@ namespace EmulatorLauncher
                 System.Windows.Forms.Application.DoEvents();
 
                 var process = Process.Start(path);
+                Job.Current.AddProcess(process);
+
                 while (process != null)
                 {
                     if (process.WaitForExit(20))

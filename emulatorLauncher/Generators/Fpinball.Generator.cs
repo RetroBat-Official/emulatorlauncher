@@ -283,10 +283,15 @@ namespace EmulatorLauncher
                     process = Process.GetProcessesByName(fileNameWithoutExtension).FirstOrDefault<Process>();
                     if (process == null)
                         Thread.Sleep(10);
+                    else
+                        Job.Current.AddProcess(process);
                 }
             }
             else
+            {
                 process = Process.Start(path);
+                Job.Current.AddProcess(process);
+            }
 
             if (process != null)
             {

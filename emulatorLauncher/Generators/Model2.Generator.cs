@@ -265,6 +265,7 @@ namespace EmulatorLauncher
             try
             {
                 var px = Process.Start(path);
+                Job.Current.AddProcess(px);
 
                 while (!px.HasExited)
                 {

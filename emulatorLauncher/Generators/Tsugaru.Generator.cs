@@ -137,6 +137,7 @@ namespace EmulatorLauncher
             FakeBezelFrm bezel = null;
 
             var process = Process.Start(path);
+            Job.Current.AddProcess(process);
 
             while (process != null)
             {

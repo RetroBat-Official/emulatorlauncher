@@ -133,6 +133,7 @@ namespace EmulatorLauncher
             FakeBezelFrm bezel = null;
             
             var process = Process.Start(path);
+            Job.Current.AddProcess(process);
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 

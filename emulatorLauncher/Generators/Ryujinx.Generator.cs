@@ -165,6 +165,7 @@ namespace EmulatorLauncher
             json.update_checker_type = "Off";
             json.show_confirm_exit = false;
             json.show_console = false;
+            json.focus_lost_action_type = "PauseEmulation";
 
             // Input
             if (SystemConfig.getOptBoolean("ryujinx_undock"))

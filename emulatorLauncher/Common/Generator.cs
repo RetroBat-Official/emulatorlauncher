@@ -380,6 +380,7 @@ namespace EmulatorLauncher
             try 
             {
                 var process = Process.Start(path);
+                Job.Current.AddProcess(process);
                 process.WaitForExit();
                                  
                 int exitCode = process.ExitCode;
