@@ -46,7 +46,7 @@ namespace EmulatorLauncher.Libretro
                 { "bsnes_cplusplus98", "bsnes C++98 (v085)" },
                 { "bsnes_hd_beta", "bsnes-hd beta" },
                 { "bsnes", "bsnes" },
-                { "bsnes-jg", "Bsnes-jg" },
+                { "bsnes-jg", "bsnes-jg" },
                 { "bsnes_mercury_accuracy", "bsnes-mercury Accuracy" },
                 { "bsnes_mercury_balanced", "bsnes-mercury Balanced" },
                 { "bsnes_mercury_performance", "bsnes-mercury Performance" },
@@ -73,11 +73,11 @@ namespace EmulatorLauncher.Libretro
                 { "dosbox_pure", "DOSBox-pure" },
                 { "dosbox_svn_ce", "DOSBox-SVN CE" },
                 { "dosbox_svn", "DOSBox-SVN" },
-                { "DoubleCherryGB", "Doublecherrygb" },
+                { "DoubleCherryGB", "DoubleCherryGB" },
                 { "doukutsu_rs", "d-rs" },
                 { "duckstation", "DuckStation" },
                 { "easyrpg", "EasyRPG Player" },
-                { "ecwolf", "ECWolf" },
+                { "ecwolf", "ecwolf" },
                 { "emuscv", "Libretro-EmuSCV" },
                 { "emux_chip8", "Emux CHIP-8" },
                 { "emux_gb", "Emux GB" },
@@ -1296,18 +1296,13 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "dcgb_audio_output", "dcgb_audio_output", "Game Boy #1");
-            BindFeature(coreSettings, "dcgbt_gblink_device", "dcgbt_gblink_device", "4-player adapter");
+            BindFeature(coreSettings, "dcgb_multiplayer_linked_devive", "dcgb_multiplayer_linked_devive", "auto");
             BindFeature(coreSettings, "dcgb_screen_placement", "dcgb_screen_placement", "splitscreen");
 
             if (system == "gb2players" || system == "gbc2players")
                 BindFeature(coreSettings, "dcgb_emulated_gameboys", "dcgb_emulated_gameboys", "2");
             else
                 BindFeature(coreSettings, "dcgb_emulated_gameboys", "dcgb_emulated_gameboys", "1");
-
-            if (system == "gb2players" || system == "gbc2players")
-                BindBoolFeatureOn(coreSettings, "dcgb_gblink_enable", "dcgb_gblink_enable", "enabled", "disabled");
-            else
-                BindBoolFeature(coreSettings, "dcgb_gblink_enable", "dcgb_gblink_enable", "enabled", "disabled");
         }
 
         private void ConfigureDRS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
