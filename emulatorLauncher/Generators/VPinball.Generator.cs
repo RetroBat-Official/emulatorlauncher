@@ -572,6 +572,7 @@ namespace EmulatorLauncher
             try
             {
                 var px = Process.Start(path);
+                Job.Current.AddProcess(px);
 
                 using (var kb = new KeyboardManager(() => KillProcess(px)))
                 {

@@ -268,6 +268,7 @@ namespace EmulatorLauncher
 
             path.WindowStyle = ProcessWindowStyle.Maximized;
             var process = Process.Start(path);
+            Job.Current.AddProcess(process);
 
             while (process != null)
             {

@@ -344,6 +344,9 @@ namespace EmulatorLauncher
             try
             {
                 string exe = GetInstalledExecutable();
+                if (string.IsNullOrEmpty(exe))
+                    return null;
+
                 string shortExe = Path.GetFileNameWithoutExtension(exe).ToLower();
                 if (string.IsNullOrEmpty(exe))
                     return null;

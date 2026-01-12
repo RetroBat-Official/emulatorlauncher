@@ -556,6 +556,7 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waitttime.ToString() + " seconds for the game to run before returning to Game List");
 
                 Process process = Process.Start(path);
+                Job.Current.AddProcess(process);
                 SimpleLogger.Instance.Info("Process started : " + _exename);
                 
                 Thread.Sleep(4000);
@@ -643,6 +644,7 @@ namespace EmulatorLauncher
                         SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waitttime.ToString() + " seconds for the game to run before returning to Game List");
 
                         Process process = Process.Start(path);
+                        Job.Current.AddProcess(process);
                         SimpleLogger.Instance.Info("Process started : " + _exename);
 
                         Thread.Sleep(4000);

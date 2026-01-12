@@ -146,6 +146,9 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "hideInactiveMouse\\default", "true");
                 ini.WriteValue("UI", "hideInactiveMouse", "true");
 
+                ini.WriteValue("UI", "pauseWhenInBackground\\default", "false");
+                ini.WriteValue("UI", "pauseWhenInBackground", "true");
+
                 if (SystemConfig.isOptSet("yuzu_controller_applet") && !SystemConfig.getOptBoolean("yuzu_controller_applet"))
                 {
                     ini.WriteValue("UI", "disableControllerApplet\\default", "true");

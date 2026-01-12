@@ -393,6 +393,8 @@ namespace EmulatorLauncher
                 bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
 
             Process process = Process.Start(path);
+            Job.Current.AddProcess(process);
+
             Thread.Sleep(4000);
             process.WaitForExit();
 

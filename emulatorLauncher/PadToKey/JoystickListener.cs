@@ -11,6 +11,60 @@ using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher.PadToKeyboard
 {
+    public class KeyboardListener : IDisposable
+    {
+        public event Action F12Pressed;
+
+        private Thread _thread;
+        private volatile bool _running = true;
+        private bool _f12Down;
+
+        public KeyboardListener()
+        {
+            _thread = new Thread(KeyboardLoop)
+            {
+                IsBackground = true,
+                Name = "KeyboardListener"
+            };
+            _thread.Start();
+        }
+
+        private void KeyboardLoop()
+        {
+            while (_running)
+            {
+                bool isDown = (GetAsyncKeyState(VK_F12) & 0x8000) != 0;
+                bool ctrlDown = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+
+                if (ctrlDown && isDown && !_f12Down)
+                {
+                    _f12Down = true;
+                    F12Pressed?.Invoke();
+                }
+                else if (!isDown)
+                {
+                    _f12Down = false;
+                }
+
+                Thread.Sleep(40);
+            }
+        }
+
+        public void Dispose()
+        {
+            _running = false;
+
+            if (!_thread.Join(200))
+                _thread.Abort();
+        }
+
+        private const int VK_F12 = 0x7B;
+        private const int VK_CONTROL = 0x11;
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern short GetAsyncKeyState(int vKey);
+    }
+
     class JoystickListener : IDisposable
     {
         public bool ProcessKilled { get; private set; }

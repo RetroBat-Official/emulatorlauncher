@@ -62,6 +62,7 @@ namespace EmulatorLauncher
         public override int RunAndWait(ProcessStartInfo path)
         {
             Process process = Process.Start(path);
+            Job.Current.AddProcess(process);
             Thread.Sleep(3000);
 
             var hWnd = User32.FindHwnd(process.Id);

@@ -771,13 +771,14 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["input_driver"] = "dinput";
 
             BindBoolFeature(retroarchConfig, "pause_on_disconnect", "pause_on_disconnect", "true", "false");
-            BindBoolFeature(retroarchConfig, "pause_nonactive", "use_guns", "true", "false", true); // Pause when calibrating gun...
+            //BindBoolFeature(retroarchConfig, "pause_nonactive", "use_guns", "true", "false", true); // Pause when calibrating gun...
             BindBoolFeature(retroarchConfig, "input_autodetect_enable", "disableautocontrollers", "true", "false", true);
             BindFeature(retroarchConfig, "input_analog_deadzone", "analog_deadzone", "0.000000");
             BindFeature(retroarchConfig, "input_analog_sensitivity", "analog_sensitivity", "1.000000");
             retroarchConfig["input_remap_binds_enable"] = "true";
             retroarchConfig["input_remap_sort_by_controller_enable"] = "false";
             retroarchConfig["input_remapping_directory"] = ":\\config\\remaps";
+            retroarchConfig["pause_nonactive"] = "true";
 
             // Resolution & monitor
             bool forcefs = SystemConfig.getOptBoolean("forcefullscreen");
