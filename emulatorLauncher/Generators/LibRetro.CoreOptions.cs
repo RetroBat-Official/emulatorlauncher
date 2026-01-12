@@ -32,8 +32,8 @@ namespace EmulatorLauncher.Libretro
                 { "ardens", "Ardens" },
                 { "arduous", "arduous" },
                 { "atari800", "Atari800" },
-                { "b2", "B2" },
-                { "bennugd", "Bennugd" },
+                { "b2", "b2" },
+                { "bennugd", "BennuGD" },
                 { "bk", "bk" },
                 { "blastem", "BlastEm" },
                 { "bluemsx", "blueMSX" },
@@ -46,7 +46,7 @@ namespace EmulatorLauncher.Libretro
                 { "bsnes_cplusplus98", "bsnes C++98 (v085)" },
                 { "bsnes_hd_beta", "bsnes-hd beta" },
                 { "bsnes", "bsnes" },
-                { "bsnes-jg", "Bsnes-jg" },
+                { "bsnes-jg", "bsnes-jg" },
                 { "bsnes_mercury_accuracy", "bsnes-mercury Accuracy" },
                 { "bsnes_mercury_balanced", "bsnes-mercury Balanced" },
                 { "bsnes_mercury_performance", "bsnes-mercury Performance" },
@@ -73,11 +73,11 @@ namespace EmulatorLauncher.Libretro
                 { "dosbox_pure", "DOSBox-pure" },
                 { "dosbox_svn_ce", "DOSBox-SVN CE" },
                 { "dosbox_svn", "DOSBox-SVN" },
-                { "DoubleCherryGB", "Doublecherrygb" },
+                { "DoubleCherryGB", "DoubleCherryGB" },
                 { "doukutsu_rs", "d-rs" },
                 { "duckstation", "DuckStation" },
                 { "easyrpg", "EasyRPG Player" },
-                { "ecwolf", "ECWolf" },
+                { "ecwolf", "ecwolf" },
                 { "emuscv", "Libretro-EmuSCV" },
                 { "emux_chip8", "Emux CHIP-8" },
                 { "emux_gb", "Emux GB" },
@@ -204,7 +204,7 @@ namespace EmulatorLauncher.Libretro
                 { "prosystem", "ProSystem" },
                 { "puae2021", "PUAE 2021" },
                 { "puae", "PUAE" },
-                { "px68k", "PX68k" },
+                { "px68k", "PX68K" },
                 { "quasi88", "QUASI88" },
                 { "quicknes", "QuickNES" },
                 { "race", "RACE" },
@@ -1296,18 +1296,13 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "dcgb_audio_output", "dcgb_audio_output", "Game Boy #1");
-            BindFeature(coreSettings, "dcgbt_gblink_device", "dcgbt_gblink_device", "4-player adapter");
+            BindFeature(coreSettings, "dcgb_multiplayer_linked_devive", "dcgb_multiplayer_linked_devive", "auto");
             BindFeature(coreSettings, "dcgb_screen_placement", "dcgb_screen_placement", "splitscreen");
 
             if (system == "gb2players" || system == "gbc2players")
                 BindFeature(coreSettings, "dcgb_emulated_gameboys", "dcgb_emulated_gameboys", "2");
             else
                 BindFeature(coreSettings, "dcgb_emulated_gameboys", "dcgb_emulated_gameboys", "1");
-
-            if (system == "gb2players" || system == "gbc2players")
-                BindBoolFeatureOn(coreSettings, "dcgb_gblink_enable", "dcgb_gblink_enable", "enabled", "disabled");
-            else
-                BindBoolFeature(coreSettings, "dcgb_gblink_enable", "dcgb_gblink_enable", "enabled", "disabled");
         }
 
         private void ConfigureDRS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1773,6 +1768,9 @@ namespace EmulatorLauncher.Libretro
         {
             if (core != "flycast")
                 return;
+
+            if (system == "dreamcast" || system == "dc")
+                FlycastGenerator.SyncVMUFiles();
 
             coreSettings["reicast_show_lightgun_settings"] = "enabled";
             coreSettings["reicast_network_output"] = "enabled"; // Enable controller force feedback

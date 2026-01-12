@@ -9,7 +9,7 @@ namespace EmulatorLauncher
 {
     partial class FlycastGenerator
     {
-        private void ConfigureFlycastWheels(IniFile ini, string mappingPath)
+        private void ConfigureFlycastWheels(IniFile ini, string mappingPath, Dictionary<string, string> hotkeyMapping)
         {
             if (!SystemConfig.getOptBoolean("use_wheel"))
                 return;

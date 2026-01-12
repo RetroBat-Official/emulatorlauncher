@@ -429,9 +429,7 @@ namespace EmulatorLauncher
             };
 
             if (Hotkeys.GetPadHKFromFile("bigpemu", "", out var padHKDic))
-            {
                 padHKMapping = padHKDic;
-            }
 
             foreach (var x in triggerList)
             {
