@@ -1058,6 +1058,8 @@ namespace EmulatorLauncher
                     var process = StartProcessAndMoveItsWindowTo(path, rc);
                     if (process != null)
                     {
+                        Job.Current.AddProcess(process);
+
                         while (!process.WaitForExit(50))
                             Application.DoEvents();
 
@@ -1076,6 +1078,7 @@ namespace EmulatorLauncher
                 var process = StartProcessAndMoveItsWindowTo(path, Screen.AllScreens[monitorIndex].Bounds);
                 if (process != null)
                 {
+                    Job.Current.AddProcess(process);
                     process.WaitForExit();
 
                     try { ret = process.ExitCode; }

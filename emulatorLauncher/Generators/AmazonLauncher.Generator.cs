@@ -20,6 +20,7 @@ namespace EmulatorLauncher
                 try
                 {
                     var process = Process.Start(LauncherExe);
+                    Job.Current.AddProcess(process);
                     process.WaitForExit();
                     return 0;
                 }

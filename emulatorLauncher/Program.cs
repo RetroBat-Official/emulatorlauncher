@@ -16,6 +16,7 @@ using EmulatorLauncher.PadToKeyboard;
 using EmulatorLauncher.Libretro;
 using EmulatorLauncher.Common.Compression.Wrappers;
 using EmulatorLauncher.Common.Launchers;
+using System.Management;
 
 // XBox
 // -p1index 0 -p1guid 030000005e040000ea02000000007801 -p1name "XBox One S Controller" -p1nbbuttons 11 -p1nbhats 1 -p1nbaxes 6 -system pcengine -emulator libretro -core mednafen_supergrafx -rom "H:\[Emulz]\roms\pcengine\1941 Counter Attack.pce"
@@ -347,7 +348,6 @@ namespace EmulatorLauncher
 
             if (args.Length == 0)
                 return;
-
 
             // Used by XInputDevice.GetDevices
             if (args.Length == 2 && args[0] == "-queryxinputinfo")
@@ -751,11 +751,27 @@ namespace EmulatorLauncher
                             SimpleLogger.Instance.Info("[Running]  " + path.FileName);
 
                         using (new HighPerformancePowerScheme())
-                        using (var joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping))
+                        using (var kb = new KeyboardListener())
                         {
+                            var joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping);
+
+                            bool processKilled = false;
+
+                            kb.F12Pressed += () =>
+                            {
+                                joy.Dispose();
+
+                                if (new ControlCenterFrm().ShowDialog() == DialogResult.Abort)
+                                    processKilled = true;
+                                else
+                                    joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping);
+                            };
+
                             int exitCode = generator.RunAndWait(path);
-                            if (exitCode != 0 && !joy.ProcessKilled)
+                            if (exitCode != 0 && !joy.ProcessKilled && !processKilled)
                                 Environment.ExitCode = (int)ExitCodes.EmulatorExitedUnexpectedly;
+
+                            joy.Dispose();
                         }
 
                         generator.RestoreFiles();
