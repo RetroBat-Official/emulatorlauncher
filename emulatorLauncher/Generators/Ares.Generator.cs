@@ -2,6 +2,7 @@
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.PadToKeyboard;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -488,6 +489,13 @@ namespace EmulatorLauncher
             }
 
             return ret;
+        }
+
+        public override void Cleanup()
+        {
+            Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", null, EnvironmentVariableTarget.User);
+
+            base.Cleanup();
         }
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
