@@ -49,8 +49,6 @@ namespace EmulatorLauncher.Libretro
             // no menu in non full uimode
             if (Program.SystemConfig.isOptSet("uimode") && Program.SystemConfig["uimode"] != "Full")
             {
-                if (retroarchspecialsALT.ContainsKey(InputKey.x))
-                    retroarchspecialsALT.Remove(InputKey.x);
                 if (retroarchspecials.ContainsKey(InputKey.a))
                     retroarchspecials.Remove(InputKey.a);
             }
@@ -155,24 +153,6 @@ namespace EmulatorLauncher.Libretro
             { InputKey.right, "hold_fast_forward"}
         };
 
-        static public Dictionary<InputKey, string> retroarchspecialsALT = new Dictionary<InputKey, string>()
-        {
-            { InputKey.start, "exit_emulator"},
-            { InputKey.b, "pause_toggle"},
-            { InputKey.a, "state_slot_decrease"},
-            { InputKey.x, "menu_toggle"},
-            { InputKey.y, "state_slot_increase"},
-            { InputKey.pageup, "load_state"},
-            { InputKey.pagedown, "save_state"},
-            { InputKey.l2, "rewind"},
-            { InputKey.r2, "hold_fast_forward"},
-            { InputKey.r3, "screenshot"},
-            { InputKey.up, "ai_service"},
-            { InputKey.down, "disk_eject_toggle"},
-            { InputKey.left, "disk_prev"},
-            { InputKey.right, "disk_next"}
-        };
-
         private static void CleanControllerConfig(ConfigFile retroconfig)
         {
             retroconfig.DisableAll("input_player");
@@ -231,10 +211,7 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             if (Program.SystemConfig.getOptBoolean("fastforward_toggle"))
-            {
-                retroarchspecialsALT[InputKey.r2] = "toggle_fast_forward";
                 retroarchspecials[InputKey.right] = "toggle_fast_forward";
-            }
 
             if (Misc.HasWiimoteGun())
             {
@@ -413,14 +390,9 @@ namespace EmulatorLauncher.Libretro
             if (controller.PlayerIndex == 1 && !_noHotkey)
             {
                 if (Program.SystemConfig.getOptBoolean("fastforward_toggle"))
-                {
                     retroarchspecials[InputKey.right] = "toggle_fast_forward";
-                    retroarchspecialsALT[InputKey.r2] = "toggle_fast_forward";
-                }
 
                 var hotkeyList = retroarchspecials;
-                if (Program.SystemConfig.getOptBoolean("alt_hotkeys"))
-                    hotkeyList = retroarchspecialsALT;
 
                 // override shortcuts from file
                 string cHotkeyFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "user", "inputmapping", "retroarch_controller_hotkeys.yml");
