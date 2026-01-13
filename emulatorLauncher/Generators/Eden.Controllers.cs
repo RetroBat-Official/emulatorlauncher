@@ -55,6 +55,10 @@ namespace EmulatorLauncher
             if (SystemConfig.getOptBoolean("eden_norawinput"))
                 _norawinput = true;
 
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Eden");
+
+            UpdateSdlControllersWithHints(ini);
+
             if (_norawinput)
             {
                 ini.WriteValue("Controls", "enable_raw_input\\default", "true");
@@ -64,16 +68,13 @@ namespace EmulatorLauncher
             {
                 ini.WriteValue("Controls", "enable_raw_input\\default", "false");
                 ini.WriteValue("Controls", "enable_raw_input", "true");
-            }
 
-            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Eden");
-
-            UpdateSdlControllersWithHints(ini);
-
-            if (!_norawinput)
-            {
-                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.User);
-                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.Process);
+                try
+                {
+                    Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.User);
+                    Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.Process);
+                }
+                catch { }
             }
 
             // Cleanup control part first

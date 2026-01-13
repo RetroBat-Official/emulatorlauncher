@@ -493,7 +493,11 @@ namespace EmulatorLauncher
 
         public override void Cleanup()
         {
-            Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", null, EnvironmentVariableTarget.User);
+            try
+            {
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", null, EnvironmentVariableTarget.User);
+            }
+            catch { }
 
             base.Cleanup();
         }

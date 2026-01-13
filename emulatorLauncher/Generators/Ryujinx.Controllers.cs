@@ -28,6 +28,7 @@ namespace EmulatorLauncher
 
             var hints = new List<string>
             {
+                "SDL_HINT_JOYSTICK_RAWINPUT = 0",
                 "SDL_HINT_JOYSTICK_HIDAPI_SWITCH_HOME_LED = 0",
                 "SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1",
                 "SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS = 1"
@@ -445,7 +446,7 @@ namespace EmulatorLauncher
 
             string ryuGuidString = newGuid.ToString();
 
-            if (_sdl3 && c.SdlWrappedTechID == SdlWrappedTechId.RawInput && c.XInput != null)
+            if (_sdl3 && c.SdlWrappedTechID == SdlWrappedTechId.RawInput && c.XInput != null && sdl3Controller != null && sdl3Controller.GuidString != null)
                 ryuGuidString = "0000" + SdlJoystickGuidManager.FromSdlGuidString(sdl3Controller.GuidString).ToString().Substring(4);
 
             string overrideGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");

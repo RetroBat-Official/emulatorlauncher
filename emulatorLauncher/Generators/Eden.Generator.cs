@@ -292,7 +292,7 @@ namespace EmulatorLauncher
 
             if (!_norawinput)
             {
-                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", null, EnvironmentVariableTarget.User);
+                try { Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", null, EnvironmentVariableTarget.User); } catch { }
             }
 
             if (string.IsNullOrEmpty(_gamedirsIniPath) || string.IsNullOrEmpty(_gamedirsSize))

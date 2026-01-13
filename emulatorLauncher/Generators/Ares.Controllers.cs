@@ -21,8 +21,12 @@ namespace EmulatorLauncher
                 return;
             }
 
-            Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.User);
-            Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.Process);
+            try
+            {
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.User);
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.Process);
+            }
+            catch { }
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Ares");
 
