@@ -532,12 +532,12 @@ namespace EmulatorLauncher
         }
         #endregion
 
-        protected string GetCurrentLanguage()
+        protected static string GetCurrentLanguage()
         {
-            if (!SystemConfig.isOptSet("Language") || string.IsNullOrEmpty(SystemConfig["Language"]))
+            if (!Program.SystemConfig.isOptSet("Language") || string.IsNullOrEmpty(Program.SystemConfig["Language"]))
                 return string.Empty;
 
-            string s = SystemConfig["Language"].ToLowerInvariant();
+            string s = Program.SystemConfig["Language"].ToLowerInvariant();
 
             int cut = s.IndexOf("_");
             if (cut >= 0)

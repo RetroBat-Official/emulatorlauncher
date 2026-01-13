@@ -997,6 +997,22 @@ namespace EmulatorLauncher.Libretro
             if (core != "citra")
                 return;
 
+            Dictionary<string, string> citraLanguageMap = new Dictionary<string, string>()
+            {
+                { "0", "Japanese" },
+                { "1", "English" },
+                { "2", "French" },
+                { "5", "Spanish" },
+                { "3", "German" },
+                { "4", "Italian" },
+                { "8", "Dutch" },
+                { "9", "portuguese" },
+                { "10", "russian" },
+                { "7", "Korean" },
+                { "11", "Traditional Chinese" },
+                { "6", "Simplified Chinese" }
+            };
+
             coreSettings["citra_use_libretro_save_path"] = "LibRetro Default";
             coreSettings["citra_is_new_3ds"] = "New 3DS";
 
@@ -1025,7 +1041,12 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["citra_layout_option"] = "Default Top-Bottom Screen";
 
             BindFeature(coreSettings, "citra_region_value", "citra_region_value", "Auto");
-            BindFeature(coreSettings, "citra_language", "citra_language", "English");
+            
+            if (SystemConfig.isOptSet("n3ds_language") && !string.IsNullOrEmpty(SystemConfig["n3ds_language"]) && citraLanguageMap.ContainsKey(SystemConfig["n3ds_language"]))
+                coreSettings["citra_language"] = citraLanguageMap[SystemConfig["n3ds_language"]];
+            else
+                coreSettings["citra_language"] = "English";
+
             BindFeature(coreSettings, "citra_resolution_factor", "citralr_resolution_factor", "1x (Native)");
             BindFeature(coreSettings, "citra_texture_filter", "citralr_texture_filter", "none");
             BindBoolFeature(coreSettings, "citra_swap_screen", "citra_swap_screen", "Bottom", "Top");
@@ -1036,6 +1057,11 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "citra_analog_function", "citra_analog_function", "C-Stick and Touchscreen Pointer");
             BindBoolFeature(coreSettings, "citra_mouse_touchscreen", "citra_mouse_touchscreen", "disabled","enabled");
             BindBoolFeature(coreSettings, "citra_render_touchscreen", "citra_render_touchscreen", "enabled", "disabled");
+
+            string emuNandPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "Citra", "nand");
+            string nandPath = Path.Combine(emuNandPath, "data", "00000000000000000000000000000000", "sysdata", "00010017", "00000000", "config");
+            if (File.Exists(nandPath))
+                CitraGenerator.Write3DSnand(nandPath);
         }
 
         private void ConfigureCraft(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -5004,6 +5030,8 @@ namespace EmulatorLauncher.Libretro
             if (core != "vice_x64" && core != "vice_xvic" && core != "vice_xplus4" && core != "vice_x128" && core != "vice_x64sc" && core != "vice_xpet")
                 return;
 
+            string[] viceGuns = { "11", "12", "13", "14", "15", "16" };
+
             // Common Vice features
             coreSettings["vice_audio_options_display"] = "enabled";
             BindBoolFeatureOn(coreSettings, "vice_warp_boost", "warp_boost", "enabled", "disabled");
@@ -5057,6 +5085,23 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "vice_joyport", "vice_joyport", "2");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "vice_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "vice_controller2", "1");
+            BindFeature(coreSettings, "vice_joyport_type", "vice_joyport_type", "1");
+
+            if (SystemConfig.getOptBoolean("use_guns"))
+            {
+                string devType = "1";
+                if (SystemConfig.isOptSet("vice_controller1") && !string.IsNullOrEmpty(SystemConfig["vice_controller1"]))
+                    devType = SystemConfig["vice_controller1"];
+
+                int port = 2;
+                if (SystemConfig.isOptSet("vice_joyport") && SystemConfig["vice_joyport"] == "1")
+                    port = 1;
+                
+                SetupLightGuns(retroarchConfig, devType, core, port);
+
+                if (SystemConfig.isOptSet("vice_joyport_type") && !viceGuns.Contains(SystemConfig["vice_joyport_type"]))
+                    coreSettings["vice_joyport_type"] = "11";
+            }
         }
 
         private Dictionary<string, string> jaguarPro = new Dictionary<string, string>()

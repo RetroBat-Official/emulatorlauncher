@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.Joysticks;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Windows.Markup;
 
 namespace EmulatorLauncher
 {
@@ -300,7 +301,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void Write3DSnand(string path)
+        public static void Write3DSnand(string path)
         {
             if (!File.Exists(path))
                 return;
@@ -309,25 +310,50 @@ namespace EmulatorLauncher
 
             int langId;
 
-            if (SystemConfig.isOptSet("n3ds_language") && !string.IsNullOrEmpty(SystemConfig["n3ds_language"]))
-                langId = SystemConfig["n3ds_language"].ToInteger();
+            if (Program.SystemConfig.isOptSet("n3ds_language") && !string.IsNullOrEmpty(Program.SystemConfig["n3ds_language"]))
+                langId = Program.SystemConfig["n3ds_language"].ToInteger();
             else
                 langId = Get3DSLangFromEnvironment();
 
             // Read nand file
             byte[] bytes = File.ReadAllBytes(path);
+            byte[] pattern = { 0x02, 0x00, 0x0A, 0x00 };
 
-            var toSet = new byte[] { (byte)langId };
-            for (int i = 0; i < toSet.Length; i++)
-            {
-                bytes[128] = toSet[i];
-                bytes[272] = toSet[i];
-            }
+            int index = FindPattern(bytes, pattern);
+            if (index == -1)
+                return;
+
+            int byteAfter = index + pattern.Length;
+            if (byteAfter >= bytes.Length)
+                return;
+
+            bytes[byteAfter] = (byte)langId;
 
             File.WriteAllBytes(path, bytes);
         }
 
-        private int Get3DSLangFromEnvironment()
+        static int FindPattern(byte[] data, byte[] pattern)
+        {
+            for (int i = 0; i <= data.Length - pattern.Length; i++)
+            {
+                bool match = true;
+                for (int j = 0; j < pattern.Length; j++)
+                {
+                    if (data[i + j] != pattern[j])
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        public static int Get3DSLangFromEnvironment()
         {
             var availableLanguages = new Dictionary<string, int>()  //OA = 10, OB = 11 (traditional chinese)
             {
@@ -348,7 +374,7 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[Generator] Getting language from RetroBat language.");
 
             // Special case for Taiwanese which is zh_TW
-            if (SystemConfig["Language"] == "zh_TW")
+            if (Program.SystemConfig["Language"] == "zh_TW")
                 return 11;
 
             var lang = GetCurrentLanguage();
