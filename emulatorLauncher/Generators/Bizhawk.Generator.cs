@@ -235,6 +235,7 @@ namespace EmulatorLauncher
             json["ShowContextMenu"] = "false";
             json["UpdateAutoCheckEnabled"] = "false";
             json["HostInputMethod"] = "0";
+            json["RunInBackground"] = "false";
 
             if (fullscreen)
                 json["StartFullscreen"] = "true";

@@ -1,6 +1,7 @@
 ﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using SharpDX.DirectInput;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -203,46 +204,37 @@ namespace EmulatorLauncher
 
                             if (cHotkeys != null & cHotkeys.Count > 0)
                             {
+                                var emuHotkey = GetEmulatorHotkey(emulator);
+                                if (emuHotkey == null)
+                                    return false;
+
                                 foreach (var cHotkey in cHotkeys)
                                 {
                                     YmlElement hotkey = cHotkey as YmlElement;
                                     if (hotkey.Name == "noHotkey")
                                         continue;
 
+                                    // b is used for control center, so cannot be mapped as hotkey anymore
+                                    if (hotkey.Name == "b")
+                                        continue;
+
+                                    // Replace menu_toggle by input_pause_toggle if menu_toggle is not supported by the emulator
+                                    if (hotkey.Value == "menu_toggle" && !emuHotkey.EmulatorHotkeys.Any(h => h.RetroArchHK == "input_menu_toggle"))
+                                        hotkey.Value = "input_pause_toggle";
+
                                     string key = hotkey.Value;
                                     string value = hotkey.Name;
                                     string dicKey = "input_" + key;
 
-                                    switch (emulator)
-                                    {
-                                        case "bigpemu":
-                                            var bigpemuHotkey = GetEmulatorHotkey("bigpemu");
-
-                                            if (bigpemuHotkey == null)
-                                                break;
-
-                                            var bigpemuhkInfo = bigpemuHotkey.EmulatorHotkeys.FirstOrDefault(h => h.RetroArchHK.Equals(dicKey, StringComparison.OrdinalIgnoreCase));
-
-                                            if (bigpemuhkInfo != null)
-                                                padHKDic.Add(bigpemuhkInfo.EmulatorHK, value);
-
-                                            break;
-                                        
-                                        case "flycast":
-                                            var flycastHotkey = GetEmulatorHotkey("flycast");
-
-                                            if (flycastHotkey == null)
-                                                break;
-
-                                            var flycasthkInfo = flycastHotkey.EmulatorHotkeys.FirstOrDefault(h => h.RetroArchHK.Equals(dicKey, StringComparison.OrdinalIgnoreCase));
-
-                                            if (flycasthkInfo != null)
-                                                padHKDic.Add(flycasthkInfo.EmulatorHK, value);
-
-                                            break;
-                                    }
+                                    var emuhkInfo = emuHotkey.EmulatorHotkeys.FirstOrDefault(h => h.RetroArchHK.Equals(dicKey, StringComparison.OrdinalIgnoreCase));
+                                    if (emuhkInfo != null)
+                                        padHKDic.Add(emuhkInfo.EmulatorHK, value);
                                 }
-                                return true;
+                                
+                                if (padHKDic.Count > 0)
+                                    return true;
+                                else
+                                    return false;
                             }
                         }
                     }

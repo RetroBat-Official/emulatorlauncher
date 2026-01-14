@@ -146,6 +146,7 @@ namespace EmulatorLauncher
             // Set driver for input
             var input = bml.GetOrCreateContainer("Input");
             input["Driver"] = "SDL";
+            input["Defocus"] = "Pause";
 
             // Video
             var video = bml.GetOrCreateContainer("Video");
