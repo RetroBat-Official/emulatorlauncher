@@ -539,6 +539,9 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_state_slot_increase", "IncrementStateSlot", "0x1/0/7;;"),     // F7
                     new EmulatorHotkeyInfo("input_pause_toggle", "PauseEmulation", "0x1/0/50;;"),               // p
                     new EmulatorHotkeyInfo("input_exit_emulator", "QuitEmulator", "0x1/0/0;;")                 // escape
+                    new EmulatorHotkeyInfo("input_pause_toggle", "PauseEmulation", "0x1/0/50;;"),               // p
+                    new EmulatorHotkeyInfo("input_exit_emulator", "QuitEmulator", "0x1/0/0;;"),                 // escape
+
                 }),
 
             new EmulatorHotkey("bigpemu", new EmulatorHotkeyInfo[]
@@ -579,7 +582,7 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_load_state", "input_load_state", "f4"),
                     new EmulatorHotkeyInfo("input_state_slot_decrease", "input_state_slot_decrease", "f6"),
                     new EmulatorHotkeyInfo("input_state_slot_increase", "input_state_slot_increase", "f7"),
-                    new EmulatorHotkeyInfo("input_pause_toggle", "input_pause_toggle", "p"),
+                    // new EmulatorHotkeyInfo("input_pause_toggle", "input_pause_toggle", "p"),
                     new EmulatorHotkeyInfo("input_exit_emulator", "input_exit_emulator", "escape"),
                     new EmulatorHotkeyInfo("input_shader_next", "input_shader_next", "m"),
                     new EmulatorHotkeyInfo("input_shader_prev", "input_shader_prev", "n")

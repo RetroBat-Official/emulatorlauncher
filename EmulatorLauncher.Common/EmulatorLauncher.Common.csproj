@@ -133,6 +133,8 @@
     <Compile Include="Lightguns\LightgunComPort.cs" />
     <Compile Include="Lightguns\SindenLightgunConfiguration.cs" />
     <Compile Include="OrderedDictionary.cs" />
+    <Compile Include="PdfExtractor.cs" />
+    <Compile Include="PpmImageLoader.cs" />
     <Compile Include="ProcessExtensions.cs" />
     <Compile Include="ProgressInformation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

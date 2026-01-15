@@ -660,13 +660,15 @@ namespace EmulatorLauncher
 
         private void ResetHotkeysToDefault(IniFile pcsx2ini)
         {
+            pcsx2ini.Remove("HotKeys", "TogglePause");
+
             foreach (var hotkey in hotkeys)
                 pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, hotkey.Value.Value);
         }
 
         static public Dictionary<InputKey, KeyValuePair<string, string>> hotkeys = new Dictionary<InputKey, KeyValuePair<string, string>>()
         {
-            { InputKey.b, new KeyValuePair<string, string>("TogglePause", "Keyboard/Space") },
+       //     { InputKey.b, new KeyValuePair<string, string>("TogglePause", "Keyboard/Space") },
             { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/Escape") },
             { InputKey.y, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F3") },
             { InputKey.x, new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F1") },
@@ -680,7 +682,7 @@ namespace EmulatorLauncher
 
         static public Dictionary<string, KeyValuePair<string, string>> dinputHotkeys = new Dictionary<string, KeyValuePair<string, string>>()
         {
-            { "b", new KeyValuePair<string, string>("TogglePause", "Keyboard/Space") },
+      //      { "b", new KeyValuePair<string, string>("TogglePause", "Keyboard/Space") },
             { "a", new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/Escape") },
             { "x", new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F3") },
             { "y", new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F1") },
