@@ -2180,7 +2180,7 @@ namespace EmulatorLauncher
 
         private static readonly List<USB_PRODUCT> hatFix = new List<USB_PRODUCT>
         {
-            USB_PRODUCT.NINTENDO_SWITCH_PRO
+            USB_PRODUCT.NINTENDO_SWITCH_PRO, USB_PRODUCT.NINTENDO_SNES_CONTROLLER
         };
     }
 }
