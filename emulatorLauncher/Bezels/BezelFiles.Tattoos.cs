@@ -9,6 +9,29 @@ namespace EmulatorLauncher
 {
     partial class BezelFiles
     {
+        public static string GetDefaultTatoo()
+        {
+            string system = Program.SystemConfig["system"];
+            string emulator = Program.SystemConfig["emulator"];
+            string core = Program.SystemConfig["core"];
+            string rom = Program.SystemConfig["rom"];
+            string gameName = rom != null ? Path.GetFileNameWithoutExtension(rom) : "system";
+
+            string tattooFile = Path.Combine(Program.AppConfig.GetFullPath("user"), "tattoos", "games", system, gameName + ".png");
+
+            if (!File.Exists(tattooFile))
+                tattooFile = Path.Combine(Program.AppConfig.GetFullPath("user"), "tattoos", "default", system + ".png");
+            if (!File.Exists(tattooFile))
+                tattooFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tattoos", "games", system, gameName + ".png");
+            if (!File.Exists(tattooFile))
+                tattooFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tattoos", "default", GetTattooName(system, core, emulator));
+
+            if (!File.Exists(tattooFile))
+                return null;
+
+            return tattooFile;            
+        }
+
         public static string GetTattooImage(string inputPng, string outputPng, string emulator)
         {
             SimpleLogger.Instance.Info("[GENERATOR] Tattoo enabled, fetching right tattoo file.");

@@ -257,7 +257,8 @@ namespace EmulatorLauncher
                                 else if (hkeast.Type == "axis")
                                     hkvalueOther = axisValue(hkeast, false);
 
-                                ini.WriteValue("Hotkeys", "General/Toggle Pause", "@(" + hkvalue + "+" + hkvalueOther + ")");
+                                // ini.WriteValue("Hotkeys", "General/Toggle Pause", "@(" + hkvalue + "+" + hkvalueOther + ")");
+                                ini.WriteValue("Hotkeys", "General/Toggle Pause", "");
                             }
 
                             if (hksouth != null)
@@ -357,7 +358,8 @@ namespace EmulatorLauncher
 
                     else
                     {
-                        ini.WriteValue("Hotkeys", "General/Toggle Pause", tech == "XInput" ? "@(Back+`Button B`)" : "@(Back+`Button E`)");
+                        // ini.WriteValue("Hotkeys", "General/Toggle Pause", tech == "XInput" ? "@(Back+`Button B`)" : "@(Back+`Button E`)");
+                        ini.WriteValue("Hotkeys", "General/Toggle Pause", "");
                         ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", tech == "XInput" ? "@(Back+`Button A`)" : "@(Back+`Button S`)");
                         ini.WriteValue("Hotkeys", "General/Exit", "@(Back+Start)");
 

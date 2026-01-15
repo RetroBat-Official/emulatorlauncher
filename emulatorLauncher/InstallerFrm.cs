@@ -32,7 +32,8 @@ namespace EmulatorLauncher
         private bool _isUpdate;
 
         private JoystickListener _joy;
-        
+        private bool _handleJoystick;
+
         public InstallerFrm()
         {
             InitializeComponent();
@@ -54,9 +55,11 @@ namespace EmulatorLauncher
 
         }
 
-        public InstallerFrm(Installer installer)
+        public InstallerFrm(Installer installer, bool handleJoystick = false)
             : this()
         {
+            _handleJoystick = handleJoystick;
+
             if (installer == null)
                 return;
 
@@ -362,6 +365,9 @@ namespace EmulatorLauncher
 
         private void SetupPad()
         {
+            if (!_handleJoystick)
+                return;
+
             if (Program.Controllers == null || Program.Controllers.Count == 0)
                 return;
 
@@ -382,6 +388,7 @@ namespace EmulatorLauncher
             app.Input.Add(new PadToKeyInput() { Name = InputKey.up, Code = "KEY_UP" });
             mapping.Applications.Add(app);
 
+            
             _joy = new JoystickListener(Program.Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping);
         }
 

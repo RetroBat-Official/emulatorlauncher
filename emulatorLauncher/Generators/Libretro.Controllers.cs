@@ -138,7 +138,7 @@ namespace EmulatorLauncher.Libretro
         static public Dictionary<InputKey, string> retroarchspecials = new Dictionary<InputKey, string>()
         {
             { InputKey.start, "exit_emulator"},
-            { InputKey.b, "pause_toggle"},
+            // { InputKey.b, "pause_toggle"},
             { InputKey.a, "menu_toggle"},
             { InputKey.x, "load_state"},
             { InputKey.y, "save_state"},
@@ -153,6 +153,24 @@ namespace EmulatorLauncher.Libretro
             { InputKey.right, "hold_fast_forward"}
         };
 
+        static public Dictionary<InputKey, string> retroarchspecialsALT = new Dictionary<InputKey, string>()
+        {
+            { InputKey.start, "exit_emulator"},
+            // { InputKey.b, "pause_toggle"},
+            { InputKey.a, "state_slot_decrease"},
+            { InputKey.x, "menu_toggle"},
+            { InputKey.y, "state_slot_increase"},
+            { InputKey.pageup, "load_state"},
+            { InputKey.pagedown, "save_state"},
+            { InputKey.l2, "rewind"},
+            { InputKey.r2, "hold_fast_forward"},
+            { InputKey.r3, "screenshot"},
+            { InputKey.up, "ai_service"},
+            { InputKey.down, "disk_eject_toggle"},
+            { InputKey.left, "disk_prev"},
+            { InputKey.right, "disk_next"}
+        };
+
         private static void CleanControllerConfig(ConfigFile retroconfig)
         {
             retroconfig.DisableAll("input_player");
@@ -162,6 +180,8 @@ namespace EmulatorLauncher.Libretro
 
             foreach (var specialkey in retroarchspecials)
                 retroconfig.DisableAll("input_" + specialkey.Value);
+
+            retroconfig.DisableAll("input_pause_toggle");
 
             retroconfig.DisableAll("input_toggle_fast_forward");
         }

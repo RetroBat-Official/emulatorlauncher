@@ -576,6 +576,9 @@ namespace EmulatorLauncher
             using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues))
             {
                 ini.WriteValue("UI", "HideMouseCursor", "true");
+                ini.WriteValue("UI", "StartPaused", "false");
+                ini.WriteValue("UI", "PauseOnFocusLoss", "true");
+
                 CreateControllerConfiguration(ini);
                 SetupGunQT(ini, path);
 
