@@ -181,6 +181,17 @@ namespace EmulatorLauncher
                     ini.WriteValue("Layout", "filter_mode", "false");
                 }
 
+                if (SystemConfig.isOptSet("vsync") && !SystemConfig.getOptBoolean("vsync"))
+                {
+                    ini.WriteValue("Renderer", "use_vsync\\default", "false");
+                    ini.WriteValue("Renderer", "use_vsync", "false");
+                }
+                else
+                {
+                    ini.WriteValue("Renderer", "use_vsync\\default", "true");
+                    ini.WriteValue("Renderer", "use_vsync", "true");
+                }
+
                 if (Features.IsSupported("azahar_resolution_factor"))
                 {
                     if (SystemConfig.isOptSet("azahar_resolution_factor"))
@@ -359,15 +370,40 @@ namespace EmulatorLauncher
 
             // Read nand file
             byte[] bytes = File.ReadAllBytes(path);
+            byte[] pattern = { 0x02, 0x00, 0x0A, 0x00 };
 
-            var toSet = new byte[] { (byte)langId };
-            for (int i = 0; i < toSet.Length; i++)
-            {
-                bytes[128] = toSet[i];
-                bytes[272] = toSet[i];
-            }
+            int index = FindPattern(bytes, pattern);
+            if (index == -1)
+                return;
+
+            int byteAfter = index + pattern.Length;
+            if (byteAfter >= bytes.Length)
+                return;
+
+            bytes[byteAfter] = (byte)langId;
 
             File.WriteAllBytes(path, bytes);
+        }
+
+        static int FindPattern(byte[] data, byte[] pattern)
+        {
+            for (int i = 0; i <= data.Length - pattern.Length; i++)
+            {
+                bool match = true;
+                for (int j = 0; j < pattern.Length; j++)
+                {
+                    if (data[i + j] != pattern[j])
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                    return i;
+            }
+
+            return -1;
         }
 
         private int Get3DSLangFromEnvironment()
