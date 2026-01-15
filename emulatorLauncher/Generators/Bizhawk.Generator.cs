@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Diagnostics;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common;
+using EmulatorLauncher.PadToKeyboard;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -750,6 +751,16 @@ namespace EmulatorLauncher
             ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
             ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, _path);
             return ret;
+        }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_pad2Keyoverride)
+            {
+                mapping = PadToKey.Load(Path.Combine(Path.GetTempPath(), "padToKey.xml"));
+            }
+
+            return mapping;
         }
 
         public override void Cleanup()

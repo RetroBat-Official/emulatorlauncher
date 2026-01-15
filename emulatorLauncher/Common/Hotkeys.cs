@@ -55,97 +55,39 @@ namespace EmulatorLauncher
                 {
                     if (!string.IsNullOrEmpty(element.Name))
                     {
-                        switch (emulator)
+                        if (emulator == "retroarch")
                         {
-                            case "retroarch":
+                            hotkeys[element.Name] = new HotkeyResult
+                            {
+                                RetroArchValue = element.Value,
+                                EmulatorKey = element.Name,
+                                EmulatorValue = element.Value
+                            };
+                        }
+                        else if (EmulatorDic.ContainsKey(emulator))
+                        {
+                            var emulatorHotkey = GetEmulatorHotkey(emulator);
+                            if (emulatorHotkey == null)
+                                break;
+
+                            var hkInfo = emulatorHotkey.EmulatorHotkeys.FirstOrDefault(h => h.RetroArchHK.Equals(element.Name, StringComparison.OrdinalIgnoreCase));
+                            var hkDic = EmulatorDic[emulator];
+
+                            if (hkInfo != null)
+                            {
+                                string value = hkInfo.DefaultValue;
+                                string sourceKey = element.Value.ToLowerInvariant();
+
+                                if (hkDic.ContainsKey(sourceKey))
+                                    value = hkDic[sourceKey];
+
                                 hotkeys[element.Name] = new HotkeyResult
                                 {
                                     RetroArchValue = element.Value,
-                                    EmulatorKey = element.Name,
-                                    EmulatorValue = element.Value
+                                    EmulatorKey = hkInfo.EmulatorHK,
+                                    EmulatorValue = value
                                 };
-                                break;
-                            case "ares":
-                                {
-                                    var emulatorHotkey = GetEmulatorHotkey("ares");
-                                    if (emulatorHotkey == null)
-                                        break;
-
-                                    var hkInfo = emulatorHotkey.EmulatorHotkeys.FirstOrDefault(h =>h.RetroArchHK.Equals(element.Name, StringComparison.OrdinalIgnoreCase));
-
-                                    if (hkInfo != null)
-                                    {
-                                        string value = hkInfo.DefaultValue;
-                                        string sourceKey = element.Value.ToLowerInvariant();
-
-                                        if (AresKeyEnum.ContainsKey(sourceKey))
-                                        {
-                                            value = AresKeyEnum[sourceKey];
-                                        }
-
-                                        hotkeys[element.Name] = new HotkeyResult
-                                        {
-                                            RetroArchValue = element.Value,
-                                            EmulatorKey = hkInfo.EmulatorHK,
-                                            EmulatorValue = value
-                                        };
-                                    }
-                                    break;
-                                }
-                            case "bigpemu":
-                                {
-                                    var emulatorHotkey = GetEmulatorHotkey("bigpemu");
-                                    if (emulatorHotkey == null)
-                                        break;
-
-                                    var hkInfo = emulatorHotkey.EmulatorHotkeys.FirstOrDefault(h =>h.RetroArchHK.Equals(element.Name, StringComparison.OrdinalIgnoreCase));
-
-                                    if (hkInfo != null)
-                                    {
-                                        string value = hkInfo.DefaultValue;
-                                        string sourceKey = element.Value.ToLowerInvariant();
-
-                                        if (sdlKeyCodeEnum.ContainsKey(sourceKey))
-                                        {
-                                            value = sdlKeyCodeEnum[sourceKey];
-                                        }
-
-                                        hotkeys[element.Name] = new HotkeyResult
-                                        {
-                                            RetroArchValue = element.Value,
-                                            EmulatorKey = hkInfo.EmulatorHK,
-                                            EmulatorValue = value
-                                        };
-                                    }
-                                    break;
-                                }
-                            case "flycast":
-                                {
-                                    var emulatorHotkey = GetEmulatorHotkey("flycast");
-                                    if (emulatorHotkey == null)
-                                        break;
-
-                                    var hkInfo = emulatorHotkey.EmulatorHotkeys.FirstOrDefault(h => h.RetroArchHK.Equals(element.Name, StringComparison.OrdinalIgnoreCase));
-
-                                    if (hkInfo != null)
-                                    {
-                                        string value = hkInfo.DefaultValue;
-                                        string sourceKey = element.Value.ToLowerInvariant();
-
-                                        if (sdlKeycodeToHID.ContainsKey(sourceKey))
-                                        {
-                                            value = sdlKeycodeToHID[sourceKey];
-                                        }
-
-                                        hotkeys[element.Name] = new HotkeyResult
-                                        {
-                                            RetroArchValue = element.Value,
-                                            EmulatorKey = hkInfo.EmulatorHK,
-                                            EmulatorValue = value
-                                        };
-                                    }
-                                    break;
-                                }
+                            }
                         }
                     }
                 }
@@ -258,7 +200,10 @@ namespace EmulatorLauncher
                 var doc = new XDocument(new XDeclaration("1.0", "UTF-8", null));
                 var root = new XElement("padToKey");
                 doc.Add(root);
+
                 var app = new XElement("app", new XAttribute("name", emulator));
+                if (emulatorAppName.ContainsKey(emulator))
+                    app.SetAttributeValue("name", emulatorAppName[emulator]);
                 root.Add(app);
 
                 void AddInput(XElement appElement, string name, string code)
@@ -271,9 +216,15 @@ namespace EmulatorLauncher
                     );
                 }
 
+                bool replaceMenuWithPause = false;
+                if (hotkeys.Any(h => h.Key == "input_pause_toggle") && !hotkeys.Any(h => h.Key == "input_menu_toggle"))
+                    replaceMenuWithPause = true;
+
                 foreach (var mapping in hotkeys)
                 {
                     string orgKey = mapping.Key;
+                    if (replaceMenuWithPause && orgKey == "input_pause_toggle")
+                        orgKey = "input_menu_toggle";
                     if (padHotkey.ContainsKey(orgKey))
                     {
                         string padInput = "hotkey " + padHotkey[orgKey];

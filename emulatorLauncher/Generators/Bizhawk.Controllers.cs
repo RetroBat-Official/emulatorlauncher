@@ -24,6 +24,8 @@ namespace EmulatorLauncher
          * - Bizhawk treats all gamepads as XInput except the gamepads not known by SDL (these are treated as dinput)
         */
 
+        private bool _pad2Keyoverride = false;
+
         private static readonly List<string> systemMonoPlayer = new List<string>() { "3ds", "apple2", "gb", "gbc", "gba", "lynx", "nds" };
         private static readonly List<string> computersystem = new List<string>() { "apple2" };
 
@@ -78,6 +80,7 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                ConfigureHotkeys(json);
                 return;
             }
 
@@ -112,14 +115,30 @@ namespace EmulatorLauncher
                 hotkeyBindings["Save State " + i] = "Ctrl+F" + i;
                 hotkeyBindings["Load State " + i] = "Shift+F" + i;
             }
-            hotkeyBindings["Rewind"] = "F1";
-            hotkeyBindings["Fast Forward"] = "F2";
-            hotkeyBindings["Pause"] = "F9";
-            hotkeyBindings["Quick Load"] = "F3";
-            hotkeyBindings["Quick Save"] = "F4";
-            hotkeyBindings["Screenshot"] = "F12";
-            hotkeyBindings["Previous Slot"] = "F5";
-            hotkeyBindings["Next Slot"] = "F6";
+
+            if (Hotkeys.GetHotKeysFromFile("bizhawk", "", out Dictionary<string, HotkeyResult> hotkeys))
+            {
+                foreach (var h in hotkeys)
+                    hotkeyBindings[h.Value.EmulatorKey] = h.Value.EmulatorValue;
+
+                _pad2Keyoverride = true;
+
+                if (hotkeyBindings["Frame Advance"] == "F")
+                    hotkeyBindings["Frame Advance"] = "";
+
+                return;
+            }
+
+            hotkeyBindings["Rewind"] = "Backspace";
+            hotkeyBindings["Full Screen"] = "F";
+            hotkeyBindings["Fast Forward"] = "L";
+            hotkeyBindings["Pause"] = "P";
+            hotkeyBindings["Quick Load"] = "F4";
+            hotkeyBindings["Quick Save"] = "F2";
+            hotkeyBindings["Screenshot"] = "F8";
+            hotkeyBindings["Previous Slot"] = "F6";
+            hotkeyBindings["Next Slot"] = "F7";
+            hotkeyBindings["Exit Program"] = "Escape";
         }
 
         private void ConfigureInput(Controller controller, DynamicJson json, string system, string core)
