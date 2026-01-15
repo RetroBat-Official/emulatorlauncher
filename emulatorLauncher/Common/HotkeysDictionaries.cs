@@ -538,7 +538,7 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_state_slot_decrease", "DecrementStateSlot", "0x1/0/6;;"),     // F6
                     new EmulatorHotkeyInfo("input_state_slot_increase", "IncrementStateSlot", "0x1/0/7;;"),     // F7
                     new EmulatorHotkeyInfo("input_pause_toggle", "PauseEmulation", "0x1/0/50;;"),               // p
-                    new EmulatorHotkeyInfo("input_exit_emulator", "QuitEmulator", "0x1/0/0;;")                 // escape
+                    new EmulatorHotkeyInfo("input_exit_emulator", "QuitEmulator", "0x1/0/0;;"),                 // escape
                     new EmulatorHotkeyInfo("input_pause_toggle", "PauseEmulation", "0x1/0/50;;"),               // p
                     new EmulatorHotkeyInfo("input_exit_emulator", "QuitEmulator", "0x1/0/0;;"),                 // escape
 
