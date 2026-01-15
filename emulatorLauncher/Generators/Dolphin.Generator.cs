@@ -506,6 +506,7 @@ namespace EmulatorLauncher
                     // Interface
                     BindBoolIniFeatureOn(ini, "Interface", "OnScreenDisplayMessages", "OnScreenDisplayMessages", "True", "False");
                     ini.WriteValue("Interface", "ConfirmStop", "False");
+                    ini.WriteValue("Interface", "PauseOnFocusLost", "True");
                     BindIniFeature(ini, "Interface", "CursorVisibility", "dolphin_mouse_cursor", "2");
 
                     // don't ask about statistics

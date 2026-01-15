@@ -17,6 +17,7 @@ using EmulatorLauncher.Libretro;
 using EmulatorLauncher.Common.Compression.Wrappers;
 using EmulatorLauncher.Common.Launchers;
 using System.Management;
+using EmulatorLauncher.ControlCenter;
 
 // XBox
 // -p1index 0 -p1guid 030000005e040000ea02000000007801 -p1name "XBox One S Controller" -p1nbbuttons 11 -p1nbhats 1 -p1nbaxes 6 -system pcengine -emulator libretro -core mednafen_supergrafx -rom "H:\[Emulz]\roms\pcengine\1941 Counter Attack.pce"
@@ -684,7 +685,7 @@ namespace EmulatorLauncher
                 if ((!installer.IsInstalled() || (updatesEnabled && installer.HasUpdateAvailable())) && installer.CanInstall())
                 {
                     SimpleLogger.Instance.Info("[Startup] Emulator update found : proposing to update.");
-                    using (InstallerFrm frm = new InstallerFrm(installer))
+                    using (InstallerFrm frm = new InstallerFrm(installer, true))
                         if (frm.ShowDialog() != DialogResult.OK)
                             return;
                 }
@@ -750,25 +751,45 @@ namespace EmulatorLauncher
                         else
                             SimpleLogger.Instance.Info("[Running]  " + path.FileName);
 
+                        bool processWasKilled = false;
+
+                        Action showControlCenter = () =>
+                        {
+                            if (ControlCenterFrm.IsRunning)
+                                return;
+
+                            if (new ControlCenterFrm().ShowDialog() == DialogResult.Abort)
+                                processWasKilled = true;
+                        };
+
+                        mapping = PadToKey.AddOrUpdateKeyMapping(mapping, "*", InputKey.hotkey | InputKey.b, () =>
+                        {
+                            if (!ControlCenterFrm.IsRunning)
+                                new System.Threading.Thread(new System.Threading.ThreadStart(showControlCenter)) { IsBackground = true, ApartmentState = System.Threading.ApartmentState.STA }.Start();                            
+                        });
+
+                        if (mapping != null)
+                        {
+                            // Handle joystick on screens shown by this application.
+                            var app = new PadToKeyApp() { Name = Path.GetFileNameWithoutExtension(typeof(Program).Assembly.Location).ToLowerInvariant() };
+                            app.Input.Add(new PadToKeyInput() { Name = InputKey.a, Code = "KEY_SPACE" });
+                            app.Input.Add(new PadToKeyInput() { Name = InputKey.b, Key = "(%{F4})" });
+                            app.Input.Add(new PadToKeyInput() { Name = InputKey.x, Key = "(%{F4})" });
+                            app.Input.Add(new PadToKeyInput() { Name = InputKey.left, Code = "KEY_LEFT" });
+                            app.Input.Add(new PadToKeyInput() { Name = InputKey.right, Code = "KEY_RIGHT" });
+                            app.Input.Add(new PadToKeyInput() { Name = InputKey.down, Code = "KEY_DOWN" });
+                            app.Input.Add(new PadToKeyInput() { Name = InputKey.up, Code = "KEY_UP" });
+                            mapping.Applications.Add(app);
+                        }
+
                         using (new HighPerformancePowerScheme())
                         using (var kb = new KeyboardListener())
+                        using (var joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping))
                         {
-                            var joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping);
-
-                            bool processKilled = false;
-
-                            kb.F12Pressed += () =>
-                            {
-                                joy.Dispose();
-
-                                if (new ControlCenterFrm().ShowDialog() == DialogResult.Abort)
-                                    processKilled = true;
-                                else
-                                    joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping);
-                            };
+                            kb.F12Pressed += showControlCenter;
 
                             int exitCode = generator.RunAndWait(path);
-                            if (exitCode != 0 && !joy.ProcessKilled && !processKilled)
+                            if (exitCode != 0 && !joy.ProcessKilled && !processWasKilled)
                                 Environment.ExitCode = (int)ExitCodes.EmulatorExitedUnexpectedly;
 
                             joy.Dispose();

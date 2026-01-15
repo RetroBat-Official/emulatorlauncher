@@ -1,0 +1,34 @@
+﻿<UserControl x:Class="EmulatorLauncher.PdfViewerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EmulatorLauncher"
+             mc:Ignorable="d"  
+             Background="#FF1A1A1E"
+             Focusable="True"
+             PreviewKeyDown="OnPreviewKeyDown"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid x:Name="Root" ClipToBounds="True">
+
+        <Border x:Name="BorderCurrent">
+            <Border.RenderTransform>
+                <TranslateTransform />
+            </Border.RenderTransform>
+
+            <Image x:Name="ImageCurrent"
+                   Stretch="Uniform"/>
+        </Border>
+
+        <Border x:Name="BorderNext"
+                Visibility="Hidden">
+            <Border.RenderTransform>
+                <TranslateTransform />
+            </Border.RenderTransform>
+
+            <Image x:Name="ImageNext"
+                   Stretch="Uniform"/>
+        </Border>
+
+    </Grid>
+</UserControl>
