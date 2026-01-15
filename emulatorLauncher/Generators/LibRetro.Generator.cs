@@ -1264,13 +1264,6 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["video_driver"] = SystemConfig["video_driver"];
             }
             
-            // core stuff
-            if (core == "dolphin" && retroarchConfig["video_driver"] != "d3d11" && retroarchConfig["video_driver"] != "vulkan" && retroarchConfig["video_driver"] != "gl" && retroarchConfig["video_driver"] != "glcore")
-            {
-                _video_driver = "d3d11";
-                retroarchConfig["video_driver"] = "d3d11";
-                return;
-            }
             if (core.StartsWith("mupen64") && SystemConfig["RDP_Plugin"] == "parallel")
             {
                 _video_driver = "vulkan";
@@ -2147,7 +2140,6 @@ namespace EmulatorLauncher.Libretro
         static UIModeSetting[] UIModes = new UIModeSetting[]
         {
             new UIModeSetting("desktop_menu_enable", "false", "false", "true"),
-            new UIModeSetting("content_show_add", "false", "false", "true"),
             new UIModeSetting("content_show_contentless_cores", "0", "0", "1"),
             new UIModeSetting("content_show_explore", "false", "false", "true"),
             new UIModeSetting("content_show_favorites", "false", "false", "true"),

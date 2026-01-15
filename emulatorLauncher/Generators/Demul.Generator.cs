@@ -18,6 +18,7 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private bool _demulshooter = false;
         private bool _sindenSoft = false;
+        private string _videoDriverName = "gpuDX11";
 
         public DemulGenerator()
         {
@@ -125,7 +126,7 @@ namespace EmulatorLauncher
 
                     ini.WriteValue("files", "romsPathsCount", romsPaths.Count.ToString());
 
-                    var savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "dreamcast", system, "nvram");
+                    var savesPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "demul");
                     if (!Directory.Exists(savesPath))
                         try { Directory.CreateDirectory(savesPath); } catch { }
 
@@ -136,12 +137,6 @@ namespace EmulatorLauncher
 
                     string gpu = "gpuDX11.dll";
                     if (_oldVersion || core == "gaelco" || system == "galeco" || SystemConfig.getOptBoolean("demul_oldgpu"))
-                    {
-                        _videoDriverName = "gpuDX11old";
-                        gpu = "gpuDX11old.dll";
-                    }
-
-                    if (Features.IsSupported("internal_resolution") && SystemConfig.isOptSet("internal_resolution") && SystemConfig["internal_resolution"] != "1")
                     {
                         _videoDriverName = "gpuDX11old";
                         gpu = "gpuDX11old.dll";
@@ -199,8 +194,6 @@ namespace EmulatorLauncher
             catch { }
         }
 
-        private string _videoDriverName = "gpuDX11";
-
         private void SetupDx11Config(string path, ScreenResolution resolution)
         {
             string iniFile = Path.Combine(path, _videoDriverName + ".ini");
@@ -216,8 +209,8 @@ namespace EmulatorLauncher
                     BindBoolIniFeatureOn(ini, "main", "Vsync", "VSync", "1", "0");
                     ini.WriteValue("resolution", "Width", resolution.Width.ToString());
                     ini.WriteValue("resolution", "Height", resolution.Height.ToString());
-
                     BindIniFeature(ini, "main", "scaling", "internal_resolution", "1");
+                    
                     BindIniFeature(ini, "main", "aspect", "demul_ratio", "1");
 
                     if (SystemConfig.isOptSet("smooth"))

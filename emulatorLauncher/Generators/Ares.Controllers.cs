@@ -21,6 +21,13 @@ namespace EmulatorLauncher
                 return;
             }
 
+            try
+            {
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.User);
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.Process);
+            }
+            catch { }
+
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Ares");
 
             // clear existing pad sections of file
@@ -316,7 +323,7 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
-        private static string GetInputKeyName(Controller c, InputKey key, string padId)
+        private static string GetInputKeyName(Controller c, InputKey key, string padId, bool isXinput = false)
         {
             Int64 pid;
 
@@ -366,12 +373,19 @@ namespace EmulatorLauncher
                     if (input.Id < 4)
                     {
                         pid = input.Id;
+                        if (isXinput)
+                        {
+                            if (pid == 2) pid = 3;
+                            else if (pid == 3) pid = 4;
+                        }
                         string pval = revertAxis ? "Hi" : "Lo";
                         return padId + "0/" + pid + "/" + pval + ";;";
                     }
                     else if (input.Id == 4)
                     {
-                        if (key == InputKey.down || key == InputKey.up || key == InputKey.left || key == InputKey.right)
+                        if (isXinput)
+                            return padId + "0/2/Hi;;";
+                        else if (key == InputKey.down || key == InputKey.up || key == InputKey.left || key == InputKey.right)
                         {
                             string pval = revertAxis ? "Hi" : "Lo";
                             return padId + "0/4/" + pval + ";;";
@@ -381,7 +395,9 @@ namespace EmulatorLauncher
                     }
                     else if (input.Id == 5)
                     {
-                        if (key == InputKey.down || key == InputKey.up || key == InputKey.left || key == InputKey.right)
+                        if (isXinput)
+                            return padId + "0/5/Hi;;";
+                        else if (key == InputKey.down || key == InputKey.up || key == InputKey.left || key == InputKey.right)
                         {
                             string pval = revertAxis ? "Hi" : "Lo";
                             return padId + "0/4/" + pval + ";;";

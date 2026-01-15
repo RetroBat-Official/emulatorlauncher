@@ -99,7 +99,7 @@ namespace EmulatorLauncher.Libretro
                 { "flycast", "Flycast" },
                 { "fmsx", "fMSX" },
                 { "freechaf", "FreeChaF" },
-                { "freeintv", "FreeIntv" },
+                { "freeintv", "freeintv" },
                 { "freej2me", "FreeJ2ME-Plus" },
                 { "frodo", "Frodo" },
                 { "fsuae", "FS-UAE" },
@@ -119,11 +119,11 @@ namespace EmulatorLauncher.Libretro
                 { "gw", "Game & Watch" },
                 { "handy", "Handy" },
                 { "hatari", "Hatari" },
-                { "hatarib", "Hatarib" },
+                { "hatarib", "hatariB" },
                 { "hbmame", "HBMAME (Git)" },
                 { "higan_sfc_balanced", "nSide (Super Famicom Balanced)" },
                 { "higan_sfc", "nSide (Super Famicom Accuracy)" },
-                { "holani", "Holani" },
+                { "holani", "holani" },
                 { "imageviewer", "image display" },
                 { "ishiiruka", "Ishiiruka" },
                 { "jaxe", "JAXE" },
@@ -196,7 +196,7 @@ namespace EmulatorLauncher.Libretro
                 { "pcsx_rearmed_neon", "PCSX ReARMed [NEON]" },
                 { "picodrive", "PicoDrive" },
                 { "play", "Play!" },
-                { "pocketcdg", "PocketCDG" },
+                { "pocketcdg", "pocketcdg" },
                 { "pokemini", "PokeMini" },
                 { "potator", "Potator" },
                 { "ppsspp", "PPSSPP" },
@@ -253,11 +253,11 @@ namespace EmulatorLauncher.Libretro
                 { "tyrquake", "TyrQuake" },
                 { "uae4arm", "UAE4ARM" },
                 { "ume2015", "UME 2015 (0.160)" },
-                { "uzem", "uzem" },
+                { "uzem", "Uzem" },
                 { "vaporspec", "VaporSpec" },
                 { "vbam", "VBA-M" },
                 { "vba_next", "VBA Next" },
-                { "vecx", "vecx" },
+                { "vecx", "VecX" },
                 { "vemulator", "VeMUlator" },
                 { "vice_x128", "VICE x128" },
                 { "vice_x64sc", "VICE x64sc" },
@@ -356,6 +356,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureDosboxPure(retroarchConfig, coreSettings, system, core);
             ConfigureDoublecherrygb(retroarchConfig, coreSettings, system, core);
             ConfigureDRS(retroarchConfig, coreSettings, system, core);
+            ConfigureeasyRPG(retroarchConfig, coreSettings, system, core);
             Configureecwolf(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
             ConfigureFake08(retroarchConfig, coreSettings, system, core);
@@ -997,6 +998,22 @@ namespace EmulatorLauncher.Libretro
             if (core != "citra")
                 return;
 
+            Dictionary<string, string> citraLanguageMap = new Dictionary<string, string>()
+            {
+                { "0", "Japanese" },
+                { "1", "English" },
+                { "2", "French" },
+                { "5", "Spanish" },
+                { "3", "German" },
+                { "4", "Italian" },
+                { "8", "Dutch" },
+                { "9", "portuguese" },
+                { "10", "russian" },
+                { "7", "Korean" },
+                { "11", "Traditional Chinese" },
+                { "6", "Simplified Chinese" }
+            };
+
             coreSettings["citra_use_libretro_save_path"] = "LibRetro Default";
             coreSettings["citra_is_new_3ds"] = "New 3DS";
 
@@ -1025,7 +1042,12 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["citra_layout_option"] = "Default Top-Bottom Screen";
 
             BindFeature(coreSettings, "citra_region_value", "citra_region_value", "Auto");
-            BindFeature(coreSettings, "citra_language", "citra_language", "English");
+            
+            if (SystemConfig.isOptSet("n3ds_language") && !string.IsNullOrEmpty(SystemConfig["n3ds_language"]) && citraLanguageMap.ContainsKey(SystemConfig["n3ds_language"]))
+                coreSettings["citra_language"] = citraLanguageMap[SystemConfig["n3ds_language"]];
+            else
+                coreSettings["citra_language"] = "English";
+
             BindFeature(coreSettings, "citra_resolution_factor", "citralr_resolution_factor", "1x (Native)");
             BindFeature(coreSettings, "citra_texture_filter", "citralr_texture_filter", "none");
             BindBoolFeature(coreSettings, "citra_swap_screen", "citra_swap_screen", "Bottom", "Top");
@@ -1036,6 +1058,11 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "citra_analog_function", "citra_analog_function", "C-Stick and Touchscreen Pointer");
             BindBoolFeature(coreSettings, "citra_mouse_touchscreen", "citra_mouse_touchscreen", "disabled","enabled");
             BindBoolFeature(coreSettings, "citra_render_touchscreen", "citra_render_touchscreen", "enabled", "disabled");
+
+            string emuNandPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "Citra", "nand");
+            string nandPath = Path.Combine(emuNandPath, "data", "00000000000000000000000000000000", "sysdata", "00010017", "00000000", "config");
+            if (File.Exists(nandPath))
+                CitraGenerator.Write3DSnand(nandPath);
         }
 
         private void ConfigureCraft(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1162,22 +1189,15 @@ namespace EmulatorLauncher.Libretro
             if (core != "dolphin")
                 return;
 
-            // Force xinput driver in case of xinput controller
-            var c1 = Program.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
-            if (c1 != null && c1.IsXInputDevice && !SystemConfig.isOptSet("input_driver"))
-                retroarchConfig["input_driver"] = "xinput";
+            //coreSettings["dolphin_renderer"] = "Hardware";
+            //coreSettings["dolphin_cpu_core"] = "JIT64";
+            //coreSettings["dolphin_dsp_hle"] = "enabled";
+            //coreSettings["dolphin_dsp_jit"] = "enabled";
+            //coreSettings["dolphin_widescreen_hack"] = "disabled";
 
-            retroarchConfig["driver_switch_enable"] = "false";
-
-            coreSettings["dolphin_renderer"] = "Hardware";
-            coreSettings["dolphin_cpu_core"] = "JIT64";
-            coreSettings["dolphin_dsp_hle"] = "enabled";
-            coreSettings["dolphin_dsp_jit"] = "enabled";
-            coreSettings["dolphin_widescreen_hack"] = "disabled";
-
-            BindFeature(coreSettings, "dolphin_efb_scale", "dolphin_efb_scale", "x1 (640 x 528)");
-            BindFeature(coreSettings, "dolphin_max_anisotropy", "dolphin_max_anisotropy", "1x");
-            BindFeature(coreSettings, "dolphin_shader_compilation_mode", "dolphin_shader_compilation_mode", "sync");
+            BindFeature(coreSettings, "dolphin_efb_scale", "dolphin_efb_scale", "1");
+            BindFeature(coreSettings, "dolphin_max_anisotropy", "dolphin_max_anisotropy", "0");
+            BindFeature(coreSettings, "dolphin_shader_compilation_mode", "dolphin_shader_compilation_mode", "0");
             BindBoolFeature(coreSettings, "dolphin_wait_for_shaders", "dolphin_wait_for_shaders", "enabled", "disabled");
             BindBoolFeature(coreSettings, "dolphin_load_custom_textures", "dolphin_load_custom_textures", "enabled", "disabled");
             BindBoolFeature(coreSettings, "dolphin_cache_custom_textures", "dolphin_cache_custom_textures", "enabled", "disabled");
@@ -1189,10 +1209,13 @@ namespace EmulatorLauncher.Libretro
                 DolphinSyncCheats(system);
             }
 
-            BindBoolFeature(coreSettings, "dolphin_force_texture_filtering", "dolphin_force_texture_filtering", "enabled", "disabled");
-            BindFeature(coreSettings, "dolphin_language", "dolphin_language", "English");
+            BindFeature(coreSettings, "dolphin_force_texture_filtering_mode", "dolphin_force_texture_filtering_mode", "0");
+            BindFeature(coreSettings, "dolphin_language", "dolphin_language", "1");
             BindBoolFeature(coreSettings, "dolphin_pal60", "dolphin_pal60", "enabled", "disabled");
             BindFeature(coreSettings, "dolphin_progressive_scan", "dolphin_progressive_scan", "enabled");
+            BindBoolFeature(coreSettings, "dolphin_widescreen_hack", "dolphin_widescreen_hack", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "dolphin_main_cpu_thread", "dolphin_cputhread", "enabled", "disabled");
+            BindFeature(coreSettings, "dolphin_anti_aliasing", "dolphin_anti_aliasing", "0");
 
             // Wii Controllers
             BindFeature(retroarchConfig, "input_libretro_device_p1", "dolphin_p1_controller", "1");
@@ -1203,28 +1226,9 @@ namespace EmulatorLauncher.Libretro
             // gamecube
             if (system == "gamecube" || system == "gc")
             {
-                BindBoolFeature(coreSettings, "dolphin_widescreen_hack", "dolphin_widescreen_hack", "enabled", "disabled");
-
                 string gcSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "gamecube", "dolphin-emu", "User", "GC");
                 DolphinGenerator.SyncGCSaves(gcSavesPath);
-
-                try
-                {
-                    // use Dolphin.ini for options not available in retroarch-core-options.cfg
-                    string iniPath = Path.Combine(AppConfig.GetFullPath("saves"), "gamecube", "dolphin-emu", "User", "Config", "Dolphin.ini");
-                    if (File.Exists(iniPath))
-                    {
-                        using (var ini = new IniFile(iniPath, IniOptions.UseSpaces))
-                        {
-                            // Skip BIOS or not (IPL.bin required in saves\dolphin\User\GC\<EUR, JAP or USA>)
-                            if (SystemConfig.isOptSet("skip_bios") && !SystemConfig.getOptBoolean("skip_bios"))
-                                ini.WriteValue("Core", "SkipIPL", "False");
-                            else
-                                ini.WriteValue("Core", "SkipIPL", "True");
-                        }
-                    }
-                }
-                catch { }
+                BindBoolFeatureOn(coreSettings, "dolphin_skip_gc_bios", "skip_bios", "enabled", "disabled");
             }
 
             // wii
@@ -1235,8 +1239,9 @@ namespace EmulatorLauncher.Libretro
                 else
                     coreSettings["dolphin_widescreen"] = "disabled";
 
-                BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "Bottom");
+                BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "0");
                 BindBoolFeature(coreSettings, "dolphin_wiimote_continuous_scanning", "dolphin_nowiimotescan", "disabled", "enabled");
+                BindBoolFeature(coreSettings, "dolphin_bluetooth_passthrough", "dolphin_bt_pass", "enabled", "disabled");
             }
         }
 
@@ -1314,6 +1319,22 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "d-rs_screen_ratio", "drs_screen_ratio", "4:3 (original)");
             BindBoolFeature(coreSettings, "d-rs_show_fps", "drs_show_fps", "enabled", "disabled");
         }
+
+        private void ConfigureeasyRPG(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "easyrpg")
+                return;
+
+            string biosFolder = Path.Combine(AppConfig.GetFullPath("bios"), "easyrpg-player");
+            if (!Directory.Exists(biosFolder))
+            {
+                try { Directory.CreateDirectory(biosFolder); } catch { }
+                File.WriteAllText(Path.Combine(biosFolder, "config.ini"), "");
+            }
+            else if (!File.Exists(Path.Combine(biosFolder, "config.ini")))
+                File.WriteAllText(Path.Combine(biosFolder, "config.ini"), "");
+        }
+
         private void Configureecwolf(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "ecwolf")
@@ -1793,7 +1814,6 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "reicast_internal_resolution", "internal_resolution", "640x480");
             BindBoolFeatureOn(coreSettings, "reicast_force_freeplay", "reicast_force_freeplay", "enabled", "disabled");
             BindBoolFeature(coreSettings, "reicast_allow_service_buttons", "reicast_allow_service_buttons", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "reicast_boot_to_bios", "reicast_boot_to_bios", "enabled", "disabled");
             BindBoolFeature(coreSettings, "reicast_hle_bios", "reicast_hle_bios", "enabled", "disabled");
             BindFeature(coreSettings, "reicast_per_content_vmus", "reicast_per_content_vmus", "disabled");
             BindFeature(coreSettings, "reicast_language", "reicast_language", "English");
@@ -1872,7 +1892,7 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "freej2me_resolution", "freej2me_resolution", "240x320");
-            BindBoolFeature(coreSettings, "freej2me_rotate", "freej2me_rotate", "on", "off");
+            BindFeature(coreSettings, "freej2me_rotate", "freej2me_rotate", "0");
             BindBoolFeature(coreSettings, "freej2me_analogasentirekeypad", "freej2me_analogasentirekeypad", "on", "off");
         }
 
@@ -2038,6 +2058,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p1", "gearcoleco_controller", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "gearcoleco_controller", "1");
 
+            // Guns
+            BindBoolFeature(coreSettings, "gearsystem_lightgun_crosshair", "gearsystem_lightgun_crosshair", "Enabled", "Disabled");
             SetupLightGuns(retroarchConfig, "260", core);
         }
 
@@ -4187,7 +4209,6 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["ppsspp_spline_quality"] = "Low";
                     coreSettings["ppsspp_software_skinning"] = "enabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "enabled";
-                    coreSettings["ppsspp_vertex_cache"] = "enabled";
                     coreSettings["ppsspp_fast_memory"] = "enabled";
                     coreSettings["ppsspp_lazy_texture_caching"] = "enabled";
                     coreSettings["ppsspp_force_lag_sync"] = "disabled";
@@ -4196,7 +4217,6 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["ppsspp_spline_quality"] = "Medium";
                     coreSettings["ppsspp_software_skinning"] = "disabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "enabled";
-                    coreSettings["ppsspp_vertex_cache"] = "enabled";
                     coreSettings["ppsspp_fast_memory"] = "enabled";
                     coreSettings["ppsspp_lazy_texture_caching"] = "disabled";
                     coreSettings["ppsspp_force_lag_sync"] = "disabled";
@@ -4205,7 +4225,6 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["ppsspp_spline_quality"] = "High";
                     coreSettings["ppsspp_software_skinning"] = "disabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "disabled";
-                    coreSettings["ppsspp_vertex_cache"] = "disabled";
                     coreSettings["ppsspp_fast_memory"] = "disabled";
                     coreSettings["ppsspp_lazy_texture_caching"] = "disabled";
                     coreSettings["ppsspp_force_lag_sync"] = "enabled";
@@ -4214,7 +4233,6 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["ppsspp_spline_quality"] = "High";
                     coreSettings["ppsspp_software_skinning"] = "enabled";
                     coreSettings["ppsspp_gpu_hardware_transform"] = "enabled";
-                    coreSettings["ppsspp_vertex_cache"] = "disabled";
                     coreSettings["ppsspp_fast_memory"] = "enabled";
                     coreSettings["ppsspp_lazy_texture_caching"] = "disabled";
                     coreSettings["ppsspp_force_lag_sync"] = "disabled";
@@ -4743,25 +4761,25 @@ namespace EmulatorLauncher.Libretro
             // Advanced audio options (config must be done in Core options menu)
             if (SystemConfig.isOptSet("SnesAdvancedAudioOptions") && SystemConfig["SnesAdvancedAudioOptions"] == "config")
             {
-                coreSettings["snes9x_sndchan_1"] = "disabled";
-                coreSettings["snes9x_sndchan_2"] = "disabled";
-                coreSettings["snes9x_sndchan_3"] = "disabled";
-                coreSettings["snes9x_sndchan_4"] = "disabled";
-                coreSettings["snes9x_sndchan_5"] = "disabled";
-                coreSettings["snes9x_sndchan_6"] = "disabled";
-                coreSettings["snes9x_sndchan_7"] = "disabled";
-                coreSettings["snes9x_sndchan_8"] = "disabled";
+                coreSettings["snes9x_sndchan_volume_1"] = "0";
+                coreSettings["snes9x_sndchan_volume_2"] = "0";
+                coreSettings["snes9x_sndchan_volume_3"] = "0";
+                coreSettings["snes9x_sndchan_volume_4"] = "0";
+                coreSettings["snes9x_sndchan_volume_5"] = "0";
+                coreSettings["snes9x_sndchan_volume_6"] = "0";
+                coreSettings["snes9x_sndchan_volume_7"] = "0";
+                coreSettings["snes9x_sndchan_volume_8"] = "0";
             }
             else
             {
-                coreSettings["snes9x_sndchan_1"] = "enabled";
-                coreSettings["snes9x_sndchan_2"] = "enabled";
-                coreSettings["snes9x_sndchan_3"] = "enabled";
-                coreSettings["snes9x_sndchan_4"] = "enabled";
-                coreSettings["snes9x_sndchan_5"] = "enabled";
-                coreSettings["snes9x_sndchan_6"] = "enabled";
-                coreSettings["snes9x_sndchan_7"] = "enabled";
-                coreSettings["snes9x_sndchan_8"] = "enabled";
+                coreSettings["snes9x_sndchan_volume_1"] = "100";
+                coreSettings["snes9x_sndchan_volume_2"] = "100";
+                coreSettings["snes9x_sndchan_volume_3"] = "100";
+                coreSettings["snes9x_sndchan_volume_4"] = "100";
+                coreSettings["snes9x_sndchan_volume_5"] = "100";
+                coreSettings["snes9x_sndchan_volume_6"] = "100";
+                coreSettings["snes9x_sndchan_volume_7"] = "100";
+                coreSettings["snes9x_sndchan_volume_8"] = "100";
             }
 
             BindFeature(retroarchConfig, "input_libretro_device_p1", "SnesControllerP1", "1");
@@ -5004,6 +5022,8 @@ namespace EmulatorLauncher.Libretro
             if (core != "vice_x64" && core != "vice_xvic" && core != "vice_xplus4" && core != "vice_x128" && core != "vice_x64sc" && core != "vice_xpet")
                 return;
 
+            string[] viceGuns = { "11", "12", "13", "14", "15", "16" };
+
             // Common Vice features
             coreSettings["vice_audio_options_display"] = "enabled";
             BindBoolFeatureOn(coreSettings, "vice_warp_boost", "warp_boost", "enabled", "disabled");
@@ -5057,6 +5077,23 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "vice_joyport", "vice_joyport", "2");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "vice_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "vice_controller2", "1");
+            BindFeature(coreSettings, "vice_joyport_type", "vice_joyport_type", "1");
+
+            if (SystemConfig.getOptBoolean("use_guns"))
+            {
+                string devType = "1";
+                if (SystemConfig.isOptSet("vice_controller1") && !string.IsNullOrEmpty(SystemConfig["vice_controller1"]))
+                    devType = SystemConfig["vice_controller1"];
+
+                int port = 2;
+                if (SystemConfig.isOptSet("vice_joyport") && SystemConfig["vice_joyport"] == "1")
+                    port = 1;
+                
+                SetupLightGuns(retroarchConfig, devType, core, port);
+
+                if (SystemConfig.isOptSet("vice_joyport_type") && !viceGuns.Contains(SystemConfig["vice_joyport_type"]))
+                    coreSettings["vice_joyport_type"] = "11";
+            }
         }
 
         private Dictionary<string, string> jaguarPro = new Dictionary<string, string>()

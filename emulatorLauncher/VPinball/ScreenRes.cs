@@ -1,6 +1,7 @@
-﻿using System.Text;
+﻿using Microsoft.Win32;
+using System;
 using System.IO;
-using Microsoft.Win32;
+using System.Text;
 
 namespace EmulatorLauncher.VPinballLauncher
 {
@@ -36,25 +37,31 @@ namespace EmulatorLauncher.VPinballLauncher
             ScreenRes ret = new ScreenRes() { _fileName = fn };            
 
             string[] lines = File.ReadAllLines(fn);
-            if (lines.Length >= 12)
+            
+            var setters = new Action<string>[]
             {
-                ret.ScreenResX = lines[0];
-                ret.ScreenResY = lines[1];
-                ret.Screen2ResX = lines[2];
-                ret.Screen2ResY = lines[3];
-                ret.Monitor = lines[4];
-                ret.Screen2posX = lines[5];
-                ret.Screen2posY = lines[6];
-                ret.DmdResX = lines[7];
-                ret.DmdResY = lines[8];
-                ret.DmdPosX = lines[9];
-                ret.DmdPosY = lines[10];
-                ret.DmdFlipY = lines[11];
-                ret.Screen2posXStart = lines[12];
-                ret.Screen2posYStart = lines[13];
-                ret.Screen2ResXStart = lines[14];
-                ret.Screen2ResYStart = lines[15];
-                ret.FramePath = lines[16];
+                v => ret.ScreenResX = v,
+                v => ret.ScreenResY = v,
+                v => ret.Screen2ResX = v,
+                v => ret.Screen2ResY = v,
+                v => ret.Monitor = v,
+                v => ret.Screen2posX = v,
+                v => ret.Screen2posY = v,
+                v => ret.DmdResX = v,
+                v => ret.DmdResY = v,
+                v => ret.DmdPosX = v,
+                v => ret.DmdPosY = v,
+                v => ret.DmdFlipY = v,
+                v => ret.Screen2posXStart = v,
+                v => ret.Screen2posYStart = v,
+                v => ret.Screen2ResXStart = v,
+                v => ret.Screen2ResYStart = v,
+                v => ret.FramePath = v,
+            };
+
+            for (int i = 0; i < lines.Length && i < setters.Length; i++)
+            {
+                setters[i](lines[i]);
             }
 
             return ret;

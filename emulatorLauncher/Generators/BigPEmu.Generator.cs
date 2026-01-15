@@ -78,7 +78,9 @@ namespace EmulatorLauncher
 
             _path = path;
 
-            //Applying bezels
+            bool mbz = SystemConfig["shader"].Contains("_MBZ_");
+
+            //Applying bezels & shaders throug reshade only if not duimon selected
             if (fullscreen && (!SystemConfig.isOptSet("bigpemu_renderer") || SystemConfig["bigpemu_renderer"] == "BigPEmu_Video_OpenGL"))
             {
                 if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
@@ -104,7 +106,7 @@ namespace EmulatorLauncher
 
             string args = string.Join(" ", commandArray);
 
-            SetupConfiguration(path, system, rom, resolution, fullscreen);
+            SetupConfiguration(path, system, rom, resolution, fullscreen, mbz);
 
             return new ProcessStartInfo()
             {
@@ -116,7 +118,7 @@ namespace EmulatorLauncher
         }
 
         //Configuration file in json format "BigPEmuConfig.bigpcfg"
-        private void SetupConfiguration(string path, string system, string rom, ScreenResolution resolution = null, bool fullscreen = false)
+        private void SetupConfiguration(string path, string system, string rom, ScreenResolution resolution = null, bool fullscreen = false, bool mbz = false)
         {
             //open userdata config file
             string folder = Path.Combine(path, "userdata");
@@ -196,7 +198,9 @@ namespace EmulatorLauncher
                 BindFeature(video, "ScreenScaling", "bigpemu_scaling", "5");
 
                 // Allow use of internal effects if shaders are set to none
-                if (SystemConfig["shaderset"] == "none" && SystemConfig.isOptSet("bigpemu_shader") && !string.IsNullOrEmpty(SystemConfig["bigpemu_shader"]))
+                if (mbz)
+                    bigpemucore["ScreenEffect"] = SystemConfig["shader"];
+                else if (SystemConfig["shaderset"] == "none" && SystemConfig.isOptSet("bigpemu_shader") && !string.IsNullOrEmpty(SystemConfig["bigpemu_shader"]))
                     bigpemucore["ScreenEffect"] = SystemConfig["bigpemu_shader"];
                 else
                     bigpemucore["ScreenEffect"] = "";

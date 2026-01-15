@@ -1,11 +1,11 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
 using Newtonsoft.Json;
-using System.Linq;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {

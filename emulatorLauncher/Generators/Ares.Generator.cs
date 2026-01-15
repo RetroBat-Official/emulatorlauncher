@@ -2,6 +2,7 @@
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.PadToKeyboard;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -145,6 +146,7 @@ namespace EmulatorLauncher
             // Set driver for input
             var input = bml.GetOrCreateContainer("Input");
             input["Driver"] = "SDL";
+            input["Defocus"] = "Pause";
 
             // Video
             var video = bml.GetOrCreateContainer("Video");
@@ -488,6 +490,17 @@ namespace EmulatorLauncher
             }
 
             return ret;
+        }
+
+        public override void Cleanup()
+        {
+            try
+            {
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", null, EnvironmentVariableTarget.User);
+            }
+            catch { }
+
+            base.Cleanup();
         }
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)

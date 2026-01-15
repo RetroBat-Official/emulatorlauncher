@@ -162,12 +162,14 @@ namespace EmulatorLauncher
 
                 if (p != null)
                 {
+                    ini.WriteValue(profileSection, "Pause when inactive", "1");
+
                     profileSection = "User\\Software\\virtualdub.org\\Altirra\\Profiles\\" + p.ProfileSectionCode;
                     ini.WriteValue(profileSection, "_Name", "\"" + p.Name + "\"");
                     ini.WriteValue(profileSection, "_Visible", "1");
                     ini.WriteValue(profileSection, "_Category Mask", "\"hardware,firmware\"");
                     ini.WriteValue(profileSection, "_Saved Category Mask", "\"hardware,firmware\"");
-
+                    
                     if (SystemConfig.isOptSet("altirra_kernel") && SystemConfig["altirra_kernel"] == "internal")
                         ini.WriteValue(profileSection, "Kernel path", p.InternalKernel);
 

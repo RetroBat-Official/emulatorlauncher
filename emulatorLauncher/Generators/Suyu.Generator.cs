@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 
 namespace EmulatorLauncher
 {
@@ -98,6 +99,10 @@ namespace EmulatorLauncher
 
             // Restore value for Paths\\gamedirs\\size
             // As it's faster to launch a suyu game when there's no folder set            
+            if (!_norawinput)
+            {
+                try { Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", null, EnvironmentVariableTarget.User); } catch { }
+            }
 
             if (string.IsNullOrEmpty(_gamedirsIniPath) || string.IsNullOrEmpty(_gamedirsSize))
                 return;
