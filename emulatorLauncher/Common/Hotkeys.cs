@@ -162,7 +162,7 @@ namespace EmulatorLauncher
 
                                     // Replace menu_toggle by input_pause_toggle if menu_toggle is not supported by the emulator
                                     if (hotkey.Value == "menu_toggle" && !emuHotkey.EmulatorHotkeys.Any(h => h.RetroArchHK == "input_menu_toggle"))
-                                        hotkey.Value = "input_pause_toggle";
+                                        hotkey.Value = "pause_toggle";
 
                                     string key = hotkey.Value;
                                     string value = hotkey.Name;

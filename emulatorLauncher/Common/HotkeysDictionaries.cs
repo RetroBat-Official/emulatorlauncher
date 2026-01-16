@@ -231,6 +231,116 @@ namespace EmulatorLauncher
             { "ralt", "RightAlt" }
         };
 
+        private static readonly Dictionary<string, string> DolphinKeys = new Dictionary<string, string>()
+        {
+            { "a", "A" },
+            { "b", "B" },
+            { "c", "C" },
+            { "d", "D" },
+            { "e", "E" },
+            { "f", "F" },
+            { "g", "G" },
+            { "h", "H" },
+            { "i", "I" },
+            { "j", "J" },
+            { "k", "K" },
+            { "l", "L" },
+            { "m", "M" },
+            { "n", "N" },
+            { "o", "O" },
+            { "p", "P" },
+            { "q", "Q" },
+            { "r", "R" },
+            { "s", "S" },
+            { "t", "T" },
+            { "u", "U" },
+            { "v", "V" },
+            { "w", "W" },
+            { "x", "X" },
+            { "y", "Y" },
+            { "z", "Z" },
+            { "num1", "1" },
+            { "num2", "2" },
+            { "num3", "3" },
+            { "num4", "4" },
+            { "num5", "5" },
+            { "num6", "6" },
+            { "num7", "7" },
+            { "num8", "8" },
+            { "num9", "9" },
+            { "num0", "0" },
+            { "return", "ENTER" },
+            { "escape", "ESCAPE" },
+            { "backspace", "BACK" },
+            { "tab", "TAB" },
+            { "space", "SPACE" },
+            { "minus", "MINUS" },
+            { "equals", "EQUALS" },
+            { "leftbracket", "LBRACKET" },
+            { "rightbracket", "RBRACKET" },
+            { "backslash", "BACKSLASH" },
+            { "semicolon", "SEMICOLON" },
+            { "quote", "APOSTROPHE" },
+            { "backquote", "GRAVE" },
+            { "comma", "COMMA" },
+            { "period", "PERIOD" },
+            { "slash", "SLASH" },
+            { "capslock", "CAPITAL" },
+            { "f1", "F1" },
+            { "f2", "F2" },
+            { "f3", "F3" },
+            { "f4", "F4" },
+            { "f5", "F5" },
+            { "f6", "F6" },
+            { "f7", "F7" },
+            { "f8", "F8" },
+            { "f9", "F9" },
+            { "f10", "F10" },
+            { "f11", "F11" },
+            { "f12", "F12" },
+            { "scrolllock", "SCROLL" },
+            { "pause", "PAUSE" },
+            { "insert", "INSERT" },
+            { "home", "HOME" },
+            { "pageup", "PRIOR" },
+            { "delete", "DELETE" },
+            { "end", "END" },
+            { "pagedown", "NEXT" },
+            { "right", "RIGHT" },
+            { "left", "LEFT" },
+            { "down", "DOWN" },
+            { "up", "UP" },
+            { "numlockclear", "NUMLOCK" },
+            { "divide", "DIVIDE" },
+            { "multiply", "MULTIPLY" },
+            { "subtract", "SUBTRACT" },
+            { "add", "ADD" },
+            { "enter", "NUMPADENTER" },
+            { "keypad1", "NUMPAD1" },
+            { "keypad2", "NUMPAD2" },
+            { "keypad3", "NUMPAD3" },
+            { "keypad4", "NUMPAD4" },
+            { "keypad5", "NUMPAD5" },
+            { "keypad6", "NUMPAD6" },
+            { "keypad7", "NUMPAD7" },
+            { "keypad8", "NUMPAD8" },
+            { "keypad9", "NUMPAD9" },
+            { "keypad10", "NUMPAD10" },
+            { "keypad11", "NUMPAD11" },
+            { "keypad12", "NUMPAD12" },
+            { "keypad0", "NUMPAD0" },
+            { "point", "DECIMAL" },
+            { "f13", "F13" },
+            { "f14", "F14" },
+            { "f15", "F15" },
+            { "ctrl", "LCONTROL" },
+            { "shift", "LSHIFT" },
+            { "alt", "LMENU" },
+            { "rctrl", "RCONTROL" },
+            { "rshift", "RSHIFT" },
+            { "ralt", "RMENU" }
+        };
+
         private static readonly Dictionary<string, string> sdlKeyCodeEnum = new Dictionary<string, string>()
         {
             { "escape", "0x1B" },
@@ -480,6 +590,7 @@ namespace EmulatorLauncher
             { "ares", "ares" },
             { "bigpemu", "BigPEmu" },
             { "bizhawk", "EmuHawk" },
+            { "dolphin", "Dolphin" },
             { "flycast", "flycast" },
             { "retroarch", "retroarch" },
         };
@@ -489,6 +600,7 @@ namespace EmulatorLauncher
             { "ares", AresKeyEnum },
             { "bigpemu", sdlKeyCodeEnum },
             { "bizhawk", bizhawkKeys },
+            { "dolphin", DolphinKeys },
             { "flycast", sdlKeycodeToHID }
         };
 
@@ -562,8 +674,25 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_screenshot", "Screenshot", "F8"),               // F8
                     new EmulatorHotkeyInfo("input_state_slot_decrease", "Previous Slot", "F6"),   // F6
                     new EmulatorHotkeyInfo("input_state_slot_increase", "Next Slot", "F7"),       // F7
-                    new EmulatorHotkeyInfo("input_exit_emulator", "Exit Program", "Escape"),      // Escape
-                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "Full Screen", "F")         // F
+                    new EmulatorHotkeyInfo("input_exit_emulator", "Exit Program", "Escape"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "Full Screen", "F")
+                }),
+
+            new EmulatorHotkey("dolphin", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_pause_toggle", "General/Toggle Pause", "P"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "Emulation Speed/Increase Emulation Speed", "L"),
+                    new EmulatorHotkeyInfo("input_rewind", "Emulation Speed/Decrease Emulation Speed", "Backspace"),
+                    new EmulatorHotkeyInfo("input_save_state", "Save State/Save to Selected Slot", "F2"),
+                    new EmulatorHotkeyInfo("input_load_state", "Load State/Load from Selected Slot", "F4"),
+                    new EmulatorHotkeyInfo("input_screenshot", "General/Take Screenshot", "F8"),
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "Other State Hotkeys/Decrease Selected State Slot", "F6"),
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "Other State Hotkeys/Increase Selected State Slot", "F7"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "General/Exit", "Escape"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "General/Toggle Fullscreen", "F"),
+                    new EmulatorHotkeyInfo("input_disk_prev", "General/Change Disc", "F9"),
+                    new EmulatorHotkeyInfo("input_disk_eject_toggle", "General/Eject Disc", "F11"),
+                    new EmulatorHotkeyInfo("input_frame_advance", "Frame Advance/Frame Advance", "K"),
                 }),
 
             new EmulatorHotkey("retroarch", new EmulatorHotkeyInfo[]
@@ -583,7 +712,10 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_pause_toggle", "input_pause_toggle", "p"),
                     new EmulatorHotkeyInfo("input_exit_emulator", "input_exit_emulator", "escape"),
                     new EmulatorHotkeyInfo("input_shader_next", "input_shader_next", "m"),
-                    new EmulatorHotkeyInfo("input_shader_prev", "input_shader_prev", "n")
+                    new EmulatorHotkeyInfo("input_shader_prev", "input_shader_prev", "n"),
+                    new EmulatorHotkeyInfo("input_disk_prev", "input_disk_prev", "f9"),
+                    new EmulatorHotkeyInfo("input_disk_next", "input_disk_next", "f10"),
+                    new EmulatorHotkeyInfo("input_disk_eject_toggle", "input_disk_eject_toggle", "f11")
                 }),
 
             new EmulatorHotkey("flycast", new EmulatorHotkeyInfo[]

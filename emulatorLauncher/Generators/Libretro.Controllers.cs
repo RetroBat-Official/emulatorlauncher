@@ -202,6 +202,8 @@ namespace EmulatorLauncher.Libretro
             config["input_hold_fast_forward"] = "l";
             config["input_shader_next"] = "m";
             config["input_shader_prev"] = "n";
+            config["input_disk_prev"] = "f9";
+            config["input_disk_next"] = "f10";
             config["input_bind_hold"] = "2";
             config["input_bind_timeout"] = "5";
         }

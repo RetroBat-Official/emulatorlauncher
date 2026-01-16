@@ -235,9 +235,15 @@ namespace EmulatorLauncher
                 }
 
                 try { Directory.Delete(GetUnCompressedFolderPath()); }
-                catch { }                
+                catch { }
 
                 _unzip = null;
+            }
+
+            if (File.Exists(Path.Combine(Path.GetTempPath(), "padToKey.xml")))
+            {
+                try { File.Delete(Path.Combine(Path.GetTempPath(), "padToKey.xml")); }
+                catch { }
             }
         }
         
