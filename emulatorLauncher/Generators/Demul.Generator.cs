@@ -206,7 +206,7 @@ namespace EmulatorLauncher
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     ini.WriteValue("main", "UseFullscreen", _isUsingReshader ? "1" : "0");
-                    BindBoolIniFeatureOn(ini, "main", "Vsync", "VSync", "1", "0");
+                    //BindBoolIniFeatureOn(ini, "main", "Vsync", "VSync", "1", "0");
                     ini.WriteValue("resolution", "Width", resolution.Width.ToString());
                     ini.WriteValue("resolution", "Height", resolution.Height.ToString());
                     BindIniFeature(ini, "main", "scaling", "internal_resolution", "1");

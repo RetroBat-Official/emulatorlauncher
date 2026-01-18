@@ -421,7 +421,7 @@ namespace EmulatorLauncher
             string pakSubPath = pakFile[0];
             string game = pakSubPath.Split('\\')[0];
 
-            string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "doom3", "dhewm3", game);
+            string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "doom3", "dhewm3");
             if (!Directory.Exists(savesPath))
                 try { Directory.CreateDirectory(savesPath); } catch { }
 

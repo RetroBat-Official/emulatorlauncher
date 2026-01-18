@@ -180,7 +180,10 @@ namespace EmulatorLauncher
         private void ConfigureInput(string path, IniFile ini, string rom)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("Controller autoconfiguration disabled.");
                 return;
+            }
 
             if (!Controllers.Any(c => c.IsXInputDevice) && SystemConfig["m2_joystick_driver"] != "xinput")
             {

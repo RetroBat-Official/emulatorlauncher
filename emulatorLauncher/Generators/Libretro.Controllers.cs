@@ -153,24 +153,6 @@ namespace EmulatorLauncher.Libretro
             { InputKey.right, "hold_fast_forward"}
         };
 
-        static public Dictionary<InputKey, string> retroarchspecialsALT = new Dictionary<InputKey, string>()
-        {
-            { InputKey.start, "exit_emulator"},
-            // { InputKey.b, "pause_toggle"},
-            { InputKey.a, "state_slot_decrease"},
-            { InputKey.x, "menu_toggle"},
-            { InputKey.y, "state_slot_increase"},
-            { InputKey.pageup, "load_state"},
-            { InputKey.pagedown, "save_state"},
-            { InputKey.l2, "rewind"},
-            { InputKey.r2, "hold_fast_forward"},
-            { InputKey.r3, "screenshot"},
-            { InputKey.up, "ai_service"},
-            { InputKey.down, "disk_eject_toggle"},
-            { InputKey.left, "disk_prev"},
-            { InputKey.right, "disk_next"}
-        };
-
         private static void CleanControllerConfig(ConfigFile retroconfig)
         {
             retroconfig.DisableAll("input_player");
@@ -220,6 +202,8 @@ namespace EmulatorLauncher.Libretro
             config["input_hold_fast_forward"] = "l";
             config["input_shader_next"] = "m";
             config["input_shader_prev"] = "n";
+            config["input_disk_prev"] = "f9";
+            config["input_disk_next"] = "f10";
             config["input_bind_hold"] = "2";
             config["input_bind_timeout"] = "5";
         }

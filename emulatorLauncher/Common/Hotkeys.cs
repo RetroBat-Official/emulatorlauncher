@@ -10,6 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using System.Windows.Forms;
+using System.Windows.Input;
 using System.Xml.Linq;
 
 namespace EmulatorLauncher
@@ -22,7 +24,7 @@ namespace EmulatorLauncher
         /// <param name="emulator"></param>
         /// <param name="core"></param>
         /// <param name="hotkeys"></param>
-        public static bool GetHotKeysFromFile(string emulator, string core, out Dictionary<string, HotkeyResult> hotkeys)
+        public static bool GetHotKeysFromFile(string emulator, string core, out Dictionary<string, HotkeyResult> hotkeys, string exeName = null)
         {
             hotkeys = new Dictionary<string, HotkeyResult>();
             
@@ -94,7 +96,7 @@ namespace EmulatorLauncher
 
                 if (hotkeys.Count > 0)
                 {
-                    WriteXMLPad2KeyFile(emulator, core, hotkeys);
+                    WriteXMLPad2KeyFile(emulator, core, hotkeys, exeName);
                     return true;
                 }
                 
@@ -162,7 +164,7 @@ namespace EmulatorLauncher
 
                                     // Replace menu_toggle by input_pause_toggle if menu_toggle is not supported by the emulator
                                     if (hotkey.Value == "menu_toggle" && !emuHotkey.EmulatorHotkeys.Any(h => h.RetroArchHK == "input_menu_toggle"))
-                                        hotkey.Value = "input_pause_toggle";
+                                        hotkey.Value = "pause_toggle";
 
                                     string key = hotkey.Value;
                                     string value = hotkey.Name;
@@ -190,7 +192,7 @@ namespace EmulatorLauncher
             return false;
         }
 
-        private static void WriteXMLPad2KeyFile(string emulator, string core, Dictionary<string, HotkeyResult> hotkeys)
+        private static void WriteXMLPad2KeyFile(string emulator, string core, Dictionary<string, HotkeyResult> hotkeys, string exeName)
         {
             try
             {
@@ -204,6 +206,9 @@ namespace EmulatorLauncher
                 var app = new XElement("app", new XAttribute("name", emulator));
                 if (emulatorAppName.ContainsKey(emulator))
                     app.SetAttributeValue("name", emulatorAppName[emulator]);
+                if (!string.IsNullOrEmpty(exeName))
+                    app.SetAttributeValue("name", exeName);
+
                 root.Add(app);
 
                 void AddInput(XElement appElement, string name, string code)
@@ -212,6 +217,16 @@ namespace EmulatorLauncher
                         new XElement("input",
                             new XAttribute("name", name),
                             new XAttribute("code", code)
+                        )
+                    );
+                }
+
+                void AddKey(XElement appElement, string name, string code)
+                {
+                    appElement.Add(
+                        new XElement("input",
+                            new XAttribute("name", name),
+                            new XAttribute("key", code)
                         )
                     );
                 }
@@ -225,6 +240,10 @@ namespace EmulatorLauncher
                     string orgKey = mapping.Key;
                     if (replaceMenuWithPause && orgKey == "input_pause_toggle")
                         orgKey = "input_menu_toggle";
+
+                    if (Program.SystemConfig.getOptBoolean("fastforward_toggle") && orgKey == "input_hold_fast_forward" && hotkeys.Any(h => h.Key == "input_toggle_fast_forward"))
+                        continue;
+
                     if (padHotkey.ContainsKey(orgKey))
                     {
                         string padInput = "hotkey " + padHotkey[orgKey];
@@ -238,6 +257,17 @@ namespace EmulatorLauncher
 
                         AddInput(app, padInput, key);
                     }
+                }
+
+                if (!hotkeys.Any(h => h.Key == "input_exit_emulator"))
+                {
+                    AddKey(app, "hotkey start", "(%{CLOSE})");
+                }
+
+                if (emulator == "melonds")
+                {
+                    AddInput(app, "hotkey x", "KEY_F1");
+                    AddKey(app, "hotkey y", "(+{F1})");
                 }
 
                 string path = Path.Combine(Path.GetTempPath(), "padToKey.xml");
@@ -258,6 +288,7 @@ namespace EmulatorLauncher
             try
             {
                 string file = emulator + "_controller_hotkeys.yml";
+                var emuHotkey = GetEmulatorHotkey(emulator);
 
                 string cHotkeyFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "user", "inputmapping", file);
 
@@ -295,6 +326,12 @@ namespace EmulatorLauncher
                                     string key = hotkey.Value;
                                     string value = hotkey.Name;
                                     string dicKey = "input_" + key;
+
+                                    if (Program.SystemConfig.getOptBoolean("fastforward_toggle") && dicKey == "input_hold_fast_forward" && emuHotkey.EmulatorHotkeys.Any(h => h.RetroArchHK == "input_toggle_fast_forward"))
+                                    {
+                                        dicKey = "input_toggle_fast_forward";
+                                    }
+
                                     padHKDic.Add(dicKey, value);
                                 }
                                 return true;

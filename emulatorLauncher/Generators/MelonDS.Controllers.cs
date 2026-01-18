@@ -18,6 +18,7 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                WriteKeyboardHotkeys(ini);
                 return;
             }
 
@@ -47,7 +48,7 @@ namespace EmulatorLauncher
             if (ctrl == null || ctrl.Config == null)
                 return;
 
-            foreach (string x in hotkeys)
+            foreach (string x in hotkeysList)
                 ini.WriteValue("Instance0.Joystick", x, "-1");
 
             bool xbox = SystemConfig.getOptBoolean("xbox_layout");
@@ -158,32 +159,44 @@ namespace EmulatorLauncher
 
         private void WriteKeyboardHotkeys(IniFile ini)
         {
-            foreach (string x in hotkeys)
+            foreach (string x in hotkeysList)
                 ini.WriteValue("Instance0.Keyboard", x, "-1");
 
-            ini.WriteValue("Instance0.Keyboard", "HK_Pause", "16777273");
-            ini.WriteValue("Instance0.Keyboard", "HK_FullscreenToggle", "16777217");
+            bool custoHK = Hotkeys.GetHotKeysFromFile("melonds", "", out Dictionary<string, HotkeyResult> hotkeys);
 
-            if (SystemConfig.isOptSet("fastforward_toggle") && SystemConfig.getOptBoolean("fastforward_toggle"))
+            if (custoHK)
             {
-                ini.WriteValue("Instance0.Keyboard", "HK_FastForwardToggle", "16777275");
-                ini.WriteValue("Instance0.Keyboard", "HK_FastForward", "-1");
+                foreach (var hk in hotkeys)
+                {
+                    string key = hk.Value.EmulatorKey;
+                    string value = hk.Value.EmulatorValue;
+
+                    if (key == "HK_SlowMo" && SystemConfig.isOptSet("slowmo_toggle") && SystemConfig.getOptBoolean("slowmo_toggle"))
+                        key = "HK_SlowMoToggle";
+                    
+                    ini.WriteValue("Instance0.Keyboard", key, value);
+                }
+                return;
             }
+
             else
             {
-                ini.WriteValue("Instance0.Keyboard", "HK_FastForward", "16777275");
-                ini.WriteValue("Instance0.Keyboard", "HK_FastForwardToggle", "-1");
-            }
+                ini.WriteValue("Instance0.Keyboard", "HK_Pause", "80");
+                ini.WriteValue("Instance0.Keyboard", "HK_FullscreenToggle", "70");
+                ini.WriteValue("Instance0.Keyboard", "HK_FastForwardToggle", "32");
+                ini.WriteValue("Instance0.Keyboard", "HK_FastForward", "76");
+                ini.WriteValue("Instance0.Keyboard", "HK_FrameStep", "75");
 
-            if (SystemConfig.isOptSet("slowmo_toggle") && SystemConfig.getOptBoolean("slowmo_toggle"))
-            {
-                ini.WriteValue("Instance0.Keyboard", "HK_SlowMoToggle", "16777274");
-                ini.WriteValue("Instance0.Keyboard", "HK_SlowMo", "-1");
-            }
-            else
-            {
-                ini.WriteValue("Instance0.Keyboard", "HK_SlowMo", "16777274");
-                ini.WriteValue("Instance0.Keyboard", "HK_SlowMoToggle", "-1");
+                if (SystemConfig.isOptSet("slowmo_toggle") && SystemConfig.getOptBoolean("slowmo_toggle"))
+                {
+                    ini.WriteValue("Instance0.Keyboard", "HK_SlowMoToggle", "16777219");
+                    ini.WriteValue("Instance0.Keyboard", "HK_SlowMo", "-1");
+                }
+                else
+                {
+                    ini.WriteValue("Instance0.Keyboard", "HK_SlowMo", "16777219");
+                    ini.WriteValue("Instance0.Keyboard", "HK_SlowMoToggle", "-1");
+                }
             }
         }
 
@@ -329,7 +342,7 @@ namespace EmulatorLauncher
             return "-1";
         }
 
-        private static List<string> hotkeys = new List<string>
+        private static List<string> hotkeysList = new List<string>
         {
             "HK_Lid",
             "HK_FrameStep",

@@ -264,18 +264,21 @@ namespace EmulatorLauncher
 
         private Dictionary<string, string> hotkeys = new Dictionary<string, string>()
         {
-            { "OpenSettings", "F10" },
-            { "PauseResume", "F6" },
-            { "Rewind", "F4" },
-            { "ToggleFullScreen", "Alt+Return" },
-            { "TurboSpeed", "F5" },
-            { "TakeScreenshot", "F7" },
-            { "ExitApp", "Ctrl+F12" }
+            { "OpenSettings", "F1" },
+            { "PauseResume", "P" },
+            { "Rewind", "Backspace" },
+            { "ToggleFullScreen", "F" },
+            { "TurboSpeed", "Spacebar" },
+            { "TurboSpeedHold", "L" },
+            { "TakeScreenshot", "F8" },
+            { "ExitApp", "Ctrl+Q" },
+            { "ToggleRewindBuffer", "Ctrl+Backspace" },
+
         };
 
         private Dictionary<string, string> stateKeys = new Dictionary<string, string>()
         {
-            { "QuickLoadState", "F3" },
+            { "QuickLoadState", "F4" },
             { "QuickSaveState", "F2" }
         };
 

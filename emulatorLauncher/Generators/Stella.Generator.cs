@@ -1,8 +1,15 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
 using System.Data.SQLite;
-using EmulatorLauncher.Common;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Xml.Linq;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
 
 namespace EmulatorLauncher
 {
@@ -120,9 +127,68 @@ namespace EmulatorLauncher
                     }
 
                     CreateControllerConfiguration(db);
+                    //ConfigureHotkeys(db);
 
                     db.Close();
                 }
+            }
+        }
+
+        private void ConfigureHotkeys(SQLiteConnection db)
+        {
+            string jsonS;
+
+            try
+            {
+                using (var cmd = db.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT value FROM settings WHERE setting = 'keymap_emu'";
+                    jsonS = cmd.ExecuteScalar() as string;
+
+                    if (string.IsNullOrWhiteSpace(jsonS))
+                        return;
+
+                    JArray hkArray = JArray.Parse(jsonS);
+
+                    if (hkArray == null)
+                        return;
+
+                    //updateArrayElement(hkArray, "OptionsMenuMode", "f1");
+
+                    string jsonString = hkArray.ToString();
+                    
+                    ForceStellaSetting(db, "keymap_emu", jsonString);
+                }
+            }
+            catch
+            {
+                jsonS = null;
+            }
+
+            if (string.IsNullOrWhiteSpace(jsonS))
+                return;
+        }
+
+        private void updateArrayElement (JArray hkArray, string eventName, string keyCode)
+        {
+            var hktoDelete = hkArray.Where(a => a["key"] != null && a["key"].ToString() == keyCode && (a["mod"] == null || a["mod"].ToString() == "")).ToList();
+            foreach (var hk in hktoDelete)
+                hk["key"] = "";
+
+            var hkItem = hkArray.FirstOrDefault(a => a["event"] != null && a["event"].ToString() == eventName);
+            if (hkItem != null)
+            {
+                hkItem["key"] = keyCode;
+                hkItem["mod"] = null;
+            }
+            else
+            {
+                JObject newHk = new JObject
+                {
+                    { "event", eventName },
+                    { "key", keyCode }
+                };
+                hkArray.Add(newHk);
             }
         }
 

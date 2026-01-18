@@ -505,7 +505,7 @@ namespace EmulatorLauncher
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
-            if (_pad2Keyoverride)
+            if (_pad2Keyoverride && File.Exists(Path.Combine(Path.GetTempPath(), "padToKey.xml")))
             {
                 mapping = PadToKey.Load(Path.Combine(Path.GetTempPath(), "padToKey.xml"));
             }

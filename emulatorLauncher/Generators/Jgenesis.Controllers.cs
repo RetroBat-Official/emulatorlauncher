@@ -17,6 +17,7 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                WriteKBHotkeys(ini);
                 return;
             }
 
@@ -280,17 +281,36 @@ namespace EmulatorLauncher
 
         private void WriteKBHotkeys(IniFileJGenesis ini)
         {
-            ini.DeleteSection("[[input.hotkeys.mapping_1.exit]]");
-            ini.DeleteSection("[[input.hotkeys.mapping_1.toggle_overclocking]]");
-
-            foreach (var hotkey in hotkeys)
+            try
             {
-                ini.WriteValue("[[input.hotkeys.mapping_1." + hotkey.Key + "]]", "type", "\"" + "Keyboard" + "\"");
-                ini.WriteValue("[[input.hotkeys.mapping_1." + hotkey.Key + "]]", "key", "\"" + hotkey.Value + "\"");
-                ini.DeleteSection("[[input.hotkeys.mapping_2." + hotkey.Key + "]]");
-            }
+                ini.DeleteSection("[[input.hotkeys.mapping_1.exit]]");
+                ini.DeleteSection("[[input.hotkeys.mapping_1.toggle_overclocking]]");
 
-            ini.WriteValue("input.hotkeys.mapping_2", "", null);
+                bool custoHK = Hotkeys.GetHotKeysFromFile("jgenesis", "", out Dictionary<string, HotkeyResult> hotkeys, _exeName);
+
+                if (custoHK)
+                {
+                    foreach (var hotkey in hotkeys)
+                    {
+                        ini.WriteValue("[[input.hotkeys.mapping_1." + hotkey.Value.EmulatorKey + "]]", "type", "\"" + "Keyboard" + "\"");
+                        ini.WriteValue("[[input.hotkeys.mapping_1." + hotkey.Value.EmulatorKey + "]]", "key", "\"" + hotkey.Value.EmulatorValue + "\"");
+                        ini.DeleteSection("[[input.hotkeys.mapping_2." + hotkey.Key + "]]");
+                    }
+                }
+
+                else
+                {
+                    foreach (var hotkey in defaultHotkeys)
+                    {
+                        ini.WriteValue("[[input.hotkeys.mapping_1." + hotkey.Key + "]]", "type", "\"" + "Keyboard" + "\"");
+                        ini.WriteValue("[[input.hotkeys.mapping_1." + hotkey.Key + "]]", "key", "\"" + hotkey.Value + "\"");
+                        ini.DeleteSection("[[input.hotkeys.mapping_2." + hotkey.Key + "]]");
+                    }
+                }
+
+                ini.WriteValue("input.hotkeys.mapping_2", "", null);
+            }
+            catch { }
         }
 
         private void CleanupControls(IniFileJGenesis ini, string jgenSystem)
@@ -428,20 +448,20 @@ namespace EmulatorLauncher
             { "select", InputKey.select }
         };
 
-        static readonly Dictionary<string, string> hotkeys = new Dictionary<string, string>()
+        static readonly Dictionary<string, string> defaultHotkeys = new Dictionary<string, string>()
         {
             { "exit", "Escape" },
-            { "toggle_fullscreen", "Tab" },
-            { "save_state", "F1" },
-            { "load_state", "F2" },
-            { "next_save_state_slot", "F4" },
-            { "prev_save_state_slot", "F3" },
+            { "toggle_fullscreen", "F" },
+            { "save_state", "F2" },
+            { "load_state", "F4" },
+            { "next_save_state_slot", "F7" },
+            { "prev_save_state_slot", "F6" },
             { "soft_reset", "F8" },
             { "hard_reset", "F9" },
-            { "pause", "F5" },
-            { "step_frame", "F10" },
-            { "fast_forward", "F7" },
-            { "rewind", "F6" },
+            { "pause", "P" },
+            { "step_frame", "K" },
+            { "fast_forward", "L" },
+            { "rewind", "Backspace" },
             { "open_debugger", "F11" }
         };
 

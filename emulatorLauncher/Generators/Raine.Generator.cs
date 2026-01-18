@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.PadToKeyboard;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 
 namespace EmulatorLauncher
 {
@@ -142,6 +143,16 @@ namespace EmulatorLauncher
                 }
             }
             catch { }
+        }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_pad2Keyoverride && File.Exists(Path.Combine(Path.GetTempPath(), "padToKey.xml")))
+            {
+                mapping = PadToKey.Load(Path.Combine(Path.GetTempPath(), "padToKey.xml"));
+            }
+
+            return mapping;
         }
 
         public override int RunAndWait(ProcessStartInfo path)

@@ -88,23 +88,7 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls\\Win", "Input:Background", "OFF");
             ini.WriteValue("Controls\\Win", "Input:BackgroundKeyHotkeys", "ON");
 
-            // Hotkeys
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:SlotSave", "F5");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:SlotSave", "none");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:SlotLoad", "F6");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:SlotLoad", "none");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:SlotPlus", "F4");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:SlotPlus", "none");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:SlotMinus", "F3");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:SlotMinus", "none");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:SaveScreenShot", "F12");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:SaveScreenShot", "none");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:Rewind", "F7");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:Rewind", "none");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:FastForward", "F8");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:FastForward", "none");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:Pause", "F9");
-            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:Pause", "none");
+            ConfigureHotkeys(ini);
         }
 
         private void ConfigureInput(IniFile ini, Controller controller)
@@ -406,6 +390,64 @@ namespace EmulatorLauncher
             }
 
             return "Unassigned";
+        }
+
+        private void ConfigureHotkeys(IniFile ini)
+        {
+            // First force hotkeys with modifiers
+            for (int i = 1; i < 11; i++)
+            {
+                if (i == 10)
+                {
+                    string value = "F10";
+                    ini.WriteValue("Controls\\Win\\Hotkeys", "Key:SaveSlot0", value);
+                    ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:SaveSlot0", "Shift");
+                    ini.WriteValue("Controls\\Win\\Hotkeys", "Key:LoadSlot0", value);
+                    ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:LoadSlot0", "Ctrl");
+                }
+                else
+                {
+                    string value = "F" + i.ToString();
+                    ini.WriteValue("Controls\\Win\\Hotkeys", "Key:SaveSlot" + i.ToString(), value);
+                    ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:SaveSlot" + i.ToString(), "Shift");
+                    ini.WriteValue("Controls\\Win\\Hotkeys", "Key:LoadSlot" + i.ToString(), value);
+                    ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:LoadSlot" + i.ToString(), "Ctrl");
+                }
+            }
+
+            if (Hotkeys.GetHotKeysFromFile("snes9x", "", out Dictionary<string, HotkeyResult> hotkeys))
+            {
+                foreach (var h in hotkeys)
+                {
+                    string key = "Key:" + h.Value.EmulatorKey;
+                    string modKey = "Mods:" + h.Value.EmulatorKey;
+
+                    ini.WriteValue("Controls\\Win\\Hotkeys", key, h.Value.EmulatorValue);
+                    ini.WriteValue("Controls\\Win\\Hotkeys", modKey, "none");
+                }
+
+                _pad2Keyoverride = true;
+                return;
+            }
+
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:SlotSave", "F2");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:SlotSave", "none");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:SlotLoad", "F4");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:SlotLoad", "none");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:SlotPlus", "F7");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:SlotPlus", "none");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:SlotMinus", "F6");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:SlotMinus", "none");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:SaveScreenShot", "F8");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:SaveScreenShot", "none");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:Rewind", "Backspace");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:Rewind", "none");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:FastForward", "L");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:FastForward", "none");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:Pause", "P");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:Pause", "none");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Key:FrameAdvance", "K");
+            ini.WriteValue("Controls\\Win\\Hotkeys", "Mods:FrameAdvance", "none");
         }
     }
 }

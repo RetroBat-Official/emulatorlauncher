@@ -1204,6 +1204,8 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "dolphin_enable_rumble", "dolphin_enable_rumble", "enabled", "disabled");
             BindBoolFeature(coreSettings, "dolphin_osd_enabled", "dolphin_osd_enabled", "enabled", "disabled");
             BindBoolFeature(coreSettings, "dolphin_cheats_enabled", "dolphin_cheats_enabled", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_fast_texture_sampling", "manual_texture_sampling", "disabled", "enabled");
+
             if (SystemConfig.getOptBoolean("dolphin_cheats_enabled"))
             {
                 DolphinSyncCheats(system);

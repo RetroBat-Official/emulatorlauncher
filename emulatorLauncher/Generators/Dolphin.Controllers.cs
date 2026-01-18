@@ -182,17 +182,36 @@ namespace EmulatorLauncher
                         deviceName = newName;
                 }
 
-                var ssss = "@(" + (GetSDLMappingName(c1, InputKey.hotkey) ?? "") + "&" + (GetSDLMappingName(c1, InputKey.y) ?? "") + ")";
-
-                ini.WriteValue("Hotkeys", "Load State/Load State Slot 1", "F1");
-                ini.WriteValue("Hotkeys", "Save State/Save State Slot 1", "@(Shift+F1)");
-
-                if (c1.Config.Type != "keyboard")
+                if (c1.Config.Type != "keyboard") // Controller + Keyboard
                 {
+                    Dictionary<string, string> padHKMapping = new Dictionary<string, string>()
+                    {
+                        { "General/Exit", "start" },
+                        { "General/Toggle Pause", "a" },
+                        { "General/Toggle Fullscreen", "l3" },
+                        { "Emulation Speed/Increase Emulation Speed", "right" },
+                        { "Emulation Speed/Decrease Emulation Speed", "left" },
+                        { "Save State/Save to Selected Slot", "y" },
+                        { "Load State/Load from Selected Slot", "x" },
+                        { "General/Take Screenshot", "r3" },
+                        { "Other State Hotkeys/Increase Selected State Slot", "up" },
+                        { "Other State Hotkeys/Decrease Selected State Slot", "down" },
+                        { "General/Eject Disc", "pageup" },
+                        { "General/Change Disc", "l2" },
+                    };
+
+                    if (Hotkeys.GetPadHKFromFile("dolphin", "", out var padHKDic))
+                    {
+                        SimpleLogger.Instance.Info("Applying pad hotkeys from override file...");
+                        padHKMapping = padHKDic;
+                    }
+
                     if (xinputAsSdl)
                         ini.WriteValue("Hotkeys", "Device", "SDL" + "/" + _p1sdlindex + "/" + deviceName);
                     else
                         ini.WriteValue("Hotkeys", "Device", tech + "/" + xIndex + "/" + deviceName);
+
+                    WriteKBHotkeys(ini, true);
 
                     if (tech == "SDL" && _triforcectrl)
                     {
@@ -214,151 +233,112 @@ namespace EmulatorLauncher
                             return axis + "`";
                         };
 
+                        // Get hotkey button text
                         var hkinput = c1.Config[InputKey.hotkey];
                         string hkvalue = "";
 
                         if (hkinput == null)
                             return;
 
+                        if (hkinput.Type == "button")
+                            hkvalue = "`Button " + hkinput.Id.ToString() + "`";
+
+                        else if (hkinput.Type == "axis")
+                            hkvalue = axisValue(hkinput, false);
+
                         try
                         {
-                            if (hkinput.Type == "button")
-                                hkvalue = "`Button " + hkinput.Id.ToString() + "`";
-
-                            else if (hkinput.Type == "axis")
-                                hkvalue = axisValue(hkinput, false);
-
-                            var hkeast = c1.GetSdlMapping(InputKey.b);
-                            var hksouth = c1.GetSdlMapping(InputKey.a);
-                            var hkstart = c1.GetSdlMapping(InputKey.start);
-                            var hkwest = c1.GetSdlMapping(InputKey.y);
-                            var hknorth = c1.GetSdlMapping(InputKey.x);
-                            var hkup = c1.GetSdlMapping(InputKey.up);
-                            var hkdown = c1.GetSdlMapping(InputKey.down);
-                            var hkleftbump = c1.GetSdlMapping(InputKey.pageup);
-                            var hkrightbump = c1.GetSdlMapping(InputKey.pagedown);
-
-                            if (xinputAsSdl)
-                                hkeast = c1.Config[InputKey.b];
-                                hksouth = c1.Config[InputKey.a];
-                                hkstart = c1.Config[InputKey.start];
-                                hkwest = c1.Config[InputKey.y];
-                                hknorth = c1.Config[InputKey.x];
-                                hkup = c1.Config[InputKey.up];
-                                hkdown = c1.Config[InputKey.down];
-                                hkleftbump = c1.Config[InputKey.pageup];
-                                hkrightbump = c1.Config[InputKey.pagedown];
-
-                            if (hkeast != null)
+                            // Loop through hotkeys
+                            foreach (var hk in padHKMapping)
                             {
-                                string hkvalueOther = "";
-                                if (hkeast.Type == "button")
-                                    hkvalueOther = "`Button " + hkeast.Id.ToString() + "`";
-                                else if (hkeast.Type == "axis")
-                                    hkvalueOther = axisValue(hkeast, false);
+                                string value = hk.Value;
 
-                                // ini.WriteValue("Hotkeys", "General/Toggle Pause", "@(" + hkvalue + "+" + hkvalueOther + ")");
-                                ini.WriteValue("Hotkeys", "General/Toggle Pause", "");
-                            }
+                                // Special case for screenshot to use same button as SaveState
+                                if (hk.Key == "General/Take Screenshot")
+                                {
+                                    if (padHKMapping.ContainsKey("Save State/Save to Selected Slot"))
+                                    {
+                                        value = padHKMapping["Save State/Save to Selected Slot"];
+                                    }
+                                }
 
-                            if (hksouth != null)
-                            {
-                                string hkvalueOther = "";
-                                if (hksouth.Type == "button")
-                                    hkvalueOther = "`Button " + hksouth.Id.ToString() + "`";
-                                else if (hksouth.Type == "axis")
-                                    hkvalueOther = axisValue(hksouth, false);
+                                // a and b reversed for dolphin
+                                if (value == "a")
+                                    value = "b";
 
-                                ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "@(" + hkvalue + "+" + hkvalueOther + ")");
-                            }
+                                if (!Enum.TryParse<InputKey>(value, ignoreCase: true, out var targetKey))
+                                    continue;
 
-                            if (hkstart != null)
-                            {
-                                string hkvalueOther = "";
-                                if (hkstart.Type == "button")
-                                    hkvalueOther = "`Button " + hkstart.Id.ToString() + "`";
-                                else if (hkstart.Type == "axis")
-                                    hkvalueOther = axisValue(hkstart, false);
+                                string kbKey = "";
+                                if (!string.IsNullOrEmpty(ini.GetValue("Hotkeys", hk.Key)))
+                                    kbKey = "|" + ini.GetValue("Hotkeys", hk.Key);
 
-                                ini.WriteValue("Hotkeys", "General/Exit", "@(" + hkvalue + "+" + hkvalueOther + ")");
-                            }
+                                var hkButton = xinputAsSdl ? c1.Config[targetKey] : c1.GetSdlMapping(targetKey);
 
-                            if (hkwest != null)
-                            {
-                                string hkvalueOther = "";
-                                if (hkwest.Type == "button")
-                                    hkvalueOther = "`Button " + hkwest.Id.ToString() + "`";
-                                else if (hkwest.Type == "axis")
-                                    hkvalueOther = axisValue(hkwest, false);
+                                if (hkButton != null)
+                                {
+                                    string hkvalueOther = "";
+                                    if (hkButton.Type == "button")
+                                        hkvalueOther = "`Button " + hkButton.Id.ToString() + "`";
+                                    else if (hkButton.Type == "axis")
+                                        hkvalueOther = axisValue(hkButton, false);
 
-                                ini.WriteValue("Hotkeys", "General/Take Screenshot", "@(" + hkvalue + "+" + hkvalueOther + ")");
-                                ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", "@(" + hkvalue + "+" + hkvalueOther + ")");
-                            }
-
-                            if (hknorth != null)
-                            {
-                                string hkvalueOther = "";
-                                if (hknorth.Type == "button")
-                                    hkvalueOther = "`Button " + hknorth.Id.ToString() + "`";
-                                else if (hknorth.Type == "axis")
-                                    hkvalueOther = axisValue(hknorth, false);
-
-                                ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", "@(" + hkvalue + "+" + hkvalueOther + ")");
-                            }
-
-                            if (hkup != null)
-                            {
-                                string hkvalueOther = "";
-                                if (hkup.Type == "button")
-                                    hkvalueOther = "`Button " + hkup.Id.ToString() + "`";
-                                else if (hkup.Type == "axis")
-                                    hkvalueOther = axisValue(hkup, false);
-
-                                ini.WriteValue("Hotkeys", "Other State Hotkeys/Increase Selected State Slot", "@(" + hkvalue + "+" + hkvalueOther + ")");
-                            }
-
-                            if (hksouth != null)
-                            {
-                                string hkvalueOther = "";
-                                if (hksouth.Type == "button")
-                                    hkvalueOther = "`Button " + hksouth.Id.ToString() + "`";
-                                else if (hksouth.Type == "axis")
-                                    hkvalueOther = axisValue(hksouth, false);
-
-                                ini.WriteValue("Hotkeys", "Other State Hotkeys/Decrease Selected State Slot", "@(" + hkvalue + "+" + hkvalueOther + ")");
-                            }
-
-                            if (hkleftbump != null)
-                            {
-                                string hkvalueOther = "";
-                                if (hkleftbump.Type == "button")
-                                    hkvalueOther = "`Button " + hkleftbump.Id.ToString() + "`";
-                                else if (hkleftbump.Type == "axis")
-                                    hkvalueOther = axisValue(hkleftbump, false);
-
-                                ini.WriteValue("Hotkeys", "Emulation Speed/Decrease Emulation Speed", "@(" + hkvalue + "+" + hkvalueOther + ")");
-                            }
-
-                            if (hkrightbump != null)
-                            {
-                                string hkvalueOther = "";
-                                if (hkrightbump.Type == "button")
-                                    hkvalueOther = "`Button " + hkrightbump.Id.ToString() + "`";
-                                else if (hkrightbump.Type == "axis")
-                                    hkvalueOther = axisValue(hkrightbump, false);
-
-                                ini.WriteValue("Hotkeys", "Emulation Speed/Increase Emulation Speed", "@(" + hkvalue + "+" + hkvalueOther + ")");
+                                    // ini.WriteValue("Hotkeys", "General/Toggle Pause", "@(" + hkvalue + "+" + hkvalueOther + ")");
+                                    ini.WriteValue("Hotkeys", hk.Key, hkvalue + "+" + hkvalueOther + "|" + kbKey);
+                                }
                             }
                         }
-                        catch (Exception ex)
+                        catch
                         {
-                            SimpleLogger.Instance.Error("Error while setting triforce hotkeys: " + ex.ToString());
+                            SimpleLogger.Instance.Error("Error while setting triforce hotkeys.");
                         }
                     }
 
-                    else
+                    else  // General case (non-triforce or triforce with XInput)
                     {
-                        // ini.WriteValue("Hotkeys", "General/Toggle Pause", tech == "XInput" ? "@(Back+`Button B`)" : "@(Back+`Button E`)");
+                        // Loop through hotkeys
+                        foreach (var hk in padHKMapping)
+                        {
+                            string value = hk.Value;
+
+                            // Special case for screenshot to use same button as SaveState
+                            if (hk.Key == "General/Take Screenshot")
+                            {
+                                if (padHKMapping.ContainsKey("Save State/Save to Selected Slot"))
+                                {
+                                    value = padHKMapping["Save State/Save to Selected Slot"];
+                                }
+                            }
+
+                            // a and b reversed for dolphin
+                            if (value == "a")
+                                value = "b";
+
+                            if (!Enum.TryParse<InputKey>(value, ignoreCase: true, out var targetKey))
+                                continue;
+
+                            string kbKey = "";
+                            if (!string.IsNullOrEmpty(ini.GetValue("Hotkeys", hk.Key)))
+                                kbKey = "|" + ini.GetValue("Hotkeys", hk.Key);
+
+                            if (tech != "XInput" && dolphinSDLMapping.ContainsKey(targetKey))
+                            {
+                                string sdlKey = dolphinSDLMapping[targetKey];
+                                ini.WriteValue("Hotkeys", hk.Key, "Back&" + sdlKey + kbKey);
+                            }
+                            else
+                            {
+                                var xKey = c1.GetXInputMapping(targetKey);
+                                if (xKey != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(xKey))
+                                {
+                                    string xinputKey = xInputMapping[xKey];
+                                    ini.WriteValue("Hotkeys", hk.Key, "Back&" + xinputKey + kbKey);
+                                }
+                            }
+                        }
+
+                        // OLD forced values for history sake
+                        /* ini.WriteValue("Hotkeys", "General/Toggle Pause", tech == "XInput" ? "@(Back+`Button B`)" : "@(Back+`Button E`)");
                         ini.WriteValue("Hotkeys", "General/Toggle Pause", "");
                         ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", tech == "XInput" ? "@(Back+`Button A`)" : "@(Back+`Button S`)");
                         ini.WriteValue("Hotkeys", "General/Exit", "@(Back+Start)");
@@ -371,19 +351,63 @@ namespace EmulatorLauncher
                         ini.WriteValue("Hotkeys", "Other State Hotkeys/Decrease Selected State Slot", "@(Back+`Pad S`)");
 
                         ini.WriteValue("Hotkeys", "Emulation Speed/Decrease Emulation Speed", "@(Back+`Shoulder L`)");
-                        ini.WriteValue("Hotkeys", "Emulation Speed/Increase Emulation Speed", "@(Back+`Shoulder R`)");
+                        ini.WriteValue("Hotkeys", "Emulation Speed/Increase Emulation Speed", "@(Back+`Shoulder R`)");*/
                     }
                 }
-                else // Keyboard
+                else // Keyboard only
                 {
                     ini.WriteValue("Hotkeys", "Device", "DInput/0/Keyboard Mouse");
-                    ini.WriteValue("Hotkeys", "General/Toggle Pause", "`F10`");
-                    ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "@(Alt+RETURN)");
-                    ini.WriteValue("Hotkeys", "General/Exit", "ESCAPE");
-                    ini.WriteValue("Hotkeys", "General/Take Screenshot", "`F9`");
-                    ini.WriteValue("Hotkeys", "General/Eject Disc", "@(Alt+E)");
-                    ini.WriteValue("Hotkeys", "General/Change Disc", "@(Alt+S)");
+                    WriteKBHotkeys(ini);
                 }
+            }
+        }
+
+        private static void WriteKBHotkeys(IniFile ini, bool controller = false)
+        {
+            if (Hotkeys.GetHotKeysFromFile("dolphin", "", out Dictionary<string, HotkeyResult> hotkeys))
+            {
+                var test = hotkeys;
+                foreach (var h in hotkeys)
+                {
+                    string value = h.Value.EmulatorValue;
+                    if (controller)
+                        value = "`DInput/0/Keyboard Mouse:" + h.Value.EmulatorValue + "`";
+                    
+                    ini.WriteValue("Hotkeys", h.Value.EmulatorKey, value);
+                }
+            }
+            else if (controller)
+            {
+                ini.WriteValue("Hotkeys", "General/Toggle Pause", "`DInput/0/Keyboard Mouse:P`");
+                ini.WriteValue("Hotkeys", "General/Exit", "`DInput/0/Keyboard Mouse:ESCAPE`");
+                ini.WriteValue("Hotkeys", "Emulation Speed/Increase Emulation Speed", "`DInput/0/Keyboard Mouse:L`");
+                ini.WriteValue("Hotkeys", "Emulation Speed/Decrease Emulation Speed", "`DInput/0/Keyboard Mouse:BACK`");
+                ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", "`DInput/0/Keyboard Mouse:F2`");
+                ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", "`DInput/0/Keyboard Mouse:F4`");
+                ini.WriteValue("Hotkeys", "General/Take Screenshot", "`DInput/0/Keyboard Mouse:F8`");
+                ini.WriteValue("Hotkeys", "Other State Hotkeys/Increase Selected State Slot", "`DInput/0/Keyboard Mouse:F7`");
+                ini.WriteValue("Hotkeys", "Other State Hotkeys/Decrease Selected State Slot", "`DInput/0/Keyboard Mouse:F6`");
+                ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "`DInput/0/Keyboard Mouse:F`");
+                ini.WriteValue("Hotkeys", "Frame Advance/Frame Advance", "`DInput/0/Keyboard Mouse:K`");
+                ini.WriteValue("Hotkeys", "General/Eject Disc", "`DInput/0/Keyboard Mouse:F11`");
+                ini.WriteValue("Hotkeys", "General/Change Disc", "`DInput/0/Keyboard Mouse:F9`");
+            }
+
+            else
+            {
+                ini.WriteValue("Hotkeys", "General/Toggle Pause", "P");
+                ini.WriteValue("Hotkeys", "General/Exit", "ESCAPE");
+                ini.WriteValue("Hotkeys", "Emulation Speed/Increase Emulation Speed", "L");
+                ini.WriteValue("Hotkeys", "Emulation Speed/Decrease Emulation Speed", "BACK");
+                ini.WriteValue("Hotkeys", "Save State/Save to Selected Slot", "`F2`");
+                ini.WriteValue("Hotkeys", "Load State/Load from Selected Slot", "`F4`");
+                ini.WriteValue("Hotkeys", "General/Take Screenshot", "`F8`");
+                ini.WriteValue("Hotkeys", "Other State Hotkeys/Increase Selected State Slot", "`F7`");
+                ini.WriteValue("Hotkeys", "Other State Hotkeys/Decrease Selected State Slot", "`F6`");
+                ini.WriteValue("Hotkeys", "General/Toggle Fullscreen", "F");
+                ini.WriteValue("Hotkeys", "Frame Advance/Frame Advance", "K");
+                ini.WriteValue("Hotkeys", "General/Eject Disc", "`F11`");
+                ini.WriteValue("Hotkeys", "General/Change Disc", "`F9`");
             }
         }
 

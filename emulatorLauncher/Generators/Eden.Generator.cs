@@ -202,18 +202,18 @@ namespace EmulatorLauncher
                     ini.WriteValue("UI", "Screenshots\\screenshot_path", screenshotpath);
                 }
 
-                BindQtIniFeature(ini, "Audio", "output_engine", "audio_backend", "0");
-                BindQtIniFeature(ini, "System", "sound_index", "sound_index", "1");            
-                BindQtIniFeature(ini, "Renderer", "backend", "backend", "1");
-                BindQtIniFeature(ini, "Renderer", "resolution_setup", "resolution_setup", "3");
+                BindQtIniFeature(ini, "Audio", "output_engine", "eden_audio_backend", "0");
+                BindQtIniFeature(ini, "System", "sound_index", "eden_sound_index", "1");            
+                BindQtIniFeature(ini, "Renderer", "backend", "eden_backend", "1");
+                BindQtIniFeature(ini, "Renderer", "resolution_setup", "eden_resolution_setup", "3");
                 BindQtIniFeature(ini, "Renderer", "aspect_ratio", "eden_ratio", "0");
                 BindQtIniFeature(ini, "Renderer", "max_anisotropy", "eden_anisotropy", "0");
-                BindQtIniFeature(ini, "Renderer", "use_vsync", "use_vsync", "2");
-                BindQtIniFeature(ini, "Renderer", "anti_aliasing", "anti_aliasing", "0");
-                BindQtIniFeature(ini, "Renderer", "scaling_filter", "scaling_filter", "1");
-                BindQtIniFeature(ini, "Renderer", "gpu_accuracy", "gpu_accuracy", "1");
+                BindQtIniFeature(ini, "Renderer", "use_vsync", "eden_use_vsync", "2");
+                BindQtIniFeature(ini, "Renderer", "anti_aliasing", "eden_anti_aliasing", "0");
+                BindQtIniFeature(ini, "Renderer", "scaling_filter", "eden_scaling_filter", "1");
+                BindQtIniFeature(ini, "Renderer", "gpu_accuracy", "eden_gpu_accuracy", "1");
                 
-                if (SystemConfig.isOptSet("use_asynchronous_shaders") && !SystemConfig.getOptBoolean("use_asynchronous_shaders"))
+                if (SystemConfig.isOptSet("eden_use_asynchronous_shaders") && !SystemConfig.getOptBoolean("eden_use_asynchronous_shaders"))
                 {
                     ini.WriteValue("Renderer", "use_asynchronous_shaders\\default", "true");
                     ini.WriteValue("Renderer", "use_asynchronous_shaders", "false");
@@ -224,10 +224,10 @@ namespace EmulatorLauncher
                     ini.WriteValue("Renderer", "use_asynchronous_shaders", "true");
                 }
 
-                BindQtIniFeature(ini, "Renderer", "astc_recompression", "astc_recompression", "0");
+                BindQtIniFeature(ini, "Renderer", "astc_recompression", "eden_astc_recompression", "0");
                 BindQtBoolIniFeature(ini, "Core", "use_multi_core", "eden_multicore", "true", "false", "true");
                 BindQtIniFeature(ini, "Core", "memory_layout_mode", "eden_memory", "0");
-                BindQtIniFeature(ini, "Cpu", "cpu_accuracy", "cpu_accuracy", "0");
+                BindQtIniFeature(ini, "Cpu", "cpu_accuracy", "eden_cpu_accuracy", "0");
 
                 CreateControllerConfiguration(ini);
             }

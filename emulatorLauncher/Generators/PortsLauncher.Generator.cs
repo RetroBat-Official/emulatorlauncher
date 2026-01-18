@@ -69,6 +69,7 @@ namespace EmulatorLauncher
         private bool _fullscreen;
         private bool _nobezels;
         private bool _useReshade = false;
+        private bool _pad2Keyoverride = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -235,14 +236,18 @@ namespace EmulatorLauncher
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
+            if (_pad2Keyoverride && File.Exists(Path.Combine(Path.GetTempPath(), "padToKey.xml")))
+            {
+                mapping = PadToKey.Load(Path.Combine(Path.GetTempPath(), "padToKey.xml"));
+            }
+
             if (_emulator == "pdark")
             {
                 string exe = Path.GetFileNameWithoutExtension(_exeName);
                 return mapping = PadToKey.AddOrUpdateKeyMapping(mapping, exe, InputKey.hotkey | InputKey.start, "(%{CLOSE})");
             }
 
-            else
-                return mapping;
+            return mapping;
         }
 
         // RunAnd Wait override

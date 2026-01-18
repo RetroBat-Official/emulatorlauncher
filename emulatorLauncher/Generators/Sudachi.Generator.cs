@@ -270,14 +270,14 @@ namespace EmulatorLauncher
                 }
 
                 // Audio output
-                BindQtIniFeature(ini, "Audio", "output_engine", "audio_backend", "auto");
-                BindQtIniFeature(ini, "System", "sound_index", "sound_index", "1");
+                BindQtIniFeature(ini, "Audio", "output_engine", "sudachi_audio_backend", "auto");
+                BindQtIniFeature(ini, "System", "sound_index", "sudachi_sound_index", "1");
 
                 // Video drivers                
-                BindQtIniFeature(ini, "Renderer", "backend", "backend", "1");
+                BindQtIniFeature(ini, "Renderer", "backend", "sudachi_backend", "1");
 
                 // resolution_setup
-                BindQtIniFeature(ini, "Renderer", "resolution_setup", "resolution_setup", "2");
+                BindQtIniFeature(ini, "Renderer", "resolution_setup", "sudachi_resolution_setup", "2");
 
                 // Aspect ratio
                 BindQtIniFeature(ini, "Renderer", "aspect_ratio", "sudachi_ratio", "0");
@@ -286,19 +286,19 @@ namespace EmulatorLauncher
                 BindQtIniFeature(ini, "Renderer", "max_anisotropy", "sudachi_anisotropy", "0");
 
                 // Vsync
-                BindQtIniFeature(ini, "Renderer", "use_vsync", "use_vsync", "2");
+                BindQtIniFeature(ini, "Renderer", "use_vsync", "sudachi_use_vsync", "2");
 
                 // anti_aliasing
-                BindQtIniFeature(ini, "Renderer", "anti_aliasing", "anti_aliasing", "0");
+                BindQtIniFeature(ini, "Renderer", "anti_aliasing", "sudachi_anti_aliasing", "0");
 
                 // scaling_filter
-                BindQtIniFeature(ini, "Renderer", "scaling_filter", "scaling_filter", "1");
+                BindQtIniFeature(ini, "Renderer", "scaling_filter", "sudachi_scaling_filter", "1");
 
                 // GPU accuracy
-                BindQtIniFeature(ini, "Renderer", "gpu_accuracy", "gpu_accuracy", "1");
+                BindQtIniFeature(ini, "Renderer", "gpu_accuracy", "sudachi_gpu_accuracy", "1");
 
                 // Asynchronous shaders compilation (hack)
-                if (SystemConfig.isOptSet("use_asynchronous_shaders") && !SystemConfig.getOptBoolean("use_asynchronous_shaders"))
+                if (SystemConfig.isOptSet("sudachi_use_asynchronous_shaders") && !SystemConfig.getOptBoolean("sudachi_use_asynchronous_shaders"))
                 {
                     ini.WriteValue("Renderer", "use_asynchronous_shaders\\default", "true");
                     ini.WriteValue("Renderer", "use_asynchronous_shaders", "false");
@@ -310,14 +310,14 @@ namespace EmulatorLauncher
                 }
 
                 // ASTC Compression (non compressed by default, use medium for videocards with 6GB of VRAM and low for 2-4GB VRAM)
-                BindQtIniFeature(ini, "Renderer", "astc_recompression", "astc_recompression", "0");
+                BindQtIniFeature(ini, "Renderer", "astc_recompression", "sudachi_astc_recompression", "0");
 
                 //Core options
                 BindQtBoolIniFeature(ini, "Core", "use_multi_core", "sudachi_multicore", "true", "false", "true");
                 BindQtIniFeature(ini, "Core", "memory_layout_mode", "sudachi_memory", "0");
 
                 // CPU accuracy (auto except if the user chooses otherwise)
-                BindQtIniFeature(ini, "Cpu", "cpu_accuracy", "cpu_accuracy", "0");
+                BindQtIniFeature(ini, "Cpu", "cpu_accuracy", "sudachi_cpu_accuracy", "0");
 
                 CreateControllerConfiguration(ini);
             }

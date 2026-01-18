@@ -85,8 +85,8 @@ namespace EmulatorLauncher
                 ini.WriteValue("input" + padIndex, "Lower-Left", "Key 1073741901 (End)");
                 ini.WriteValue("input" + padIndex, "Lower-Right", "Key 1073741902 (PageDown)");
                 ini.WriteValue("input" + padIndex, "Pogo", "Key 1073742050 (Left Alt)");
-                ini.WriteValue("input" + padIndex, "Quickload", "Key 1073741890 (F9)");
-                ini.WriteValue("input" + padIndex, "Quicksave", "Key 1073741887 (F6)");
+                ini.WriteValue("input" + padIndex, "Quickload", "Key 1073741885 (F4)");
+                ini.WriteValue("input" + padIndex, "Quicksave", "Key 1073741883 (F2)");
                 ini.WriteValue("input" + padIndex, "Right", "Key 1073741903 (Right)");
                 ini.WriteValue("input" + padIndex, "Run", "Key 1073742049 (Left Shift)");
                 ini.WriteValue("input" + padIndex, "Status", "Key 13 (Return)");
@@ -112,29 +112,31 @@ namespace EmulatorLauncher
 
                     InputKey toSet = button.Key;
                     
-                    if (SystemConfig.isOptSet("cgenius_analogPad") && SystemConfig.getOptBoolean("cgenius_analogPad"))
+                    /*if (SystemConfig.isOptSet("cgenius_analogPad") && SystemConfig.getOptBoolean("cgenius_analogPad"))
                     {
                         if (button.Key == InputKey.up)
-                            toSet = InputKey.leftanalogdown;
+                            toSet = InputKey.leftanalogup;
                         else if (button.Key == InputKey.down)
                             toSet = InputKey.leftanalogdown;
                         else if (button.Key == InputKey.left)
                             toSet = InputKey.leftanalogleft;
                         else if (button.Key == InputKey.right)
                             toSet = InputKey.leftanalogright;
-                    }
+                    }*/
 
-                    var input = ctrl.Config[toSet];
+                    var key = toSet.GetRevertedAxis(out bool revertAxis);
+
+                    var input = ctrl.Config[key];
                     if (input != null)
-                        ini.WriteValue("input" + padIndex, button.Value, joyPad + GetSDLInputName(ctrl, toSet, "cgenius"));
+                        ini.WriteValue("input" + padIndex, button.Value, joyPad + GetSDLInputName(ctrl, toSet, "cgenius", revertAxis));
                     else
                         ini.WriteValue("input" + padIndex, button.Value, "Key 0 ()");
                 }
 
                 if (padIndex == 0)
                 {
-                    ini.WriteValue("input" + padIndex, "Quickload", "Key 1073741890 (F9)");
-                    ini.WriteValue("input" + padIndex, "Quicksave", "Key 1073741887 (F6)");
+                    ini.WriteValue("input" + padIndex, "Quickload", "Key 1073741885 (F4)");
+                    ini.WriteValue("input" + padIndex, "Quicksave", "Key 1073741883 (F2)");
                 }
                 else
                 {
@@ -199,7 +201,7 @@ namespace EmulatorLauncher
             changes.Add(new Dhewm3ConfigChange("bind", "z", "_zoom"));
             changes.Add(new Dhewm3ConfigChange("bind", "BACKSPACE", "clientDropWeapon"));
             changes.Add(new Dhewm3ConfigChange("bind", "PAUSE", "pause"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F11", "pause"));
+            changes.Add(new Dhewm3ConfigChange("bind", "p", "pause"));
             changes.Add(new Dhewm3ConfigChange("bind", "UPARROW", "_forward"));
             changes.Add(new Dhewm3ConfigChange("bind", "DOWNARROW", "_back"));
             changes.Add(new Dhewm3ConfigChange("bind", "LEFTARROW", "_moveLeft"));
@@ -211,14 +213,14 @@ namespace EmulatorLauncher
             changes.Add(new Dhewm3ConfigChange("bind", "PGDN", "_lookup"));
             changes.Add(new Dhewm3ConfigChange("bind", "END", "_impulse18"));
             changes.Add(new Dhewm3ConfigChange("bind", "F1", "_impulse28"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F2", "_impulse29"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F5", "_impulse29"));
             changes.Add(new Dhewm3ConfigChange("bind", "F3", "_impulse17"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F5", "savegame quick"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F2", "savegame quick"));
             changes.Add(new Dhewm3ConfigChange("bind", "F6", "_impulse20"));
             changes.Add(new Dhewm3ConfigChange("bind", "F7", "_impulse22"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F9", "loadgame quick"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F4", "loadgame quick"));
             changes.Add(new Dhewm3ConfigChange("bind", "F10", "dhewm3Settings"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F12", "screenshot"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F8", "screenshot"));
             changes.Add(new Dhewm3ConfigChange("bind", "MOUSE1", "_attack"));
             changes.Add(new Dhewm3ConfigChange("bind", "MOUSE2", "_moveup"));
             changes.Add(new Dhewm3ConfigChange("bind", "MOUSE3", "_zoom"));
@@ -2659,11 +2661,11 @@ namespace EmulatorLauncher
 
         private readonly InputKeyMapping cgeniusMapping = new InputKeyMapping
         {
-            { InputKey.select,      "Back" },
+            //{ InputKey.select,      "Back" },
             { InputKey.pagedown,    "Camlead" },
             { InputKey.down,        "Down" },
             { InputKey.b,           "Fire" },
-            { InputKey.start,       "Help" },
+            { InputKey.start,       "Back" },
             { InputKey.a,           "Jump" },
             { InputKey.left,        "Left" },
             { InputKey.x,           "Pogo" },

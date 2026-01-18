@@ -1,9 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.PadToKeyboard;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 
 namespace EmulatorLauncher
 {
@@ -12,7 +13,7 @@ namespace EmulatorLauncher
 		private BezelFiles _bezelFileInfo;
 		private ScreenResolution _resolution;
 		private List<string> _commandArray = new List<string>();
-
+		private bool _pad2Keyoverride = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
 		{
@@ -180,61 +181,6 @@ namespace EmulatorLauncher
 				// Video drivers
 				BindIniFeature(ini, @"Display\Win", "OutputMethod", "snes9x_renderer", "2");
 
-                /* Shaders (old)
-				if (SystemConfig.isOptSet("snes9x_shader") && !string.IsNullOrEmpty(SystemConfig["snes9x_shader"]))
-                {
-					ini.WriteValue(@"Display\Win", "ShaderEnabled", "TRUE");
-					ini.WriteValue(@"Display\Win", "NTSCScanlines", "TRUE");
-
-					if (SystemConfig["snes9x_shader"].Contains(".glslp"))
-                    {
-						shaderPath = Path.Combine(AppConfig.GetFullPath("retroarch"), "shaders", "shaders_glsl", SystemConfig["snes9x_shader"]);
-						ini.WriteValue(@"Display\Win", "OutputMethod", "2");
-
-						if (File.Exists(shaderPath))
-							ini.WriteValue(@"Display\Win", "OpenGL:OGLShader", shaderPath);
-						else
-							ini.WriteValue(@"Display\Win", "OpenGL:OGLShader", "");
-					}					
-					else if (SystemConfig["snes9x_shader"].Contains(".slangp"))
-                    {
-						shaderPath = Path.Combine(AppConfig.GetFullPath("retroarch"), "shaders", "shaders_slang", SystemConfig["snes9x_shader"]);
-						ini.WriteValue(@"Display\Win", "OutputMethod", "3");
-
-						if (File.Exists(shaderPath))
-							ini.WriteValue(@"Display\Win", "OpenGL:OGLShader", shaderPath);
-						else
-							ini.WriteValue(@"Display\Win", "OpenGL:OGLShader", "");
-					}						
-					else
-                    {
-						if (SystemConfig["snes9x_renderer"] == "2")
-                        {
-							shaderPath = Path.Combine(AppConfig.GetFullPath("retroarch"), "shaders", "shaders_glsl", SystemConfig["snes9x_shader"] + ".glslp");
-
-							if (File.Exists(shaderPath))
-								ini.WriteValue(@"Display\Win", "OpenGL:OGLShader", shaderPath);
-							else
-								ini.WriteValue(@"Display\Win", "OpenGL:OGLShader", "");
-
-						}
-						else if (SystemConfig["snes9x_renderer"] == "3")
-                        {
-							shaderPath = Path.Combine(AppConfig.GetFullPath("retroarch"), "shaders", "shaders_slang", SystemConfig["snes9x_shader"] + ".slangp");
-
-							if (File.Exists(shaderPath))
-								ini.WriteValue(@"Display\Win", "OpenGL:OGLShader", shaderPath);
-							else
-								ini.WriteValue(@"Display\Win", "OpenGL:OGLShader", "");
-						}	
-					}
-				}
-                else
-                {
-					ini.WriteValue(@"Display\Win", "ShaderEnabled", "FALSE");
-					ini.WriteValue(@"Display\Win", "NTSCScanlines", "FALSE");
-				}*/
-
 				// Filters and stuff
                 BindIniFeature(ini, @"Display\Win", "FilterType", "snes9x_ntsc_filters", "0");
                 BindBoolIniFeature(ini, @"Display\Win", "NTSCScanlines", "snes9x_scanlines", "TRUE", "FALSE");
@@ -244,6 +190,16 @@ namespace EmulatorLauncher
 
                 CreateControllerConfiguration(ini);
             }
+        }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_pad2Keyoverride && File.Exists(Path.Combine(Path.GetTempPath(), "padToKey.xml")))
+            {
+                mapping = PadToKey.Load(Path.Combine(Path.GetTempPath(), "padToKey.xml"));
+            }
+
+            return mapping;
         }
 
         public override void Cleanup()
