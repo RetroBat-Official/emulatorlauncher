@@ -356,14 +356,6 @@ namespace EmulatorLauncher
             return high + low;
         }
 
-        /// <summary>
-        /// Add KILL XEMU to padtokey (hotkey + START).
-        /// </summary> 
-        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
-        {
-            return PadToKey.AddOrUpdateKeyMapping(mapping, "xemu", InputKey.hotkey | InputKey.start, "(%{CLOSE})");
-        }
-
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
