@@ -1,8 +1,10 @@
-﻿using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
-using System.Collections.Generic;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.PadToKeyboard;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -10,6 +12,7 @@ namespace EmulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private bool _pad2Keyoverride = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -21,12 +24,16 @@ namespace EmulatorLauncher
 
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
 
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, emulator))
-                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            if (fullscreen)
+            {
+                if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, emulator))
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            }
 
             _resolution = resolution;
 
             ConfigureProject64(system, path, rom, fullscreen);
+            ConfigureHotkeys(path);
 
             var commandArray = new List<string>();
             
@@ -113,6 +120,109 @@ namespace EmulatorLauncher
 
                 ConfigureControllers(ini);
             }
+        }
+
+        private void ConfigureHotkeys(string path)
+        {
+            string cfgFile = Path.Combine(path, "Config", "Project64.sc3");
+
+            if (!File.Exists(cfgFile))
+                try { File.WriteAllText(cfgFile, ""); } catch { }
+
+            var lines = File.ReadAllLines(cfgFile);
+
+            var actionIdsToReplace = new HashSet<int>
+            {
+                4007,4153,4154,4157,4159,4164,4165,4166,4167,4168,4169,
+                4170,4171,4172,4173,4174,4175,4186,4187
+            };
+
+            string[] newLines =
+            {
+                "4007,27,0,0,0,6,1,0",      // ESC
+                "4153,80,0,0,0,6,1,0",      // P
+                "4154,119,0,0,0,6,1,0",     // F8
+                "4157,115,0,0,0,6,1,0",     // F4
+                "4159,113,0,0,0,6,1,0",     // F2
+                "4175,70,0,0,0,6,1,0",      // F
+                "4186,76,0,0,0,6,1,0",      // L
+                "4187,8,0,0,0,6,1,0"        // Backspace
+            };
+
+            if (Hotkeys.GetHotKeysFromFile("project64", "", out Dictionary<string, HotkeyResult> hotkeys))
+            {
+                List<string> newLinesList = new List<string>();
+                if (hotkeys.Count > 0)
+                {
+                    foreach (var h in hotkeys)
+                    {
+                        string lineToAdd = h.Value.EmulatorKey + "," + h.Value.EmulatorValue + ",0,0,0,6,1,0";
+                        newLinesList.Add(lineToAdd);
+                    }
+                    newLines = newLinesList.ToArray();
+                    _pad2Keyoverride = true;
+                }
+            }
+
+            // Delete used hotkeys lines
+            var newActionIds = new HashSet<int>(newLines.Select(l => int.Parse(l.Split(',')[0])));
+            var newKeyCodes = new HashSet<int>(newLines.Select(l => int.Parse(l.Split(',')[1])));
+
+            var filtered = lines.Where(line =>
+            {
+                var parts = line.Split(',');
+                if (parts.Length < 2)
+                    return true;
+
+                if (!int.TryParse(parts[0], out int actionId))
+                    return true;
+                if (!int.TryParse(parts[1], out int keyCode))
+                    return true;
+
+                // Delete lines with already used actions
+                if (newActionIds.Contains(actionId))
+                    return false;
+
+                // Delete lines with already used keys
+                if (newKeyCodes.Contains(keyCode))
+                    return false;
+
+                return true;
+            }).ToList();
+
+            filtered.AddRange(newLines);
+            var sorted = filtered.OrderBy(line =>
+            {
+                int comma = line.IndexOf(',');
+                if (comma <= 0) return int.MaxValue;
+                return int.TryParse(line.Substring(0, comma), out int id) ? id : int.MaxValue;
+            }).ToArray();
+
+            File.WriteAllLines(cfgFile, sorted);
+        }
+
+        private string BuildHotkeyLine(int actionId, int keyCode, bool ctrl, bool shift, bool alt)
+        {
+            return string.Join(",",
+                actionId,
+                keyCode,
+                ctrl ? 1 : 0,
+                shift ? 1 : 0,
+                alt ? 1 : 0,
+                6,  // Device = Keyboard
+                1,  // Enabled
+                0   // Always 0
+            );
+        }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_pad2Keyoverride && File.Exists(Path.Combine(Path.GetTempPath(), "padToKey.xml")))
+            {
+                mapping = PadToKey.Load(Path.Combine(Path.GetTempPath(), "padToKey.xml"));
+            }
+
+            return mapping;
         }
 
         public override int RunAndWait(ProcessStartInfo path)

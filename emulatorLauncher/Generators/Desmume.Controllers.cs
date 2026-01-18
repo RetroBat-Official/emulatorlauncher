@@ -23,6 +23,7 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                WriteKeyboardHotkeys(ini);
                 return;
             }
 
@@ -254,7 +255,7 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", "Up", "38");
             ini.WriteValue("Controls", "Down", "40");
             ini.WriteValue("Controls", "Start", "13"); // Enter
-            ini.WriteValue("Controls", "Select", "32"); // Space
+            ini.WriteValue("Controls", "Select", "8"); // Backspace
             ini.WriteValue("Controls", "A", "88");
             ini.WriteValue("Controls", "B", azerty ? "87":"90");
             ini.WriteValue("Controls", "X", "83");
@@ -268,17 +269,16 @@ namespace EmulatorLauncher
         {
             for (int i = 0; i < 10; i++)
             {
-                int j = 48;
+                int j = i + 48;
                 string slot = "SelectSlot" + i.ToString();
                 string slotMod = slot + " MOD";
                 ini.WriteValue("Hotkeys", slot, j.ToString());
                 ini.WriteValue("Hotkeys", slotMod, "0");
-                j++;
             }
 
             for (int i = 1; i < 10; i++)
             {
-                int j = 112;
+                int j = i + 111;
                 string saveslot = "SaveToSlot" + i.ToString();
                 string saveslotMod = saveslot + " MOD";
                 ini.WriteValue("Hotkeys", saveslot, j.ToString());
@@ -287,15 +287,13 @@ namespace EmulatorLauncher
                 string loadslot = "LoadFromSlot" + i.ToString();
                 string loadslotMod = loadslot + " MOD";
                 ini.WriteValue("Hotkeys", loadslot, j.ToString());
-                ini.WriteValue("Hotkeys", loadslotMod, "0");
-
-                j++;
+                ini.WriteValue("Hotkeys", loadslotMod, "2");
             }
 
             ini.WriteValue("Hotkeys", "SaveToSlot0", "121");
             ini.WriteValue("Hotkeys", "SaveToSlot0 MOD", "4");
             ini.WriteValue("Hotkeys", "LoadFromSlot0", "121");
-            ini.WriteValue("Hotkeys", "LoadFromSlot0 MOD", "0");
+            ini.WriteValue("Hotkeys", "LoadFromSlot0 MOD", "2");
 
             foreach (var h in hotkeys)
             {
@@ -318,15 +316,16 @@ namespace EmulatorLauncher
 
         private Dictionary<string,string> hotkeys = new Dictionary<string, string>()
         {
-            { "QuickSave","73" }, // I
-            { "QuickLoad","79" }, // O
-            { "NextSaveSlot","76" }, // L
-            { "PreviousSaveSlot","75" }, // K
+            { "QuickSave","113" }, // F2
+            { "QuickLoad","115" }, // F4
+            { "NextSaveSlot","118" }, // F7
+            { "PreviousSaveSlot","117" }, // F6
             { "Pause","80" }, // P
-            { "FastForward","70" }, // F
-            { "FastForwardToggle","84" }, // T
-            { "QuickScreenshot","123" }, // F12
-            { "FrameAdvance","78" }, // N
+            { "FastForward","76" }, // L
+            { "FastForwardToggle","32" }, // Space
+            { "QuickScreenshot","119" }, // F8
+            { "SaveScreenshotas","122" }, // F11
+            { "FrameAdvance","75" }, // K
         };
 
         private static Dictionary<string, int> defaultButton = new Dictionary<string, int>()

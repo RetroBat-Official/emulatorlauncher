@@ -23,11 +23,14 @@ namespace EmulatorLauncher
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }*/
 
+        private bool _pad2Keyoverride = false;
+
         private void CreateControllerConfiguration(IniFile ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                SetKeyboardHotKeys(ini);
                 return;
             }
 
@@ -180,21 +183,54 @@ namespace EmulatorLauncher
         private void SetKeyboardHotKeys(IniFile ini)
         {
             string iniSection = "emulator_key_config_sdl2";
+            var iniValues = ini.EnumerateValues(iniSection);
 
-            ini.WriteValue(iniSection, "Save_Screenshot", "67");
-            ini.WriteValue(iniSection, "Save_Screenshot_kmod", "0");
-            ini.WriteValue(iniSection, "Save_state", "59");
+            if (Hotkeys.GetHotKeysFromFile("raine", "", out Dictionary<string, HotkeyResult> hotkeys))
+            {
+                foreach (var hk in hotkeys)
+                {
+                    string key = hk.Value.EmulatorKey;
+                    string keyKmod = key + "_kmod";
+                    string value = hk.Value.EmulatorValue;
+
+                    if (iniValues.Any(i => i.Value == value && i.Key != key && !i.Key.StartsWith("Def_") && !i.Key.StartsWith("Player") && !i.Key.StartsWith("key_layer") && i.Key != "mouse_sensitivity"))
+                    {
+                        var v = iniValues.Where(i => i.Value == value && i.Key != key).FirstOrDefault();
+                        string kmod = v.Key + "_kmod";
+                        if (iniValues.Any(j => j.Key == kmod))
+                        {
+                            var vkmod = iniValues.Where(j => j.Key == kmod).FirstOrDefault();
+                            if (vkmod.Value == "0")
+                            {
+                                ini.WriteValue(iniSection, v.Key, "0");
+                            }
+                        }
+                    }
+                    ini.WriteValue(iniSection, key, value);
+                    ini.WriteValue(iniSection, keyKmod, "0");
+                }
+                _pad2Keyoverride = true;
+                return;
+            }
+
+            ini.WriteValue(iniSection, "Save_Screenshot", "65");            // F8
+            ini.WriteValue(iniSection, "Save_Screenshot_kmod", "0");        // No modifier
+            ini.WriteValue(iniSection, "Save_state", "59");                 // F2
             ini.WriteValue(iniSection, "Save_state_kmod", "0");
-            ini.WriteValue(iniSection, "Switch_save_slot", "60");
+            ini.WriteValue(iniSection, "Switch_save_slot", "63");           // F6
             ini.WriteValue(iniSection, "Switch_save_slot_kmod", "0");
-            ini.WriteValue(iniSection, "Load_state", "61");
+            ini.WriteValue(iniSection, "Load_state", "61");                 // F4
             ini.WriteValue(iniSection, "Load_state_kmod", "0");
-            ini.WriteValue(iniSection, "Pause_game", "62");
+            ini.WriteValue(iniSection, "Pause_game", "19");                 // P
             ini.WriteValue(iniSection, "Pause_game_kmod", "0");
-            ini.WriteValue(iniSection, "Return_to_GUI", "43");
+            ini.WriteValue(iniSection, "Return_to_GUI", "58");              // F1
             ini.WriteValue(iniSection, "Return_to_GUI_kmod", "0");
-            ini.WriteValue(iniSection, "Save_Screenshot", "67");
-            ini.WriteValue(iniSection, "Save_Screenshot_kmod", "0");
+            ini.WriteValue(iniSection, "Fullscreen", "9");                  // F
+            ini.WriteValue(iniSection, "Fullscreen_kmod", "0");
+            ini.WriteValue(iniSection, "Forward_1_frame_in_pause", "14");   // K
+            ini.WriteValue(iniSection, "Forward_1_frame_in_pause_kmod", "0");
+            ini.WriteValue(iniSection, "Quit_without_saving", "41");        // ESC
+            ini.WriteValue(iniSection, "Quit_without_saving_kmod", "0");
         }
     }
 }

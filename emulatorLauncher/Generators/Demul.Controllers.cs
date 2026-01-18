@@ -19,6 +19,7 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                ConfigureHotkeysOnly(path, ini);
                 return;
             }
 
@@ -41,10 +42,12 @@ namespace EmulatorLauncher
                         ConfigureInput(controller, ctrlIni, ini, system);
 
                     // Hotkeys
-                    ctrlIni.WriteValue("GLOBAL0", "SAVESTATE", "87");
-                    ctrlIni.WriteValue("GLOBAL0", "LOADSTATE", "88");
-                    ctrlIni.WriteValue("GLOBAL0", "NEXTSTATE", "68");
-                    ctrlIni.WriteValue("GLOBAL0", "PREVSTATE", "67");
+                    ctrlIni.WriteValue("GLOBAL0", "SAVESTATE", "60");
+                    ctrlIni.WriteValue("GLOBAL0", "LOADSTATE", "62");
+                    ctrlIni.WriteValue("GLOBAL0", "NEXTSTATE", "65");
+                    ctrlIni.WriteValue("GLOBAL0", "PREVSTATE", "64");
+                    ctrlIni.WriteValue("GLOBAL0", "TEST", "11");
+                    ctrlIni.WriteValue("GLOBAL0", "SERVICE", "10");
                 }
                 catch { }
             }
@@ -128,7 +131,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("VMS", vmuPort[controller.PlayerIndex], vmsFile);
                 ini.WriteValue(maplePorts[controller.PlayerIndex], "device", "16777216");
                 ini.WriteValue(maplePorts[controller.PlayerIndex], "port0", "234881024");
-                
+
                 if (SystemConfig.isOptSet("demul_extension" + controller.PlayerIndex) && !string.IsNullOrEmpty(SystemConfig["demul_extension" + controller.PlayerIndex]))
                 {
                     string extension = SystemConfig["demul_extension" + controller.PlayerIndex];
@@ -252,7 +255,8 @@ namespace EmulatorLauncher
                     case 2: return ((hatStart + 256) + (index * 65536)).ToString();
                     case 4: return ((hatStart + (256 * 2)) + (index * 65536)).ToString();
                     case 8: return ((hatStart + (256 * 3)) + (index * 65536)).ToString();
-                };
+                }
+                ;
             }
 
             else if (button.StartsWith("b"))
@@ -373,7 +377,7 @@ namespace EmulatorLauncher
         }
 
 
-        private static readonly List<string> dreamcastButtons = new List<string>() { 
+        private static readonly List<string> dreamcastButtons = new List<string>() {
             "UP", "DOWN", "LEFT", "RIGHT", "UP2", "DOWN2", "LEFT2", "RIGHT2", "A", "B", "C", "D", "X", "Y", "Z", "LTRIG", "RTRIG", "START", "S1UP", "S1DOWN", "S1LEFT", "S1RIGHT", "S2UP", "S2DOWN", "S2LEFT", "S2RIGHT" };
 
         private static readonly List<string> jammaButtons = new List<string>() {
@@ -431,5 +435,23 @@ namespace EmulatorLauncher
             { 3, "VMSC0" },
             { 4, "VMSD0" },
         };
+
+        private void ConfigureHotkeysOnly(string path, IniFile ini)
+        {
+            string ctrlrIniFile = Path.Combine(path, "padDemul.ini");
+            using (var ctrlIni = IniFile.FromFile(ctrlrIniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
+            {
+                try
+                {
+                    ctrlIni.WriteValue("GLOBAL0", "SAVESTATE", "60");
+                    ctrlIni.WriteValue("GLOBAL0", "LOADSTATE", "62");
+                    ctrlIni.WriteValue("GLOBAL0", "NEXTSTATE", "65");
+                    ctrlIni.WriteValue("GLOBAL0", "PREVSTATE", "64");
+                    ctrlIni.WriteValue("GLOBAL0", "TEST", "11");
+                    ctrlIni.WriteValue("GLOBAL0", "SERVICE", "10");
+                }
+                catch { }
+            }
+        }
     }
 }

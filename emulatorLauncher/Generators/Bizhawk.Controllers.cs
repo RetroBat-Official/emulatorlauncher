@@ -124,7 +124,7 @@ namespace EmulatorLauncher
                 _pad2Keyoverride = true;
 
                 if (hotkeyBindings["Frame Advance"] == "F")
-                    hotkeyBindings["Frame Advance"] = "";
+                    hotkeyBindings["Frame Advance"] = "K";
 
                 return;
             }
@@ -139,6 +139,7 @@ namespace EmulatorLauncher
             hotkeyBindings["Previous Slot"] = "F6";
             hotkeyBindings["Next Slot"] = "F7";
             hotkeyBindings["Exit Program"] = "Escape";
+            hotkeyBindings["Frame Advance"] = "K";
         }
 
         private void ConfigureInput(Controller controller, DynamicJson json, string system, string core)

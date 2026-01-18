@@ -17,6 +17,7 @@ namespace EmulatorLauncher
         private SaveStatesWatcher _saveStatesWatcher;
         private int _saveStateSlot;
         private bool _sindenSoft;
+        private string _exeName;
         static List<string> _mdSystems = new List<string>() { "sega_cd", "genesis", "sega_32x" };
         static List<string> _noZipSystems = new List<string>() { "sega_cd" };
 
@@ -34,7 +35,9 @@ namespace EmulatorLauncher
                 exe = Path.Combine(path, "jgenesis-gui.exe");
                 gui = true;
             }
-            
+
+            _exeName = Path.GetFileNameWithoutExtension(exe);
+
             if (!File.Exists(exe))
                 return null;
 

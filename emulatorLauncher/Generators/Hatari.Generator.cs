@@ -104,11 +104,13 @@ namespace EmulatorLauncher
                 BindBoolIniFeatureOn(ini, "Screen", "bUseVsync", "hatari_vsync", "TRUE", "FALSE");
 
                 // MEMORY
-                string savesFile = Path.Combine(AppConfig.GetFullPath("saves"), "atarist", "hatari", "hatari.sav");
-                string autoSaveFile = Path.Combine(AppConfig.GetFullPath("saves"), "atarist", "hatari", "auto.sav");
+                string savesDir = Path.Combine(AppConfig.GetFullPath("saves"), "atarist", "hatari");
+                if (!Directory.Exists(savesDir))
+                    try { Directory.CreateDirectory(savesDir); } catch { }
+                string savesFile = Path.Combine(savesDir, "hatari.sav");
+                string autoSaveFile = Path.Combine(savesDir, "auto.sav");
                 
                 //add memory size feature
-
                 BindBoolIniFeature(ini, "Memory", "bAutoSave", "hatari_autosave", "TRUE", "FALSE");
 
                 ini.WriteValue("Memory", "szMemoryCaptureFileName", savesFile);
@@ -190,6 +192,14 @@ namespace EmulatorLauncher
                 // VIDEO
                 string recording = Path.Combine(AppConfig.GetFullPath("records"), "output", "hatari", "hatari.avi");
                 ini.WriteValue("Video", "AviRecordFile", recording);
+
+                // HOTKEYS
+                ini.WriteValue("KeyShortcutsWithoutMod", "kOptions", "F1");
+                ini.WriteValue("KeyShortcutsWithoutMod", "kFullScreen", "F11");
+                ini.WriteValue("KeyShortcutsWithoutMod", "kPause", "F3");
+                ini.WriteValue("KeyShortcutsWithoutMod", "kScreenShot", "F8");
+                ini.WriteValue("KeyShortcutsWithoutMod", "kLoadMem", "F4");
+                ini.WriteValue("KeyShortcutsWithoutMod", "kSaveMem", "F2");
 
                 SetupJoysticks(ini);
 

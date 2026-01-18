@@ -287,9 +287,8 @@ namespace EmulatorLauncher
 
         private void ResetHotkeysToDefault(IniFile ini)
         {
-            ini.WriteValue("1.0", "Shortcuts\\%26Quitter", "Esc");
             ini.WriteValue("1.0", "Shortcuts\\L%26ancer", "F1");
-            ini.WriteValue("1.0", "Shortcuts\\%26Pause", "F2");
+            ini.WriteValue("1.0", "Shortcuts\\%26Pause", "p");
             ini.WriteValue("1.0", "Shortcuts\\Sc%26reenshot", "F8");
         }
 
