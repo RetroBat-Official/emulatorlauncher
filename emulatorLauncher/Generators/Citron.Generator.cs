@@ -204,18 +204,18 @@ namespace EmulatorLauncher
                     ini.WriteValue("UI", "Screenshots\\screenshot_path", screenshotpath);
                 }
 
-                BindQtIniFeature(ini, "Audio", "output_engine", "audio_backend", "auto");
-                BindQtIniFeature(ini, "System", "sound_index", "sound_index", "1");            
-                BindQtIniFeature(ini, "Renderer", "backend", "backend", "1");
-                BindQtIniFeature(ini, "Renderer", "resolution_setup", "resolution_setup", "3");
+                BindQtIniFeature(ini, "Audio", "output_engine", "citron_audio_backend", "auto");
+                BindQtIniFeature(ini, "System", "sound_index", "citron_sound_index", "1");            
+                BindQtIniFeature(ini, "Renderer", "backend", "citron_backend", "1");
+                BindQtIniFeature(ini, "Renderer", "resolution_setup", "citron_resolution_setup", "3");
                 BindQtIniFeature(ini, "Renderer", "aspect_ratio", "citron_ratio", "0");
                 BindQtIniFeature(ini, "Renderer", "max_anisotropy", "citron_anisotropy", "0");
-                BindQtIniFeature(ini, "Renderer", "use_vsync", "use_vsync", "2");
-                BindQtIniFeature(ini, "Renderer", "anti_aliasing", "anti_aliasing", "0");
-                BindQtIniFeature(ini, "Renderer", "scaling_filter", "scaling_filter", "1");
-                BindQtIniFeature(ini, "Renderer", "gpu_accuracy", "gpu_accuracy", "2");
+                BindQtIniFeature(ini, "Renderer", "use_vsync", "citron_use_vsync", "2");
+                BindQtIniFeature(ini, "Renderer", "anti_aliasing", "citron_anti_aliasing", "0");
+                BindQtIniFeature(ini, "Renderer", "scaling_filter", "citron_scaling_filter", "1");
+                BindQtIniFeature(ini, "Renderer", "gpu_accuracy", "citron_gpu_accuracy", "2");
                 
-                if (SystemConfig.isOptSet("use_asynchronous_shaders") && !SystemConfig.getOptBoolean("use_asynchronous_shaders"))
+                if (SystemConfig.isOptSet("citron_use_asynchronous_shaders") && !SystemConfig.getOptBoolean("citron_use_asynchronous_shaders"))
                 {
                     ini.WriteValue("Renderer", "use_asynchronous_shaders\\default", "true");
                     ini.WriteValue("Renderer", "use_asynchronous_shaders", "false");
@@ -226,10 +226,10 @@ namespace EmulatorLauncher
                     ini.WriteValue("Renderer", "use_asynchronous_shaders", "true");
                 }
 
-                BindQtIniFeature(ini, "Renderer", "astc_recompression", "astc_recompression", "0");
+                BindQtIniFeature(ini, "Renderer", "astc_recompression", "citron_astc_recompression", "0");
                 BindQtBoolIniFeature(ini, "Core", "use_multi_core", "citron_multicore", "true", "false", "true");
                 BindQtIniFeature(ini, "Core", "memory_layout_mode", "citron_memory", "0");
-                BindQtIniFeature(ini, "Cpu", "cpu_accuracy", "cpu_accuracy", "0");
+                BindQtIniFeature(ini, "Cpu", "cpu_accuracy", "citron_cpu_accuracy", "0");
 
                 CreateControllerConfiguration(ini);
             }

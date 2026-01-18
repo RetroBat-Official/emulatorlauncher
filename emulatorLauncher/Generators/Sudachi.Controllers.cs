@@ -158,7 +158,7 @@ namespace EmulatorLauncher
             
             int playerTypeId = 0;
 
-            string playerType = player + "type";
+            string playerType = "sudachi_" + player + "type";
             if (Features.IsSupported(playerType) && SystemConfig.isOptSet(playerType))
             {
                 string id = SystemConfig[playerType];
@@ -408,7 +408,7 @@ namespace EmulatorLauncher
 
             string player = "player_" + (controller.PlayerIndex - 1) + "_";
 
-            string playerType = player + "type";
+            string playerType = "sudachi_" + player + "type";
             if (Program.Features.IsSupported(playerType) && Program.SystemConfig.isOptSet(playerType))
             {
                 string id = Program.SystemConfig[playerType];
