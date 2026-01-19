@@ -309,6 +309,10 @@
     <Compile Include="Generators\Jgenesis.SaveStatesMonitor.cs">
       <DependentUpon>Jgenesis.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Jzintv.Generator.cs" />
+    <Compile Include="Generators\Jzintv.Controllers.cs">
+      <DependentUpon>Jzintv.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Jynx.Generator.cs" />
     <Compile Include="Generators\KegaFusion.Generator.cs" />
     <Compile Include="Generators\KegaFusion.Controllers.cs">

@@ -37,17 +37,6 @@ namespace EmulatorLauncher
 {
     static class Program
     {
-        [DllImport("user32.dll")]
-        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
-
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-        private const int SW_RESTORE = 9;
-
         /// <summary>
         /// Link between emulator declared in es_systems.cfg and generator to use to launch emulator
         /// </summary>
@@ -108,6 +97,7 @@ namespace EmulatorLauncher
             { "ikemen", () => new ExeLauncherGenerator() },
             { "jgenesis", () => new JgenesisGenerator() },
             { "jynx", () => new JynxGenerator() },
+            { "jzintv", () => new JZintvGenerator() },
             { "kega-fusion", () => new KegaFusionGenerator() },
             { "kronos", () => new KronosGenerator() },
             { "libretro", () => new LibRetroGenerator() },
@@ -1202,12 +1192,12 @@ namespace EmulatorLauncher
         public static void FocusEmulationStation()
         {
             SimpleLogger.Instance.Info("[Focus] Bringing EmulationStation to foreground.");
-            IntPtr hwnd = FindWindow(null, "emulationstation");
+            IntPtr hwnd = User32.FindWindow(null, "emulationstation");
 
             if (hwnd != IntPtr.Zero)
             {
-                ShowWindow(hwnd, SW_RESTORE);
-                SetForegroundWindow(hwnd);
+                User32.ShowWindow(hwnd, SW.RESTORE);
+                User32.SetForegroundWindow(hwnd);
             }
         }
     }
