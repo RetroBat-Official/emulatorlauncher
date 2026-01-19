@@ -11,6 +11,7 @@ using System.Globalization;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Compression;
 using EmulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher
 {
@@ -266,6 +267,8 @@ namespace EmulatorLauncher
             SetupPad();
 
             SplashVideo.ShutDown();
+
+            User32.ForceForegroundWindow(Handle);
         }
 
         public void UpdateAll()

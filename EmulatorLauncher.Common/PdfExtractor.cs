@@ -12,7 +12,7 @@ namespace EmulatorLauncher.Common
 {
     public class PdfExtractor
     {
-        public static string ExtractPdfPages(string pdfPath)
+        public static string ExtractPdfPages(string pdfPath, int quality = 125)
         {
             string pdfFolder = Path.Combine(Path.GetTempPath(), "pdftmp");
 
@@ -35,14 +35,14 @@ namespace EmulatorLauncher.Common
             for (int i = 0; i <= pages; i += numberOfPagesToProcess)
             {
                 int startPage = i;
-                tasks.Add(Task.Factory.StartNew(() => ExtractPdfPage(pdfPath, startPage, numberOfPagesToProcess, false)));
+                tasks.Add(Task.Factory.StartNew(() => ExtractPdfPage(pdfPath, startPage, numberOfPagesToProcess, quality, false)));
             }
 
             Task.WaitAll(tasks.ToArray());
             return pdfFolder;
         }
 
-        public static string ExtractPdfPage(string pdfPath, int pageIndex, int pageCount = 1, bool resetDirectory = true)
+        public static string ExtractPdfPage(string pdfPath, int pageIndex, int pageCount = 1, int quality = 125, bool resetDirectory = true)
         {
             if (pageIndex < 0)
                 return null;
@@ -61,7 +61,7 @@ namespace EmulatorLauncher.Common
                 catch { }
             }
 
-            string squality = "125";
+            string squality = quality.ToString();
             string prefix = "extract";
             string page = "";
 

@@ -89,6 +89,16 @@ namespace EmulatorLauncher
             return true;
         }
 
+        private void OnMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            e.Handled = true; // évite propagation (scroll parent)
+
+            if (e.Delta < 0)
+                Show(_index + 1, true);
+            else if (e.Delta > 0)
+                Show(_index - 1, false);
+        }
+
         private void OnKeyDown(object sender, KeyEventArgs e)
         {
             if (_animating) return;
