@@ -57,8 +57,69 @@ namespace EmulatorLauncher.Common
         [DllImport("user32.dll")]
         public static extern bool SetForegroundWindow(IntPtr hWnd);
 
+        [DllImport("user32.dll")]
+        public static extern bool SetActiveWindow(IntPtr hWnd);
+
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr GetWindow(IntPtr hWnd, GW cmd);
+
+        [DllImport("user32.dll")]
+        public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool IsWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern bool AllowSetForegroundWindow(int dwProcessId);
+        private const int ASFW_ANY = -1;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool SystemParametersInfo(uint uiAction, uint uiParam, ref IntPtr pvParam, uint fWinIni);
+        const uint SPI_GETFOREGROUNDLOCKTIMEOUT = 0x2000;
+        const uint SPI_SETFOREGROUNDLOCKTIMEOUT = 0x2001;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool LockSetForegroundWindow(uint uLockCode);
+        private const uint LSFW_UNLOCK = 2;
+
+        public static void ForceForegroundWindow(IntPtr hWnd)
+        {
+            if (!IsWindow(hWnd)) 
+                return;
+
+            uint currentThread = Kernel32.GetCurrentThreadId();
+
+            IntPtr activeWindow = GetForegroundWindow();
+            uint activeProcess;
+            uint activeThread = GetWindowThreadProcessId(activeWindow, out activeProcess);
+
+            uint windowProcess;
+            uint windowThread = GetWindowThreadProcessId(hWnd, out windowProcess);
+
+            if (currentThread != activeThread)
+                AttachThreadInput(currentThread, activeThread, true);
+            if (windowThread != currentThread)
+                AttachThreadInput(windowThread, currentThread, true);
+
+            IntPtr oldTimeout = IntPtr.Zero, newTimeout = IntPtr.Zero;
+            SystemParametersInfo(SPI_GETFOREGROUNDLOCKTIMEOUT, 0, ref oldTimeout, 0);
+            SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, ref newTimeout, 0);
+            LockSetForegroundWindow(LSFW_UNLOCK);
+            AllowSetForegroundWindow(ASFW_ANY);
+
+            SetForegroundWindow(hWnd);
+            ShowWindowAsync(hWnd, SW.SHOW);
+
+            SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT, 0, ref oldTimeout, 0);
+
+            if (currentThread != activeThread)
+                AttachThreadInput(currentThread, activeThread, false);
+            if (windowThread != currentThread)
+                AttachThreadInput(windowThread, currentThread, false);
+        }
 
         [DllImport("user32.dll")]
         public static extern IntPtr GetProp(IntPtr hWnd, string lpString);
@@ -108,6 +169,9 @@ namespace EmulatorLauncher.Common
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
         public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int newLong);
 
+        [DllImport("User32.dll", CharSet = CharSet.Auto)]
+        public static extern int SetWindowLong(IntPtr hWnd, GWL nIndex, IntPtr longValue);
+
         // GetWindowStyle
         public static WS SetWindowStyle(IntPtr hWnd, WS value)
         {
@@ -122,7 +186,7 @@ namespace EmulatorLauncher.Common
         // ExStyle
         public static WS_EX SetWindowStyleEx(IntPtr hWnd, WS_EX value)
         {
-            return (WS_EX)SetWindowLong(hWnd, (int)GWL.EXSTYLE, (int)value);
+            return (WS_EX)SetWindowLong(hWnd, GWL.EXSTYLE, (IntPtr)value);
         }
 
         public static WS_EX GetWindowStyleEx(IntPtr hWnd)
@@ -166,6 +230,15 @@ namespace EmulatorLauncher.Common
 
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
         public static extern int ShowWindow(IntPtr hWnd, SW cmdShow);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool ShowWindowAsync(IntPtr windowHandle, SW cmdShow);
+
+        [DllImport("user32.dll")]
+        public static extern bool ReleaseCapture();
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+        public static extern IntPtr SetCursor(HandleRef hcursor);
     }
 
     public static class Kernel32
@@ -174,6 +247,9 @@ namespace EmulatorLauncher.Common
         {
             return AttachConsole(-1);
         }
+
+        [DllImport("kernel32.dll")]
+        public static extern uint GetCurrentThreadId();
 
         [DllImport("kernel32.dll")]
         public static extern bool AttachConsole(int dwProcessId = ATTACH_PARENT_PROCESS);
@@ -452,4 +528,27 @@ namespace EmulatorLauncher.Common
         SCS_POSIX_BINARY = 4, // A POSIX – based application
         SCS_WOW_BINARY = 2    // A 16-bit Windows-based application
     }
+
+    public class WaitCursor : IDisposable
+    {
+        public WaitCursor()
+        {
+            BeginWaitCursor();
+        }
+
+        public static void BeginWaitCursor()
+        {
+            User32.SetCursor(new HandleRef(System.Windows.Forms.Cursors.WaitCursor, System.Windows.Forms.Cursors.WaitCursor.Handle));
+        }
+
+        public static void EndWaitCursor()
+        {
+            User32.SetCursor(new HandleRef(System.Windows.Forms.Cursors.Arrow, System.Windows.Forms.Cursors.Arrow.Handle));
+        }
+
+        public void Dispose()
+        {
+            EndWaitCursor();
+        }
+    }
 }

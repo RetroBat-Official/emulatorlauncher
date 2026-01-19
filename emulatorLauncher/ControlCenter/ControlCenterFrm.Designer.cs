@@ -31,7 +31,7 @@ namespace EmulatorLauncher.ControlCenter
             // 
             // label1
             // 
-            this.label1.BackColor = System.Drawing.Color.Black;
+            this.label1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(8)))), ((int)(((byte)(8)))), ((int)(((byte)(16)))));
             this.label1.Dock = System.Windows.Forms.DockStyle.Top;
             this.label1.Location = new System.Drawing.Point(0, 0);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
@@ -43,7 +43,7 @@ namespace EmulatorLauncher.ControlCenter
             // 
             // panel1
             // 
-            this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(26)))), ((int)(((byte)(26)))), ((int)(((byte)(30)))));
             this.panel1.Controls.Add(this.btnMap);
             this.panel1.Controls.Add(this.btnTatoo);
             this.panel1.Controls.Add(this.btnManual);
@@ -53,10 +53,10 @@ namespace EmulatorLauncher.ControlCenter
             this.panel1.Controls.Add(this.pictureBox1);
             this.panel1.Controls.Add(this.label1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Location = new System.Drawing.Point(1, 1);
             this.panel1.Margin = new System.Windows.Forms.Padding(4);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(867, 532);
+            this.panel1.Size = new System.Drawing.Size(865, 530);
             this.panel1.TabIndex = 2;
             // 
             // btnMap
@@ -153,7 +153,7 @@ namespace EmulatorLauncher.ControlCenter
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(18)))), ((int)(((byte)(23)))), ((int)(((byte)(26)))));
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.CancelButton = this.btnCancel;
             this.ClientSize = new System.Drawing.Size(867, 532);
             this.ControlBox = false;
@@ -165,6 +165,7 @@ namespace EmulatorLauncher.ControlCenter
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "ControlCenterFrm";
+            this.Padding = new System.Windows.Forms.Padding(1);
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.panel1.ResumeLayout(false);

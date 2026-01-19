@@ -83,14 +83,18 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ControlCenter\ControlButton.cs" />
+    <Compile Include="ControlCenter\ControlButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ControlCenter\ControlCenterFrm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="ControlCenter\ControlCenterFrm.Designer.cs">
       <DependentUpon>ControlCenterFrm.cs</DependentUpon>
     </Compile>
-    <Compile Include="ControlCenter\OverlayForm.cs" />
+    <Compile Include="ControlCenter\OverlayForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Controller.cs" />
     <Compile Include="EsFeaturesPoBuilder.cs" />
     <Compile Include="EsSaveStatesExtensions.cs" />
