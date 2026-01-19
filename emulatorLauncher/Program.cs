@@ -97,6 +97,7 @@ namespace EmulatorLauncher
             { "ikemen", () => new ExeLauncherGenerator() },
             { "jgenesis", () => new JgenesisGenerator() },
             { "jynx", () => new JynxGenerator() },
+            { "jzintv", () => new JZintvGenerator() },
             { "kega-fusion", () => new KegaFusionGenerator() },
             { "kronos", () => new KronosGenerator() },
             { "libretro", () => new LibRetroGenerator() },
@@ -818,6 +819,8 @@ namespace EmulatorLauncher
 
             if (Environment.ExitCode != 0)
                 SimpleLogger.Instance.Error("[Generator] Exit code " + Environment.ExitCode);
+
+            FocusEmulationStation();
         }
 
         private static void OnCurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -1181,6 +1184,21 @@ namespace EmulatorLauncher
         private static int ObscureCode(byte x, byte y)
         {
             return (x ^ y) + 0x80;
+        }
+
+        /// <summary>
+        /// Brings EmulationStation to the foreground
+        /// </summary>
+        public static void FocusEmulationStation()
+        {
+            SimpleLogger.Instance.Info("[Focus] Bringing EmulationStation to foreground.");
+            IntPtr hwnd = User32.FindWindow(null, "emulationstation");
+
+            if (hwnd != IntPtr.Zero)
+            {
+                User32.ShowWindow(hwnd, SW.RESTORE);
+                User32.SetForegroundWindow(hwnd);
+            }
         }
     }
 }

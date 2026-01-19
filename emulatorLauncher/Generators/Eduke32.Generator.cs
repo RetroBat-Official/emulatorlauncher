@@ -30,6 +30,7 @@ namespace EmulatorLauncher
             string grp = Path.GetFileName(rom);
 
             SetupConfiguration(path, grp, resolution);
+            SetupCfg(path);
 
             var commandArray = new List<string>();
 
@@ -69,10 +70,14 @@ namespace EmulatorLauncher
 
         private void SetupConfiguration(string path, string grp, ScreenResolution resolution)
         {
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
             try
             {
                 using (IniFile ini = new IniFile(Path.Combine(path, "eduke32.cfg"), IniOptions.UseSpaces))
                 {
+                    ini.WriteValue("Screen Setup", "ScreenMode", fullscreen ? "1" : "0");
+
                     ini.WriteValue("Setup", "ForceSetup", "0");
                     BindBoolIniFeature(ini, "Setup", "NoAutoLoad", "autoload", "0", "1");
                     ini.WriteValue("Setup", "SelectedGRP", "\"" + grp + "\"");
@@ -115,7 +120,23 @@ namespace EmulatorLauncher
             }
             catch { }
         }
+
+        private void SetupCfg(string path)
+        {
+            string cfgFile = Path.Combine(path, "settings.cfg");
+
+            bool exclusive = SystemConfig.getOptBoolean("exclusivefs");
+            bool vsync = !SystemConfig.isOptSet("VSync") || SystemConfig.getOptBoolean("VSync");
+
+            var cfg = new QuakeConfig(cfgFile);
+
+            cfg["r_borderless"] = exclusive ? "0" : "1";
+            cfg["r_vsync"] = vsync ? "1" : "0";
+
+            cfg.Save();
+        }
     }
+
     class Eduke32Arg
     {
         public static List<Eduke32Arg> Eduke32Args = new List<Eduke32Arg>()

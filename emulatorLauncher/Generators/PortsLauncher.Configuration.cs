@@ -67,12 +67,10 @@ namespace EmulatorLauncher
             commandArray.Add("--profile_dir");
             commandArray.Add("\"" + _path + "\"");
 
-            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
-
             commandArray.Add("--vid_window_mode value");
             if (_fullscreen)
             {
-                commandArray.Add(exclusivefs ? "fullscreen" : "fake_fullscreen");
+                commandArray.Add(_exclusivefs ? "fullscreen" : "fake_fullscreen");
             }
             else
                 commandArray.Add("windowed");
@@ -657,7 +655,7 @@ namespace EmulatorLauncher
                 var displayConf = DynamicJson.Load(displaySettingsFile);
 
                 BindFeature(displayConf, "display_id", "MonitorIndex", "0");
-                if (_fullscreen && SystemConfig.getOptBoolean("exclusivefs"))
+                if (_fullscreen && _exclusivefs)
                     displayConf["display_mode"] = "1";
                 else if (_fullscreen)
                     displayConf["display_mode"] = "2";
@@ -1075,7 +1073,6 @@ namespace EmulatorLauncher
 
             _nobezels = true;
 
-            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
             var otrFiles = Directory.GetFiles(_path, "*.otr");
             var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("2ship.otr", StringComparison.OrdinalIgnoreCase));
 
@@ -1266,7 +1263,7 @@ namespace EmulatorLauncher
             }
 
             advres["VerticalResolutionToggle"] = 1;
-            gsettings["SdlWindowedFullscreen"] = exclusivefs ? 0 : 1;
+            gsettings["SdlWindowedFullscreen"] = _exclusivefs ? 0 : 1;
 
             BindFeatureInt(gsettings, "TextureFilter", "ship2_texturefilter", "0");
             BindBoolFeatureOnInt(gsettings, "VsyncEnabled", "vsync", "1", "0");
@@ -1318,7 +1315,6 @@ namespace EmulatorLauncher
 
             _nobezels = true;
 
-            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
             var otrFiles = Directory.GetFiles(_path, "*.otr");
             var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("soh.otr", StringComparison.OrdinalIgnoreCase));
 
@@ -1488,7 +1484,7 @@ namespace EmulatorLauncher
             }
 
             advres["VerticalResolutionToggle"] = 1;
-            gsettings["SdlWindowedFullscreen"] = exclusivefs ? 0 : 1;
+            gsettings["SdlWindowedFullscreen"] = _exclusivefs ? 0 : 1;
 
             BindFeatureInt(gsettings, "TextureFilter", "soh_texturefilter", "0");
             BindBoolFeatureOnInt(gsettings, "VsyncEnabled", "vsync", "1", "0");
@@ -1825,7 +1821,6 @@ namespace EmulatorLauncher
             if (_emulator != "starship")
                 return;
 
-            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
             var otrFiles = Directory.GetFiles(_path, "*.otr");
             var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("starship.otr", StringComparison.OrdinalIgnoreCase));
 
@@ -2019,7 +2014,7 @@ namespace EmulatorLauncher
 
             BindFeatureSliderInt(cvars, "gMSAAValue", "starship_msaa", "1");
             cvars["gOpenMenuBar"] = 1;
-            cvars["gSdlWindowedFullscreen"] = exclusivefs ? 0 : 1;
+            cvars["gSdlWindowedFullscreen"] = _exclusivefs ? 0 : 1;
             BindFeatureInt(cvars, "gTextureFilter", "starship_texturefilter", "1");
             BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "starship_vsync", "1", "0");
             BindFeature(window, "AudioBackend", "starship_audioapi", "wasapi");
@@ -2057,7 +2052,6 @@ namespace EmulatorLauncher
 
             bool hipnotic = false;
             bool rogue = false;
-            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
 
             commandArray.Add("-basedir");
             string rompath =Path.Combine(AppConfig.GetFullPath("roms"), "quake");
@@ -2104,7 +2098,7 @@ namespace EmulatorLauncher
             else
                 cfg["vid_fullscreen"] = "0";
 
-            if (exclusivefs)
+            if (_exclusivefs)
                 cfg["vid_borderless"] = "0";
             else
                 cfg["vid_borderless"] = "1";
@@ -2121,7 +2115,6 @@ namespace EmulatorLauncher
             bool xatrix = false;
             bool smd = false;
             bool rogue = false;
-            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
             string rompath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2");
 
             commandArray.Add("+set basedir");
@@ -2181,7 +2174,7 @@ namespace EmulatorLauncher
             else
                 cfg["set vid_fullscreen"] = "0";
 
-            if (exclusivefs)
+            if (_exclusivefs)
                 cfg["set vk_fullscreen_exclusive"] = "1";
             else
                 cfg["set vk_fullscreen_exclusive"] = "0";
@@ -2223,10 +2216,8 @@ namespace EmulatorLauncher
 
             // Set environment variable for xash3d base directory
             Environment.SetEnvironmentVariable("XASH3D_BASEDIR", rompath, EnvironmentVariableTarget.User);
-
-            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
             
-            if (_fullscreen && exclusivefs)
+            if (_fullscreen && _exclusivefs)
                 commandArray.Add("-fullscreen");
             else if (_fullscreen)
                 commandArray.Add("-borderless");

@@ -1,11 +1,12 @@
-﻿using System;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.IO;
 using System.Diagnostics;
 using System.Drawing;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace EmulatorLauncher
 {
@@ -911,9 +912,13 @@ namespace EmulatorLauncher
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
+            int monitorIndex = SystemConfig["MonitorIndex"].ToInteger();
+            var screens = Screen.AllScreens;
+            if (monitorIndex < 0 || monitorIndex >= screens.Length)
+                monitorIndex = 0;
 
             if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution, false, monitorIndex);
 
             int ret = 0;
 
@@ -921,6 +926,11 @@ namespace EmulatorLauncher
                 ret = base.RunAndWait(path);
             else
             {
+                var targetScreen = screens[monitorIndex];
+                Rectangle targetBounds = targetScreen.Bounds;
+                if (_windowRect.IsEmpty)
+                    _windowRect = targetBounds;
+
                 var process = Process.Start(path);
                 Job.Current.AddProcess(process);
 

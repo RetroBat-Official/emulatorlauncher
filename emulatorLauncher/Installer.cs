@@ -70,6 +70,7 @@ namespace EmulatorLauncher
             { new Installer("hypseus", "hypseus", "hypseus.exe") },
             { new Installer("jgenesis", "jgenesis", "jgenesis-gui.exe") },
             { new Installer("jynx", "jynx", "Jynx-Windows-64bit.exe") },
+            { new Installer("jzintv", "jzintv", "jzintv.exe") },
             { new Installer("kega-fusion", "kega-fusion", "Fusion.exe") },
             { new Installer("kronos", "kronos", "kronos.exe") },
             { new Installer("libretro", "retroarch" ) },

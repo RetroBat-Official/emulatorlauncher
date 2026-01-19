@@ -67,6 +67,7 @@ namespace EmulatorLauncher
         private string _romPath;
         private string _workingPath = null;
         private bool _fullscreen;
+        private bool _exclusivefs;
         private bool _nobezels;
         private bool _useReshade = false;
         private bool _pad2Keyoverride = false;
@@ -74,6 +75,7 @@ namespace EmulatorLauncher
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             _fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            _exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
             _nobezels = false;
 
             // Specific cases to override emulator
