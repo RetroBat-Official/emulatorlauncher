@@ -56,56 +56,62 @@ namespace EmulatorLauncher.Libretro
             if (wheelNb < 1)
                 return;
 
+            var filteredWheels = new List<Wheel>();
+
             foreach (var wheel in usableWheels)
             {
                 string wheeltype = wheel.Type.ToString();
                 SimpleLogger.Instance.Info("[WHEELS] Looking for mapping for " + wheeltype);
-                
-                YmlFile ymlFile = null;
-                YmlContainer wheelMapping = null;
+
                 Dictionary<string, string> wheelbuttonMap = new Dictionary<string, string>();
 
-                string coreWheelMapping = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "libretro_" + core + "_wheels.yml");
-                if (File.Exists(coreWheelMapping))
-                {
-                    ymlFile = YmlFile.Load(coreWheelMapping);
-                    wheelMapping = ymlFile.Elements.Where(c => c.Name == wheeltype).FirstOrDefault() as YmlContainer;
+                string coreWheelMapping = Path.Combine(
+                    AppConfig.GetFullPath("retrobat"),
+                    "system",
+                    "resources",
+                    "inputmapping",
+                    "wheels",
+                    "libretro_" + core + "_wheels.yml"
+                );
 
-                    if (wheelMapping == null)
-                    {
-                        SimpleLogger.Instance.Info("[WHEELS] No mapping exists for the wheel : " + wheeltype + " and the core : libretro_" + core);
-                        usableWheels.Remove(wheel);
-                    }
-                    else
-                    {
-                        foreach (var mapEntry in wheelMapping.Elements)
-                        {
-                            if (mapEntry is YmlElement button)
-                            {
-                                if (button.Value == null || button.Value == "nul")
-                                    continue;
-                                wheelbuttonMap.Add(button.Name, button.Value);
-                            }
-                        }
-
-                        if (wheelbuttonMap.Count > 0)
-                            wheel.ButtonMapping = wheelbuttonMap;
-                        else
-                        {
-                            usableWheels.Remove(wheel);
-                            SimpleLogger.Instance.Info("[WHEELS] Wheelmapping is empty for wheel " + wheeltype);
-                        }
-                    }
-                }
-                else
+                if (!File.Exists(coreWheelMapping))
                 {
-                    usableWheels.Remove(wheel);
+                    SimpleLogger.Instance.Info("[WHEELS] No wheel mapping file found for core libretro_" + core);
+                    continue;
                 }
+
+                var ymlFile = YmlFile.Load(coreWheelMapping);
+                var wheelMapping = ymlFile.Elements
+                                          .OfType<YmlContainer>()
+                                          .FirstOrDefault(c => c.Name == wheeltype);
+
+                if (wheelMapping == null)
+                {
+                    SimpleLogger.Instance.Info("[WHEELS] No mapping exists for wheel " + wheeltype);
+                    continue;
+                }
+
+                foreach (var mapEntry in wheelMapping.Elements.OfType<YmlElement>())
+                {
+                    if (string.IsNullOrEmpty(mapEntry.Value) || mapEntry.Value == "nul")
+                        continue;
+
+                    wheelbuttonMap[mapEntry.Name] = mapEntry.Value;
+                }
+
+                if (wheelbuttonMap.Count == 0)
+                {
+                    SimpleLogger.Instance.Info("[WHEELS] Wheel mapping is empty for " + wheeltype);
+                    continue;
+                }
+
+                wheel.ButtonMapping = wheelbuttonMap;
+                filteredWheels.Add(wheel);
             }
+            
+            usableWheels = filteredWheels;
 
-            wheelNb = usableWheels.Count;
-
-            if (wheelNb < 1)
+            if (usableWheels.Count < 1)
             {
                 SimpleLogger.Instance.Info("[WHEELS] No mapping found for any wheel in yml files for the core " + core);
                 return;
