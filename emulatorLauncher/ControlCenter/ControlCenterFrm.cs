@@ -23,54 +23,52 @@ namespace EmulatorLauncher.ControlCenter
 
             Font = new Font(SystemFonts.MessageBoxFont.FontFamily.Name, this.Font.Size, FontStyle.Regular);
 
-            this.BackColor = Color.FromArgb(26, 26, 30);
-            label1.BackColor = Color.FromArgb(18, 18, 20);
-
-            this.ShowInTaskbar = true;
             this.Opacity = 0.0;
+            this.TopMost = true;
+            this.ShowInTaskbar = false;
+            this.DoubleBuffered = true;
 
             label1.Text = Program.CurrentGame?.Name;
             label3.Text = Program.CurrentGame?.Description;
             label3.Font = SystemFonts.MessageBoxFont;
 
-            pictureBox1.ImageLocation = GetMediaPath(Program.CurrentGame.Thumbnail);
+            pictureBox1.ImageLocation = GetMediaPath(Program.CurrentGame?.Thumbnail);
 
-            string manualPath = GetMediaPath(Program.CurrentGame.Manual);
+            btnMap.Visible = btnMap.Enabled = GetMediaPath(Program.CurrentGame?.Map) != null;
+            btnTatoo.Visible = btnTatoo.Enabled = BezelFiles.GetDefaultTatoo() != null;
+
+            string manualPath = GetMediaPath(Program.CurrentGame?.Manual);
             btnManual.Visible = btnManual.Enabled = manualPath != null && PdfExtractor.GetPdfPageCount(manualPath) > 0;
 
-            btnMap.Visible = btnMap.Enabled = GetMediaPath(Program.CurrentGame.Map) != null;
-            btnTatoo.Visible = btnTatoo.Enabled = BezelFiles.GetDefaultTatoo() != null;
+            label1.MouseDown += OnTitleMouseDown;
         }
 
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
+            _overlay = new OverlayForm();
+            _overlay.Show();
+
             this.Location = new Point(
                 (Screen.PrimaryScreen.Bounds.X + Screen.PrimaryScreen.Bounds.Width) / 2 - Width / 2,
                 (Screen.PrimaryScreen.Bounds.Y + Screen.PrimaryScreen.Bounds.Height) / 2 - Height / 2);
 
-
             ReorganizeButtonLayout();
         }
-        
+
         protected override void OnShown(EventArgs e)
         {
             base.OnShown(e);
 
+            User32.SetWindowLong(Handle, GWL.HWNDPARENT, _overlay.Handle);
+
             IntPtr HWND_TOPMOST = new IntPtr(-1);
-            IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+            User32.SetWindowPos(_overlay.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP.NOSIZE | SWP.NOMOVE);
+            User32.SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP.NOSIZE | SWP.NOMOVE);
 
-            _overlay = new OverlayForm();
-            _overlay.Show();
-            _overlay.Activate();
-           
-            User32.SetWindowPos(this.Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP.NOSIZE | SWP.NOMOVE | SWP.SHOWWINDOW);
-            User32.SetWindowPos(_overlay.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP.NOSIZE | SWP.NOMOVE | SWP.SHOWWINDOW);
-            User32.SetWindowPos(_overlay.Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP.NOSIZE | SWP.NOMOVE | SWP.SHOWWINDOW);
-            User32.SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP.NOSIZE | SWP.NOMOVE | SWP.SHOWWINDOW | SWP.FRAMECHANGED);            
+            User32.ForceForegroundWindow(Handle);
 
-            Activate();
             StartFadeIn();
         }
 
@@ -130,39 +128,21 @@ namespace EmulatorLauncher.ControlCenter
             _fadeTimer.Start();
         }
 
-        private string GetMediaPath(string item)
+        private void OnTitleMouseDown(object sender, MouseEventArgs e)
         {
-            if (string.IsNullOrEmpty(item))
-                return item;
-
-            var romPath = Program.SystemConfig.GetFullPath("rom");
-
-            string gamelistPath = romPath;
-            while (!File.Exists(Path.Combine(gamelistPath, "gamelist.xml")))
+            if (e.Button == MouseButtons.Left)
             {
-                gamelistPath = Path.GetDirectoryName(gamelistPath);
-                if (gamelistPath.Length <= 2)
-                {
-                    gamelistPath = null;
-                    break;
-                }
+                User32.ReleaseCapture();
+
+                const int WM_NCLBUTTONDOWN = 0xA1;
+                const int HTCAPTION = 0x2;
+
+                User32.SendMessage(this.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0);
             }
-
-            if (gamelistPath != null)
-            {
-                string img = item;
-                if (img.StartsWith("./"))
-                    img = gamelistPath + img.Substring(1);
-
-                if (File.Exists(img))
-                    return img;
-            }
-
-            return null;
-        }        
+        }
 
         protected override void OnClosed(EventArgs e)
-        {            
+        {
             if (_overlay != null)
             {
                 _overlay.Dispose();
@@ -226,6 +206,37 @@ namespace EmulatorLauncher.ControlCenter
                     proc.Kill();
             }
             catch { }
+        }
+
+        private string GetMediaPath(string item)
+        {
+            if (string.IsNullOrEmpty(item))
+                return item;
+
+            var romPath = Program.SystemConfig.GetFullPath("rom");
+
+            string gamelistPath = romPath;
+            while (!File.Exists(Path.Combine(gamelistPath, "gamelist.xml")))
+            {
+                gamelistPath = Path.GetDirectoryName(gamelistPath);
+                if (gamelistPath.Length <= 2)
+                {
+                    gamelistPath = null;
+                    break;
+                }
+            }
+
+            if (gamelistPath != null)
+            {
+                string img = item;
+                if (img.StartsWith("./"))
+                    img = gamelistPath + img.Substring(1);
+
+                if (File.Exists(img))
+                    return img;
+            }
+
+            return null;
         }
 
         private void button1_Click(object sender, EventArgs e)

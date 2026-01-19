@@ -7,9 +7,10 @@
              mc:Ignorable="d"  
              Background="#FF1A1A1E"
              Focusable="True"
+             MouseWheel="OnMouseWheel"
              PreviewKeyDown="OnPreviewKeyDown"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid x:Name="Root" ClipToBounds="True">
+    <Grid x:Name="Root" ClipToBounds="True" RenderOptions.BitmapScalingMode="Fant" RenderOptions.EdgeMode="Unspecified">
 
         <Border x:Name="BorderCurrent">
             <Border.RenderTransform>

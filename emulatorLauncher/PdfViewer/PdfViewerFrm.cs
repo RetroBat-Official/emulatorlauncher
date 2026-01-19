@@ -31,7 +31,9 @@ namespace EmulatorLauncher
 
             if (Path.GetExtension(pdfFile).ToLowerInvariant() == ".pdf")
             {
-                _path = PdfExtractor.ExtractPdfPages(pdfFile);
+                using (new WaitCursor())
+                    _path = PdfExtractor.ExtractPdfPages(pdfFile, 300);
+
                 viewer.LoadFolder(_path);
             }
             else

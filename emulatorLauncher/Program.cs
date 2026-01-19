@@ -758,8 +758,12 @@ namespace EmulatorLauncher
                             if (ControlCenterFrm.IsRunning)
                                 return;
 
-                            if (new ControlCenterFrm().ShowDialog() == DialogResult.Abort)
-                                processWasKilled = true;
+                            using (var frm = new ControlCenterFrm())
+                            {
+                                Application.Run(frm);
+                                if (frm.DialogResult == DialogResult.Abort)
+                                    processWasKilled = true;
+                            }
                         };
 
                         mapping = PadToKey.AddOrUpdateKeyMapping(mapping, "*", InputKey.hotkey | InputKey.b, () =>

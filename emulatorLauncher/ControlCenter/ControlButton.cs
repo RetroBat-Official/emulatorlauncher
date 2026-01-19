@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
 namespace EmulatorLauncher.ControlCenter
@@ -13,7 +15,7 @@ namespace EmulatorLauncher.ControlCenter
             SetStyle(ControlStyles.ResizeRedraw, true);
         }
 
-        private System.Drawing.Drawing2D.GraphicsPath GetRoundedRectPath(Rectangle rect, int radius)
+        public static System.Drawing.Drawing2D.GraphicsPath GetRoundedRectPath(Rectangle rect, int radius)
         {
             var path = new System.Drawing.Drawing2D.GraphicsPath();
             int d = radius * 2;
@@ -28,6 +30,29 @@ namespace EmulatorLauncher.ControlCenter
         }
 
         private bool _isPressed = false;
+        private bool _isHovered = false;
+
+        protected override void OnMouseEnter(EventArgs e)
+        {
+            base.OnMouseEnter(e); 
+            
+            if (!_isHovered)
+            {
+                _isHovered = true;
+                Invalidate();
+            }
+        }
+
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+
+            if (_isHovered)
+            {
+                _isHovered = false;
+                Invalidate();
+            }
+        }
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -59,20 +84,47 @@ namespace EmulatorLauncher.ControlCenter
             else
                 ButtonRenderer.DrawParentBackground(e.Graphics, ClientRectangle, this);
 
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+            int radius = 6;
+
             Rectangle rect = ClientRectangle;
             rect.Width--;
             rect.Height--;
 
-            int radius = 5;
-
-            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
             using (var path = GetRoundedRectPath(rect, radius))
             {
-                using (Brush bg = new SolidBrush(_isPressed ? Color.FromArgb(24, 24, 24) : this.Focused ? Color.FromArgb(0, 16, 16) : Color.FromArgb(36, 36, 40)))
+                Color backColor = _isPressed ? Color.FromArgb(24, 24, 24) : this.Focused ? Color.FromArgb(0, 16, 16) : Color.FromArgb(36, 36, 40);
+                if (_isHovered && !_isPressed)
+                    backColor = Focused ? Color.FromArgb(8, 24, 24) : Color.FromArgb(44, 44, 50);
+
+                using (Brush bg = new SolidBrush(backColor))
                     e.Graphics.FillPath(bg, path);
 
-                using (Pen pen = new Pen(this.Focused ? Color.DarkCyan : Color.FromArgb(44, 44, 46)))
+                Rectangle highlightRect = rect;
+                highlightRect.Height = rect.Height / 2 + 1;
+
+                using (var highlightPath = GetRoundedRectPath(highlightRect, radius))
+                {
+                    highlightRect.Height++;
+                    using (var highlightBrush = new LinearGradientBrush(
+                        highlightRect,
+                        Color.FromArgb(20, Color.White),
+                        Color.FromArgb(0, Color.White),
+                        LinearGradientMode.Vertical))
+                    {
+                        e.Graphics.FillPath(highlightBrush, highlightPath);
+                    }
+                }
+
+                Rectangle innerRect = rect;
+                innerRect.Inflate(-1, -1);
+
+                using (var innerPath = GetRoundedRectPath(innerRect, radius - 1))
+                using (var innerPen = new Pen(Color.FromArgb(12, Color.White)))
+                    e.Graphics.DrawPath(innerPen, innerPath);
+
+                using (Pen pen = new Pen(this.Focused ? Color.DarkCyan : Color.FromArgb(0, 8, 8))) // Color.FromArgb(44, 44, 46)
                     e.Graphics.DrawPath(pen, path);
             }
 
