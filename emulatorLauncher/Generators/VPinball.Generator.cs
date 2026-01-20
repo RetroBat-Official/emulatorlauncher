@@ -338,6 +338,7 @@ namespace EmulatorLauncher
                 }
 
                 // Controls
+                ini.WriteValue("Player", "TweakKey", "68");
                 if (SystemConfig.isOptSet("vp_inputdriver") && SystemConfig["vp_inputdriver"] == "pad2key")
                 {
                     string sourcep2kFile = Path.Combine(AppConfig.GetFullPath("system"), "padtokey", "vpinball.keys.old");
