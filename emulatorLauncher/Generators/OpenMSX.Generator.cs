@@ -1,14 +1,14 @@
-﻿using System;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
-using System.Diagnostics;
-using System.Xml.Linq;
-using System.Xml;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
 using System.Threading;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace EmulatorLauncher
 {
@@ -250,6 +250,10 @@ namespace EmulatorLauncher
                 FileName = exe,
                 WorkingDirectory = path,
                 Arguments = args,
+                UseShellExecute = false,
+                EnvironmentVariables = {
+                    { "OPENMSX_HOME", sharePath }
+                }
             };
         }
 
