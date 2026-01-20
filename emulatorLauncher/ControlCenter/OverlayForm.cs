@@ -7,7 +7,7 @@ namespace EmulatorLauncher.ControlCenter
     class OverlayForm : Form
     {
         public OverlayForm()
-        {
+        {          
             FormBorderStyle = FormBorderStyle.None;
             StartPosition = FormStartPosition.Manual;
             Bounds = Screen.PrimaryScreen.Bounds;
@@ -16,6 +16,28 @@ namespace EmulatorLauncher.ControlCenter
             Opacity = 0.7;
             ShowInTaskbar = false;
         }
+
+        public void SetBackgroundImage(Image image)
+        {
+            _background = image;
+            this.Opacity = 1;
+            Refresh();
+        }
+       
+        protected override void OnPaintBackground(PaintEventArgs e)
+        {
+            if (_background != null)
+            {
+                e.Graphics.DrawImageUnscaled(_background, Point.Empty);
+
+                using (var sb = new SolidBrush(Color.FromArgb(178, 0, 0, 0)))
+                    e.Graphics.FillRectangle(sb, ClientRectangle);
+            }
+            else
+                base.OnPaintBackground(e);
+        }
+     
+        private Image _background;
 
         protected override CreateParams CreateParams
         {

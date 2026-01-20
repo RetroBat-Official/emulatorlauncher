@@ -1,4 +1,5 @@
 ﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.PadToKeyboard;
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -14,9 +15,21 @@ namespace EmulatorLauncher.ControlCenter
 
         private bool _tatoo = false;
         private OverlayForm _overlay;
+        private Bitmap _background;
+        private IntPtr _hWndRestore;
+
+        private void CaptureScreen()
+        {
+            var bounds = Screen.PrimaryScreen.Bounds;
+            _background = new System.Drawing.Bitmap(bounds.Width, bounds.Height);
+            using (var g = System.Drawing.Graphics.FromImage(_background))
+                g.CopyFromScreen(System.Drawing.Point.Empty, System.Drawing.Point.Empty, bounds.Size);            
+        }
 
         public ControlCenterFrm()
         {
+            CaptureScreen();
+            
             IsRunning = true;
 
             InitializeComponent();
@@ -69,7 +82,30 @@ namespace EmulatorLauncher.ControlCenter
 
             User32.ForceForegroundWindow(Handle);
 
+            CheckFullScreenEmulator();
             StartFadeIn();
+        }
+
+        private void CheckFullScreenEmulator()
+        {
+            IntPtr hWnd = GetEmulatorHWnd();
+            if (hWnd != IntPtr.Zero)
+            {
+                var style = (WS)User32.GetWindowLong(hWnd, GWL.STYLE);
+                if (style.HasFlag(WS.MINIMIZE))
+                {
+                    _overlay.SetBackgroundImage(_background);
+                    _hWndRestore = hWnd;
+
+                    User32.ForceForegroundWindow(Handle);
+                }
+            }
+        }
+
+        private void RestoreFullScreenEmulator()
+        {
+            if (_hWndRestore != IntPtr.Zero)
+                User32.ShowWindowAsync(_hWndRestore, SW.RESTORE);                
         }
 
         private void ReorganizeButtonLayout()
@@ -150,9 +186,11 @@ namespace EmulatorLauncher.ControlCenter
             }
 
             base.OnClosed(e);
+            RestoreFullScreenEmulator();
 
             IsRunning = false;
         }
+
 
         protected override void Dispose(bool disposing)
         {
@@ -189,7 +227,7 @@ namespace EmulatorLauncher.ControlCenter
         }
 
         private static void KillChildrenProcesses(int pid, bool root = true)
-        {
+        {            
             var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
             var moc = searcher.Get();
 
@@ -203,7 +241,10 @@ namespace EmulatorLauncher.ControlCenter
             {
                 var proc = Process.GetProcessById(pid);
                 if (proc != null)
+                {
+                    KillChildrenProcesses(pid);
                     proc.Kill();
+                }
             }
             catch { }
         }
@@ -241,6 +282,13 @@ namespace EmulatorLauncher.ControlCenter
 
         private void button1_Click(object sender, EventArgs e)
         {
+            foreach (var pxHandle in Job.ChildProcesses)
+            {
+                var pxid = Kernel32.GetProcessId(pxHandle);
+                if (pxid != 0)
+                    KillChildrenProcesses(pxid, false);
+            }
+
             KillChildrenProcesses(Process.GetCurrentProcess().Id);
             Close();
             DialogResult = DialogResult.Abort;

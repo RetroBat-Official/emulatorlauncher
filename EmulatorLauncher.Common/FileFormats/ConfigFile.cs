@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -109,6 +110,7 @@ namespace EmulatorLauncher.Common.FileFormats
                     ret[line] = EmptyLine;
             }
 
+
             return ret;
         }
 
@@ -123,6 +125,9 @@ namespace EmulatorLauncher.Common.FileFormats
 
         public string GetFullPath(string key)
         {
+            if (_localPath == null && !string.IsNullOrEmpty(this["installpath"]) && Directory.Exists(this["installpath"]))
+                _localPath = this["installpath"];
+
             string data = this[key];
             if (string.IsNullOrEmpty(data))
             {

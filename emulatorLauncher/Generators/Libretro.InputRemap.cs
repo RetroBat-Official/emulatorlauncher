@@ -100,8 +100,11 @@ namespace EmulatorLauncher.Libretro
                     if (!File.Exists(ctrlFile))
                     {
                         string cfgDir = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame");
-                        string[] cfgFiles = Directory.GetFiles(cfgDir, "*.cfg", SearchOption.TopDirectoryOnly);
-                        ctrlFile = cfgFiles.Where(c => romName.StartsWith(Path.GetFileNameWithoutExtension(c))).OrderByDescending(c => Path.GetFileNameWithoutExtension(c).Length).FirstOrDefault();
+                        if (Directory.Exists(cfgDir))
+                        {
+                            string[] cfgFiles = Directory.GetFiles(cfgDir, "*.cfg", SearchOption.TopDirectoryOnly);
+                            ctrlFile = cfgFiles.Where(c => romName.StartsWith(Path.GetFileNameWithoutExtension(c))).OrderByDescending(c => Path.GetFileNameWithoutExtension(c).Length).FirstOrDefault();
+                        }
                     }
                 }
 
