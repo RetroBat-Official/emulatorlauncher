@@ -55,7 +55,7 @@ namespace EmulatorLauncher
             ini.WriteValue("Player", "VolumeDown", "12");
             ini.WriteValue("Player", "LockbarKey", "56");
             ini.WriteValue("Player", "PauseKey", "25");
-            ini.WriteValue("Player", "TweakKey", "88");
+            ini.WriteValue("Player", "TweakKey", "68");
             ini.WriteValue("Player", "JoyCustom1Key", "200");
             ini.WriteValue("Player", "JoyCustom2Key", "208");
             ini.WriteValue("Player", "JoyCustom3Key", "203");
