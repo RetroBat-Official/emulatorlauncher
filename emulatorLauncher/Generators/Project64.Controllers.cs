@@ -59,8 +59,8 @@ namespace EmulatorLauncher
             string instanceGuid = "{" + ctrl.DirectInput.InstanceGuid.ToString().ToUpperInvariant() + "}";
             bool isxinput = ctrl.IsXInputDevice;
             string iniSection = "Input-Controller " + playerIndex;
-            bool zAsRightTrigger = SystemConfig.isOptSet("p64_inputprofile" + playerIndex) && (SystemConfig["p64_inputprofile" + playerIndex] == "c_face" || SystemConfig["p64_inputprofile" + playerIndex] == "c_stick");
-            bool xboxLayout = SystemConfig.isOptSet("p64_inputprofile" + playerIndex) && SystemConfig["p64_inputprofile" + playerIndex] == "xbox";
+            bool zAsRightTrigger = SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && (SystemConfig["mupen64_inputprofile" + playerIndex] == "c_face" || SystemConfig["mupen64_inputprofile" + playerIndex] == "c_stick");
+            bool xboxLayout = SystemConfig.isOptSet("mupen64_inputprofile" + playerIndex) && SystemConfig["mupen64_inputprofile" + playerIndex] == "xbox";
 
             // Looking for gamecontrollerdb.txt file
             string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");

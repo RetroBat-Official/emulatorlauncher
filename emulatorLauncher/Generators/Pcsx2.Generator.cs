@@ -188,7 +188,8 @@ namespace EmulatorLauncher
         {
             var biosList = new string[] { 
                             "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC", 
-                            "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };
+                            "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN", 
+                            "ps2-0230a-20080220.bin", "ps2-0230e-20080220.bin", "ps2-0230j-20080220.bin", "ps2-0250e-20100415.bin", "ps3_ps2_emu_bios.bin" };
 
             string iniFile = Path.Combine(_path, "inis", "PCSX2_ui.ini");
 
@@ -286,8 +287,14 @@ namespace EmulatorLauncher
                                     value = "DEV9null.dll";
                                     break;
                                 case "BIOS":
+                                    string biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, "pcsx2", "bios", b)));
+                                    if (SystemConfig.isOptSet("pcsx2_forcebios") && !string.IsNullOrEmpty(SystemConfig["pcsx2_forcebios"]))       // Precise bios to use through feature
+                                    {
+                                        string checkBiosFile = Path.Combine(biosPath, SystemConfig["pcsx2_forcebios"]);
+                                        if (File.Exists(checkBiosFile))
+                                            biosFile = SystemConfig["pcsx2_forcebios"];
+                                    }
 
-                                    var biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, "pcsx2", "bios", b)));
                                     if (!string.IsNullOrEmpty(biosFile))
                                         value = biosFile;
                                     else
