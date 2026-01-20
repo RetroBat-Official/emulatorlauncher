@@ -142,6 +142,20 @@ namespace EmulatorLauncher
             if (_finishProcess)
                 throw new ApplicationException("Game has been extracted from specified iso file.");
 
+            // Specific exe cases
+            string replacedPath = null;
+            string replacedExe = null;
+            if (emulator == "xash3d")
+            {
+                string romPath = Path.Combine(AppConfig.GetFullPath("roms"), "halflife");
+                string xashExePath = Path.Combine(romPath, "xash3d.exe");
+                if (File.Exists(xashExePath))
+                {
+                    replacedPath = romPath;
+                    replacedExe = xashExePath;
+                }
+            }
+
             // Setting up bezels, can be with or without reshade based on Dictionary
             if (systemBezels.ContainsKey(emulator) && systemBezels[emulator] != "no" && _fullscreen && !_nobezels)
             {
@@ -167,6 +181,15 @@ namespace EmulatorLauncher
             string args = null;
             if (commandArray.Count > 0)
                 args = string.Join(" ", commandArray);
+
+            if (replacedExe != null)
+                return new ProcessStartInfo()
+                {
+                    FileName = replacedExe,
+                    WorkingDirectory = replacedPath,
+                    Arguments = args,
+                    UseShellExecute = false
+                };
 
             return new ProcessStartInfo()
             {
