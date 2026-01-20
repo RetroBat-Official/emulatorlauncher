@@ -37,6 +37,8 @@ namespace EmulatorLauncher
 {
     static class Program
     {
+        static string[] emulatorsNoControlCenter = new string [] { /* "mame", "model2"*/ };
+
         /// <summary>
         /// Link between emulator declared in es_systems.cfg and generator to use to launch emulator
         /// </summary>
@@ -759,6 +761,9 @@ namespace EmulatorLauncher
                             if (ControlCenterFrm.IsRunning)
                                 return;
 
+                            if (emulatorsNoControlCenter.Contains(SystemConfig["emulator"]))
+                                return;
+
                             using (var frm = new ControlCenterFrm())
                             {
                                 Application.Run(frm);
@@ -801,6 +806,9 @@ namespace EmulatorLauncher
                         }
 
                         generator.RestoreFiles();
+
+                        if (processWasKilled)
+                            Environment.ExitCode = (int)ExitCodes.OK; // Process out of using calls
                     }
                     else
                     {

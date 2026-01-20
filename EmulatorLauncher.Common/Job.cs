@@ -74,6 +74,16 @@ namespace EmulatorLauncher.Common
             handle = IntPtr.Zero;
         }
 
+        public static IntPtr[] ChildProcesses
+        {
+            get
+            {
+                return _childProcesses.ToArray();
+            }
+        }
+
+        private static List<IntPtr> _childProcesses = new List<IntPtr>();
+
         public bool AddProcess(Process process)
         {
             try { return AddProcess(process.Handle); }
@@ -84,6 +94,7 @@ namespace EmulatorLauncher.Common
 
         public bool AddProcess(IntPtr processHandle)
         {
+            _childProcesses.Add(processHandle);
             return AssignProcessToJobObject(handle, processHandle);
         }
 

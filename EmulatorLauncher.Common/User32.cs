@@ -252,6 +252,9 @@ namespace EmulatorLauncher.Common
         public static extern uint GetCurrentThreadId();
 
         [DllImport("kernel32.dll")]
+        public static extern int GetProcessId(IntPtr hProcess);
+
+        [DllImport("kernel32.dll")]
         public static extern bool AttachConsole(int dwProcessId = ATTACH_PARENT_PROCESS);
         private const int ATTACH_PARENT_PROCESS = -1;
 
