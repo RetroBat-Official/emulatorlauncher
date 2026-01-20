@@ -92,10 +92,13 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
-            List<string> commandArray = new List<string>
-            {
-                "-borderless"
-            };
+            bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
+
+            List<string> commandArray = new List<string>();
+            if (exclusivefs)
+                commandArray.Add("-fullscreen");
+            else
+                commandArray.Add("-borderless");
 
             if (this.Controllers.Any(c => !c.IsKeyboard))
             {
