@@ -25,7 +25,7 @@ namespace EmulatorLauncher
             string path = AppConfig.GetFullPath(emulator);
             string exe = Path.Combine(AppConfig.GetFullPath(emulator), "Singe-v2.10-Windows-x86_64.exe");
             string romName = Path.GetFileName(rom);
-            string directoryName = romName.Replace(".singe", "");
+            string directoryName = romName.Replace(".singe", "").Replace(".hypseus", "");
             string originalRom = rom;
             string actionMaxRom = Path.Combine(Path.GetDirectoryName(rom), "ActionMax.singe");
             if (!Directory.Exists(actionMaxRom))
