@@ -29,6 +29,7 @@ namespace EmulatorLauncher
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     ini.ClearSection("ControlMapping");
+                    ConfigureKeyboardHotkeys(ini);
                     var controller = Program.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
                     GenerateControllerConfig(ini, controller);
                 }
@@ -78,7 +79,9 @@ namespace EmulatorLauncher
                 string AnDown = "20-4003,21-4003,22-4003,23-4003";
                 string AnLeft = "20-4001,21-4001,22-4001,23-4001";
                 string AnRight = "20-4000,21-4000,22-4000,23-4000";
-                
+                string thumbLeft = "20-106,21-106,22-106,23-106";
+                string thumbRight = "20-107,21-107,22-107,23-107";
+
                 ini.WriteValue("ControlMapping", "Up", controlUp);
                 ini.WriteValue("ControlMapping", "Down", controlDown);
                 ini.WriteValue("ControlMapping", "Left", controlLeft);
@@ -97,23 +100,25 @@ namespace EmulatorLauncher
                 ini.WriteValue("ControlMapping", "An.Right", AnRight);
 
                 // Shortcuts(hotkeys)
-                ini.WriteValue("ControlMapping", "Rewind", "1-131,20-109:20-21,21-109:21-21,22-109:22-21,23-109:23-21");            // SELECT + LEFT
-                ini.WriteValue("ControlMapping", "Fast-forward", "1-132,20-109:20-22,21-109:21-22,22-109:22-22,23-109:23-22");      // SELECT + RIGHT
+                ini.WriteValue("ControlMapping", "Exit App", "1-111,20-109:20-108,21-109:21-108,22-109:22-108,23-109:23-108");      // SELECT + START
+                ini.WriteValue("ControlMapping", "Rewind", "1-67,20-109:20-21,21-109:21-21,22-109:22-21,23-109:23-21");             // SELECT + LEFT
+                ini.WriteValue("ControlMapping", "Fast-forward", "1-40,20-109:20-22,21-109:21-22,22-109:22-22,23-109:23-22");       // SELECT + RIGHT
                 ini.WriteValue("ControlMapping", "Load State", "1-134,20-109:20-100,21-109:21-100,22-109:22-100,23-109:23-100");    // SELECT + NORTH
-                ini.WriteValue("ControlMapping", "Save State", "1-133,20-109:20-99,21-109:21-99,22-109:22-99,23-109:23-99");        // SELECT + WEST
-                ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139,20-109:20-97,21-109:21-97,22-109:22-97,23-109:23-97");   // SELECT + EAST
-                ini.WriteValue("ControlMapping", "Pause", "1-140,20-109:20-96,21-109:21-96,22-109:22-96,23-109:23-96");             // SELECT + SOUTH
-                ini.WriteValue("ControlMapping", "Screenshot", "1-138,20-109:20-103,21-109:21-103,22-109:22-103,23-109:23-103");    // SELECT + RightShoulder
+                ini.WriteValue("ControlMapping", "Save State", "1-132,20-109:20-99,21-109:21-99,22-109:22-99,23-109:23-99");        // SELECT + WEST
+                //ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139,20-109:20-97,21-109:21-97,22-109:22-97,23-109:23-97"); // SELECT + EAST
+                ini.WriteValue("ControlMapping", "Pause", "1-131,20-109:20-96,21-109:21-96,22-109:22-96,23-109:23-96");             // SELECT + SOUTH
+                ini.WriteValue("ControlMapping", "Screenshot", "1-138,20-109:20-107,21-109:21-107,22-109:22-107,23-109:23-107");    // SELECT + R3
+                ini.WriteValue("ControlMapping", "Toggle Fullscreen", "1-34,20-109:20-106,21-109:21-106,22-109:22-106,23-109:23-106");    // SELECT + L3
 
                 if (_saveStatesWatcher != null && _saveStatesWatcher.IncrementalMode)
                 {
-                    ini.WriteValue("ControlMapping", "Previous Slot", "");
-                    ini.WriteValue("ControlMapping", "Next Slot", "");
+                    ini.WriteValue("ControlMapping", "Previous Slot", "1-136");
+                    ini.WriteValue("ControlMapping", "Next Slot", "1-137");
                 }
                 else
                 {
-                    ini.WriteValue("ControlMapping", "Previous Slot", "1-135,20-109:20-19,21-109:21-19,22-109:22-19,23-109:23-19"); // SELECT + UP
-                    ini.WriteValue("ControlMapping", "Next Slot", "1-136,20-109:20-20,21-109:21-20,22-109:22-20,23-109:23-20");     // SELECT + DOWN
+                    ini.WriteValue("ControlMapping", "Previous Slot", "1-136,20-109:20-19,21-109:21-19,22-109:22-19,23-109:23-19"); // SELECT + UP
+                    ini.WriteValue("ControlMapping", "Next Slot", "1-137,20-109:20-20,21-109:21-20,22-109:22-20,23-109:23-20");     // SELECT + DOWN
                 }
             }
 
@@ -152,23 +157,25 @@ namespace EmulatorLauncher
                     ini.WriteValue("ControlMapping", "An.Right", controllerID + GetInputCode("leftx", c1, 1));
 
                     // Shortcuts(hotkeys)
-                    ini.WriteValue("ControlMapping", "Rewind", "1-131," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("dpleft", c1));               // SELECT + LEFT
-                    ini.WriteValue("ControlMapping", "Fast-forward", "1-132," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("dpright", c1));        // SELECT + RIGHT
-                    ini.WriteValue("ControlMapping", "Load State", "1-134," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("y", c1));                // SELECT + NORTH
-                    ini.WriteValue("ControlMapping", "Save State", "1-133," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("x", c1));                // SELECT + WEST
-                    ini.WriteValue("ControlMapping", "Pause", "1-140," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("a", c1));                     // SELECT + SOUTH
-                    ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("b", c1));           // SELECT + EAST
-                    ini.WriteValue("ControlMapping", "Screenshot", "1-138," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("rightshoulder", c1));    // SELECT + R
+                    ini.WriteValue("ControlMapping", "Exit App", "1-111," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("start", c1));
+                    ini.WriteValue("ControlMapping", "Rewind", "1-67," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("dpleft", c1));
+                    ini.WriteValue("ControlMapping", "Fast-forward", "1-40," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("dpright", c1));
+                    ini.WriteValue("ControlMapping", "Load State", "1-134," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("y", c1));
+                    ini.WriteValue("ControlMapping", "Save State", "1-132," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("x", c1));
+                    ini.WriteValue("ControlMapping", "Pause", "1-131," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("a", c1));
+                    //ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("b", c1));           // SELECT + EAST
+                    ini.WriteValue("ControlMapping", "Screenshot", "1-138," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("righttrigger", c1));
+                    ini.WriteValue("ControlMapping", "Toggle Fullscreen", "1-34," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("lefttrigger", c1));
 
                     if (_saveStatesWatcher != null && _saveStatesWatcher.IncrementalMode)
                     {
-                        ini.WriteValue("ControlMapping", "Previous Slot", "");
-                        ini.WriteValue("ControlMapping", "Next Slot", "");
+                        ini.WriteValue("ControlMapping", "Previous Slot", "1-136");
+                        ini.WriteValue("ControlMapping", "Next Slot", "1-137");
                     }
                     else
                     {
-                        ini.WriteValue("ControlMapping", "Previous Slot", "1-135," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("dpup", c1));      // SELECT + UP
-                        ini.WriteValue("ControlMapping", "Next Slot", "1-136," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("dpdown", c1));        // SELECT + DOWN
+                        ini.WriteValue("ControlMapping", "Previous Slot", "1-136," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("dpup", c1));
+                        ini.WriteValue("ControlMapping", "Next Slot", "1-137," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("dpdown", c1));
                     }
                 }
 
@@ -192,23 +199,25 @@ namespace EmulatorLauncher
                     ini.WriteValue("ControlMapping", "An.Right", controllerID + GetInputKeyName(controller, InputKey.leftanalogright));
 
                     // Shortcuts(hotkeys)
-                    ini.WriteValue("ControlMapping", "Rewind", "1-131," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.left));               // SELECT + LEFT
-                    ini.WriteValue("ControlMapping", "Fast-forward", "1-132," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.right));        // SELECT + RIGHT
-                    ini.WriteValue("ControlMapping", "Load State", "1-134," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.x));              // SELECT + NORTH
-                    ini.WriteValue("ControlMapping", "Save State", "1-133," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.y));              // SELECT + WEST
-                    ini.WriteValue("ControlMapping", "Pause", "1-140," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.a));                   // SELECT + SOUTH
-                    ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.b));         // SELECT + EAST
-                    ini.WriteValue("ControlMapping", "Screenshot", "1-138," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.pagedown));       // SELECT + R
+                    ini.WriteValue("ControlMapping", "Exit App", "1-111," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.start));
+                    ini.WriteValue("ControlMapping", "Rewind", "1-67," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.left));
+                    ini.WriteValue("ControlMapping", "Fast-forward", "1-40," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.right));
+                    ini.WriteValue("ControlMapping", "Load State", "1-134," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.x));
+                    ini.WriteValue("ControlMapping", "Save State", "1-132," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.y));
+                    ini.WriteValue("ControlMapping", "Pause", "1-131," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.a));
+                    //ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.b));         // SELECT + EAST
+                    ini.WriteValue("ControlMapping", "Screenshot", "1-138," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.r3));
+                    ini.WriteValue("ControlMapping", "Toggle Fullscreen", "1-34," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.l3));
 
                     if (_saveStatesWatcher != null && _saveStatesWatcher.IncrementalMode)
                     {
-                        ini.WriteValue("ControlMapping", "Previous Slot", "");
-                        ini.WriteValue("ControlMapping", "Next Slot", "");
+                        ini.WriteValue("ControlMapping", "Previous Slot", "1-136");
+                        ini.WriteValue("ControlMapping", "Next Slot", "1-137");
                     }
                     else
                     {
-                        ini.WriteValue("ControlMapping", "Previous Slot", "1-135," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.up));      // SELECT + UP
-                        ini.WriteValue("ControlMapping", "Next Slot", "1-136," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.down));        // SELECT + DOWN
+                        ini.WriteValue("ControlMapping", "Previous Slot", "1-136," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.up));
+                        ini.WriteValue("ControlMapping", "Next Slot", "1-137," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.down));
                     }
                 }
             }
@@ -223,7 +232,7 @@ namespace EmulatorLauncher
 
             string deviceID = "1-";
 
-            foreach(var input in pspMapping)
+            foreach (var input in pspMapping)
             {
                 InputKey key = input.Value;
                 var a = keyboard[key];
@@ -231,7 +240,7 @@ namespace EmulatorLauncher
                 if (a == null)
                     continue;
 
-                int id = (int) a.Id;
+                int id = (int)a.Id;
 
                 List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
                 if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId))
@@ -254,16 +263,24 @@ namespace EmulatorLauncher
                     ini.WriteValue("ControlMapping", input.Key, deviceID + (int)nkCode);
                 }
             }
+        }
+        
+        private void ConfigureKeyboardHotkeys(IniFile ini)
+        {
+            string deviceID = "1-";
 
-            ini.WriteValue("ControlMapping", "Rewind", deviceID + "131");           //F1
-            ini.WriteValue("ControlMapping", "Fast-forward", deviceID + "132");     //F2
+            ini.WriteValue("ControlMapping", "Rewind", deviceID + "67");            //Backspace
+            ini.WriteValue("ControlMapping", "Fast-forward", deviceID + "40");      //L
             ini.WriteValue("ControlMapping", "Load State", deviceID + "134");       //F4
-            ini.WriteValue("ControlMapping", "Save State", deviceID + "133");       //F3
-            ini.WriteValue("ControlMapping", "Pause", deviceID + "140");            //F10
-            ini.WriteValue("ControlMapping", "Pause (no menu)", deviceID + "139");  //F9
+            ini.WriteValue("ControlMapping", "Save State", deviceID + "132");       //F2
+            ini.WriteValue("ControlMapping", "Pause", deviceID + "131");            //F1
+            ini.WriteValue("ControlMapping", "Pause (no menu)", deviceID + "44");   //P
             ini.WriteValue("ControlMapping", "Screenshot", deviceID + "138");       //F8
-            ini.WriteValue("ControlMapping", "Previous Slot", deviceID + "135");    //F5
-            ini.WriteValue("ControlMapping", "Next Slot", deviceID + "136");        //F6
+            ini.WriteValue("ControlMapping", "Previous Slot", deviceID + "136");    //F6
+            ini.WriteValue("ControlMapping", "Next Slot", deviceID + "137");        //F7
+            ini.WriteValue("ControlMapping", "Frame Advance", deviceID + "39");     //K
+            ini.WriteValue("ControlMapping", "Toggle Fullscreen", deviceID + "34"); //F
+            ini.WriteValue("ControlMapping", "Exit App", deviceID + "111");         //Escape
         }
 
         private static int GetInputCode(string key, SdlToDirectInput ctrl, int direction = -1)
