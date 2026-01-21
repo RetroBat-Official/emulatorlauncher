@@ -175,7 +175,10 @@ namespace EmulatorLauncher
             BindBoolFeatureOn(video, "VerticalSync", "mesen_vsync");
             BindFeatureSliderInt(video, "ScanlineIntensity", "mesen_scanlines", "0");
             BindBoolFeature(video, "FullscreenForceIntegerScale", "integerscale");
-            BindBoolFeature(video, "UseExclusiveFullscreen", "exclusivefs");
+            if (SystemConfig.getOptBoolean("exclusivefs"))
+                video["UseExclusiveFullscreen"] = true;
+            else
+                video["UseExclusiveFullscreen"] = false;
 
             // Emulation menu
             var emulation = GetOrCreateContainer(json, "Emulation");
