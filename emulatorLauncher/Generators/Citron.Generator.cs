@@ -58,7 +58,7 @@ namespace EmulatorLauncher
         {
             string conf = Path.Combine(path, "user", "config", "qt-config.ini");
 
-            using (var ini = new IniFile(conf))
+            using (var ini = new IniFile(conf, IniOptions.KeepEmptyValues))
             {
                 // disable update checks
                 ini.WriteValue("UI", "check_for_updates_on_start\\default", "false");

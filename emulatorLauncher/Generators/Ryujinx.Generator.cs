@@ -1,6 +1,7 @@
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -145,7 +146,16 @@ namespace EmulatorLauncher
             string jsonConfig = File.ReadAllText(filePath);
             dynamic json = JsonConvert.DeserializeObject(jsonConfig);
 
-            //var json = DynamicJson.Load(Path.Combine(setupPath, "Config.json"));
+            JObject dynRoot = (JObject)json;
+
+            if (dynRoot["hotkeys"] == null)
+                dynRoot["hotkeys"] = new JObject();
+
+            JObject hotkeysObj = (JObject)dynRoot["hotkeys"];
+
+            hotkeysObj["screenshot"] = "F8";
+            hotkeysObj["show_ui"] = "F1";
+            hotkeysObj["pause"] = "P";
 
             //Set fullscreen
             json.start_fullscreen = fullscreen ? true : false;

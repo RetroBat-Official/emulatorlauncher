@@ -412,13 +412,39 @@ namespace EmulatorLauncher
 
         private static void WriteShortcuts(IniFile ini)
         {
-            // exit eden with SELECT+START
+            var hkList = ini.EnumerateKeys("UI").Where(k => k.StartsWith("Shortcuts\\Main%20Window") && k.EndsWith("KeySeq")).ToList();
+
+            foreach (var hk in hkList)
+            {
+                if (ini.GetValue("UI", hk) == "F8" && !hk.Contains("Capture%20Screenshot"))
+                    ini.WriteValue("UI", hk, "");
+                else if (ini.GetValue("UI", hk) == "P" && !hk.Contains("Pause%20Emulation"))
+                    ini.WriteValue("UI", hk, "");
+                else if (ini.GetValue("UI", hk) == "Esc" && !hk.Contains("Exit%20Eden"))
+                    ini.WriteValue("UI", hk, "");
+                else if (ini.GetValue("UI", hk) == "F" && !hk.Contains("\\Fullscreen\\"))
+                    ini.WriteValue("UI", hk, "");
+            }
+
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\KeySeq", "F8");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\Controller_KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\Controller_KeySeq", "Right_Stick+Minus");
+
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\KeySeq", "P");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq", "B+Minus");
+
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Eden\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Eden\\KeySeq", "Esc");
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Eden\\Controller_KeySeq\\default", "false");
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Eden\\Controller_KeySeq", "Minus+Plus");
 
-            // Pause with SELECT+EAST
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq", "Minus+A");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Fullscreen\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Fullscreen\\KeySeq", "F");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Fullscreen\\Controller_KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Fullscreen\\Controller_KeySeq", "Left_Stick+Minus");
         }
 
         private string FromInput(Controller controller, Input input, string guid, int index)
