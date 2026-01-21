@@ -245,16 +245,16 @@ namespace EmulatorLauncher
 
             string args = string.Join(" ", commandArray);
 
-            return new ProcessStartInfo()
+            var ret = new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
                 Arguments = args,
-                UseShellExecute = false,
-                EnvironmentVariables = {
-                    { "OPENMSX_HOME", sharePath }
-                }
+                UseShellExecute = false
             };
+            ret.EnvironmentVariables["OPENMSX_HOME"] = sharePath;
+
+            return ret;
         }
 
         /// <summary>
