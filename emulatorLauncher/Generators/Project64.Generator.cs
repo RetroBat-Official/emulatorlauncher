@@ -119,7 +119,18 @@ namespace EmulatorLauncher
                 ini.WriteValue("Instant Save Directory", "Use Selected", "1");
 
                 ConfigureGFX(path);
-                ConfigureControllers(ini);
+
+                if (SystemConfig.getOptBoolean("p64_raphnet"))
+                {
+                    ini.WriteValue("Plugin", "Controller Dll", "Input\\pj64raphnetraw.dll");
+                    ini.WriteValue("Plugin", "Controller Dll Ver", "raphnetraw for Project64 version 1.0.7");
+                }
+                else
+                {
+                    ini.WriteValue("Plugin", "Controller Dll", "");
+                    ini.WriteValue("Plugin", "Controller Dll Ver", "");
+                    ConfigureControllers(ini);
+                }
             }
         }
 
@@ -128,10 +139,111 @@ namespace EmulatorLauncher
             string iniPath = Path.Combine(path, "Plugin", "GFX", "GLideN64", "GLideN64.ini");
             using (var ini = IniFile.FromFile(iniPath))
             {
+                BindBoolIniFeature(ini, "User", "generalEmulation\\enableCustomSettings", "p64_videocustom", "1", "0");
+
                 var resolution = _resolution ?? ScreenResolution.CurrentResolution;
                 ini.WriteValue("User", "video\\fullscreenHeight", resolution.Height.ToString());
                 ini.WriteValue("User", "video\\fullscreenWidth", resolution.Width.ToString());
                 ini.WriteValue("User", "video\\fullscreenRefresh", resolution.DisplayFrequency > -1 ? resolution.DisplayFrequency.ToString() : "60");
+                ini.WriteValue("User", "texture\\maxAnisotropy", "16");
+
+                BindIniFeature(ini, "User", "frameBufferEmulation\\aspect", "p64_ratio", "1");
+                BindBoolIniFeatureOn(ini, "User", "video\\verticalSync", "p64_vsync", "1", "0");
+                BindBoolIniFeature(ini, "User", "video\\threadedVideo", "p64_threadedvideo", "1", "0");
+                BindIniFeatureSlider(ini, "User", "texture\\anisotropy", "p64_anisotropy", "0", 0);
+                BindIniFeatureSlider(ini, "User", "frameBufferEmulation\\nativeResFactor", "p64_resolution", "0", 0);
+                BindIniFeature(ini, "User", "texture\\bilinearMode", "p64_bilinear", "1");
+                BindIniFeature(ini, "User", "graphics2D\\enableNativeResTexrects", "p64_nativerestexrects", "0");
+                BindIniFeature(ini, "User", "graphics2D\\correctTexrectCoords", "p64_correcttexrectcoords", "0");
+                BindIniFeature(ini, "User", "textureFilter\\txFilterMode", "p64_texture_filter", "0");
+                BindIniFeature(ini, "User", "textureFilter\\txEnhancementMode", "p64_shader", "0");
+
+                ini.WriteValue("User", "texture\\maxMultiSampling", "16");
+
+                if (SystemConfig.isOptSet("p64_antialiasing") && !string.IsNullOrEmpty(SystemConfig["p64_antialiasing"]))
+                {
+                    string aliasing = SystemConfig["p64_antialiasing"];
+                    switch (aliasing)
+                    {
+                        case "none":
+                            ini.WriteValue("User", "video\\multisampling", "0");
+                            ini.WriteValue("User", "video\\fxaa", "0");
+                            break;
+                        case "fxaa":
+                            ini.WriteValue("User", "video\\multisampling", "0");
+                            ini.WriteValue("User", "video\\fxaa", "1");
+                            break;
+                        case "msaa2":
+                            ini.WriteValue("User", "video\\multisampling", "2");
+                            ini.WriteValue("User", "video\\fxaa", "0");
+                            break;
+                        case "msaa4":
+                            ini.WriteValue("User", "video\\multisampling", "4");
+                            ini.WriteValue("User", "video\\fxaa", "0");
+                            break;
+                        case "msaa8":
+                            ini.WriteValue("User", "video\\multisampling", "8");
+                            ini.WriteValue("User", "video\\fxaa", "0");
+                            break;
+                        case "msaa16":
+                            ini.WriteValue("User", "video\\multisampling", "16");
+                            ini.WriteValue("User", "video\\fxaa", "0");
+                            break;
+                    }
+                }
+                else
+                {
+                    ini.WriteValue("User", "video\\maxMultiSampling", "0");
+                    ini.WriteValue("User", "video\\fxaa", "0");
+                }
+
+                // Statistics
+                if (SystemConfig.isOptSet("p64_perfstats") && !string.IsNullOrEmpty(SystemConfig["p64_perfstats"]))
+                {
+                    string stats = SystemConfig["p64_perfstats"];
+                    switch (stats)
+                    {
+                        case "off":
+                            ini.WriteValue("User", "onScreenDisplay\\showFPS", "0");
+                            ini.WriteValue("User", "onScreenDisplay\\showStatistics", "0");
+                            break;
+                        case "fps":
+                            ini.WriteValue("User", "onScreenDisplay\\showFPS", "1");
+                            ini.WriteValue("User", "onScreenDisplay\\showStatistics", "0");
+                            break;
+                        case "all":
+                            ini.WriteValue("User", "onScreenDisplay\\showFPS", "1");
+                            ini.WriteValue("User", "onScreenDisplay\\showStatistics", "1");
+                            break;
+                    }
+                }
+                else
+                {
+                    ini.WriteValue("User", "onScreenDisplay\\showFPS", "0");
+                    ini.WriteValue("User", "onScreenDisplay\\showStatistics", "0");
+                }
+
+                // Cutom textures and paths
+                BindBoolIniFeature(ini, "User", "textureFilter\\txHiresEnable", "p64_custom_textures", "1", "0");
+
+                string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "project64");
+                if (!Directory.Exists(savesPath))
+                    try { Directory.CreateDirectory(savesPath); } catch { }
+                string texturePath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "project64", "hires_texture");
+                if (!Directory.Exists(texturePath))
+                    try { Directory.CreateDirectory(texturePath); } catch { }
+                string textureDumpPath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "project64", "texture_dump");
+                if (!Directory.Exists(textureDumpPath))
+                    try { Directory.CreateDirectory(textureDumpPath); } catch { }
+                string textureCachePath = Path.Combine(AppConfig.GetFullPath("saves"), "n64", "project64", "cache");
+                if (!Directory.Exists(textureCachePath))
+                    try { Directory.CreateDirectory(textureCachePath); } catch { }
+
+                ini.WriteValue("User", "textureFilter\\txCachePath", textureCachePath.Replace('\\', '/'));
+                ini.WriteValue("User", "textureFilter\\txDumpPath", textureDumpPath.Replace('\\', '/'));
+                ini.WriteValue("User", "textureFilter\\txPath", texturePath.Replace('\\', '/'));
+
+                ini.Save();
             }
         }
 

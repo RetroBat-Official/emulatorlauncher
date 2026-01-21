@@ -120,11 +120,12 @@ namespace EmulatorLauncher
 
         private static Dictionary<InputKey, string> hotkeyMapping = new Dictionary<InputKey, string>()
         {
-            { InputKey.b,                   "toggle pause"},
-            { InputKey.pageup,              "reverse goback 2"},
-            { InputKey.pagedown,            "toggle fastforward" },
+            { InputKey.a,                   "toggle pause"},
+            { InputKey.left,                "reverse goback 2"},
+            { InputKey.right,            "toggle fastforward" },
             { InputKey.x,                   "loadstate \\[guess_title\\]" },
-            { InputKey.y,                   "savestate \\[guess_title\\]" }
+            { InputKey.y,                   "savestate \\[guess_title\\]" },
+            { InputKey.start,                   "exit" }
         };
 
         private List<string> directions = new List<string>() { "UP", "DOWN", "RIGHT", "LEFT" };
@@ -327,8 +328,12 @@ namespace EmulatorLauncher
 
             using (StreamWriter kbhotkeys = new StreamWriter(kbHotkeyScript, false))
             {
-                kbhotkeys.WriteLine(@"bind ALT+F8 {savestate [guess_title]_" + _saveStateSlot + "}");
-                kbhotkeys.WriteLine(@"bind ALT+F7 {loadstate [guess_title]_" + _saveStateSlot + "}");
+                kbhotkeys.WriteLine(@"bind ALT+F2 {savestate [guess_title]_" + _saveStateSlot + "}");
+                kbhotkeys.WriteLine(@"bind ALT+F3 {loadstate [guess_title]_" + _saveStateSlot + "}");
+                kbhotkeys.WriteLine(@"unbind F12");
+                kbhotkeys.WriteLine(@"bind ALT+ESCAPE exit");
+                kbhotkeys.WriteLine(@"bind ALT+F toggle fullscreen");
+                kbhotkeys.WriteLine(@"bind ALT+P toggle pause");
                 kbhotkeys.Close();
             }
 
@@ -400,6 +405,12 @@ namespace EmulatorLauncher
 
                         string toAddBind = "bind " + "\"" + shortJoy + " " + mapping + " down\"" + " " + value;
                         string toAddUnbind = "unbind " + "\"" + shortJoy + " " + mapping + " down\"";
+                        if (mapping.Contains("hat"))
+                        {
+                            toAddBind = "bind " + "\"" + shortJoy + " " + mapping + "\"" + " " + value;
+                            toAddUnbind = "unbind " + "\"" + shortJoy + " " + mapping + "\"";
+                        }
+
                         hkMappingBind.Add(toAddBind);
                         hkMappingUnbind.Add(toAddUnbind);
                     }
