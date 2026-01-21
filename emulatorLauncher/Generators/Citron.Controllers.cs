@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace EmulatorLauncher
 {
@@ -411,13 +413,155 @@ namespace EmulatorLauncher
 
         private static void WriteShortcuts(IniFile ini)
         {
-            // exit citron with SELECT+START
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20citron\\Controller_KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20citron\\Controller_KeySeq", "Minus+Plus");
+            {
+                int l = 0;
+                bool screenshotExists = false;
+                bool fsExists = false;
+                bool pauseExists = false;
+                bool exitExists = false;
+                bool filterExists = false;
+                bool exitFSExists = false;
 
-            // Pause with SELECT+EAST
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq", "Minus+A");
+                int toAdd = 6;
+                if (ini.GetValue("UI", "Shortcuts\\shortcuts\\size") != null)
+                    l = int.Parse(ini.GetValue("UI", "Shortcuts\\shortcuts\\size"));
+
+                for (int i = 0; i <= l; i++)
+                {
+                    string hkPrefix = "Shortcuts\\shortcuts\\" + i + "\\";
+                    string kbValue = ini.GetValue("UI", hkPrefix + "keyseq");
+                    string hkName = ini.GetValue("UI", hkPrefix + "name");
+
+                    if (hkName == "Capture Screenshot")
+                    {
+                        ini.WriteValue("UI", hkPrefix + "keyseq", "F8");
+                        ini.WriteValue("UI", hkPrefix + "controller_keyseq", "Right_Stick+Minus");
+                        toAdd--;
+                        screenshotExists = true;
+                    }
+                    else if (hkName == "Continue/Pause Emulation")
+                    {
+                        ini.WriteValue("UI", hkPrefix + "keyseq", "P");
+                        ini.WriteValue("UI", hkPrefix + "controller_keyseq", "B+Minus");
+                        toAdd--;
+                        pauseExists = true;
+                    }
+                    else if (hkName == "Exit citron")
+                    {
+                        ini.WriteValue("UI", hkPrefix + "keyseq", "Esc");
+                        ini.WriteValue("UI", hkPrefix + "controller_keyseq", "Minus+Plus");
+                        toAdd--;
+                        exitExists = true;
+                    }
+                    else if (hkName == "Fullscreen")
+                    {
+                        ini.WriteValue("UI", hkPrefix + "keyseq", "F");
+                        ini.WriteValue("UI", hkPrefix + "controller_keyseq", "Left_Stick+Minus");
+                        toAdd--;
+                        fsExists = true;
+                    }
+                    else if (hkName == "Change Adapting Filter")
+                    {
+                        toAdd--;
+                        filterExists = true;
+                    }
+                    else if (hkName == "Exit Fullscreen")
+                    {
+                        toAdd--;
+                        exitFSExists = true;
+                    }
+
+                    // Change potential overlap
+                    if (hkName != "Capture Screenshot" && kbValue == "F8")
+                    {
+                        ini.WriteValue("UI", hkPrefix + "keyseq", "");
+                    }
+                    else if (hkName != "Continue/Pause Emulation" && kbValue == "P")
+                    {
+                        ini.WriteValue("UI", hkPrefix + "keyseq", "");
+                    }
+                    else if (hkName != "Exit citron" && kbValue == "Esc")
+                    {
+                        ini.WriteValue("UI", hkPrefix + "keyseq", "");
+                    }
+                    else if (hkName != "Fullscreen" && kbValue == "F")
+                    {
+                        ini.WriteValue("UI", hkPrefix + "keyseq", "");
+                    }
+                }
+
+                int newIndex = l + 1;
+                if (!exitFSExists)
+                {
+                    string prefix = "Shortcuts\\shortcuts\\" + newIndex + "\\";
+                    ini.WriteValue("UI", prefix + "name", "Exit Fullscreen");
+                    ini.WriteValue("UI", prefix + "group", "Main Window");
+                    ini.WriteValue("UI", prefix + "keyseq", "");
+                    ini.WriteValue("UI", prefix + "controller_keyseq", "");
+                    ini.WriteValue("UI", prefix + "context", "1");
+                    ini.WriteValue("UI", prefix + "repeat", "false");
+                    newIndex++;
+                }
+                if (!screenshotExists)
+                {
+                    string prefix = "Shortcuts\\shortcuts\\" + newIndex + "\\";
+                    ini.WriteValue("UI", prefix + "name", "Capture Screenshot");
+                    ini.WriteValue("UI", prefix + "group", "Main Window");
+                    ini.WriteValue("UI", prefix + "keyseq", "F8");
+                    ini.WriteValue("UI", prefix + "controller_keyseq", "Right_Stick+Minus");
+                    ini.WriteValue("UI", prefix + "context", "1");
+                    ini.WriteValue("UI", prefix + "repeat", "false");
+                    newIndex++;
+                }
+                if (!filterExists)
+                {
+                    string prefix = "Shortcuts\\shortcuts\\" + newIndex + "\\";
+                    ini.WriteValue("UI", prefix + "name", "Change Adapting Filter");
+                    ini.WriteValue("UI", prefix + "group", "Main Window");
+                    ini.WriteValue("UI", prefix + "keyseq", "");
+                    ini.WriteValue("UI", prefix + "controller_keyseq", "");
+                    ini.WriteValue("UI", prefix + "context", "1");
+                    ini.WriteValue("UI", prefix + "repeat", "false");
+                    newIndex++;
+                }
+                if (!pauseExists)
+                {
+                    string prefix = "Shortcuts\\shortcuts\\" + newIndex + "\\";
+                    ini.WriteValue("UI", prefix + "name", "Continue/Pause Emulation");
+                    ini.WriteValue("UI", prefix + "group", "Main Window");
+                    ini.WriteValue("UI", prefix + "keyseq", "P");
+                    ini.WriteValue("UI", prefix + "controller_keyseq", "B+Minus");
+                    ini.WriteValue("UI", prefix + "context", "1");
+                    ini.WriteValue("UI", prefix + "repeat", "false");
+                    newIndex++;
+                }
+                if (!exitExists)
+                {
+                    string prefix = "Shortcuts\\shortcuts\\" + newIndex + "\\";
+                    ini.WriteValue("UI", prefix + "name", "Exit citron");
+                    ini.WriteValue("UI", prefix + "group", "Main Window");
+                    ini.WriteValue("UI", prefix + "keyseq", "Esc");
+                    ini.WriteValue("UI", prefix + "controller_keyseq", "Minus+Plus");
+                    ini.WriteValue("UI", prefix + "context", "1");
+                    ini.WriteValue("UI", prefix + "repeat", "false");
+                    newIndex++;
+                }
+                if (!fsExists)
+                {
+                    string prefix = "Shortcuts\\shortcuts\\" + newIndex + "\\";
+                    ini.WriteValue("UI", prefix + "name", "Fullscreen");
+                    ini.WriteValue("UI", prefix + "group", "Main Window");
+                    ini.WriteValue("UI", prefix + "keyseq", "F");
+                    ini.WriteValue("UI", prefix + "controller_keyseq", "Left_Stick+Minus");
+                    ini.WriteValue("UI", prefix + "context", "1");
+                    ini.WriteValue("UI", prefix + "repeat", "false");
+                    newIndex++;
+                }
+
+                int length = l + toAdd;
+
+                ini.WriteValue("UI", "Shortcuts\\shortcuts\\size", length.ToString());
+            }
         }
 
         private string FromInput(Controller controller, Input input, string guid, int index)

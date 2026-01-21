@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
-using EmulatorLauncher.Common.EmulationStation;
-using EmulatorLauncher.Common;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -194,18 +195,6 @@ namespace EmulatorLauncher
             WriteKeyboardMapping(padNumber, "RRight", InputKey.rightanalogright);
             WriteKeyboardMapping(padNumber, "RDown", InputKey.rightanalogdown);
             WriteKeyboardMapping(padNumber, "RLeft", InputKey.rightanalogleft);
-
-            // Restore default keyboard hotkeys
-            ini.WriteValue("Hotkeys", "FastForward", "Keyboard/Tab");
-            ini.WriteValue("Hotkeys", "TogglePause", "Keyboard/Space");
-            ini.WriteValue("Hotkeys", "Screenshot", "Keyboard/F10");
-            ini.WriteValue("Hotkeys", "ToggleFullscreen", "Keyboard/F11");
-            ini.WriteValue("Hotkeys", "OpenPauseMenu", "Keyboard/Escape");
-            ini.WriteValue("Hotkeys", "LoadSelectedSaveState", "Keyboard/F1");
-            ini.WriteValue("Hotkeys", "SaveSelectedSaveState", "Keyboard/F2");
-            ini.WriteValue("Hotkeys", "SelectPreviousSaveStateSlot", "Keyboard/F3");
-            ini.WriteValue("Hotkeys", "SelectNextSaveStateSlot", "Keyboard/F4");
-
         }
 
         /// <summary>
@@ -362,9 +351,13 @@ namespace EmulatorLauncher
                 {
                     foreach (var hotkey in hotkeys)
                     {
+                        string hkKey = hotkey.Value.Key;
                         var inputKeyName = GetInputKeyName(ctrl, hotkey.Key, tech);
                         if (string.IsNullOrEmpty(inputKeyName) || inputKeyName == "None")
                             continue;
+
+                        if (SystemConfig.getOptBoolean("fastforward_toggle") && hkKey == "FastForward")
+                            hkKey = "ToggleFastForward";
 
                         ini.WriteValue("Hotkeys", hotkey.Value.Key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
                     }
@@ -380,21 +373,27 @@ namespace EmulatorLauncher
         {
             foreach (var hotkey in hotkeys)
                 ini.WriteValue("Hotkeys", hotkey.Value.Key, hotkey.Value.Value);
+
+            ini.WriteValue("Hotkeys", "ToggleFastForward", "Keyboard/Space");
+            ini.WriteValue("Hotkeys", "FrameStep", "Keyboard/K");
+            ini.WriteValue("Hotkeys", "TogglePause", "Keyboard/P");
         }
 
         static public Dictionary<InputKey, KeyValuePair<string, string>> hotkeys = new Dictionary<InputKey, KeyValuePair<string, string>>()
         {
-            { InputKey.b, new KeyValuePair<string, string>("TogglePause", "Keyboard/Space") },
-            { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/Escape") },
-            { InputKey.y, new KeyValuePair<string, string>("LoadSelectedSaveState", "Keyboard/F3") },
-            { InputKey.x, new KeyValuePair<string, string>("SaveSelectedSaveState", "Keyboard/F1") },
+            { InputKey.l3, new KeyValuePair<string, string>("ToggleFullscreen", "Keyboard/F") },
+            { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/F1") },
+            { InputKey.y, new KeyValuePair<string, string>("LoadSelectedSaveState", "Keyboard/F4") },
+            { InputKey.x, new KeyValuePair<string, string>("SaveSelectedSaveState", "Keyboard/F2") },
             { InputKey.r3, new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
-            { InputKey.up, new KeyValuePair<string, string>("SelectNextSaveStateSlot", "Keyboard/F2") },
-            { InputKey.down, new KeyValuePair<string, string>("SelectPreviousSaveStateSlot", "Keyboard/Shift & Keyboard/F2") },
-            { InputKey.pagedown, new KeyValuePair<string, string>("ChangeDisc", "") },
-            { InputKey.left, new KeyValuePair<string, string>("Rewind", "") },
-            { InputKey.right, new KeyValuePair<string, string>("FastForward", "") },
-            { InputKey.start, new KeyValuePair<string, string>("PowerOff", "") }
+            { InputKey.up, new KeyValuePair<string, string>("SelectNextSaveStateSlot", "Keyboard/F7") },
+            { InputKey.down, new KeyValuePair<string, string>("SelectPreviousSaveStateSlot", "Keyboard/F6") },
+            { InputKey.pagedown, new KeyValuePair<string, string>("ChangeDisc", "F11") },
+            { InputKey.l2, new KeyValuePair<string, string>("SwitchToPreviousDisc", "Keyboard/F9") },
+            { InputKey.r2, new KeyValuePair<string, string>("SwitchToNextDisc", "F10") },
+            { InputKey.left, new KeyValuePair<string, string>("Rewind", "Keyboard/Backspace") },
+            { InputKey.right, new KeyValuePair<string, string>("FastForward", "L") },
+            { InputKey.start, new KeyValuePair<string, string>("PowerOff", "Keyboard/Escape") }
         };
 
 

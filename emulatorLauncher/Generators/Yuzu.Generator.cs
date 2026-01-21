@@ -59,7 +59,7 @@ namespace EmulatorLauncher
         {
             string conf = Path.Combine(path, "user", "config", "qt-config.ini");
 
-            using (var ini = new IniFile(conf))
+            using (var ini = new IniFile(conf, IniOptions.KeepEmptyValues))
             {
                 // Set up paths
                 bool mutualize = SystemConfig.getOptBoolean("yuzu_mutualize");

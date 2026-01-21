@@ -430,23 +430,23 @@ namespace EmulatorLauncher
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "UI_REWIND_SINGLE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["left"] + " OR KEYCODE_TILDE KEYCODE_LSHIFT")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["left"] + " OR KEYCODE_BACKSPACE")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "UI_FAST_FORWARD"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["right"] + " OR KEYCODE_INSERT")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["right"] + " OR KEYCODE_SPACE")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "UI_SAVE_STATE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["west"] + " OR KEYCODE_F7 KEYCODE_LSHIFT")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["west"] + " OR KEYCODE_F2")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "UI_LOAD_STATE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["north"] + " OR KEYCODE_F7")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["north"] + " OR KEYCODE_F4")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "SERVICE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l3"] + " " + joy + mapping["r3"] + " OR KEYCODE_F2")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l3"] + " " + joy + mapping["r3"] + " OR KEYCODE_0")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "SERVICE1"),
@@ -802,23 +802,23 @@ namespace EmulatorLauncher
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "UI_REWIND_SINGLE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "dpleft", xinputCtrl) + " OR KEYCODE_TILDE KEYCODE_LSHIFT")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "dpleft", xinputCtrl) + " OR KEYCODE_BACKSPACE")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "UI_FAST_FORWARD"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "dpright", xinputCtrl) + " OR KEYCODE_INSERT")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "dpright", xinputCtrl) + " OR KEYCODE_SPACE")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "UI_SAVE_STATE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "x", xinputCtrl) + " OR KEYCODE_F7 KEYCODE_LSHIFT")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "x", xinputCtrl) + " OR KEYCODE_F2")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "UI_LOAD_STATE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "y", xinputCtrl) + " OR KEYCODE_F7")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "y", xinputCtrl) + " OR KEYCODE_F4")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "SERVICE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightstick", xinputCtrl) + " OR KEYCODE_F2")));
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightstick", xinputCtrl) + " OR KEYCODE_0")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "SERVICE1"),
@@ -2173,23 +2173,23 @@ namespace EmulatorLauncher
 
             guninput.Add(new XElement
                 ("port", new XAttribute("type", "UI_REWIND_SINGLE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_TILDE KEYCODE_LSHIFT")));
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_BACKSPACE")));
 
             guninput.Add(new XElement
                 ("port", new XAttribute("type", "UI_FAST_FORWARD"),
-                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_INSERT")));
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_SPACE")));
 
             guninput.Add(new XElement
                 ("port", new XAttribute("type", "UI_SAVE_STATE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_F7 KEYCODE_LSHIFT")));
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_F2")));
 
             guninput.Add(new XElement
                 ("port", new XAttribute("type", "UI_LOAD_STATE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_F7")));
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_F4")));
 
             guninput.Add(new XElement
                 ("port", new XAttribute("type", "SERVICE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_F2")));
+                    new XElement("newseq", new XAttribute("type", "standard"), "KEYCODE_0")));
 
             guninput.Add(new XElement
                 ("port", new XAttribute("type", "SERVICE1"),

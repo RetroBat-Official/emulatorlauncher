@@ -473,12 +473,39 @@ namespace EmulatorLauncher
 
         private static void WriteShortcuts(IniFile ini)
         {
+            var hkList = ini.EnumerateKeys("UI").Where(k => k.StartsWith("Shortcuts\\Main%20Window") && k.EndsWith("KeySeq")).ToList();
+
+            foreach (var hk in hkList)
+            {
+                if (ini.GetValue("UI", hk) == "F8" && !hk.Contains("Capture%20Screenshot"))
+                    ini.WriteValue("UI", hk, "");
+                else if (ini.GetValue("UI", hk) == "P" && !hk.Contains("Pause%20Emulation"))
+                    ini.WriteValue("UI", hk, "");
+                else if(ini.GetValue("UI", hk) == "Esc" && !hk.Contains("Exit%20suyu"))
+                    ini.WriteValue("UI", hk, "");
+                else if(ini.GetValue("UI", hk) == "F" && !hk.Contains("\\Fullscreen\\"))
+                    ini.WriteValue("UI", hk, "");
+            }
+
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\KeySeq", "F8");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\Controller_KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\Controller_KeySeq", "Right_Stick+Minus");
+
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\KeySeq", "P");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq", "B+Minus");
+
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20suyu\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20suyu\\KeySeq", "Esc");
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20suyu\\Controller_KeySeq\\default", "false");
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20suyu\\Controller_KeySeq", "Minus+Plus");
 
-            // Pause with SELECT+EAST
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\Controller_KeySeq", "Minus+A");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Fullscreen\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Fullscreen\\KeySeq", "F");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Fullscreen\\Controller_KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Fullscreen\\Controller_KeySeq", "Left_Stick+Minus");
         }
 
         /*static readonly Dictionary<string, string> DefKeys = new Dictionary<string, string>()
@@ -511,24 +538,18 @@ namespace EmulatorLauncher
         {
             { InputKey.select,          "button_minus" },
             { InputKey.start,           "button_plus" },
-
             { InputKey.b,               "button_a" },
             { InputKey.a,               "button_b" },
-
             { InputKey.y,               "button_y" },
             { InputKey.x,               "button_x" },
-
             { InputKey.up,              "button_dup" },
             { InputKey.down,            "button_ddown" },
             { InputKey.left,            "button_dleft" },
             { InputKey.right,           "button_dright" },
-
             { InputKey.pageup,          "button_l" },
             { InputKey.pagedown,        "button_r" },
-
             { InputKey.l2,              "button_zl" },
             { InputKey.r2,              "button_zr"},
-
             { InputKey.l3,              "button_lstick"},
             { InputKey.r3,              "button_rstick"},
         };

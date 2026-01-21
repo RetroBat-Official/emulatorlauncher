@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
-using EmulatorLauncher.Common.EmulationStation;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Windows.Controls;
 
 namespace EmulatorLauncher
@@ -495,9 +496,15 @@ namespace EmulatorLauncher
 
                     foreach (var hotkey in dinputHotkeys)
                     {
+                        string hkKey = hotkey.Value.Key;
                         var inputKeyName = GetDInputKeyName(dinputController, hotkey.Key);
                         if (string.IsNullOrEmpty(inputKeyName))
                             continue;
+
+                        if (hkKey == "HoldTurbo" && SystemConfig.getOptBoolean("fastforward_toggle"))
+                        {
+                            hkKey = "ToggleTurbo";
+                        }
 
                         pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
                     }
@@ -643,11 +650,17 @@ namespace EmulatorLauncher
                     {
                         foreach (var hotkey in hotkeys)
                         {
+                            string hkKey = hotkey.Value.Key;
                             var inputKeyName = GetInputKeyName(ctrl, hotkey.Key, tech);
                             if (string.IsNullOrEmpty(inputKeyName) || inputKeyName == "None")
                                 continue;
 
-                            pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
+                            if (hkKey == "HoldTurbo" && SystemConfig.getOptBoolean("fastforward_toggle"))
+                            {
+                                hkKey = "ToggleTurbo";
+                            }
+
+                            pcsx2ini.WriteValue("Hotkeys", hkKey, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
                         }
                     }
                     if (!_fullscreen)
@@ -660,37 +673,39 @@ namespace EmulatorLauncher
 
         private void ResetHotkeysToDefault(IniFile pcsx2ini)
         {
-            pcsx2ini.Remove("HotKeys", "TogglePause");
-
             foreach (var hotkey in hotkeys)
                 pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, hotkey.Value.Value);
+
+            pcsx2ini.WriteValue("Hotkeys", "ToggleTurbo", "Keyboard/Space");
+            pcsx2ini.WriteValue("Hotkeys", "TogglePause", "Keyboard/P");
+            pcsx2ini.WriteValue("Hotkeys", "FrameAdvance", "Keyboard/K");
         }
 
         static public Dictionary<InputKey, KeyValuePair<string, string>> hotkeys = new Dictionary<InputKey, KeyValuePair<string, string>>()
         {
-       //     { InputKey.b, new KeyValuePair<string, string>("TogglePause", "Keyboard/Space") },
-            { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/Escape") },
-            { InputKey.y, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F3") },
-            { InputKey.x, new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F1") },
+            { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/F1") },
+            { InputKey.y, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F4") },
+            { InputKey.x, new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F2") },
             { InputKey.r3, new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
-            { InputKey.up, new KeyValuePair<string, string>("NextSaveStateSlot", "Keyboard/F2") },
-            { InputKey.down, new KeyValuePair<string, string>("PreviousSaveStateSlot", "Keyboard/Shift & Keyboard/F2") },
-            { InputKey.left, new KeyValuePair<string, string>("ToggleSlowMotion", "Keyboard/Shift & Keyboard/Backtab") },
-            { InputKey.right, new KeyValuePair<string, string>("ToggleTurbo", "Keyboard/Tab") },
+            { InputKey.l3, new KeyValuePair<string, string>("ToggleFullscreen", "Keyboard/F") },
+            { InputKey.up, new KeyValuePair<string, string>("NextSaveStateSlot", "Keyboard/F7") },
+            { InputKey.down, new KeyValuePair<string, string>("PreviousSaveStateSlot", "Keyboard/F6") },
+            { InputKey.left, new KeyValuePair<string, string>("ToggleSlowMotion", "Keyboard/Backspace") },
+            { InputKey.right, new KeyValuePair<string, string>("HoldTurbo", "Keyboard/L") },
             { InputKey.start, new KeyValuePair<string, string>("ShutdownVM", "") },
         };
 
         static public Dictionary<string, KeyValuePair<string, string>> dinputHotkeys = new Dictionary<string, KeyValuePair<string, string>>()
         {
-      //      { "b", new KeyValuePair<string, string>("TogglePause", "Keyboard/Space") },
-            { "a", new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/Escape") },
-            { "x", new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F3") },
-            { "y", new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F1") },
+            { "a", new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/F1") },
+            { "x", new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F4") },
+            { "y", new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F2") },
             { "rightstick", new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
-            { "dpup", new KeyValuePair<string, string>("NextSaveStateSlot", "Keyboard/F2") },
-            { "dpdown", new KeyValuePair<string, string>("PreviousSaveStateSlot", "Keyboard/Shift & Keyboard/F2") },
-            { "dpleft", new KeyValuePair<string, string>("ToggleSlowMotion", "Keyboard/Shift & Keyboard/Backtab") },
-            { "dpright", new KeyValuePair<string, string>("ToggleTurbo", "Keyboard/Tab") },
+            { "leftstick", new KeyValuePair<string, string>("ToggleFullscreen", "Keyboard/F") },
+            { "dpup", new KeyValuePair<string, string>("NextSaveStateSlot", "Keyboard/F7") },
+            { "dpdown", new KeyValuePair<string, string>("PreviousSaveStateSlot", "Keyboard/F6") },
+            { "dpleft", new KeyValuePair<string, string>("ToggleSlowMotion", "Keyboard/Backspace") },
+            { "dpright", new KeyValuePair<string, string>("HoldTurbo", "Keyboard/L") },
             { "start", new KeyValuePair<string, string>("ShutdownVM", "") },
         };
 
