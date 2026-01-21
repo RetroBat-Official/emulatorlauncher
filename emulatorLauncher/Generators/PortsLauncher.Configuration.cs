@@ -67,15 +67,15 @@ namespace EmulatorLauncher
             commandArray.Add("--profile_dir");
             commandArray.Add("\"" + _path + "\"");
 
-            commandArray.Add("--vid_window_mode value");
+            var cfg = new QuakeConfig(configFile);
             if (_fullscreen)
             {
-                commandArray.Add(_exclusivefs ? "fullscreen" : "fake_fullscreen");
+                cfg["vid_window_mode"] = _exclusivefs ? "fullscreen" : "fake_fullscreen";
             }
             else
-                commandArray.Add("windowed");
+                cfg["vid_window_mode"] = "windowed";
 
-            var cfg = new QuakeConfig(configFile);
+
             cfg.AppendIfMissing = true;
             
             if (SystemConfig.isOptSet("bstone_renderer") && !string.IsNullOrEmpty(SystemConfig["bstone_renderer"]))
@@ -859,16 +859,15 @@ namespace EmulatorLauncher
                 {
                     ini.WriteValue("video", "DefaultFullscreen", _fullscreen ? "1" : "0");
                     ini.WriteValue("video", "DefaultMaximize", "1");
+                    ini.WriteValue("video", "ExclusiveFullscreen", _exclusivefs ? "1" : "0");
 
                     if (_resolution != null)
                     {
-                        ini.WriteValue("video", "ExclusiveFullscreen", "1");
                         ini.WriteValue("video", "DefaultWidth", _resolution.Width.ToString());
                         ini.WriteValue("video", "DefaultHeight", _resolution.Height.ToString());
                     }
                     else
                     {
-                        ini.WriteValue("video", "ExclusiveFullscreen", "0");
                         ini.WriteValue("video", "DefaultWidth", ScreenResolution.CurrentResolution.Width.ToString());
                         ini.WriteValue("video", "DefaultHeight", ScreenResolution.CurrentResolution.Height.ToString());
                     }
@@ -1634,6 +1633,7 @@ namespace EmulatorLauncher
                 if (_fullscreen)
                 {
                     ini.WriteValue("Video", "windowed", "n");
+                    ini.WriteValue("Video", "exclusiveFS", _exclusivefs ? "y" : "n");
                     if (_resolution != null)
                         ini.WriteValue("Video", "refreshRate", _resolution.DisplayFrequency.ToString());
                     else

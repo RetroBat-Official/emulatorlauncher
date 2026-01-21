@@ -37,7 +37,9 @@ namespace EmulatorLauncher
 {
     static class Program
     {
-        static string[] emulatorsNoControlCenter = new string [] { /* "mame", "model2"*/ };
+        static string[] emulatorsNoControlCenter = new string [] { /*"applewin", "nosgba", "simcoupe", "winuae" */ };
+        static string[] coresNoControlCenter = new string[] { /*"bennugd" */ };
+        static string[] emulatorsNoControlCenterWhenExclusive = new string[] { "" };
 
         /// <summary>
         /// Link between emulator declared in es_systems.cfg and generator to use to launch emulator
@@ -762,6 +764,12 @@ namespace EmulatorLauncher
                                 return;
 
                             if (emulatorsNoControlCenter.Contains(SystemConfig["emulator"]))
+                                return;
+
+                            if (coresNoControlCenter.Contains(SystemConfig["core"]))
+                                return;
+
+                            if (SystemConfig.getOptBoolean("exclusivefs") && emulatorsNoControlCenterWhenExclusive.Contains(SystemConfig["emulator"]))
                                 return;
 
                             using (var frm = new ControlCenterFrm())
