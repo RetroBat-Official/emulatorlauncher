@@ -118,7 +118,20 @@ namespace EmulatorLauncher
                 ini.WriteValue("Instant Save Directory", "Directory", stateDir + "\\");
                 ini.WriteValue("Instant Save Directory", "Use Selected", "1");
 
+                ConfigureGFX(path);
                 ConfigureControllers(ini);
+            }
+        }
+
+        private void ConfigureGFX(string path)
+        {
+            string iniPath = Path.Combine(path, "Plugin", "GFX", "GLideN64", "GLideN64.ini");
+            using (var ini = IniFile.FromFile(iniPath))
+            {
+                var resolution = _resolution ?? ScreenResolution.CurrentResolution;
+                ini.WriteValue("User", "video\\fullscreenHeight", resolution.Height.ToString());
+                ini.WriteValue("User", "video\\fullscreenWidth", resolution.Width.ToString());
+                ini.WriteValue("User", "video\\fullscreenRefresh", resolution.DisplayFrequency > -1 ? resolution.DisplayFrequency.ToString() : "60");
             }
         }
 
