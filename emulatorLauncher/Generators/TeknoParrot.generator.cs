@@ -344,9 +344,9 @@ namespace EmulatorLauncher
             // Manage fullscreen
             var windowed = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Windowed");
             if (windowed != null && SystemConfig.isOptSet("tp_fsmode") && (SystemConfig["tp_fsmode"] == "1" || SystemConfig["tp_fsmode"] == "2"))
-                windowed.FieldValue = "1";
-            else if (windowed != null)
                 windowed.FieldValue = "0";
+            else if (windowed != null)
+                windowed.FieldValue = "1";
 
             var displaymode = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "DisplayMode");
             if (displaymode != null && SystemConfig.isOptSet("tp_fsmode") && !string.IsNullOrEmpty(SystemConfig["tp_fsmode"]))
