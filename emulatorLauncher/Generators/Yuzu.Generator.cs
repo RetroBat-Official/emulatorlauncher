@@ -66,7 +66,7 @@ namespace EmulatorLauncher
 
                 string switchSavesPath = Path.Combine(path, "user");
                 if (mutualize)
-                    switchSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "switch");
+                    switchSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "switch", "yuzu");
 
                 if (!Directory.Exists(switchSavesPath)) try { Directory.CreateDirectory(switchSavesPath); }
                     catch { }
