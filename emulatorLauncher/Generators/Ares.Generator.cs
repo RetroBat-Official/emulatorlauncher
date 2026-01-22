@@ -471,6 +471,35 @@ namespace EmulatorLauncher
                 if (File.Exists(bios_eu))
                     firmware["BIOS.Europe"] = bios_eu.Replace("\\", "/");
             }
+
+            if (system == "segald" || system == "megald")
+            {
+                var sys = bml.GetOrCreateContainer("LaserActiveSEGAPAC");
+                var firmware = sys.GetOrCreateContainer("Firmware");
+
+                string bios_japan = Path.Combine(AppConfig.GetFullPath("bios"), "Pioneer LaserActive Sega PAC Boot ROM v1.02 (1993)(Pioneer - Sega)(JP)(en-ja).bin");
+                string bios_us = Path.Combine(AppConfig.GetFullPath("bios"), "Pioneer LaserActive Sega PAC Boot ROM v1.04 (1993)(Pioneer - Sega)(US).bin");
+                if (File.Exists(bios_japan))
+                    firmware["BIOS.Japan"] = bios_japan.Replace("\\", "/");
+                if (File.Exists(bios_us))
+                    firmware["BIOS.US"] = bios_us.Replace("\\", "/");
+            }
+
+            if (system == "pcengineld" || system == "turbografxld")
+            {
+                var sys = bml.GetOrCreateContainer("LaserActiveNECPAC");
+                var firmware = sys.GetOrCreateContainer("Firmware");
+
+                string biosn10 = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] LaserActive PAC-N10 (US) (v1.02).bin");
+                string biosn1 = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] LaserActive PAC-N1 (Japan) (v1.02).bin");
+                string bioslp1 = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] LaserActive PCE-LP1 (Japan) (v1.02).bin");
+                if (File.Exists(biosn10))
+                    firmware["PAC-N10.US"] = biosn10.Replace("\\", "/");
+                if (File.Exists(biosn1))
+                    firmware["PAC-N1.Japan"] = biosn1.Replace("\\", "/");
+                if (File.Exists(bioslp1))
+                    firmware["PCE-LP1.Japan"] = bioslp1.Replace("\\", "/");
+            }
         }
 
         public override int RunAndWait(ProcessStartInfo path)
@@ -528,9 +557,11 @@ namespace EmulatorLauncher
             { "Mega32X", "Mega32X" },
             { "MegaCD", "MegaCD" },
             { "MegaCD32X", "MegaCD32X" },
+            { "MegaLD", "LaserActive (SEGA PAC)" },
             { "MSX", "MSX" },
             { "MSX2", "MSX2" },
             { "MyVision", "MyVision" },
+            { "NecLD", "LaserActive (NEC PAC)" },
             { "NeoGeoAES", "NeoGeoAES" },
             { "NeoGeoMVS", "NeoGeoMVS" },
             { "NeoGeoPocket", "NeoGeoPocket" },
@@ -541,7 +572,7 @@ namespace EmulatorLauncher
             { "PCEngineCD", "PCEngineCD" },
             { "PocketChallengeV2", "PocketChallengeV2" },
             { "PlayStation", "PlayStation" },
-            { "SG-1000", "SG-1000" },
+            { "SG-1000", "SG1000" },
             { "SuperGrafx", "SuperGrafx" },
             { "SuperGrafxCD", "SuperGrafxCD" },
             { "SuperFamicom", "SuperFamicom" },
