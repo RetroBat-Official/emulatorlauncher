@@ -418,8 +418,8 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "Hotkey_Exit_Data", "4;6");
             ini.WriteValue(iniSection, "Hotkey_Exit_ExtraData", "0;0");
             ini.WriteValue(iniSection, "Hotkey_Resume_InputType", "0;0");
-            ini.WriteValue(iniSection, "Hotkey_Resume_Name", "back;b");
-            ini.WriteValue(iniSection, "Hotkey_Resume_Data", "4;1");
+            ini.WriteValue(iniSection, "Hotkey_Resume_Name", "back;a");
+            ini.WriteValue(iniSection, "Hotkey_Resume_Data", "4;0");
             ini.WriteValue(iniSection, "Hotkey_Resume_ExtraData", "0;0");
             ini.WriteValue(iniSection, "Hotkey_Screenshot_InputType", "0;0");
             ini.WriteValue(iniSection, "Hotkey_Screenshot_Name", "back;rightstick");
@@ -430,8 +430,8 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor50_Data", "4;13");
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor50_ExtraData", "0;0");
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor100_InputType", "0;0");
-            ini.WriteValue(iniSection, "Hotkey_SpeedFactor100_Name", "back;a");
-            ini.WriteValue(iniSection, "Hotkey_SpeedFactor100_Data", "4;0");
+            ini.WriteValue(iniSection, "Hotkey_SpeedFactor100_Name", "back;leftshoulder");
+            ini.WriteValue(iniSection, "Hotkey_SpeedFactor100_Data", "4;9");
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor100_ExtraData", "0;0");
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor250_InputType", "0;0");
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor250_Name", "back;dpright");
@@ -453,6 +453,10 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "Hotkey_DecreaseSaveStateSlot_Name", "back;dpdown");
             ini.WriteValue(iniSection, "Hotkey_DecreaseSaveStateSlot_Data", "4;12");
             ini.WriteValue(iniSection, "Hotkey_DecreaseSaveStateSlot_ExtraData", "0;0");
+            ini.WriteValue(iniSection, "Hotkey_Fullscreen_InputType", "0;0");
+            ini.WriteValue(iniSection, "Hotkey_Fullscreen_Name", "back;leftstick");
+            ini.WriteValue(iniSection, "Hotkey_Fullscreen_Data", "4;7");
+            ini.WriteValue(iniSection, "Hotkey_Fullscreen_ExtraData", "0;0");
         }
 
         private void ConfigureEmptyHotkeys(IniFile ini, string iniSection)
@@ -553,10 +557,6 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "Hotkey_SaveStateSlot9_Name", "");
             ini.WriteValue(iniSection, "Hotkey_SaveStateSlot9_Data", "");
             ini.WriteValue(iniSection, "Hotkey_SaveStateSlot9_ExtraData", "");
-            ini.WriteValue(iniSection, "Hotkey_Fullscreen_InputType", "");
-            ini.WriteValue(iniSection, "Hotkey_Fullscreen_Name", "");
-            ini.WriteValue(iniSection, "Hotkey_Fullscreen_Data", "");
-            ini.WriteValue(iniSection, "Hotkey_Fullscreen_ExtraData", "");
         }
 
         private void SearchTransferPackFiles(IniFile ini, string iniSection)

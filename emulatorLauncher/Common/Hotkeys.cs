@@ -39,6 +39,15 @@ namespace EmulatorLauncher
             if (!File.Exists(kbHotkeyFile))
                 return false;
             
+            string dicPath = Path.Combine(Program.AppConfig.GetFullPath("emulationstation"), "resources");
+            bool emuDicExists = GetEmulatorDic(dicPath, emulator, out var hotkeyDic);
+
+            if (emulator != "retroarch" && !emuDicExists)
+            {
+                SimpleLogger.Instance.Info("[GENERATOR] No hotkey dictionary found for emulator : " + emulator);
+                return false;
+            }
+
             try
             {
                 YmlFile ymlFile = YmlFile.Load(kbHotkeyFile);
@@ -66,14 +75,14 @@ namespace EmulatorLauncher
                                 EmulatorValue = element.Value
                             };
                         }
-                        else if (EmulatorDic.ContainsKey(emulator))
+                        else if (hotkeyDic.Count > 0)
                         {
                             var emulatorHotkey = GetEmulatorHotkey(emulator);
                             if (emulatorHotkey == null)
                                 break;
 
                             var hkInfo = emulatorHotkey.EmulatorHotkeys.FirstOrDefault(h => h.RetroArchHK.Equals(element.Name, StringComparison.OrdinalIgnoreCase));
-                            var hkDic = EmulatorDic[emulator];
+                            var hkDic = hotkeyDic;
 
                             if (hkInfo != null)
                             {
