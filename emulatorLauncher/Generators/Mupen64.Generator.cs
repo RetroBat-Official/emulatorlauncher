@@ -402,8 +402,76 @@ namespace EmulatorLauncher
                     ini.WriteValue("Video-Parallel", "CropOverscanTop", "0");
                     ini.WriteValue("Video-Parallel", "CropOverscanBottom", "0");
                 }
+
+                ConfigureHotkeys(ini);
             }
         }
+
+        private void ConfigureHotkeys(IniFile ini)
+        {
+            string section = "Rosalie's Mupen GUI KeyBindings";
+            
+            ini.WriteValue(section, "RemoveDuplicates", "True");
+
+            foreach (var kvp in defaultKeyboardHK)
+            {
+                string value = kvp.Value.QuoteString();
+                ini.WriteValue(section, kvp.Key, value);
+            }
+        }
+
+        private Dictionary<string, string> defaultKeyboardHK = new Dictionary<string, string>
+        {
+            { "StartROM", "Ctrl+O" },
+            { "StartCombo", "Ctrl+Shift+O" },
+            { "Shutdown", "F10" },
+            { "RefreshROMList", "Shift+R" },
+            { "Exit", "Esc" },
+            { "SoftReset", "F11" },
+            { "HardReset", "Shift+F11" },
+            { "Resume", "P" },
+            { "Screenshot", "F8" },
+            { "LimitFPS", "Alt+S" },
+            { "SpeedFactor25", "Alt+0" },
+            { "SpeedFactor50", "Alt+1" },
+            { "SpeedFactor75", "Alt+2" },
+            { "SpeedFactor100", "Alt+3" },
+            { "SpeedFactor125", "Alt+4" },
+            { "SpeedFactor150", "Alt+5" },
+            { "SpeedFactor175", "Alt+6" },
+            { "SpeedFactor200", "Alt+7" },
+            { "SpeedFactor225", "Alt+8" },
+            { "SpeedFactor250", "Alt+9" },
+            { "SpeedFactor275", "Alt+[" },
+            { "SpeedFactor300", "Alt+]" },
+            { "SaveState", "F2" },
+            { "SaveAs", "Ctrl+S" },
+            { "LoadState", "F4" },
+            { "Load", "Ctrl+L" },
+            { "Cheats", "Ctrl+C" },
+            { "GSButton", "F9" },
+            { "SaveStateSlot0", "0" },
+            { "SaveStateSlot1", "1" },
+            { "SaveStateSlot2", "2" },
+            { "SaveStateSlot3", "3" },
+            { "SaveStateSlot4", "4" },
+            { "SaveStateSlot5", "5" },
+            { "SaveStateSlot6", "6" },
+            { "SaveStateSlot7", "7" },
+            { "SaveStateSlot8", "8" },
+            { "SaveStateSlot9", "9" },
+            { "Fullscreen", "F" },
+            { "ViewLog", "Ctrl+Alt+L" },
+            { "ViewSearch", "Ctrl+F" },
+            { "GraphicsSettings", "Ctrl+G" },
+            { "AudioSettings", "Ctrl+A" },
+            { "RspSettings", "Ctrl+R" },
+            { "InputSettings", "Ctrl+I" },
+            { "Settings", "Ctrl+T" },
+            { "IncreaseVolume", "PgUp" },
+            { "DecreaseVolume", "PgDown" },
+            { "ToggleMuteVolume", "Ctrl+M" }
+        };
 
         private void SetupGFX(string path)
         {
