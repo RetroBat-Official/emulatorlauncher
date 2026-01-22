@@ -55,7 +55,7 @@ namespace EmulatorLauncher.PadToKeyboard
         {
             _running = false;
 
-            if (!_thread.Join(200))
+            if (!_thread.Join(1000))
                 _thread.Abort();
         }
 
@@ -74,7 +74,7 @@ namespace EmulatorLauncher.PadToKeyboard
         private Controller[] _inputList;
 
         private AutoResetEvent _waitHandle;
-        private Thread thread;
+        private Thread _thread;
 
         private HashSet<PadToKeyInput> _pressedKeys = new HashSet<PadToKeyInput>();
 
@@ -99,12 +99,12 @@ namespace EmulatorLauncher.PadToKeyboard
 
         public void Start()
         {
-            if (thread != null)
+            if (_thread != null)
                 return;
 
-            thread = new Thread(this.DoWork);
-            thread.IsBackground = true;
-            thread.Start();
+            _thread = new Thread(this.DoWork);
+            _thread.IsBackground = true;
+            _thread.Start();
         }
 
         public void Dispose()
@@ -127,9 +127,14 @@ namespace EmulatorLauncher.PadToKeyboard
             }
 
             if (_waitHandle != null)
-            {
                 _waitHandle.Set();
-                thread = null;
+
+            if (_thread != null)
+            {
+                if (!_thread.Join(1000))
+                    _thread.Abort();
+
+                _thread = null;
             }
         }
 
