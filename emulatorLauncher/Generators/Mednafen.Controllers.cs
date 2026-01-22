@@ -1,16 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Globalization;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
-using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
+using SharpDX.DirectInput;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Windows.Input;
 
 namespace EmulatorLauncher
 {
     partial class MednafenGenerator : Generator
     {
+        private bool _custoHK = false;
+
         static readonly List<string> systemWithAutoconfig = new List<string>() { "apple2", "gb", "gba", "gg", "lynx", "md", "nes", "ngp", "pce", "pcfx", "psx", "sms", "snes", "ss", "wswan" };
         //static readonly List<string> mouseMapping = new List<string>() { "justifier", "gun", "guncon", "superscope", "zapper" };
 
@@ -54,6 +59,22 @@ namespace EmulatorLauncher
 
         private void CreateControllerConfiguration(MednafenConfigFile cfg, string mednafenCore, string system)
         {
+            Dictionary<string, HotkeyResult> kbHKDic = new Dictionary<string, HotkeyResult>();
+            Dictionary<string, string> kbHKDicToUse = defaultKBValues;
+
+            _custoHK = Hotkeys.GetHotKeysFromFile("mednafen", "", out Dictionary<string, HotkeyResult> kbhotkeys);
+            if (_custoHK)
+            {
+                kbHKDic = kbhotkeys;
+
+                foreach (var entry in kbhotkeys)
+                {
+                    kbHKDicToUse[entry.Value.EmulatorKey] = entry.Value.EmulatorValue;
+                }
+            }
+
+            ResetHotkeystoDefault(cfg, kbHKDic);
+
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
@@ -103,10 +124,10 @@ namespace EmulatorLauncher
             }
 
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
-                ConfigureInput(controller, cfg, mednafenCore, double_pads, system);
+                ConfigureInput(controller, cfg, mednafenCore, double_pads, system, kbHKDicToUse);
         }
 
-        private void ConfigureInput(Controller controller, MednafenConfigFile cfg, string mednafenCore, Dictionary<Controller, string> double_pads, string system)
+        private void ConfigureInput(Controller controller, MednafenConfigFile cfg, string mednafenCore, Dictionary<Controller, string> double_pads, string system, Dictionary<string, string> kbHKDicToUse)
         {
             if (controller == null || controller.Config == null)
                 return;
@@ -114,11 +135,11 @@ namespace EmulatorLauncher
             if (controller.IsKeyboard && this.Controllers.Count(i => !i.IsKeyboard) == 0)
                 ConfigureKeyboard(controller, cfg, mednafenCore, system);
             else
-                ConfigureJoystick(controller, cfg, mednafenCore, double_pads, system);
+                ConfigureJoystick(controller, cfg, mednafenCore, double_pads, system, kbHKDicToUse);
         }
 
         #region joystick
-        private void ConfigureJoystick(Controller controller, MednafenConfigFile cfg, string mednafenCore, Dictionary<Controller, string> double_pads, string system)
+        private void ConfigureJoystick(Controller controller, MednafenConfigFile cfg, string mednafenCore, Dictionary<Controller, string> double_pads, string system, Dictionary<string, string> kbHKDicToUse)
         {
             if (controller == null)
                 return;
@@ -129,6 +150,8 @@ namespace EmulatorLauncher
 
             if (controller.DirectInput == null)
                 return;
+
+            bool customJoyHK = Hotkeys.GetPadHKFromFile("mednafen", "", out Dictionary<string, string> padHKDic);
 
             int nbAxis = controller.NbAxes;
             bool hatfix = hatFix.Contains(controller.ProductID);
@@ -446,28 +469,21 @@ namespace EmulatorLauncher
                             if (buttons1.Length < 2 || buttons2.Length < 2)
                                 continue;
 
-                            if (button.Key == "load_state")
-                                cfg["command.load_state"] = "keyboard 0x0 64" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
-                            else if (button.Key == "save_state")
-                                cfg["command.save_state"] = "keyboard 0x0 62" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
-                            else if (button.Key == "state_slot_dec")
-                                cfg["command.state_slot_dec"] = "keyboard 0x0 45" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
-                            else if (button.Key == "state_slot_inc")
-                                cfg["command.state_slot_inc"] = "keyboard 0x0 46" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
-                            else if (button.Key == "toggle_help")
-                                cfg["command.toggle_help"] = "keyboard 0x0 58" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
-                            else if (button.Key == "select_disk")
-                                cfg["command.select_disk"] = "keyboard 0x0 63" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
-                            else if (button.Key == "take_snapshot")
-                                cfg["command.take_snapshot"] = "keyboard 0x0 66" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
-                            else if (button.Key == "fast_forward")
-                                cfg["command.fast_forward"] = "keyboard 0x0 53" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
-                            else if (button.Key == "state_rewind")
-                                cfg["command.state_rewind"] = "keyboard 0x0 42" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
-                            else if (button.Key == "pause")
-                                cfg["command.pause"] = "keyboard 0x0 72" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
-                            else if (button.Key == "exit")
-                                cfg["command.exit"] = "keyboard 0x0 69" + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                            if (hkMappingRA.ContainsKey(button.Key))
+                            {
+                                string cfgKey = "command." + button.Key;
+                                string raMapping = hkMappingRA[button.Key];
+
+                                if (kbHKDicToUse.ContainsKey(button.Key))
+                                {
+                                    string targetKbKey = "keyboard 0x0 " + kbHKDicToUse[button.Key];
+                                    cfg[cfgKey] = targetKbKey + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                                }
+                                else
+                                    cfg[cfgKey] = "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                            }
+                            else
+                                cfg["command." + button.Key] = "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
                         }
 
                         else
@@ -478,28 +494,21 @@ namespace EmulatorLauncher
                             if (buttons.Length < 2)
                                 continue;
 
-                            if (button.Key == "load_state")
-                                cfg["command.load_state"] = "keyboard 0x0 64" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                            else if (button.Key == "save_state")
-                                cfg["command.save_state"] = "keyboard 0x0 62" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                            else if (button.Key == "state_slot_dec")
-                                cfg["command.state_slot_dec"] = "keyboard 0x0 45" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                            else if (button.Key == "state_slot_inc")
-                                cfg["command.state_slot_inc"] = "keyboard 0x0 46" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                            else if (button.Key == "toggle_help")
-                                cfg["command.toggle_help"] = "keyboard 0x0 58" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                            else if (button.Key == "select_disk")
-                                cfg["command.select_disk"] = "keyboard 0x0 63" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                            else if (button.Key == "take_snapshot")
-                                cfg["command.take_snapshot"] = "keyboard 0x0 66" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                            else if (button.Key == "fast_forward")
-                                cfg["command.fast_forward"] = "keyboard 0x0 53" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                            else if (button.Key == "state_rewind")
-                                cfg["command.state_rewind"] = "keyboard 0x0 42" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                            else if (button.Key == "pause")
-                                cfg["command.pause"] = "keyboard 0x0 72" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                            else if (button.Key == "exit")
-                                cfg["command.exit"] = "keyboard 0x0 69" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            if (hkMappingRA.ContainsKey(button.Key))
+                            {
+                                string cfgKey = "command." + button.Key;
+                                string raMapping = hkMappingRA[button.Key];
+
+                                if (kbHKDicToUse.ContainsKey(button.Key))
+                                {
+                                    string targetKbKey = "keyboard 0x0 " + kbHKDicToUse[button.Key];
+                                    cfg[cfgKey] = targetKbKey + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                                }
+                                else
+                                    cfg[cfgKey] = "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            }
+                            else
+                                cfg["command." + button.Key] = "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
                         }
                     }
                 }
@@ -520,34 +529,60 @@ namespace EmulatorLauncher
                 {
                     foreach (var button in saturnGamepad.HotKeyMapping)
                     {
-                        string[] delimiters = new string[] { "_and_" };
-                        var buttons = button.Value.Split(delimiters, StringSplitOptions.None);
+                        if (button.Value.Contains("_or_"))
+                        {
+                            string[] orSplitter = new string[] { "_or_" };
+                            var combinaisons = button.Value.Split(orSplitter, StringSplitOptions.None);
+                            string combination1 = combinaisons[0];
+                            string combination2 = combinaisons[1];
 
-                        if (buttons.Length < 2)
-                            continue;
+                            string[] delimiters = new string[] { "_and_" };
+                            var buttons1 = combination1.Split(delimiters, StringSplitOptions.None);
+                            var buttons2 = combination2.Split(delimiters, StringSplitOptions.None);
 
-                        if (button.Key == "load_state")
-                            cfg["command.load_state"] = "keyboard 0x0 64" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "save_state")
-                            cfg["command.save_state"] = "keyboard 0x0 62" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "state_slot_dec")
-                            cfg["command.state_slot_dec"] = "keyboard 0x0 45" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "state_slot_inc")
-                            cfg["command.state_slot_inc"] = "keyboard 0x0 46" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "toggle_help")
-                            cfg["command.toggle_help"] = "keyboard 0x0 58" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "select_disk")
-                            cfg["command.select_disk"] = "keyboard 0x0 63" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "take_snapshot")
-                            cfg["command.take_snapshot"] = "keyboard 0x0 66" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "fast_forward")
-                            cfg["command.fast_forward"] = "keyboard 0x0 53" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "state_rewind")
-                            cfg["command.state_rewind"] = "keyboard 0x0 42" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "pause")
-                            cfg["command.pause"] = "keyboard 0x0 72" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
-                        else if (button.Key == "exit")
-                            cfg["command.exit"] = "keyboard 0x0 69" + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            if (buttons1.Length < 2 || buttons2.Length < 2)
+                                continue;
+
+                            if (hkMappingRA.ContainsKey(button.Key))
+                            {
+                                string cfgKey = "command." + button.Key;
+                                string raMapping = hkMappingRA[button.Key];
+
+                                if (kbHKDicToUse.ContainsKey(button.Key))
+                                {
+                                    string targetKbKey = "keyboard 0x0 " + kbHKDicToUse[button.Key];
+                                    cfg[cfgKey] = targetKbKey + " || " + "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                                }
+                                else
+                                    cfg[cfgKey] = "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                            }
+                            else
+                                cfg["command." + button.Key] = "joystick " + deviceID + " " + buttons1[0] + " && " + "joystick " + deviceID + " " + buttons1[1] + " || " + "joystick " + deviceID + " " + buttons2[0] + " && " + "joystick " + deviceID + " " + buttons2[1];
+                        }
+                        else
+                        {
+                            string[] delimiters = new string[] { "_and_" };
+                            var buttons = button.Value.Split(delimiters, StringSplitOptions.None);
+
+                            if (buttons.Length < 2)
+                                continue;
+
+                            if (hkMappingRA.ContainsKey(button.Key))
+                            {
+                                string cfgKey = "command." + button.Key;
+                                string raMapping = hkMappingRA[button.Key];
+
+                                if (kbHKDicToUse.ContainsKey(button.Key))
+                                {
+                                    string targetKbKey = "keyboard 0x0 " + kbHKDicToUse[button.Key];
+                                    cfg[cfgKey] = targetKbKey + " || " + "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                                }
+                                else
+                                    cfg[cfgKey] = "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                            }
+                            else
+                                cfg["command." + button.Key] = "joystick " + deviceID + " " + buttons[0] + " && " + "joystick " + deviceID + " " + buttons[1];
+                        }
                     }
                 }
 
@@ -765,44 +800,88 @@ namespace EmulatorLauncher
 
             if (controller.PlayerIndex == 1)
             {
-                if (dinput)
+                if (customJoyHK)
                 {
-                    if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[InputKey.x], nbAxis, hatfix)))
-                        cfg["command.load_state"] = "keyboard 0x0 64" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.x], nbAxis, hatfix);
-                    if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[InputKey.y], nbAxis, hatfix)))
-                        cfg["command.save_state"] = "keyboard 0x0 62" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.y], nbAxis, hatfix);
-                    if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[InputKey.down], nbAxis, hatfix)))
-                        cfg["command.state_slot_dec"] = "keyboard 0x0 45" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.down], nbAxis, hatfix);
-                    if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[InputKey.up], nbAxis, hatfix)))
-                        cfg["command.state_slot_inc"] = "keyboard 0x0 46" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.up], nbAxis, hatfix);
-                    if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[InputKey.a], nbAxis, hatfix)))
-                        cfg["command.toggle_help"] = "keyboard 0x0 58" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.a], nbAxis, hatfix);
-                    if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[InputKey.r2], nbAxis, hatfix)))
-                        cfg["command.select_disk"] = "keyboard 0x0 63" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.r2], nbAxis, hatfix);
-                    if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[InputKey.r3], nbAxis, hatfix)))
-                        cfg["command.take_snapshot"] = "keyboard 0x0 66" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.r3], nbAxis, hatfix);
-                    if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[InputKey.right], nbAxis, hatfix)))
-                        cfg["command.fast_forward"] = "keyboard 0x0 53" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.right], nbAxis, hatfix);
-                    if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[InputKey.left], nbAxis, hatfix)))
-                        cfg["command.state_rewind"] = "keyboard 0x0 42" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.left], nbAxis, hatfix);
-                    if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[InputKey.b], nbAxis, hatfix)))
-                        cfg["command.pause"] = "keyboard 0x0 72" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.b], nbAxis, hatfix);
-                    if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[InputKey.start], nbAxis, hatfix)))
-                        cfg["command.exit"] = "keyboard 0x0 69" + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.start], nbAxis, hatfix);
+                    foreach (var joyButton in padHKDic)
+                    {
+                        string commandKey = "command." + joyButton.Key;
+                        string buttonValue = joyButton.Value;
+                        if (Enum.TryParse<InputKey>(buttonValue, ignoreCase: true, out var inputKeyValue))
+                        {
+                            if (kbHKDicToUse.ContainsKey(joyButton.Key))
+                            {
+                                string kbValue = "keyboard 0x0 " + kbHKDicToUse[joyButton.Key];
+                                if (dinput)
+                                {
+                                    if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[inputKeyValue], nbAxis, hatfix)))
+                                        cfg[commandKey] = kbValue + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[inputKeyValue], nbAxis, hatfix);
+                                }
+                                else if (buttonMapping.ContainsKey(inputKeyValue))
+                                {
+                                    cfg[commandKey] = kbValue + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[inputKeyValue];
+                                }
+                                else
+                                {
+                                    cfg[commandKey] = kbValue;
+                                }
+                            }
+                            else
+                            {
+                                if (dinput)
+                                {
+                                    if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[inputKeyValue], nbAxis, hatfix)))
+                                        cfg[commandKey] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[inputKeyValue], nbAxis, hatfix);
+                                }
+                                else if (buttonMapping.ContainsKey(inputKeyValue))
+                                {
+                                    cfg[commandKey] = "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[inputKeyValue];
+                                }
+                            }
+                        }
+                        else if (kbHKDicToUse.ContainsKey(joyButton.Key))
+                        {
+                            string kbValue = "keyboard 0x0 " + kbHKDicToUse[joyButton.Key];
+                            cfg[commandKey] = kbValue;
+                        }
+                    }
                 }
+
                 else
                 {
-                    cfg["command.load_state"] = "keyboard 0x0 64" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.x];
-                    cfg["command.save_state"] = "keyboard 0x0 62" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.y];
-                    cfg["command.state_slot_dec"] = "keyboard 0x0 45" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.down];
-                    cfg["command.state_slot_inc"] = "keyboard 0x0 46" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.up];
-                    cfg["command.toggle_help"] = "keyboard 0x0 58" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.a];
-                    cfg["command.select_disk"] = "keyboard 0x0 63" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.r2];
-                    cfg["command.take_snapshot"] = "keyboard 0x0 66" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.r3];
-                    cfg["command.fast_forward"] = "keyboard 0x0 53" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.right];
-                    cfg["command.state_rewind"] = "keyboard 0x0 42" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.left];
-                    cfg["command.pause"] = "keyboard 0x0 72" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.b];
-                    cfg["command.exit"] = "keyboard 0x0 69" + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[InputKey.start];
+                    foreach (var hk in hkJoyDefaultMapping)
+                    {
+                        string commandKey = "command." + hk.Key;
+                        InputKey joyButton = hk.Value;
+
+                        if (kbHKDicToUse.ContainsKey(hk.Key))
+                        {
+                            string kbValue = "keyboard 0x0 " + kbHKDicToUse[hk.Key];
+                            if (dinput)
+                            {
+                                if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[joyButton], nbAxis, hatfix)))
+                                    cfg[commandKey] = kbValue + " || " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[joyButton], nbAxis, hatfix);
+                            }
+                            else if (buttonMapping.ContainsKey(joyButton))
+                            {
+                                cfg[commandKey] = kbValue + " || " + "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[joyButton];
+                            }
+                            else
+                                cfg[commandKey] = kbValue;
+
+                        }
+                        else
+                        {
+                            if (dinput)
+                            {
+                                if (!string.IsNullOrEmpty(GetDinputMapping(dinputCtrl, buttonMapping[joyButton], nbAxis, hatfix)))
+                                    cfg[commandKey] = "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[InputKey.select], nbAxis, hatfix) + " && " + "joystick " + deviceID + " " + GetDinputMapping(dinputCtrl, buttonMapping[joyButton], nbAxis, hatfix);
+                            }
+                            else if (buttonMapping.ContainsKey(joyButton))
+                            {
+                                cfg[commandKey] = "joystick " + deviceID + " " + buttonMapping[InputKey.select] + " && " + "joystick " + deviceID + " " + buttonMapping[joyButton];
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1073,7 +1152,7 @@ namespace EmulatorLauncher
                     cfg["command.insert_coin"] = "keyboard 0x0 " + mednafenKey;
                 }
                 else
-                    cfg["command.insert_coin"] = "keyboard 0x0 62"; //F5
+                    cfg["command.insert_coin"] = "keyboard 0x0 6+ctrl"; // CTRL+C
 
                 var test = keyboard[InputKey.l3];
                 if (test != null)
@@ -1091,7 +1170,7 @@ namespace EmulatorLauncher
                     cfg["ss.input.builtin.builtin.stv_test"] = "keyboard 0x0 " + mednafenKey;
                 }
                 else
-                    cfg["ss.input.builtin.builtin.stv_test"] = "keyboard 0x0 65"; //F8
+                    cfg["ss.input.builtin.builtin.stv_test"] = "keyboard 0x0 23+ctrl"; // CTRL+T
 
                 var service = keyboard[InputKey.r3];
                 if (service != null)
@@ -1109,10 +1188,66 @@ namespace EmulatorLauncher
                     cfg["ss.input.builtin.builtin.stv_service"] = "keyboard 0x0 " + mednafenKey;
                 }
                 else
-                    cfg["ss.input.builtin.builtin.stv_service"] = "keyboard 0x0 66";
+                    cfg["ss.input.builtin.builtin.stv_service"] = "keyboard 0x0 22+ctrl"; // CTRL+S
             }
         }
         #endregion
+
+        private void ResetHotkeystoDefault(MednafenConfigFile cfg, Dictionary<string, HotkeyResult> kbHKDic)
+        {
+            if (cfg["command.input_configc"] != null && cfg["command.input_configc"] == "keyboard 0x0 59")
+                cfg["command.input_configc"] = "keyboard 0x0 59+ctrl";
+            if (cfg["command.close_popup"] != null && cfg["command.close_popup"] == "keyboard 0x0 41")
+                cfg["command.close_popup"] = "keyboard 0x0 41+ctrl";
+            if (cfg["command.toggle_dipview"] != null && cfg["command.toggle_dipview"] == "keyboard 0x0 63")
+                cfg["command.toggle_dipview"] = "keyboard 0x0 63+ctrl";
+            if (cfg["command.power"] != null && cfg["command.power"] == "keyboard 0x0 68")
+                cfg["command.power"] = "keyboard 0x0 68+ctrl";
+            if (cfg["command.activate_barcode"] != null && cfg["command.activate_barcode"] == "keyboard 0x0 65")
+                cfg["command.activate_barcode"] = "keyboard 0x0 65+ctrl";
+            if (cfg["command.insert_coin"] != null && cfg["command.insert_coin"] == "keyboard 0x0 65")
+                cfg["command.insert_coin"] = "keyboard 0x0 65+shift";
+            if (cfg["command.reset"] != null && cfg["command.reset"] == "keyboard 0x0 67")
+                cfg["command.reset"] = "keyboard 0x0 66+ctrl";
+
+            if (kbHKDic.Count > 0)
+            {
+                foreach (var hk in kbHKDic)
+                {
+                    string key = "command." + hk.Value.EmulatorKey;
+                    string value = "keyboard 0x0 " + hk.Value.EmulatorValue;
+                    cfg[key] = value;
+                }
+            }
+
+            else
+            {
+                foreach (var def in defaultKBValues)
+                {
+                    string key = "command." + def.Key;
+                    string value = "keyboard 0x0 " + def.Value;
+                    cfg[key] = value;
+                }
+            }
+        }
+
+        static readonly Dictionary<string, string> defaultKBValues = new Dictionary<string, string>()
+        {
+            { "save_state", "59" },
+            { "load_state", "61" },
+            { "exit", "41" },
+            { "state_slot_dec", "63" },
+            { "state_slot_inc", "64" },
+            { "toggle_help", "58" },
+            { "insert_eject_disk", "68" },
+            { "take_snapshot", "65" },
+            { "fast_forward", "15" },
+            { "state_rewind", "42" },
+            { "pause", "19" },
+            { "toggle_fs", "9" },
+            { "advance_frame", "14" },
+            { "select_disk", "67" }
+        };
 
         #region controller Mapping
 
@@ -1607,6 +1742,41 @@ namespace EmulatorLauncher
             { "ss", saturngun },
             { "guncon", psxguncon },
             { "justifier", psxjustifier }
+        };
+
+        static readonly Dictionary<string, string> hkMappingRA = new Dictionary<string, string>()
+        {
+            { "save_state", "input_save_state" },
+            { "load_state", "input_load_state" },
+            { "exit", "input_exit_emulator" },
+            { "state_slot_dec", "input_state_slot_decrease" },
+            { "state_slot_inc", "input_state_slot_increase" },
+            { "toggle_help", "input_menu_toggle" },
+            { "insert_eject_disk", "input_disk_eject_toggle" },
+            { "take_snapshot", "input_screenshot" },
+            { "fast_forward", "input_hold_fast_forward" },
+            { "state_rewind", "input_rewind" },
+            { "pause", "input_pause_toggle" },
+            { "toggle_fs", "input_toggle_fullscreen" },
+            { "advance_frame", "input_frame_advance" },
+            { "select_disk", "input_disk_next" }
+        };
+
+        static readonly Dictionary<string, InputKey> hkJoyDefaultMapping = new Dictionary<string, InputKey>()
+        {
+            { "save_state", InputKey.y },
+            { "load_state", InputKey.x },
+            { "exit", InputKey.start },
+            { "state_slot_dec", InputKey.down },
+            { "state_slot_inc", InputKey.up },
+            { "toggle_help", InputKey.a },
+            { "insert_eject_disk", InputKey.pageup },
+            { "take_snapshot", InputKey.r3 },
+            { "fast_forward", InputKey.right },
+            { "state_rewind", InputKey.left },
+            //{ "pause", InputKey.b },
+            { "toggle_fs", InputKey.l3 },
+            { "select_disk", InputKey.r2 }
         };
         #endregion
 

@@ -1,12 +1,331 @@
 ﻿using EmulatorLauncher.Common;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Security.Policy;
+using Newtonsoft.Json;
 
 namespace EmulatorLauncher
 {
+    public class HotkeyResult
+    {
+        public string RetroArchValue { get; set; }
+        public string EmulatorKey { get; set; }
+        public string EmulatorValue { get; set; }
+    };
+
     public partial class Hotkeys
     {
+        #region useful dictionaries
+        private static Dictionary<string, string> padHotkey = new Dictionary<string, string>()
+        {
+            { "input_menu_toggle", "a" },
+            { "input_toggle_fullscreen", "a" },
+            { "input_hold_fast_forward", "right" },
+            { "input_exit_emulator", "start" },
+            //{ "input_pause_toggle", "b" },
+            { "input_load_state", "x" },
+            { "input_save_state", "y" },
+            { "disk_eject_toggle", "l1" },
+            { "input_ai_service", "r1" },
+            { "input_disk_prev", "l2" },
+            { "input_disk_next", "r2" },
+            { "input_screenshot", "r3" },
+            { "input_state_slot_decrease", "down" },
+            { "input_state_slot_increase", "up" },
+            { "input_rewind", "left" },
+        };
+
+        private static readonly Dictionary<string, string> raStringToPad2KeyString = new Dictionary<string, string>()
+        {
+            { "ESCAPE", "ESC" },
+        };
+
+        private static readonly Dictionary<string, string> emulatorAppName = new Dictionary<string, string>()
+        {
+            { "ares", "ares" },
+            { "bigpemu", "BigPEmu" },
+            { "bizhawk", "EmuHawk" },
+            { "cgenius", "CGenius" },
+            { "dolphin", "Dolphin" },
+            { "flycast", "flycast" },
+            { "jgenesis", "jgenesis-gui" },
+            { "mednafen", "mednafen" },
+            { "melonds", "melonDS" },
+            { "mesen", "Mesen" },
+            { "project64", "Project64" },
+            { "raine", "raine" },
+            { "retroarch", "retroarch" },
+            { "snes9x", "snes9x-x64" },
+        };
+        #endregion
+
+        #region classes
+        internal class EmulatorHotkey
+        {
+            public string Emulator { get; set; }
+            public EmulatorHotkeyInfo[] EmulatorHotkeys { get; set; }
+
+            public EmulatorHotkey(string emulator, EmulatorHotkeyInfo[] emulatorHotkeys)
+            {
+                Emulator = emulator;
+                EmulatorHotkeys = emulatorHotkeys;
+            }
+        }
+
+        internal class EmulatorHotkeyInfo
+        {
+            public string RetroArchHK { get; set; }
+            public string EmulatorHK { get; set; }
+            public string DefaultValue { get; set; }
+
+            public EmulatorHotkeyInfo(string retroArchHK, string emulatorHK, string defaultValue)
+            {
+                RetroArchHK = retroArchHK;
+                EmulatorHK = emulatorHK;
+                DefaultValue = defaultValue;
+            }
+        }
+        #endregion
+
+        #region emulators Hotkey Info
+        private static readonly EmulatorHotkey[] EmulatorHotkeys = new EmulatorHotkey[]
+        {
+            new EmulatorHotkey("ares", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "ToggleFullscreen", "0x1/0/40;;"),        // f
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "FastForward", "0x1/0/46;;"),             // l
+                    new EmulatorHotkeyInfo("input_rewind", "Rewind", "0x1/0/28;;"),                             // backspace
+                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "ToggleFastForward", "0x1/0/92;;"),     // space
+                    new EmulatorHotkeyInfo("input_frame_advance", "FrameAdvance", "0x1/0/45;;"),                // k
+                    new EmulatorHotkeyInfo("input_screenshot", "CaptureScreenshot", "0x1/0/8;;"),               // F8
+                    new EmulatorHotkeyInfo("input_save_state", "SaveState", "0x1/0/2;;"),                       // F2
+                    new EmulatorHotkeyInfo("input_load_state", "LoadState", "0x1/0/4;;"),                       // F4
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "DecrementStateSlot", "0x1/0/6;;"),     // F6
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "IncrementStateSlot", "0x1/0/7;;"),     // F7
+                    new EmulatorHotkeyInfo("input_pause_toggle", "PauseEmulation", "0x1/0/50;;"),               // p
+                    new EmulatorHotkeyInfo("input_exit_emulator", "QuitEmulator", "0x1/0/0;;"),                 // escape
+
+                }),
+
+            new EmulatorHotkey("bigpemu", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_menu_toggle", "menu", "58_59"),                 // F1
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "ff", "15_38"),             // L
+                    new EmulatorHotkeyInfo("input_rewind", "rewind", "42_14"),                    // backspace
+                    new EmulatorHotkeyInfo("input_save_state", "savestate", "59_60"),             // F2
+                    new EmulatorHotkeyInfo("input_load_state", "loadstate", "61_62"),             // F4
+                    new EmulatorHotkeyInfo("input_screenshot", "screenshot", "65_66")             // F8
+                }),
+
+            new EmulatorHotkey("bizhawk", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_pause_toggle", "Pause", "P"),                   // P
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "Fast Forward", "L"),       // L
+                    new EmulatorHotkeyInfo("input_rewind", "Rewind", "Backspace"),                // backspace
+                    new EmulatorHotkeyInfo("input_save_state", "Quick Save", "F2"),               // F2
+                    new EmulatorHotkeyInfo("input_load_state", "Quick Load", "F4"),               // F4
+                    new EmulatorHotkeyInfo("input_screenshot", "Screenshot", "F8"),               // F8
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "Previous Slot", "F6"),   // F6
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "Next Slot", "F7"),       // F7
+                    new EmulatorHotkeyInfo("input_exit_emulator", "Exit Program", "Escape"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "Full Screen", "F"),
+                    new EmulatorHotkeyInfo("input_frame_advance", "Frame Advance", "K")
+                }),
+
+            new EmulatorHotkey("cgenius", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_save_state", "Quick Save", "F2"),
+                    new EmulatorHotkeyInfo("input_load_state", "Quick Load", "F4")
+                }),
+
+            new EmulatorHotkey("dolphin", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_pause_toggle", "General/Toggle Pause", "P"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "Emulation Speed/Increase Emulation Speed", "L"),
+                    new EmulatorHotkeyInfo("input_rewind", "Emulation Speed/Decrease Emulation Speed", "Backspace"),
+                    new EmulatorHotkeyInfo("input_save_state", "Save State/Save to Selected Slot", "F2"),
+                    new EmulatorHotkeyInfo("input_load_state", "Load State/Load from Selected Slot", "F4"),
+                    new EmulatorHotkeyInfo("input_screenshot", "General/Take Screenshot", "F8"),
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "Other State Hotkeys/Decrease Selected State Slot", "F6"),
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "Other State Hotkeys/Increase Selected State Slot", "F7"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "General/Exit", "Escape"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "General/Toggle Fullscreen", "F"),
+                    new EmulatorHotkeyInfo("input_disk_prev", "General/Change Disc", "F9"),
+                    new EmulatorHotkeyInfo("input_disk_eject_toggle", "General/Eject Disc", "F11"),
+                    new EmulatorHotkeyInfo("input_frame_advance", "Frame Advance/Frame Advance", "K"),
+                }),
+
+            new EmulatorHotkey("flycast", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_menu_toggle", "btn_menu", "58"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "btn_fforward", "15"),
+                    new EmulatorHotkeyInfo("input_screenshot", "btn_screenshot", "65"),
+                    new EmulatorHotkeyInfo("input_save_state", "btn_quick_save", "59"),
+                    new EmulatorHotkeyInfo("input_load_state", "btn_jump_state", "61"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "btn_escape", "41")
+                }),
+
+            new EmulatorHotkey("jgenesis", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_exit_emulator", "exit", "Escape"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "toggle_fullscreen", "F"),
+                    new EmulatorHotkeyInfo("input_save_state", "save_state", "F2"),
+                    new EmulatorHotkeyInfo("input_load_state", "load_state", "F4"),
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "prev_save_state_slot", "F6"),
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "next_save_state_slot", "F7"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "pause", "P"),
+                    new EmulatorHotkeyInfo("input_frame_advance", "step_frame", "K"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "fast_forward", "L"),
+                    new EmulatorHotkeyInfo("input_rewind", "rewind", "Backspace")
+                }),
+
+            new EmulatorHotkey("mednafen", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_save_state", "save_state", "59"),
+                    new EmulatorHotkeyInfo("input_load_state", "load_state", "61"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "exit", "41"),
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "state_slot_dec", "63"),
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "state_slot_inc", "64"),
+                    new EmulatorHotkeyInfo("input_menu_toggle", "toggle_help", "58"),
+                    new EmulatorHotkeyInfo("input_disk_eject_toggle", "insert_eject_disk", "68"),
+                    new EmulatorHotkeyInfo("input_screenshot", "take_snapshot", "65"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "fast_forward", "15"),
+                    new EmulatorHotkeyInfo("input_rewind", "state_rewind", "42"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "pause", "19"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "toggle_fs", "9"),
+                    new EmulatorHotkeyInfo("input_frame_advance", "advance_frame", "14"),
+                    new EmulatorHotkeyInfo("input_disk_next", "select_disk", "67"),
+                }),
+
+            new EmulatorHotkey("melonds", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "HK_FullscreenToggle", "70"),         // F
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "HK_FastForward", "76"),              // L
+                    new EmulatorHotkeyInfo("input_rewind", "HK_SlowMo", "16777219"),                        // Backspace
+                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "HK_FastForwardToggle", "32"),      // SPACE
+                    new EmulatorHotkeyInfo("input_frame_advance", "HK_FrameStep", "75"),                    // K
+                    new EmulatorHotkeyInfo("input_pause_toggle", "HK_Pause", "80")                          // P
+                }),
+
+            new EmulatorHotkey("mesen", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "ToggleFullscreen", "49"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "FastForward", "55"),
+                    new EmulatorHotkeyInfo("input_rewind", "Rewind", "2"),
+                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "ToggleFastForward", "18"),
+                    new EmulatorHotkeyInfo("input_screenshot", "TakeScreenshot", "97"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "Pause", "59"),
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "MoveToNextStateSlot", "96"),
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "MoveToPreviousStateSlot", "95"),
+                    new EmulatorHotkeyInfo("input_save_state", "SaveState", "91"),
+                    new EmulatorHotkeyInfo("input_load_state", "LoadState", "93"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "Exit", "13"),
+                }),
+
+            new EmulatorHotkey("project64", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "4175", "70"),                        // F
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "4186", "76"),                        // L
+                    new EmulatorHotkeyInfo("input_rewind", "4187", "8"),                                    // Backspace
+                    new EmulatorHotkeyInfo("input_save_state", "4159", "113"),                              // F2
+                    new EmulatorHotkeyInfo("input_load_state", "4157", "115"),                              // F4
+                    new EmulatorHotkeyInfo("input_exit_emulator", "4007", "27"),                            // ESC
+                    new EmulatorHotkeyInfo("input_pause_toggle", "4153", "80"),                             // P
+                    new EmulatorHotkeyInfo("input_screenshot", "4154", "119"),                              // F8
+                }),
+
+            new EmulatorHotkey("raine", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_menu_toggle", "Return_to_GUI", "58"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "Fullscreen", "9"),
+                    new EmulatorHotkeyInfo("input_frame_advance", "Forward_1_frame_in_pause", "14"),
+                    new EmulatorHotkeyInfo("input_screenshot", "Save_Screenshot", "65"),
+                    new EmulatorHotkeyInfo("input_save_state", "Save_state", "59"),
+                    new EmulatorHotkeyInfo("input_load_state", "Load_state", "61"),
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "Switch_save_slot", "63"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "Pause_game", "19"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "Quit_without_saving", "41")
+                }),
+
+            new EmulatorHotkey("retroarch", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_menu_toggle", "input_menu_toggle", "f1"),
+                    new EmulatorHotkeyInfo("input_desktop_menu_toggle", "input_desktop_menu_toggle", "f5"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "input_toggle_fullscreen", "f"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "input_hold_fast_forward", "l"),
+                    new EmulatorHotkeyInfo("input_rewind", "input_rewind", "backspace"),
+                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "input_toggle_fast_forward", "space"),
+                    new EmulatorHotkeyInfo("input_frame_advance", "input_frame_advance", "k"),
+                    new EmulatorHotkeyInfo("input_screenshot", "input_screenshot", "f8"),
+                    new EmulatorHotkeyInfo("input_save_state", "input_save_state", "f2"),
+                    new EmulatorHotkeyInfo("input_load_state", "input_load_state", "f4"),
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "input_state_slot_decrease", "f6"),
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "input_state_slot_increase", "f7"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "input_pause_toggle", "p"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "input_exit_emulator", "escape"),
+                    new EmulatorHotkeyInfo("input_shader_next", "input_shader_next", "m"),
+                    new EmulatorHotkeyInfo("input_shader_prev", "input_shader_prev", "n"),
+                    new EmulatorHotkeyInfo("input_disk_prev", "input_disk_prev", "f9"),
+                    new EmulatorHotkeyInfo("input_disk_next", "input_disk_next", "f10"),
+                    new EmulatorHotkeyInfo("input_disk_eject_toggle", "input_disk_eject_toggle", "f11")
+                }),
+
+            new EmulatorHotkey("snes9x", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "FastForward", "L"),
+                    new EmulatorHotkeyInfo("input_rewind", "Rewind", "Backspace"),
+                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "FastForwardToggle", "Space"),
+                    new EmulatorHotkeyInfo("input_frame_advance", "FrameAdvance", "K"),
+                    new EmulatorHotkeyInfo("input_screenshot", "SaveScreenShot", "F8"),
+                    new EmulatorHotkeyInfo("input_save_state", "SlotSave", "F2"),
+                    new EmulatorHotkeyInfo("input_load_state", "SlotLoad", "F4"),
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "SlotMinus", "F6"),
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "SlotPlus", "F7"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "Pause", "P")
+                }),
+        };
+        #endregion
+
+        #region public methods
+        public static bool TryParseHexLong(string s, out long value)
+        {
+            value = 0;
+            if (string.IsNullOrWhiteSpace(s))
+                return false;
+
+            if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                s = s.Substring(2);
+
+            return long.TryParse(s, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out value);
+        }
+
+        private static bool GetEmulatorDic(string path, string emulator, out Dictionary<string, string> hotkeyDic)
+        {
+            hotkeyDic = new Dictionary<string, string>();
+            
+            string jsonPath = Path.Combine(path, "kbhotkeysdics.json");
+
+            if (!File.Exists(jsonPath))
+                return false;
+
+            try
+            {   string jsonText = File.ReadAllText(jsonPath);
+                var allEmuDics = Newtonsoft.Json.Linq.JObject.Parse(jsonText);
+                if (!allEmuDics.TryGetValue(emulator, out var emulatorObj))
+                    return false;
+
+                hotkeyDic = emulatorObj?.ToObject<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+        #endregion
+
         #region emulators dictionnaries
         private static readonly Dictionary<string, string> AresKeyEnum = new Dictionary<string, string>()
         {
@@ -446,6 +765,123 @@ namespace EmulatorLauncher
             { "rctrl", "Ctrl" },
             { "rshift", "Shift" },
             { "ralt", "Alt" }
+        };
+
+        private static readonly Dictionary<string, string> mesenKeys = new Dictionary<string, string>()
+        {
+            { "backspace", "2" },
+            { "tab", "3" },
+            { "return", "6" },
+            { "pause", "7" },
+            { "capslock", "8" },
+            { "escape", "13" },
+            { "space", "18" },
+            { "pageup", "19" },
+            { "pagedown", "20" },
+            { "end", "21" },
+            { "home", "22" },
+            { "left", "23" },
+            { "up", "24" },
+            { "right", "25" },
+            { "down", "26" },
+            { "printscreen", "30" },
+            { "insert", "31" },
+            { "delete", "32" },
+            { "num0", "34" },
+            { "num1", "35" },
+            { "num2", "36" },
+            { "num3", "37" },
+            { "num4", "38" },
+            { "num5", "39" },
+            { "num6", "40" },
+            { "num7", "41" },
+            { "num8", "42" },
+            { "num9", "43" },
+            { "a", "44" },
+            { "b", "45" },
+            { "c", "46" },
+            { "d", "47" },
+            { "e", "48" },
+            { "f", "49" },
+            { "g", "50" },
+            { "h", "51" },
+            { "i", "52" },
+            { "j", "53" },
+            { "k", "54" },
+            { "l", "55" },
+            { "m", "56" },
+            { "n", "57" },
+            { "o", "58" },
+            { "p", "59" },
+            { "q", "60" },
+            { "r", "61" },
+            { "s", "62" },
+            { "t", "63" },
+            { "u", "64" },
+            { "v", "65" },
+            { "w", "66" },
+            { "x", "67" },
+            { "y", "68" },
+            { "z", "69" },
+            { "keypad0", "74" },
+            { "keypad1", "75" },
+            { "keypad2", "76" },
+            { "keypad3", "77" },
+            { "keypad4", "78" },
+            { "keypad5", "79" },
+            { "keypad6", "80" },
+            { "keypad7", "81" },
+            { "keypad8", "82" },
+            { "keypad9", "83" },
+            { "multiply", "84" },
+            { "add", "85" },
+            { "subtract", "87" },
+            { "point", "88" },
+            { "divide", "89" },
+            { "f1", "90" },
+            { "f2", "91" },
+            { "f3", "92" },
+            { "f4", "93" },
+            { "f5", "94" },
+            { "f6", "95" },
+            { "f7", "96" },
+            { "f8", "97" },
+            { "f9", "98" },
+            { "f10", "99" },
+            { "f11", "100" },
+            { "f12", "101" },
+            { "f13", "102" },
+            { "f14", "103" },
+            { "f15", "104" },
+            { "f16", "105" },
+            { "f17", "106" },
+            { "f18", "107" },
+            { "f19", "108" },
+            { "f20", "109" },
+            { "f21", "110" },
+            { "f22", "111" },
+            { "f23", "112" },
+            { "f24", "113" },
+            { "numlockclear", "114" },
+            { "scrolllock", "115" },
+            { "shift", "116" },
+            { "rshift", "117" },
+            { "ctrl", "118" },
+            { "rctrl", "119" },
+            { "alt", "120" },
+            { "ralt", "121" },
+            { "semicolon", "140" },
+            { "equals", "141" },
+            { "comma", "142" },
+            { "minus", "143" },
+            { "period", "144" },
+            { "slash", "145" },
+            { "backquote", "146" },
+            { "leftbracket", "149" },
+            { "backslash", "150" },
+            { "rightbracket", "151" },
+            { "quote", "152" },
+            //{ "|", "154" },
         };
 
         private static readonly Dictionary<string, string> snes9xkeys = new Dictionary<string, string>()
@@ -1005,282 +1441,5 @@ namespace EmulatorLauncher
             { "ralt", "230" }
         };
         #endregion
-
-        #region useful dictionaries
-        private static Dictionary<string, string> padHotkey = new Dictionary<string, string>()
-        {
-            { "input_menu_toggle", "a" },
-            { "input_toggle_fullscreen", "a" },
-            { "input_hold_fast_forward", "right" },
-            { "input_exit_emulator", "start" },
-            //{ "input_pause_toggle", "b" },
-            { "input_load_state", "x" },
-            { "input_save_state", "y" },
-            { "disk_eject_toggle", "l1" },
-            { "input_ai_service", "r1" },
-            { "input_disk_prev", "l2" },
-            { "input_disk_next", "r2" },
-            { "input_screenshot", "r3" },
-            { "input_state_slot_decrease", "down" },
-            { "input_state_slot_increase", "up" },
-            { "input_rewind", "left" },
-        };
-
-        private static readonly Dictionary<string, string> raStringToPad2KeyString = new Dictionary<string, string>()
-        {
-            { "ESCAPE", "ESC" },
-        };
-
-        private static readonly Dictionary<string, string> emulatorAppName = new Dictionary<string, string>()
-        {
-            { "ares", "ares" },
-            { "bigpemu", "BigPEmu" },
-            { "bizhawk", "EmuHawk" },
-            { "cgenius", "CGenius" },
-            { "dolphin", "Dolphin" },
-            { "flycast", "flycast" },
-            { "jgenesis", "jgenesis-gui" },
-            { "melonds", "melonDS" },
-            { "project64", "Project64" },
-            { "raine", "raine" },
-            { "retroarch", "retroarch" },
-            { "snes9x", "snes9x-x64" },
-        };
-
-        private static readonly Dictionary<string, Dictionary<string,string>> EmulatorDic = new Dictionary<string, Dictionary<string, string>>()
-        {
-            { "ares", AresKeyEnum },
-            { "bigpemu", sdlKeyCodeEnum },
-            { "bizhawk", bizhawkKeys },
-            { "dolphin", DolphinKeys },
-            { "flycast", sdlKeycodeToHID },
-            { "jgenesis", jGenesisKeys },
-            { "melonds", qtKeys },
-            { "project64", vkcodes },
-            { "raine", sdlKeycodeToHID },
-            { "snes9x", snes9xkeys },
-        };
-
-        private static readonly Dictionary<string, string> ToggleFF = new Dictionary<string, string>()
-        {
-            { "melonds", "HK_FastForwardToggle" }
-        };
-
-        #endregion
-
-        #region classes
-        internal class EmulatorHotkey
-        {
-            public string Emulator { get; set; }
-            public EmulatorHotkeyInfo[] EmulatorHotkeys { get; set; }
-
-            public EmulatorHotkey(string emulator, EmulatorHotkeyInfo[] emulatorHotkeys)
-            {
-                Emulator = emulator;
-                EmulatorHotkeys = emulatorHotkeys;
-            }
-        }
-
-        internal class EmulatorHotkeyInfo
-        {
-            public string RetroArchHK { get; set; }
-            public string EmulatorHK { get; set; }
-            public string DefaultValue { get; set; }
-
-            public EmulatorHotkeyInfo(string retroArchHK, string emulatorHK, string defaultValue)
-            {
-                RetroArchHK = retroArchHK;
-                EmulatorHK = emulatorHK;
-                DefaultValue = defaultValue;
-            }
-        }
-        #endregion
-
-        #region emulators Hotkey Info
-        private static readonly EmulatorHotkey[] EmulatorHotkeys = new EmulatorHotkey[]
-        {
-            new EmulatorHotkey("ares", new EmulatorHotkeyInfo[]
-                {
-                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "ToggleFullscreen", "0x1/0/40;;"),        // f
-                    new EmulatorHotkeyInfo("input_hold_fast_forward", "FastForward", "0x1/0/46;;"),             // l
-                    new EmulatorHotkeyInfo("input_rewind", "Rewind", "0x1/0/28;;"),                             // backspace
-                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "ToggleFastForward", "0x1/0/92;;"),     // space
-                    new EmulatorHotkeyInfo("input_frame_advance", "FrameAdvance", "0x1/0/45;;"),                // k
-                    new EmulatorHotkeyInfo("input_screenshot", "CaptureScreenshot", "0x1/0/8;;"),               // F8
-                    new EmulatorHotkeyInfo("input_save_state", "SaveState", "0x1/0/2;;"),                       // F2
-                    new EmulatorHotkeyInfo("input_load_state", "LoadState", "0x1/0/4;;"),                       // F4
-                    new EmulatorHotkeyInfo("input_state_slot_decrease", "DecrementStateSlot", "0x1/0/6;;"),     // F6
-                    new EmulatorHotkeyInfo("input_state_slot_increase", "IncrementStateSlot", "0x1/0/7;;"),     // F7
-                    new EmulatorHotkeyInfo("input_pause_toggle", "PauseEmulation", "0x1/0/50;;"),               // p
-                    new EmulatorHotkeyInfo("input_exit_emulator", "QuitEmulator", "0x1/0/0;;"),                 // escape
-
-                }),
-
-            new EmulatorHotkey("bigpemu", new EmulatorHotkeyInfo[]
-                {
-                    new EmulatorHotkeyInfo("input_menu_toggle", "menu", "58_59"),                 // F1
-                    new EmulatorHotkeyInfo("input_hold_fast_forward", "ff", "15_38"),             // L
-                    new EmulatorHotkeyInfo("input_rewind", "rewind", "42_14"),                    // backspace
-                    new EmulatorHotkeyInfo("input_save_state", "savestate", "59_60"),             // F2
-                    new EmulatorHotkeyInfo("input_load_state", "loadstate", "61_62"),             // F4
-                    new EmulatorHotkeyInfo("input_screenshot", "screenshot", "65_66")             // F8
-                }),
-
-            new EmulatorHotkey("bizhawk", new EmulatorHotkeyInfo[]
-                {
-                    new EmulatorHotkeyInfo("input_pause_toggle", "Pause", "P"),                   // P
-                    new EmulatorHotkeyInfo("input_hold_fast_forward", "Fast Forward", "L"),       // L
-                    new EmulatorHotkeyInfo("input_rewind", "Rewind", "Backspace"),                // backspace
-                    new EmulatorHotkeyInfo("input_save_state", "Quick Save", "F2"),               // F2
-                    new EmulatorHotkeyInfo("input_load_state", "Quick Load", "F4"),               // F4
-                    new EmulatorHotkeyInfo("input_screenshot", "Screenshot", "F8"),               // F8
-                    new EmulatorHotkeyInfo("input_state_slot_decrease", "Previous Slot", "F6"),   // F6
-                    new EmulatorHotkeyInfo("input_state_slot_increase", "Next Slot", "F7"),       // F7
-                    new EmulatorHotkeyInfo("input_exit_emulator", "Exit Program", "Escape"),
-                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "Full Screen", "F"),
-                    new EmulatorHotkeyInfo("input_frame_advance", "Frame Advance", "K")
-                }),
-
-            new EmulatorHotkey("cgenius", new EmulatorHotkeyInfo[]
-                {
-                    new EmulatorHotkeyInfo("input_save_state", "Quick Save", "F2"),
-                    new EmulatorHotkeyInfo("input_load_state", "Quick Load", "F4")
-                }),
-
-            new EmulatorHotkey("dolphin", new EmulatorHotkeyInfo[]
-                {
-                    new EmulatorHotkeyInfo("input_pause_toggle", "General/Toggle Pause", "P"),
-                    new EmulatorHotkeyInfo("input_hold_fast_forward", "Emulation Speed/Increase Emulation Speed", "L"),
-                    new EmulatorHotkeyInfo("input_rewind", "Emulation Speed/Decrease Emulation Speed", "Backspace"),
-                    new EmulatorHotkeyInfo("input_save_state", "Save State/Save to Selected Slot", "F2"),
-                    new EmulatorHotkeyInfo("input_load_state", "Load State/Load from Selected Slot", "F4"),
-                    new EmulatorHotkeyInfo("input_screenshot", "General/Take Screenshot", "F8"),
-                    new EmulatorHotkeyInfo("input_state_slot_decrease", "Other State Hotkeys/Decrease Selected State Slot", "F6"),
-                    new EmulatorHotkeyInfo("input_state_slot_increase", "Other State Hotkeys/Increase Selected State Slot", "F7"),
-                    new EmulatorHotkeyInfo("input_exit_emulator", "General/Exit", "Escape"),
-                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "General/Toggle Fullscreen", "F"),
-                    new EmulatorHotkeyInfo("input_disk_prev", "General/Change Disc", "F9"),
-                    new EmulatorHotkeyInfo("input_disk_eject_toggle", "General/Eject Disc", "F11"),
-                    new EmulatorHotkeyInfo("input_frame_advance", "Frame Advance/Frame Advance", "K"),
-                }),
-
-            new EmulatorHotkey("flycast", new EmulatorHotkeyInfo[]
-                {
-                    new EmulatorHotkeyInfo("input_menu_toggle", "btn_menu", "58"),
-                    new EmulatorHotkeyInfo("input_hold_fast_forward", "btn_fforward", "15"),
-                    new EmulatorHotkeyInfo("input_screenshot", "btn_screenshot", "65"),
-                    new EmulatorHotkeyInfo("input_save_state", "btn_quick_save", "59"),
-                    new EmulatorHotkeyInfo("input_load_state", "btn_jump_state", "61"),
-                    new EmulatorHotkeyInfo("input_exit_emulator", "btn_escape", "41")
-                }),
-
-            new EmulatorHotkey("jgenesis", new EmulatorHotkeyInfo[]
-                {
-                    new EmulatorHotkeyInfo("input_exit_emulator", "exit", "Escape"),
-                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "toggle_fullscreen", "F"),
-                    new EmulatorHotkeyInfo("input_save_state", "save_state", "F2"),
-                    new EmulatorHotkeyInfo("input_load_state", "load_state", "F4"),
-                    new EmulatorHotkeyInfo("input_state_slot_decrease", "prev_save_state_slot", "F6"),
-                    new EmulatorHotkeyInfo("input_state_slot_increase", "next_save_state_slot", "F7"),
-                    new EmulatorHotkeyInfo("input_pause_toggle", "pause", "P"),
-                    new EmulatorHotkeyInfo("input_frame_advance", "step_frame", "K"),
-                    new EmulatorHotkeyInfo("input_hold_fast_forward", "fast_forward", "L"),
-                    new EmulatorHotkeyInfo("input_rewind", "rewind", "Backspace")
-                }),
-
-            new EmulatorHotkey("melonds", new EmulatorHotkeyInfo[]
-                {
-                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "HK_FullscreenToggle", "70"),         // F
-                    new EmulatorHotkeyInfo("input_hold_fast_forward", "HK_FastForward", "76"),              // L
-                    new EmulatorHotkeyInfo("input_rewind", "HK_SlowMo", "16777219"),                        // Backspace
-                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "HK_FastForwardToggle", "32"),      // SPACE
-                    new EmulatorHotkeyInfo("input_frame_advance", "HK_FrameStep", "75"),                    // K
-                    new EmulatorHotkeyInfo("input_pause_toggle", "HK_Pause", "80")                          // P
-                }),
-
-            new EmulatorHotkey("project64", new EmulatorHotkeyInfo[]
-                {
-                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "4175", "70"),                        // F
-                    new EmulatorHotkeyInfo("input_hold_fast_forward", "4186", "76"),                        // L
-                    new EmulatorHotkeyInfo("input_rewind", "4187", "8"),                                    // Backspace
-                    new EmulatorHotkeyInfo("input_save_state", "4159", "113"),                              // F2
-                    new EmulatorHotkeyInfo("input_load_state", "4157", "115"),                              // F4
-                    new EmulatorHotkeyInfo("input_exit_emulator", "4007", "27"),                            // ESC
-                    new EmulatorHotkeyInfo("input_pause_toggle", "4153", "80"),                             // P
-                    new EmulatorHotkeyInfo("input_screenshot", "4154", "119"),                              // F8
-                }),
-
-            new EmulatorHotkey("raine", new EmulatorHotkeyInfo[]
-                {
-                    new EmulatorHotkeyInfo("input_menu_toggle", "Return_to_GUI", "58"),
-                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "Fullscreen", "9"),
-                    new EmulatorHotkeyInfo("input_frame_advance", "Forward_1_frame_in_pause", "14"),
-                    new EmulatorHotkeyInfo("input_screenshot", "Save_Screenshot", "65"),
-                    new EmulatorHotkeyInfo("input_save_state", "Save_state", "59"),
-                    new EmulatorHotkeyInfo("input_load_state", "Load_state", "61"),
-                    new EmulatorHotkeyInfo("input_state_slot_decrease", "Switch_save_slot", "63"),
-                    new EmulatorHotkeyInfo("input_pause_toggle", "Pause_game", "19"),
-                    new EmulatorHotkeyInfo("input_exit_emulator", "Quit_without_saving", "41")
-                }),
-
-            new EmulatorHotkey("retroarch", new EmulatorHotkeyInfo[]
-                {
-                    new EmulatorHotkeyInfo("input_menu_toggle", "input_menu_toggle", "f1"),
-                    new EmulatorHotkeyInfo("input_desktop_menu_toggle", "input_desktop_menu_toggle", "f5"),
-                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "input_toggle_fullscreen", "f"),
-                    new EmulatorHotkeyInfo("input_hold_fast_forward", "input_hold_fast_forward", "l"),
-                    new EmulatorHotkeyInfo("input_rewind", "input_rewind", "backspace"),
-                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "input_toggle_fast_forward", "space"),
-                    new EmulatorHotkeyInfo("input_frame_advance", "input_frame_advance", "k"),
-                    new EmulatorHotkeyInfo("input_screenshot", "input_screenshot", "f8"),
-                    new EmulatorHotkeyInfo("input_save_state", "input_save_state", "f2"),
-                    new EmulatorHotkeyInfo("input_load_state", "input_load_state", "f4"),
-                    new EmulatorHotkeyInfo("input_state_slot_decrease", "input_state_slot_decrease", "f6"),
-                    new EmulatorHotkeyInfo("input_state_slot_increase", "input_state_slot_increase", "f7"),
-                    new EmulatorHotkeyInfo("input_pause_toggle", "input_pause_toggle", "p"),
-                    new EmulatorHotkeyInfo("input_exit_emulator", "input_exit_emulator", "escape"),
-                    new EmulatorHotkeyInfo("input_shader_next", "input_shader_next", "m"),
-                    new EmulatorHotkeyInfo("input_shader_prev", "input_shader_prev", "n"),
-                    new EmulatorHotkeyInfo("input_disk_prev", "input_disk_prev", "f9"),
-                    new EmulatorHotkeyInfo("input_disk_next", "input_disk_next", "f10"),
-                    new EmulatorHotkeyInfo("input_disk_eject_toggle", "input_disk_eject_toggle", "f11")
-                }),
-
-            new EmulatorHotkey("snes9x", new EmulatorHotkeyInfo[]
-                {
-                    new EmulatorHotkeyInfo("input_hold_fast_forward", "FastForward", "L"),
-                    new EmulatorHotkeyInfo("input_rewind", "Rewind", "Backspace"),
-                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "FastForwardToggle", "Space"),
-                    new EmulatorHotkeyInfo("input_frame_advance", "FrameAdvance", "K"),
-                    new EmulatorHotkeyInfo("input_screenshot", "SaveScreenShot", "F8"),
-                    new EmulatorHotkeyInfo("input_save_state", "SlotSave", "F2"),
-                    new EmulatorHotkeyInfo("input_load_state", "SlotLoad", "F4"),
-                    new EmulatorHotkeyInfo("input_state_slot_decrease", "SlotMinus", "F6"),
-                    new EmulatorHotkeyInfo("input_state_slot_increase", "SlotPlus", "F7"),
-                    new EmulatorHotkeyInfo("input_pause_toggle", "Pause", "P")
-                }),
-        };
-        #endregion
-
-        #region public methods
-        public static bool TryParseHexLong(string s, out long value)
-        {
-            value = 0;
-            if (string.IsNullOrWhiteSpace(s))
-                return false;
-
-            if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
-                s = s.Substring(2);
-
-            return long.TryParse(s, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out value);
-        }
-        #endregion
     }
-
-    public class HotkeyResult
-    {
-        public string RetroArchValue { get; set; }
-        public string EmulatorKey { get; set; }
-        public string EmulatorValue { get; set; }
-    };
 }

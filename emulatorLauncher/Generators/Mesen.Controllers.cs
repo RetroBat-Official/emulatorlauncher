@@ -1,9 +1,11 @@
-﻿using EmulatorLauncher.Common;
+﻿using EmulatorLauncher;
+using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace EmulatorLauncher
 {
@@ -77,7 +79,7 @@ namespace EmulatorLauncher
                 return;
 
             if (controller.IsKeyboard && !Controllers.Any(c => !c.IsKeyboard))
-                ConfigureKeyboard(pref, systemSection, controller.Config, mesenSystem);
+                ConfigureKeyboard(pref, systemSection, controller.Config, mesenSystem, controller.PlayerIndex);
             else if (!controller.IsKeyboard)
                 ConfigureJoystick(pref, systemSection, controller, mesenSystem);
         }
@@ -318,12 +320,12 @@ namespace EmulatorLauncher
             }
 
             if (playerIndex == 1)
-                WriteHotkeys(pref, index, isXInput, inputKeyMapping);
+                WriteHotkeys(pref, index, isXInput, true, inputKeyMapping);
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
-        private void ConfigureKeyboard(JObject pref, JObject systemSection, InputConfig keyboard, string mesenSystem)
+        private void ConfigureKeyboard(JObject pref, JObject systemSection, InputConfig keyboard, string mesenSystem, int playerIndex)
         {
             if (keyboard == null)
                 return;
@@ -463,6 +465,11 @@ namespace EmulatorLauncher
                     24, 26, 23, 25, 44, 62, 35, 36, 37, 38, 39, 40, 41, 42, 43, 34, 60, 66
                 };
                 mapping["ColecoVisionControllerButtons"] = new JArray(cvbuttons);
+            }
+
+            if (playerIndex == 1)
+            {
+                WriteHotkeys(pref, 0, false, false, inputKeyMappingDefault);
             }
         }
 
@@ -746,98 +753,148 @@ namespace EmulatorLauncher
             }
         }
 
-        private void WriteHotkeys(JObject pref, int index, bool isXInput, Dictionary<InputKey, string> inputKeyMapping)
+        static private Dictionary<string, KeyValuePair<int, int>> defaultKBHotkeys = new Dictionary<string, KeyValuePair<int, int>>()
         {
+            { "ToggleFastForward", new KeyValuePair<int, int>(18, 0) },
+            { "FastForward", new KeyValuePair<int, int>(55, 0) },
+            { "Rewind", new KeyValuePair<int, int>(2, 0) },
+            { "TakeScreenshot", new KeyValuePair<int, int>(97, 0) },
+            { "Pause", new KeyValuePair<int, int>(59, 0) },
+            { "MoveToNextStateSlot", new KeyValuePair<int, int>(96, 0) },
+            { "MoveToPreviousStateSlot", new KeyValuePair<int, int>(95, 0) },
+            { "SaveState", new KeyValuePair<int, int>(91, 0) },
+            { "LoadState", new KeyValuePair<int, int>(93, 0) },
+            { "Exit", new KeyValuePair<int, int>(13, 0) },
+            { "ToggleFullscreen", new KeyValuePair<int, int>(49, 0) }
+        };
+        static private Dictionary<string, InputKey> defaultJoyHotkeys = new Dictionary<string, InputKey>()
+        {
+            { "ToggleFastForward", InputKey.right },
+            { "FastForward", InputKey.right },
+            { "Rewind", InputKey.left },
+            { "TakeScreenshot", InputKey.r3 },
+            { "Pause", InputKey.a },
+            { "MoveToNextStateSlot", InputKey.up },
+            { "MoveToPreviousStateSlot", InputKey.down },
+            { "SaveState", InputKey.y },
+            { "LoadState", InputKey.x },
+            { "Exit", InputKey.start },
+            { "ToggleFullscreen", InputKey.l3 }
+        };
+
+        private void WriteHotkeys(JObject pref, int index, bool isXInput, bool joypad, Dictionary<InputKey, string> inputKeyMapping)
+        {
+            Dictionary<string, KeyValuePair<int, int>> targetHK = defaultKBHotkeys;
+            Dictionary<string, InputKey> targetPadHK = defaultJoyHotkeys;
+
+            bool custoHK = EmulatorLauncher.Hotkeys.GetHotKeysFromFile("mesen", "", out Dictionary<string, HotkeyResult> customhotkeys);
+            bool custojoyHK = EmulatorLauncher.Hotkeys.GetPadHKFromFile("mesen", "", out Dictionary<string, string> customjoyhotkeys);
+            if (custojoyHK && !customjoyhotkeys.ContainsKey("ToggleFastForward") && customjoyhotkeys.ContainsKey("FastForward"))
+                customjoyhotkeys["ToggleFastForward"] = customjoyhotkeys["FastForward"];
+
+            if (custojoyHK && customjoyhotkeys.Count > 0)
+            {
+                Dictionary<string, InputKey> customPadHK = new Dictionary<string, InputKey>();
+                foreach (var cjk in customjoyhotkeys)
+                {
+                    if (Enum.TryParse<InputKey>(cjk.Value, out InputKey ik))
+                    {
+                        customPadHK.Add(cjk.Key, ik);
+                    }
+                }
+                targetPadHK = customPadHK;
+            }
+
+            if (custoHK && customhotkeys.Count > 0)
+            {
+                Dictionary<string, KeyValuePair<int, int>> customTargetHK = new Dictionary<string, KeyValuePair<int, int>>();
+                foreach (var chk in customhotkeys)
+                {
+                    int value = chk.Value.EmulatorValue.ToInteger();
+                    customTargetHK.Add(chk.Value.EmulatorKey, new KeyValuePair<int, int>(value, 0));
+                }
+                targetHK = customTargetHK;
+            }
+
             pref.Remove("ShortcutKeys");
             JArray shortcuts = new JArray();
+            bool toggleff = SystemConfig.getOptBoolean("fastforward_toggle");
 
-            JObject ffshortcut = new JObject();
-            ffshortcut["Shortcut"] = "FastForward";
-            var ffkeys = GetOrCreateContainer(ffshortcut, "KeyCombination2");
-            ffkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
-            ffkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.right])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.right]));
-            ffkeys["Key3"] = 0;
-            shortcuts.Add(ffshortcut);
+            foreach (var hk in targetHK)
+            {
+                JObject shortcut = new JObject();
+                string sname = hk.Key;
+                shortcut["Shortcut"] = sname;
+                var kbKeys = GetOrCreateContainer(shortcut, "KeyCombination");
+                kbKeys["Key1"] = hk.Value.Key;
+                kbKeys["Key2"] = hk.Value.Value;
+                kbKeys["Key3"] = 0;
 
-            JObject rewshortcut = new JObject();
-            rewshortcut["Shortcut"] = "Rewind";
-            var rewkeys = GetOrCreateContainer(rewshortcut, "KeyCombination2");
-            rewkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
-            rewkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.left])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.left]));
-            rewkeys["Key3"] = 0;
-            shortcuts.Add(rewshortcut);
+                if (joypad && targetPadHK.ContainsKey(sname))
+                {
+                    if (toggleff && (sname == "FastForward"))
+                    {
+                        shortcuts.Add(shortcut);
+                        continue;
+                    }
+                    else if (!toggleff && (sname == "ToggleFastForward"))
+                    {
+                        shortcuts.Add(shortcut);
+                        continue;
+                    }
+                    else
+                    {
+                        var keysjoy = GetOrCreateContainer(shortcut, "KeyCombination2");
+                        keysjoy["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
+                        keysjoy["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[targetPadHK[sname]])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[targetPadHK[sname]]));
+                        keysjoy["Key3"] = 0;
+                    }
+                }
 
-            JObject shotshortcut = new JObject();
-            shotshortcut["Shortcut"] = "TakeScreenshot";
-            var shotkeys = GetOrCreateContainer(shotshortcut, "KeyCombination2");
-            shotkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
-            shotkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.r3])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.r3]));
-            shotkeys["Key3"] = 0;
-            shortcuts.Add(shotshortcut);
+                shortcuts.Add(shortcut);
+            }
 
-            JObject pauseshortcut = new JObject();
-            pauseshortcut["Shortcut"] = "Pause";
-            var pausekeys = GetOrCreateContainer(pauseshortcut, "KeyCombination2");
-            pausekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
-            pausekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.b])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.b]));
-            pausekeys["Key3"] = 0;
-            shortcuts.Add(pauseshortcut);
+            // Other hotkeys
+            for (int i = 0; i < 10; i++)
+            {
+                JObject selectStateSlotShortcut = new JObject();
+                selectStateSlotShortcut["Shortcut"] = i == 0 ? "SelectSaveSlot1" + i.ToString() : "SelectSaveSlot" + i.ToString();
+                var selectSlotkeys = GetOrCreateContainer(selectStateSlotShortcut, "KeyCombination");
+                selectSlotkeys["Key1"] = 34 + i;
+                selectSlotkeys["Key2"] = 0;
+                selectSlotkeys["Key3"] = 0;
+                shortcuts.Add(selectStateSlotShortcut);
+            }
 
-            JObject nextslotshortcut = new JObject();
-            nextslotshortcut["Shortcut"] = "MoveToNextStateSlot";
-            var nextslotkeys = GetOrCreateContainer(nextslotshortcut, "KeyCombination2");
-            nextslotkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
-            nextslotkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.up])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.up]));
-            nextslotkeys["Key3"] = 0;
-            shortcuts.Add(nextslotshortcut);
+            for (int i = 1; i <= 10; i++)
+            {
+                JObject saveStateSlotShortcut = new JObject();
+                saveStateSlotShortcut["Shortcut"] = "SaveStateSlot" + i.ToString();
+                var saveSlotkeys = GetOrCreateContainer(saveStateSlotShortcut, "KeyCombination");
+                saveSlotkeys["Key1"] = 89 + i;
+                saveSlotkeys["Key2"] = 116;
+                saveSlotkeys["Key3"] = 0;
+                shortcuts.Add(saveStateSlotShortcut);
+            }
 
-            JObject prevslotshortcut = new JObject();
-            prevslotshortcut["Shortcut"] = "MoveToPreviousStateSlot";
-            var prevslotkeys = GetOrCreateContainer(prevslotshortcut, "KeyCombination2");
-            prevslotkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
-            prevslotkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.down])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.down]));
-            prevslotkeys["Key3"] = 0;
-            shortcuts.Add(prevslotshortcut);
+            for (int i = 1; i <= 10; i++)
+            {
+                JObject stateSlotShortcut = new JObject();
+                stateSlotShortcut["Shortcut"] = "LoadStateSlot" + i.ToString();
+                var slotkeys = GetOrCreateContainer(stateSlotShortcut, "KeyCombination");
+                slotkeys["Key1"] = 89 + i;
+                slotkeys["Key2"] = 118;
+                slotkeys["Key3"] = 0;
+                shortcuts.Add(stateSlotShortcut);
+            }
 
-            JObject savestateshortcut = new JObject();
-            savestateshortcut["Shortcut"] = "SaveState";
-            var savekeys = GetOrCreateContainer(savestateshortcut, "KeyCombination2");
-            savekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
-            savekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.y])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.y]));
-            savekeys["Key3"] = 0;
-            shortcuts.Add(savestateshortcut);
-
-            JObject loadstateshortcut = new JObject();
-            loadstateshortcut["Shortcut"] = "LoadState";
-            var loadkeys = GetOrCreateContainer(loadstateshortcut, "KeyCombination2");
-            loadkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
-            loadkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.x])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.x]));
-            loadkeys["Key3"] = 0;
-            shortcuts.Add(loadstateshortcut);
-
-            JObject toggleffshortcut = new JObject();
-            toggleffshortcut["Shortcut"] = "ToggleFastForward";
-            var fftogglekeys = GetOrCreateContainer(toggleffshortcut, "KeyCombination2");
-            fftogglekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
-            fftogglekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.pagedown])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.pagedown]));
-            fftogglekeys["Key3"] = 0;
-            shortcuts.Add(toggleffshortcut);
-
-            JObject togglerewshortcut = new JObject();
-            togglerewshortcut["Shortcut"] = "ToggleRewind";
-            var rewtogglekeys = GetOrCreateContainer(togglerewshortcut, "KeyCombination2");
-            rewtogglekeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
-            rewtogglekeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.pageup])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.pageup]));
-            rewtogglekeys["Key3"] = 0;
-            shortcuts.Add(togglerewshortcut);
-
-            JObject exitshortcut = new JObject();
-            exitshortcut["Shortcut"] = "Exit";
-            var exitkeys = GetOrCreateContainer(exitshortcut, "KeyCombination2");
-            exitkeys["Key1"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
-            exitkeys["Key2"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.start])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.start]));
-            exitkeys["Key3"] = 0;
-            shortcuts.Add(exitshortcut);
+            JObject stateSlotautoShortcut = new JObject();
+            stateSlotautoShortcut["Shortcut"] = "LoadStateSlotAuto";
+            var slotautokeys = GetOrCreateContainer(stateSlotautoShortcut, "KeyCombination");
+            slotautokeys["Key1"] = 100;
+            slotautokeys["Key2"] = 118;
+            slotautokeys["Key3"] = 0;
+            shortcuts.Add(stateSlotautoShortcut);
 
             pref["ShortcutKeys"] = shortcuts;
         }
@@ -907,7 +964,7 @@ namespace EmulatorLauncher
         private static string SdlToKeyCode(long sdlCode)
         {
 
-            //The following list of keys has been verified, ryujinx will not allow wrong string so do not add a key until the description has been tested in the emulator first
+            //The following list of keys has been verified
             switch (sdlCode)
             {
                 case 0x0D: return "6";      // ENTER
@@ -969,13 +1026,13 @@ namespace EmulatorLauncher
                 case 0x40000043: return "99";
                 case 0x40000044: return "100";
                 case 0x40000045: return "101";      // F12
-                case 0x40000047: return "0";        // Scrolllock
-                case 0x40000048: return "0";        // Pause
+                case 0x40000047: return "115";        // Scrolllock
+                case 0x40000048: return "7";        // Pause
                 case 0x40000049: return "31";       // Insert
                 case 0x4000004A: return "22";       // Home
                 case 0x4000004B: return "19";       // PageUp
                 case 0x4000004D: return "21";       // End
-                case 0x4000004E: return "20";       // Page Down
+                case 0x4000004E: return "20";       // PageDown
                 case 0x4000004F: return "25";       // Right  
                 case 0x40000050: return "23";       // Left
                 case 0x40000051: return "26";       // Down

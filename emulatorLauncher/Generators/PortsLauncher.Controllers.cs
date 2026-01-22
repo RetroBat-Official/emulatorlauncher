@@ -148,7 +148,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("input" + padIndex, "Upper-Left", "Key 1073741898 (Home)");
                 ini.WriteValue("input" + padIndex, "Upper-Right", "Key 1073741899 (PageUp)");
 
-                BindBoolIniFeature(ini, "input" + padIndex, "Analog", "cgenius_analogPad", "true", "false");
+                //BindBoolIniFeature(ini, "input" + padIndex, "Analog", "cgenius_analogPad", "true", "false");
                 BindBoolIniFeature(ini, "input" + padIndex, "TwoButtonFiring", "cgenius_TwoButtonFiring", "true", "false");
                 BindBoolIniFeature(ini, "input" + padIndex, "SuperPogo", "cgenius_SuperPogo", "true", "false");
                 BindBoolIniFeatureOn(ini, "input" + padIndex, "ImpossiblePogo", "cgenius_ImpossiblePogo", "true", "false");
