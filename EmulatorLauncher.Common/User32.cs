@@ -172,6 +172,23 @@ namespace EmulatorLauncher.Common
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
         public static extern int SetWindowLong(IntPtr hWnd, GWL nIndex, IntPtr longValue);
 
+        public static bool IsExclusiveFullScreen(IntPtr hWnd)
+        {
+            var style = (WS) GetWindowLong(hWnd, GWL.STYLE);
+            var styleX = (WS_EX) GetWindowLong(hWnd, GWL.EXSTYLE);
+
+            RECT window = GetWindowRect(hWnd);
+            RECT screen = System.Windows.Forms.Screen.PrimaryScreen.Bounds;
+
+            if (window.bottom != screen.bottom || window.right != screen.right)
+                return false;
+
+            return 
+                !style.HasFlag(WS.BORDER) && !style.HasFlag(WS.POPUP) &&
+                styleX.HasFlag(WS_EX.TOPMOST) && !styleX.HasFlag(WS_EX.CLIENTEDGE) && !styleX.HasFlag(WS_EX.WINDOWEDGE) && !styleX.HasFlag(WS_EX.STATICEDGE);
+                
+        }
+
         // GetWindowStyle
         public static WS SetWindowStyle(IntPtr hWnd, WS value)
         {
@@ -239,8 +256,23 @@ namespace EmulatorLauncher.Common
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         public static extern IntPtr SetCursor(HandleRef hcursor);
-    }
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern short RegisterClass(WNDCLASS wc);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.U2)]
+        public static extern short RegisterClassEx([In] ref WNDCLASSEX lpwcx);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr DefWindowProcW(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+        public static IntPtr DefaultWndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam)
+        {
+            return User32.DefWindowProcW(hWnd, msg, wParam, lParam);
+        }
+    }
+    
     public static class Kernel32
     {
         public static bool IsRunningInConsole()
@@ -263,6 +295,9 @@ namespace EmulatorLauncher.Common
 
         [DllImport("kernel32.dll")]
         public static extern bool FreeConsole();
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr GetModuleHandle(string lpModuleName);
 
         public static BinaryType GetBinaryType(string lpAppName)
         {
@@ -554,4 +589,41 @@ namespace EmulatorLauncher.Common
             EndWaitCursor();
         }
     }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    public class WNDCLASS
+    {
+        public int style;
+        public IntPtr lpfnWndProc;
+        public int cbClsExtra;
+        public int cbWndExtra;
+        public IntPtr hInstance = IntPtr.Zero;
+        public IntPtr hIcon = IntPtr.Zero;
+        public IntPtr hCursor = IntPtr.Zero;
+        public IntPtr hbrBackground = IntPtr.Zero;
+        public string lpszMenuName;
+        public string lpszClassName;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+    public struct WNDCLASSEX
+    {
+        [MarshalAs(UnmanagedType.U4)]
+        public int cbSize;
+        [MarshalAs(UnmanagedType.U4)]
+        public int style;
+        public IntPtr lpfnWndProc; // not WndProc
+        public int cbClsExtra;
+        public int cbWndExtra;
+        public IntPtr hInstance;
+        public IntPtr hIcon;
+        public IntPtr hCursor;
+        public IntPtr hbrBackground;
+        public string lpszMenuName;
+        public string lpszClassName;
+        public IntPtr hIconSm;
+    }
+
+    public delegate IntPtr WndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);   
+
 }
