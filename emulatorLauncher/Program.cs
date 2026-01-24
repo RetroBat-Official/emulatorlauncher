@@ -756,35 +756,7 @@ namespace EmulatorLauncher
                         else
                             SimpleLogger.Instance.Info("[Running]  " + path.FileName);
 
-                        bool processWasKilled = false;
-
-                        Action showControlCenter = () =>
-                        {
-                            if (ControlCenterFrm.IsRunning)
-                                return;
-
-                            if (emulatorsNoControlCenter.Contains(SystemConfig["emulator"]))
-                                return;
-
-                            if (coresNoControlCenter.Contains(SystemConfig["core"]))
-                                return;
-
-                            if (SystemConfig.getOptBoolean("exclusivefs") && emulatorsNoControlCenterWhenExclusive.Contains(SystemConfig["emulator"]))
-                                return;
-
-                            using (var frm = new ControlCenterFrm())
-                            {
-                                Application.Run(frm);
-                                if (frm.DialogResult == DialogResult.Abort)
-                                    processWasKilled = true;
-                            }
-                        };
-
-                        mapping = PadToKey.AddOrUpdateKeyMapping(mapping, "*", InputKey.hotkey | InputKey.b, () =>
-                        {
-                            if (!ControlCenterFrm.IsRunning)
-                                new System.Threading.Thread(new System.Threading.ThreadStart(showControlCenter)) { IsBackground = true, ApartmentState = System.Threading.ApartmentState.STA }.Start();                            
-                        });
+                        mapping = PadToKey.AddOrUpdateKeyMapping(mapping, "*", InputKey.hotkey | InputKey.b, ShowControlCenter);
 
                         if (mapping != null)
                         {
@@ -804,10 +776,10 @@ namespace EmulatorLauncher
                         using (var kb = new KeyboardListener())
                         using (var joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping))
                         {
-                            kb.F12Pressed += showControlCenter;
+                            kb.F12Pressed += ShowControlCenter;
 
                             int exitCode = generator.RunAndWait(path);
-                            if (exitCode != 0 && !joy.ProcessKilled && !processWasKilled)
+                            if (exitCode != 0 && !joy.ProcessKilled)
                                 Environment.ExitCode = (int)ExitCodes.EmulatorExitedUnexpectedly;
 
                             joy.Dispose();
@@ -815,7 +787,7 @@ namespace EmulatorLauncher
 
                         generator.RestoreFiles();
 
-                        if (processWasKilled)
+                        if (ControlCenterManager.HasKilledProcess())
                             Environment.ExitCode = (int)ExitCodes.OK; // Process out of using calls
                     }
                     else
@@ -837,6 +809,23 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Error("[Generator] Exit code " + Environment.ExitCode);
 
             FocusEmulationStation();
+        }
+
+        private static void ShowControlCenter()
+        {
+            if (CurrentGame == null)
+                return;
+
+            if (emulatorsNoControlCenter.Contains(SystemConfig["emulator"]))
+                return;
+                
+     		if (coresNoControlCenter.Contains(SystemConfig["core"]))
+            	return;
+
+            if (SystemConfig.getOptBoolean("exclusivefs") && emulatorsNoControlCenterWhenExclusive.Contains(SystemConfig["emulator"]))
+            	return;
+                                
+            ControlCenterManager.ShowControlCenter();
         }
 
         private static void OnCurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)

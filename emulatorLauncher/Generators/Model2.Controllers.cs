@@ -1349,7 +1349,7 @@ namespace EmulatorLauncher
             key = key.GetRevertedAxis(out bool revertAxis);
 
             var keyConfig = c.Config[key];
-            if (keyConfig == null)
+            if (keyConfig == null || ctrl == null)
             {
                 return 0x00;
             }
