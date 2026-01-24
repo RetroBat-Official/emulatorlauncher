@@ -154,7 +154,7 @@ namespace EmulatorLauncher
         /// <param name="bootRom"></param>
         private void SetupTOMLConfiguration(string path, string system, string eepromPath, string hddPath, string bootRom)
         {
-            using (IniFile ini = new IniFile(Path.Combine(path, "xemu.toml"), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
+            using (IniTomlFile ini = new IniTomlFile(Path.Combine(path, "xemu.toml"), IniTomlOptions.KeepEmptyLines | IniTomlOptions.UseSpaces))
             {
                 SimpleLogger.Instance.Info("[Generator] Writing settings to 'xemu.toml' file.");
 
@@ -173,15 +173,25 @@ namespace EmulatorLauncher
                         ini.Remove("input.bindings", "port" + i);
 
                     int port = 1;
+                    var inputArray = new List<object>();
+
                     foreach (var ctl in Controllers)
                     {
                         if (ctl.Name == "Keyboard")
+                        {
+                            inputArray.Add(new Dictionary<string, string> { { "gamepad_id", "keyboard" } });
                             ini.WriteValue("input.bindings", "port" + port, "'keyboard'");
+                        }
                         else if (ctl.Config != null)
+                        {
                             ini.WriteValue("input.bindings", "port" + port, "'" + ctl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant() + "'");
+                            inputArray.Add(new Dictionary<string, string> { { "gamepad_id", ctl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant() } });
+                        }
 
                         port++;
                     }
+
+                    ini.SetArray("input", "gamepad_mappings", inputArray);
                 }
 
                 // Renderer
