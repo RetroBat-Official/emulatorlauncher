@@ -9,29 +9,15 @@ using System.Windows.Forms;
 
 namespace EmulatorLauncher.ControlCenter
 {
-    public partial class ControlCenterFrm : Form
+    partial class ControlCenterFrm : Form
     {
-        public static bool IsRunning { get; private set; }
-
-        private bool _tatoo = false;
         private OverlayForm _overlay;
-        private Bitmap _background;
-        private IntPtr _hWndRestore;
 
-        private void CaptureScreen()
-        {
-            var bounds = Screen.PrimaryScreen.Bounds;
-            _background = new System.Drawing.Bitmap(bounds.Width, bounds.Height);
-            using (var g = System.Drawing.Graphics.FromImage(_background))
-                g.CopyFromScreen(System.Drawing.Point.Empty, System.Drawing.Point.Empty, bounds.Size);            
-        }
+        private bool _tatoo = false;       
+        private IntPtr _emulatorHwnd;
 
         public ControlCenterFrm()
         {
-            CaptureScreen();
-            
-            IsRunning = true;
-
             InitializeComponent();
 
             Font = new Font(SystemFonts.MessageBoxFont.FontFamily.Name, this.Font.Size, FontStyle.Regular);
@@ -54,14 +40,24 @@ namespace EmulatorLauncher.ControlCenter
             btnManual.Visible = btnManual.Enabled = manualPath != null && PdfExtractor.GetPdfPageCount(manualPath) > 0;
 
             label1.MouseDown += OnTitleMouseDown;
+
+            _emulatorHwnd = GetEmulatorHWnd();
+            _overlay = new OverlayForm(User32.IsExclusiveFullScreen(_emulatorHwnd));
         }
 
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
 
-            _overlay = new OverlayForm();
             _overlay.Show();
+
+            if (_overlay.ExclusiveFullScreen)
+            {
+                IntPtr HWND_TOPMOST = new IntPtr(-1);
+                User32.SetWindowPos(_overlay.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP.NOSIZE | SWP.NOMOVE);
+                _overlay.Refresh();          // force le repaint
+                Application.DoEvents();      // laisse Windows afficher la fenêtre
+            }
 
             this.Location = new Point(
                 (Screen.PrimaryScreen.Bounds.X + Screen.PrimaryScreen.Bounds.Width) / 2 - Width / 2,
@@ -81,31 +77,9 @@ namespace EmulatorLauncher.ControlCenter
             User32.SetWindowPos(this.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP.NOSIZE | SWP.NOMOVE);
 
             User32.ForceForegroundWindow(Handle);
-
-            CheckFullScreenEmulator();
             StartFadeIn();
-        }
 
-        private void CheckFullScreenEmulator()
-        {
-            IntPtr hWnd = GetEmulatorHWnd();
-            if (hWnd != IntPtr.Zero)
-            {
-                var style = (WS)User32.GetWindowLong(hWnd, GWL.STYLE);
-                if (style.HasFlag(WS.MINIMIZE))
-                {
-                    _overlay.SetBackgroundImage(_background);
-                    _hWndRestore = hWnd;
-
-                    User32.ForceForegroundWindow(Handle);
-                }
-            }
-        }
-
-        private void RestoreFullScreenEmulator()
-        {
-            if (_hWndRestore != IntPtr.Zero)
-                User32.ShowWindowAsync(_hWndRestore, SW.RESTORE);                
+            User32.ForceForegroundWindow(Handle);
         }
 
         private void ReorganizeButtonLayout()
@@ -179,18 +153,24 @@ namespace EmulatorLauncher.ControlCenter
 
         protected override void OnClosed(EventArgs e)
         {
+            base.OnClosed(e);
+
+            if (_emulatorHwnd != IntPtr.Zero)
+            {
+                var style = (WS)User32.GetWindowLong(_emulatorHwnd, GWL.STYLE);
+                if (style.HasFlag(WS.MINIMIZE))
+                    User32.ShowWindowAsync(_emulatorHwnd, SW.RESTORE);
+                
+                User32.ForceForegroundWindow(_emulatorHwnd);
+                System.Threading.Thread.Sleep(50);
+            }
+
             if (_overlay != null)
             {
                 _overlay.Dispose();
                 _overlay = null;
             }
-
-            base.OnClosed(e);
-            RestoreFullScreenEmulator();
-
-            IsRunning = false;
         }
-
 
         protected override void Dispose(bool disposing)
         {

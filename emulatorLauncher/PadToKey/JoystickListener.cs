@@ -24,8 +24,7 @@ namespace EmulatorLauncher.PadToKeyboard
             _thread = new Thread(KeyboardLoop)
             {
                 IsBackground = true,
-                Name = "KeyboardListener",
-                ApartmentState = ApartmentState.STA
+                Name = "KeyboardListener"                
             };
             _thread.Start();
         }
