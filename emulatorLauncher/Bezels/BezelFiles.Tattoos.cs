@@ -334,6 +334,18 @@ namespace EmulatorLauncher
                         break;
                 }
             }
+            else if (system == "intellivision")
+            {
+                switch (emulator)
+                {
+                    case "bizhawk":
+                        ret = "intellivision_bizhawk";
+                        break;
+                    case "jzintv":
+                        ret = "intellivision_bizhawk";
+                        break;
+                }
+            }
             else if (system == "jaguar")
             {
                 switch (emulator)

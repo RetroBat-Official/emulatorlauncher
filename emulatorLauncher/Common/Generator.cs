@@ -1050,6 +1050,15 @@ namespace EmulatorLauncher
             }
         }
 
+        protected void BindIniFeature(IniTomlFile ini, string section, string settingName, string featureName, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (force || Features.IsSupported(featureName))
+                    ini.WriteValue(section, settingName, SystemConfig.GetValueOrDefault(featureName, defaultValue));
+            }
+        }
+
         protected void BindBoolIniFeature(IniFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
@@ -1061,7 +1070,29 @@ namespace EmulatorLauncher
             }
         }
 
+        protected void BindBoolIniFeature(IniTomlFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    ini.WriteValue(section, settingName, trueValue);
+                else
+                    ini.WriteValue(section, settingName, falseValue);
+            }
+        }
+
         protected void BindBoolIniFeatureOn(IniFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    ini.WriteValue(section, settingName, falseValue);
+                else
+                    ini.WriteValue(section, settingName, trueValue);
+            }
+        }
+
+        protected void BindBoolIniFeatureOn(IniTomlFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
             {
@@ -1091,6 +1122,19 @@ namespace EmulatorLauncher
         }
 
         protected void BindBoolIniFeatureAuto(IniFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, string autoValue, bool force = false) // use when there is an "auto" value !
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    ini.WriteValue(section, settingName, trueValue);
+                else if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    ini.WriteValue(section, settingName, falseValue);
+                else
+                    ini.WriteValue(section, settingName, autoValue);
+            }
+        }
+
+        protected void BindBoolIniFeatureAuto(IniTomlFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, string autoValue, bool force = false) // use when there is an "auto" value !
         {
             if (force || Features.IsSupported(featureName))
             {
