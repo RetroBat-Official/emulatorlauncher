@@ -406,6 +406,34 @@ namespace EmulatorLauncher.Common.FileFormats
                 _data.Remove(item);            
         }
 
+        public void DisableAllPattern(string start, string end)
+        {
+            if (string.IsNullOrEmpty(start) && string.IsNullOrEmpty(end))
+                return;
+
+            List<string> toRemove = new List<string>();
+
+            foreach (var item in _data)
+            {
+                if (item.Value.Name == EmptyLine)
+                    continue;
+
+                bool matches = true;
+
+                if (!string.IsNullOrEmpty(start))
+                    matches &= item.Key.StartsWith(start);
+
+                if (!string.IsNullOrEmpty(end))
+                    matches &= item.Key.EndsWith(end);
+
+                if (matches)
+                    toRemove.Add(item.Key);
+            }
+
+            foreach (var key in toRemove)
+                _data.Remove(key);
+        }
+
         public static string LocalPath
         {
             get

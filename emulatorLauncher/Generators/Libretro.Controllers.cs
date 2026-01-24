@@ -160,11 +160,14 @@ namespace EmulatorLauncher.Libretro
             for(int i = 1 ; i <= 5 ; i++)
                 retroconfig[string.Format("input_player{0}_joypad_index", i)] = (i - 1).ToString();
 
+            // Clean controller hotkeys
+            retroconfig.DisableAllPattern("input_", "_btn");
+
+            // Clean keyboard hotkeys
             foreach (var specialkey in retroarchspecials)
                 retroconfig.DisableAll("input_" + specialkey.Value);
 
             retroconfig.DisableAll("input_pause_toggle");
-
             retroconfig.DisableAll("input_toggle_fast_forward");
         }
 
@@ -192,18 +195,24 @@ namespace EmulatorLauncher.Libretro
 
             // If no file use RetroBat standard
             config["input_menu_toggle"] = "f1";
+            config["input_toggle_fullscreen"] = "f";
+            config["input_hold_fast_forward"] = "l";
+            config["input_rewind"] = "backspace";
+            config["input_toggle_fast_forward"] = "space";
+            config["input_frame_advance"] = "k";
+            config["input_screenshot"] = "f8";
             config["input_save_state"] = "f2";
             config["input_load_state"] = "f4";
-            config["input_desktop_menu_toggle"] = "f5";
             config["input_state_slot_decrease"] = "f6";
             config["input_state_slot_increase"] = "f7";
-            config["input_screenshot"] = "f8";
-            config["input_rewind"] = "backspace";
-            config["input_hold_fast_forward"] = "l";
+            config["input_pause_toggle"] = "p";
             config["input_shader_next"] = "m";
             config["input_shader_prev"] = "n";
             config["input_disk_prev"] = "f9";
             config["input_disk_next"] = "f10";
+            config["input_game_focus_toggle"] = "scroll_lock";
+            config["input_grab_mouse_toggle"] = "f11";
+            config["input_audio_mute"] = "o";
             config["input_bind_hold"] = "2";
             config["input_bind_timeout"] = "5";
         }
