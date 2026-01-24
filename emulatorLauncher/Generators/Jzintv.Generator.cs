@@ -1,9 +1,9 @@
-﻿using System;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace EmulatorLauncher
@@ -96,6 +96,13 @@ namespace EmulatorLauncher
                     else
                         commandArray.Add("-z" + resolution.Width + "x" + resolution.Height);
                 }
+                else
+                {
+                    if (SystemConfig.isOptSet("jzintv_bitdepth") && !string.IsNullOrEmpty(SystemConfig["jzintv_bitdepth"]))
+                        commandArray.Add("-z" + ScreenResolution.CurrentResolution.Width + "x" + ScreenResolution.CurrentResolution.Height + "," + SystemConfig["jzintv_bitdepth"]);
+                    else
+                        commandArray.Add("-z" + ScreenResolution.CurrentResolution.Width + "x" + ScreenResolution.CurrentResolution.Height);
+                }
 
                 // GRAM size
                 if (SystemConfig.isOptSet("jzintv_gram_size") && !string.IsNullOrEmpty(SystemConfig["jzintv_gram_size"]))
@@ -114,6 +121,10 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[INFO] Using user KeyboardHack file.");
                 commandArray.Add("--kbdhackfile=\"" + SystemConfig["jzintv_inputfile"] + "\"");
             }
+            else
+            {
+                ConfigureControllers(commandArray, path);
+            }
 
             // rom
             commandArray.Add("\"" + rom + "\"");
@@ -126,6 +137,17 @@ namespace EmulatorLauncher
                 WorkingDirectory = path,
                 Arguments = args,
             };
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            int ret = base.RunAndWait(path);
+
+            if (ret == 1)
+            {
+                return 0;
+            }
+            return ret;
         }
     }
 }
