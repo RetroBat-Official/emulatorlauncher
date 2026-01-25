@@ -812,7 +812,7 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "InputAnalogJoyUp", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyDown", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyX", "\"JOY" + j1index + "_XAXIS_INV," + mouse1 + "_XAXIS_INV\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyY", "\"JOY" + j1index + "_YAXIS_INV," + mouse1 + "_YAXIS\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyY", "\"JOY" + j1index + "_YAXIS_INV," + mouse1 + "_YAXIS_INV\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyTrigger", n1 == "nintendo" ? "\"JOY" + j1index + "_RZAXIS_POS,JOY" + j1index + "_BUTTON4," + mouse1 + "_LEFT_BUTTON\"" : "\"JOY" + j1index + "_RZAXIS_POS,JOY" + j1index + "_BUTTON3," + mouse1 + "_LEFT_BUTTON\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyEvent", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON2," + mouse1 + "_RIGHT_BUTTON\"" : "\"JOY" + j1index + "_BUTTON1," + mouse1 + "_RIGHT_BUTTON\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyTrigger2", "\"NONE\"");
@@ -1121,7 +1121,7 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "InputAnalogJoyUp", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyDown", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyX", "\"JOY" + j1index + "_XAXIS_INV," + mouse1 + "_XAXIS_INV\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyY", "\"JOY" + j1index + "_YAXIS_INV," + mouse1 + "_YAXIS\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyY", "\"JOY" + j1index + "_YAXIS_INV," + mouse1 + "_YAXIS_INV\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyTrigger", n1 == "nintendo" ? "\"JOY" + j1index + "_RZAXIS_POS,JOY" + j1index + "_BUTTON4," + mouse1 + "_LEFT_BUTTON\"" : "\"JOY" + j1index + "_RZAXIS_POS,JOY" + j1index + "_BUTTON3," + mouse1 + "_LEFT_BUTTON\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyEvent", n1 == "nintendo" ? "\"JOY" + j1index + "_BUTTON2," + mouse1 + "_RIGHT_BUTTON\"" : "\"JOY" + j1index + "_BUTTON1," + mouse1 + "_RIGHT_BUTTON\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyTrigger2", "\"NONE\"");
@@ -1503,7 +1503,7 @@ namespace EmulatorLauncher
                     ini.WriteValue(" Global ", "InputAnalogJoyUp", "\"NONE\"");
                     ini.WriteValue(" Global ", "InputAnalogJoyDown", "\"NONE\"");
                     ini.WriteValue(" Global ", "InputAnalogJoyX", "\"" + GetDinputMapping(j1index, ctrl1, "leftx", 0) + "" + "_INV," + mouse1 + "_XAXIS_INV\"");
-                    ini.WriteValue(" Global ", "InputAnalogJoyY", "\"" + GetDinputMapping(j1index, ctrl1, "lefty", 0) + "_INV," + mouse1 + "_YAXIS\"");
+                    ini.WriteValue(" Global ", "InputAnalogJoyY", "\"" + GetDinputMapping(j1index, ctrl1, "lefty", 0) + "_INV," + mouse1 + "_YAXIS_INV\"");
                     ini.WriteValue(" Global ", "InputAnalogJoyTrigger", "\"" + GetDinputMapping(j1index, ctrl1, "righttrigger", 1) + "," + GetDinputMapping(j1index, ctrl1, "x") + "," + mouse1 + "_LEFT_BUTTON\"");
                     ini.WriteValue(" Global ", "InputAnalogJoyEvent", "\"" + GetDinputMapping(j1index, ctrl1, "a") + "," + mouse1 + "_RIGHT_BUTTON\"");
                     ini.WriteValue(" Global ", "InputAnalogJoyTrigger2", "\"NONE\"");
@@ -1872,7 +1872,7 @@ namespace EmulatorLauncher
                 ini.WriteValue(" Global ", "InputAnalogJoyUp", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyDown", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputAnalogJoyX", "\"" + mouse1 + "_XAXIS_INV,JOY" + j1index + "_XAXIS_INV\"");
-                ini.WriteValue(" Global ", "InputAnalogJoyY", "\"" + mouse1 + "_YAXIS,JOY" + j1index + "_YAXIS_INV\"");
+                ini.WriteValue(" Global ", "InputAnalogJoyY", "\"" + mouse1 + "_YAXIS_INV,JOY" + j1index + "_YAXIS_INV\"");
                 ini.WriteValue(" Global ", "InputSkiRight", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputSkiUp", "\"NONE\"");
                 ini.WriteValue(" Global ", "InputSkiDown", "\"NONE\"");
@@ -2106,8 +2106,8 @@ namespace EmulatorLauncher
             ini.WriteValue(" Global ", "InputAnalogJoyRight", "\"KEY_RIGHT\"");
             ini.WriteValue(" Global ", "InputAnalogJoyUp", "\"KEY_UP\"");
             ini.WriteValue(" Global ", "InputAnalogJoyDown", "\"KEY_DOWN\"");
-            ini.WriteValue(" Global ", "InputAnalogJoyX", "\"" + mouse1 + "_XAXIS\"");
-            ini.WriteValue(" Global ", "InputAnalogJoyY", "\"" + mouse1 + "_YAXIS\"");
+            ini.WriteValue(" Global ", "InputAnalogJoyX", "\"" + mouse1 + "_XAXIS_INV\"");
+            ini.WriteValue(" Global ", "InputAnalogJoyY", "\"" + mouse1 + "_YAXIS_INV\"");
             ini.WriteValue(" Global ", "InputAnalogJoyTrigger", "\"KEY_A,"+ mouse1 + "_LEFT_BUTTON\"");
             ini.WriteValue(" Global ", "InputAnalogJoyEvent", "\"KEY_S," + mouse1 +"_RIGHT_BUTTON\"");
             ini.WriteValue(" Global ", "InputAnalogJoyTrigger2", "\"KEY_D\"");
