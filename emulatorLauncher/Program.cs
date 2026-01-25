@@ -15,8 +15,6 @@ using EmulatorLauncher.Common.Compression;
 using EmulatorLauncher.PadToKeyboard;
 using EmulatorLauncher.Libretro;
 using EmulatorLauncher.Common.Compression.Wrappers;
-using EmulatorLauncher.Common.Launchers;
-using System.Management;
 using EmulatorLauncher.ControlCenter;
 
 // XBox
@@ -37,9 +35,7 @@ namespace EmulatorLauncher
 {
     static class Program
     {
-        static string[] emulatorsNoControlCenter = new string [] { /*"applewin", "nosgba", "simcoupe", "winuae" */ };
-        static string[] coresNoControlCenter = new string[] { /*"bennugd" */ };
-        static string[] emulatorsNoControlCenterWhenExclusive = new string[] { "" };
+        static string[] emulatorsNoControlCenter = new string [] { "m2emulator" };
 
         /// <summary>
         /// Link between emulator declared in es_systems.cfg and generator to use to launch emulator
@@ -773,11 +769,9 @@ namespace EmulatorLauncher
                         }
 
                         using (new HighPerformancePowerScheme())
-                        using (var kb = new KeyboardListener())
+                        using (var kb = new KeyboardListener(KeyboardListener.VK_F12, true, ShowControlCenter))
                         using (var joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping))
                         {
-                            kb.F12Pressed += ShowControlCenter;
-
                             int exitCode = generator.RunAndWait(path);
                             if (exitCode != 0 && !joy.ProcessKilled)
                                 Environment.ExitCode = (int)ExitCodes.EmulatorExitedUnexpectedly;
@@ -818,13 +812,7 @@ namespace EmulatorLauncher
 
             if (emulatorsNoControlCenter.Contains(SystemConfig["emulator"]))
                 return;
-                
-     		if (coresNoControlCenter.Contains(SystemConfig["core"]))
-            	return;
-
-            if (SystemConfig.getOptBoolean("exclusivefs") && emulatorsNoControlCenterWhenExclusive.Contains(SystemConfig["emulator"]))
-            	return;
-                                
+                                                
             ControlCenterManager.ShowControlCenter();
         }
 
