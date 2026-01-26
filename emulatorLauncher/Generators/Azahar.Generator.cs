@@ -249,6 +249,10 @@ namespace EmulatorLauncher
                     }
                 }
 
+                // Audio
+                BindQtIniFeature(ini, "Audio", "audio_emulation", "azahar_audio_emulation", "0");
+                BindQtIniFeature(ini, "Audio", "output_type", "azahar_audio_api", "0");
+
                 // Define console region
                 if (SystemConfig.isOptSet("azahar_region_value") && !string.IsNullOrEmpty(SystemConfig["azahar_region_value"]) && SystemConfig["azahar_region_value"] != "-1")
                 {
