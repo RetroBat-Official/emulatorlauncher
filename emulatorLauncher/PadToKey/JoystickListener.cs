@@ -13,19 +13,25 @@ namespace EmulatorLauncher.PadToKeyboard
 {
     public class KeyboardListener : IDisposable
     {
-        public event Action F12Pressed;
+        public const int VK_F12 = 0x7B;
+        private const int VK_CONTROL = 0x11;
+
+        public event Action _keyPressed;
 
         private Thread _thread;
         private volatile bool _running = true;
-        private bool _f12Down;
+        private bool _isKeyDown;
 
-        public KeyboardListener()
+        private int _virtualKey;
+        private bool _checkCtrl;
+
+        public KeyboardListener(int virtualKey, bool ctrl, Action keyPressed)
         {
-            _thread = new Thread(KeyboardLoop)
-            {
-                IsBackground = true,
-                Name = "KeyboardListener"                
-            };
+            _virtualKey = virtualKey;
+            _keyPressed = keyPressed;
+            _checkCtrl = ctrl;
+
+            _thread = new Thread(KeyboardLoop) { IsBackground = true, Name = "KeyboardListener" };
             _thread.Start();
         }
 
@@ -33,17 +39,17 @@ namespace EmulatorLauncher.PadToKeyboard
         {
             while (_running)
             {
-                bool isDown = (GetAsyncKeyState(VK_F12) & 0x8000) != 0;
-                bool ctrlDown = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+                bool isDown = (GetAsyncKeyState(_virtualKey) & 0x8000) != 0;
+                bool ctrlDown = _checkCtrl ? (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0 : true;
 
-                if (ctrlDown && isDown && !_f12Down)
+                if (ctrlDown && isDown && !_isKeyDown)
                 {
-                    _f12Down = true;
-                    F12Pressed?.Invoke();
+                    _isKeyDown = true;
+                    _keyPressed?.Invoke();
                 }
                 else if (!isDown)
                 {
-                    _f12Down = false;
+                    _isKeyDown = false;
                 }
 
                 Thread.Sleep(40);
@@ -57,9 +63,6 @@ namespace EmulatorLauncher.PadToKeyboard
             if (!_thread.Join(1000))
                 _thread.Abort();
         }
-
-        private const int VK_F12 = 0x7B;
-        private const int VK_CONTROL = 0x11;
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern short GetAsyncKeyState(int vKey);

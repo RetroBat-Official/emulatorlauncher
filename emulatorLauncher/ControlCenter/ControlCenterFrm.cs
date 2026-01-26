@@ -1,20 +1,24 @@
 ﻿using EmulatorLauncher.Common;
-using EmulatorLauncher.PadToKeyboard;
 using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Management;
 using System.Windows.Forms;
+using System.Linq;
 
 namespace EmulatorLauncher.ControlCenter
 {
     partial class ControlCenterFrm : Form
     {
+        // List emulators that don't pause when the focus is lost, and can be suspended with NtSuspendProcess
+        static string[] emulatorsToSuspend = new string[] { "mame64" };
+
         private OverlayForm _overlay;
 
         private bool _tatoo = false;       
         private IntPtr _emulatorHwnd;
+        private bool _isEmulatorSuspended;
 
         public ControlCenterFrm()
         {
@@ -43,6 +47,37 @@ namespace EmulatorLauncher.ControlCenter
 
             _emulatorHwnd = GetEmulatorHWnd();
             _overlay = new OverlayForm(User32.IsExclusiveFullScreen(_emulatorHwnd));
+
+            SuspendEmulator(true);
+        }
+
+        private bool SuspendEmulator(bool suspend)
+        {
+            if (!emulatorsToSuspend.Contains(Program.SystemConfig["emulator"]))
+                return false;
+
+            if (_isEmulatorSuspended == suspend)
+                return false;
+
+            _isEmulatorSuspended = suspend;
+
+            User32.GetWindowThreadProcessId(_emulatorHwnd, out uint dwProcessId);
+            if (dwProcessId != 0)
+            {
+                IntPtr processHandle = Kernel32.OpenProcess(ProcessAccessFlags.All, false, dwProcessId);
+                if (processHandle != IntPtr.Zero)
+                {
+                    if (suspend)
+                        Kernel32.NtSuspendProcess(processHandle);
+                    else
+                        Kernel32.NtResumeProcess(processHandle);
+
+                    Kernel32.CloseHandle(processHandle);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         protected override void OnLoad(EventArgs e)
@@ -78,7 +113,7 @@ namespace EmulatorLauncher.ControlCenter
 
             User32.ForceForegroundWindow(Handle);
             StartFadeIn();
-
+            
             User32.ForceForegroundWindow(Handle);
         }
 
@@ -155,14 +190,19 @@ namespace EmulatorLauncher.ControlCenter
         {
             base.OnClosed(e);
 
+            if (SuspendEmulator(false))
+                System.Threading.Thread.Sleep(350);
+
             if (_emulatorHwnd != IntPtr.Zero)
             {
                 var style = (WS)User32.GetWindowLong(_emulatorHwnd, GWL.STYLE);
-                if (style.HasFlag(WS.MINIMIZE))
-                    User32.ShowWindowAsync(_emulatorHwnd, SW.RESTORE);
-                
+                if (style.HasFlag(WS.MINIMIZE))                               
+                    User32.ShowWindowAsync(_emulatorHwnd, SW.RESTORE);                
+
                 User32.ForceForegroundWindow(_emulatorHwnd);
                 System.Threading.Thread.Sleep(50);
+
+                _emulatorHwnd = IntPtr.Zero;
             }
 
             if (_overlay != null)
@@ -187,7 +227,20 @@ namespace EmulatorLauncher.ControlCenter
         }
 
         private IntPtr GetEmulatorHWnd()
-        {
+        {    
+            /*
+            IntPtr hWnd = User32.GetWindow(User32.GetDesktopWindow(), GW.CHILD);
+            while (hWnd != IntPtr.Zero)
+            {
+                if (User32.IsWindowVisible(hWnd))
+                {
+                    User32.GetWindowThreadProcessId(hWnd, out uint wndProcessId);
+                }
+
+                hWnd = User32.GetWindow(hWnd, GW.HWNDNEXT);
+            }
+            */
+
             var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + Process.GetCurrentProcess().Id);
             var moc = searcher.Get();
 
@@ -197,7 +250,7 @@ namespace EmulatorLauncher.ControlCenter
                 {
                     var processId = Convert.ToInt32(mo["ProcessID"]);
                     var px = Process.GetProcessById(processId);
-                    if (px != null)
+                    if (px != null && User32.IsWindow(px.MainWindowHandle) && User32.IsWindowVisible(px.MainWindowHandle))
                         return px.MainWindowHandle;
                 }
                 catch { }
@@ -207,7 +260,7 @@ namespace EmulatorLauncher.ControlCenter
         }
 
         private static void KillChildrenProcesses(int pid, bool root = true)
-        {            
+        {   
             var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
             var moc = searcher.Get();
 
@@ -262,6 +315,8 @@ namespace EmulatorLauncher.ControlCenter
 
         private void button1_Click(object sender, EventArgs e)
         {
+            SuspendEmulator(false);
+
             foreach (var pxHandle in Job.ChildProcesses)
             {
                 var pxid = Kernel32.GetProcessId(pxHandle);
