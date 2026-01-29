@@ -641,21 +641,6 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Check and delete es-update.cmd and es-checkversion.cmd
-            string esUpdateCmd = Path.Combine(Program.LocalPath, "es-update.cmd");
-            string esCheckVersionCmd = Path.Combine(Program.LocalPath, "es-checkversion.cmd");
-
-            if (File.Exists(esUpdateCmd))
-            {
-                SimpleLogger.Instance.Info("[Startup] Deleting " + esUpdateCmd);
-                FileTools.TryDeleteFile(esUpdateCmd);
-            }
-            if (File.Exists(esCheckVersionCmd))
-            {
-                SimpleLogger.Instance.Info("[Startup] Deleting " + esCheckVersionCmd);
-                FileTools.TryDeleteFile(esCheckVersionCmd);
-            }
-
             // Get Generator to use based on emulator or system if none found
             Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
             if (generator == null && !string.IsNullOrEmpty(SystemConfig["emulator"]) && SystemConfig["emulator"].StartsWith("lr-"))
