@@ -206,7 +206,7 @@ namespace EmulatorLauncher
                 json.enable_internet_access = false;
 
             BindBoolFeatureDefaultTrue(json, "enable_fs_integrity_checks", "enable_fs_integrity_checks");
-            BindFeature(json, "audio_backend", "audio_backend", "SDL3");
+            BindFeature(json, "audio_backend", "audio_backend", _sdl3 ? "SDL3" : "SDL2");
             BindFeature(json, "memory_manager_mode", "memory_manager_mode", "HostMappedUnsafe");
             BindBoolFeatureDefaultFalse(json, "ignore_missing_services", "ignore_missing_services");
             BindFeature(json, "system_region", "system_region", "USA");
