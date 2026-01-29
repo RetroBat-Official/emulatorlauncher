@@ -426,7 +426,7 @@ namespace EmulatorLauncher
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "UI_PAUSE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["select"] + " " + joy + mapping["east"] + " OR KEYCODE_P")));
+                    new XElement("newseq", new XAttribute("type", "standard"), /*joy + mapping["select"] + " " + joy + mapping["east"] + " OR */"KEYCODE_P")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "UI_REWIND_SINGLE"),
@@ -798,7 +798,7 @@ namespace EmulatorLauncher
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "UI_PAUSE"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "b", xinputCtrl) + " OR KEYCODE_P")));
+                    new XElement("newseq", new XAttribute("type", "standard"), /*joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "b", xinputCtrl) + " OR */"KEYCODE_P")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "UI_REWIND_SINGLE"),

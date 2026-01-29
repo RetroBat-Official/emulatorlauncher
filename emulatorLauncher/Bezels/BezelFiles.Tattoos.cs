@@ -342,7 +342,7 @@ namespace EmulatorLauncher
                         ret = "intellivision_bizhawk";
                         break;
                     case "jzintv":
-                        ret = "intellivision_bizhawk";
+                        ret = "intellivision_jzintv";
                         break;
                 }
             }
