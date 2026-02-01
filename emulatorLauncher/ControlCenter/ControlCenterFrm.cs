@@ -12,7 +12,7 @@ namespace EmulatorLauncher.ControlCenter
     partial class ControlCenterFrm : Form
     {
         // List emulators that don't pause when the focus is lost, and can be suspended with NtSuspendProcess
-        static string[] emulatorsToSuspend = new string[] { "mame64" };
+        static string[] emulatorsToSuspend = new string[] { "mame64", "m2emulator" };
 
         private OverlayForm _overlay;
 
@@ -39,7 +39,7 @@ namespace EmulatorLauncher.ControlCenter
 
             btnMap.Visible = btnMap.Enabled = GetMediaPath(Program.CurrentGame?.Map) != null;
             btnTatoo.Visible = btnTatoo.Enabled = BezelFiles.GetDefaultTatoo() != null;
-
+            
             string manualPath = GetMediaPath(Program.CurrentGame?.Manual);
             btnManual.Visible = btnManual.Enabled = manualPath != null && PdfExtractor.GetPdfPageCount(manualPath) > 0;
 
@@ -197,10 +197,10 @@ namespace EmulatorLauncher.ControlCenter
             {
                 var style = (WS)User32.GetWindowLong(_emulatorHwnd, GWL.STYLE);
                 if (style.HasFlag(WS.MINIMIZE))                               
-                    User32.ShowWindowAsync(_emulatorHwnd, SW.RESTORE);                
+                    User32.ShowWindowAsync(_emulatorHwnd, SW.RESTORE);
 
-                User32.ForceForegroundWindow(_emulatorHwnd);
                 System.Threading.Thread.Sleep(50);
+                User32.ForceForegroundWindow(_emulatorHwnd);
 
                 _emulatorHwnd = IntPtr.Zero;
             }
@@ -252,6 +252,17 @@ namespace EmulatorLauncher.ControlCenter
                     var px = Process.GetProcessById(processId);
                     if (px != null && User32.IsWindow(px.MainWindowHandle) && User32.IsWindowVisible(px.MainWindowHandle))
                         return px.MainWindowHandle;
+
+                    if (px != null && px.MainWindowHandle == IntPtr.Zero)
+                    {
+                        var list = User32.FindProcessWnds(processId).ToList();
+                        if (list.Any())
+                        {
+                            var classes = list.Select(l => User32.GetClassName(l)).ToArray();
+                            var txt = list.Select(l => User32.GetWindowText(l)).ToArray();
+                            return list.FirstOrDefault();
+                        }
+                    }
                 }
                 catch { }
             }

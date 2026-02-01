@@ -35,7 +35,7 @@ namespace EmulatorLauncher
 {
     static class Program
     {
-        static string[] emulatorsNoControlCenter = new string [] { "m2emulator" };
+        static string[] emulatorsNoControlCenter = new string [] { }; // "m2emulator" 
 
         /// <summary>
         /// Link between emulator declared in es_systems.cfg and generator to use to launch emulator
@@ -640,7 +640,6 @@ namespace EmulatorLauncher
                     };
                 }
             }
-
             // Check and delete es-update.cmd and es-checkversion.cmd
             string esUpdateCmd = Path.Combine(Program.LocalPath, "es-update.cmd");
             string esCheckVersionCmd = Path.Combine(Program.LocalPath, "es-checkversion.cmd");

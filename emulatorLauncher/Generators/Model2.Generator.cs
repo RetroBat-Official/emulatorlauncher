@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common;
+using System.Drawing;
 
 namespace EmulatorLauncher
 {
@@ -119,10 +120,11 @@ namespace EmulatorLauncher
 
                     ini.WriteValue("Renderer", "FullMode", "4");
 
+                    /*
                     if (fullscreen)
-                        ini.WriteValue("Renderer", "AutoFull", "1");
-                    else
-                        ini.WriteValue("Renderer", "AutoFull", "0");
+                        ini.WriteValue("Renderer", "AutoFull", "1"); // Managed by FullScreenHostFrm
+                    else*/
+                    ini.WriteValue("Renderer", "AutoFull", "0");
 
                     if (SystemConfig["bezel"] == null || SystemConfig["bezel"] == "none")
                         ini.WriteValue("Renderer", "WideScreenWindow", "1");
@@ -261,9 +263,146 @@ namespace EmulatorLauncher
             base.Cleanup();
         }
 
+        class FullScreenHostFrm : Form
+        {
+            private IntPtr _hWnd;
+            private Image _logo;
+            private Image _image;
+
+            public FullScreenHostFrm()
+            {
+                SetStyle(ControlStyles.ResizeRedraw, true);
+                SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+                SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+
+                TopMost = true;
+                Text = "m2emulatorfullscreenhost";
+                ControlBox = false;
+                MaximizeBox = false;
+                MinimizeBox = false;
+                FormBorderStyle = FormBorderStyle.None;
+                BackColor = System.Drawing.Color.Black;
+                WindowState = FormWindowState.Maximized;
+                DoubleBuffered = true;
+
+                var path = Program.CurrentGame.GetImageFile(Common.EmulationStation.MetadataType.Marquee);
+                if (File.Exists(path))
+                    _logo = Image.FromFile(path);
+
+                path = Program.CurrentGame.GetImageFile(Common.EmulationStation.MetadataType.Image);
+                if (File.Exists(path))
+                    _image = Image.FromFile(path);
+            }
+
+            public bool IsAttached { get { return _hWnd != IntPtr.Zero; } }
+
+            protected override void OnPaintBackground(PaintEventArgs e)
+            {
+                base.OnPaintBackground(e);
+
+                if (_image != null)
+                {
+                    e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
+                    e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                    e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                    
+                    var rect = Misc.GetPictureRect(_image.Size, ClientRectangle, true);
+                    e.Graphics.DrawImage(_image, rect);
+
+                    using (var br = new SolidBrush(Color.FromArgb(100, Color.Black)))
+                        e.Graphics.FillRectangle(br, ClientRectangle);
+                }
+
+                if (_logo != null)
+                {
+                    e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                    e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                    e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+
+                    var rect = ClientRectangle;
+                    rect.Inflate(-(rect.Width * 35 / 100), -(rect.Height * 35 / 100));
+                    rect = Misc.GetPictureRect(_logo.Size, rect);
+
+                    e.Graphics.DrawImage(_logo, rect);
+                }
+
+                if (_hWnd != IntPtr.Zero)
+                {
+                    User32.SetWindowPos(_hWnd, IntPtr.Zero, 0, 0, this.Width, this.Height, SWP.NOZORDER);
+                    User32.SetFocus(_hWnd);
+                }
+            }
+
+            protected override void OnLoad(EventArgs e)
+            {
+                base.OnLoad(e);
+
+                if (!_init && _hWnd != IntPtr.Zero)
+                    SetupWindow();
+            }
+
+            public void AttachHandle(IntPtr hWnd)
+            {
+                _hWnd = hWnd;
+
+                if (IsHandleCreated)
+                    SetupWindow();
+            }
+
+            private bool _init = false;
+
+            private void SetupWindow()
+            {
+                _init = true;
+
+                IntPtr hWnd = _hWnd;
+                User32.LockWindowUpdate(hWnd);
+
+                User32.SetParent(hWnd, this.Handle);
+                User32.SetMenu(hWnd, IntPtr.Zero);
+
+                var style = User32.GetWindowStyle(hWnd);
+                style &= ~WS.CAPTION;
+                style &= ~WS.OVERLAPPED;
+                style &= ~WS.MAXIMIZEBOX;
+                style &= ~WS.SYSMENU;
+                style &= ~WS.GROUP;
+                style &= ~WS.THICKFRAME;
+                User32.SetWindowStyle(hWnd, style);
+
+                var styleEx = User32.GetWindowStyleEx(hWnd);
+                styleEx &= ~WS_EX.CLIENTEDGE;
+                User32.SetWindowStyleEx(hWnd, styleEx);
+                User32.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, this.Width, this.Height, SWP.FRAMECHANGED | SWP.DRAWFRAME | SWP.NOZORDER);
+                User32.RedrawWindow(this.Handle, IntPtr.Zero, IntPtr.Zero, RedrawWindowFlags.AllChildren | RedrawWindowFlags.Frame | RedrawWindowFlags.UpdateNow | RedrawWindowFlags.EraseNow);
+
+                User32.LockWindowUpdate(IntPtr.Zero);
+                User32.SetFocus(hWnd);
+
+                TopMost = false;
+                ToggleFullScreen(hWnd);
+            }
+
+            private static void ToggleFullScreen(IntPtr hWnd)
+            {
+                System.Threading.Thread.Sleep(10);
+
+                int WM_COMMAND = 0x111;
+                int CMD_TOGGLEFULLSCREEN = 0x9C4A;              
+                User32.SendMessage(hWnd, WM_COMMAND, CMD_TOGGLEFULLSCREEN, 0);
+            }
+        }
+
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
+            FullScreenHostFrm fullScreenHost = null;
+
+            if (_bezelFileInfo == null && (!IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen")))
+            {
+                fullScreenHost = new FullScreenHostFrm();
+                fullScreenHost.Show();
+            }
 
             try
             {
@@ -294,8 +433,18 @@ namespace EmulatorLauncher
                                     bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
                             }
                         }
+                    }                   
+                    else if (fullScreenHost != null && !fullScreenHost.IsAttached)
+                    {
+                        IntPtr hWnd = User32.FindHwnds(px.Id).FirstOrDefault(h => User32.GetClassName(h) == "MYWIN");
+                        if (hWnd != IntPtr.Zero)
+                        {
+                            fullScreenHost.AttachHandle(hWnd);
+                            px.WaitForExit();
+                            return px.ExitCode;
+                        }
                     }
-
+                    
                     Application.DoEvents();
                 }
 
@@ -304,7 +453,8 @@ namespace EmulatorLauncher
             catch { }
             finally
             {
-                bezel?.Dispose();
+                bezel?.Dispose();                    
+                fullScreenHost?.Dispose();
             }
 
             return -1;

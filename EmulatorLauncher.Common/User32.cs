@@ -15,6 +15,30 @@ namespace EmulatorLauncher.Common
             return FindHwnds(processId).FirstOrDefault();
         }
 
+        public static IEnumerable<IntPtr> FindProcessWnds(int processId)
+        {
+            return FindProcessWnds(processId, GetDesktopWindow());
+        }
+
+        private static IEnumerable<IntPtr> FindProcessWnds(int processId, IntPtr hWndParent)
+        {
+            IntPtr hWnd = GetWindow(hWndParent, GW.CHILD);
+            while (hWnd != IntPtr.Zero)
+            {
+                if (IsWindowVisible(hWnd))
+                {
+                    GetWindowThreadProcessId(hWnd, out uint wndProcessId);
+                    if (wndProcessId == processId)
+                        yield return hWnd;
+
+                    foreach (var hWndChild in FindProcessWnds(processId, hWnd))
+                        yield return hWndChild;                    
+                }
+
+                hWnd = GetWindow(hWnd, GW.HWNDNEXT);
+            }
+        }
+
         public static IEnumerable<IntPtr> FindHwnds(int processId, Predicate<IntPtr> func = null, bool visibleOnly = true)
         {
             IntPtr hWnd = GetWindow(GetDesktopWindow(), GW.CHILD);
@@ -47,6 +71,9 @@ namespace EmulatorLauncher.Common
 
         [DllImport("user32.dll")]
         public static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetActiveWindow();
 
         [DllImport("user32.dll", SetLastError = false)]
         public static extern IntPtr GetDesktopWindow();
@@ -89,6 +116,13 @@ namespace EmulatorLauncher.Common
         {
             if (!IsWindow(hWnd)) 
                 return;
+
+            IntPtr hWndParent = GetParent(hWnd);
+            while (hWndParent != IntPtr.Zero && hWndParent != GetDesktopWindow())
+            {                                  
+                hWnd = hWndParent;
+                hWndParent = GetParent(hWnd);
+            }
 
             uint currentThread = Kernel32.GetCurrentThreadId();
 
@@ -213,8 +247,26 @@ namespace EmulatorLauncher.Common
             return rect;
         }
 
+        [DllImport("user32.dll")]
+        public static extern bool LockWindowUpdate(IntPtr hWndLock);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr SetFocus(IntPtr hWnd);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr GetFocus();
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr GetParent(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern int SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
         public static extern int SetWindowPos(IntPtr hWnd, IntPtr hWndAfter, int X, int Y, int Width, int Height, [MarshalAs(UnmanagedType.U4)]SWP flags);
+
+        [DllImport("user32.dll")]
+        public static extern bool RedrawWindow(IntPtr hWnd, IntPtr lprcUpdate, IntPtr hrgnUpdate, RedrawWindowFlags flags);
 
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
         public static extern int GetSystemMetrics(int nIndex);
@@ -591,6 +643,24 @@ namespace EmulatorLauncher.Common
         SHOWDEFAULT = 10,
         FORCEMINIMIZE = 11
     }
+
+    [Flags]
+    public enum RedrawWindowFlags : uint
+    {
+        Invalidate = 0x1,
+        InternalPaint = 0x2,
+        Erase = 0x4,
+        Validate = 0x8,
+        NoInternalPaint = 0x10,
+        NoErase = 0x20,
+        NoChildren = 0x40,
+        AllChildren = 0x80,
+        UpdateNow = 0x100,
+        EraseNow = 0x200,
+        Frame = 0x400,
+        NoFrame = 0x800
+    }
+
 
     public enum BinaryType : int
     {
