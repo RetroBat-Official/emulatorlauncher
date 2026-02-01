@@ -83,6 +83,7 @@ namespace EmulatorLauncher.Libretro
                 { "emux_gb", "Emux GB" },
                 { "emux_nes", "Emux NES" },
                 { "emux_sms", "Emux SMS" },
+                { "ep128emu_core", "ep128emu" },
                 { "fake08", "fake-08" },
                 { "fbalpha2012_cps1", "FB Alpha 2012 CPS-1" },
                 { "fbalpha2012_cps2", "FB Alpha 2012 CPS-2" },
@@ -359,6 +360,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureeasyRPG(retroarchConfig, coreSettings, system, core);
             Configureecwolf(retroarchConfig, coreSettings, system, core);
             ConfigureEmuscv(retroarchConfig, coreSettings, system, core);
+            ConfigureEp128(retroarchConfig, coreSettings, system, core);
             ConfigureFake08(retroarchConfig, coreSettings, system, core);
             ConfigureFbalpha(retroarchConfig, coreSettings, system, core);
             ConfigureFbalpha2012(retroarchConfig, coreSettings, system, core);
@@ -1392,6 +1394,18 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "emuscv_palette", "emuscv_palette", "AUTO");
             BindFeature(coreSettings, "emuscv_pixelaspect", "emuscv_pixelaspect", "AUTO");
             BindFeature(coreSettings, "emuscv_resolution", "emuscv_resolution", "AUTO");
+        }
+
+        private void ConfigureEp128(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "ep128emu_core")
+                return;
+
+            BindBoolFeature(coreSettings, "ep128emu_useh", "ep128emu_useh", "1", "0");
+
+            // Controller type
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "ep128_controller1", "513");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "ep128_controller2", "513");
         }
 
         private void ConfigureFake08(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
