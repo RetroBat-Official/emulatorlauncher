@@ -27,8 +27,9 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> arcadeSystems = new List<string>() { "arcade", "mame", "hbmame", "fbneo", "cave", "cps1", "cps2", "cps3", "atomiswave", "naomi", "naomi2", "gaelco", "segastv", "neogeo64" };
         private static Dictionary<int, int> _indexes = new Dictionary<int, int>();
 
-        public static bool WriteControllersConfig(ConfigFile retroconfig, string system, string core)
+        public static bool WriteControllersConfig(ConfigFile retroconfig, string system, string core, out bool kbPad)
         {
+            kbPad = false;
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
@@ -64,10 +65,29 @@ namespace EmulatorLauncher.Libretro
             if (Program.SystemConfig.getOptBoolean("revertXIndex"))
                 Controller.SetXinputReversedIndex(Program.Controllers);
 
+            if (Program.SystemConfig.isOptSet("keyboard_arcade") && !string.IsNullOrEmpty(Program.SystemConfig["keyboard_arcade"]))
+            {
+                string kbPadType = Program.SystemConfig["keyboard_arcade"];
+
+                if (performKBPadMapping(system, core, kbPadType, retroconfig))
+                {
+                    kbPad = true;
+                    SimpleLogger.Instance.Info("[INFO] Arcade keyboard mapping applied for type: " + kbPadType);
+                }
+            }
+
             foreach (var controller in Program.Controllers)
             {
+                if (kbPad && controller.IsKeyboard)
+                {
+                    SimpleLogger.Instance.Info("[INFO] Arcade keyboard mapping applied.");
+                    return true;
+                }
                 WriteControllerConfig(retroconfig, controller, system, core);
             }
+
+            if (kbPad)
+                return true;
 
             // Check for duplicate indexes and log it (and try and fix it)
             try

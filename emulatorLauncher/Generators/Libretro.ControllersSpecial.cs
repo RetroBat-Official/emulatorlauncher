@@ -1,8 +1,9 @@
-﻿using System.IO;
-using System.Collections.Generic;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace EmulatorLauncher.Libretro
@@ -699,6 +700,98 @@ namespace EmulatorLauncher.Libretro
                 return true;
             else
                 return false;
+        }
+
+        private static bool performKBPadMapping(string system, string core, string kbPadType, ConfigFile retroconfig)
+        {
+            string romName = Path.GetFileNameWithoutExtension(Program.SystemConfig["rom"]);
+            string padMapping = null;
+            string fileName = "libretro_" + kbPadType + ".yml";
+
+            // Implement keyboard mapping for devices like ipac2, xtank, etc.
+            foreach (var path in mappingPaths)
+            {
+                string result = path
+                    .Replace("{systempath}", "system")
+                    .Replace("{userpath}", "user");
+
+                padMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result, "kbpads", fileName);
+
+                if (File.Exists(padMapping))
+                    break;
+            }
+
+            if (padMapping == null)
+                return false;
+
+            YmlFile ymlFile = YmlFile.Load(padMapping);
+
+            if (ymlFile == null)
+                return false;
+
+            var buttonMap = new Dictionary<string, string>();
+
+            YmlContainer mappingDef = ymlFile.Elements.Where(c => c.Name == "default").FirstOrDefault() as YmlContainer;
+            if (mappingDef != null)
+            {
+                foreach (var buttonEntry in mappingDef.Elements)
+                {
+                    var button = buttonEntry as YmlElement;
+                    if (button != null)
+                    {
+                        buttonMap.Add(button.Name, button.Value);
+                    }
+                }
+            }
+
+            YmlContainer mappingSystem = ymlFile.Elements.Where(c => c.Name == system).FirstOrDefault() as YmlContainer;
+            if (mappingSystem != null)
+            {
+                foreach (var buttonEntry in mappingSystem.Elements)
+                {
+                    var button = buttonEntry as YmlElement;
+                    if (buttonMap.ContainsKey(button.Name))
+                        buttonMap[button.Name] = button.Value;
+                    else
+                        buttonMap.Add(button.Name, button.Value);
+                }
+            }
+
+            YmlContainer mappingCore = ymlFile.Elements.Where(c => c.Name == core).FirstOrDefault() as YmlContainer;
+            if (mappingCore != null)
+            {
+                foreach (var buttonEntry in mappingCore.Elements)
+                {
+                    var button = buttonEntry as YmlElement;
+                    if (buttonMap.ContainsKey(button.Name))
+                        buttonMap[button.Name] = button.Value;
+                    else
+                        buttonMap.Add(button.Name, button.Value);
+                }
+            }
+
+            YmlContainer mappingGame = ymlFile.Elements.Where(c => c.Name == romName).FirstOrDefault() as YmlContainer;
+            if (mappingGame != null)
+            {
+                foreach (var buttonEntry in mappingGame.Elements)
+                {
+                    var button = buttonEntry as YmlElement;
+                    if (buttonMap.ContainsKey(button.Name))
+                        buttonMap[button.Name] = button.Value;
+                    else
+                        buttonMap.Add(button.Name, button.Value);
+                }
+            }
+
+            if (buttonMap.Count == 0)
+                return false;
+
+            foreach (var button in buttonMap)
+                retroconfig[button.Key] = button.Value;
+
+            SimpleLogger.Instance.Info("[INFO] Generated configuration based on " + padMapping + " file.");
+
+            return true;
         }
 
         static readonly string[] mappingPaths =
