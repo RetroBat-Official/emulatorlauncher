@@ -207,8 +207,9 @@ namespace EmulatorLauncher.Common
             if (window.bottom != screen.bottom || window.right != screen.right)
                 return false;
 
-            return 
-                !style.HasFlag(WS.BORDER) && !style.HasFlag(WS.POPUP) &&
+            // !style.HasFlag(WS.POPUP) &&
+            return
+                !style.HasFlag(WS.BORDER) && 
                 styleX.HasFlag(WS_EX.TOPMOST) && !styleX.HasFlag(WS_EX.CLIENTEDGE) && !styleX.HasFlag(WS_EX.WINDOWEDGE) && !styleX.HasFlag(WS_EX.STATICEDGE);
                 
         }
