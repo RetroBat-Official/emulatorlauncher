@@ -47,6 +47,9 @@ namespace EmulatorLauncher.Libretro
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
+            if (_noCoreRemap)
+                return;
+
             _playerCount = Program.Controllers.Count;
             _maxCount = _playerCount + 2;
 

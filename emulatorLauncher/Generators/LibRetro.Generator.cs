@@ -76,6 +76,7 @@ namespace EmulatorLauncher.Libretro
         private LibRetroStateFileManager _stateFileManager;
         private ScreenShotsWatcher _screenShotWatcher;
         private bool _noHotkey = false;
+        private static bool _noCoreRemap = false;
         private string _video_driver;
         private string _dosBoxTempRom;
         private bool _bias = true;
@@ -1157,8 +1158,13 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["input_libretro_device_p1"] = coreToP1Device.ContainsKey(core) ? coreToP1Device[core] : "1";
             retroarchConfig["input_libretro_device_p2"] = coreToP2Device.ContainsKey(core) ? coreToP2Device[core] : "1";
 
-            if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core))
+            if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core, out bool kbPad))
+            {
                 UseEsPadToKey = false;
+
+                if (kbPad)
+                    _noCoreRemap = true;
+            }
 
             // If no hotkey if configured, add pad2key to exit retroarch
             if (retroarchConfig["input_enable_hotkey"] == "nul" && retroarchConfig["input_enable_hotkey_btn"] == "nul" && retroarchConfig["input_enable_hotkey_axis"] == "nul" && retroarchConfig["input_enable_hotkey_mbtn"] == "nul")
