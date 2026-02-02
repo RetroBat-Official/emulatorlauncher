@@ -28,7 +28,9 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            rom = this.TryUnZipGameIfNeeded(system, rom);
+            if (Path.GetExtension(rom).ToLower() != ".iso")
+                rom = this.TryUnZipGameIfNeeded(system, rom);
+            
             string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "ps3", "rpcs3");
             if (!Directory.Exists(savesPath))
                 savesPath = path;
