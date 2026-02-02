@@ -6,6 +6,7 @@ using System.IO;
 using System.Management;
 using System.Windows.Forms;
 using System.Linq;
+using System.Threading;
 
 namespace EmulatorLauncher.ControlCenter
 {
@@ -47,7 +48,6 @@ namespace EmulatorLauncher.ControlCenter
 
             _emulatorHwnd = GetEmulatorHWnd();
             _overlay = new OverlayForm(User32.IsExclusiveFullScreen(_emulatorHwnd));
-
             SuspendEmulator(true);
         }
 
@@ -63,10 +63,10 @@ namespace EmulatorLauncher.ControlCenter
 
             User32.GetWindowThreadProcessId(_emulatorHwnd, out uint dwProcessId);
             if (dwProcessId != 0)
-            {
+            {                
                 IntPtr processHandle = Kernel32.OpenProcess(ProcessAccessFlags.All, false, dwProcessId);
                 if (processHandle != IntPtr.Zero)
-                {
+                {                    
                     if (suspend)
                         Kernel32.NtSuspendProcess(processHandle);
                     else
@@ -148,7 +148,7 @@ namespace EmulatorLauncher.ControlCenter
             label3.Height = top + h - label3.Top;
         }
 
-        private Timer _fadeTimer;
+        private System.Windows.Forms.Timer _fadeTimer;
         private const int FadeDurationMs = 150;
         private const int TimerIntervalMs = 15;
 
@@ -156,7 +156,7 @@ namespace EmulatorLauncher.ControlCenter
         {
             double step = (double)TimerIntervalMs / FadeDurationMs;
 
-            _fadeTimer = new Timer { Interval = TimerIntervalMs };
+            _fadeTimer = new System.Windows.Forms.Timer { Interval = TimerIntervalMs };
             _fadeTimer.Tick += (s, e) =>
             {
                 if (this.Opacity >= 1.0)
@@ -164,6 +164,7 @@ namespace EmulatorLauncher.ControlCenter
                     this.Opacity = 1.0;
                     _fadeTimer.Stop();
                     _fadeTimer.Dispose();
+                    SynchronizationContext.Current?.Post((state) => { User32.ForceForegroundWindow((IntPtr) state); }, Handle);
                     return;
                 }
 
@@ -191,18 +192,15 @@ namespace EmulatorLauncher.ControlCenter
             base.OnClosed(e);
 
             if (SuspendEmulator(false))
-                System.Threading.Thread.Sleep(350);
+                Thread.Sleep(350);
 
             if (_emulatorHwnd != IntPtr.Zero)
             {
-                var style = (WS)User32.GetWindowLong(_emulatorHwnd, GWL.STYLE);
-                if (style.HasFlag(WS.MINIMIZE))                               
+                if (User32.GetWindowStyle(_emulatorHwnd).HasFlag(WS.MINIMIZE))
                     User32.ShowWindowAsync(_emulatorHwnd, SW.RESTORE);
 
-                System.Threading.Thread.Sleep(50);
+                Thread.Sleep(50);
                 User32.ForceForegroundWindow(_emulatorHwnd);
-
-                _emulatorHwnd = IntPtr.Zero;
             }
 
             if (_overlay != null)
@@ -224,23 +222,24 @@ namespace EmulatorLauncher.ControlCenter
                 components.Dispose();
 
             base.Dispose(disposing);
+
+            SynchronizationContext.Current?.Post((state) => 
+            {
+                var emulatorHwnd = (IntPtr)state;
+                if (emulatorHwnd != IntPtr.Zero && User32.IsWindow(emulatorHwnd))
+                {
+                    if (User32.GetWindowStyle(emulatorHwnd).HasFlag(WS.MINIMIZE))
+                    {
+                        User32.ShowWindowAsync(emulatorHwnd, SW.RESTORE);
+                        Thread.Sleep(50);
+                        User32.ForceForegroundWindow(emulatorHwnd);
+                    }
+                }
+            }, _emulatorHwnd);
         }
 
         private IntPtr GetEmulatorHWnd()
         {    
-            /*
-            IntPtr hWnd = User32.GetWindow(User32.GetDesktopWindow(), GW.CHILD);
-            while (hWnd != IntPtr.Zero)
-            {
-                if (User32.IsWindowVisible(hWnd))
-                {
-                    User32.GetWindowThreadProcessId(hWnd, out uint wndProcessId);
-                }
-
-                hWnd = User32.GetWindow(hWnd, GW.HWNDNEXT);
-            }
-            */
-
             var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + Process.GetCurrentProcess().Id);
             var moc = searcher.Get();
 
@@ -249,20 +248,18 @@ namespace EmulatorLauncher.ControlCenter
                 try
                 {
                     var processId = Convert.ToInt32(mo["ProcessID"]);
-                    var px = Process.GetProcessById(processId);
-                    if (px != null && User32.IsWindow(px.MainWindowHandle) && User32.IsWindowVisible(px.MainWindowHandle))
-                        return px.MainWindowHandle;
 
-                    if (px != null && px.MainWindowHandle == IntPtr.Zero)
+                    try
                     {
-                        var list = User32.FindProcessWnds(processId).ToList();
-                        if (list.Any())
-                        {
-                            var classes = list.Select(l => User32.GetClassName(l)).ToArray();
-                            var txt = list.Select(l => User32.GetWindowText(l)).ToArray();
-                            return list.FirstOrDefault();
-                        }
+                        var px = Process.GetProcessById(processId);
+                        if (px != null && User32.IsWindow(px.MainWindowHandle) && User32.IsWindowVisible(px.MainWindowHandle))
+                            return px.MainWindowHandle;
                     }
+                    catch { }
+
+                    var list = User32.FindProcessWnds(processId).ToList();
+                    if (list.Any())
+                        return list.FirstOrDefault();
                 }
                 catch { }
             }
