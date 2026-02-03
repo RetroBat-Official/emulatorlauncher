@@ -1821,35 +1821,13 @@ namespace EmulatorLauncher
             if (_emulator != "starship")
                 return;
 
-            var otrFiles = Directory.GetFiles(_path, "*.otr");
-            var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("starship.otr", StringComparison.OrdinalIgnoreCase));
+            var otrFiles = Directory.GetFiles(_path, "*.o2r");
+            var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("starship.o2r", StringComparison.OrdinalIgnoreCase));
 
             if (!gameOtrFiles.Any())
             {
                 string emulatorRom = Path.Combine(_path, Path.GetFileName(rom));
                 try { File.Copy(rom, emulatorRom); } catch { SimpleLogger.Instance.Warning("[WARNING] Impossible to copy game file to Starship folder."); }
-
-                string otrExtractExe = Path.Combine(_path, "generate_otr.bat");
-                var starshipExtract = new ProcessStartInfo()
-                {
-                    FileName = otrExtractExe,
-                    WorkingDirectory = _path
-                };
-
-                using (Process process = new Process())
-                {
-                    process.StartInfo = starshipExtract;
-                    process.Start();
-                    process.WaitForExit();
-                    if (process.ExitCode == 0)
-                    {
-                        SimpleLogger.Instance.Info("[INFO] OTR extracted succesfully.");
-                    }
-                    else
-                    {
-                        SimpleLogger.Instance.Error("[INFO] There was a problem extracting OTR data.");
-                    }
-                }
             }
 
             // Settings
@@ -2013,7 +1991,7 @@ namespace EmulatorLauncher
             }
 
             BindFeatureSliderInt(cvars, "gMSAAValue", "starship_msaa", "1");
-            cvars["gOpenMenuBar"] = 1;
+            cvars["gOpenMenuBar"] = 0;
             cvars["gSdlWindowedFullscreen"] = _exclusivefs ? 0 : 1;
             BindFeatureInt(cvars, "gTextureFilter", "starship_texturefilter", "1");
             BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "starship_vsync", "1", "0");
