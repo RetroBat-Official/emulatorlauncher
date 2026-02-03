@@ -10,8 +10,8 @@ using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common;
 
 namespace EmulatorLauncher.PadToKeyboard
-{
-    public class KeyboardListener : IDisposable
+{    
+    class KeyboardListener : IDisposable
     {
         public const int VK_F12 = 0x7B;
         private const int VK_CONTROL = 0x11;
@@ -22,14 +22,28 @@ namespace EmulatorLauncher.PadToKeyboard
         private volatile bool _running = true;
         private bool _isKeyDown;
 
-        private int _virtualKey;
-        private bool _checkCtrl;
+        private int _vkKey;
+        private int _vkCtrl = 0;
+
+        public KeyboardListener(Controller keyboardSettings, Action keyPressed)
+        {
+            var bButton = keyboardSettings?.Config[InputKey.b];
+            _vkKey = bButton == null ? VK_F12 : SDL2ToVk.SdlKeycodeToVk((int)bButton.Id);
+
+            var hotKey = keyboardSettings?.Config[InputKey.hotkey];
+            _vkCtrl = hotKey == null ? VK_CONTROL : SDL2ToVk.SdlKeycodeToVk((int)hotKey.Id);
+
+             _keyPressed = keyPressed;
+
+            _thread = new Thread(KeyboardLoop) { IsBackground = true, Name = "KeyboardListener" };
+            _thread.Start();
+        }
 
         public KeyboardListener(int virtualKey, bool ctrl, Action keyPressed)
         {
-            _virtualKey = virtualKey;
+            _vkKey = virtualKey;
             _keyPressed = keyPressed;
-            _checkCtrl = ctrl;
+            _vkCtrl = ctrl ? VK_CONTROL : 0;
 
             _thread = new Thread(KeyboardLoop) { IsBackground = true, Name = "KeyboardListener" };
             _thread.Start();
@@ -39,8 +53,8 @@ namespace EmulatorLauncher.PadToKeyboard
         {
             while (_running)
             {
-                bool isDown = (GetAsyncKeyState(_virtualKey) & 0x8000) != 0;
-                bool ctrlDown = _checkCtrl ? (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0 : true;
+                bool isDown = (GetAsyncKeyState(_vkKey) & 0x8000) != 0;
+                bool ctrlDown = _vkCtrl != 0 ? (GetAsyncKeyState(_vkCtrl) & 0x8000) != 0 : true;
 
                 if (ctrlDown && isDown && !_isKeyDown)
                 {

@@ -3,11 +3,13 @@ using System.Linq;
 using System.Drawing;
 using System.Diagnostics;
 using System.Net;
+using System.Collections.Generic;
+using System.Management;
 
 namespace EmulatorLauncher.Common
 {
     public static class Misc
-    {        
+    {
         /// <summary>
         /// Detects if WiimoteGun is running in gamepad mode
         /// </summary>
@@ -27,30 +29,6 @@ namespace EmulatorLauncher.Common
             return false;
         }
 
-        public static string GetProcessCommandline(this Process process)
-        {
-            if (process == null)
-                return null;
-
-            try
-            {
-                using (var cquery = new System.Management.ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId=" + process.Id))
-                {
-                    var commandLine = cquery.Get()
-                        .OfType<System.Management.ManagementObject>()
-                        .Select(p => (string)p["CommandLine"])
-                        .FirstOrDefault();
-
-                    return commandLine;
-                }
-            }
-            catch
-            {
-
-            }
-
-            return null;
-        }
 
         public static bool IsDeveloperModeEnabled
         {
