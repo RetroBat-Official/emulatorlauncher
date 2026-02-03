@@ -145,6 +145,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Joysticks\RawInputDevice.cs" />
+    <Compile Include="SDL2ToVk.cs" />
     <Compile Include="SQLiteInteropManager.cs" />
     <Compile Include="Steam\KeyValue.cs" />
     <Compile Include="Steam\SteamAppInfo.cs" />

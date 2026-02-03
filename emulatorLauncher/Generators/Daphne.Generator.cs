@@ -379,26 +379,33 @@ namespace EmulatorLauncher
 
                 ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadeManager.GetPlatformFromFile(exe), system, rom, emulatorPath, resolution, emulator);
             }
-
             else if (emulator == "hypseus")
             {
-                BezelFiles bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                var bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                 if (bezelFileInfo != null)
                 {
                     string bezelFile = bezelFileInfo.PngFile;
-                    string hypseusBezelFile = Path.Combine(AppConfig.GetFullPath("hypseus"), "bezels", "retrobatBezel.png");
-
                     if (bezelFile != null && File.Exists(bezelFile))
                     {
-                        if (File.Exists(hypseusBezelFile))
-                            File.Delete(hypseusBezelFile);
+                        string hypseusBezelPath = Path.Combine(AppConfig.GetFullPath("hypseus"), "bezels");
+                        string hypseusBezelFile = Path.Combine(hypseusBezelPath, "retrobatBezel.png");
 
-                        File.Copy(bezelFile, hypseusBezelFile);
+                        try
+                        {
+                            if (!Directory.Exists(hypseusBezelPath))
+                                Directory.CreateDirectory(hypseusBezelPath);
 
-                        string targetBezelFile = Path.GetFileName(hypseusBezelFile);
+                            if (File.Exists(hypseusBezelFile))
+                                File.Delete(hypseusBezelFile);
 
-                        commandArray.Add("-bezel");
-                        commandArray.Add("\"" + targetBezelFile + "\"");
+                            File.Copy(bezelFile, hypseusBezelFile);
+
+                            string targetBezelFile = Path.GetFileName(hypseusBezelFile);
+
+                            commandArray.Add("-bezel");
+                            commandArray.Add("\"" + targetBezelFile + "\"");
+                        }
+                        catch { }
                     }
                 }
 
@@ -413,14 +420,20 @@ namespace EmulatorLauncher
                         commandArray.Add("\"" + targetBezelFile + "\"");
                     }
                 }
-            }
 
-            string args = string.Join(" ", commandArray);
+                return new ProcessStartInfo()
+                {
+                    FileName = exe,
+                    Arguments = string.Join(" ", commandArray),
+                    UseShellExecute = false, CreateNoWindow = true, // Hides console
+                    WorkingDirectory = emulatorPath,
+                };
+            }
 
             return new ProcessStartInfo()
             {
                 FileName = exe,
-                Arguments = args,
+                Arguments = string.Join(" ", commandArray),
                 WorkingDirectory = emulatorPath,
             };
         }

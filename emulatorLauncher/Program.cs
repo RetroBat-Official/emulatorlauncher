@@ -751,7 +751,7 @@ namespace EmulatorLauncher
                             app.Input.Add(new PadToKeyInput() { Name = InputKey.down, Code = "KEY_DOWN" });
                             app.Input.Add(new PadToKeyInput() { Name = InputKey.up, Code = "KEY_UP" });
                             mapping.Applications.Add(app);
-                        }
+                        }                        
 
                         using (new HighPerformancePowerScheme())
                         using (var kb = new KeyboardListener(KeyboardListener.VK_F12, true, ShowControlCenter))

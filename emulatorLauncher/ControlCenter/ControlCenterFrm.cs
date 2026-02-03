@@ -3,17 +3,17 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Management;
 using System.Windows.Forms;
 using System.Linq;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace EmulatorLauncher.ControlCenter
 {
     partial class ControlCenterFrm : Form
     {
         // List emulators that don't pause when the focus is lost, and can be suspended with NtSuspendProcess
-        static string[] emulatorsToSuspend = new string[] { "mame64", "m2emulator" };
+        static string[] emulatorsToSuspend = new string[] { "mame64", "m2emulator", "hypseus" };
 
         private OverlayForm _overlay;
 
@@ -239,55 +239,63 @@ namespace EmulatorLauncher.ControlCenter
         }
 
         private IntPtr GetEmulatorHWnd()
-        {    
-            var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + Process.GetCurrentProcess().Id);
-            var moc = searcher.Get();
+        {
+            var hWnds = new List<IntPtr>();
 
-            foreach (var mo in moc)
+            foreach (var processId in Process.GetCurrentProcess().GetChildrenProcessIds())
             {
                 try
                 {
-                    var processId = Convert.ToInt32(mo["ProcessID"]);
+                    bool found = false;
 
                     try
                     {
                         var px = Process.GetProcessById(processId);
+
+                        if (px != null && px.ProcessName != null)
+                        {
+                            // Exclude TeknoParrotUi, which is an intermediate process
+                            if (px.ProcessName.Equals("TeknoParrotUi", StringComparison.InvariantCultureIgnoreCase))
+                                continue;
+                        }
+
                         if (px != null && User32.IsWindow(px.MainWindowHandle) && User32.IsWindowVisible(px.MainWindowHandle))
-                            return px.MainWindowHandle;
+                        {
+                            found = true;
+                            hWnds.Add(px.MainWindowHandle);
+                        }
                     }
                     catch { }
 
-                    var list = User32.FindProcessWnds(processId).ToList();
-                    if (list.Any())
-                        return list.FirstOrDefault();
+                    if (!found)
+                        hWnds.AddRange(User32.FindProcessWnds(processId).Where(hWnd => !User32.GetWindowStyle(hWnd).HasFlag(WS.CHILD)));
                 }
                 catch { }
             }
+
+            hWnds = hWnds.Distinct().ToList();
+            if (hWnds.Any())
+                return hWnds.FirstOrDefault();        
 
             return IntPtr.Zero;
         }
 
         private static void KillChildrenProcesses(int pid, bool root = true)
-        {   
-            var searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
-            var moc = searcher.Get();
+        {
+            IEnumerable<int> processIds = ProcessExtensions.GetChildrenProcessIds(pid);
+            if (!root)
+                processIds = processIds.Union(new int[] { pid });
 
-            foreach (var mo in moc)
-                KillChildrenProcesses(Convert.ToInt32(mo["ProcessID"]), false);
-
-            if (root)
-                return;
-
-            try
+            foreach (var processId in processIds.Reverse())
             {
-                var proc = Process.GetProcessById(pid);
-                if (proc != null)
+                try
                 {
-                    KillChildrenProcesses(pid);
-                    proc.Kill();
+                    var proc = Process.GetProcessById(pid);
+                    if (proc != null)
+                        proc.Kill();
                 }
+                catch { }
             }
-            catch { }
         }
 
         private string GetMediaPath(string item)
