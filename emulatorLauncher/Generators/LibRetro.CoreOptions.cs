@@ -3181,6 +3181,8 @@ namespace EmulatorLauncher.Libretro
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "mesen_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "mesen_controller2", "1");
+            if (SystemConfig["mesen_controller2"] == "770")
+                retroarchConfig["input_player2_mouse_index"] = "0";
             BindBoolFeature(retroarchConfig, "input_overlay_show_mouse_cursor", "ShowCursor", "true", "false");
 
             SetupLightGuns(retroarchConfig, "262", core, 2);
