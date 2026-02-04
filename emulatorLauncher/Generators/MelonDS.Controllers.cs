@@ -164,7 +164,7 @@ namespace EmulatorLauncher
 
             bool custoHK = Hotkeys.GetHotKeysFromFile("melonds", "", out Dictionary<string, HotkeyResult> hotkeys);
 
-            if (custoHK)
+            if (custoHK && hotkeys.Count > 0)
             {
                 foreach (var hk in hotkeys)
                 {
@@ -176,6 +176,7 @@ namespace EmulatorLauncher
                     
                     ini.WriteValue("Instance0.Keyboard", key, value);
                 }
+                _pad2Keyoverride = true;
                 return;
             }
 

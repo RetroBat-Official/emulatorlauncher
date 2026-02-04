@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
-using System.Linq;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Compression;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.PadToKeyboard;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -15,6 +17,7 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private bool _bezelsEnabled = false;
         private string _path;
+        private bool _pad2Keyoverride = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -254,6 +257,17 @@ namespace EmulatorLauncher
 
                 ini.Save();
             }
+        }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_pad2Keyoverride && File.Exists(Path.Combine(Path.GetTempPath(), "padToKey.xml")))
+            {
+                mapping = PadToKey.Load(Path.Combine(Path.GetTempPath(), "padToKey.xml"));
+                PadToKey.AddOrUpdateKeyMapping(mapping, "melonDS", InputKey.hotkey | InputKey.start, "(%{CLOSE})");
+            }
+
+            return mapping;
         }
 
         public override int RunAndWait(ProcessStartInfo path)
