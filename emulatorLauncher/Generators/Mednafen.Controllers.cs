@@ -62,7 +62,7 @@ namespace EmulatorLauncher
             Dictionary<string, HotkeyResult> kbHKDic = new Dictionary<string, HotkeyResult>();
             Dictionary<string, string> kbHKDicToUse = defaultKBValues;
 
-            _custoHK = Hotkeys.GetHotKeysFromFile("mednafen", "", out Dictionary<string, HotkeyResult> kbhotkeys);
+            _custoHK = Hotkeys.GetHotKeysFromFile("mednafen", mednafenCore, out Dictionary<string, HotkeyResult> kbhotkeys);
             if (_custoHK)
             {
                 kbHKDic = kbhotkeys;
@@ -151,7 +151,7 @@ namespace EmulatorLauncher
             if (controller.DirectInput == null)
                 return;
 
-            bool customJoyHK = Hotkeys.GetPadHKFromFile("mednafen", "", out Dictionary<string, string> padHKDic);
+            bool customJoyHK = Hotkeys.GetPadHKFromFile("mednafen", mednafenCore, out Dictionary<string, string> padHKDic);
 
             int nbAxis = controller.NbAxes;
             bool hatfix = hatFix.Contains(controller.ProductID);

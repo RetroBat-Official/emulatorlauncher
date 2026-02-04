@@ -17,7 +17,7 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
-                WriteKBHotkeys(ini);
+                WriteKBHotkeys(ini, jgenSystem);
                 return;
             }
 
@@ -31,7 +31,7 @@ namespace EmulatorLauncher
                 maxPad = systemMaxPad[jgenSystem];
 
             CleanupControls(ini, jgenSystem);
-            WriteKBHotkeys(ini);
+            WriteKBHotkeys(ini, jgenSystem);
 
             // Inject controllers                
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
@@ -279,14 +279,14 @@ namespace EmulatorLauncher
             }
         }
 
-        private void WriteKBHotkeys(IniFileJGenesis ini)
+        private void WriteKBHotkeys(IniFileJGenesis ini, string jGenSystem)
         {
             try
             {
                 ini.DeleteSection("[[input.hotkeys.mapping_1.exit]]");
                 ini.DeleteSection("[[input.hotkeys.mapping_1.toggle_overclocking]]");
 
-                bool custoHK = Hotkeys.GetHotKeysFromFile("jgenesis", "", out Dictionary<string, HotkeyResult> hotkeys, _exeName);
+                bool custoHK = Hotkeys.GetHotKeysFromFile("jgenesis", jGenSystem, out Dictionary<string, HotkeyResult> hotkeys, _exeName);
 
                 if (custoHK)
                 {

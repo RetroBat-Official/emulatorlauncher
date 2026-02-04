@@ -80,7 +80,7 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
-                ConfigureHotkeys(json);
+                ConfigureHotkeys(json, core);
                 return;
             }
 
@@ -104,10 +104,10 @@ namespace EmulatorLauncher
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
                 ConfigureInput(controller, json, system, core);
 
-            ConfigureHotkeys(json);
+            ConfigureHotkeys(json, core);
         }
 
-        private void ConfigureHotkeys(DynamicJson json)
+        private void ConfigureHotkeys(DynamicJson json, string core)
         {
             var hotkeyBindings = json.GetOrCreateContainer("HotkeyBindings");
             for (int i = 1; i < 11; i++)
@@ -116,7 +116,7 @@ namespace EmulatorLauncher
                 hotkeyBindings["Load State " + i] = "Shift+F" + i;
             }
 
-            if (Hotkeys.GetHotKeysFromFile("bizhawk", "", out Dictionary<string, HotkeyResult> hotkeys))
+            if (Hotkeys.GetHotKeysFromFile("bizhawk", core, out Dictionary<string, HotkeyResult> hotkeys))
             {
                 foreach (var h in hotkeys)
                     hotkeyBindings[h.Value.EmulatorKey] = h.Value.EmulatorValue;
