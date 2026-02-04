@@ -49,11 +49,13 @@ namespace EmulatorLauncher
             { "bizhawk", "EmuHawk" },
             { "cgenius", "CGenius" },
             { "dolphin", "Dolphin" },
+            { "duckstation", "duckstation-qt-x64-ReleaseLTCG" },
             { "flycast", "flycast" },
             { "jgenesis", "jgenesis-gui" },
             { "mednafen", "mednafen" },
             { "melonds", "melonDS" },
             { "mesen", "Mesen" },
+            { "pcsx2", "pcsx2-qt" },
             { "project64", "Project64" },
             { "raine", "raine" },
             { "retroarch", "retroarch" },
@@ -157,6 +159,26 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_frame_advance", "Frame Advance/Frame Advance", "K"),
                 }),
 
+            new EmulatorHotkey("duckstation", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_menu_toggle", "OpenPauseMenu", "F1"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "ToggleFullscreen", "F"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "FastForward", "L"),
+                    new EmulatorHotkeyInfo("input_rewind", "Rewind", "Backspace"),
+                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "ToggleFastForward", "Space"),
+                    new EmulatorHotkeyInfo("input_frame_advance", "FrameStep", "K"),
+                    new EmulatorHotkeyInfo("input_screenshot", "Screenshot", "F8"),
+                    new EmulatorHotkeyInfo("input_save_state", "SaveSelectedSaveState", "F2"),
+                    new EmulatorHotkeyInfo("input_load_state", "LoadSelectedSaveState", "F4"),
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "SelectPreviousSaveStateSlot", "F6"),
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "SelectNextSaveStateSlot", "F7"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "TogglePause", "P"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "PowerOff", "Escape"),
+                    new EmulatorHotkeyInfo("input_disk_prev", "SwitchToPreviousDisc", "f9"),
+                    new EmulatorHotkeyInfo("input_disk_next", "SwitchToNextDisc", "f10"),
+                    new EmulatorHotkeyInfo("input_disk_eject_toggle", "ChangeDisc", "f11")
+                }),
+
             new EmulatorHotkey("flycast", new EmulatorHotkeyInfo[]
                 {
                     new EmulatorHotkeyInfo("input_menu_toggle", "btn_menu", "58"),
@@ -222,6 +244,23 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_save_state", "SaveState", "91"),
                     new EmulatorHotkeyInfo("input_load_state", "LoadState", "93"),
                     new EmulatorHotkeyInfo("input_exit_emulator", "Exit", "13"),
+                }),
+
+            new EmulatorHotkey("pcsx2", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_menu_toggle", "OpenPauseMenu", "F1"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "ToggleFullscreen", "F"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "HoldTurbo", "L"),
+                    new EmulatorHotkeyInfo("input_rewind", "ToggleSlowMotion", "Backspace"),
+                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "ToggleTurbo", "Space"),
+                    new EmulatorHotkeyInfo("input_frame_advance", "FrameAdvance", "K"),
+                    new EmulatorHotkeyInfo("input_screenshot", "Screenshot", "F8"),
+                    new EmulatorHotkeyInfo("input_save_state", "SaveStateToSlot", "F2"),
+                    new EmulatorHotkeyInfo("input_load_state", "LoadStateFromSlot", "F4"),
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "PreviousSaveStateSlot", "F6"),
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "NextSaveStateSlot", "F7"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "TogglePause", "P"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "ShutdownVM", "Escape")
                 }),
 
             new EmulatorHotkey("project64", new EmulatorHotkeyInfo[]
