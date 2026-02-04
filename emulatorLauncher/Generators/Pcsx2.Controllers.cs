@@ -245,29 +245,6 @@ namespace EmulatorLauncher
             WriteKeyboardMapping(padNumber, "RRight", InputKey.rightanalogright);
             WriteKeyboardMapping(padNumber, "RDown", InputKey.rightanalogdown);
             WriteKeyboardMapping(padNumber, "RLeft", InputKey.rightanalogleft);
-
-            // Restore keyboard hotkeys
-            pcsx2ini.WriteValue("Hotkeys", "ToggleFullscreen", "Keyboard/Alt & Keyboard/Return");
-            pcsx2ini.WriteValue("Hotkeys", "CycleAspectRatio", "Keyboard/F6");
-            pcsx2ini.WriteValue("Hotkeys", "CycleInterlaceMode", "Keyboard/F5");
-            pcsx2ini.WriteValue("Hotkeys", "CycleMipmapMode", "Keyboard/Insert");
-            pcsx2ini.WriteValue("Hotkeys", "GSDumpMultiFrame", "Keyboard/Control & Keyboard/Shift & Keyboard/F8");
-            pcsx2ini.WriteValue("Hotkeys", "Screenshot", "Keyboard/F8");
-            pcsx2ini.WriteValue("Hotkeys", "GSDumpSingleFrame", "Keyboard/Shift & Keyboard/F8");
-            pcsx2ini.WriteValue("Hotkeys", "ToggleSoftwareRendering", "Keyboard/F9");
-            pcsx2ini.WriteValue("Hotkeys", "ZoomIn", "Keyboard/Control & Keyboard/Plus");
-            pcsx2ini.WriteValue("Hotkeys", "ZoomOut", "Keyboard/Control & Keyboard/Minus");
-            pcsx2ini.WriteValue("Hotkeys", "InputRecToggleMode", "Keyboard/Shift & Keyboard/R");
-            pcsx2ini.WriteValue("Hotkeys", "LoadStateFromSlot", "Keyboard/F3");
-            pcsx2ini.WriteValue("Hotkeys", "SaveStateToSlot", "Keyboard/F1");
-            pcsx2ini.WriteValue("Hotkeys", "NextSaveStateSlot", "Keyboard/F2");
-            pcsx2ini.WriteValue("Hotkeys", "PreviousSaveStateSlot", "Keyboard/Shift & Keyboard/F2");
-            pcsx2ini.WriteValue("Hotkeys", "OpenPauseMenu", "Keyboard/Escape");
-            pcsx2ini.WriteValue("Hotkeys", "ToggleFrameLimit", "Keyboard/F4");
-            pcsx2ini.WriteValue("Hotkeys", "TogglePause", "Keyboard/Space");
-            pcsx2ini.WriteValue("Hotkeys", "ToggleSlowMotion", "Keyboard/Shift & Keyboard/Backtab");
-            pcsx2ini.WriteValue("Hotkeys", "ToggleTurbo", "Keyboard/Tab");
-            pcsx2ini.WriteValue("Hotkeys", "HoldTurbo", "Keyboard/Period");
         }
 
         /// <summary>
@@ -494,22 +471,46 @@ namespace EmulatorLauncher
                 {
                     var hotKeyName = GetDInputKeyName(dinputController, "back");
 
-                    foreach (var hotkey in dinputHotkeys)
+                    if (Hotkeys.GetPadHKFromFile("pcsx2", "", out var padHKDic))
                     {
-                        string hkKey = hotkey.Value.Key;
-                        var inputKeyName = GetDInputKeyName(dinputController, hotkey.Key);
-                        if (string.IsNullOrEmpty(inputKeyName))
-                            continue;
-
-                        if (hkKey == "HoldTurbo" && SystemConfig.getOptBoolean("fastforward_toggle"))
+                        foreach (var hotkey in padHKDic)
                         {
-                            hkKey = "ToggleTurbo";
-                        }
+                            string key = hotkey.Key;
+                            string value = hotkey.Value;
+                            if (value == "x")
+                                value = "y";
+                            else if (value == "y")
+                                value = "x";
 
-                        pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
+                            if (key == "HoldTurbo" && SystemConfig.getOptBoolean("fastforward_toggle"))
+                                key = "ToggleTurbo";
+
+                            var inputKeyName = GetDInputKeyName(dinputController, value);
+
+                            if (string.IsNullOrEmpty(inputKeyName))
+                                continue;
+
+                            pcsx2ini.WriteValue("Hotkeys", key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
+                        }
                     }
-                    if (!_fullscreen)
-                        pcsx2ini.WriteValue("Hotkeys", "ToggleFullscreen", techPadNumber + hotKeyName + " & " + techPadNumber + GetDInputKeyName(dinputController, "leftshoulder"));
+
+                    else
+                    {
+                        foreach (var hotkey in dinputHotkeys)
+                        {
+                            string hkKey = hotkey.Value.Key;
+                            var inputKeyName = GetDInputKeyName(dinputController, hotkey.Key);
+                            if (string.IsNullOrEmpty(inputKeyName))
+                                continue;
+
+                            if (hkKey == "HoldTurbo" && SystemConfig.getOptBoolean("fastforward_toggle"))
+                            {
+                                hkKey = "ToggleTurbo";
+                            }
+
+                            pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
+                        }
+                    }
                 }
             }
 
@@ -648,23 +649,43 @@ namespace EmulatorLauncher
                     var hotKeyName = GetInputKeyName(ctrl, InputKey.hotkey, tech);
                     if (hotKeyName != "None")
                     {
-                        foreach (var hotkey in hotkeys)
+                        if (Hotkeys.GetPadHKFromFile("pcsx2", "", out var padHKDic))
                         {
-                            string hkKey = hotkey.Value.Key;
-                            var inputKeyName = GetInputKeyName(ctrl, hotkey.Key, tech);
-                            if (string.IsNullOrEmpty(inputKeyName) || inputKeyName == "None")
-                                continue;
-
-                            if (hkKey == "HoldTurbo" && SystemConfig.getOptBoolean("fastforward_toggle"))
+                            foreach (var hotkey in padHKDic)
                             {
-                                hkKey = "ToggleTurbo";
-                            }
+                                string key = hotkey.Key;
+                                string value = hotkey.Value;
 
-                            pcsx2ini.WriteValue("Hotkeys", hkKey, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
+                                if (!Enum.TryParse<InputKey>(value, ignoreCase: true, out var newValue))
+                                    continue;
+
+                                if (key == "HoldTurbo" && SystemConfig.getOptBoolean("fastforward_toggle"))
+                                    key = "ToggleTurbo";
+
+                                var inputKeyName = GetInputKeyName(ctrl, newValue, tech);
+
+                                pcsx2ini.WriteValue("Hotkeys", key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
+                            }
+                        }
+
+                        else
+                        {
+                            foreach (var hotkey in hotkeys)
+                            {
+                                string hkKey = hotkey.Value.Key;
+                                var inputKeyName = GetInputKeyName(ctrl, hotkey.Key, tech);
+                                if (string.IsNullOrEmpty(inputKeyName) || inputKeyName == "None")
+                                    continue;
+
+                                if (hkKey == "HoldTurbo" && SystemConfig.getOptBoolean("fastforward_toggle"))
+                                {
+                                    hkKey = "ToggleTurbo";
+                                }
+
+                                pcsx2ini.WriteValue("Hotkeys", hkKey, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
+                            }
                         }
                     }
-                    if (!_fullscreen)
-                        pcsx2ini.WriteValue("Hotkeys", "ToggleFullscreen", techPadNumber + hotKeyName + " & " + techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
                 }
             }
 
@@ -673,12 +694,32 @@ namespace EmulatorLauncher
 
         private void ResetHotkeysToDefault(IniFile pcsx2ini)
         {
-            foreach (var hotkey in hotkeys)
-                pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, hotkey.Value.Value);
+            bool custoHK = Hotkeys.GetHotKeysFromFile("pcsx2", "", out Dictionary<string, HotkeyResult> custoHotkeys);
 
-            pcsx2ini.WriteValue("Hotkeys", "ToggleTurbo", "Keyboard/Space");
-            pcsx2ini.WriteValue("Hotkeys", "TogglePause", "Keyboard/P");
-            pcsx2ini.WriteValue("Hotkeys", "FrameAdvance", "Keyboard/K");
+            if (custoHK && custoHotkeys.Count > 0)
+            {
+                foreach (var hotkey in custoHotkeys)
+                {
+                    string value = "Keyboard/" + hotkey.Value.EmulatorValue;
+                    pcsx2ini.WriteValue("Hotkeys", hotkey.Value.EmulatorKey, value);
+                }
+                return;
+            }
+            else
+            {
+                foreach (var hotkey in hotkeys)
+                    pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, hotkey.Value.Value);
+
+                pcsx2ini.WriteValue("Hotkeys", "ToggleTurbo", "Keyboard/Space");
+                pcsx2ini.WriteValue("Hotkeys", "TogglePause", "Keyboard/P");
+                pcsx2ini.WriteValue("Hotkeys", "FrameAdvance", "Keyboard/K");
+            }
+
+            if (pcsx2ini.GetValue("Hotkeys", "ToggleFrameLimit") == "Keyboard/F4")
+                pcsx2ini.WriteValue("Hotkeys", "ToggleFrameLimit", "Keyboard/F3");
+            
+            if (pcsx2ini.GetValue("Hotkeys", "CycleAspectRatio") == "Keyboard/F4")
+                pcsx2ini.WriteValue("Hotkeys", "CycleAspectRatio", "Keyboard/F5");
         }
 
         static public Dictionary<InputKey, KeyValuePair<string, string>> hotkeys = new Dictionary<InputKey, KeyValuePair<string, string>>()
@@ -940,26 +981,26 @@ namespace EmulatorLauncher
             switch (sdlCode)
             {
                 case 0x0D: return "Return";
-                case 0x00: return "\"\"";
+                case 0x00: return "None";
                 case 0x08: return "Backspace";
                 case 0x09: return "Tab";
-                case 0x1B: return "Esc";
+                case 0x1B: return "Escape";
                 case 0x20: return "Space";
                 case 0x21: return "Exclam";
-                case 0x22: return "\"" + @"\" + "\"" + "\"";
-                case 0x23: return "\"#\"";
+                case 0x22: return "QuoteDbl";
+                case 0x23: return "Hash";
                 case 0x24: return "Dollar";
-                case 0x25: return "\"%\"";
+                case 0x25: return "Percent";
                 case 0x26: return "Ampersand";
-                case 0x27: return @"\";
+                case 0x27: return "Quote";
                 case 0x28: return "ParenLeft";
                 case 0x29: return "ParenRight";
-                case 0x2A: return "NumpadAsterisk";
-                case 0x2B: return "\"+\"";
+                case 0x2A: return "Asterisk";
+                case 0x2B: return "Plus";
                 case 0x2C: return "Comma";
-                case 0x2D: return "\"-\"";
-                case 0x2E: return "\".\"";
-                case 0x2F: return "/";
+                case 0x2D: return "Minus";
+                case 0x2E: return "Period";
+                case 0x2F: return "Slash";
                 case 0x30: return "0";
                 case 0x31: return "1";
                 case 0x32: return "2";
@@ -970,18 +1011,18 @@ namespace EmulatorLauncher
                 case 0x37: return "7";
                 case 0x38: return "8";
                 case 0x39: return "9";
-                case 0x3A: return "\":\"";
+                case 0x3A: return "Colon";
                 case 0x3B: return "Semicolon";
-                case 0x3C: return "<";
+                case 0x3C: return "IntlBackslash";
                 case 0x3D: return "Equal";
-                case 0x3F: return ">";
-                case 0x40: return "\"" + "@" + "\"";
-                case 0x5B: return "\"[\"";
-                case 0x5C: return @"\";
-                case 0x5D: return "\"]\"";
-                case 0x5E: return "^";
-                case 0x5F: return "_";
-                case 0x60: return "\"'\"";
+                case 0x3F: return "Question";
+                case 0x40: return "At";
+                case 0x5B: return "BracketLeft";
+                case 0x5C: return "Backslash";
+                case 0x5D: return "BracketRight";
+                case 0x5E: return "Caret";
+                case 0x5F: return "Underscore";
+                case 0x60: return "Backquote";
                 case 0x61: return "A";
                 case 0x62: return "B";
                 case 0x63: return "C";
@@ -1035,23 +1076,23 @@ namespace EmulatorLauncher
                 case 0x40000051: return "Down";
                 case 0x40000052: return "Up";
                 case 0x40000053: return "NumLock";
-                case 0x40000054: return "Num+/";
-                case 0x40000055: return "Num+*";
-                case 0x40000056: return "Num+-";
-                case 0x40000057: return "Num++";
-                case 0x40000058: return "Num+Enter";
-                case 0x40000059: return "Num+1";
-                case 0x4000005A: return "Num+2";
-                case 0x4000005B: return "Num+3";
-                case 0x4000005C: return "Num+4";
-                case 0x4000005D: return "Num+5";
-                case 0x4000005E: return "Num+6";
-                case 0x4000005F: return "Num+7";
-                case 0x40000060: return "Num+8";
-                case 0x40000061: return "Num+9";
-                case 0x40000062: return "Num+0";
-                case 0x40000063: return "Num+.";
-                case 0x40000067: return "Num+=";
+                case 0x40000054: return "NumpadDivide";
+                case 0x40000055: return "NumpadMultiply";
+                case 0x40000056: return "NumpadSubtract";
+                case 0x40000057: return "NumpadAdd";
+                case 0x40000058: return "NumpadEnter";
+                case 0x40000059: return "Numpad1";
+                case 0x4000005A: return "Numpad2";
+                case 0x4000005B: return "Numpad3";
+                case 0x4000005C: return "Numpad4";
+                case 0x4000005D: return "Numpad5";
+                case 0x4000005E: return "Numpad6";
+                case 0x4000005F: return "Numpad7";
+                case 0x40000060: return "Numpad8";
+                case 0x40000061: return "Numpad9";
+                case 0x40000062: return "Numpad0";
+                case 0x40000063: return "NumpadDecimal";
+                case 0x40000067: return "NumpadEqual";
                 case 0x40000068: return "F13";
                 case 0x40000069: return "F14";
                 case 0x4000006A: return "F15";

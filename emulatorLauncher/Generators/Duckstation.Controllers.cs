@@ -347,23 +347,44 @@ namespace EmulatorLauncher
             if (playerIndex == 1)
             {
                 var hotKeyName = GetInputKeyName(ctrl, InputKey.hotkey, tech);
+
                 if (hotKeyName != "None")
                 {
-                    foreach (var hotkey in hotkeys)
+                    if (Hotkeys.GetPadHKFromFile("duckstation", "", out var padHKDic))
                     {
-                        string hkKey = hotkey.Value.Key;
-                        var inputKeyName = GetInputKeyName(ctrl, hotkey.Key, tech);
-                        if (string.IsNullOrEmpty(inputKeyName) || inputKeyName == "None")
-                            continue;
+                        foreach (var hotkey in padHKDic)
+                        {
+                            string key = hotkey.Key;
+                            string value = hotkey.Value;
 
-                        if (SystemConfig.getOptBoolean("fastforward_toggle") && hkKey == "FastForward")
-                            hkKey = "ToggleFastForward";
+                            if (!Enum.TryParse<InputKey>(value, ignoreCase: true, out var newValue))
+                                continue;
 
-                        ini.WriteValue("Hotkeys", hotkey.Value.Key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
+                            if (key == "FastForward" && SystemConfig.getOptBoolean("fastforward_toggle"))
+                                key = "ToggleFastForward";
+
+                            var inputKeyName = GetInputKeyName(ctrl, newValue, tech);
+
+                            ini.WriteValue("Hotkeys", key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
+                        }
+                    }
+
+                    else
+                    {
+                        foreach (var hotkey in hotkeys)
+                        {
+                            string hkKey = hotkey.Value.Key;
+                            var inputKeyName = GetInputKeyName(ctrl, hotkey.Key, tech);
+                            if (string.IsNullOrEmpty(inputKeyName) || inputKeyName == "None")
+                                continue;
+
+                            if (SystemConfig.getOptBoolean("fastforward_toggle") && hkKey == "FastForward")
+                                hkKey = "ToggleFastForward";
+
+                            ini.WriteValue("Hotkeys", hotkey.Value.Key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
+                        }
                     }
                 }
-                if (SystemConfig.isOptSet("disable_fullscreen") && SystemConfig.getOptBoolean("disable_fullscreen"))
-                    ini.WriteValue("Hotkeys", "ToggleFullscreen", techPadNumber + hotKeyName + " & " + techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
             }
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
@@ -371,12 +392,27 @@ namespace EmulatorLauncher
 
         private void ResetHotkeysToDefault(IniFile ini)
         {
-            foreach (var hotkey in hotkeys)
-                ini.WriteValue("Hotkeys", hotkey.Value.Key, hotkey.Value.Value);
+            bool custoHK = Hotkeys.GetHotKeysFromFile("duckstation", "", out Dictionary<string, HotkeyResult> custoHotkeys);
 
-            ini.WriteValue("Hotkeys", "ToggleFastForward", "Keyboard/Space");
-            ini.WriteValue("Hotkeys", "FrameStep", "Keyboard/K");
-            ini.WriteValue("Hotkeys", "TogglePause", "Keyboard/P");
+            if (custoHK && custoHotkeys.Count > 0)
+            {
+                foreach (var hotkey in custoHotkeys)
+                {
+                    string value = "Keyboard/" + hotkey.Value.EmulatorValue;
+                    ini.WriteValue("Hotkeys", hotkey.Value.EmulatorKey, value);
+                }
+                return;
+            }
+            else
+            {
+
+                foreach (var hotkey in hotkeys)
+                    ini.WriteValue("Hotkeys", hotkey.Value.Key, hotkey.Value.Value);
+
+                ini.WriteValue("Hotkeys", "ToggleFastForward", "Keyboard/Space");
+                ini.WriteValue("Hotkeys", "FrameStep", "Keyboard/K");
+                ini.WriteValue("Hotkeys", "TogglePause", "Keyboard/P");
+            }
         }
 
         static public Dictionary<InputKey, KeyValuePair<string, string>> hotkeys = new Dictionary<InputKey, KeyValuePair<string, string>>()
@@ -474,23 +510,23 @@ namespace EmulatorLauncher
                 case 0x00: return "\"\"";
                 case 0x08: return "Backspace";
                 case 0x09: return "Tab";
-                case 0x1B: return "Esc";
+                case 0x1B: return "Escape";
                 case 0x20: return "Space";
                 case 0x21: return "Exclam";
-                case 0x22: return "\"" + @"\" + "\"" + "\"";
-                case 0x23: return "\"#\"";
+                case 0x22: return "QuoteDbl";
+                case 0x23: return "Hash";
                 case 0x24: return "Dollar";
-                case 0x25: return "\"%\"";
+                case 0x25: return "Percent";
                 case 0x26: return "Ampersand";
-                case 0x27: return @"\";
+                case 0x27: return "Quote";
                 case 0x28: return "ParenLeft";
                 case 0x29: return "ParenRight";
-                case 0x2A: return "NumpadAsterisk";
-                case 0x2B: return "\"+\"";
+                case 0x2A: return "Asterisk";
+                case 0x2B: return "Plus";
                 case 0x2C: return "Comma";
-                case 0x2D: return "\"-\"";
-                case 0x2E: return "\".\"";
-                case 0x2F: return "/";
+                case 0x2D: return "Minus";
+                case 0x2E: return "Period";
+                case 0x2F: return "Slash";
                 case 0x30: return "0";
                 case 0x31: return "1";
                 case 0x32: return "2";
@@ -501,18 +537,18 @@ namespace EmulatorLauncher
                 case 0x37: return "7";
                 case 0x38: return "8";
                 case 0x39: return "9";
-                case 0x3A: return "\":\"";
+                case 0x3A: return "Colon";
                 case 0x3B: return "Semicolon";
-                case 0x3C: return "<";
+                case 0x3C: return "IntlBackslash";
                 case 0x3D: return "Equal";
-                case 0x3F: return ">";
-                case 0x40: return "\"" + "@" + "\"";
-                case 0x5B: return "\"[\"";
-                case 0x5C: return @"\";
-                case 0x5D: return "\"]\"";
-                case 0x5E: return "^";
-                case 0x5F: return "_";
-                case 0x60: return "\"'\"";
+                case 0x3F: return "Question";
+                case 0x40: return "At";
+                case 0x5B: return "BracketLeft";
+                case 0x5C: return "Backslash";
+                case 0x5D: return "BracketRight";
+                case 0x5E: return "Caret";
+                case 0x5F: return "Underscore";
+                case 0x60: return "Backquote";
                 case 0x61: return "A";
                 case 0x62: return "B";
                 case 0x63: return "C";
@@ -566,23 +602,23 @@ namespace EmulatorLauncher
                 case 0x40000051: return "DownArrow";
                 case 0x40000052: return "UpArrow";
                 case 0x40000053: return "NumLock";
-                case 0x40000054: return "Num+/";
-                case 0x40000055: return "Num+*";
-                case 0x40000056: return "Num+-";
-                case 0x40000057: return "Num++";
-                case 0x40000058: return "Num+Enter";
-                case 0x40000059: return "Num+1";
-                case 0x4000005A: return "Num+2";
-                case 0x4000005B: return "Num+3";
-                case 0x4000005C: return "Num+4";
-                case 0x4000005D: return "Num+5";
-                case 0x4000005E: return "Num+6";
-                case 0x4000005F: return "Num+7";
-                case 0x40000060: return "Num+8";
-                case 0x40000061: return "Num+9";
-                case 0x40000062: return "Num+0";
-                case 0x40000063: return "Num+.";
-                case 0x40000067: return "Num+=";
+                case 0x40000054: return "NumpadDivide";
+                case 0x40000055: return "NumpadMultiply";
+                case 0x40000056: return "NumpadSubtract";
+                case 0x40000057: return "NumpadAdd";
+                case 0x40000058: return "NumpadEnter";
+                case 0x40000059: return "Numpad1";
+                case 0x4000005A: return "Numpad2";
+                case 0x4000005B: return "Numpad3";
+                case 0x4000005C: return "Numpad4";
+                case 0x4000005D: return "Numpad5";
+                case 0x4000005E: return "Numpad6";
+                case 0x4000005F: return "Numpad7";
+                case 0x40000060: return "Numpad8";
+                case 0x40000061: return "Numpad9";
+                case 0x40000062: return "Numpad0";
+                case 0x40000063: return "NumpadDecimal";
+                case 0x40000067: return "NumpadEqual";
                 case 0x40000068: return "F13";
                 case 0x40000069: return "F14";
                 case 0x4000006A: return "F15";
@@ -609,13 +645,13 @@ namespace EmulatorLauncher
                 case 0x4000007F: return "Volume Mute";
                 case 0x40000080: return "Volume Up";
                 case 0x40000081: return "Volume Down";
-                case 0x40000085: return "Num+,";
-                case 0x400000E0: return "Control";
-                case 0x400000E1: return "Shift";
-                case 0x400000E2: return "Alt";
-                case 0x400000E4: return "Control";
-                case 0x400000E5: return "Shift";
-                case 0x400000E6: return "Control & Keyboard/Alt";
+                case 0x40000085: return "NumpadDecimal";
+                case 0x400000E0: return "LeftControl";
+                case 0x400000E1: return "LeftShift";
+                case 0x400000E2: return "LeftAlt";
+                case 0x400000E4: return "RightControl";
+                case 0x400000E5: return "RightShift";
+                case 0x400000E6: return "RightAlt";
                 case 0x40000101: return "Mode";
                 case 0x40000102: return "Media Next";
                 case 0x40000103: return "Media Previous";
