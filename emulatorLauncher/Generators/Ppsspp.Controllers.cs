@@ -42,7 +42,7 @@ namespace EmulatorLauncher
             if (controller == null)
                 return;
 
-            int index = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex;
+            int index = controller.DeviceIndex;
             if (SystemConfig.isOptSet("ppsspp_forceindex") && !string.IsNullOrEmpty(SystemConfig["ppsspp_forceindex"]))
                 index = SystemConfig["ppsspp_forceindex"].ToInteger();
 
@@ -135,132 +135,74 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Dinput case
+            // SDL seems fixed for controllers ...
             else
             {
-                string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-                string guid1 = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
-                SdlToDirectInput c1 = null;
+                ini.WriteValue("ControlMapping", "Up", controllerID + "19");
+                ini.WriteValue("ControlMapping", "Down", controllerID + "20");
+                ini.WriteValue("ControlMapping", "Left", controllerID + "21");
+                ini.WriteValue("ControlMapping", "Right", controllerID + "22");
+                ini.WriteValue("ControlMapping", "Circle", controllerID + "190");
+                ini.WriteValue("ControlMapping", "Cross", controllerID + "189");
+                ini.WriteValue("ControlMapping", "Square", controllerID + "191");
+                ini.WriteValue("ControlMapping", "Triangle", controllerID + "188");
+                ini.WriteValue("ControlMapping", "Start", controllerID + "197");
+                ini.WriteValue("ControlMapping", "Select", controllerID + "196");
+                ini.WriteValue("ControlMapping", "L", controllerID + "194");
+                ini.WriteValue("ControlMapping", "R", controllerID + "195");
+                ini.WriteValue("ControlMapping", "An.Up", controllerID + GetInputKeyName(controller, InputKey.leftanalogup));
+                ini.WriteValue("ControlMapping", "An.Down", controllerID + GetInputKeyName(controller, InputKey.leftanalogdown));
+                ini.WriteValue("ControlMapping", "An.Left", controllerID + GetInputKeyName(controller, InputKey.leftanalogleft));
+                ini.WriteValue("ControlMapping", "An.Right", controllerID + GetInputKeyName(controller, InputKey.leftanalogright));
 
-                SimpleLogger.Instance.Info("[CONTROLS] Player " + controller.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + guid1);
+                // Shortcuts(hotkeys)
+                string hotkeyPadValue = controllerID + "196" + ":";
 
-                try { c1 = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid1); }
-                catch
+                if (custoHK && padHKDic.Count > 0)
                 {
-                    SimpleLogger.Instance.Info("[CONTROLS] Controller " + guid1 + " not found in gamecontrollerdb file.");
-                }
-
-                if (c1 != null)
-                {
-                    ini.WriteValue("ControlMapping", "Up", controllerID + GetInputCode("dpup", c1));
-                    ini.WriteValue("ControlMapping", "Down", controllerID + GetInputCode("dpdown", c1));
-                    ini.WriteValue("ControlMapping", "Left", controllerID + GetInputCode("dpleft", c1));
-                    ini.WriteValue("ControlMapping", "Right", controllerID + GetInputCode("dpright", c1));
-                    ini.WriteValue("ControlMapping", "Circle", controllerID + GetInputCode("b", c1));
-                    ini.WriteValue("ControlMapping", "Cross", controllerID + GetInputCode("a", c1));
-                    ini.WriteValue("ControlMapping", "Square", controllerID + GetInputCode("x", c1));
-                    ini.WriteValue("ControlMapping", "Triangle", controllerID + GetInputCode("y", c1));
-                    ini.WriteValue("ControlMapping", "Start", controllerID + GetInputCode("start", c1));
-                    ini.WriteValue("ControlMapping", "Select", controllerID + GetInputCode("back", c1));
-                    ini.WriteValue("ControlMapping", "L", controllerID + GetInputCode("leftshoulder", c1));
-                    ini.WriteValue("ControlMapping", "R", controllerID + GetInputCode("rightshoulder", c1));
-                    ini.WriteValue("ControlMapping", "An.Up", controllerID + GetInputCode("lefty", c1, -1));
-                    ini.WriteValue("ControlMapping", "An.Down", controllerID + GetInputCode("lefty", c1, 1));
-                    ini.WriteValue("ControlMapping", "An.Left", controllerID + GetInputCode("leftx", c1, -1));
-                    ini.WriteValue("ControlMapping", "An.Right", controllerID + GetInputCode("leftx", c1, 1));
-
-                    // Shortcuts(hotkeys)
-                    string hotkeyPadValue = controllerID + GetInputCode("back", c1).ToString() + ":";
-
-                    if (custoHK && padHKDic.Count > 0)
+                    foreach (var hotkey in padHKDic)
                     {
-                        foreach (var hotkey in padHKDic)
+                        bool axisTrigger = false;
+
+                        if (controller.Config.Input.Any(i => i.Name == InputKey.l2))
                         {
-                            string dinputValue = hotkey.Value;
-                            if (hotkey.Value == "x")
-                                dinputValue = "y";
-                            else if (hotkey.Value == "y")
-                                dinputValue = "x";
+                            var l2 = controller.Config.Input.Where(i => i.Name == InputKey.l2).FirstOrDefault();
+                            if (l2.Type == "axis")
+                                axisTrigger = true;
+                        }
 
-                            string padKeyValue = GetInputCode(dinputValue, c1).ToString();
+                        if (sdlMapping.ContainsKey(hotkey.Value))
+                        {
+                            string newValue = sdlMapping[hotkey.Value];
+                            if (axisTrigger)
+                            {
+                                if (hotkey.Value == "l2")
+                                    newValue = "4034";
+                                else if (hotkey.Value == "r2")
+                                    newValue = "4036";
+                            }
 
-                            if (string.IsNullOrEmpty(padKeyValue) || padKeyValue == "0")
-                                continue;
-
-                            string finalValue = hotkeyPadValue + controllerID + padKeyValue;
-
+                            string finalValue = hotkeyPadValue + controllerID + newValue;
+                            
                             ini.WriteValue("ControlMapping", hotkey.Key, finalValue);
                         }
-                    }
-                    else
-                    {
-                        ini.WriteValue("ControlMapping", "Exit App", "1-111," + controllerID + GetInputCode("back", c1).ToString() + ":" + controllerID + GetInputCode("start", c1).ToString());
-                        ini.WriteValue("ControlMapping", "Rewind", "1-67," + controllerID + GetInputCode("back", c1).ToString() + ":" + controllerID + GetInputCode("dpleft", c1).ToString());
-                        ini.WriteValue("ControlMapping", "Fast-forward", "1-40," + controllerID + GetInputCode("back", c1).ToString() + ":" + controllerID + GetInputCode("dpright", c1).ToString());
-                        ini.WriteValue("ControlMapping", "Load State", "1-134," + controllerID + GetInputCode("back", c1).ToString() + ":" + controllerID + GetInputCode("y", c1).ToString());
-                        ini.WriteValue("ControlMapping", "Save State", "1-132," + controllerID + GetInputCode("back", c1).ToString() + ":" + controllerID + GetInputCode("x", c1).ToString());
-                        ini.WriteValue("ControlMapping", "Pause", "1-131," + controllerID + GetInputCode("back", c1).ToString() + ":" + controllerID + GetInputCode("a", c1).ToString());
-                        //ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139," + controllerID + GetInputCode("back", c1) + ":" + controllerID + GetInputCode("b", c1));           // SELECT + EAST
-                        ini.WriteValue("ControlMapping", "Screenshot", "1-138," + controllerID + GetInputCode("back", c1).ToString() + ":" + controllerID + GetInputCode("righttrigger", c1).ToString());
-                        ini.WriteValue("ControlMapping", "Toggle Fullscreen", "1-34," + controllerID + GetInputCode("back", c1).ToString() + ":" + controllerID + GetInputCode("lefttrigger", c1).ToString());
-                        ini.WriteValue("ControlMapping", "Previous Slot", "1-136," + controllerID + GetInputCode("back", c1).ToString() + ":" + controllerID + GetInputCode("dpup", c1).ToString());
-                        ini.WriteValue("ControlMapping", "Next Slot", "1-137," + controllerID + GetInputCode("back", c1).ToString() + ":" + controllerID + GetInputCode("dpdown", c1).ToString());
+                        else
+                            continue;
                     }
                 }
-
                 else
                 {
-                    ini.WriteValue("ControlMapping", "Up", controllerID + GetInputKeyName(controller, InputKey.up));
-                    ini.WriteValue("ControlMapping", "Down", controllerID + GetInputKeyName(controller, InputKey.down));
-                    ini.WriteValue("ControlMapping", "Left", controllerID + GetInputKeyName(controller, InputKey.left));
-                    ini.WriteValue("ControlMapping", "Right", controllerID + GetInputKeyName(controller, InputKey.right));
-                    ini.WriteValue("ControlMapping", "Circle", controllerID + GetInputKeyName(controller, InputKey.b));
-                    ini.WriteValue("ControlMapping", "Cross", controllerID + GetInputKeyName(controller, InputKey.a));
-                    ini.WriteValue("ControlMapping", "Square", controllerID + GetInputKeyName(controller, InputKey.y));
-                    ini.WriteValue("ControlMapping", "Triangle", controllerID + GetInputKeyName(controller, InputKey.x));
-                    ini.WriteValue("ControlMapping", "Start", controllerID + GetInputKeyName(controller, InputKey.start));
-                    ini.WriteValue("ControlMapping", "Select", controllerID + GetInputKeyName(controller, InputKey.select));
-                    ini.WriteValue("ControlMapping", "L", controllerID + GetInputKeyName(controller, InputKey.pageup));
-                    ini.WriteValue("ControlMapping", "R", controllerID + GetInputKeyName(controller, InputKey.pagedown));
-                    ini.WriteValue("ControlMapping", "An.Up", controllerID + GetInputKeyName(controller, InputKey.leftanalogup));
-                    ini.WriteValue("ControlMapping", "An.Down", controllerID + GetInputKeyName(controller, InputKey.leftanalogdown));
-                    ini.WriteValue("ControlMapping", "An.Left", controllerID + GetInputKeyName(controller, InputKey.leftanalogleft));
-                    ini.WriteValue("ControlMapping", "An.Right", controllerID + GetInputKeyName(controller, InputKey.leftanalogright));
-
-                    // Shortcuts(hotkeys)
-                    string hotkeyPadValue = controllerID + GetInputKeyName(controller, InputKey.select) + ":";
-
-                    if (custoHK && padHKDic.Count > 0)
-                    {
-                        foreach (var hotkey in padHKDic)
-                        {
-                            if (!Enum.TryParse<InputKey>(hotkey.Value, ignoreCase: true, out var newValue))
-                                continue;
-
-                            string padKeyValue = GetInputKeyName(controller, newValue);
-
-                            if (string.IsNullOrEmpty(padKeyValue) || padKeyValue == "0")
-                                continue;
-
-                            string finalValue = hotkeyPadValue + controllerID + padKeyValue;
-
-                            ini.WriteValue("ControlMapping", hotkey.Key, finalValue);
-                        }
-                    }
-                    else
-                    {
-                        ini.WriteValue("ControlMapping", "Exit App", "1-111," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.start));
-                        ini.WriteValue("ControlMapping", "Rewind", "1-67," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.left));
-                        ini.WriteValue("ControlMapping", "Fast-forward", "1-40," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.right));
-                        ini.WriteValue("ControlMapping", "Load State", "1-134," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.x));
-                        ini.WriteValue("ControlMapping", "Save State", "1-132," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.y));
-                        ini.WriteValue("ControlMapping", "Pause", "1-131," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.a));
-                        //ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.b));         // SELECT + EAST
-                        ini.WriteValue("ControlMapping", "Screenshot", "1-138," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.r3));
-                        ini.WriteValue("ControlMapping", "Toggle Fullscreen", "1-34," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.l3));
-                        ini.WriteValue("ControlMapping", "Previous Slot", "1-136," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.up));
-                        ini.WriteValue("ControlMapping", "Next Slot", "1-137," + controllerID + GetInputKeyName(controller, InputKey.select) + ":" + controllerID + GetInputKeyName(controller, InputKey.down));
-                    }
+                    ini.WriteValue("ControlMapping", "Exit App", "1-111," + controllerID + "196" + ":" + controllerID + "197");
+                    ini.WriteValue("ControlMapping", "Rewind", "1-67," + controllerID + "196" + ":" + controllerID + "21");
+                    ini.WriteValue("ControlMapping", "Fast-forward", "1-40," + controllerID + "196" + ":" + controllerID + "22");
+                    ini.WriteValue("ControlMapping", "Load State", "1-134," + controllerID + "196" + ":" + controllerID + "188");
+                    ini.WriteValue("ControlMapping", "Save State", "1-132," + controllerID + "196" + ":" + controllerID + "191");
+                    ini.WriteValue("ControlMapping", "Pause", "1-131," + controllerID + "196" + ":" + controllerID + "189");
+                    //ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139," + controllerID + "196" + ":" + controllerID + "190");         // SELECT + EAST
+                    ini.WriteValue("ControlMapping", "Screenshot", "1-138," + controllerID + "196" + ":" + controllerID + "107");
+                    ini.WriteValue("ControlMapping", "Toggle Fullscreen", "1-34," + controllerID + "196" + ":" + controllerID + "106");
+                    ini.WriteValue("ControlMapping", "Previous Slot", "1-136," + controllerID + "196" + ":" + controllerID + "20");
+                    ini.WriteValue("ControlMapping", "Next Slot", "1-137," + controllerID + "196" + ":" + controllerID + "19");
                 }
             }
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
@@ -335,7 +277,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private static int GetInputCode(string key, SdlToDirectInput ctrl, int direction = -1)
+        /*private static int GetInputCode(string key, SdlToDirectInput ctrl, int direction = -1)
         {
             if (ctrl.ButtonMappings[key] == null)
                 return 0;
@@ -391,7 +333,7 @@ namespace EmulatorLauncher
             }
 
             return 0;
-        }
+        }*/
 
         private static string GetInputKeyName(Controller c, InputKey key)
         {
@@ -467,6 +409,26 @@ namespace EmulatorLauncher
             { "r3", "107" },
             { "l2", "4034" },
             { "r2", "4036" }
+        };
+
+        static readonly Dictionary<string, string> sdlMapping = new Dictionary<string, string>
+        {
+            { "up", "19" },
+            { "down", "20" },
+            { "left", "21" },
+            { "right", "22" },
+            { "b", "190" },
+            { "a", "189" },
+            { "y", "191" },
+            { "x", "188" },
+            { "start", "197" },
+            { "select", "196" },
+            { "pageup", "194" },
+            { "pagedown", "195" },
+            { "l3", "106" },
+            { "r3", "107" },
+            { "l2", "104" },
+            { "r2", "105" }
         };
 
         static readonly Dictionary<string, InputKey> pspMapping = new Dictionary<string, InputKey>

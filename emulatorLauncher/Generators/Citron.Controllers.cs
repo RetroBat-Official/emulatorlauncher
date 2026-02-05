@@ -16,6 +16,7 @@ namespace EmulatorLauncher
     {
         private static bool _norawinput = false;
         private Dictionary<string, int> _samePad = new Dictionary<string, int>();
+        private int _joyconIndex = 0;
 
         /// <summary>
         /// Cf. TBD
@@ -218,6 +219,7 @@ namespace EmulatorLauncher
 
             var guid = controller.GetSdlGuid(SdlVersion.SDL2_0_X, true);
             var citronGuid = guid.ToString().ToLowerInvariant();
+            bool joyconPair = controller.Name.Contains("Joy-Con") && controller.Name.Contains("L/R");
 
             // Citron deactivates RAWINPUT with SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, 0) when enable_raw_input is set to false (default value) 
             // Convert Guid to XInput
@@ -320,7 +322,14 @@ namespace EmulatorLauncher
             }
 
             // XInput controllers do not have motion - disable for XInput players, else use default sdl motion engine from the controller
-            if (!controller.IsXInputDevice)
+            if (joyconPair)
+            {
+                ini.WriteValue("Controls", player + "motionleft" + "\\default", "false");
+                ini.WriteValue("Controls", player + "motionleft", "\"" + "engine:joycon,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,motion:0" + "\"");
+                ini.WriteValue("Controls", player + "motionright" + "\\default", "false");
+                ini.WriteValue("Controls", player + "motionright", "\"" + "engine:joycon,guid:00000000000000000000000000000002,port:" + _joyconIndex + ",pad:2,motion:1" + "\"");
+            }
+            else if (!controller.IsXInputDevice)
             {
                 ini.WriteValue("Controls", player + "motionleft" + "\\default", "false");
                 ini.WriteValue("Controls", player + "motionleft", "\"" + "engine:sdl,motion:0,port:" + index + ",guid:" + citronGuid + "\"");
@@ -358,55 +367,115 @@ namespace EmulatorLauncher
                 }
             }
 
-            bool revertButtons = Features.IsSupported("switch_gamepadbuttons") && SystemConfig.isOptSet("switch_gamepadbuttons") && SystemConfig.getOptBoolean("switch_gamepadbuttons");
-            if (controller.VendorID == USB_VENDOR.NINTENDO)
+            if (joyconPair)
             {
-                if (revertButtons)
-                    revertButtons = false;
-                else
-                    revertButtons = true;
+                ini.WriteValue("Controls", player + "button_minus" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_minus", "\"" + "engine:joycon,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,button:65536\"");
+                ini.WriteValue("Controls", player + "button_plus" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_plus", "\"" + "engine:joycon,guid:00000000000000000000000000000002,port:" + _joyconIndex + ",pad:2,button:131072\"");
+                ini.WriteValue("Controls", player + "button_b" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_b", "\"" + "engine:joycon,guid:00000000000000000000000000000002,port:" + _joyconIndex + ",pad:2,button:1024\"");
+                ini.WriteValue("Controls", player + "button_a" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_a", "\"" + "engine:joycon,guid:00000000000000000000000000000002,port:" + _joyconIndex + ",pad:2,button:2048\"");
+                ini.WriteValue("Controls", player + "button_x" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_x", "\"" + "engine:joycon,guid:00000000000000000000000000000002,port:" + _joyconIndex + ",pad:2,button:512\"");
+                ini.WriteValue("Controls", player + "button_y" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_y", "\"" + "engine:joycon,guid:00000000000000000000000000000002,port:" + _joyconIndex + ",pad:2,button:256\"");
+                ini.WriteValue("Controls", player + "button_dup" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_dup", "\"" + "engine:joycon,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,button:2\"");
+                ini.WriteValue("Controls", player + "button_ddown" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_ddown", "\"" + "engine:joycon,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,button:1\"");
+                ini.WriteValue("Controls", player + "button_dleft" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_dleft", "\"" + "engine:joycon,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,button:8\"");
+                ini.WriteValue("Controls", player + "button_dright" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_dright", "\"" + "engine:joycon,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,button:4\"");
+                ini.WriteValue("Controls", player + "button_l" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_l", "\"" + "engine:joycon,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,button:64\"");
+                ini.WriteValue("Controls", player + "button_r" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_r", "\"" + "engine:joycon,guid:00000000000000000000000000000002,port:" + _joyconIndex + ",pad:2,button:16384\"");
+                ini.WriteValue("Controls", player + "button_zl" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_zl", "\"" + "engine:joycon,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,button:128\"");
+                ini.WriteValue("Controls", player + "button_zr" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_zr", "\"" + "engine:joycon,guid:00000000000000000000000000000002,port:" + _joyconIndex + ",pad:2,button:32768\"");
+                ini.WriteValue("Controls", player + "button_lstick" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_lstick", "\"" + "engine:joycon,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,button:524288\"");
+                ini.WriteValue("Controls", player + "button_rstick" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_rstick", "\"" + "engine:joycon,guid:00000000000000000000000000000002,port:" + _joyconIndex + ",pad:2,button:262144\"");
+                ini.WriteValue("Controls", player + "button_sl" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_sl", "[empty]");
+                ini.WriteValue("Controls", player + "button_sr" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_sr", "[empty]");
+                ini.WriteValue("Controls", player + "button_slleft" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_slleft", "[empty]");
+                ini.WriteValue("Controls", player + "button_srleft" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_srleft", "[empty]");
+                ini.WriteValue("Controls", player + "button_slright" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_slright", "[empty]");
+                ini.WriteValue("Controls", player + "button_srright" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_srright", "[empty]");
+                ini.WriteValue("Controls", player + "button_home" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_home", "\"" + "engine:joycon,guid:00000000000000000000000000000002,port:" + _joyconIndex + ",pad:2,button:1048576\"");
+                ini.WriteValue("Controls", player + "button_screenshot" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_screenshot", "\"" + "engine:joycon,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,button:2097152\"");
+                ini.WriteValue("Controls", player + "lstick" + "\\default", "false");
+                ini.WriteValue("Controls", player + "lstick", "\"" + "engine:joycon,axis_x:0,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,axis_y:1,deadzone:0.150000\"");
+                ini.WriteValue("Controls", player + "rstick" + "\\default", "false");
+                ini.WriteValue("Controls", player + "rstick", "\"" + "engine:joycon,axis_x:2,guid:00000000000000000000000000000002,port:" + _joyconIndex + ",pad:2,axis_y:3,deadzone:0.150000\"");
+                _joyconIndex++;
             }
 
-            foreach (var map in Mapping)
+            else
             {
-                string name = player + map.Value;
-
-                if (revertButtons && reversedButtons.ContainsKey(map.Key))
-                    name = player + reversedButtons[map.Key];
-
-                string cvalue = FromInput(controller, cfg[map.Key], citronGuid, index);
-
-                if (string.IsNullOrEmpty(cvalue))
+                bool revertButtons = Features.IsSupported("switch_gamepadbuttons") && SystemConfig.isOptSet("switch_gamepadbuttons") && SystemConfig.getOptBoolean("switch_gamepadbuttons");
+                if (controller.VendorID == USB_VENDOR.NINTENDO)
                 {
-                    ini.WriteValue("Controls", name + "\\default", "false");
-                    ini.WriteValue("Controls", name, "[empty]");
+                    if (revertButtons)
+                        revertButtons = false;
+                    else
+                        revertButtons = true;
                 }
-                else
+
+                foreach (var map in Mapping)
                 {
-                    ini.WriteValue("Controls", name + "\\default", "false");
-                    ini.WriteValue("Controls", name, "\"" + cvalue + "\"");
+                    string name = player + map.Value;
+
+                    if (revertButtons && reversedButtons.ContainsKey(map.Key))
+                        name = player + reversedButtons[map.Key];
+
+                    string cvalue = FromInput(controller, cfg[map.Key], citronGuid, index);
+
+                    if (string.IsNullOrEmpty(cvalue))
+                    {
+                        ini.WriteValue("Controls", name + "\\default", "false");
+                        ini.WriteValue("Controls", name, "[empty]");
+                    }
+                    else
+                    {
+                        ini.WriteValue("Controls", name + "\\default", "false");
+                        ini.WriteValue("Controls", name, "\"" + cvalue + "\"");
+                    }
                 }
+
+                ini.WriteValue("Controls", player + "button_sl" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_sl", "[empty]");
+                ini.WriteValue("Controls", player + "button_sr" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_sr", "[empty]");
+                ini.WriteValue("Controls", player + "button_slleft" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_slleft", "[empty]");
+                ini.WriteValue("Controls", player + "button_srleft" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_srleft", "[empty]");
+                ini.WriteValue("Controls", player + "button_slright" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_slright", "[empty]");
+                ini.WriteValue("Controls", player + "button_srright" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_srright", "[empty]");
+                ini.WriteValue("Controls", player + "button_home" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_home", "[empty]");
+                ini.WriteValue("Controls", player + "button_screenshot" + "\\default", "false");
+                ini.WriteValue("Controls", player + "button_screenshot", "[empty]");
+
+                ProcessStick(controller, player, "lstick", ini, citronGuid, index);
+                ProcessStick(controller, player, "rstick", ini, citronGuid, index);
             }
-
-            ini.WriteValue("Controls", player + "button_sl" + "\\default", "false");
-            ini.WriteValue("Controls", player + "button_sl", "[empty]");
-            ini.WriteValue("Controls", player + "button_sr" + "\\default", "false");
-            ini.WriteValue("Controls", player + "button_sr", "[empty]");
-            ini.WriteValue("Controls", player + "button_slleft" + "\\default", "false");
-            ini.WriteValue("Controls", player + "button_slleft", "[empty]");
-            ini.WriteValue("Controls", player + "button_srleft" + "\\default", "false");
-            ini.WriteValue("Controls", player + "button_srleft", "[empty]");
-            ini.WriteValue("Controls", player + "button_slright" + "\\default", "false");
-            ini.WriteValue("Controls", player + "button_slright", "[empty]");
-            ini.WriteValue("Controls", player + "button_srright" + "\\default", "false");
-            ini.WriteValue("Controls", player + "button_srright", "[empty]");
-            ini.WriteValue("Controls", player + "button_home" + "\\default", "false");
-            ini.WriteValue("Controls", player + "button_home", "[empty]");
-            ini.WriteValue("Controls", player + "button_screenshot" + "\\default", "false");
-            ini.WriteValue("Controls", player + "button_screenshot", "[empty]");
-
-            ProcessStick(controller, player, "lstick", ini, citronGuid, index);
-            ProcessStick(controller, player, "rstick", ini, citronGuid, index);
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }

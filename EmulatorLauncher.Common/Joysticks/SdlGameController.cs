@@ -490,6 +490,7 @@ namespace EmulatorLauncher.Common.Joysticks
             {
                 SDL_SetHint("SDL_HINT_JOYSTICK_HIDAPI_WII", "1");
                 SDL_SetHint("SDL_JOYSTICK_ENHANCED_REPORTS", "0");
+                SDL_SetHint("SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS", "1");
                 //SDL_SetHint("SDL_HINT_JOYSTICK_RAWINPUT", "1");
 
                 if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) < 0)

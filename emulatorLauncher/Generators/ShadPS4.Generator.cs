@@ -268,7 +268,7 @@ namespace EmulatorLauncher
 
             Sdl3GameController sdl3Controller;
 
-            string cPath = ctrl.DirectInput.DevicePath;
+            string cPath = ctrl.DirectInput != null ? ctrl.DirectInput.DevicePath : ctrl.DevicePath;
 
             if (ctrl.IsXInputDevice)
             {
@@ -277,7 +277,7 @@ namespace EmulatorLauncher
             }
             else
             {
-                sdl3Controller = Sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == ctrl.DirectInput.DevicePath);
+                sdl3Controller = Sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
             }
 
             if (sdl3Controller == null || string.IsNullOrEmpty(sdl3Controller.GuidString))
