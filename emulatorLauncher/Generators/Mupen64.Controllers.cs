@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 
 namespace EmulatorLauncher
 {
@@ -75,7 +76,7 @@ namespace EmulatorLauncher
             Sdl3GameController sdl3Controller = null;
             if (_sdl3Controllers.Count > 0)
             {
-                string cPath = controller.DirectInput.DevicePath;
+                string cPath = controller.DirectInput != null ? controller.DirectInput.DevicePath : controller.DevicePath;
                 
                 if (controller.IsXInputDevice)
                 {
@@ -84,7 +85,7 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == controller.DirectInput.DevicePath);
+                    sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
                 }
             }
 
@@ -92,6 +93,8 @@ namespace EmulatorLauncher
 
             if (controller.IsXInputDevice)
                 devicename = "XInput Controller";
+
+            bool isNintendo = controller.VendorID == USB_VENDOR.NINTENDO;
 
             // override devicename
             string newNamePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
@@ -131,6 +134,8 @@ namespace EmulatorLauncher
             {
                 serial = sdl3Controller.Serial;
             }
+            if (serial == "Unknown")
+                serial = "";
 
             if (controller.IsXInputDevice && sdl3Controller != null)
                 devPath = sdl3Controller.Path;
@@ -260,20 +265,20 @@ namespace EmulatorLauncher
                 ini.WriteValue(iniSection, "DpadRight_ExtraData", "0".QuoteString(true));
 
                 ini.WriteValue(iniSection, "CButtonUp_InputType", "0".QuoteString(true));
-                ini.WriteValue(iniSection, "CButtonUp_Name", "y");
-                ini.WriteValue(iniSection, "CButtonUp_Data", "3".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonUp_Name", isNintendo ? "x" :"y");
+                ini.WriteValue(iniSection, "CButtonUp_Data", isNintendo ? "2".QuoteString(true) : "3".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonUp_ExtraData", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonDown_InputType", "0".QuoteString(true));
-                ini.WriteValue(iniSection, "CButtonDown_Name", "a");
-                ini.WriteValue(iniSection, "CButtonDown_Data", "0".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonDown_Name", isNintendo ? "b" : "a");
+                ini.WriteValue(iniSection, "CButtonDown_Data", isNintendo ? "1".QuoteString(true) : "0".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonDown_ExtraData", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonLeft_InputType", "0".QuoteString(true));
-                ini.WriteValue(iniSection, "CButtonLeft_Name", "x");
-                ini.WriteValue(iniSection, "CButtonLeft_Data", "2".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonLeft_Name", isNintendo ? "y" : "x");
+                ini.WriteValue(iniSection, "CButtonLeft_Data", isNintendo ? "3".QuoteString(true) : "2".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonLeft_ExtraData", "0".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonRight_InputType", "0".QuoteString(true));
-                ini.WriteValue(iniSection, "CButtonRight_Name", "b");
-                ini.WriteValue(iniSection, "CButtonRight_Data", "1".QuoteString(true));
+                ini.WriteValue(iniSection, "CButtonRight_Name", isNintendo ? "a" : "b");
+                ini.WriteValue(iniSection, "CButtonRight_Data", isNintendo ? "0".QuoteString(true) : "1".QuoteString(true));
                 ini.WriteValue(iniSection, "CButtonRight_ExtraData", "0".QuoteString(true));
 
                 ini.WriteValue(iniSection, "LeftTrigger_InputType", "0".QuoteString(true));
@@ -312,22 +317,22 @@ namespace EmulatorLauncher
                 if (xboxLayout)
                 {
                     ini.WriteValue(iniSection, "A_InputType", "0".QuoteString(true));
-                    ini.WriteValue(iniSection, "A_Name", "a");
+                    ini.WriteValue(iniSection, "A_Name", isNintendo ? "b" : "a");
                     ini.WriteValue(iniSection, "A_Data", "0".QuoteString(true));
                     ini.WriteValue(iniSection, "A_ExtraData", "0".QuoteString(true));
                     ini.WriteValue(iniSection, "B_InputType", "0".QuoteString(true));
-                    ini.WriteValue(iniSection, "B_Name", "b");
+                    ini.WriteValue(iniSection, "B_Name", isNintendo ? "a" : "b");
                     ini.WriteValue(iniSection, "B_Data", "1".QuoteString(true));
                     ini.WriteValue(iniSection, "B_ExtraData", "0".QuoteString(true));
                 }
                 else
                 {
                     ini.WriteValue(iniSection, "A_InputType", "0".QuoteString(true));
-                    ini.WriteValue(iniSection, "A_Name", "a");
+                    ini.WriteValue(iniSection, "A_Name", isNintendo ? "b" : "a");
                     ini.WriteValue(iniSection, "A_Data", "0".QuoteString(true));
                     ini.WriteValue(iniSection, "A_ExtraData", "0".QuoteString(true));
                     ini.WriteValue(iniSection, "B_InputType", "0".QuoteString(true));
-                    ini.WriteValue(iniSection, "B_Name", "x");
+                    ini.WriteValue(iniSection, "B_Name", isNintendo ? "y" : "x");
                     ini.WriteValue(iniSection, "B_Data", "2".QuoteString(true));
                     ini.WriteValue(iniSection, "B_ExtraData", "0".QuoteString(true));
                 }
@@ -404,21 +409,21 @@ namespace EmulatorLauncher
 
             if (playerIndex == 1)
             {
-                ConfigureHotkeys(ini, iniSection);
+                ConfigureHotkeys(ini, iniSection, isNintendo);
                 ConfigureEmptyHotkeys(ini, iniSection);
             }
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
         }
 
-        private void ConfigureHotkeys(IniFile ini, string iniSection)
+        private void ConfigureHotkeys(IniFile ini, string iniSection, bool isNintendo)
         {
             ini.WriteValue(iniSection, "Hotkey_Exit_InputType", "0;0");
             ini.WriteValue(iniSection, "Hotkey_Exit_Name", "back;start");
             ini.WriteValue(iniSection, "Hotkey_Exit_Data", "4;6");
             ini.WriteValue(iniSection, "Hotkey_Exit_ExtraData", "0;0");
             ini.WriteValue(iniSection, "Hotkey_Resume_InputType", "0;0");
-            ini.WriteValue(iniSection, "Hotkey_Resume_Name", "back;a");
+            ini.WriteValue(iniSection, "Hotkey_Resume_Name", isNintendo ? "back;b" : "back;a");
             ini.WriteValue(iniSection, "Hotkey_Resume_Data", "4;0");
             ini.WriteValue(iniSection, "Hotkey_Resume_ExtraData", "0;0");
             ini.WriteValue(iniSection, "Hotkey_Screenshot_InputType", "0;0");
@@ -438,11 +443,11 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor250_Data", "4;14");
             ini.WriteValue(iniSection, "Hotkey_SpeedFactor250_ExtraData", "0;0");
             ini.WriteValue(iniSection, "Hotkey_SaveState_InputType", "0;0");
-            ini.WriteValue(iniSection, "Hotkey_SaveState_Name", "back;x");
+            ini.WriteValue(iniSection, "Hotkey_SaveState_Name", isNintendo ? "back;y" : "back;x");
             ini.WriteValue(iniSection, "Hotkey_SaveState_Data", "4;2");
             ini.WriteValue(iniSection, "Hotkey_SaveState_ExtraData", "0;0");
             ini.WriteValue(iniSection, "Hotkey_LoadState_InputType", "0;0");
-            ini.WriteValue(iniSection, "Hotkey_LoadState_Name", "back;y");
+            ini.WriteValue(iniSection, "Hotkey_LoadState_Name", isNintendo ? "back;x" : "back;y");
             ini.WriteValue(iniSection, "Hotkey_LoadState_Data", "4;3");
             ini.WriteValue(iniSection, "Hotkey_LoadState_ExtraData", "0;0");
             ini.WriteValue(iniSection, "Hotkey_IncreaseSaveStateSlot_InputType", "0;0");

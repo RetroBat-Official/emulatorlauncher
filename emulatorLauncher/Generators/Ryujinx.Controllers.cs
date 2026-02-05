@@ -240,6 +240,24 @@ namespace EmulatorLauncher
             // Define tech (SDL or XInput)
             string tech = c.IsXInputDevice ? "XInput" : "SDL";
 
+            Sdl3GameController sdl3Controller = null;
+            if (_sdl3 && _sdl3Controllers.Count > 0)
+            {
+                string cPath = c.DirectInput != null ? c.DirectInput.DevicePath : c.DevicePath;
+
+                if (c.IsXInputDevice)
+                {
+                    cPath = "xinput#" + c.XInput.DeviceIndex.ToString();
+                    sdl3Controller = _sdl3Controllers.FirstOrDefault(j => j.Path.ToLowerInvariant() == cPath);
+                }
+                else
+                {
+                    sdl3Controller = _sdl3Controllers.FirstOrDefault(j => j.Path.ToLowerInvariant() == cPath);
+                }
+            }
+
+            bool joyconPair = joy.DeviceName.Contains("Joy-Con") && joy.DeviceName.Contains("L/R");
+
             // Get controller index (index is equal to 0 and ++ for each repeated guid)
             int index = 0;
             var same_pad = this.Controllers.Where(i => i.Config != null && i.Guid == c.Guid && !i.IsKeyboard).OrderBy(j => j.DeviceIndex).ToList();
@@ -338,8 +356,8 @@ namespace EmulatorLauncher
                     button_minus = GetInputKeyName(c, InputKey.select, tech),
                     button_l = "Unbound",
                     button_zl = "Unbound",
-                    button_sl = GetInputKeyName(c, InputKey.pageup, tech),
-                    button_sr = GetInputKeyName(c, InputKey.pagedown, tech),
+                    button_sl = joyconPair ? "SingleLeftTrigger0" : GetInputKeyName(c, InputKey.pageup, tech),
+                    button_sr = joyconPair ? "SingleRightTrigger0" : GetInputKeyName(c, InputKey.pagedown, tech),
                     dpad_up = GetInputKeyName(c, InputKey.up, tech),
                     dpad_down = GetInputKeyName(c, InputKey.down, tech),
                     dpad_left = GetInputKeyName(c, InputKey.left, tech),
@@ -353,8 +371,8 @@ namespace EmulatorLauncher
                     button_minus = GetInputKeyName(c, InputKey.select, tech),
                     button_l = GetInputKeyName(c, InputKey.pageup, tech),
                     button_zl = GetInputKeyName(c, InputKey.l2, tech),
-                    button_sl = "Unbound",
-                    button_sr = "Unbound",
+                    button_sl = joyconPair ? "SingleLeftTrigger0" : "Unbound",
+                    button_sr = joyconPair ? "SingleRightTrigger0" : "Unbound",
                     dpad_up = GetInputKeyName(c, InputKey.up, tech),
                     dpad_down = GetInputKeyName(c, InputKey.down, tech),
                     dpad_left = GetInputKeyName(c, InputKey.left, tech),
@@ -370,15 +388,15 @@ namespace EmulatorLauncher
             {
                 right_joycon["button_r"] = "Unbound";
                 right_joycon["button_zr"] = "Unbound";
-                right_joycon["button_sl"] = GetInputKeyName(c, InputKey.pageup, tech);
-                right_joycon["button_sr"] = GetInputKeyName(c, InputKey.pagedown, tech);
+                right_joycon["button_sl"] = joyconPair ? "SingleLeftTrigger1" : GetInputKeyName(c, InputKey.pageup, tech);
+                right_joycon["button_sr"] = joyconPair ? "SingleRightTrigger1" : GetInputKeyName(c, InputKey.pagedown, tech);
             }
             else
             {
                 right_joycon["button_r"] = GetInputKeyName(c, InputKey.pagedown, tech);
                 right_joycon["button_zr"] = GetInputKeyName(c, InputKey.r2, tech);
-                right_joycon["button_sl"] = "Unbound";
-                right_joycon["button_sr"] = "Unbound";
+                right_joycon["button_sl"] = joyconPair ? "SingleLeftTrigger1" : "Unbound";
+                right_joycon["button_sr"] = joyconPair ? "SingleRightTrigger1" : "Unbound";
             }
 
             // Invert button positions for XBOX controllers
@@ -391,10 +409,10 @@ namespace EmulatorLauncher
             }
             else
             {
-                right_joycon["button_x"] = GetInputKeyName(c, InputKey.x, tech);
-                right_joycon["button_b"] = GetInputKeyName(c, InputKey.b, tech);
-                right_joycon["button_y"] = GetInputKeyName(c, InputKey.y, tech);
-                right_joycon["button_a"] = GetInputKeyName(c, InputKey.a, tech);
+                right_joycon["button_x"] = joyconPair ? "A" : GetInputKeyName(c, InputKey.x, tech);
+                right_joycon["button_b"] = joyconPair ? "Y" : GetInputKeyName(c, InputKey.b, tech);
+                right_joycon["button_y"] = joyconPair ? "B" : GetInputKeyName(c, InputKey.y, tech);
+                right_joycon["button_a"] = joyconPair ? "X" : GetInputKeyName(c, InputKey.a, tech);
             }
 
             newInputConfig["right_joycon"] = JObject.FromObject(right_joycon);
@@ -420,22 +438,6 @@ namespace EmulatorLauncher
                 return;
             }
 
-            Sdl3GameController sdl3Controller = null;
-            if (_sdl3 && _sdl3Controllers.Count > 0)
-            {
-                string cPath = c.DirectInput.DevicePath;
-                
-                if (c.IsXInputDevice)
-                {
-                    cPath = "xinput#" + c.XInput.DeviceIndex.ToString();
-                    sdl3Controller = _sdl3Controllers.FirstOrDefault(j => j.Path.ToLowerInvariant() == cPath);
-                }
-                else
-                {
-                    sdl3Controller = _sdl3Controllers.FirstOrDefault(j => j.Path.ToLowerInvariant() == c.DirectInput.DevicePath);
-                }
-            }
-
             var newGuid = SdlJoystickGuidManager.FromSdlGuidString(guid);
 
             if (!c.IsXInputDevice && sdl3Controller != null && sdl3Controller.GuidString != null)
@@ -457,10 +459,13 @@ namespace EmulatorLauncher
                 ryuGuidString = overrideGuid;
             }
 
+            string joyName = joyconPair ? "* Nintendo Switch Joy-Con (L/R) (" + index + ")" : null;
+
             newInputConfig["version"] = 1;
             newInputConfig["backend"] = _sdl3 ? "GamepadSDL3" : "GamepadSDL2";
-            newInputConfig["id"] = (index + "-" + ryuGuidString).ToString();
+            newInputConfig["id"] = joyconPair ? "JoyConPair" : (index + "-" + ryuGuidString).ToString();
             newInputConfig["controller_type"] = playerType;
+            newInputConfig["name"] = joyName;
             newInputConfig["player_index"] = handheld ? "Handheld" : "Player" + playerIndex;
 
             //add section to file

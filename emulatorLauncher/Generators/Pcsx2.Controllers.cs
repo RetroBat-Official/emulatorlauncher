@@ -266,7 +266,7 @@ namespace EmulatorLauncher
             int sdl3index = -1;
             if (_sdl3Controllers.Count > 0)
             {
-                string cPath = ctrl.DirectInput.DevicePath;
+                string cPath = ctrl.DirectInput != null ? ctrl.DirectInput.DevicePath : ctrl.DevicePath;
                 Sdl3GameController sdl3Controller;
 
                 if (ctrl.IsXInputDevice)
@@ -276,7 +276,7 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == ctrl.DirectInput.DevicePath);
+                    sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
                 }
                 sdl3index = sdl3Controller == null ? -1 : sdl3Controller.Index;
                 SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". SDL3 controller index : " + sdl3index);
@@ -656,6 +656,11 @@ namespace EmulatorLauncher
                                 string key = hotkey.Key;
                                 string value = hotkey.Value;
 
+                                if (value == "x")
+                                    value = "y";
+                                else if (value == "y")
+                                    value = "x";
+
                                 if (!Enum.TryParse<InputKey>(value, ignoreCase: true, out var newValue))
                                     continue;
 
@@ -725,8 +730,8 @@ namespace EmulatorLauncher
         static public Dictionary<InputKey, KeyValuePair<string, string>> hotkeys = new Dictionary<InputKey, KeyValuePair<string, string>>()
         {
             { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/F1") },
-            { InputKey.y, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F4") },
-            { InputKey.x, new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F2") },
+            { InputKey.x, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F4") },
+            { InputKey.y, new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F2") },
             { InputKey.r3, new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
             { InputKey.l3, new KeyValuePair<string, string>("ToggleFullscreen", "Keyboard/F") },
             { InputKey.up, new KeyValuePair<string, string>("NextSaveStateSlot", "Keyboard/F7") },

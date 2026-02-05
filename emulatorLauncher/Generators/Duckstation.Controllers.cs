@@ -26,7 +26,9 @@ namespace EmulatorLauncher
             var hints = new List<string>
             {
                 "SDL_JOYSTICK_HIDAPI_WII = 1",
-                "SDL_HINT_JOYSTICK_HIDAPI_PS3 = 1"
+                "SDL_HINT_JOYSTICK_HIDAPI_PS3 = 1",
+                "SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS = 1",
+                "SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS = 1"
             };
 
             if (SystemConfig.getOptBoolean("ps_controller_enhanced"))
@@ -216,7 +218,7 @@ namespace EmulatorLauncher
             int sdl3index = -1;
             if (_sdl3Controllers.Count > 0)
             {
-                string cPath = ctrl.DirectInput.DevicePath;
+                string cPath = ctrl.DirectInput != null ? ctrl.DirectInput.DevicePath : ctrl.DevicePath;
                 Sdl3GameController sdl3Controller;
                 if (ctrl.IsXInputDevice)
                 {
@@ -225,7 +227,7 @@ namespace EmulatorLauncher
                 }
 
                 else
-                    sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == ctrl.DirectInput.DevicePath);
+                    sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
                 
                 sdl3index = sdl3Controller == null ? -1 : sdl3Controller.Index;
                 SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". SDL3 controller index : " + sdl3index);
@@ -275,20 +277,10 @@ namespace EmulatorLauncher
             else
                 ini.WriteValue(padNumber, "Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
 
-            if (nintendo)
-            {
-                ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));
-                ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
-                ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
-                ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
-            }
-            else
-            {
-                ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
-                ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
-                ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
-                ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));
-            }
+            ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
+            ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
+            ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
+            ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));
 
             ini.WriteValue(padNumber, "Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
             ini.WriteValue(padNumber, "Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
@@ -357,6 +349,11 @@ namespace EmulatorLauncher
                             string key = hotkey.Key;
                             string value = hotkey.Value;
 
+                            if (value == "x")
+                                value = "y";
+                            else if (value == "y")
+                                value = "x";
+
                             if (!Enum.TryParse<InputKey>(value, ignoreCase: true, out var newValue))
                                 continue;
 
@@ -419,8 +416,8 @@ namespace EmulatorLauncher
         {
             { InputKey.l3, new KeyValuePair<string, string>("ToggleFullscreen", "Keyboard/F") },
             { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/F1") },
-            { InputKey.y, new KeyValuePair<string, string>("LoadSelectedSaveState", "Keyboard/F4") },
-            { InputKey.x, new KeyValuePair<string, string>("SaveSelectedSaveState", "Keyboard/F2") },
+            { InputKey.x, new KeyValuePair<string, string>("LoadSelectedSaveState", "Keyboard/F4") },
+            { InputKey.y, new KeyValuePair<string, string>("SaveSelectedSaveState", "Keyboard/F2") },
             { InputKey.r3, new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
             { InputKey.up, new KeyValuePair<string, string>("SelectNextSaveStateSlot", "Keyboard/F7") },
             { InputKey.down, new KeyValuePair<string, string>("SelectPreviousSaveStateSlot", "Keyboard/F6") },
@@ -438,6 +435,18 @@ namespace EmulatorLauncher
             Int64 pid;
 
             key = key.GetRevertedAxis(out bool revertAxis);
+
+            if (c.VendorID == USB_VENDOR.NINTENDO)
+            {
+                if (key == InputKey.a)
+                    key = InputKey.b;
+                else if (key == InputKey.b)
+                    key = InputKey.a;
+                else if (key == InputKey.x)
+                    key = InputKey.y;
+                else if (key == InputKey.y)
+                    key = InputKey.x;
+            }
 
             var input = c.Config[key];
             if (input != null)
