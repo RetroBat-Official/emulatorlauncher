@@ -156,6 +156,8 @@ namespace EmulatorLauncher
             hotkeysObj["screenshot"] = "F8";
             hotkeysObj["show_ui"] = "F1";
             hotkeysObj["pause"] = "P";
+            if (hotkeysObj["toggle_vsync_mode"] != null && hotkeysObj["toggle_vsync_mode"].ToString() == "F1")
+                hotkeysObj["toggle_vsync_mode"] = "F3";
 
             //Set fullscreen
             json.start_fullscreen = fullscreen ? true : false;
