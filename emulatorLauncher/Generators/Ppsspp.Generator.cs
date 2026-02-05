@@ -127,7 +127,7 @@ namespace EmulatorLauncher
                     {
                         ini.WriteValue("Achievements", "AchievementsEnable", "True");
                         ini.WriteValue("Achievements", "AchievementsChallengeMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "True" : "False");
-                        ini.WriteValue("Achievements", "AchievementsEncoreMode", SystemConfig.getOptBoolean("retroachievements.encore") ? "true" : "false");
+                        ini.WriteValue("Achievements", "AchievementsEncoreMode", SystemConfig.getOptBoolean("retroachievements.encore") ? "true" : "False");
                         ini.WriteValue("Achievements", "AchievementsUnofficial", SystemConfig.getOptBoolean("retroachievements.unofficial") ? "true" : "false");
                         ini.WriteValue("Achievements", "AchievementsUserName", SystemConfig["retroachievements.username"]);
                         ini.WriteValue("Achievements", "AchievementsSoundEffects", "True");
@@ -148,18 +148,24 @@ namespace EmulatorLauncher
 
                     if (SystemConfig.isOptSet("ppsspp_ratio") && !string.IsNullOrEmpty(SystemConfig["ppsspp_ratio"]) && SystemConfig["ppsspp_ratio"] == "stretch")
                     {
-                        ini.WriteValue("Graphics", "DisplayStretch", "True");
-                        ini.WriteValue("Graphics", "DisplayAspectRatio", "1.000000");
+                        ini.WriteValue("DisplayLayout.Landscape", "DisplayStretch", "True");
+                        ini.WriteValue("DisplayLayout.Landscape", "DisplayAspectRatio", "1.000000");
+                        ini.WriteValue("DisplayLayout.Portrait", "DisplayStretch", "True");
+                        ini.WriteValue("DisplayLayout.Portrait", "DisplayAspectRatio", "1.000000");
                     }
                     else if (SystemConfig.isOptSet("ppsspp_ratio") && !string.IsNullOrEmpty(SystemConfig["ppsspp_ratio"]))
                     {
-                        ini.WriteValue("Graphics", "DisplayStretch", "False");
-                        ini.WriteValue("Graphics", "DisplayAspectRatio", SystemConfig["ppsspp_ratio"]);
+                        ini.WriteValue("DisplayLayout.Landscape", "DisplayStretch", "False");
+                        ini.WriteValue("DisplayLayout.Landscape", "DisplayAspectRatio", SystemConfig["ppsspp_ratio"]);
+                        ini.WriteValue("DisplayLayout.Portrait", "DisplayStretch", "False");
+                        ini.WriteValue("DisplayLayout.Portrait", "DisplayAspectRatio", SystemConfig["ppsspp_ratio"]);
                     }
                     else
                     {
-                        ini.WriteValue("Graphics", "DisplayStretch", "False");
-                        ini.WriteValue("Graphics", "DisplayAspectRatio", "1.000000");
+                        ini.WriteValue("DisplayLayout.Landscape", "DisplayStretch", "False");
+                        ini.WriteValue("DisplayLayout.Landscape", "DisplayAspectRatio", "1.000000");
+                        ini.WriteValue("DisplayLayout.Portrait", "DisplayStretch", "False");
+                        ini.WriteValue("DisplayLayout.Portrait", "DisplayAspectRatio", "1.000000");
                     }
 
                     if (SystemConfig.isOptSet("ppsspp_backend") && !string.IsNullOrEmpty(SystemConfig["ppsspp_backend"]))
@@ -185,42 +191,23 @@ namespace EmulatorLauncher
                         if (SystemConfig["ppsspp_frameskip_type"] == "auto")
                         {
                             ini.WriteValue("Graphics", "FrameSkip", "1");
-                            ini.WriteValue("Graphics", "FrameSkipType", "0");
                             ini.WriteValue("Graphics", "AutoFrameSkip", "True");
                         }
                         else
-                            ini.WriteValue("Graphics", "FrameSkipType", SystemConfig["ppsspp_frameskip_type"]);
+                            ini.WriteValue("Graphics", "AutoFrameSkip", "False");
                     }
                     else
-                        ini.WriteValue("Graphics", "FrameSkipType", "0");
+                        ini.WriteValue("Graphics", "AutoFrameSkip", "False");
 
-                    if (SystemConfig.isOptSet("ppsspp_textureenhancement") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement"]) && SystemConfig["ppsspp_textureenhancement"].Contains("Tex"))
-                    {
-                        ini.WriteValue("Graphics", "TexHardwareScaling", "True");
-                        ini.WriteValue("Graphics", "TextureShader", SystemConfig["ppsspp_textureenhancement"]);
-                        ini.WriteValue("Graphics", "TexScalingLevel", "1");
-                        ini.WriteValue("Graphics", "TexScalingType", "0");
-                    }
-                    else if (SystemConfig.isOptSet("ppsspp_textureenhancement") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement"]))
-                    {
+                    if (SystemConfig.isOptSet("ppsspp_textureenhancement") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement"]))
                         ini.WriteValue("Graphics", "TexScalingType", SystemConfig["ppsspp_textureenhancement"]);
-                        ini.WriteValue("Graphics", "TexHardwareScaling", "False");
-                        ini.WriteValue("Graphics", "TextureShader", "Off");
-
-                        if (SystemConfig.isOptSet("ppsspp_textureenhancement_level") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement_level"]) && SystemConfig["ppsspp_textureenhancement_level"].ToIntegerString() != "1")
-                        {
-                            ini.WriteValue("Graphics", "TexScalingLevel", SystemConfig["ppsspp_textureenhancement_level"].ToIntegerString());
-                            ini.WriteValue("Graphics", "TexDeposterize", "True");
-                        }
-                    }
                     else
-                    {
-                        ini.WriteValue("Graphics", "TexHardwareScaling", "False");
-                        ini.WriteValue("Graphics", "TextureShader", "Off");
-                        ini.WriteValue("Graphics", "TexScalingLevel", "1");
                         ini.WriteValue("Graphics", "TexScalingType", "0");
-                        ini.WriteValue("Graphics", "TexDeposterize", "False");
-                    }
+
+                    if (SystemConfig.isOptSet("ppsspp_textureenhancement_level") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement_level"]))
+                        ini.WriteValue("Graphics", "TexScalingLevel", SystemConfig["ppsspp_textureenhancement_level"].ToIntegerString());
+                    else
+                        ini.WriteValue("Graphics", "TexScalingLevel", "0");
 
                     if (SystemConfig.isOptSet("ppsspp_anisotropicfilter") && !string.IsNullOrEmpty(SystemConfig["ppsspp_anisotropicfilter"]))
                         ini.WriteValue("Graphics", "AnisotropyLevel", SystemConfig["ppsspp_anisotropicfilter"]);
@@ -234,11 +221,16 @@ namespace EmulatorLauncher
 
                     if (SystemConfig.isOptSet("Integer_Scaling") && SystemConfig.getOptBoolean("Integer_Scaling"))
                     {
-                        ini.WriteValue("Graphics", "DisplayIntegerScale", "True");
-                        ini.WriteValue("Graphics", "DisplayAspectRatio", "1.000000");
+                        ini.WriteValue("DisplayLayout.Landscape", "DisplayIntegerScale", "True");
+                        ini.WriteValue("DisplayLayout.Landscape", "DisplayAspectRatio", "1.000000");
+                        ini.WriteValue("DisplayLayout.Portrait", "DisplayIntegerScale", "True");
+                        ini.WriteValue("DisplayLayout.Portrait", "DisplayAspectRatio", "1.000000");
                     }
                     else
-                        ini.WriteValue("Graphics", "DisplayIntegerScale", "False");
+                    {
+                        ini.WriteValue("DisplayLayout.Landscape", "DisplayIntegerScale", "False");
+                        ini.WriteValue("DisplayLayout.Portrait", "DisplayIntegerScale", "False");
+                    }
 
                     BindBoolIniFeature(ini, "Graphics", "Smart2DTexFiltering", "ppsspp_smart2d", "True", "False");
                     BindBoolIniFeature(ini, "Graphics", "ReplaceTextures", "ppsspp_texture_replacement", "True", "False");
