@@ -320,7 +320,7 @@ namespace EmulatorLauncher
             }
 
             if (playerIndex == 1)
-                WriteHotkeys(pref, index, isXInput, true, inputKeyMapping);
+                WriteHotkeys(pref, index, isXInput, true, inputKeyMapping, mesenSystem);
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
@@ -469,7 +469,7 @@ namespace EmulatorLauncher
 
             if (playerIndex == 1)
             {
-                WriteHotkeys(pref, 0, false, false, inputKeyMappingDefault);
+                WriteHotkeys(pref, 0, false, false, inputKeyMappingDefault, mesenSystem);
             }
         }
 
@@ -782,13 +782,13 @@ namespace EmulatorLauncher
             { "ToggleFullscreen", InputKey.l3 }
         };
 
-        private void WriteHotkeys(JObject pref, int index, bool isXInput, bool joypad, Dictionary<InputKey, string> inputKeyMapping)
+        private void WriteHotkeys(JObject pref, int index, bool isXInput, bool joypad, Dictionary<InputKey, string> inputKeyMapping, string mesenSystem)
         {
             Dictionary<string, KeyValuePair<int, int>> targetHK = defaultKBHotkeys;
             Dictionary<string, InputKey> targetPadHK = defaultJoyHotkeys;
 
-            bool custoHK = EmulatorLauncher.Hotkeys.GetHotKeysFromFile("mesen", "", out Dictionary<string, HotkeyResult> customhotkeys);
-            bool custojoyHK = EmulatorLauncher.Hotkeys.GetPadHKFromFile("mesen", "", out Dictionary<string, string> customjoyhotkeys);
+            bool custoHK = EmulatorLauncher.Hotkeys.GetHotKeysFromFile("mesen", mesenSystem, out Dictionary<string, HotkeyResult> customhotkeys);
+            bool custojoyHK = EmulatorLauncher.Hotkeys.GetPadHKFromFile("mesen", mesenSystem, out Dictionary<string, string> customjoyhotkeys);
             if (custojoyHK && !customjoyhotkeys.ContainsKey("ToggleFastForward") && customjoyhotkeys.ContainsKey("FastForward"))
                 customjoyhotkeys["ToggleFastForward"] = customjoyhotkeys["FastForward"];
 

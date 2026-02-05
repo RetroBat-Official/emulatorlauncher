@@ -48,6 +48,7 @@ namespace EmulatorLauncher
             { "bigpemu", "BigPEmu" },
             { "bizhawk", "EmuHawk" },
             { "cgenius", "CGenius" },
+            { "desmume", "DeSmuME-VS2022-x64-Release" },
             { "dolphin", "Dolphin" },
             { "duckstation", "duckstation-qt-x64-ReleaseLTCG" },
             { "flycast", "flycast" },
@@ -56,6 +57,7 @@ namespace EmulatorLauncher
             { "melonds", "melonDS" },
             { "mesen", "Mesen" },
             { "pcsx2", "pcsx2-qt" },
+            { "ppsspp", "PPSSPPWindows64" },
             { "project64", "Project64" },
             { "raine", "raine" },
             { "retroarch", "retroarch" },
@@ -140,6 +142,19 @@ namespace EmulatorLauncher
                 {
                     new EmulatorHotkeyInfo("input_save_state", "Quick Save", "F2"),
                     new EmulatorHotkeyInfo("input_load_state", "Quick Load", "F4")
+                }),
+
+            new EmulatorHotkey("desmume", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "FastForward", "76"),
+                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "FastForwardToggle", "32"),
+                    new EmulatorHotkeyInfo("input_frame_advance", "FrameAdvance", "75"),
+                    new EmulatorHotkeyInfo("input_save_state", "QuickSave", "113"),
+                    new EmulatorHotkeyInfo("input_load_state", "QuickLoad", "115"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "Pause", "80"),
+                    new EmulatorHotkeyInfo("input_screenshot", "QuickScreenshot", "119"),
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "PreviousSaveSlot", "117"),
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "NextSaveSlot", "118")
                 }),
 
             new EmulatorHotkey("dolphin", new EmulatorHotkeyInfo[]
@@ -261,6 +276,22 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_state_slot_increase", "NextSaveStateSlot", "F7"),
                     new EmulatorHotkeyInfo("input_pause_toggle", "TogglePause", "P"),
                     new EmulatorHotkeyInfo("input_exit_emulator", "ShutdownVM", "Escape")
+                }),
+
+            new EmulatorHotkey("ppsspp", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_rewind", "Rewind", "67"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "Fast-forward", "40"),
+                    new EmulatorHotkeyInfo("input_save_state", "Save State", "132"),
+                    new EmulatorHotkeyInfo("input_load_state", "Load State", "134"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "Pause (no menu)", "44"),
+                    new EmulatorHotkeyInfo("input_menu_toggle", "Pause", "131"),
+                    new EmulatorHotkeyInfo("input_screenshot", "Screenshot", "138"),
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "Previous Slot", "136"),
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "Next Slot", "137"),
+                    new EmulatorHotkeyInfo("input_frame_advance", "Frame Advance", "39"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "Toggle Fullscreen", "34"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "Exit App", "111"),
                 }),
 
             new EmulatorHotkey("project64", new EmulatorHotkeyInfo[]

@@ -267,6 +267,19 @@ namespace EmulatorLauncher
 
         private void WriteKeyboardHotkeys(IniFile ini)
         {
+            var hotkeyMapping = hotkeys;
+
+            bool custoHK = Hotkeys.GetHotKeysFromFile("desmume", "", out Dictionary<string, HotkeyResult> customHotkeys);
+
+            if (custoHK && customHotkeys.Count > 0)
+            {
+                hotkeyMapping = new Dictionary<string, string>();
+                foreach (var hk in customHotkeys)
+                    hotkeyMapping.Add(hk.Value.EmulatorKey, hk.Value.EmulatorValue);
+
+                _pad2Keyoverride = true;
+            }
+
             for (int i = 0; i < 10; i++)
             {
                 int j = i + 48;
@@ -295,7 +308,7 @@ namespace EmulatorLauncher
             ini.WriteValue("Hotkeys", "LoadFromSlot0", "121");
             ini.WriteValue("Hotkeys", "LoadFromSlot0 MOD", "2");
 
-            foreach (var h in hotkeys)
+            foreach (var h in hotkeyMapping)
             {
                 string mod = "0";
                 string key = h.Key;
