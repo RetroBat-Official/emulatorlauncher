@@ -60,17 +60,26 @@ namespace EmulatorLauncher
 
             using (var ini = new IniFile(conf, IniOptions.KeepEmptyValues))
             {
+                ini.WriteValue("UI", "check_for_updates\\default", "false");
+                ini.WriteValue("UI", "check_for_updates", "false");
+
                 // Set up paths
                 bool mutualize = SystemConfig.getOptBoolean("yuzu_mutualize");
 
                 string switchSavesPath = Path.Combine(path, "user");
                 if (mutualize)
-                    switchSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "switch", "eden");
+                    switchSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "switch");
 
                 if (!Directory.Exists(switchSavesPath)) try { Directory.CreateDirectory(switchSavesPath); }
                     catch { }
 
-                string sdmcPath = Path.Combine(switchSavesPath, "sdmc");
+                if (Directory.Exists(switchSavesPath))
+                {
+                    ini.WriteValue("Data%20Storage", "save_directory\\default", "false");
+                    ini.WriteValue("Data%20Storage", "save_directory", switchSavesPath.Replace("\\", "/") + "/");
+                }
+
+                /*string sdmcPath = Path.Combine(switchSavesPath, "sdmc");
                 if (!Directory.Exists(sdmcPath)) try { Directory.CreateDirectory(sdmcPath); }
                     catch { }
 
@@ -80,7 +89,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("Data%20Storage", "sdmc_directory", sdmcPath.Replace("\\", "/"));
                 }
 
-                string nandPath = Path.Combine(switchSavesPath, "nand");
+                string nandPath = Path.Combine(path, "user", "nand");
                 if (!Directory.Exists(nandPath)) try { Directory.CreateDirectory(nandPath); }
                     catch { }
 
@@ -90,7 +99,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("Data%20Storage", "nand_directory", nandPath.Replace("\\", "/"));
                 }
 
-                string dumpPath = Path.Combine(switchSavesPath, "dump");
+                string dumpPath = Path.Combine(path, "user", "dump");
                 if (!Directory.Exists(dumpPath)) try { Directory.CreateDirectory(dumpPath); }
                     catch { }
 
@@ -100,7 +109,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("Data%20Storage", "dump_directory", dumpPath.Replace("\\", "/"));
                 }
 
-                string loadPath = Path.Combine(switchSavesPath, "load");
+                string loadPath = Path.Combine(path, "user", "load");
                 if (!Directory.Exists(loadPath)) try { Directory.CreateDirectory(loadPath); }
                     catch { }
 
@@ -108,10 +117,7 @@ namespace EmulatorLauncher
                 {
                     ini.WriteValue("Data%20Storage", "load_directory\\default", "false");
                     ini.WriteValue("Data%20Storage", "load_directory", loadPath.Replace("\\", "/"));
-                }
-
-                ini.WriteValue("UI", "check_for_updates\\default", "false");
-                ini.WriteValue("UI", "check_for_updates", "false");
+                }*/
 
                 ini.WriteValue("System", "language_index\\default", "false");
                 if (SystemConfig.isOptSet("eden_language") && !string.IsNullOrEmpty(SystemConfig["eden_language"]))
