@@ -909,7 +909,13 @@ namespace EmulatorLauncher.Libretro
                 _cfgFilesToRestore.Add(cfgFile);
             }
             catch { }
-            
+
+            string controLayout = "";
+            if (Program.SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))
+                controLayout = Program.SystemConfig["controller_layout"];
+
+            string searchPattern = "_" + controLayout;
+
             try
             {
                 XDocument doc = XDocument.Load(cfgFile);
@@ -917,6 +923,7 @@ namespace EmulatorLauncher.Libretro
 
                 // Keep only DIPSWITCH ports from the existing input
                 XElement inputElement = gameSystemElement?.Element("input");
+
                 if (inputElement != null)
                 {
                     inputElement.Elements()
@@ -931,9 +938,26 @@ namespace EmulatorLauncher.Libretro
                 {
                     XDocument ctrldoc = XDocument.Load(ctrlFile);
 
-                    XElement ctrlinputElement = ctrldoc.Root?
-                    .Element("system")?
-                    .Element("input");
+                    XElement ctrlSystemElement = null;
+
+                    if (ctrldoc.Root != null)
+                    {
+                        var systems = ctrldoc.Root.Elements("system");
+
+                        ctrlSystemElement =
+                            systems.FirstOrDefault(s =>
+                            {
+                                var nameAttr = s.Attribute("name");
+                                return nameAttr != null &&
+                                       nameAttr.Value.EndsWith(searchPattern);
+                            })
+                            ?? systems.FirstOrDefault();
+                    }
+
+                    XElement ctrlinputElement = null;
+
+                    if (ctrlSystemElement != null)
+                        ctrlinputElement = ctrlSystemElement.Element("input");
 
                     if (ctrlinputElement != null && gameSystemElement != null)
                     {
