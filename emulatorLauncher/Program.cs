@@ -1173,9 +1173,11 @@ namespace EmulatorLauncher
             IntPtr hwnd = User32.FindWindow(null, "emulationstation");
 
             if (hwnd != IntPtr.Zero)
-            {
-                User32.ShowWindow(hwnd, SW.RESTORE);
-                User32.SetForegroundWindow(hwnd);
+            {               
+                if (User32.GetWindowStyle(hwnd).HasFlag(WS.MINIMIZE))
+                    User32.ShowWindow(hwnd, SW.RESTORE);
+
+                User32.ForceForegroundWindow(hwnd);
             }
         }
     }
