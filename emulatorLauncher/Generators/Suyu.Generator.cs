@@ -122,12 +122,8 @@ namespace EmulatorLauncher
 
             using (var ini = new IniFile(conf, IniOptions.KeepEmptyValues))
             {
-                // Set up paths
-                bool mutualize = SystemConfig.getOptBoolean("yuzu_mutualize");
-
+                /* Set up paths
                 string switchSavesPath = Path.Combine(path, "user");
-                if (mutualize)
-                    switchSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "switch", "suyu");
 
                 if (!Directory.Exists(switchSavesPath)) try { Directory.CreateDirectory(switchSavesPath); }
                     catch { }
@@ -170,7 +166,7 @@ namespace EmulatorLauncher
                 {
                     ini.WriteValue("Data%20Storage", "load_directory\\default", "false");
                     ini.WriteValue("Data%20Storage", "load_directory", loadPath.Replace("\\", "/"));
-                }
+                }*/
 
                 //language
                 ini.WriteValue("System", "language_index\\default", "false");
