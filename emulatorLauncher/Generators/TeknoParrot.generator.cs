@@ -318,7 +318,9 @@ namespace EmulatorLauncher
                     }
                     catch { }
 
-                    if (userProfile.GamePath == null)
+                    if (userProfile.GamePath == null && profile.GamePath != null)
+                        userProfile.GamePath = profile.GamePath;
+                    else
                     {
                         SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable to find Game executable for " + rom);
                         return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to find game executable" };
