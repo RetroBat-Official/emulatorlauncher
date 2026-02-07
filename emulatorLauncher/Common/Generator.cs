@@ -329,7 +329,10 @@ namespace EmulatorLauncher
 
         public string GetUnzippedRomForSystem(string rom, string core, string system)
         {
-            string[] psxExtensions = new string[] { ".m3u", ".cue", ".img", ".mdf", ".pbp", ".toc", ".cbn", ".ccd", ".iso", ".cso" };
+            string[] pceCDExtensions = new string[] { ".m3u", ".cue", ".chd", ".pce", ".ccd", ".iso", ".img", ".bin" };
+            string[] psxExtensions = new string[] { ".m3u", ".cue", ".img", ".mdf", ".pbp", ".toc", ".cbn", ".ccd", ".chd", ".iso", ".cso" };
+            string[] ps2Extensions = new string[] { ".m3u", ".chd", ".iso", ".ciso", ".cso", ".bin", ".mdf", ".img", ".gz" };
+            string[] saturnExtensions = new string[] { ".m3u", ".chd", ".cue", ".iso", ".ccd", ".mds", ".toc" };
             string[] scummVMExtensions = new string[] { ".scummvm" };
             string[] extensions = new string[] { };
             bool tryMount = false;
@@ -340,11 +343,27 @@ namespace EmulatorLauncher
                 extensions = psxExtensions;
                 silent = false;
             }
+            else if (system == "ps2")
+            {
+                extensions = ps2Extensions;
+                silent = false;
+            }
+            else if (system == "saturn")
+            {
+                extensions = saturnExtensions;
+                silent = false;
+            }
+            else if (system == "pcenginecd" || system == "turbografxcd" || system == "pcecd")
+            {
+                extensions = pceCDExtensions;
+                tryMount = true;
+            }
             else if (core == "scummvm")
             {
                 extensions = scummVMExtensions;
                 tryMount = true;
             }
+            
             else
                 return null;
 

@@ -338,6 +338,15 @@ namespace EmulatorLauncher.Libretro
                     rom = newRom;
             }
 
+            // Unzip for cores not supporting compressed files directly
+            if (rom != null && CoreNoZip.Contains(core) && (Path.GetExtension(rom).ToLower() == ".zip"))
+            {
+                string newRom = GetUnzippedRomForSystem(rom, core, system);
+
+                if (newRom != null)
+                    rom = newRom;
+            }
+
             // m3u management in some cases
             if (core == "mednafen_pce" || core == "mednafen_pce_fast")
             {
@@ -2235,8 +2244,8 @@ namespace EmulatorLauncher.Libretro
         static List<string> capsimgCore = new List<string>() { "hatari", "hatarib", "puae" };
         static List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
         static List<string> coreNoGL = new List<string>() { "citra", "kronos", "mednafen_psx", "mednafen_psx_hw", "pcsx2", "swanstation" };
-        static List<string> driverYBias = new List<string>() { "gl", "glcore" };
         static List<string> CoreSaveSort = new List<string>() { "dolphin" };
+        static List<string> CoreNoZip = new List<string>() { "mednafen_pce", "mednafen_pce_fast","mednafen_psx_hw", "mednafen_psx", "mednafen_saturn", "swanstation", "pcsx_rearmed", "pcsx2" };
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>() 
