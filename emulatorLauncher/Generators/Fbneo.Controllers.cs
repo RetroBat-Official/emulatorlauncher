@@ -52,6 +52,8 @@ namespace EmulatorLauncher
                 string layout = "";
                 if (SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(SystemConfig["controller_layout"]))
                     layout = SystemConfig["controller_layout"];
+                if (layout == "classic8")
+                    layout = "6alternative";
 
                 if (decocassGames.Contains(_romName))
                     game = ymlFile.Elements.Where(g => g.Name == "decocass").FirstOrDefault() as YmlContainer;
