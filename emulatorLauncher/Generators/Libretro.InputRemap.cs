@@ -771,6 +771,8 @@ namespace EmulatorLauncher.Libretro
             string controLayout = "";
             if (Program.SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))
                 controLayout = Program.SystemConfig["controller_layout"];
+            if (controLayout == "classic8")
+                controLayout = "6alternative";
 
             string searchYml = romName;
 

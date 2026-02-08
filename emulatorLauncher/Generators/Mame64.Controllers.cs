@@ -105,6 +105,8 @@ namespace EmulatorLauncher
             string layout = "default";
             if (SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(SystemConfig["controller_layout"]))
                 layout = SystemConfig["controller_layout"];
+            if (layout == "classic8")
+                layout = "6alternative";
 
             string specificMappingPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "user", "inputmapping", "mame", MappingFileName);
             if (!File.Exists(specificMappingPath))
@@ -285,9 +287,9 @@ namespace EmulatorLauncher
                 if (i == 1)
                 {
                     if (isXinput)
-                        ConfigurePlayer1XInput(i, input, mapping, joy, mouseIndex1, hbmame, dpadonly);
+                        ConfigurePlayer1XInput(i, input, mapping, joy, mouseIndex1, hbmame, dpadonly, layout);
                     else
-                        ConfigurePlayer1DInput(i, input, ctrlr, joy, mouseIndex1, hbmame, dpadonly, xinputCtrl);
+                        ConfigurePlayer1DInput(i, input, ctrlr, joy, mouseIndex1, hbmame, dpadonly, xinputCtrl, layout);
                 }
 
                 // OTHER PLAYERS
@@ -295,9 +297,9 @@ namespace EmulatorLauncher
                 else if (i <= 8)
                 {
                     if (isXinput)
-                        ConfigurePlayersXInput(i, input, mapping, joy, mouseIndex2, hbmame, dpadonly);
+                        ConfigurePlayersXInput(i, input, mapping, joy, mouseIndex2, hbmame, dpadonly, layout);
                     else
-                        ConfigurePlayersDInput(i, input, ctrlr, joy, mouseIndex2, dpadonly, xinputCtrl);
+                        ConfigurePlayersDInput(i, input, ctrlr, joy, mouseIndex2, dpadonly, xinputCtrl, layout);
                 }
 
                 // mess does not accept ctrlr overrides, so copy to cfg file
@@ -381,7 +383,7 @@ namespace EmulatorLauncher
         }
 
         #region configuration
-        private void ConfigurePlayer1XInput(int i, XElement input, Dictionary<string, string> mapping, string joy, string mouseIndex1, bool hbmame, bool dpadonly)
+        private void ConfigurePlayer1XInput(int i, XElement input, Dictionary<string, string> mapping, string joy, string mouseIndex1, bool hbmame, bool dpadonly, string layout)
         {
             if (hbmame)
             {
@@ -582,41 +584,112 @@ namespace EmulatorLauncher
                 ("port", new XAttribute("type", "P" + i + "_JOYSTICKLEFT_RIGHT"),
                     new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["lsright"] + " OR KEYCODE_F")));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["south"] + " OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1")));
+            if (layout == "modern8")
+            {
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"] + " OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["north"] + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r1"] + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["south"] + " OR KEYCODE_LSHIFT")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["east"] + " OR KEYCODE_Z")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2trigger"] + " OR KEYCODE_X")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l1"] + " OR KEYCODE_C")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2trigger"] + " OR KEYCODE_V")));
+            }
+            else if (layout == "6alternative")
+            {
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"] + " OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["north"] + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l1"] + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["south"] + " OR KEYCODE_LSHIFT")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["east"] + " OR KEYCODE_Z")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r1"] + " OR KEYCODE_X")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2trigger"] + " OR KEYCODE_C")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2trigger"] + " OR KEYCODE_V")));
+            }
+            else
+            {
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"] + " OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["south"] + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["east"] + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["north"] + " OR KEYCODE_LSHIFT")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l1"] + " OR KEYCODE_Z")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r1"] + " OR KEYCODE_X")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2trigger"] + " OR KEYCODE_C")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2trigger"] + " OR KEYCODE_V")));
+            }
 
             input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["east"] + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2")));
-
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"] + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2")));
-
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["north"] + " OR KEYCODE_LSHIFT")));
-
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l1"] + " OR KEYCODE_Z")));
-
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r1"] + " OR KEYCODE_X")));
-
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2trigger"] + " OR KEYCODE_C")));
-
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2trigger"] + " OR KEYCODE_V")));
-
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON9"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l3"] + " OR KEYCODE_B")));
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON9"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l3"] + " OR KEYCODE_B")));
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON10"),
@@ -753,7 +826,7 @@ namespace EmulatorLauncher
                     new XElement("newseq", new XAttribute("type", "decrement"), "KEYCODE_UP")));
         }
 
-        private void ConfigurePlayer1DInput(int i, XElement input, SdlToDirectInput ctrlr, string joy, string mouseIndex1, bool hbmame, bool dpadonly, bool xinputCtrl)
+        private void ConfigurePlayer1DInput(int i, XElement input, SdlToDirectInput ctrlr, string joy, string mouseIndex1, bool hbmame, bool dpadonly, bool xinputCtrl, string layout)
         {
             if (hbmame)
             {
@@ -954,37 +1027,108 @@ namespace EmulatorLauncher
                 ("port", new XAttribute("type", "P" + i + "_JOYSTICKLEFT_RIGHT"),
                     new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftx", xinputCtrl, 1) + " OR KEYCODE_F")));
 
-            input.Add(new XElement
+            if (layout == "modern8")
+            {
+                input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "x", xinputCtrl) + " OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "y", xinputCtrl) + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "a", xinputCtrl) + " OR KEYCODE_LSHIFT")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "b", xinputCtrl) + " OR KEYCODE_Z")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "righttrigger", xinputCtrl) + " OR KEYCODE_X")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftshoulder", xinputCtrl) + " OR KEYCODE_C")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefttrigger", xinputCtrl) + " OR KEYCODE_V")));
+            }
+            else if (layout == "6alternative")
+            {
+                input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "x", xinputCtrl) + " OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "y", xinputCtrl) + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftshoulder", xinputCtrl) + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "a", xinputCtrl) + " OR KEYCODE_LSHIFT")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "b", xinputCtrl) + " OR KEYCODE_Z")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_X")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefttrigger", xinputCtrl) + " OR KEYCODE_C")));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "righttrigger", xinputCtrl) + " OR KEYCODE_V")));
+            }
+            else
+            {
+                input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
                     new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "a", xinputCtrl) + " OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1")));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "b", xinputCtrl) + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2")));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "b", xinputCtrl) + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2")));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "x", xinputCtrl) + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2")));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "x", xinputCtrl) + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2")));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "y", xinputCtrl) + " OR KEYCODE_LSHIFT")));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "y", xinputCtrl) + " OR KEYCODE_LSHIFT")));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftshoulder", xinputCtrl) + " OR KEYCODE_Z")));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftshoulder", xinputCtrl) + " OR KEYCODE_Z")));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_X")));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_X")));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefttrigger", xinputCtrl) + " OR KEYCODE_C")));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefttrigger", xinputCtrl) + " OR KEYCODE_C")));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "righttrigger", xinputCtrl) + " OR KEYCODE_V")));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "righttrigger", xinputCtrl) + " OR KEYCODE_V")));
+            }
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON9"),
@@ -1118,7 +1262,7 @@ namespace EmulatorLauncher
                     new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " OR KEYCODE_5")));
         }
 
-        private void ConfigurePlayersXInput(int i, XElement input, Dictionary<string, string> mapping, string joy, string mouseIndex2, bool hbmame, bool dpadonly)
+        private void ConfigurePlayersXInput(int i, XElement input, Dictionary<string, string> mapping, string joy, string mouseIndex2, bool hbmame, bool dpadonly, string layout)
         {
             int j = i + 4;
 
@@ -1260,38 +1404,116 @@ namespace EmulatorLauncher
             }
             else
             {
-                input.Add(new XElement
+                if (layout == "modern8")
+                {
+                    input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"])));
+
+                    input.Add(new XElement
+                        ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
+                             new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["north"])));
+
+                    input.Add(new XElement
+                        ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r1"])));
+                }
+                else if (layout == "6alternative")
+                {
+                    input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"])));
+
+                    input.Add(new XElement
+                        ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
+                             new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["north"])));
+
+                    input.Add(new XElement
+                        ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l1"])));
+                }
+                else
+                {
+                    input.Add(new XElement
                     ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
                         new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["south"])));
 
-                input.Add(new XElement
-                    ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
-                         new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["east"])));
+                    input.Add(new XElement
+                        ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
+                             new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["east"])));
 
-                input.Add(new XElement
-                    ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
-                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"])));
+                    input.Add(new XElement
+                        ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"])));
+                }
             }
 
-            input.Add(new XElement
+            if (layout == "modern8")
+            {
+                input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"])));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["north"])));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r1"])));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l1"])));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2trigger"])));
+            }
+            else if (layout == "6alternative")
+            {
+                input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["west"])));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["north"])));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l1"])));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2trigger"])));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2trigger"])));
+            }
+            else
+            {
+                input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
                     new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["north"])));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l1"])));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l1"])));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r1"])));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r1"])));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2trigger"])));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["l2trigger"])));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2trigger"])));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + mapping["r2trigger"])));
+            }
 
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON9"),
@@ -1413,7 +1635,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ConfigurePlayersDInput(int i, XElement input, SdlToDirectInput ctrlr, string joy, string mouseIndex2, bool dpadonly, bool xinputCtrl)
+        private void ConfigurePlayersDInput(int i, XElement input, SdlToDirectInput ctrlr, string joy, string mouseIndex2, bool dpadonly, bool xinputCtrl, string layout)
         {
             int j = i + 4;
 
@@ -1555,39 +1777,117 @@ namespace EmulatorLauncher
             }
             else
             {
-                input.Add(new XElement
+                if (layout == "modern8")
+                {
+                    input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "x", xinputCtrl))));
+
+                    input.Add(new XElement
+                        ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
+                             new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "y", xinputCtrl))));
+
+                    input.Add(new XElement
+                        ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl))));
+                }
+                else if (layout == "6alternative")
+                {
+                    input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "x", xinputCtrl))));
+
+                    input.Add(new XElement
+                        ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
+                             new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "y", xinputCtrl))));
+
+                    input.Add(new XElement
+                        ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftshoulder", xinputCtrl))));
+                }
+                else
+                {
+                    input.Add(new XElement
                     ("port", new XAttribute("type", "P" + i + "_BUTTON1"),
                         new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "a", xinputCtrl))));
 
-                input.Add(new XElement
-                    ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
-                         new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "b", xinputCtrl))));
+                    input.Add(new XElement
+                        ("port", new XAttribute("type", "P" + i + "_BUTTON2"),
+                             new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "b", xinputCtrl))));
 
-                input.Add(new XElement
-                    ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
-                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "x", xinputCtrl))));
+                    input.Add(new XElement
+                        ("port", new XAttribute("type", "P" + i + "_BUTTON3"),
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "x", xinputCtrl))));
+                }
             }
 
-            input.Add(new XElement
+            if (layout == "modern8")
+            {
+                input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "a", xinputCtrl))));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "b", xinputCtrl))));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "righttrigger", xinputCtrl))));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftshoulder", xinputCtrl))));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefttrigger", xinputCtrl))));
+            }
+            else if (layout == "6alternative")
+            {
+                input.Add(new XElement
+                ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
+                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "a", xinputCtrl))));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "b", xinputCtrl))));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl))));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefttrigger", xinputCtrl))));
+
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "righttrigger", xinputCtrl))));
+            }
+            else
+            {
+                input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON4"),
                     new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "y", xinputCtrl))));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftshoulder", xinputCtrl))));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON5"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftshoulder", xinputCtrl))));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl))));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON6"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl))));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefttrigger", xinputCtrl))));
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON7"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "lefttrigger", xinputCtrl))));
 
-            input.Add(new XElement
-                ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
-                    new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "righttrigger", xinputCtrl))));
-
+                input.Add(new XElement
+                    ("port", new XAttribute("type", "P" + i + "_BUTTON8"),
+                        new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "righttrigger", xinputCtrl))));
+            }
+            
             input.Add(new XElement
                 ("port", new XAttribute("type", "P" + i + "_BUTTON9"),
                     new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl))));
