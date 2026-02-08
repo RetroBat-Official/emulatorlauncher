@@ -17,14 +17,20 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            _resolution = resolution;
-            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-
             string path = AppConfig.GetFullPath("tsugaru");
 
             string exe = Path.Combine(path, "Tsugaru_CUI.exe");
             if (!File.Exists(exe))
                 return null;
+
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            _resolution = resolution;
+
+            if (fullscreen)
+            {
+                if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            }
 
             List<string> commandArray = new List<string>();
 
@@ -103,8 +109,16 @@ namespace EmulatorLauncher
             commandArray.Add("-GAMEPORT1");
             commandArray.Add("MOUSE");
 
-            commandArray.Add("-AUTOSCALE");
-            commandArray.Add("-MAXIMIZE");
+            if (fullscreen)
+            {
+                if (SystemConfig.getOptBoolean("exclusivefs"))
+                    commandArray.Add("-FULLSCREEN");
+                else
+                {
+                    commandArray.Add("-AUTOSCALE");
+                    commandArray.Add("-MAXIMIZE");
+                }
+            }
 
             commandArray.Add("-FREQ");
             commandArray.Add("33");
