@@ -20,12 +20,27 @@ namespace EmulatorLauncher.ControlCenter
         private bool _tatoo = false;       
         private IntPtr _emulatorHwnd;
         private bool _isEmulatorSuspended;
+        private System.Drawing.Text.PrivateFontCollection _pfc;
 
         public ControlCenterFrm()
         {
             InitializeComponent();
 
-            Font = new Font(SystemFonts.MessageBoxFont.FontFamily.Name, this.Font.Size, FontStyle.Regular);
+            var fontTtf = Path.Combine(Program.LocalPath, "resources", "opensans_hebrew_condensed_regular.ttf");
+            if (File.Exists(fontTtf))
+            {
+                _pfc = new System.Drawing.Text.PrivateFontCollection();
+                _pfc.AddFontFile(fontTtf);
+                Font = new Font(_pfc.Families[0], this.Font.Size, FontStyle.Regular);
+            }
+            else
+                Font = new Font(SystemFonts.MessageBoxFont.FontFamily.Name, this.Font.Size, FontStyle.Regular);
+
+            btnCancel.Text = Properties.Resources.BackToGame;
+            btnKill.Text = Properties.Resources.KillEmulator;
+            btnManual.Text = Properties.Resources.Manual;
+            btnTatoo.Text = Properties.Resources.Tatoo;
+            btnMap.Text = Properties.Resources.Map;
 
             this.Opacity = 0.0;
             this.TopMost = true;
@@ -34,7 +49,7 @@ namespace EmulatorLauncher.ControlCenter
 
             label1.Text = Program.CurrentGame?.Name;
             label3.Text = Program.CurrentGame?.Description;
-            label3.Font = SystemFonts.MessageBoxFont;
+            label3.Font = new Font(SystemFonts.MessageBoxFont.FontFamily.Name, label3.Font.Size, FontStyle.Regular);
 
             pictureBox1.ImageLocation = GetMediaPath(Program.CurrentGame?.Thumbnail);
 
@@ -144,7 +159,8 @@ namespace EmulatorLauncher.ControlCenter
 
                 top = top - h - spacing;
             }
-                         
+
+            // pictureBox1.Height = top + h - pictureBox1.Top;
             label3.Height = top + h - label3.Top;
         }
 
@@ -216,6 +232,12 @@ namespace EmulatorLauncher.ControlCenter
             {
                 _overlay.Dispose();
                 _overlay = null;
+            }
+
+            if (_pfc != null)
+            {
+                _pfc.Dispose();
+                _pfc = null;
             }
 
             if (disposing && (components != null))

@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="BackToGame" xml:space="preserve">
+    <value>Retourner au jeu</value>
+  </data>
   <data name="CoreNotInstalled" xml:space="preserve">
     <value>Le core '{0}' n'est pas installé.
 Voulez-vous l'installer maintenant ?</value>
@@ -141,14 +144,26 @@ Voulez-vous l'installer maintenant ?</value>
   <data name="KeepUncompressedFile" xml:space="preserve">
     <value>Voulez-vous conserver les fichiers décompressés pour les réutiliser plus tard ?</value>
   </data>
+  <data name="KillEmulator" xml:space="preserve">
+    <value>Terminer l'emulation</value>
+  </data>
   <data name="LookingForUpdates" xml:space="preserve">
     <value>Recherche des mises à jour...</value>
+  </data>
+  <data name="Manual" xml:space="preserve">
+    <value>Manuel d'utilisation</value>
+  </data>
+  <data name="Map" xml:space="preserve">
+    <value>Carte</value>
   </data>
   <data name="No" xml:space="preserve">
     <value>Non</value>
   </data>
   <data name="Ok" xml:space="preserve">
     <value>Ok</value>
+  </data>
+  <data name="Tatoo" xml:space="preserve">
+    <value>Tatoo</value>
   </data>
   <data name="UnCompressing" xml:space="preserve">
     <value>Décompression de {0}...</value>
