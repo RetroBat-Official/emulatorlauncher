@@ -524,8 +524,10 @@ namespace EmulatorLauncher
         {
             string sdl3Sourcepath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "SDL3.dll");
             string sdl3Targetpath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "emulationstation", "SDL3.dll");
-            if (!File.Exists(sdl3Targetpath))
+            if (File.Exists(sdl3Sourcepath) && !File.Exists(sdl3Targetpath))
+            {
                 try { File.Copy(sdl3Sourcepath, sdl3Targetpath); } catch { }
+            }
 
             if (!File.Exists(sdl3Targetpath))
             {

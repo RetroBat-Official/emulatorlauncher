@@ -785,9 +785,7 @@ namespace EmulatorLauncher
             }
 
             if (Environment.ExitCode != 0)
-                SimpleLogger.Instance.Error("[Generator] Exit code " + Environment.ExitCode);
-
-            FocusEmulationStation();
+                SimpleLogger.Instance.Error("[Generator] Exit code " + Environment.ExitCode);            
         }
 
         private static void ShowControlCenter()
@@ -1157,28 +1155,6 @@ namespace EmulatorLauncher
             shellKey.Close();
 
             key.Close();
-        }
-
-        private static int ObscureCode(byte x, byte y)
-        {
-            return (x ^ y) + 0x80;
-        }
-
-        /// <summary>
-        /// Brings EmulationStation to the foreground
-        /// </summary>
-        public static void FocusEmulationStation()
-        {
-            SimpleLogger.Instance.Info("[Focus] Bringing EmulationStation to foreground.");
-            IntPtr hwnd = User32.FindWindow(null, "emulationstation");
-
-            if (hwnd != IntPtr.Zero)
-            {               
-                if (User32.GetWindowStyle(hwnd).HasFlag(WS.MINIMIZE))
-                    User32.ShowWindow(hwnd, SW.RESTORE);
-
-                User32.ForceForegroundWindow(hwnd);
-            }
         }
     }
 }

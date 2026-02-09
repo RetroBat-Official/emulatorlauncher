@@ -217,4 +217,19 @@ Install now ?</value>
   <data name="wheelsdlmapping" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\wheelSDLMapping.yml;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="BackToGame" xml:space="preserve">
+    <value>Back to game</value>
+  </data>
+  <data name="KillEmulator" xml:space="preserve">
+    <value>Kill emulator</value>
+  </data>
+  <data name="Manual" xml:space="preserve">
+    <value>Manual</value>
+  </data>
+  <data name="Map" xml:space="preserve">
+    <value>Map</value>
+  </data>
+  <data name="Tatoo" xml:space="preserve">
+    <value>Tatoo</value>
+  </data>
 </root>
