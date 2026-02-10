@@ -83,34 +83,6 @@ namespace EmulatorLauncher
                     ini.WriteValue("Data%20Storage", "global_custom_save_path", "");
                 }
 
-                string sdmcPath = Path.Combine(path, "user", "sdmc");
-                if (FileTools.TryCreateDirectory(sdmcPath))
-                {
-                    ini.WriteValue("Data%20Storage", "sdmc_directory\\default", "false");
-                    ini.WriteValue("Data%20Storage", "sdmc_directory", sdmcPath.Replace("\\", "/"));
-                }
-
-                string nandPath = Path.Combine(path, "user", "nand");
-                if (FileTools.TryCreateDirectory(nandPath))
-                {
-                    ini.WriteValue("Data%20Storage", "nand_directory\\default", "false");
-                    ini.WriteValue("Data%20Storage", "nand_directory", nandPath.Replace("\\", "/"));
-                }
-
-                string dumpPath = Path.Combine(path, "user", "dump");
-                if (FileTools.TryCreateDirectory(dumpPath))
-                {
-                    ini.WriteValue("Data%20Storage", "dump_directory\\default", "false");
-                    ini.WriteValue("Data%20Storage", "dump_directory", dumpPath.Replace("\\", "/"));
-                }
-
-                string loadPath = Path.Combine(path, "user", "load");
-                if (FileTools.TryCreateDirectory(loadPath))
-                {
-                    ini.WriteValue("Data%20Storage", "load_directory\\default", "false");
-                    ini.WriteValue("Data%20Storage", "load_directory", loadPath.Replace("\\", "/"));
-                }
-
                 ini.WriteValue("System", "language_index\\default", "false");
                 if (SystemConfig.isOptSet("citron_language") && !string.IsNullOrEmpty(SystemConfig["citron_language"]))
                     ini.WriteValue("System", "language_index", SystemConfig["citron_language"]);
