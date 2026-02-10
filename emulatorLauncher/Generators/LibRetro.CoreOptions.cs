@@ -2536,7 +2536,7 @@ namespace EmulatorLauncher.Libretro
             coreSettings["mame_mame_paths_enable"] = "disabled";
             coreSettings["mame_saves"] = "game";
 
-            if (SystemConfig.isOptSet("mame_lightgun_mode") && SystemConfig["mame_lightgun_mode"] != "none")
+            if (SystemConfig.isOptSet("lightgun_mode") && SystemConfig["lightgun_mode"] != "none")
                 coreSettings["mame_mouse_enable"] = "disabled";
             else
                 BindBoolFeatureOn(coreSettings, "mame_mouse_enable", "mame_mouse_enable", "enabled", "disabled");

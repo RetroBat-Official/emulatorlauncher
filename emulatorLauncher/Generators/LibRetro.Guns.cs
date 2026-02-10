@@ -124,6 +124,12 @@ namespace EmulatorLauncher.Libretro
 
                 string joypadIndex = retroarchConfig["input_player" + playerIndex + "_joypad_index"];
                 retroarchConfig["input_player" + playerIndex + "_joypad_index"] = joypadIndex;
+
+                // Set additional buttons gun mapping default ...
+                if (!LibretroGunCoreInfo.Instance.ContainsKey(core))
+                {
+                    ConfigureLightgunKeyboardActions(retroarchConfig, playerIndex, guns);
+                }
             }
 
             // Multigun case
@@ -186,6 +192,12 @@ namespace EmulatorLauncher.Libretro
 
                     string joypadIndex = retroarchConfig["input_player" + i + "_joypad_index"];
                     retroarchConfig["input_player" + i + "_joypad_index"] = joypadIndex;
+
+                    // Set additional buttons gun mapping default ...
+                    if (!LibretroGunCoreInfo.Instance.ContainsKey(core))
+                    {
+                        ConfigureLightgunKeyboardActions(retroarchConfig, i, guns);
+                    }
                 }
             }
 
@@ -222,12 +234,10 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            // Set additional buttons gun mapping default ...
-            if (!LibretroGunCoreInfo.Instance.ContainsKey(core))
-                ConfigureLightgunKeyboardActions(retroarchConfig, playerIndex, guns);
+            
 
             // ... or configure core specific mappings            
-            else
+            if (LibretroGunCoreInfo.Instance.ContainsKey(core))
                 ConfigureGunsCore(retroarchConfig, playerIndex, core, deviceType, guninvert, multigun);
         }
 
