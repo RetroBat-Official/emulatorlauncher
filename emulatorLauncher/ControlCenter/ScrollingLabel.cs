@@ -13,13 +13,19 @@ namespace EmulatorLauncher.ControlCenter
 
         public ScrollingLabel()
         {
+            SetStyle(ControlStyles.Selectable, false);
+            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            SetStyle(ControlStyles.ResizeRedraw, true);            
+
+            TabStop = false;
             DoubleBuffered = true;
+
             _timer = new Timer { Interval = 16 };
             _timer.Tick += OnTimerTick;
             _timer.Start();
             _stateTime = DateTime.Now;
         }
-
+        
         private Timer _timer;
         private float _scrollY = 0;
         private float _textHeight;
