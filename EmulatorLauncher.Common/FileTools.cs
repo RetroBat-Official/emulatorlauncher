@@ -140,13 +140,20 @@ namespace EmulatorLauncher.Common
             }
         }
 
-        public static void TryCreateDirectory(string path)
+        /// <summary>
+        /// Returns true if the directory exists or was created
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static bool TryCreateDirectory(string path)
         {
             if (Directory.Exists(path))
-                return;
+                return true;
 
             try { Directory.CreateDirectory(path); }
-            catch { }
+            catch { return false; }
+
+            return true;
         }
 
         public static void TryDeleteFile(string path)

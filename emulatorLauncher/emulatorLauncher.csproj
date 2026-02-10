@@ -96,7 +96,9 @@
     <Compile Include="ControlCenter\OverlayForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ControlCenter\ScrollingLabel.cs" />
+    <Compile Include="ControlCenter\ScrollingLabel.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Controller.cs" />
     <Compile Include="EsFeaturesPoBuilder.cs" />
     <Compile Include="EsSaveStatesExtensions.cs" />

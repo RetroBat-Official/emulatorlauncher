@@ -65,61 +65,51 @@ namespace EmulatorLauncher
 
                 // Set up paths
                 bool mutualize = SystemConfig.getOptBoolean("yuzu_mutualize");
-
-                string switchSavesPath = Path.Combine(path, "user");
                 if (mutualize)
-                    switchSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "switch");
-                
-                if (!Directory.Exists(switchSavesPath)) try { Directory.CreateDirectory(switchSavesPath); }
-                    catch { }
-
-                if (Directory.Exists(switchSavesPath))
                 {
+                    var sharedSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "switch");
+                    FileTools.TryCreateDirectory(sharedSavesPath);
+
                     ini.WriteValue("Data%20Storage", "global_custom_save_path_enabled\\default", "false");
                     ini.WriteValue("Data%20Storage", "global_custom_save_path_enabled", "true");
                     ini.WriteValue("Data%20Storage", "global_custom_save_path\\default", "false");
-                    ini.WriteValue("Data%20Storage", "global_custom_save_path", switchSavesPath.Replace("\\", "/") + "/");
+                    ini.WriteValue("Data%20Storage", "global_custom_save_path", sharedSavesPath.Replace("\\", "/") + "/");
+                }
+                else
+                {
+                    ini.WriteValue("Data%20Storage", "global_custom_save_path_enabled\\default", "true");
+                    ini.WriteValue("Data%20Storage", "global_custom_save_path_enabled", "false");
+                    ini.WriteValue("Data%20Storage", "global_custom_save_path\\default", "true");
+                    ini.WriteValue("Data%20Storage", "global_custom_save_path", "");
                 }
 
-                /*string sdmcPath = Path.Combine(switchSavesPath, "sdmc");
-                if (!Directory.Exists(sdmcPath)) try { Directory.CreateDirectory(sdmcPath); }
-                    catch { }
-
-                if (Directory.Exists(sdmcPath))
+                string sdmcPath = Path.Combine(path, "user", "sdmc");
+                if (FileTools.TryCreateDirectory(sdmcPath))
                 {
                     ini.WriteValue("Data%20Storage", "sdmc_directory\\default", "false");
                     ini.WriteValue("Data%20Storage", "sdmc_directory", sdmcPath.Replace("\\", "/"));
                 }
 
                 string nandPath = Path.Combine(path, "user", "nand");
-                if (!Directory.Exists(nandPath)) try { Directory.CreateDirectory(nandPath); }
-                    catch { }
-
-                if (Directory.Exists(nandPath))
+                if (FileTools.TryCreateDirectory(nandPath))
                 {
                     ini.WriteValue("Data%20Storage", "nand_directory\\default", "false");
                     ini.WriteValue("Data%20Storage", "nand_directory", nandPath.Replace("\\", "/"));
                 }
 
                 string dumpPath = Path.Combine(path, "user", "dump");
-                if (!Directory.Exists(dumpPath)) try { Directory.CreateDirectory(dumpPath); }
-                    catch { }
-
-                if (Directory.Exists(dumpPath))
+                if (FileTools.TryCreateDirectory(dumpPath))
                 {
                     ini.WriteValue("Data%20Storage", "dump_directory\\default", "false");
                     ini.WriteValue("Data%20Storage", "dump_directory", dumpPath.Replace("\\", "/"));
                 }
 
                 string loadPath = Path.Combine(path, "user", "load");
-                if (!Directory.Exists(loadPath)) try { Directory.CreateDirectory(loadPath); }
-                    catch { }
-
-                if (Directory.Exists(loadPath))
+                if (FileTools.TryCreateDirectory(loadPath))
                 {
                     ini.WriteValue("Data%20Storage", "load_directory\\default", "false");
                     ini.WriteValue("Data%20Storage", "load_directory", loadPath.Replace("\\", "/"));
-                }*/
+                }
 
                 ini.WriteValue("System", "language_index\\default", "false");
                 if (SystemConfig.isOptSet("citron_language") && !string.IsNullOrEmpty(SystemConfig["citron_language"]))
