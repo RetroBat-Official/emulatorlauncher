@@ -1,9 +1,10 @@
-﻿using System.Diagnostics;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Lightguns;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Xml.Linq;
-using System.IO;
-using EmulatorLauncher.Common;
-using System.Collections.Generic;
 
 namespace EmulatorLauncher
 {
@@ -11,6 +12,21 @@ namespace EmulatorLauncher
     {
         public static void StartSindenSoftware()
         {
+            bool[] players = new bool[4];
+
+            var guns = RawLightgun.GetRawLightguns();
+
+            for (int i = 0; i < guns.Length && i < 4; i++)
+            {
+                players[i] = guns[i].Type == RawLighGunType.SindenLightgun;
+            }
+
+            var activePlayers = players
+                .Select((isActive, index) => new { isActive, index })
+                .Where(x => x.isActive)
+                .Select(x => x.index)
+                .ToList();
+
             List<string> mouse_left = new List<string>() { "cbButtonTrigger", "cbButtonTriggerB" };
             List<string> mouse_right = new List<string>() 
             { "cbButtonPumpAction", "cbButtonTriggerOffscreen", "cbButtonPumpActionOffscreen", "cbButtonPumpActionB", "cbButtonTriggerOffscreenB", "cbButtonPumpActionOffscreenB" };
@@ -25,6 +41,8 @@ namespace EmulatorLauncher
             List<string> joy_8 = new List<string>() { "cbButtonDown", "cbButtonDownOffscreen", "cbButtonDownB", "cbButtonDownOffscreenB" };
             List<string> joy_9 = new List<string>() { "cbButtonLeft", "cbButtonLeftOffscreen", "cbButtonLeftB", "cbButtonLeftOffscreenB" };
             List<string> joy_10 = new List<string>() { "cbButtonRight", "cbButtonRightOffscreen", "cbButtonRightB", "cbButtonRightOffscreenB" };
+            List<string> mods = new List<string>() { "cbTriggerMod", "cbPumpActionMod", "cbFrontLeftMod", "cbRearLeftMod", "cbFrontRightMod", "cbRearRightMod", "cbUpMod", "cbDownMod", "cbLeftMod", "cbRightMod",
+            "cbTriggerOffscreenMod", "cbPumpActionOffscreenMod", "cbFrontLeftOffscreenMod", "cbRearLeftOffscreenMod", "cbFrontRightOffscreenMod", "cbRearRightOffscreenMod", "cbUpOffscreenMod", "cbDownOffscreenMod", "cbLeftOffscreenMod", "cbRightOffscreenMod"};
 
             try
             {
@@ -110,6 +128,12 @@ namespace EmulatorLauncher
                                     SetElementValue(appSettings, button, "3");
                                 foreach (string button in mouse_middle)
                                     SetElementValue(appSettings, button, "2");
+                                foreach (string mod in mods)
+                                {
+                                    SetElementValue(appSettings, mod, "0");
+                                    string modB = mod + "B";
+                                    SetElementValue(appSettings, modB, "0");
+                                }
 
                                 SetElementValue(appSettings, "cbButtonUp", "74");                   //Up
                                 SetElementValue(appSettings, "cbButtonUpOffscreen", "74");          //Up
@@ -128,14 +152,40 @@ namespace EmulatorLauncher
                                 SetElementValue(appSettings, "cbButtonRightB", "77");
                                 SetElementValue(appSettings, "cbButtonRightOffscreenB", "77");
 
-                                SetElementValue(appSettings, "cbButtonFrontLeft", "9");             //1
-                                SetElementValue(appSettings, "cbButtonFrontLeftB", "10");           //2
-                                SetElementValue(appSettings, "cbButtonFrontLeftOffscreen", "9");    //1
-                                SetElementValue(appSettings, "cbButtonFrontLeftOffscreenB", "10");  //2
-                                SetElementValue(appSettings, "cbButtonRearLeft", "13");             //5
-                                SetElementValue(appSettings, "cbButtonRearLeftB", "14");            //6
-                                SetElementValue(appSettings, "cbButtonRearLeftOffscreen", "13");    //5
-                                SetElementValue(appSettings, "cbButtonRearLeftOffscreenB", "14");   //6
+                                if (activePlayers.Count > 0)
+                                {
+                                    int first = activePlayers[0] + 1;
+
+                                    SetElementValue(appSettings, "cbButtonFrontLeft", (8 + first).ToString());
+                                    SetElementValue(appSettings, "cbButtonFrontLeftOffscreen", (8 + first).ToString());
+                                    SetElementValue(appSettings, "cbButtonRearLeft", (12 + first).ToString());
+                                    SetElementValue(appSettings, "cbButtonRearLeftOffscreen", (12 + first).ToString());
+                                }
+                                else
+                                {
+                                    SetElementValue(appSettings, "cbButtonFrontLeft", "9");             //1
+                                    SetElementValue(appSettings, "cbButtonFrontLeftOffscreen", "9");    //1
+                                    SetElementValue(appSettings, "cbButtonRearLeft", "13");             //5
+                                    SetElementValue(appSettings, "cbButtonRearLeftOffscreen", "13");    //5
+                                }
+
+                                if (activePlayers.Count > 1)
+                                {
+                                    int second = activePlayers[1] + 1;
+
+                                    SetElementValue(appSettings, "cbButtonFrontLeftB", (8 + second).ToString());
+                                    SetElementValue(appSettings, "cbButtonFrontLeftOffscreenB", (8 + second).ToString());
+                                    SetElementValue(appSettings, "cbButtonRearLeftB", (12 + second).ToString());
+                                    SetElementValue(appSettings, "cbButtonRearLeftOffscreenB", (12 + second).ToString());
+                                }
+                                else
+                                {
+                                    SetElementValue(appSettings, "cbButtonFrontLeftB", "10");           //2
+                                    SetElementValue(appSettings, "cbButtonFrontLeftOffscreenB", "10");  //2
+                                    SetElementValue(appSettings, "cbButtonRearLeftB", "14");            //6
+                                    SetElementValue(appSettings, "cbButtonRearLeftOffscreenB", "14");   //6
+                                }
+
                                 SetElementValue(appSettings, "cbButtonRearRight", "34");            //Q
                                 SetElementValue(appSettings, "cbButtonRearRightB", "36");           //S
                                 SetElementValue(appSettings, "cbButtonRearRightOffscreen", "7");    // border
