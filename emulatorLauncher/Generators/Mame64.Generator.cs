@@ -438,21 +438,29 @@ namespace EmulatorLauncher
             {
                 retList.Add("-lightgun_device");
                 retList.Add(SystemConfig["mame_lightgun"]);
+                if (SystemConfig["mame_lightgun"] == "lightgun")
+                {
+                    retList.Add("-gun");
+                }
+                else if (SystemConfig["mame_lightgun"] == "mouse")
+                {
+                    retList.Add("-mouse");
+                    _mouseGun = true;
+                }
             }
             else if (SystemConfig.getOptBoolean("use_guns"))
             {
                 retList.Add("-lightgun_device");
                 retList.Add("lightgun");
+                retList.Add("-gun");
             }
             else
             {
                 retList.Add("-lightgun_device");
                 retList.Add("mouse");
+                retList.Add("-mouse");
                 _mouseGun = true;
             }
-
-            if (SystemConfig.isOptSet("mame_lightgun") && SystemConfig["mame_lightgun"] == "mouse")
-                _mouseGun = true;
 
             // Paddle
             if (SystemConfig.isOptSet("mame_paddle") && !string.IsNullOrEmpty(SystemConfig["mame_paddle"]))
@@ -521,6 +529,8 @@ namespace EmulatorLauncher
             retList.Add("-joystickprovider");
             if (SystemConfig.isOptSet("mame_joystick_driver") && !string.IsNullOrEmpty(SystemConfig["mame_joystick_driver"]))
                 retList.Add(SystemConfig["mame_joystick_driver"]);
+            else if (SystemConfig.getOptBoolean("use_guns") && SystemConfig["mame_lightgun"] != "joystick")
+                retList.Add("none");
             else
                 retList.Add("winhybrid");
 

@@ -610,11 +610,15 @@ namespace EmulatorLauncher
             if (!IsInstalled())
                 return false;
 
+            string versionFileName = "versions.xml";
+            if (UpdatesType == "beta")
+                versionFileName = "versions-beta.xml";
+
             try
             {               
                 string xml = null;
 
-                string cachedFile = Path.Combine(GetTempPath(), "versions.xml");
+                string cachedFile = Path.Combine(GetTempPath(), versionFileName);
 
                 if (File.Exists(cachedFile) && DateTime.Now - File.GetCreationTime(cachedFile) <= new TimeSpan(1, 0, 0, 0))
                 {
@@ -622,7 +626,7 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    string url = Installer.GetUpdateUrl("versions.xml");
+                    string url = Installer.GetUpdateUrl(versionFileName);
                     if (string.IsNullOrEmpty(url))
                         return false;
 
@@ -689,11 +693,15 @@ namespace EmulatorLauncher
             if (version == "0.0.0.0")
                 version = date;
 
+            string versionFileName = "coreversions.xml";
+            if (UpdatesType == "beta")
+                versionFileName = "coreversions-beta.xml";
+
             try
             {
                 string xml = null;
                 
-                string cachedFile = Path.Combine(GetTempPath(), "coreversions.xml");
+                string cachedFile = Path.Combine(GetTempPath(), versionFileName);
 
                 if (File.Exists(cachedFile) && DateTime.Now - File.GetCreationTime(cachedFile) <= new TimeSpan(1, 0, 0, 0))
                 {
@@ -701,7 +709,7 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    string url = Installer.GetUpdateUrlCores("coreversions.xml");
+                    string url = Installer.GetUpdateUrlCores(versionFileName);
                     if (string.IsNullOrEmpty(url))
                         return false;
 

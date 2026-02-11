@@ -211,162 +211,167 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[GUNS] Overwriting Gun 4 index : " + mouseIndex4);
             }
 
-            if (!mameControllers.Any(c => !c.IsKeyboard))
-                ConfigureLightguns(input, mouseIndex1, mouseIndex2, mouseIndex3, mouseIndex4, multigun, guns.Length, hbmame);
-
-            // Generate controller mapping
-            foreach (var controller in mameControllers)
+            if (SystemConfig.getOptBoolean("use_guns"))
             {
-                int i = controller.PlayerIndex;
-                int cIndex = mameControllers.ToList().IndexOf(controller) + 1;
-                string joy = "JOYCODE_" + cIndex + "_";
-                bool dpadonly = SystemConfig.isOptSet("mame_dpadandstick") && SystemConfig.getOptBoolean("mame_dpadandstick");
-                bool isXinput = controller.IsXInputDevice && SystemConfig["mame_joystick_driver"] != "dinput";
-                bool xinputCtrl = controller.IsXInputDevice;
-                string guid = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
-                SdlToDirectInput ctrlr = null;
-                string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
+                ConfigureLightguns(input, mouseIndex1, mouseIndex2, mouseIndex3, mouseIndex4, multigun, guns.Length, hbmame);
+            }
 
-                if (SystemConfig["mame_joystick_driver"] == "xinput")
+            else
+            {
+                // Generate controller mapping
+                foreach (var controller in mameControllers)
                 {
-                    int xIndex = mameControllers.OrderBy(c => c.DeviceIndex).ToList().IndexOf(controller) + 1;
-                    joy = "JOYCODE_" + xIndex + "_";
-                    input.Add(new XElement("mapdevice", new XAttribute("device", "XInput Player " + xIndex), new XAttribute("controller", "JOYCODE_" + xIndex)));
-                }
+                    int i = controller.PlayerIndex;
+                    int cIndex = mameControllers.ToList().IndexOf(controller) + 1;
+                    string joy = "JOYCODE_" + cIndex + "_";
+                    bool dpadonly = SystemConfig.isOptSet("mame_dpadandstick") && SystemConfig.getOptBoolean("mame_dpadandstick");
+                    bool isXinput = controller.IsXInputDevice && SystemConfig["mame_joystick_driver"] != "dinput";
+                    bool xinputCtrl = controller.IsXInputDevice;
+                    string guid = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
+                    SdlToDirectInput ctrlr = null;
+                    string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
 
-                else
-                {
-                    joy = "JOYCODE_" + cIndex + "_";
-                }
-
-                // Override index through option
-                string indexOption = "mame_p" + controller.PlayerIndex + "_forceindex";
-                if (SystemConfig.isOptSet(indexOption) && !string.IsNullOrEmpty(SystemConfig[indexOption]))
-                    joy = "JOYCODE_" + SystemConfig[indexOption] + "_";
-
-                // Get dinput mapping information
-                if (!isXinput)
-                {
-                    if (!File.Exists(gamecontrollerDB))
+                    if (SystemConfig["mame_joystick_driver"] == "xinput")
                     {
-                        SimpleLogger.Instance.Info("[INFO] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
-                        gamecontrollerDB = null;
+                        int xIndex = mameControllers.OrderBy(c => c.DeviceIndex).ToList().IndexOf(controller) + 1;
+                        joy = "JOYCODE_" + xIndex + "_";
+                        input.Add(new XElement("mapdevice", new XAttribute("device", "XInput Player " + xIndex), new XAttribute("controller", "JOYCODE_" + xIndex)));
                     }
-                    if (gamecontrollerDB != null)
-                    {
-                        SimpleLogger.Instance.Info("[INFO] Player " + i + " . Fetching gamecontrollerdb.txt file with guid : " + guid);
 
-                        try
+                    else
+                    {
+                        joy = "JOYCODE_" + cIndex + "_";
+                    }
+
+                    // Override index through option
+                    string indexOption = "mame_p" + controller.PlayerIndex + "_forceindex";
+                    if (SystemConfig.isOptSet(indexOption) && !string.IsNullOrEmpty(SystemConfig[indexOption]))
+                        joy = "JOYCODE_" + SystemConfig[indexOption] + "_";
+
+                    // Get dinput mapping information
+                    if (!isXinput)
+                    {
+                        if (!File.Exists(gamecontrollerDB))
                         {
-                            if (SystemConfig.getOptBoolean("analogDpad"))
-                                ctrlr = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid, true);
-                            else
-                                ctrlr = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid);
+                            SimpleLogger.Instance.Info("[INFO] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
+                            gamecontrollerDB = null;
                         }
-                        catch { }
-
-                        if (ctrlr == null || ctrlr.ButtonMappings == null)
-                            SimpleLogger.Instance.Info("[INFO] Player " + i + ". No controller mapping found in gamecontrollerdb.txt file for guid : " + guid);
-                        else
-                            SimpleLogger.Instance.Info("[INFO] Player " + i + ": controller mapping found in gamecontrollerDB file.");
-                    }
-                }
-
-                // define mapping for xInput case
-                var mapping = hbmame ? hbxInputMapping : xInputMapping;
-
-                // Invert player 1 & 2 with feature
-                bool invert = SystemConfig.getOptBoolean("revertXIndex") && mameControllers.Count > 1;
-                if (invert)
-                {
-                    if (i == 1)
-                        i = 2;
-                    else if (i == 2)
-                        i = 1;
-                }
-
-                // PLAYER 1
-                // Add UI mapping for player 1 to control MAME UI + Service menu
-                if (i == 1)
-                {
-                    if (isXinput)
-                        ConfigurePlayer1XInput(i, input, mapping, joy, mouseIndex1, hbmame, dpadonly, layout);
-                    else
-                        ConfigurePlayer1DInput(i, input, ctrlr, joy, mouseIndex1, hbmame, dpadonly, xinputCtrl, layout);
-                }
-
-                // OTHER PLAYERS
-                // Max 8 players for mame
-                else if (i <= 8)
-                {
-                    if (isXinput)
-                        ConfigurePlayersXInput(i, input, mapping, joy, mouseIndex2, mouseIndex3, mouseIndex4, hbmame, dpadonly, layout);
-                    else
-                        ConfigurePlayersDInput(i, input, ctrlr, joy, mouseIndex2, mouseIndex3, mouseIndex4, dpadonly, xinputCtrl, layout);
-                }
-
-                // mess does not accept ctrlr overrides, so copy to cfg file
-                if (_messcfgInput)
-                {
-                    string sysName = messFiles[messSystem];
-
-                    if (File.Exists(cfgFile))
-                    {
-                        try
+                        if (gamecontrollerDB != null)
                         {
-                            XDocument doc = XDocument.Load(cfgFile);
+                            SimpleLogger.Instance.Info("[INFO] Player " + i + " . Fetching gamecontrollerdb.txt file with guid : " + guid);
 
-                            XElement systemElement = doc.Root?
-                                .Element("system");
-
-                            XElement inputElement = doc.Root?
-                                .Element("system")?
-                                .Element("input");
-
-                            if (inputElement != null)
-                                inputElement.Remove();
-
-                            if (systemElement == null)
+                            try
                             {
-                                doc.Root.Add(new XElement("system",
-                                        new XAttribute("name", sysName), input
-                                ));
+                                if (SystemConfig.getOptBoolean("analogDpad"))
+                                    ctrlr = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid, true);
+                                else
+                                    ctrlr = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid);
                             }
+                            catch { }
 
+                            if (ctrlr == null || ctrlr.ButtonMappings == null)
+                                SimpleLogger.Instance.Info("[INFO] Player " + i + ". No controller mapping found in gamecontrollerdb.txt file for guid : " + guid);
                             else
-                                systemElement.Add(input);
-
-                            doc.Save(cfgFile);
+                                SimpleLogger.Instance.Info("[INFO] Player " + i + ": controller mapping found in gamecontrollerDB file.");
                         }
-                        catch 
+                    }
+
+                    // define mapping for xInput case
+                    var mapping = hbmame ? hbxInputMapping : xInputMapping;
+
+                    // Invert player 1 & 2 with feature
+                    bool invert = SystemConfig.getOptBoolean("revertXIndex") && mameControllers.Count > 1;
+                    if (invert)
+                    {
+                        if (i == 1)
+                            i = 2;
+                        else if (i == 2)
+                            i = 1;
+                    }
+
+                    // PLAYER 1
+                    // Add UI mapping for player 1 to control MAME UI + Service menu
+                    if (i == 1)
+                    {
+                        if (isXinput)
+                            ConfigurePlayer1XInput(i, input, mapping, joy, mouseIndex1, hbmame, dpadonly, layout);
+                        else
+                            ConfigurePlayer1DInput(i, input, ctrlr, joy, mouseIndex1, hbmame, dpadonly, xinputCtrl, layout);
+                    }
+
+                    // OTHER PLAYERS
+                    // Max 8 players for mame
+                    else if (i <= 8)
+                    {
+                        if (isXinput)
+                            ConfigurePlayersXInput(i, input, mapping, joy, mouseIndex2, mouseIndex3, mouseIndex4, hbmame, dpadonly, layout);
+                        else
+                            ConfigurePlayersDInput(i, input, ctrlr, joy, mouseIndex2, mouseIndex3, mouseIndex4, dpadonly, xinputCtrl, layout);
+                    }
+
+                    // mess does not accept ctrlr overrides, so copy to cfg file
+                    if (_messcfgInput)
+                    {
+                        string sysName = messFiles[messSystem];
+
+                        if (File.Exists(cfgFile))
+                        {
+                            try
+                            {
+                                XDocument doc = XDocument.Load(cfgFile);
+
+                                XElement systemElement = doc.Root?
+                                    .Element("system");
+
+                                XElement inputElement = doc.Root?
+                                    .Element("system")?
+                                    .Element("input");
+
+                                if (inputElement != null)
+                                    inputElement.Remove();
+
+                                if (systemElement == null)
+                                {
+                                    doc.Root.Add(new XElement("system",
+                                            new XAttribute("name", sysName), input
+                                    ));
+                                }
+
+                                else
+                                    systemElement.Add(input);
+
+                                doc.Save(cfgFile);
+                            }
+                            catch
+                            {
+                                XDocument doc = new XDocument(
+                                new XComment("This file is autogenerated; comments and unknown tags will be stripped"),
+                                new XElement("mameconfig",
+                                    new XAttribute("version", "10"),
+                                    new XElement("system",
+                                        new XAttribute("name", "gamecom"), input
+                                )));
+
+                                doc.Save(cfgFile);
+                            }
+                        }
+
+                        else
                         {
                             XDocument doc = new XDocument(
-                            new XComment("This file is autogenerated; comments and unknown tags will be stripped"),
-                            new XElement("mameconfig",
-                                new XAttribute("version", "10"),
-                                new XElement("system",
-                                    new XAttribute("name", "gamecom"), input
+                                new XComment("This file is autogenerated; comments and unknown tags will be stripped"),
+                                new XElement("mameconfig",
+                                    new XAttribute("version", "10"),
+                                    new XElement("system",
+                                        new XAttribute("name", "gamecom"), input
                             )));
 
                             doc.Save(cfgFile);
                         }
                     }
 
-                    else
-                    {
-                        XDocument doc = new XDocument(
-                            new XComment("This file is autogenerated; comments and unknown tags will be stripped"),
-                            new XElement("mameconfig",
-                                new XAttribute("version", "10"),
-                                new XElement("system",
-                                    new XAttribute("name", "gamecom"), input
-                        )));
-
-                        doc.Save(cfgFile);
-                    }
+                    SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
                 }
-
-                SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
             }
 
             // Generate xml document
