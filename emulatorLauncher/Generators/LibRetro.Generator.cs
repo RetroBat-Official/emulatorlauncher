@@ -160,7 +160,7 @@ namespace EmulatorLauncher.Libretro
             else if (core == "vitaquake2")
             {
                 string pakPath = Path.GetDirectoryName(rom);
-               
+
                 if (rom.ToLowerInvariant().Contains("rogue"))
                     core = "vitaquake2-rogue";
                 else if (rom.ToLowerInvariant().Contains("xatrix"))
@@ -280,45 +280,7 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            // For j2me, check if java is installed
-            if (core != null && core == "freej2me")
-            {
-                try
-                {
-                    ProcessStartInfo psi = new ProcessStartInfo
-                    {
-                        FileName = "java",
-                        Arguments = "-version",
-                        RedirectStandardError = true, // Java outputs version info to stderr
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    };
-
-                    using (Process process = Process.Start(psi))
-                    {
-                        using (System.IO.StreamReader reader = process.StandardError)
-                        {
-                            string output = reader.ReadToEnd();
-
-                            if (!string.IsNullOrEmpty(output))
-                            {
-                                string version = "nul";
-                                Match match = Regex.Match(output, @"\b(\d+\.\d+\.\d+(_\d+)?)\b");
-
-                                if (match != null)
-                                    version = match.Value;
-                                
-                                SimpleLogger.Instance.Info("[INFO] Java is installed, version is: " + version);
-                            }
-                            else
-                            {
-                                throw new ApplicationException("[ERROR] Java is not installed.");
-                            }
-                        }
-                    }
-                }
-                catch { }
-            }
+            EnsureJavaIfNeeded(core);
 
             // Extension used by hypseus .daphne but lr-daphne starts with .zip
             if (system == "daphne" || core == "daphne")
@@ -330,7 +292,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             // Manage 7z and squashfs for some cores
-            if (rom != null && core!=null && (Path.GetExtension(rom).ToLower() == ".7z" || Path.GetExtension(rom).ToLower().Contains("squashfs")))
+            if (rom != null && core != null && (Path.GetExtension(rom).ToLower() == ".7z" || Path.GetExtension(rom).ToLower().Contains("squashfs")))
             {
                 string newRom = GetUnzippedRomForSystem(rom, core, system);
 
@@ -470,8 +432,10 @@ namespace EmulatorLauncher.Libretro
                     commandArray.Add("--host");
                 else if (SystemConfig["netplaymode"] == "client" || SystemConfig["netplaymode"] == "spectator")
                 {
-                    commandArray.Add("--connect " + SystemConfig["netplayip"]);
-                    commandArray.Add("--port " + SystemConfig["netplayport"]);
+                    commandArray.Add("--connect" + SystemConfig["netplayip"]);
+                    commandArray.Add(SystemConfig["netplayip"]);
+                    commandArray.Add("--port");
+                    commandArray.Add(SystemConfig["netplayport"]);
                 }
 
                 if (!string.IsNullOrEmpty(SystemConfig["netplaysession"]))
@@ -549,7 +513,7 @@ namespace EmulatorLauncher.Libretro
                             .Where(file => Path.GetFileNameWithoutExtension(file).Equals(romName, StringComparison.OrdinalIgnoreCase)).ToList();
                         bpsFiles = Directory.GetFiles(patchFolder, bpsPattern)
                             .Where(file => Path.GetFileNameWithoutExtension(file).Equals(romName, StringComparison.OrdinalIgnoreCase)).ToList();
-                        
+
                         if (ipsFiles.Count > 0)
                         {
                             patchArgs.Add("--ips");
@@ -734,7 +698,7 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["video_allow_rotate "] = "true";
             retroarchConfig["menu_show_load_content_animation"] = "false";
             retroarchConfig["notification_show_autoconfig"] = "false";
-            retroarchConfig["notification_show_config_override_load"] = "false";            
+            retroarchConfig["notification_show_config_override_load"] = "false";
             retroarchConfig["notification_show_remap_load"] = "false";
             retroarchConfig["notification_show_cheats_applied"] = "true";
             retroarchConfig["notification_show_patch_applied"] = "true";
@@ -805,7 +769,7 @@ namespace EmulatorLauncher.Libretro
                 else
                 {
                     retroarchConfig["video_monitor_index"] = "0";
-                }                   
+                }
             }
 
             if (resolution == null)
@@ -822,7 +786,7 @@ namespace EmulatorLauncher.Libretro
                     {
                         int width = emulationStationBounds.Width;
                         int height = emulationStationBounds.Height;
-                        
+
                         if (emulationStationBounds.Left == 0 && emulationStationBounds.Top == 0)
                         {
                             emulationStationBounds.X = (res.Width - width) / 2 - SystemInformation.FrameBorderSize.Width;
@@ -848,7 +812,7 @@ namespace EmulatorLauncher.Libretro
             {
                 var res = ScreenResolution.CurrentResolution;
                 bool identicalRes = resolution.Height.ToString() == res.Width.ToString();
-                
+
                 retroarchConfig["video_fullscreen_x"] = resolution.Width.ToString();
                 retroarchConfig["video_fullscreen_y"] = resolution.Height.ToString();
                 retroarchConfig["video_refresh_rate"] = resolution.DisplayFrequency.ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
@@ -877,12 +841,12 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["video_fullscreen_x"] = resolution.Width.ToString();
                 retroarchConfig["video_fullscreen_y"] = resolution.Height.ToString();
                 retroarchConfig["video_refresh_rate"] = resolution.DisplayFrequency.ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
-                
+
                 if (identicalRes)
                     retroarchConfig["video_windowed_fullscreen"] = exclusivefs ? "false" : "true";
                 else
                     retroarchConfig["video_windowed_fullscreen"] = "false";
-                
+
                 retroarchConfig["video_fullscreen"] = "true";
             }
 
@@ -926,11 +890,11 @@ namespace EmulatorLauncher.Libretro
 
             // Save Files
             string savePath = Path.Combine(AppConfig.GetFullPath("saves"), system);
-            
+
             if (core == "mame")
                 savePath = Path.Combine(AppConfig.GetFullPath("saves"));
 
-            FileTools.TryCreateDirectory(savePath);                
+            FileTools.TryCreateDirectory(savePath);
             retroarchConfig["savefile_directory"] = savePath;
             retroarchConfig["savefiles_in_content_dir"] = "false";
 
@@ -965,7 +929,7 @@ namespace EmulatorLauncher.Libretro
 
             // Cache
             string cacheDirectory = Path.Combine(Path.GetTempPath(), "retroarch");
-            FileTools.TryCreateDirectory(cacheDirectory);                
+            FileTools.TryCreateDirectory(cacheDirectory);
             retroarchConfig["cache_directory"] = cacheDirectory;
 
             // Savestates
@@ -1019,7 +983,7 @@ namespace EmulatorLauncher.Libretro
             string videoFiltersPath = Path.Combine(RetroarchPath, "filters", "video");
             if (Directory.Exists(videoFiltersPath))
                 retroarchConfig["video_filter_dir"] = videoFiltersPath;
-            
+
             if (SystemConfig.isOptSet("videofilters") && !string.IsNullOrEmpty(SystemConfig["videofilters"]) && SystemConfig["videofilters"] != "None")
             {
                 string videofilter = SystemConfig["videofilters"] + ".filt";
@@ -1064,7 +1028,7 @@ namespace EmulatorLauncher.Libretro
             {
                 retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
             }
-            
+
             // Rewind
             if (!SystemConfig.isOptSet("rewind"))
                 retroarchConfig["rewind_enable"] = systemNoRewind.Contains(system) ? "false" : "true"; // AUTO
@@ -1087,7 +1051,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "audio_resampler_quality", "audio_resampler_quality", "3");
             BindFeature(retroarchConfig, "audio_volume", "audio_volume", "0.000000");
             BindFeature(retroarchConfig, "audio_mixer_volume", "audio_mixer_volume", "0.000000");
-            
+
             if (SystemConfig["audio_dsp_plugin"] == "none")
                 retroarchConfig["audio_dsp_plugin"] = "";
             else
@@ -1188,7 +1152,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureAIService(retroarchConfig);
             ConfigureRunahead(system, core, retroarchConfig);
             ConfigureCoreOptions(retroarchConfig, system, core);
-            
+
             // Video driver
             ConfigureVideoDriver(core, retroarchConfig);
             ConfigureGPUIndex(retroarchConfig);
@@ -1215,7 +1179,7 @@ namespace EmulatorLauncher.Libretro
             foreach (var user_config in SystemConfig)
                 if (user_config.Name.StartsWith("retroarch."))
                     retroarchConfig[user_config.Name.Substring("retroarch.".Length)] = user_config.Value;
-                
+
             if (retroarchConfig.IsDirty)
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
         }
@@ -1278,7 +1242,7 @@ namespace EmulatorLauncher.Libretro
                 _video_driver = SystemConfig["video_driver"];
                 retroarchConfig["video_driver"] = SystemConfig["video_driver"];
             }
-            
+
             if (core.StartsWith("mupen64") && SystemConfig["RDP_Plugin"] == "parallel")
             {
                 _video_driver = "vulkan";
@@ -1338,7 +1302,7 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["d3d11_gpu_index"] = "0";
                 retroarchConfig["d3d12_gpu_index"] = "0";
                 retroarchConfig["vulkan_gpu_index"] = "0";
-            }            
+            }
         }
 
         /// <summary>
@@ -1411,7 +1375,7 @@ namespace EmulatorLauncher.Libretro
             {
                 retroarchConfig["video_vsync"] = "false";
                 retroarchConfig["video_adaptive_vsync"] = "false";
-            }           
+            }
         }
 
         /// <summary>
@@ -1515,7 +1479,7 @@ namespace EmulatorLauncher.Libretro
 
                 // Netplay hide the gameplay
                 retroarchConfig["netplay_public_announce"] = string.IsNullOrEmpty(SystemConfig["netplay_public_announce"]) ? "true" : SystemConfig["netplay_public_announce"];
-                
+
                 // When hosting, if not public announcing, make sure you don't use a mitm server -> It's LAN only
                 if (retroarchConfig["netplay_public_announce"] == "false" && (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator"))
                     retroarchConfig["netplay_use_mitm_server"] = "false";
@@ -1906,7 +1870,53 @@ namespace EmulatorLauncher.Libretro
 
             return false;
         }
-        
+
+        private void EnsureJavaIfNeeded(string core)
+        {
+            // For j2me, check if java is installed
+            if (core != null && core == "freej2me")
+            {
+                try
+                {
+                    ProcessStartInfo psi = new ProcessStartInfo
+                    {
+                        FileName = "java",
+                        Arguments = "-version",
+                        RedirectStandardError = true, // Java outputs version info to stderr
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (Process process = Process.Start(psi))
+                    {
+                        using (System.IO.StreamReader reader = process.StandardError)
+                        {
+                            string output = reader.ReadToEnd();
+
+                            if (!string.IsNullOrEmpty(output))
+                            {
+                                string version = "nul";
+                                Match match = Regex.Match(output, @"\b(\d+\.\d+\.\d+(_\d+)?)\b");
+
+                                if (match != null)
+                                    version = match.Value;
+
+                                SimpleLogger.Instance.Info("[INFO] Java is installed, version is: " + version);
+                            }
+                            else
+                            {
+                                throw new ApplicationException("[ERROR] Java is not installed.");
+                            }
+                        }
+                    }
+                }
+                catch 
+                {
+                    SimpleLogger.Instance.Info("[ERROR] Failed to check if java is installed");
+                }
+            }
+        }
+
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
             if (_noHotkey)
