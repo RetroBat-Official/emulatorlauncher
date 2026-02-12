@@ -379,7 +379,7 @@ namespace EmulatorLauncher
                         return ver.ToString();
                     }
                 }
-                else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "demul")
+                /*else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "demul")
                 {
                     var output = ProcessExtensions.RunWithOutput(exe, "--help");
                     output = StringExtensions.FormatVersionString(output.ExtractString(") v", "\r"));
@@ -389,7 +389,7 @@ namespace EmulatorLauncher
                     {
                         return ver.ToString();
                     }
-                }
+                }*/
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "dolphin")
                 {
                     var output = ProcessExtensions.RunWithOutput(exe, "--version");
