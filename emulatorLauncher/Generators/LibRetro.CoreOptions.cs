@@ -2699,7 +2699,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "mame_controller2", "1");
 
             // Lightguns
-            coreSettings["mame2003-plus_xy_device"] = HasMultipleGuns() ? "mouse" : "lightgun";
+            BindFeature(coreSettings, "mame2003-plus_xy_device", "mame2003-plus_xy_device", "mouse");
 
             SetupLightGuns(retroarchConfig, "1", core);
         }
