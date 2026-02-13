@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SharpDX.DirectInput;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -267,16 +268,29 @@ namespace EmulatorLauncher.Common.Joysticks
             return "None";
         }
 
-        public List<SharpDX.DirectInput.DeviceInstance> GetDinputDevices()
+        public List<DIDeviceInfo> GetDinputDevices()
         {
-            using (var directInput = new DI.DirectInput())
+            using (var directInput = new DirectInput())
             {
-                var devices = directInput.GetDevices(
-                    DI.DeviceClass.GameControl,
-                    DI.DeviceEnumerationFlags.AttachedOnly);
-
-                return devices.ToList();
+                var devices = directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
+                return devices.Select(d => new DIDeviceInfo
+                {
+                    InstanceGuid = d.InstanceGuid,
+                    ProductGuid = d.ProductGuid,
+                    Name = d.InstanceName,
+                    Subtype = (int)d.Subtype,
+                    Type = d.Type
+                }).ToList();
             }
+        }
+
+        public class DIDeviceInfo
+        {
+            public Guid InstanceGuid { get; set; }
+            public Guid ProductGuid { get; set; }
+            public string Name { get; set; }
+            public int Subtype { get; set; }
+            public DeviceType Type { get; set; }
         }
     }
         
