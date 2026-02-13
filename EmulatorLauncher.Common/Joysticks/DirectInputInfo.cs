@@ -279,7 +279,7 @@ namespace EmulatorLauncher.Common.Joysticks
                     ProductGuid = d.ProductGuid,
                     Name = d.InstanceName,
                     Subtype = (int)d.Subtype,
-                    Type = d.Type
+                    Type = d.Type.ToString()
                 }).ToList();
             }
         }
@@ -290,7 +290,7 @@ namespace EmulatorLauncher.Common.Joysticks
             public Guid ProductGuid { get; set; }
             public string Name { get; set; }
             public int Subtype { get; set; }
-            public DeviceType Type { get; set; }
+            public string Type { get; set; }
         }
     }
         
