@@ -722,133 +722,11 @@ namespace EmulatorLauncher
             }
 
             // Specific modules for some systems (manage system slots)
+            AddSlotsCommandArray(system, messModel, commandArray);
 
-            Action<string, string> addSlot = (v, w) =>
-            {
-                if (SystemConfig.isOptSet(v) && SystemConfig.getOptBoolean(v))
-                {
-                    commandArray.Add(w);
-                    commandArray.Add(v);
-                }
-            };
-
-            // Adam
-            if (system == "adam")
-            {
-                if (SystemConfig.isOptSet("adam_joy") && SystemConfig["adam_joy"] != "none")
-                {
-                    commandArray.Add("-joy1");
-                    commandArray.Add(SystemConfig["adam_joy"]);
-                    commandArray.Add("-joy2");
-                    commandArray.Add(SystemConfig["adam_joy"]);
-                }
-            }
-
-            // Apple 2
-            if (system == "apple2" || system == "apple2gs")
-            {
-                if (SystemConfig.isOptSet("gameio") && SystemConfig["gameio"] != "none")
-                {
-                    if (SystemConfig["gameio"] == "joyport" && messModel != "apple2p")
-                        throw new ApplicationException(" Joyport only compatible with Apple II +");
-                    else
-                    {
-                        commandArray.Add("-gameio");
-                        commandArray.Add(SystemConfig["gameio"]);
-                    }
-                }
-
-                addSlot("4play", "-sl1");
-                addSlot("midi", "-sl2");
-
-                if (system == "apple2gs")
-                    addSlot("mockingboard", "-sl4");
-            }
-
-            //Astrocade
-            if (system == "astrocade")
-            {
-                if (SystemConfig.isOptSet("astrocde_addjoy") && SystemConfig.getOptBoolean("astrocde_addjoy"))
-                {
-                    commandArray.Add("-ctrl2");
-                    commandArray.Add("joy");
-                    commandArray.Add("-ctrl3");
-                    commandArray.Add("joy");
-                    commandArray.Add("-ctrl4");
-                    commandArray.Add("joy");
-                }
-            }
-
-            //BBC Micro Joystick
-            if (system == "bbcmicro")
-            {
-                if (SystemConfig.isOptSet("bbc_sticktype") && SystemConfig["bbc_sticktype"] != "none" && messModel != "bbcmc")
-                {
-                    commandArray.Add("-analogue");
-                    commandArray.Add(SystemConfig["bbc_sticktype"]);
-                }
-                if (messModel == "bbcmc")
-                {
-                    addSlot("joystick", "-joyport");
-                }
-            }
-
-            //FM-Towns
-            if (system == "fmtowns")
-            {
-                if (SystemConfig.isOptSet("fmtowns_joytype") && SystemConfig["fmtowns_joytype"] != "none")
-                {
-                    commandArray.Add("-pad1");
-                    commandArray.Add(SystemConfig["fmtowns_joytype"]);
-                    commandArray.Add("-pad2");
-                    commandArray.Add(SystemConfig["fmtowns_joytype"]);
-                }
-            }
-
-            // TI99
-            if (system == "ti99")
-            {
-                commandArray.Add("-ioport");
-                commandArray.Add("peb");
-                if (!SystemConfig.isOptSet("ti99_32kram") || SystemConfig.getOptBoolean("ti99_32kram"))
-                { 
-                    commandArray.Add("-ioport:peb:slot2");
-                    commandArray.Add("32kmem");
-                }
-                if (!SystemConfig.isOptSet("ti99_speech") || SystemConfig.getOptBoolean("ti99_speech"))
-                {
-                    commandArray.Add("-ioport");
-                    commandArray.Add("speechsyn");
-                }
-            }
-
-            //V-SMILE
-            if (system == "vsmile")
-            {
-                commandArray.Add("-ctrl2");
-                commandArray.Add("joy");
-            }
-
-            // Videopac - voice module
             if (SystemConfig.getOptBoolean("o2em_voice"))
             {
-                commandArray.Add("-cart1");
-                commandArray.Add("voice");
                 romType = "cart2";
-            }
-
-            // Ram size
-            if (SystemConfig.isOptSet("ramsize") && !string.IsNullOrEmpty(SystemConfig["ramsize"]))
-            {
-                commandArray.Add("-ramsize");
-                commandArray.Add(SystemConfig["ramsize"]);
-            }
-
-            // Bios
-            if (SystemConfig.isOptSet("mame_bios") && !string.IsNullOrEmpty(SystemConfig["mame_bios"]))
-            {
-                commandArray.Add("-bios");
-                commandArray.Add(SystemConfig["mame_bios"]);
             }
 
             // Autostart computer games where applicable
@@ -1227,6 +1105,144 @@ namespace EmulatorLauncher
                 return ret;
 
             return RomTypes.Where(t => t.Extensions == null).Select(t => t.Type).FirstOrDefault();
+        }
+
+        private void AddSlotsCommandArray(string system, string messModel, List<string> commandArray)
+        {
+            Action<string, string> addSlot = (v, w) =>
+            {
+                if (SystemConfig.isOptSet(v) && SystemConfig.getOptBoolean(v))
+                {
+                    commandArray.Add(w);
+                    commandArray.Add(v);
+                }
+            };
+
+            // Adam
+            if (system == "adam")
+            {
+                if (SystemConfig.isOptSet("adam_joy") && SystemConfig["adam_joy"] != "none")
+                {
+                    commandArray.Add("-joy1");
+                    commandArray.Add(SystemConfig["adam_joy"]);
+                    commandArray.Add("-joy2");
+                    commandArray.Add(SystemConfig["adam_joy"]);
+                }
+            }
+
+            // Apple 2
+            if (system == "apple2" || system == "apple2gs")
+            {
+                if (SystemConfig.isOptSet("gameio") && SystemConfig["gameio"] != "none")
+                {
+                    if (SystemConfig["gameio"] == "joyport" && messModel != "apple2p")
+                        throw new ApplicationException(" Joyport only compatible with Apple II +");
+                    else
+                    {
+                        commandArray.Add("-gameio");
+                        commandArray.Add(SystemConfig["gameio"]);
+                    }
+                }
+
+                addSlot("4play", "-sl1");
+                addSlot("midi", "-sl2");
+
+                if (SystemConfig.isOptSet("altromtype") && SystemConfig["altromtype"] == "hard1")
+                {
+                    commandArray.Add("-sl7");
+                    commandArray.Add("cffa2");
+                }
+                else
+                    addSlot("cffa2", "-sl7");
+
+                if (system == "apple2gs")
+                    addSlot("mockingboard", "-sl4");
+            }
+
+            //Astrocade
+            if (system == "astrocade")
+            {
+                if (SystemConfig.isOptSet("astrocde_addjoy") && SystemConfig.getOptBoolean("astrocde_addjoy"))
+                {
+                    commandArray.Add("-ctrl2");
+                    commandArray.Add("joy");
+                    commandArray.Add("-ctrl3");
+                    commandArray.Add("joy");
+                    commandArray.Add("-ctrl4");
+                    commandArray.Add("joy");
+                }
+            }
+
+            //BBC Micro Joystick
+            if (system == "bbcmicro")
+            {
+                if (SystemConfig.isOptSet("bbc_sticktype") && SystemConfig["bbc_sticktype"] != "none" && messModel != "bbcmc")
+                {
+                    commandArray.Add("-analogue");
+                    commandArray.Add(SystemConfig["bbc_sticktype"]);
+                }
+                if (messModel == "bbcmc")
+                {
+                    addSlot("joystick", "-joyport");
+                }
+            }
+
+            //FM-Towns
+            if (system == "fmtowns")
+            {
+                if (SystemConfig.isOptSet("fmtowns_joytype") && SystemConfig["fmtowns_joytype"] != "none")
+                {
+                    commandArray.Add("-pad1");
+                    commandArray.Add(SystemConfig["fmtowns_joytype"]);
+                    commandArray.Add("-pad2");
+                    commandArray.Add(SystemConfig["fmtowns_joytype"]);
+                }
+            }
+
+            // TI99
+            if (system == "ti99")
+            {
+                commandArray.Add("-ioport");
+                commandArray.Add("peb");
+                if (!SystemConfig.isOptSet("ti99_32kram") || SystemConfig.getOptBoolean("ti99_32kram"))
+                {
+                    commandArray.Add("-ioport:peb:slot2");
+                    commandArray.Add("32kmem");
+                }
+                if (!SystemConfig.isOptSet("ti99_speech") || SystemConfig.getOptBoolean("ti99_speech"))
+                {
+                    commandArray.Add("-ioport");
+                    commandArray.Add("speechsyn");
+                }
+            }
+
+            //V-SMILE
+            if (system == "vsmile")
+            {
+                commandArray.Add("-ctrl2");
+                commandArray.Add("joy");
+            }
+
+            // Videopac - voice module
+            if (SystemConfig.getOptBoolean("o2em_voice"))
+            {
+                commandArray.Add("-cart1");
+                commandArray.Add("voice");
+            }
+
+            // Ram size
+            if (SystemConfig.isOptSet("ramsize") && !string.IsNullOrEmpty(SystemConfig["ramsize"]))
+            {
+                commandArray.Add("-ramsize");
+                commandArray.Add(SystemConfig["ramsize"]);
+            }
+
+            // Bios
+            if (SystemConfig.isOptSet("mame_bios") && !string.IsNullOrEmpty(SystemConfig["mame_bios"]))
+            {
+                commandArray.Add("-bios");
+                commandArray.Add(SystemConfig["mame_bios"]);
+            }
         }
 
         MessAutoBoot GetAutoBoot(string rom)

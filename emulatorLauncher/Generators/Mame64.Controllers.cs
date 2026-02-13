@@ -140,7 +140,8 @@ namespace EmulatorLauncher
             var mameControllers = GetMameControllers(
                 driver,
                 this.Controllers,
-                diDevices);
+                diDevices,
+                out var nonControllers);
 
             // GUNS & MOUSES
             bool forceOneGun = SystemConfig.getOptBoolean("mame_forceOneGun");
@@ -165,6 +166,7 @@ namespace EmulatorLauncher
 
             else
             {
+                bool multiplayer = mameControllers.Where(c => c != null).ToList().Count > 1;
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
                 bool hasGameDb = File.Exists(gamecontrollerDB);
                 if (!hasGameDb)
@@ -178,6 +180,10 @@ namespace EmulatorLauncher
                 for (int index = 0; index < mameControllers.Count; index++)
                 {
                     var controller = mameControllers[index];
+
+                    if (controller == null)
+                        continue;
+
                     int i = controller.PlayerIndex;
                     int cIndex = index + 1;
                     string joy = "JOYCODE_" + cIndex + "_";
@@ -227,9 +233,9 @@ namespace EmulatorLauncher
                     if (i == 1)
                     {
                         if (isXinput)
-                            ConfigurePlayer1XInput(i, input, mapping, joy, mouseIndex1, hbmame, dpadonly, layout);
+                            ConfigurePlayer1XInput(i, input, mapping, joy, mouseIndex1, hbmame, dpadonly, layout, multiplayer);
                         else
-                            ConfigurePlayer1DInput(i, input, ctrlr, joy, mouseIndex1, hbmame, dpadonly, xinputCtrl, layout);
+                            ConfigurePlayer1DInput(i, input, ctrlr, joy, mouseIndex1, hbmame, dpadonly, xinputCtrl, layout, multiplayer);
                     }
 
                     // OTHER PLAYERS
@@ -269,8 +275,76 @@ namespace EmulatorLauncher
         }
 
         #region configuration
-        private void ConfigurePlayer1XInput(int i, XElement input, Dictionary<string, string> mapping, string joy, string mouseIndex1, bool hbmame, bool dpadonly, string layout)
+        private void ConfigurePlayer1XInput(int i, XElement input, Dictionary<string, string> mapping, string joy, string mouseIndex1, bool hbmame, bool dpadonly, string layout, bool multiplayer = false)
         {
+            bool ignoreStart1 = false;
+            bool ignoreCoin1 = false;
+            bool stop = false;
+            bool forceKbStart = false;
+            bool forceKbCoin = false;
+
+            // Specific mapping if available
+            if (!hbmame && _gameLayout != null)
+            {
+                if (_gameMapping.Name != null)
+                    SimpleLogger.Instance.Info("[INFO] Performing specific mapping (xinput) for: " + _gameMapping.Name);
+
+                foreach (var button in _gameLayout.Buttons)
+                {
+                    string player = button.Player;
+                    if (player != null && player != "1")
+                        continue;
+                    if (button.Type.Contains("P2_") || button.Type.Contains("P3_") || button.Type.Contains("P4_") || button.Type.Contains("P5_") || button.Type.Contains("P6_"))
+                        continue;
+                    if (button.Type.Contains("START2") || button.Type.Contains("START3") || button.Type.Contains("START4") || button.Type.Contains("START5") || button.Type.Contains("START6"))
+                    {
+                        if (!multiplayer)
+                            forceKbStart = true;
+                        else
+                            continue;
+                    }
+                    if (button.Type.Contains("COIN2") || button.Type.Contains("COIN3") || button.Type.Contains("COIN4") || button.Type.Contains("COIN5") || button.Type.Contains("COIN6"))
+                    {
+                        if (!multiplayer)
+                            forceKbCoin = true;
+                        else
+                            continue;
+                    }
+                    if (button.Type.Contains("COIN1"))
+                        ignoreCoin1 = true;
+                    if (button.Type.Contains("START1"))
+                        ignoreStart1 = true;
+
+                    var port = new XElement("port",
+                        new XAttribute("type", button.Type),
+                        button.Tag == null ? null : new XAttribute("tag", button.Tag),
+                        button.Mask == null ? null : new XAttribute("mask", button.Mask),
+                        button.DefValue == null ? null : new XAttribute("defvalue", button.DefValue));
+
+                    foreach (var map in button.ButtonMappings)
+                    {
+                        string mappingText = map.Mapping;
+                        if (forceKbStart && button.Type.StartsWith("START") && button.Type != "START1")
+                            mappingText = "NONE";
+                        if (forceKbCoin && button.Type.StartsWith("COIN") && button.Type != "COIN1")
+                            mappingText = "NONE";
+
+                        if (!string.Equals(mappingText, "NONE", StringComparison.OrdinalIgnoreCase))
+                        {
+                            mappingText = GetSpecificMappingX(joy, mouseIndex1, mappingText, i);
+                        }
+
+                        var buttonMap = new XElement("newseq", new XAttribute("type", map.Type), mappingText);
+
+                        port.Add(buttonMap);
+                    }
+
+                    input.Add(port);
+                }
+
+                stop = true;
+            }
+
             if (hbmame)
             {
                 AddPort(input, "UI_CONFIGURE", $"{joy}{mapping["select"]} {joy}{mapping["south"]} OR KEYCODE_TAB");
@@ -298,51 +372,13 @@ namespace EmulatorLauncher
             AddPort(input, "TILT1", $"{joy}{mapping["select"]} {joy}{mapping["r1"]} OR KEYCODE_T");
 
             // Start & coin
-            AddPort(input, "START" + i, joy + mapping["start"] + " OR KEYCODE_1 OR MOUSECODE_" + mouseIndex1 + "_START OR GUNCODE_" + mouseIndex1 + "_START");
-            AddPort(input, "COIN" + i, joy + mapping["select"] + " OR KEYCODE_5 OR MOUSECODE_" + mouseIndex1 + "_SELECT OR GUNCODE_" + mouseIndex1 + "_SELECT");
+            if (!ignoreStart1)
+                AddPort(input, "START" + i, joy + mapping["start"] + " OR KEYCODE_1 OR MOUSECODE_" + mouseIndex1 + "_START OR GUNCODE_" + mouseIndex1 + "_START");
+            if (!ignoreCoin1)
+                AddPort(input, "COIN" + i, joy + mapping["select"] + " OR KEYCODE_5 OR MOUSECODE_" + mouseIndex1 + "_SELECT OR GUNCODE_" + mouseIndex1 + "_SELECT");
 
-            // Specific mapping if available
-            if (!hbmame && _gameLayout != null)
-            {
-                if (_gameMapping.Name != null)
-                    SimpleLogger.Instance.Info("[INFO] Performing specific mapping (xinput) for: " + _gameMapping.Name);
-
-                foreach (var button in _gameLayout.Buttons)
-                {
-                    string player = button.Player;
-                    if (player != null && player != "1")
-                        continue;
-                    if (button.Type.Contains("P2_") || button.Type.Contains("P3_") || button.Type.Contains("P4_") || button.Type.Contains("P5_") || button.Type.Contains("P6_"))
-                        continue;
-                    if (button.Type.Contains("START2") || button.Type.Contains("START3") || button.Type.Contains("START4") || button.Type.Contains("START5") || button.Type.Contains("START6"))
-                        continue;
-                    if (button.Type.Contains("COIN2") || button.Type.Contains("COIN3") || button.Type.Contains("COIN4") || button.Type.Contains("COIN5") || button.Type.Contains("COIN6"))
-                        continue;
-
-                    var port = new XElement("port",
-                        new XAttribute("type", button.Type),
-                        button.Tag == null ? null : new XAttribute("tag", button.Tag),
-                        button.Mask == null ? null : new XAttribute("mask", button.Mask),
-                        button.DefValue == null ? null : new XAttribute("defvalue", button.DefValue));
-
-                    foreach (var map in button.ButtonMappings)
-                    {
-                        string mappingText = map.Mapping;
-                        if (!string.Equals(mappingText, "NONE", StringComparison.OrdinalIgnoreCase))
-                        {
-                            mappingText = GetSpecificMappingX(joy, mouseIndex1, mappingText, i);
-                        }
-
-                        var buttonMap = new XElement("newseq", new XAttribute("type", map.Type), mappingText);
-
-                        port.Add(buttonMap);
-                    }
-                  
-                    input.Add(port);
-                }
-
+            if (stop)
                 return;
-            }
 
             // Standard joystick buttons and directions
             string up = dpadonly? $"{joy}{mapping["up"]} OR KEYCODE_UP" : $"{joy}{mapping["up"]} OR {joy}{mapping["lsup"]} OR KEYCODE_UP";
@@ -445,8 +481,76 @@ namespace EmulatorLauncher
             AddPort(input, "P" + i + "_MOUSE_Y", "MOUSECODE_" + mouseIndex1 + "_YAXIS OR GUNCODE_" + mouseIndex1 + "_YAXIS", "KEYCODE_DOWN", "KEYCODE_UP");
         }
 
-        private void ConfigurePlayer1DInput(int i, XElement input, SdlToDirectInput ctrlr, string joy, string mouseIndex1, bool hbmame, bool dpadonly, bool xinputCtrl, string layout)
+        private void ConfigurePlayer1DInput(int i, XElement input, SdlToDirectInput ctrlr, string joy, string mouseIndex1, bool hbmame, bool dpadonly, bool xinputCtrl, string layout, bool multiplayer = false)
         {
+            bool ignoreStart1 = false;
+            bool ignoreCoin1 = false;
+            bool stop = false;
+            bool forceKbStart = false;
+            bool forceKbCoin = false;
+
+            // Specific mapping if available
+            if (!hbmame && _gameLayout != null)
+            {
+                if (_gameMapping.Name != null)
+                    SimpleLogger.Instance.Info("[INFO] Performing specific mapping (dinput) for: " + _gameMapping.Name);
+
+                foreach (var button in _gameLayout.Buttons)
+                {
+                    string player = button.Player;
+                    if (player != null && player != "1")
+                        continue;
+                    if (button.Type.Contains("P2_") || button.Type.Contains("P3_") || button.Type.Contains("P4_") || button.Type.Contains("P5_") || button.Type.Contains("P6_"))
+                        continue;
+                    if (button.Type.Contains("START2") || button.Type.Contains("START3") || button.Type.Contains("START4") || button.Type.Contains("START5") || button.Type.Contains("START6"))
+                    {
+                        if (!multiplayer)
+                            forceKbStart = true;
+                        else
+                            continue;
+                    }
+                    if (button.Type.Contains("COIN2") || button.Type.Contains("COIN3") || button.Type.Contains("COIN4") || button.Type.Contains("COIN5") || button.Type.Contains("COIN6"))
+                    {
+                        if (!multiplayer)
+                            forceKbCoin = true;
+                        else
+                            continue;
+                    }
+                    if (button.Type.Contains("COIN1"))
+                        ignoreCoin1 = true;
+                    if (button.Type.Contains("START1"))
+                        ignoreStart1 = true;
+
+                    var port = new XElement("port",
+                        new XAttribute("type", button.Type),
+                        button.Tag == null ? null : new XAttribute("tag", button.Tag),
+                        button.Mask == null ? null : new XAttribute("mask", button.Mask),
+                        button.DefValue == null ? null : new XAttribute("defvalue", button.DefValue));
+
+                    foreach (var map in button.ButtonMappings)
+                    {
+                        string mappingText = map.Mapping;
+                        if (forceKbStart && button.Type.StartsWith("START") && button.Type != "START1")
+                            mappingText = "NONE";
+                        if (forceKbCoin && button.Type.StartsWith("COIN") && button.Type != "COIN1")
+                            mappingText = "NONE";
+
+                        if (!string.Equals(mappingText, "NONE", StringComparison.OrdinalIgnoreCase))
+                        {
+                            mappingText = GetSpecificMappingD(ctrlr, joy, mouseIndex1, mappingText, i, xinputCtrl);
+                        }
+
+                        var buttonMap = new XElement("newseq", new XAttribute("type", map.Type), mappingText);
+
+                        port.Add(buttonMap);
+                    }
+
+                    input.Add(port);
+                }
+
+                stop = true;
+            }
+
             if (hbmame)
             {
                 AddPort(input, "UI_CONFIGURE", joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "a", xinputCtrl) + " OR KEYCODE_TAB");
@@ -474,51 +578,13 @@ namespace EmulatorLauncher
             AddPort(input, "TILT1", joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_T");
 
             // Start & coin
-            AddPort(input, "START" + i, joy + GetDinputMapping(ctrlr, "start", xinputCtrl) + " OR KEYCODE_1 OR MOUSECODE_" + mouseIndex1 + "_START OR GUNCODE_" + mouseIndex1 + "_START");
-            AddPort(input, "COIN" + i, joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " OR KEYCODE_5 OR MOUSECODE_" + mouseIndex1 + "_SELECT OR GUNCODE_" + mouseIndex1 + "_SELECT");
+            if (!ignoreStart1)
+                AddPort(input, "START" + i, joy + GetDinputMapping(ctrlr, "start", xinputCtrl) + " OR KEYCODE_1 OR MOUSECODE_" + mouseIndex1 + "_START OR GUNCODE_" + mouseIndex1 + "_START");
+            if (!ignoreCoin1)
+                AddPort(input, "COIN" + i, joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " OR KEYCODE_5 OR MOUSECODE_" + mouseIndex1 + "_SELECT OR GUNCODE_" + mouseIndex1 + "_SELECT");
 
-            // Specific mapping if available
-            if (!hbmame && _gameLayout != null)
-            {
-                if (_gameMapping.Name != null)
-                    SimpleLogger.Instance.Info("[INFO] Performing specific mapping (dinput) for: " + _gameMapping.Name);
-
-                foreach (var button in _gameLayout.Buttons)
-                {
-                    string player = button.Player;
-                    if (player != null && player != "1")
-                        continue;
-                    if (button.Type.Contains("P2_") || button.Type.Contains("P3_") || button.Type.Contains("P4_") || button.Type.Contains("P5_") || button.Type.Contains("P6_"))
-                        continue;
-                    if (button.Type.Contains("START2") || button.Type.Contains("START3") || button.Type.Contains("START4") || button.Type.Contains("START5") || button.Type.Contains("START6"))
-                        continue;
-                    if (button.Type.Contains("COIN2") || button.Type.Contains("COIN3") || button.Type.Contains("COIN4") || button.Type.Contains("COIN5") || button.Type.Contains("COIN6"))
-                        continue;
-
-                    var port = new XElement("port",
-                        new XAttribute("type", button.Type),
-                        button.Tag == null ? null : new XAttribute("tag", button.Tag),
-                        button.Mask == null ? null : new XAttribute("mask", button.Mask),
-                        button.DefValue == null ? null : new XAttribute("defvalue", button.DefValue));
-
-                    foreach (var map in button.ButtonMappings)
-                    {
-                        string mappingText = map.Mapping;
-                        if (!string.Equals(mappingText, "NONE", StringComparison.OrdinalIgnoreCase))
-                        {
-                            mappingText = GetSpecificMappingD(ctrlr, joy, mouseIndex1, mappingText, i, xinputCtrl);
-                        }
-
-                        var buttonMap = new XElement("newseq", new XAttribute("type", map.Type), mappingText);
-
-                        port.Add(buttonMap);
-                    }
-
-                    input.Add(port);
-                }
-
+            if (stop)
                 return;
-            }
 
             // Standard joystick buttons and directions
             string up = dpadonly ? $"{joy}{GetDinputMapping(ctrlr, "dpup", xinputCtrl)} OR KEYCODE_UP" : $"{joy}{GetDinputMapping(ctrlr, "dpup", xinputCtrl)} OR {joy}{GetDinputMapping(ctrlr, "lefty", xinputCtrl, -1)} OR KEYCODE_UP";
@@ -609,6 +675,9 @@ namespace EmulatorLauncher
         {
             int j = i + 4;
             string gunIndex = (i == 3) ? mouseIndex3 : (i == 4) ? mouseIndex4 : mouseIndex2;
+           
+            bool ignoreStartx = false;
+            bool ignoreCoinx = false;
 
             // Specific mapping if available
             if (!hbmame && _gameLayout != null)
@@ -637,6 +706,10 @@ namespace EmulatorLauncher
                         continue;
                     if (_messcfgInput && button.Type == "OTHER")
                         continue;
+                    if (button.Type.StartsWith("START"))
+                        ignoreStartx = true;
+                    if (button.Type.StartsWith("COIN"))
+                        ignoreCoinx = true;
 
                     var port = new XElement("port",
                         new XAttribute("type", button.Type),
@@ -656,8 +729,15 @@ namespace EmulatorLauncher
                         port.Add(buttonMap);
                     }
 
-                    input.Add(port);
+                    input.Add(port); 
                 }
+
+                AddPort(input, $"P{i}_START", joy + mapping["start"]);
+                AddPort(input, $"P{i}_SELECT", joy + mapping["select"]);
+                if (!ignoreStartx)
+                    AddPort(input, $"START{i}", joy + mapping["start"] + $" OR KEYCODE_{i} OR MOUSECODE_{gunIndex}_START OR GUNCODE_{gunIndex}_START");
+                if (!ignoreCoinx)
+                    AddPort(input, $"COIN{i}", joy + mapping["select"] + $" OR KEYCODE_{j} OR MOUSECODE_{gunIndex}_SELECT OR GUNCODE_{gunIndex}_SELECT");
 
                 return;
             }
@@ -781,6 +861,9 @@ namespace EmulatorLauncher
 
             string gunIndex = (i == 3) ? mouseIndex3 : (i == 4) ? mouseIndex4 : mouseIndex2;
 
+            bool ignoreStartx = false;
+            bool ignoreCoinx = false;
+
             if (_gameLayout != null)
             {
                 if (_gameMapping.Name != null)
@@ -807,6 +890,10 @@ namespace EmulatorLauncher
                         continue;
                     if (_messcfgInput && button.Type == "OTHER")
                         continue;
+                    if (button.Type.StartsWith("START"))
+                        ignoreStartx = true;
+                    if (button.Type.StartsWith("COIN"))
+                        ignoreCoinx = true;
 
                     var port = new XElement("port",
                         new XAttribute("type", button.Type),
@@ -829,6 +916,15 @@ namespace EmulatorLauncher
 
                     input.Add(port);
                 }
+
+                AddPort(input, $"P{i}_START", joy + GetDinputMapping(ctrlr, "start", xinputCtrl));
+                AddPort(input, $"P{i}_SELECT", joy + GetDinputMapping(ctrlr, "back", xinputCtrl));
+
+                if (!ignoreStartx)
+                    AddPort(input, $"START{i}", joy + GetDinputMapping(ctrlr, "start", xinputCtrl) + " OR KEYCODE_" + i + " OR MOUSECODE_" + gunIndex + "_START OR GUNCODE_" + gunIndex + "_START");
+                if (!ignoreCoinx)
+                    AddPort(input, $"COIN{i}", joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " OR KEYCODE_" + j + " OR MOUSECODE_" + gunIndex + "_SELECT OR GUNCODE_" + gunIndex + "_SELECT");
+
 
                 return;
             }
@@ -1192,9 +1288,10 @@ namespace EmulatorLauncher
             return "";
         }
 
-        private List<Controller> GetMameControllers(string driver, List<Controller> controllers, List<DI.DeviceInstance> diDevices)
+        private List<Controller> GetMameControllers(string driver, List<Controller> controllers, List<DI.DeviceInstance> diDevices, out List<SharpDX.DirectInput.DeviceInstance> nonControllers)
         {
             var result = new List<Controller>();
+            nonControllers = new List<SharpDX.DirectInput.DeviceInstance>();
 
             if (driver == "xinput")
             {
@@ -1213,6 +1310,8 @@ namespace EmulatorLauncher
 
                     if (match != null)
                         result.Add(match);
+                    else if (di.Subtype == 259)
+                        result.Add(null);
                 }
 
                 return result;
@@ -1227,6 +1326,8 @@ namespace EmulatorLauncher
 
                 if (match != null)
                     result.Add(match);
+                else if (di.Subtype == 259)
+                    result.Add(null);
             }
 
             result.AddRange(

@@ -59,7 +59,6 @@ namespace EmulatorLauncher
                 return;
 
             int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
-            string name = ctrl.SdlController != null ? ctrl.SdlController.Name : ctrl.Name;
             bool isXInput = ctrl.IsXInputDevice;
             bool revertButtons = SystemConfig.isOptSet("jgen_revertbuttons") && SystemConfig.getOptBoolean("jgen_revertbuttons");
             string guid = ctrl.Guid.ToString();
@@ -88,21 +87,11 @@ namespace EmulatorLauncher
 
                                 if (mdGamepad.ControllerInfo.ContainsKey("mapping2"))
                                     mapping2 = mdGamepad.ControllerInfo["mapping2"] == "true";
-
-                                if (needMDActivationSwitch && !md_pad)
-                                {
-                                    SimpleLogger.Instance.Info("[Controller] Specific MD mapping needs to be activated for this controller.");
-                                    goto BypassMDControllers;
-                                }
                             }
 
-                            SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
-
-                            if (mdGamepad.Mapping != null)
+                            if (!(needMDActivationSwitch && !md_pad) && mdGamepad.Mapping != null)
                             {
-                                if (mdGamepad.Driver == "dinput")
-                                    name = joy.DeviceName;
-
+                                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + mdGamepad.Name);
                                 ini.DeleteSection("input.genesis.mapping_1.p" + playerIndex);
 
                                 if (mapping2)
@@ -113,13 +102,10 @@ namespace EmulatorLauncher
                                     string value = button.Value;
                                     string value2 = null;
 
-                                    if (button.Value.Contains("_"))
-                                    {
-                                        string[] values = value.Split('_');
-                                        value = values[0];
-                                        value2 = values[1];
-                                    }
-                                    
+                                    var values = value.Split(new[] { '_' }, 2);
+                                    value = values[0];
+                                    value2 = values.Length > 1 ? values[1] : null;
+
                                     string iniSection = "[[input." + jgenSystem + ".mapping_1.p" + playerIndex + "." + button.Key + "]]";
                                     string iniSection2 = null;
 
@@ -147,6 +133,11 @@ namespace EmulatorLauncher
 
                                 return;
                             }
+                            if (needMDActivationSwitch && !md_pad)
+                            {
+                                SimpleLogger.Instance.Info(
+                                    "[Controller] Specific MD mapping needs to be activated for this controller.");
+                            }
                             else
                                 SimpleLogger.Instance.Info("[INFO] Missing mapping for Megadrive Gamepad, falling back to standard mapping.");
                         }
@@ -159,29 +150,7 @@ namespace EmulatorLauncher
                 catch { }
             }
 
-            BypassMDControllers:
-
-            Dictionary<string, InputKey> mapping = null;
-
-            switch (jgenSystem)
-            {
-                case "game_boy":
-                    mapping = gbMapping;
-                    break;
-                case "genesis":
-                    mapping = mdMapping;
-                    break;
-                case "nes":
-                    mapping = nesMapping;
-                    break;
-                case "smsgg":
-                    mapping = smsMapping;
-                    break;
-                case "snes":
-                    mapping = snesMapping;
-                    break;
-            }
-
+            var mapping = GetMapping(jgenSystem);
             if (mapping == null)
                 return;
 
@@ -239,27 +208,7 @@ namespace EmulatorLauncher
             if (noPlayerSystem.Contains(jgenSystem))
                 section = "input." + jgenSystem + ".mapping_1";
 
-            Dictionary<string, InputKey> mapping = null;
-
-            switch (jgenSystem)
-            {
-                case "game_boy":
-                    mapping = gbMapping;
-                    break;
-                case "genesis":
-                    mapping = mdMapping;
-                    break;
-                case "nes":
-                    mapping = nesMapping;
-                    break;
-                case "smsgg":
-                    mapping = smsMapping;
-                    break;
-                case "snes":
-                    mapping = snesMapping;
-                    break;
-            }
-
+            var mapping = GetMapping(jgenSystem);
             if (mapping == null)
                 return;
 
@@ -317,26 +266,7 @@ namespace EmulatorLauncher
         {
             int maxPad = systemMaxPad.ContainsKey(jgenSystem) ? systemMaxPad[jgenSystem] : 1;
 
-            Dictionary<string, InputKey> mapping = null;
-
-            switch (jgenSystem)
-            {
-                case "smsgg":
-                    mapping = smsMapping;
-                    break;
-                case "genesis":
-                    mapping = mdMapping;
-                    break;
-                case "nes":
-                    mapping = nesMapping;
-                    break;
-                case "game_boy":
-                    mapping = gbMapping;
-                    break;
-                case "snes":
-                    mapping = snesMapping;
-                    break;
-            }
+            var mapping = GetMapping(jgenSystem);
 
             if (mapping != null)
             {
@@ -470,8 +400,6 @@ namespace EmulatorLauncher
             Int64 pid;
             Int64 pvalue;
 
-            Dictionary<string, string> info = new Dictionary<string, string>();
-
             key = key.GetRevertedAxis(out bool revertAxis);
 
             var input = c.Config[key];
@@ -498,7 +426,6 @@ namespace EmulatorLauncher
                     switch (pvalue)
                     {
                         case 1:
-                            info[pid.ToString()] = "Up";
                             return "Hat " + pid + " Up";
                         case 2:
                             return "Hat " + pid + " Right";
@@ -514,7 +441,7 @@ namespace EmulatorLauncher
 
         private static Dictionary<string, InputKey> ConfigureMappingPerSystem(Dictionary<string, InputKey> mapping, string jGenSystem, int playerIndex)
         {
-            Dictionary<string, InputKey> newMapping = mapping;
+            var newMapping = new Dictionary<string, InputKey>(mapping);
             if (jGenSystem == "nes")
             {
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))

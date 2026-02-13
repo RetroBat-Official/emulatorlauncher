@@ -434,6 +434,27 @@ namespace EmulatorLauncher
             }
         }
 
+        private static Dictionary<string, InputKey> GetMapping(string system)
+        {
+            switch (system)
+            {
+                case "game_boy":
+                    return gbMapping;
+                case "genesis":
+                case "sega_cd": 
+                case "sega_32x":
+                    return mdMapping;
+                case "nes":
+                    return nesMapping;
+                case "smsgg":
+                    return smsMapping;
+                case "snes":
+                    return snesMapping;
+                default:
+                    return null;
+            }
+        }
+
         private string GetJgenesisSystem(string System)
         {
             switch (System)
