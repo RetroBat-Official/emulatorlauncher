@@ -1287,7 +1287,7 @@ namespace EmulatorLauncher
             return "";
         }
 
-        private List<Controller> GetMameControllers(string driver, List<Controller> controllers, List<DI.DeviceInstance> diDevices)
+        private List<Controller> GetMameControllers(string driver, List<Controller> controllers, List<SharpDX.DirectInput.DeviceInstance> diDevices)
         {
             var result = new List<Controller>();
 
