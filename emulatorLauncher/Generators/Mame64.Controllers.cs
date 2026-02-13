@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using DIDeviceInstance = SharpDX.DirectInput.DeviceInstance;
+using DI = SharpDX.DirectInput;
 
 namespace EmulatorLauncher
 {
@@ -136,11 +136,49 @@ namespace EmulatorLauncher
             bool dpadonly = SystemConfig.getOptBoolean("mame_dpadandstick");
             var diDevices = new DirectInputInfo().GetDinputDevices();
             string driver = SystemConfig["mame_joystick_driver"];
+            var mameControllers = new List<Controller>();
 
-            var mameControllers = GetMameControllers(
-                driver,
-                this.Controllers,
-                diDevices);
+            if (driver == "xinput")
+            {
+                mameControllers = this.Controllers
+                    .Where(c => c.IsXInputDevice && !c.IsKeyboard)
+                    .OrderBy(c => c.XInput.DeviceIndex)
+                    .ToList();
+            }
+
+            else if (driver == "dinput")
+            {
+                foreach (var di in diDevices)
+                {
+                    var match = this.Controllers.FirstOrDefault(c =>
+                        c.DirectInput?.InstanceGuid == di.InstanceGuid);
+
+                    if (match != null)
+                        mameControllers.Add(match);
+                    else if (di.Subtype == 259)
+                        mameControllers.Add(null);
+                }
+            }
+            else
+            {
+                // hybrid
+                foreach (var di in diDevices)
+                {
+                    var match = this.Controllers.FirstOrDefault(c =>
+                        c.DirectInput?.InstanceGuid == di.InstanceGuid &&
+                        !c.IsXInputDevice);
+
+                    if (match != null)
+                        mameControllers.Add(match);
+                    else if (di.Subtype == 259)
+                        mameControllers.Add(null);
+                }
+
+                mameControllers.AddRange(
+                    this.Controllers
+                        .Where(c => c.IsXInputDevice)
+                        .OrderBy(c => c.XInput.DeviceIndex));
+            }
 
             // GUNS & MOUSES
             bool forceOneGun = SystemConfig.getOptBoolean("mame_forceOneGun");
@@ -1285,55 +1323,6 @@ namespace EmulatorLauncher
                 }
             }
             return "";
-        }
-
-        private List<Controller> GetMameControllers(string driver, List<Controller> controllers, List<DIDeviceInstance> diDevices)
-        {
-            var result = new List<Controller>();
-
-            if (driver == "xinput")
-            {
-                return controllers
-                    .Where(c => c.IsXInputDevice && !c.IsKeyboard)
-                    .OrderBy(c => c.XInput.DeviceIndex)
-                    .ToList();
-            }
-
-            if (driver == "dinput")
-            {
-                foreach (var di in diDevices)
-                {
-                    var match = controllers.FirstOrDefault(c =>
-                        c.DirectInput?.InstanceGuid == di.InstanceGuid);
-
-                    if (match != null)
-                        result.Add(match);
-                    else if (di.Subtype == 259)
-                        result.Add(null);
-                }
-
-                return result;
-            }
-
-            // hybrid
-            foreach (var di in diDevices)
-            {
-                var match = controllers.FirstOrDefault(c =>
-                    c.DirectInput?.InstanceGuid == di.InstanceGuid &&
-                    !c.IsXInputDevice);
-
-                if (match != null)
-                    result.Add(match);
-                else if (di.Subtype == 259)
-                    result.Add(null);
-            }
-
-            result.AddRange(
-                controllers
-                    .Where(c => c.IsXInputDevice)
-                    .OrderBy(c => c.XInput.DeviceIndex));
-
-            return result;
         }
 
         private string GetSpecificMappingX(string joy, string mouseindex, string mapping, int player)
