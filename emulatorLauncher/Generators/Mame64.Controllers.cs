@@ -155,7 +155,7 @@ namespace EmulatorLauncher
 
                     if (match != null)
                         mameControllers.Add(match);
-                    else if (di.Subtype == 259)
+                    else if (di.Subtype == 259 || (di.Subtype == 258 && di.Type != SharpDX.DirectInput.DeviceType.Gamepad))
                         mameControllers.Add(null);
                 }
             }
@@ -170,7 +170,7 @@ namespace EmulatorLauncher
 
                     if (match != null)
                         mameControllers.Add(match);
-                    else if (di.Subtype == 259)
+                    else if (di.Subtype == 259 || (di.Subtype == 258 && di.Type != SharpDX.DirectInput.DeviceType.Gamepad))
                         mameControllers.Add(null);
                 }
 
