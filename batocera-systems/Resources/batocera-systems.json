@@ -1713,7 +1713,7 @@
     ]
   },
 
-  "segacd": {
+  "megacd": {
     "name": "Sega CD",
     "biosFiles": [
       {
