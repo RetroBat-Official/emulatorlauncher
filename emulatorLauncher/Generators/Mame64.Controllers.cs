@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using DI = SharpDX.DirectInput;
 
 namespace EmulatorLauncher
 {
@@ -155,7 +154,7 @@ namespace EmulatorLauncher
 
                     if (match != null)
                         mameControllers.Add(match);
-                    else if (di.Subtype == 259 || (di.Subtype == 258 && di.Type != SharpDX.DirectInput.DeviceType.Gamepad))
+                    else if (di.Subtype == 259 || (di.Subtype == 258 && di.Type != (SharpDX.DirectInput.DeviceType)4))
                         mameControllers.Add(null);
                 }
             }
@@ -170,7 +169,7 @@ namespace EmulatorLauncher
 
                     if (match != null)
                         mameControllers.Add(match);
-                    else if (di.Subtype == 259 || (di.Subtype == 258 && di.Type != SharpDX.DirectInput.DeviceType.Gamepad))
+                    else if (di.Subtype == 259 || (di.Subtype == 258 && di.Type != (SharpDX.DirectInput.DeviceType)4))
                         mameControllers.Add(null);
                 }
 
