@@ -733,6 +733,8 @@ namespace EmulatorLauncher
             // Use autostart if autorun file exists
             var romname = Path.GetFileNameWithoutExtension(rom);
             string autorunFile = Path.Combine(Path.GetDirectoryName(rom), romname + ".autorun");
+            string commandFile = Path.Combine(Path.GetDirectoryName(rom), romname + ".commands");
+            string genericCommandFile = Path.Combine(Path.GetDirectoryName(rom), messModel + ".commands");
             string bootCommand = null;
             string bootDelay = "3";
             var romMedia = this.GetRomType(rom);
@@ -751,7 +753,31 @@ namespace EmulatorLauncher
                 hashfile = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "hash", romMedia + ".xml");
             }
 
-            // autorun file exists
+            // .command file for additional command line arguments
+            if (File.Exists(commandFile))
+            {
+                if (File.ReadAllLines(commandFile) != null)
+                {
+                    foreach (var line in File.ReadAllLines(commandFile))
+                    {
+                        if (!string.IsNullOrEmpty(line))
+                            commandArray.Add(line);
+                    }
+                }
+            }
+            else if (File.Exists(genericCommandFile))
+            {
+                if (File.ReadAllLines(genericCommandFile) != null)
+                {
+                    foreach (var line in File.ReadAllLines(genericCommandFile))
+                    {
+                        if (!string.IsNullOrEmpty(line))
+                            commandArray.Add(line);
+                    }
+                }
+            }
+
+            // autorun file for boot command exists
             if (File.Exists(autorunFile))
             {
                 if (File.ReadAllLines(autorunFile) != null)
@@ -761,10 +787,6 @@ namespace EmulatorLauncher
                         bootCommand = lines[0];
                     if (lines.Count() > 1 && !string.IsNullOrEmpty(lines[1]))
                         bootDelay = lines[1];
-                    /*commandArray.Add("-autoboot_delay");
-                    commandArray.Add("3");
-                    commandArray.Add("-autoboot_command");
-                    commandArray.Add(File.ReadAllText(autorunFile));*/
                 }
             }
 
