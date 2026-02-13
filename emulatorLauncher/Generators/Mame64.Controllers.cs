@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using DI = SharpDX.DirectInput;
+using DIDeviceInstance = SharpDX.DirectInput.DeviceInstance;
 
 namespace EmulatorLauncher
 {
@@ -1287,7 +1287,7 @@ namespace EmulatorLauncher
             return "";
         }
 
-        private List<Controller> GetMameControllers(string driver, List<Controller> controllers, List<SharpDX.DirectInput.DeviceInstance> diDevices)
+        private List<Controller> GetMameControllers(string driver, List<Controller> controllers, List<DIDeviceInstance> diDevices)
         {
             var result = new List<Controller>();
 
