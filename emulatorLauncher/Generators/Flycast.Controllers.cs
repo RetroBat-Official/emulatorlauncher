@@ -84,7 +84,7 @@ namespace EmulatorLauncher
                     ConfigureInput(ini, controller, mappingPath, system, double_pads, nsamepad, hotkeyMapping);
 
                 if (guns)
-                    ConfigureFlycastGuns(ini, mappingPath, system);
+                    ConfigureFlycastGuns(ini, mappingPath, system, hotkeyMapping);
             }
         }
 

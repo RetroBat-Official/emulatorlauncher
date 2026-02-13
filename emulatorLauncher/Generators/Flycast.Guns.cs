@@ -19,7 +19,7 @@ namespace EmulatorLauncher
         private static readonly List<string> useXandA = new List<string> { "shootopl", "shootpl", "shootplm", "shootplmp" };
         private static Dictionary<RawLightgun, RawInputDevice> _gunsKbAssociation = new Dictionary<RawLightgun, RawInputDevice>();
 
-        private void ConfigureFlycastGuns(IniFile ini, string mappingPath, string system)
+        private void ConfigureFlycastGuns(IniFile ini, string mappingPath, string system, Dictionary<string, string> hotkeyMapping)
         {
             bool useOneGun = SystemConfig.getOptBoolean("one_gun");
             bool guninvert = SystemConfig.getOptBoolean("gun_invert");
@@ -273,12 +273,7 @@ namespace EmulatorLauncher
                             kbini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
                             kbini.WriteValue("digital", "bind6", "128:btn_a");
                             kbini.WriteValue("digital", "bind7", "129:btn_b");
-                            kbini.WriteValue("digital", "bind8", "43:btn_menu");
-                            kbini.WriteValue("digital", "bind9", "59:btn_jump_state");      //F2
-                            kbini.WriteValue("digital", "bind10", "66:btn_screenshot");     //F9
-                            kbini.WriteValue("digital", "bind11", "61:btn_fforward");       //F4
-                            kbini.WriteValue("digital", "bind12", "58:btn_quick_save");     //F1
-                            kbini.WriteValue("digital", "bind13", "20:btn_x");              //Q
+                            kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
                         }
                         else if (wiiMode == "normal")
                         {
@@ -288,14 +283,9 @@ namespace EmulatorLauncher
                             kbini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
                             kbini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
                             kbini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
-                            kbini.WriteValue("digital", "bind6", "43:btn_menu");
-                            kbini.WriteValue("digital", "bind7", "224:btn_b");              //Leftctrl
-                            kbini.WriteValue("digital", "bind8", "225:btn_a");              //Leftshift
-                            kbini.WriteValue("digital", "bind9", "59:btn_jump_state");      //F2
-                            kbini.WriteValue("digital", "bind10", "66:btn_screenshot");     //F9
-                            kbini.WriteValue("digital", "bind11", "61:btn_fforward");       //F4
-                            kbini.WriteValue("digital", "bind12", "58:btn_quick_save");     //F1
-                            kbini.WriteValue("digital", "bind13", "20:btn_x");              //Q
+                            kbini.WriteValue("digital", "bind6", "224:btn_b");              //Leftctrl
+                            kbini.WriteValue("digital", "bind7", "225:btn_a");              //Leftshift
+                            kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
                         }
                         else
                         {
@@ -305,14 +295,9 @@ namespace EmulatorLauncher
                             kbini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
                             kbini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
                             kbini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
-                            kbini.WriteValue("digital", "bind6", "43:btn_menu");
-                            kbini.WriteValue("digital", "bind7", "224:btn_b");
-                            kbini.WriteValue("digital", "bind8", "225:btn_a");
-                            kbini.WriteValue("digital", "bind9", "59:btn_jump_state");      //F2
-                            kbini.WriteValue("digital", "bind10", "66:btn_screenshot");     //F9
-                            kbini.WriteValue("digital", "bind11", "61:btn_fforward");       //F4
-                            kbini.WriteValue("digital", "bind12", "58:btn_quick_save");     //F1
-                            kbini.WriteValue("digital", "bind13", "20:btn_x");              //Q
+                            kbini.WriteValue("digital", "bind6", "224:btn_b");
+                            kbini.WriteValue("digital", "bind7", "225:btn_a");
+                            kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
                         }
                     }
                 }
@@ -325,13 +310,8 @@ namespace EmulatorLauncher
                     kbini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
                     kbini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
                     kbini.WriteValue("digital", "bind6", "228:btn_start");
-                    kbini.WriteValue("digital", "bind7", "43:btn_menu");
-                    kbini.WriteValue("digital", "bind8", "224:btn_b");
-                    kbini.WriteValue("digital", "bind9", "59:btn_jump_state");   //F2
-                    kbini.WriteValue("digital", "bind10", "66:btn_screenshot");   //F9
-                    kbini.WriteValue("digital", "bind11", "61:btn_fforward");      //F4
-                    kbini.WriteValue("digital", "bind12", "58:btn_quick_save");    //F1
-                    kbini.WriteValue("digital", "bind13", "20:btn_x");              //Q
+                    kbini.WriteValue("digital", "bind7", "224:btn_b");
+                    kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
                 }
                 else
                 {
@@ -341,14 +321,17 @@ namespace EmulatorLauncher
                     kbini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
                     kbini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
                     kbini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
-                    kbini.WriteValue("digital", "bind6", "43:btn_menu");
-                    kbini.WriteValue("digital", "bind7", "224:btn_b");
-                    kbini.WriteValue("digital", "bind8", "4:btn_a");
-                    kbini.WriteValue("digital", "bind9", "59:btn_jump_state");   //F2
-                    kbini.WriteValue("digital", "bind10", "66:btn_screenshot");   //F9
-                    kbini.WriteValue("digital", "bind11", "61:btn_fforward");      //F4
-                    kbini.WriteValue("digital", "bind12", "58:btn_quick_save");    //F1
-                    kbini.WriteValue("digital", "bind13", "20:btn_x");              //Q
+                    kbini.WriteValue("digital", "bind6", "224:btn_b");
+                    kbini.WriteValue("digital", "bind7", "4:btn_a");
+                    kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
+                }
+                
+                int i = 9;
+                foreach (var hk in hotkeyMapping)
+                {
+                    string toAdd = hk.Value + ":" + hk.Key;
+                    kbini.WriteValue("digital", "bind" + i, toAdd);
+                    i++;
                 }
 
                 kbini.WriteValue("emulator", "dead_zone", "10");
@@ -662,10 +645,11 @@ namespace EmulatorLauncher
 
                     string devicePath = kb.Key.DevicePath;
                     string vidpid = GetVIDPID(devicePath);
+                    string value = kb.Value.Replace("/", "-");
 
-                    string kbMapping = Path.Combine(mappingPath, "RAW_" + kb.Value + " [" + vidpid + "]" + ".cfg");
+                    string kbMapping = Path.Combine(mappingPath, "RAW_" + value + " [" + vidpid + "]" + ".cfg");
                     if (_isArcade)
-                        kbMapping = Path.Combine(mappingPath, "RAW_" + kb.Value + " [" + vidpid + "]_arcade" + ".cfg");
+                        kbMapping = Path.Combine(mappingPath, "RAW_" + value + " [" + vidpid + "]_arcade" + ".cfg");
 
                     using (var ctrlini = new IniFile(kbMapping, IniOptions.UseSpaces))
                     {
@@ -679,20 +663,26 @@ namespace EmulatorLauncher
 
                                 ctrlini.WriteValue("digital", "bind0", "6:insert_card");        //C
                                 ctrlini.WriteValue("digital", "bind1", "17:btn_dpad2_up");      //N
-                                ctrlini.WriteValue("digital", "bind10", "59:btn_jump_state");   //F2
-                                ctrlini.WriteValue("digital", "bind11", "66:btn_screenshot");   //F9
-                                ctrlini.WriteValue("digital", "bind12", "79:btn_dpad1_right");  //RIGHT
-                                ctrlini.WriteValue("digital", "bind13", "80:btn_dpad1_left");   //LEFT
-                                ctrlini.WriteValue("digital", "bind14", "81:btn_dpad1_down");   //DOWN
-                                ctrlini.WriteValue("digital", "bind15", "82:btn_dpad1_up");     //UP
-                                ctrlini.WriteValue("digital", "bind2", "5:btn_dpad2_down");     //B
-                                ctrlini.WriteValue("digital", "bind3", "20:btn_a");             //Q
-                                ctrlini.WriteValue("digital", "bind4", "29:btn_b");             //Z
-                                ctrlini.WriteValue("digital", "bind5", "34:btn_d");             //5
-                                ctrlini.WriteValue("digital", "bind6", "30:btn_start");         //1
-                                ctrlini.WriteValue("digital", "bind7", "43:btn_menu");          //TAB
-                                ctrlini.WriteValue("digital", "bind8", "61:btn_fforward");      //F4
-                                ctrlini.WriteValue("digital", "bind9", "58:btn_quick_save");    //F1
+                                ctrlini.WriteValue("digital", "bind10", "30:btn_start");         //1
+
+                                int i = 11;
+                                foreach (var hk in hotkeyMapping)
+                                {
+                                    string toAdd = hk.Value + ":" + hk.Key;
+                                    ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                    i++;
+                                }
+
+                                ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");  //RIGHT
+                                ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");   //LEFT
+                                ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");   //DOWN
+                                ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");     //UP
+                                ctrlini.WriteValue("digital", "bind6", "5:btn_dpad2_down");     //B
+                                ctrlini.WriteValue("digital", "bind7", "20:btn_a");             //Q
+                                ctrlini.WriteValue("digital", "bind8", "29:btn_b");             //Z
+                                ctrlini.WriteValue("digital", "bind9", "34:btn_d");             //5
+                                
+                                
                             }
                             else if (isWiimote)
                             {
@@ -746,16 +736,18 @@ namespace EmulatorLauncher
                                     ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
                                     ctrlini.WriteValue("digital", "bind6", "224:btn_b");
                                     ctrlini.WriteValue("digital", "bind7", "225:btn_a");
+                                    ctrlini.WriteValue("digital", "bind8", "20:btn_x");            //Q
                                 }
 
                                 if (index == 1)
                                 {
-                                    ctrlini.WriteValue("digital", "bind8", "43:btn_menu");          //TAB
-                                    ctrlini.WriteValue("digital", "bind9", "59:btn_jump_state");    //F2
-                                    ctrlini.WriteValue("digital", "bind10", "66:btn_screenshot");   //F9
-                                    ctrlini.WriteValue("digital", "bind11", "61:btn_fforward");     //F4
-                                    ctrlini.WriteValue("digital", "bind12", "58:btn_quick_save");   //F1
-                                    ctrlini.WriteValue("digital", "bind13", "20:btn_x");            //Q
+                                    int i = 9;
+                                    foreach (var hk in hotkeyMapping)
+                                    {
+                                        string toAdd = hk.Value + ":" + hk.Key;
+                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                        i++;
+                                    }
                                 }
                             }
                             else
@@ -766,20 +758,22 @@ namespace EmulatorLauncher
                                 {
                                     ctrlini.WriteValue("digital", "bind0", "6:insert_card");        //C
                                     ctrlini.WriteValue("digital", "bind1", "17:btn_dpad2_up");      //N
-                                    ctrlini.WriteValue("digital", "bind10", "59:btn_jump_state");   //F2
-                                    ctrlini.WriteValue("digital", "bind11", "66:btn_screenshot");   //F9
-                                    ctrlini.WriteValue("digital", "bind12", "79:btn_dpad1_right");  //RIGHT
-                                    ctrlini.WriteValue("digital", "bind13", "80:btn_dpad1_left");   //LEFT
-                                    ctrlini.WriteValue("digital", "bind14", "81:btn_dpad1_down");   //DOWN
-                                    ctrlini.WriteValue("digital", "bind15", "82:btn_dpad1_up");     //UP
-                                    ctrlini.WriteValue("digital", "bind2", "5:btn_dpad2_down");     //B
-                                    ctrlini.WriteValue("digital", "bind3", "20:btn_a");             //Q
-                                    ctrlini.WriteValue("digital", "bind4", "29:btn_b");             //Z
-                                    ctrlini.WriteValue("digital", "bind5", "34:btn_d");             //5
-                                    ctrlini.WriteValue("digital", "bind6", "30:btn_start");         //1
-                                    ctrlini.WriteValue("digital", "bind7", "43:btn_menu");          //TAB
-                                    ctrlini.WriteValue("digital", "bind8", "61:btn_fforward");      //F4
-                                    ctrlini.WriteValue("digital", "bind9", "58:btn_quick_save");    //F1
+                                    ctrlini.WriteValue("digital", "bind10", "30:btn_start");         //1
+                                    int i = 11;
+                                    foreach (var hk in hotkeyMapping)
+                                    {
+                                        string toAdd = hk.Value + ":" + hk.Key;
+                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                        i++;
+                                    }
+                                    ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");  //RIGHT
+                                    ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");   //LEFT
+                                    ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");   //DOWN
+                                    ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");     //UP
+                                    ctrlini.WriteValue("digital", "bind6", "5:btn_dpad2_down");     //B
+                                    ctrlini.WriteValue("digital", "bind7", "20:btn_a");             //Q
+                                    ctrlini.WriteValue("digital", "bind8", "29:btn_b");             //Z
+                                    ctrlini.WriteValue("digital", "bind9", "34:btn_d");             //5
                                 }
                                 else
                                 {
@@ -791,6 +785,13 @@ namespace EmulatorLauncher
                                     ctrlini.WriteValue("digital", "bind5", "35:btn_d");            //6
                                     ctrlini.WriteValue("digital", "bind6", "31:btn_start");        //2
                                     ctrlini.WriteValue("digital", "bind7", "24:btn_dpad1_up");     //U
+                                    int i = 8;
+                                    foreach (var hk in hotkeyMapping)
+                                    {
+                                        string toAdd = hk.Value + ":" + hk.Key;
+                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                        i++;
+                                    }
                                 }
                             }
                         }
@@ -803,17 +804,20 @@ namespace EmulatorLauncher
                             {
                                 ctrlini.WriteValue("digital", "bind0", "29:btn_a");                    //Z
                                 ctrlini.WriteValue("digital", "bind1", "30:btn_start");                //1               
-                                ctrlini.WriteValue("digital", "bind2", "43:btn_menu");                 //TAB
-                                ctrlini.WriteValue("digital", "bind3", "61:btn_fforward");             //F4
-                                ctrlini.WriteValue("digital", "bind4", "58:btn_quick_save");           //F1
-                                ctrlini.WriteValue("digital", "bind5", "59:btn_jump_state");           //F2
-                                ctrlini.WriteValue("digital", "bind6", "66:btn_screenshot");           //F9
-                                ctrlini.WriteValue("digital", "bind7", "79:btn_dpad1_right");
-                                ctrlini.WriteValue("digital", "bind8", "80:btn_dpad1_left");
-                                ctrlini.WriteValue("digital", "bind9", "81:btn_dpad1_down");
-                                ctrlini.WriteValue("digital", "bind10", "82:btn_dpad1_up");
-                                ctrlini.WriteValue("digital", "bind11", "27:btn_b");                    //X
-                                ctrlini.WriteValue("digital", "bind12", "6:btn_c");                     //C
+                                ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
+                                ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
+                                ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
+                                ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
+                                ctrlini.WriteValue("digital", "bind6", "27:btn_b");                    //X
+                                ctrlini.WriteValue("digital", "bind7", "6:btn_c");                     //C
+
+                                int i = 8;
+                                foreach (var hk in hotkeyMapping)
+                                {
+                                    string toAdd = hk.Value + ":" + hk.Key;
+                                    ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                    i++;
+                                }
                             }
                             //wiimotes
                             else if (SystemConfig.isOptSet("WiimoteMode") && !string.IsNullOrEmpty(SystemConfig["WiimoteMode"]))
@@ -854,14 +858,14 @@ namespace EmulatorLauncher
                                     ctrlini.WriteValue("digital", "bind7", "225:btn_a");            //Lshift
                                 }
 
-                                if (index == 1)
+                                ctrlini.WriteValue("digital", "bind8", "20:btn_x");            //Q
+
+                                int i = 9;
+                                foreach (var hk in hotkeyMapping)
                                 {
-                                    ctrlini.WriteValue("digital", "bind8", "43:btn_menu");          //TAB
-                                    ctrlini.WriteValue("digital", "bind9", "59:btn_jump_state");    //F2
-                                    ctrlini.WriteValue("digital", "bind10", "66:btn_screenshot");   //F9
-                                    ctrlini.WriteValue("digital", "bind11", "61:btn_fforward");     //F4
-                                    ctrlini.WriteValue("digital", "bind12", "58:btn_quick_save");   //F1
-                                    ctrlini.WriteValue("digital", "bind13", "20:btn_x");            //Q
+                                    string toAdd = hk.Value + ":" + hk.Key;
+                                    ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                    i++;
                                 }
                             }
                             //non-wiimotes
@@ -871,16 +875,19 @@ namespace EmulatorLauncher
                                 {
                                     ctrlini.WriteValue("digital", "bind0", "34:btn_a");                    //5
                                     ctrlini.WriteValue("digital", "bind1", "30:btn_start");                //1               
-                                    ctrlini.WriteValue("digital", "bind2", "43:btn_menu");                 //TAB
-                                    ctrlini.WriteValue("digital", "bind3", "61:btn_fforward");             //F4
-                                    ctrlini.WriteValue("digital", "bind4", "58:btn_quick_save");           //F1
-                                    ctrlini.WriteValue("digital", "bind5", "59:btn_jump_state");           //F2
-                                    ctrlini.WriteValue("digital", "bind6", "66:btn_screenshot");           //F9
-                                    ctrlini.WriteValue("digital", "bind7", "79:btn_dpad1_right");
-                                    ctrlini.WriteValue("digital", "bind8", "80:btn_dpad1_left");
-                                    ctrlini.WriteValue("digital", "bind9", "81:btn_dpad1_down");
-                                    ctrlini.WriteValue("digital", "bind10", "82:btn_dpad1_up");
-                                    ctrlini.WriteValue("digital", "bind11", "20:btn_b");                    //Q
+                                    ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
+                                    ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
+                                    ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
+                                    ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
+                                    ctrlini.WriteValue("digital", "bind6", "20:btn_b");                    //Q
+
+                                    int i = 7;
+                                    foreach (var hk in hotkeyMapping)
+                                    {
+                                        string toAdd = hk.Value + ":" + hk.Key;
+                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                        i++;
+                                    }
                                 }
                                 else
                                 {
@@ -891,6 +898,14 @@ namespace EmulatorLauncher
                                     ctrlini.WriteValue("digital", "bind4", "25:btn_dpad1_down");           //V
                                     ctrlini.WriteValue("digital", "bind5", "24:btn_dpad1_up");             //U
                                     ctrlini.WriteValue("digital", "bind6", "35:btn_a");                    //6
+                                    
+                                    int i = 7;
+                                    foreach (var hk in hotkeyMapping)
+                                    {
+                                        string toAdd = hk.Value + ":" + hk.Key;
+                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                        i++;
+                                    }
                                 }
                             }
                         }

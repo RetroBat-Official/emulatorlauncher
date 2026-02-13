@@ -140,8 +140,7 @@ namespace EmulatorLauncher
             var mameControllers = GetMameControllers(
                 driver,
                 this.Controllers,
-                diDevices,
-                out var nonControllers);
+                diDevices);
 
             // GUNS & MOUSES
             bool forceOneGun = SystemConfig.getOptBoolean("mame_forceOneGun");
@@ -1288,10 +1287,9 @@ namespace EmulatorLauncher
             return "";
         }
 
-        private List<Controller> GetMameControllers(string driver, List<Controller> controllers, List<DI.DeviceInstance> diDevices, out List<SharpDX.DirectInput.DeviceInstance> nonControllers)
+        private List<Controller> GetMameControllers(string driver, List<Controller> controllers, List<DI.DeviceInstance> diDevices)
         {
             var result = new List<Controller>();
-            nonControllers = new List<SharpDX.DirectInput.DeviceInstance>();
 
             if (driver == "xinput")
             {
