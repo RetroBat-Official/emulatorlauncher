@@ -197,6 +197,8 @@ namespace EmulatorLauncher.PadToKeyboard
             for (int i = 0; i < numJoysticks; i++)
                 joysticks.AddJoystick(i);
 
+            SimpleLogger.Instance.Info("[PadToKey] Start listening");
+
             while (true)
             {
                 if (_waitHandle.WaitOne(1))
@@ -359,7 +361,8 @@ namespace EmulatorLauncher.PadToKeyboard
 
             foreach(var joy in joysticks)
                 joy.Close();
-            
+
+            SimpleLogger.Instance.Info("[PadToKey] Exit listening");
             SDL.SDL_QuitSubSystem(SDL.SDL_INIT_JOYSTICK);
             SDL.SDL_Quit();
         }
@@ -525,7 +528,7 @@ namespace EmulatorLauncher.PadToKeyboard
                     else if (input.Key == "(%{KILL})" && hWndProcess != IntPtr.Zero)
                     {
                         SimpleLogger.Instance.Info("[SendKey] Kill " + process);
-                        KillProcess(hWndProcess, process);
+                        KillProcess(hWndProcess);
                     }
                     else if (input.Key == "(%{PRTSC})" && hWndProcess != IntPtr.Zero)
                     {
@@ -634,37 +637,21 @@ namespace EmulatorLauncher.PadToKeyboard
             }
         }
 
-
-        private void KillProcess(IntPtr hWndProcess, string process)
+        void KillProcess(IntPtr hWndProcess)
         {
-            uint pid;
-            User32.GetWindowThreadProcessId(hWndProcess, out pid);
-
-            try
+            if (User32.GetWindowThreadProcessId(hWndProcess, out uint pxi) != 0)
             {
-                KillProcessAndChildren((int)pid);
-              //  Process p = Process.GetProcessById((int)pid);
-               // p.Kill();
-                ProcessKilled = true;
-            }
-            catch { }
-        }
-
-        private static void KillProcessAndChildren(int pid)
-        {
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher("Select * From Win32_Process Where ParentProcessID=" + pid);
-            ManagementObjectCollection moc = searcher.Get();
-            foreach (ManagementObject mo in moc)
-                KillProcessAndChildren(Convert.ToInt32(mo["ProcessID"]));
-
-            try
-            {
-                Process proc = Process.GetProcessById(pid);
-                proc.Kill();
-            }
-            catch (ArgumentException)
-            {
-                // Process already exited.
+                int pid = (int)pxi;
+                foreach (var processId in ProcessExtensions.GetChildrenProcessIds(pid).Union(new int[] { pid }).Reverse())
+                {
+                    try
+                    {
+                        var proc = Process.GetProcessById(pid);
+                        if (proc != null)
+                            proc.Kill();
+                    }
+                    catch { }
+                }
             }
         }
 
