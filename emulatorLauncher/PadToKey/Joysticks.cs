@@ -104,6 +104,8 @@ namespace EmulatorLauncher.PadToKeyboard
             var js = _joysticks.FirstOrDefault(j => j.Id == which);
             if (js != null)
             {
+                SimpleLogger.Instance.Info("[PadToKey] Removed joystick " + js.ToString());
+
                 js.Close();
                 _joysticks.Remove(js);
             }
