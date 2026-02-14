@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using static EmulatorLauncher.Common.Joysticks.DirectInputInfo;
 using DI = SharpDX.DirectInput;
 
 namespace EmulatorLauncher
@@ -128,6 +129,9 @@ namespace EmulatorLauncher
             // ... finally it reads other XInput controllers also sorted by enumeration index
             Dictionary<Controller, int> hybridController = new Dictionary<Controller, int>();
 
+            List<string>  diDeviceTypes = new List<string> { "gamepad", "joystick" };
+            List<int> diDeviceSubTypes = new List<int> { 258, 259 };
+
             var mameconfig = new XElement("mameconfig", new XAttribute("version", "10"));
             var system = new XElement("system", new XAttribute("name", "default"));
             var input = new XElement("input");
@@ -153,9 +157,12 @@ namespace EmulatorLauncher
                     var match = this.Controllers.FirstOrDefault(c =>
                         c.DirectInput?.InstanceGuid == di.InstanceGuid);
 
+                    if (di.isXinput)
+                        continue;
+
                     if (match != null)
                         mameControllers.Add(match);
-                    else if (di.Subtype == 259 || (di.Subtype == 258 && di.Type != "Gamepad"))
+                    else if (di.HasAvailableInputs || diDeviceTypes.Contains(di.Type.ToLowerInvariant()) || diDeviceSubTypes.Contains(di.Subtype))
                         mameControllers.Add(null);
                 }
             }
@@ -168,9 +175,12 @@ namespace EmulatorLauncher
                         c.DirectInput?.InstanceGuid == di.InstanceGuid &&
                         !c.IsXInputDevice);
 
+                    if (di.isXinput)
+                        continue;
+                    
                     if (match != null)
                         mameControllers.Add(match);
-                    else if (di.Subtype == 259 || (di.Subtype == 258 && di.Type != "Gamepad"))
+                    else if (di.HasAvailableInputs || diDeviceTypes.Contains(di.Type.ToLowerInvariant()) || diDeviceSubTypes.Contains(di.Subtype))
                         mameControllers.Add(null);
                 }
 
