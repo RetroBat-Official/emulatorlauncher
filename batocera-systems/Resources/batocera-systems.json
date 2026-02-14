@@ -759,7 +759,7 @@
     "name": "ECWolf",
     "biosFiles": [
       {
-        "md5": "363d8977011ff56e42bd527bd5d92812",
+        "md5": "dbaa5c4e20a11000d1c4db3a2a28f374",
         "file": "bios/ecwolf.pk3"
       }
     ]
@@ -1006,11 +1006,11 @@
       },
       {
         "md5": "a5a2f9aae57d464bc66b80ee79c3da6e",
-        "file": "bios/laseractive/jynx/Pioneer LaserActive Sega PAC Boot ROM v1.02 (1993)(Pioneer - Sega)(JP)(en-ja).bin"
+        "file": "bios/laseractive/Pioneer LaserActive Sega PAC Boot ROM v1.02 (1993)(Pioneer - Sega)(JP)(en-ja).bin"
       },
       {
         "md5": "0e7393cd0951d6dde818fcd4cd819466",
-        "file": "bios/laseractive/jynx/Pioneer LaserActive Sega PAC Boot ROM v1.04 (1993)(Pioneer - Sega)(US).bin"
+        "file": "bios/laseractive/Pioneer LaserActive Sega PAC Boot ROM v1.04 (1993)(Pioneer - Sega)(US).bin"
       }
     ]
   },

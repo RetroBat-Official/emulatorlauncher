@@ -1231,6 +1231,21 @@ namespace EmulatorLauncher
                     commandArray.Add("-ioport:peb:slot2");
                     commandArray.Add("32kmem");
                 }
+                if (SystemConfig.getOptBoolean("ti99_samsmem"))
+                {
+                    commandArray.Add("-ioport:peb:slot3");
+                    commandArray.Add("samsmem");
+                }
+                if (SystemConfig.getOptBoolean("ti99_speechadapter"))
+                {
+                    commandArray.Add("-ioport:peb:slot4");
+                    commandArray.Add("speechadapter");
+                }
+                if (SystemConfig.getOptBoolean("ti99_tifdc"))
+                {
+                    commandArray.Add("-ioport:peb:slot5");
+                    commandArray.Add("tifdc");
+                }
                 if (!SystemConfig.isOptSet("ti99_speech") || SystemConfig.getOptBoolean("ti99_speech"))
                 {
                     commandArray.Add("-ioport");
