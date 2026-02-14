@@ -50,6 +50,7 @@ namespace EmulatorLauncher.Common.Joysticks
                                         info.DevicePath = joystick.Properties.InterfacePath;
                                         info.JoystickID = joystick.Properties.JoystickId;
                                         info.ParentDevice = InputDevices.GetInputDeviceParent(info.DevicePath);
+                                        info.HasUsableInputs = CheckIfHasUsableInputs(directInput, info);
                                     }
                                 }
                                 catch { }
@@ -77,6 +78,34 @@ namespace EmulatorLauncher.Common.Joysticks
         public string DevicePath { get; set; }
         public string ParentDevice { get; set; }
         public int JoystickID { get; set; }
+        public bool HasUsableInputs { get; set; }
+
+        public bool IsXInput
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(DevicePath) && DevicePath.Contains("IG_");
+            }
+        }
+
+        public static bool CheckIfHasUsableInputs(DirectInput directInput, DirectInputInfo di)
+        {
+            try
+            {
+                using (var joystick = new Joystick(directInput, di.InstanceGuid))
+                {
+                    int buttonsCount = joystick.Capabilities.ButtonCount;
+                    int axesCount = joystick.Capabilities.AxeCount;
+                    int povCount = joystick.Capabilities.PovCount;
+
+                    return (buttonsCount > 0 || axesCount > 0 || povCount > 0);
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         public bool TestDirectInputDevice(string deviceGuid)
         {
@@ -273,13 +302,33 @@ namespace EmulatorLauncher.Common.Joysticks
             using (var directInput = new DirectInput())
             {
                 var devices = directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
-                return devices.Select(d => new DIDeviceInfo
+                return devices.Select(d => 
                 {
-                    InstanceGuid = d.InstanceGuid,
-                    ProductGuid = d.ProductGuid,
-                    Name = d.InstanceName,
-                    Subtype = (int)d.Subtype,
-                    Type = d.Type.ToString()
+                    string devicePath = "";
+                    bool hasInputs = false;
+
+                    try
+                    {
+                        using (var joystick = new Joystick(directInput, d.InstanceGuid))
+                        {
+                            devicePath = joystick.Properties.InterfacePath;
+                            hasInputs = joystick.Capabilities.ButtonCount > 0 ||
+                                joystick.Capabilities.AxeCount > 0 ||
+                                joystick.Capabilities.PovCount > 0;
+                        }
+                    }
+                    catch { }
+                    
+                    return new DIDeviceInfo
+                    {
+                        InstanceGuid = d.InstanceGuid,
+                        ProductGuid = d.ProductGuid,
+                        Name = d.InstanceName,
+                        Subtype = (int)d.Subtype,
+                        Type = d.Type.ToString(),
+                        isXinput = !string.IsNullOrEmpty(devicePath) && devicePath.ToLowerInvariant().Contains("ig_"),
+                        HasAvailableInputs = hasInputs
+                    };
                 }).ToList();
             }
         }
@@ -291,6 +340,8 @@ namespace EmulatorLauncher.Common.Joysticks
             public string Name { get; set; }
             public int Subtype { get; set; }
             public string Type { get; set; }
+            public bool isXinput { get; set; }
+            public bool HasAvailableInputs { get; set; }
         }
     }
         
