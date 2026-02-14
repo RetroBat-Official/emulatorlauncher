@@ -123,7 +123,7 @@ namespace EmulatorLauncher
 
             var bml = BmlFile.Load(Path.Combine(path, "settings.bml"));
             SetupConfiguration(bml, system, core, rom);
-            SetupFirmwares(bml, system);
+            SetupFirmwares(bml, system, core);
             WriteKeyboardHotkeys(bml, core);
             CreateControllerConfiguration(bml);
 
@@ -327,7 +327,7 @@ namespace EmulatorLauncher
             hotkey["QuitEmulator"] = "0x1/0/0;;";           // ESCAPE
         }
 
-        private void SetupFirmwares(BmlFile bml, string system)
+        private void SetupFirmwares(BmlFile bml, string system, string core)
         {
             if (system == "colecovision")
             {
@@ -472,7 +472,7 @@ namespace EmulatorLauncher
                     firmware["BIOS.Europe"] = bios_eu.Replace("\\", "/");
             }
 
-            if (system == "segald" || system == "megald")
+            if (system == "laseractive" && core.ToLowerInvariant() == "megald")
             {
                 var sys = bml.GetOrCreateContainer("LaserActiveSEGAPAC");
                 var firmware = sys.GetOrCreateContainer("Firmware");
@@ -485,7 +485,7 @@ namespace EmulatorLauncher
                     firmware["BIOS.US"] = bios_us.Replace("\\", "/");
             }
 
-            if (system == "pcengineld" || system == "turbografxld")
+            if (system == "laseractive" && core.ToLowerInvariant() == "necld")
             {
                 var sys = bml.GetOrCreateContainer("LaserActiveNECPAC");
                 var firmware = sys.GetOrCreateContainer("Firmware");
