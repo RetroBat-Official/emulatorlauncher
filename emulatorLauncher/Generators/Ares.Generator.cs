@@ -493,12 +493,18 @@ namespace EmulatorLauncher
                 string biosn10 = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] LaserActive PAC-N10 (US) (v1.02).bin");
                 string biosn1 = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] LaserActive PAC-N1 (Japan) (v1.02).bin");
                 string bioslp1 = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] LaserActive PCE-LP1 (Japan) (v1.02).bin");
+                string gexpresscard = Path.Combine(AppConfig.GetFullPath("bios"), "gexpress.pce");
+                string biospcecd1 = Path.Combine(AppConfig.GetFullPath("bios"), "syscard1.pce");
                 if (File.Exists(biosn10))
                     firmware["PAC-N10.US"] = biosn10.Replace("\\", "/");
                 if (File.Exists(biosn1))
                     firmware["PAC-N1.Japan"] = biosn1.Replace("\\", "/");
                 if (File.Exists(bioslp1))
                     firmware["PCE-LP1.Japan"] = bioslp1.Replace("\\", "/");
+                if (File.Exists(gexpresscard))
+                    firmware["Games-Express.Japan"] = gexpresscard.Replace("\\", "/");
+                if (File.Exists(biospcecd1))
+                    firmware["System-Card-1.0.Japan"] = biospcecd1.Replace("\\", "/");
             }
         }
 
