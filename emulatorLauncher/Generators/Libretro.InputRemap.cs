@@ -152,6 +152,11 @@ namespace EmulatorLauncher.Libretro
                 if (system == "3do")
                 {
                     inputremap["input_player" + i + "_btn_x"] = "-1";
+                    inputremap["input_player" + i + "_analog_dpad_mode"] = "0";
+                    inputremap["input_player" + i + "_stk_l_x+"] = "7";
+                    inputremap["input_player" + i + "_stk_l_x-"] = "6";
+                    inputremap["input_player" + i + "_stk_l_y+"] = "5";
+                    inputremap["input_player" + i + "_stk_l_y-"] = "4";
                 }
                 #endregion
 

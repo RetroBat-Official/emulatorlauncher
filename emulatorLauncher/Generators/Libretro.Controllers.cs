@@ -20,7 +20,7 @@ namespace EmulatorLauncher.Libretro
         private static bool _noHotkey = false;
         private static bool _singleButtonShortcuts = false;
         private static string _inputDriver = "sdl2";
-        private static readonly HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "n64", "dreamcast", "gamecube", "3ds" };
+        private static readonly HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "3do", "n64", "dreamcast", "gamecube", "3ds" };
         static readonly List<string> mdSystems = new List<string>() { "megadrive", "genesis", "megadrive-msu", "genesis-msu", "segacd", "megacd", "sega32x", "mega32x" };
         static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "sattelaview", "sufami", "sfc" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
