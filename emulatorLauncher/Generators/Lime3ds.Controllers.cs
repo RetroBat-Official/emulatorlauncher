@@ -40,7 +40,8 @@ namespace EmulatorLauncher
             var guid = controller.GetSdlGuid(_sdlVersion, true);
             var limeGuid = guid.ToString().ToLowerInvariant();
             string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "lime3ds");
+            string batPath = Path.Combine(AppConfig.GetFullPath("retrobat"));
+            string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "lime3ds", 0, batPath);
             if (newGuid != null)
                 limeGuid = newGuid;
 

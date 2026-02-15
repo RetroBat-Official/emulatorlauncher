@@ -300,7 +300,8 @@ namespace EmulatorLauncher
                 guid = ctrl.SdlController.Guid.ToString().ToUpperInvariant();
 
                 string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-                string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, ctrl.SdlController, ctrl.Guid, "bigpemu");
+                string batPath = Path.Combine(AppConfig.GetFullPath("retrobat"));
+                string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, ctrl.SdlController, ctrl.Guid, "bigpemu", 0, batPath);
                 if (newGuid != null)
                     guid = newGuid.ToUpperInvariant();
 

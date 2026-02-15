@@ -227,7 +227,8 @@ namespace EmulatorLauncher
                 edenGuid = guid.ToString().ToLowerInvariant();
 
                 string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-                string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "eden");
+                string batPath = Path.Combine(AppConfig.GetFullPath("retrobat"));
+                string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "eden", 0, batPath);
                 if (newGuid != null)
                     edenGuid = newGuid;
             }

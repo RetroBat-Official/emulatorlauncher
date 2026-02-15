@@ -218,7 +218,8 @@ namespace EmulatorLauncher
                 yuzuGuid = guid.ToString().ToLowerInvariant();
                 
                 string newGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-                string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "yuzu");
+                string batPath = Path.Combine(AppConfig.GetFullPath("retrobat"));
+                string newGuid = SdlJoystickGuid.GetGuidFromFile(newGuidPath, controller.SdlController, controller.Guid, "yuzu", 0, batPath);
                 if (newGuid != null)
                     yuzuGuid = newGuid;
             }
