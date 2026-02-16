@@ -79,6 +79,13 @@ namespace RetrobatUpdater
                         SimpleLogger.Instance.Info("[UPGRADE ACTION] Preparing to move: " + action.path + " to " + action.to);
                         action.Execute(rootPath);
                     }
+
+                if (upgrade.MergeDirectoryActions != null)
+                    foreach (var action in upgrade.MergeDirectoryActions)
+                    {
+                        SimpleLogger.Instance.Info("[UPGRADE ACTION] Preparing to merge: " + action.path + " with " + action.to);
+                        action.Execute(rootPath);
+                    }
             }
         }
 
@@ -157,6 +164,9 @@ namespace RetrobatUpdater
 
         [XmlElement("move")]
         public MoveAction[] MoveActions { get; set; }
+
+        [XmlElement("merge")]
+        public MergeDirectoryAction[] MergeDirectoryActions { get; set; }
 
         [XmlAttribute("version")]
         public string Version { get; set; }
@@ -371,6 +381,64 @@ namespace RetrobatUpdater
             else
             {
                 SimpleLogger.Instance.Warning("[Upgrade] Source folder does not exist.");
+            }
+        }
+    }
+
+    public partial class MergeDirectoryAction
+    {
+        [XmlAttribute("path")]
+        public string path { get; set; }
+
+        [XmlAttribute("to")]
+        public string to { get; set; }
+
+        public void Execute(string root)
+        {
+            string oldPath = Path.Combine(root, path);
+            string newPath = Path.Combine(root, to);
+
+            if (!Directory.Exists(oldPath))
+            {
+                SimpleLogger.Instance.Warning("[Upgrade] Source folder does not exist: " + oldPath);
+                return;
+            }
+
+            MergeDirectoriesKeepNewest(oldPath, newPath);
+            SimpleLogger.Instance.Info("[Upgrade] Merged " + oldPath + " to " + newPath);
+        }
+
+        private void MergeDirectoriesKeepNewest(string sourceDir, string destDir)
+        {
+            Directory.CreateDirectory(destDir);
+
+            // Merge files
+            foreach (var file in Directory.GetFiles(sourceDir))
+            {
+                string destFile = Path.Combine(destDir, Path.GetFileName(file));
+
+                if (File.Exists(destFile))
+                {
+                    DateTime sourceTime = File.GetLastWriteTimeUtc(file);
+                    DateTime destTime = File.GetLastWriteTimeUtc(destFile);
+
+                    if (sourceTime > destTime)
+                    {
+                        File.Copy(file, destFile, true);
+                        SimpleLogger.Instance.Info("[Upgrade] Overwrote file: " + destFile);
+                    }
+                }
+                else
+                {
+                    File.Copy(file, destFile);
+                }
+            }
+
+            // Merge subdirectories recursively
+            foreach (var directory in Directory.GetDirectories(sourceDir))
+            {
+                string destSubDir = Path.Combine(destDir, Path.GetFileName(directory));
+                MergeDirectoriesKeepNewest(directory, destSubDir);
             }
         }
     }
