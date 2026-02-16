@@ -83,6 +83,7 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\ScreenTools.cs" />
     <Compile Include="ControlCenter\ControlButton.cs">
       <SubType>Component</SubType>
     </Compile>

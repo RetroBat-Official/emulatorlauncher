@@ -952,8 +952,10 @@ namespace EmulatorLauncher
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
+            
             int monitorIndex = SystemConfig["MonitorIndex"].ToInteger();
             var screens = Screen.AllScreens;
+            
             if (monitorIndex < 0 || monitorIndex >= screens.Length)
                 monitorIndex = 0;
 
@@ -962,51 +964,19 @@ namespace EmulatorLauncher
 
             int ret = 0;
 
-            if (_windowRect.IsEmpty)
-                ret = base.RunAndWait(path);
-            else
+            var process = Process.Start(path);
+            Job.Current.AddProcess(process);
+
+            if (process != null)
             {
-                var targetScreen = screens[monitorIndex];
-                Rectangle targetBounds = targetScreen.Bounds;
-                if (_windowRect.IsEmpty)
-                    _windowRect = targetBounds;
+                ScreenTools.MoveWindow(process, monitorIndex);
 
-                var process = Process.Start(path);
-                Job.Current.AddProcess(process);
-
-                while (process != null)
-                {
-                    try
-                    {
-                        var hWnd = process.MainWindowHandle;
-                        if (hWnd != IntPtr.Zero)
-                        {
-                            User32.SetWindowPos(hWnd, IntPtr.Zero, _windowRect.Left, _windowRect.Top, _windowRect.Width, _windowRect.Height, SWP.NOZORDER);
-                            break;
-                        }
-                    }
-                    catch { }
-
-                    if (process.WaitForExit(1))
-                    {
-                        try { ret = process.ExitCode; }
-                        catch { }
-                        process = null;
-                        break;
-                    }
-
-                }
-
-                if (process != null)
-                {
-                    process.WaitForExit();
-                    try { ret = process.ExitCode; }
-                    catch { }
-                }
+                process.WaitForExit();
+                try { ret = process.ExitCode; }
+                catch { }
             }
 
             bezel?.Dispose();
-
             return ret;
         }
     }
