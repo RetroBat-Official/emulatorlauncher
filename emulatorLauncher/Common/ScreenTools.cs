@@ -41,7 +41,9 @@ namespace EmulatorLauncher
                     handle = process.MainWindowHandle;
 
                     if (handle != IntPtr.Zero)
+                    {
                         break;
+                    }
 
                     Thread.Sleep(retryDelayMs);
                 }
@@ -64,6 +66,14 @@ namespace EmulatorLauncher
                     return;
                 }
 
+                const int WS_POPUP = unchecked((int)0x80000000);
+                const int WS_VISIBLE = 0x10000000;
+
+                int style = User32.GetWindowLong(handle, GWL.STYLE);
+                style |= WS_POPUP | WS_VISIBLE;
+
+                User32.SetWindowLong(handle, GWL.STYLE, new IntPtr(style));
+
                 Screen[] screens = Screen.AllScreens;
                 if (targetMonitorIndex < 0 || targetMonitorIndex >= screens.Length)
                 {
@@ -72,6 +82,14 @@ namespace EmulatorLauncher
                 }
 
                 Screen targetScreen = screens[targetMonitorIndex];
+
+                User32.SetWindowPosBool(handle, IntPtr.Zero,
+                    targetScreen.Bounds.Left,
+                    targetScreen.Bounds.Top,
+                    targetScreen.Bounds.Width,
+                    targetScreen.Bounds.Height,
+                    SWP.NOZORDER | SWP.SHOWWINDOW);
+
                 Screen currentScreen = Screen.FromHandle(handle);
 
                 SimpleLogger.Instance.Info($"[SCREENMOVER] Window is currently on: {currentScreen.DeviceName} (Primary: {currentScreen.Primary})");
