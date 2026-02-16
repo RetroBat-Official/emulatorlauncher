@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -84,21 +85,15 @@ namespace EmulatorLauncher
                 if (!currentScreen.DeviceName.Equals(targetScreen.DeviceName))
                 {
                     SimpleLogger.Instance.Info($"[SCREENMOVER] Window is on the wrong screen. Moving...");
+                    IntPtr HWND_TOPMOST = new IntPtr(-1);
 
-                    const int WS_POPUP = unchecked((int)0x80000000);
-                    const int WS_VISIBLE = 0x10000000;
+                    Rectangle monitorBounds = targetScreen.Bounds;
+                    int x = monitorBounds.Left;
+                    int y = monitorBounds.Top;
+                    int width = monitorBounds.Width;
+                    int height = monitorBounds.Height;
 
-                    int style = User32.GetWindowLong(handle, GWL.STYLE);
-                    style |= WS_POPUP | WS_VISIBLE;
-
-                    User32.SetWindowLong(handle, GWL.STYLE, new IntPtr(style));
-
-                    User32.SetWindowPosBool(handle, IntPtr.Zero,
-                    targetScreen.Bounds.Left,
-                    targetScreen.Bounds.Top,
-                    targetScreen.Bounds.Width,
-                    targetScreen.Bounds.Height,
-                    SWP.NOZORDER | SWP.SHOWWINDOW);
+                    User32.SetWindowPosBool(handle, HWND_TOPMOST, x, y, width, height, SWP.SHOWWINDOW);
                 }
                 else
                 {
