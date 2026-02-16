@@ -63,16 +63,10 @@ namespace EmulatorLauncher.Libretro
             List<string> commandArray = new List<string>();
 
             // Get subcore
-            if (!string.IsNullOrEmpty(core))
+            if (GetSubCore(core, out string newCore, out subCore))
             {
-                int split = core.IndexOfAny(new char[] { ':', '/' });
-                if (split >= 0)
-                {
-                    subCore = core.Substring(split + 1);
-                    core = core.Substring(0, split);
-
-                    SystemConfig["subcore"] = subCore;
-                }
+                core = newCore;
+                SystemConfig["subcore"] = subCore;
             }
 
             // Core override Management
@@ -91,9 +85,7 @@ namespace EmulatorLauncher.Libretro
                 return null;
             }
             else
-            {
                 CheckCoreAndUpdateIfNeeded(core);
-            }
 
             // Get target rom
             rom = GetRomOverride (system, emulator, core, rom, romName);
@@ -118,106 +110,17 @@ namespace EmulatorLauncher.Libretro
             }
 
             // Add subsystem for sameboy core multiplayer
-            bool multiplayer = (system == "gb2players" || system == "gbc2players");
-            if (core == "sameboy" && multiplayer)
-            {
-                // Case for different game cartridges (like Pokemon) - usage of m3u
-                if (Path.GetExtension(rom).ToLower() == ".m3u")
-                {
-                    List<string> disks = new List<string>();
-
-                    string dskPath = Path.GetDirectoryName(rom);
-
-                    foreach (var line in File.ReadAllLines(rom))
-                    {
-                        string dsk = Path.Combine(dskPath, line);
-                        if (File.Exists(dsk))
-                            disks.Add(dsk);
-                        else
-                            throw new ApplicationException("File '" + Path.Combine(dskPath, line) + "' does not exist");
-                    }
-
-                    if (disks.Count == 0)       // Empty m3u
-                        return null;
-
-                    else if (disks.Count == 1)  // Only 1 game in m3u file, just use this file as rom
-                        rom = disks[0];
-
-                    else
-                    {
-                        rom = disks[0];
-                        commandArray.Add("--subsystem");
-                        commandArray.Add("gb_link_2p");
-                        commandArray.Add("\"" + disks[1] + "\"");
-                    }
-                }
-                // Case for same game cartridge
-                else
-                {
-                    commandArray.Add("--subsystem");
-                    commandArray.Add("gb_link_2p");
-                    commandArray.Add("\"" + rom + "\"");
-                }
-            }
+            if (AddCoreSpecificArguments(core, system, rom, commandArray, out string newRom))
+                rom = newRom;
 
             // Netplay mode
-            if (!string.IsNullOrEmpty(SystemConfig["netplaymode"]))
+            AddNetplayArguments(commandArray);
+
+            // RetroArch since 1.7.8 requires the shaders to be passed as command line argument
+            if (GetVideoShader(emulator, core, rom, out string videoShader))
             {
-                // Netplay mode
-                if (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator")
-                    commandArray.Add("--host");
-                else if (SystemConfig["netplaymode"] == "client" || SystemConfig["netplaymode"] == "spectator")
-                {
-                    commandArray.Add("--connect" + SystemConfig["netplayip"]);
-                    commandArray.Add(SystemConfig["netplayip"]);
-                    commandArray.Add("--port");
-                    commandArray.Add(SystemConfig["netplayport"]);
-                }
-
-                if (!string.IsNullOrEmpty(SystemConfig["netplaysession"]))
-                {
-                    // Suported with retroarch 1.17+ only
-                    if (IsVersionAtLeast(new Version(1, 17, 0, 0)))
-                        commandArray.Add("--mitm-session " + SystemConfig["netplaysession"]);
-                }
-            }
-
-            // RetroArch 1.7.8 requires the shaders to be passed as command line argument      
-            if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
-            {
-                string videoDriver = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"))["video_driver"];
-                bool isOpenGL = (emulator != "angle") && (videoDriver == "gl") && (!coreNoGL.Contains(core));
-                bool dx12 = videoDriver == "d3d12";
-
-                string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
-                if (File.Exists(path))
-                {
-                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], isOpenGL, dx12);
-                    if (!string.IsNullOrEmpty(renderconfig))
-                        SystemConfig["shader"] = renderconfig;
-                }
-
-                string shaderFilename = SystemConfig["shader"] + (isOpenGL ? ".glslp" : ".slangp");
-
-                string videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), shaderFilename).Replace("/", "\\");
-                if (!File.Exists(videoShader))
-                    videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), isOpenGL ? "shaders_glsl" : "shaders_slang", shaderFilename).Replace("/", "\\");
-
-                if (!File.Exists(videoShader))
-                    videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), isOpenGL ? "glsl" : "slang", shaderFilename).Replace("/", "\\");
-
-                if (!File.Exists(videoShader))
-                    videoShader = Path.Combine(RetroarchPath, "shaders", isOpenGL ? "shaders_glsl" : "shaders_slang", shaderFilename).Replace("/", "\\");
-
-                if (!File.Exists(videoShader) && !isOpenGL && shaderFilename.Contains("zfast-"))
-                    videoShader = Path.Combine(RetroarchPath, "shaders", isOpenGL ? "shaders_glsl" : "shaders_slang", "crt/crt-geom.slangp").Replace("/", "\\");
-
-                bool shaderoverride = SystemConfig.getOptBoolean("use_shader_override") && ShaderOverrideExists(RetroarchPath, rom, core, isOpenGL);
-                if (File.Exists(videoShader) && !shaderoverride)
-                {
-                    commandArray.Add("--set-shader");
-                    commandArray.Add("\"" + videoShader + "\"");
-                }
+                commandArray.Add("--set-shader");
+                commandArray.Add("\"" + videoShader + "\"");
             }
 
             string args = string.Join(" ", commandArray);
@@ -278,6 +181,111 @@ namespace EmulatorLauncher.Libretro
             };
         }
 
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_noHotkey)
+            {
+                SimpleLogger.Instance.Info("[GENERATOR] No hotkey defined, adding select + start to exit in padtokey.");
+                return PadToKey.AddOrUpdateKeyMapping(mapping, "retroarch", InputKey.select | InputKey.start, "(%{CLOSE})");
+            }
+            else
+                return mapping;
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            int ret = base.RunAndWait(path);
+            bool generic = false;
+            if (ret == 1 && File.Exists(LogFile))
+            {
+                var line = File.ReadAllLines(LogFile).FirstOrDefault(s => s != null && s.StartsWith("[libretro ERROR]"));
+                if (string.IsNullOrEmpty(line))
+                {
+                    line = File.ReadAllLines(LogFile).FirstOrDefault(s => s != null && s.StartsWith("[ERROR]"));
+                    generic = true;
+                }
+
+                if (!string.IsNullOrEmpty(line))
+                {
+                    if (generic)
+                        base.SetCustomError(line.Replace("[ERROR]", "").Trim());
+                    else
+                        base.SetCustomError(line.Replace("[libretro ERROR]", "").Trim());
+                    ExitCode = ExitCodes.CustomError;
+                    Environment.ExitCode = (int)ExitCode;
+                    return 0;
+                }
+            }
+
+            return ret;
+        }
+
+        public override void Cleanup()
+        {
+            if (SystemConfig["core"] == "atari800")
+                Environment.SetEnvironmentVariable("HOME", CurrentHomeDirectory);
+
+            if (_dosBoxTempRom != null && File.Exists(_dosBoxTempRom))
+                File.Delete(_dosBoxTempRom);
+
+            if (_screenShotWatcher != null)
+            {
+                _screenShotWatcher.Dispose();
+                _screenShotWatcher = null;
+            }
+
+            if (_stateFileManager != null)
+            {
+                _stateFileManager.Dispose();
+                _stateFileManager = null;
+            }
+
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
+
+            // Kill java processes as there is a bug where sound continues even when retroarch is closed
+            if (SystemConfig["core"] == "freej2me")
+            {
+                var px = Process.GetProcessesByName("javaw");
+                foreach (var p in px)
+                {
+                    try
+                    {
+                        p.Kill();
+                    }
+                    catch { }
+                }
+            }
+
+            if (_cfgFilesToRestore != null)
+            {
+                foreach (var f in _cfgFilesToRestore)
+                {
+                    string backupFile = f + ".backup";
+
+                    if (File.Exists(backupFile))
+                    {
+                        try
+                        {
+                            string cfgBackupPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfgbackup");
+                            if (!Directory.Exists(cfgBackupPath))
+                                try { Directory.CreateDirectory(cfgBackupPath); } catch { }
+                            string filename = Path.GetFileName(f);
+                            string target = Path.Combine(cfgBackupPath, filename);
+
+                            File.Copy(f, target, true);
+                            File.Copy(backupFile, f, true);
+                            File.Delete(backupFile);
+                        }
+                        catch { }
+                    }
+                }
+            }
+
+            base.Cleanup();
+        }
+
+        #region methods
         private string DetectBestCore(string system, string emulator, string core, string subCore, string rom)
         {
             // Detect best core for MAME games ( If not overridden by the user )
@@ -613,7 +621,150 @@ namespace EmulatorLauncher.Libretro
             return false;
         }
 
-        private Dictionary<string, string> coreConfigRemap = new Dictionary<string, string>()
+        private bool GetVideoShader(string emulator, string core, string rom, out string videoShader)
+        {
+            videoShader = null;
+
+            if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
+            {
+                string videoDriver = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"))["video_driver"];
+                bool isOpenGL = (emulator != "angle") && (videoDriver == "gl") && (!coreNoGL.Contains(core));
+                bool dx12 = videoDriver == "d3d12";
+
+                string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
+                if (File.Exists(path))
+                {
+                    string renderconfig = SystemShaders.GetShader(File.ReadAllText(path), SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], isOpenGL, dx12);
+                    if (!string.IsNullOrEmpty(renderconfig))
+                        SystemConfig["shader"] = renderconfig;
+                }
+
+                string shaderFilename = SystemConfig["shader"] + (isOpenGL ? ".glslp" : ".slangp");
+
+                videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), shaderFilename).Replace("/", "\\");
+                if (!File.Exists(videoShader))
+                    videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), isOpenGL ? "shaders_glsl" : "shaders_slang", shaderFilename).Replace("/", "\\");
+
+                if (!File.Exists(videoShader))
+                    videoShader = Path.Combine(AppConfig.GetFullPath("shaders"), isOpenGL ? "glsl" : "slang", shaderFilename).Replace("/", "\\");
+
+                if (!File.Exists(videoShader))
+                    videoShader = Path.Combine(RetroarchPath, "shaders", isOpenGL ? "shaders_glsl" : "shaders_slang", shaderFilename).Replace("/", "\\");
+
+                if (!File.Exists(videoShader) && !isOpenGL && shaderFilename.Contains("zfast-"))
+                    videoShader = Path.Combine(RetroarchPath, "shaders", isOpenGL ? "shaders_glsl" : "shaders_slang", "crt/crt-geom.slangp").Replace("/", "\\");
+
+                bool shaderoverride = SystemConfig.getOptBoolean("use_shader_override") && ShaderOverrideExists(RetroarchPath, rom, core, isOpenGL);
+                if (File.Exists(videoShader) && !shaderoverride)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            else
+                return false;
+        }
+
+        private bool GetSubCore(string core, out string newCore, out string subCore)
+        {
+            subCore = null;
+            newCore = core;
+
+            if (string.IsNullOrEmpty(core))
+                return false;
+
+            int split = core.IndexOfAny(new char[] { ':', '/' });
+            if (split >= 0)
+            {
+                subCore = core.Substring(split + 1);
+                newCore = core.Substring(0, split);
+                return true;
+            }
+
+            return false;
+        }
+
+        private void AddNetplayArguments(List<string> commandArray)
+        {
+            if (string.IsNullOrEmpty(SystemConfig["netplaymode"]))
+                return;
+
+            // Netplay mode
+            if (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator")
+                commandArray.Add("--host");
+            else if (SystemConfig["netplaymode"] == "client" || SystemConfig["netplaymode"] == "spectator")
+            {
+                commandArray.Add("--connect" + SystemConfig["netplayip"]);
+                commandArray.Add(SystemConfig["netplayip"]);
+                commandArray.Add("--port");
+                commandArray.Add(SystemConfig["netplayport"]);
+            }
+
+            if (!string.IsNullOrEmpty(SystemConfig["netplaysession"]))
+            {
+                // Suported with retroarch 1.17+ only
+                if (IsVersionAtLeast(new Version(1, 17, 0, 0)))
+                    commandArray.Add("--mitm-session " + SystemConfig["netplaysession"]);
+            }
+        }
+
+        private bool AddCoreSpecificArguments(string core, string system, string rom, List<string> commandArray, out string newRom)
+        {
+            newRom = rom;
+
+            if (core == "sameboy")
+            {
+                bool multiplayer = (system == "gb2players" || system == "gbc2players");
+                if (!multiplayer)
+                    return false;
+
+                // Case for different game cartridges (like Pokemon) - usage of m3u
+                if (Path.GetExtension(rom).ToLower() == ".m3u")
+                {
+                    List<string> disks = new List<string>();
+
+                    string dskPath = Path.GetDirectoryName(rom);
+
+                    foreach (var line in File.ReadAllLines(rom))
+                    {
+                        string dsk = Path.Combine(dskPath, line);
+                        if (File.Exists(dsk))
+                            disks.Add(dsk);
+                        else
+                            throw new ApplicationException("File '" + Path.Combine(dskPath, line) + "' does not exist");
+                    }
+
+                    if (disks.Count == 0)       // Empty m3u
+                        return false;
+
+                    else if (disks.Count == 1)  // Only 1 game in m3u file, just use this file as rom
+                        newRom = disks[0];
+
+                    else
+                    {
+                        newRom = disks[0];
+                        commandArray.Add("--subsystem");
+                        commandArray.Add("gb_link_2p");
+                        commandArray.Add("\"" + disks[1] + "\"");
+                    }
+                    return true;
+                }
+                // Case for same game cartridge
+                else
+                {
+                    commandArray.Add("--subsystem");
+                    commandArray.Add("gb_link_2p");
+                    commandArray.Add("\"" + rom + "\"");
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private readonly Dictionary<string, string> coreConfigRemap = new Dictionary<string, string>()
         {
             { "boom3_xp", "boom3" },
             { "vitaquake2-rogue", "vitaquake2" },
@@ -813,6 +964,92 @@ namespace EmulatorLauncher.Libretro
             }
             return patchArgs;
         }
+
+        private bool ShaderOverrideExists(string emulatorPath, string rom, string core, bool gl)
+        {
+            try
+            {
+                string cleanCoreName = GetCoreName(core);
+                string overridePath = Path.Combine(emulatorPath, "config", cleanCoreName);
+                if (!Directory.Exists(overridePath))
+                    return false;
+
+                // First check gameoverride
+                string gameName = Path.GetFileNameWithoutExtension(rom);
+                if (gl)
+                {
+                    string gameOverride = gameName + ".glslp";
+                    string gameOverrideFile = Path.Combine(overridePath, gameOverride);
+                    if (File.Exists(gameOverrideFile))
+                        return true;
+                }
+                else
+                {
+                    string gameOverride = gameName + ".slangp";
+                    string gameOverrideFile = Path.Combine(overridePath, gameOverride);
+                    if (File.Exists(gameOverrideFile))
+                        return true;
+                }
+
+                // Now check content folder override
+                string contentFolder = Path.GetDirectoryName(rom);
+                if (contentFolder != null)
+                {
+                    string lastDirectory = new DirectoryInfo(contentFolder).Name;
+
+                    if (gl)
+                    {
+                        string dirOverride = lastDirectory + ".glslp";
+                        string dirOverrideFile = Path.Combine(overridePath, dirOverride);
+                        if (File.Exists(dirOverrideFile))
+                            return true;
+                    }
+                    else
+                    {
+                        string dirOverride = lastDirectory + ".slangp";
+                        string dirOverrideFile = Path.Combine(overridePath, dirOverride);
+                        if (File.Exists(dirOverrideFile))
+                            return true;
+                    }
+                }
+
+                // Then check core override file
+                if (gl)
+                {
+                    string coreOverride = cleanCoreName + ".glslp";
+                    string coreOverrideFile = Path.Combine(overridePath, coreOverride);
+                    if (File.Exists(coreOverrideFile))
+                        return true;
+                }
+                else
+                {
+                    string coreOverride = cleanCoreName + ".slangp";
+                    string coreOverrideFile = Path.Combine(overridePath, coreOverride);
+                    if (File.Exists(coreOverrideFile))
+                        return true;
+                }
+
+                // Finally check global override file
+                if (gl)
+                {
+                    string globalOverride = "global.glslp";
+                    string globalOverrideFile = Path.Combine(emulatorPath, "config", globalOverride);
+                    if (File.Exists(globalOverrideFile))
+                        return true;
+                }
+                else
+                {
+                    string globalOverride = "global.slangp";
+                    string globalOverrideFile = Path.Combine(emulatorPath, "config", globalOverride);
+                    if (File.Exists(globalOverrideFile))
+                        return true;
+                }
+
+                return false;
+            }
+            catch { return false; }
+        }
+        #endregion
 
         #region Configuration
         private void Configure(string system, string core, string rom, ScreenResolution resolution)
@@ -1987,6 +2224,7 @@ namespace EmulatorLauncher.Libretro
         }
         #endregion
 
+        #region Utils
         private static Size GetImageSize(string file)
         {
             using (Image img = Image.FromFile(file))
@@ -2004,195 +2242,7 @@ namespace EmulatorLauncher.Libretro
 
             return false;
         }
-
-        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
-        {
-            if (_noHotkey)
-            {
-                SimpleLogger.Instance.Info("[GENERATOR] No hotkey defined, adding select + start to exit in padtokey.");
-                return PadToKey.AddOrUpdateKeyMapping(mapping, "retroarch", InputKey.select | InputKey.start, "(%{CLOSE})");
-            }
-            else
-                return mapping;
-        }
-
-        public override int RunAndWait(ProcessStartInfo path)
-        {
-            int ret = base.RunAndWait(path);
-            bool generic = false;
-            if (ret == 1 && File.Exists(LogFile))
-            {
-                var line = File.ReadAllLines(LogFile).FirstOrDefault(s => s != null && s.StartsWith("[libretro ERROR]"));
-                if (string.IsNullOrEmpty(line))
-                {
-                    line = File.ReadAllLines(LogFile).FirstOrDefault(s => s != null && s.StartsWith("[ERROR]"));
-                    generic = true;
-                }
-
-                if (!string.IsNullOrEmpty(line))
-                {
-                    if (generic)
-                        base.SetCustomError(line.Replace("[ERROR]", "").Trim());
-                    else
-                        base.SetCustomError(line.Replace("[libretro ERROR]", "").Trim());
-                    ExitCode = ExitCodes.CustomError;
-                    Environment.ExitCode = (int)ExitCode;
-                    return 0;
-                }
-            }
-
-            return ret;
-        }
-
-        public override void Cleanup()
-        {
-            if (SystemConfig["core"] == "atari800")
-                Environment.SetEnvironmentVariable("HOME", CurrentHomeDirectory);
-
-            if (_dosBoxTempRom != null && File.Exists(_dosBoxTempRom))
-                File.Delete(_dosBoxTempRom);
-
-            if (_screenShotWatcher != null)
-            {
-                _screenShotWatcher.Dispose();
-                _screenShotWatcher = null;
-            }
-
-            if (_stateFileManager != null)
-            {
-                _stateFileManager.Dispose();
-                _stateFileManager = null;
-            }
-
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
-
-            // Kill java processes as there is a bug where sound continues even when retroarch is closed
-            if (SystemConfig["core"] == "freej2me")
-            {
-                var px = Process.GetProcessesByName("javaw");
-                foreach (var p in px)
-                {
-                    try
-                    {
-                        p.Kill();
-                    }
-                    catch { }
-                }
-            }
-
-            if (_cfgFilesToRestore != null)
-            {
-                foreach (var f in _cfgFilesToRestore)
-                {
-                    string backupFile = f + ".backup";
-
-                    if (File.Exists(backupFile))
-                    {
-                        try
-                        {
-                            string cfgBackupPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfgbackup");
-                            if (!Directory.Exists(cfgBackupPath))
-                                try { Directory.CreateDirectory(cfgBackupPath); } catch { }
-                            string filename = Path.GetFileName(f);
-                            string target = Path.Combine(cfgBackupPath, filename);
-
-                            File.Copy(f, target, true);
-                            File.Copy(backupFile, f, true);
-                            File.Delete(backupFile);
-                        }
-                        catch { }
-                    }
-                }
-            }
-
-            base.Cleanup();
-        }
-
-        private bool ShaderOverrideExists(string emulatorPath, string rom, string core, bool gl)
-        {
-            try
-            {
-                string cleanCoreName = GetCoreName(core);
-                string overridePath = Path.Combine(emulatorPath, "config", cleanCoreName);
-                if (!Directory.Exists(overridePath))
-                    return false;
-
-                // First check gameoverride
-                string gameName = Path.GetFileNameWithoutExtension(rom);
-                if (gl)
-                {
-                    string gameOverride = gameName + ".glslp";
-                    string gameOverrideFile = Path.Combine(overridePath, gameOverride);
-                    if (File.Exists(gameOverrideFile))
-                        return true;
-                }
-                else
-                {
-                    string gameOverride = gameName + ".slangp";
-                    string gameOverrideFile = Path.Combine(overridePath, gameOverride);
-                    if (File.Exists(gameOverrideFile))
-                        return true;
-                }
-
-                // Now check content folder override
-                string contentFolder = Path.GetDirectoryName(rom);
-                if (contentFolder != null)
-                {
-                    string lastDirectory = new DirectoryInfo(contentFolder).Name;
-
-                    if (gl)
-                    {
-                        string dirOverride = lastDirectory + ".glslp";
-                        string dirOverrideFile = Path.Combine(overridePath, dirOverride);
-                        if (File.Exists(dirOverrideFile))
-                            return true;
-                    }
-                    else
-                    {
-                        string dirOverride = lastDirectory + ".slangp";
-                        string dirOverrideFile = Path.Combine(overridePath, dirOverride);
-                        if (File.Exists(dirOverrideFile))
-                            return true;
-                    }
-                }
-
-                // Then check core override file
-                if (gl)
-                {
-                    string coreOverride = cleanCoreName + ".glslp";
-                    string coreOverrideFile = Path.Combine(overridePath, coreOverride);
-                    if (File.Exists(coreOverrideFile))
-                        return true;
-                }
-                else
-                {
-                    string coreOverride = cleanCoreName + ".slangp";
-                    string coreOverrideFile = Path.Combine(overridePath, coreOverride);
-                    if (File.Exists(coreOverrideFile))
-                        return true;
-                }
-
-                // Finally check global override file
-                if (gl)
-                {
-                    string globalOverride = "global.glslp";
-                    string globalOverrideFile = Path.Combine(emulatorPath, "config", globalOverride);
-                    if (File.Exists(globalOverrideFile))
-                        return true;
-                }
-                else
-                {
-                    string globalOverride = "global.slangp";
-                    string globalOverrideFile = Path.Combine(emulatorPath, "config", globalOverride);
-                    if (File.Exists(globalOverrideFile))
-                        return true;
-                }
-
-                return false;
-            }
-            catch { return false; }
-        }
+        #endregion
 
         class UIModeSetting
         {
