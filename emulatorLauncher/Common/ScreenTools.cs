@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -21,59 +22,57 @@ namespace EmulatorLauncher
             public int Bottom;
         }
 
-        public static void MoveWindow(string ProcessName, int targetMonitorIndex = 0, int maxRetries = 20, int retryDelayMs = 2000)
+        public static void MoveWindow(Process process, int targetMonitorIndex = 0, int maxRetries = 20, int retryDelayMs = 2000)
         {
-            SimpleLogger.Instance.Info($"[SCREENMOVER] Starting process of moving {ProcessName} to monitor {targetMonitorIndex}");
+            SimpleLogger.Instance.Info($"[SCREENMOVER] Starting process of moving {process.ProcessName} to monitor {targetMonitorIndex}");
 
             try
             {
-                Process process = null;
+                if (process == null)
+                    return;
+
                 IntPtr handle = IntPtr.Zero;
 
                 for (int i = 0; i < maxRetries; i++)
                 {
-                    if (i > 0)
-                    {
-                        SimpleLogger.Instance.Info($"[SCREENMOVER] Retry {i}/{maxRetries}: Waiting {retryDelayMs}ms...");
-                        Thread.Sleep(retryDelayMs);
-                    }
+                    if (process.HasExited)
+                        return;
 
-                    var candidates = Process.GetProcessesByName(ProcessName).ToArray();
-
-                    if (candidates.Length == 0)
-                    {
-                        SimpleLogger.Instance.Warning($"[SCREENMOVER] Process '{ProcessName}' not found.");
-                        continue;
-                    }
-
-                    process = candidates.FirstOrDefault(p => p.MainWindowHandle != IntPtr.Zero);
-
-                    if (process == null)
-                    {
-                        SimpleLogger.Instance.Warning("[SCREENMOVER] Process found, but no instance has a main window handle yet.");
-                        continue;
-                    }
-
+                    process.Refresh();
                     handle = process.MainWindowHandle;
 
                     if (handle != IntPtr.Zero)
                     {
-                        SimpleLogger.Instance.Info("[SCREENMOVER] Process and Main Window found!");
                         break;
                     }
+
+                    Thread.Sleep(retryDelayMs);
                 }
 
                 if (handle == IntPtr.Zero)
                 {
-                    SimpleLogger.Instance.Info($"[SCREENMOVER] Could not find process '{ProcessName}' with a valid window after {maxRetries} retries. Giving up.");
-
+                    SimpleLogger.Instance.Warning($"[SCREENMOVER] Could not find process '{process.ProcessName}' with a valid window after {maxRetries} retries. Giving up.");
                     return;
                 }
+
+                process.WaitForInputIdle(2000);
+                Thread.Sleep(200);
+
+                process.Refresh();
+                handle = process.MainWindowHandle;
+
+                if (handle == IntPtr.Zero)
+                {
+                    SimpleLogger.Instance.Warning("[SCREENMOVER] Handle lost after idle wait.");
+                    return;
+                }
+
+                
 
                 Screen[] screens = Screen.AllScreens;
                 if (targetMonitorIndex < 0 || targetMonitorIndex >= screens.Length)
                 {
-                    SimpleLogger.Instance.Error($"[SCREENMOVER] Target monitor index {targetMonitorIndex} is out of range. Available screens: {screens.Length}");
+                    SimpleLogger.Instance.Warning($"[SCREENMOVER] Target monitor index {targetMonitorIndex} is out of range. Available screens: {screens.Length}");
                     return;
                 }
 
@@ -83,15 +82,23 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info($"[SCREENMOVER] Window is currently on: {currentScreen.DeviceName} (Primary: {currentScreen.Primary})");
                 SimpleLogger.Instance.Info($"[SCREENMOVER] Target screen is: {targetScreen.DeviceName} (Primary: {targetScreen.Primary})");
 
-                // Check if we need to move it
                 if (!currentScreen.DeviceName.Equals(targetScreen.DeviceName))
                 {
                     SimpleLogger.Instance.Info($"[SCREENMOVER] Window is on the wrong screen. Moving...");
-                    MoveWindowToScreen(handle, targetScreen);
+                    IntPtr HWND_TOPMOST = new IntPtr(-1);
+
+                    Rectangle monitorBounds = targetScreen.Bounds;
+                    int x = monitorBounds.Left;
+                    int y = monitorBounds.Top;
+                    int width = monitorBounds.Width;
+                    int height = monitorBounds.Height;
+
+                    User32.SetWindowPosBool(handle, HWND_TOPMOST, x, y, width, height, SWP.SHOWWINDOW);
                 }
                 else
                 {
                     SimpleLogger.Instance.Info($"[SCREENMOVER] Window is already on the correct screen. No action taken.");
+                    //ApplyFullscreenStyle(handle);
                 }
             }
             catch (Exception ex)
@@ -100,14 +107,26 @@ namespace EmulatorLauncher
             }
         }
 
+        static void ApplyFullscreenStyle(IntPtr handle)
+        {
+            const int WS_POPUP = unchecked((int)0x80000000);
+            const int WS_VISIBLE = 0x10000000;
+
+            int style = User32.GetWindowLong(handle, GWL.STYLE);
+            style |= WS_POPUP | WS_VISIBLE;
+            User32.SetWindowLong(handle, GWL.STYLE, new IntPtr(style));
+        }
+
         static void MoveWindowToScreen(IntPtr hWnd, Screen targetScreen)
         {
             int x = targetScreen.Bounds.Left;
             int y = targetScreen.Bounds.Top;
+            int w = targetScreen.Bounds.Width;
+            int h = targetScreen.Bounds.Height;
 
-            SimpleLogger.Instance.Info($"[SCREENMOVER] Moving window to ({x}, {y})");
+            SimpleLogger.Instance.Info($"[SCREENMOVER] Moving window to ({x}, {y}, {w}, {h})");
 
-            bool result = User32.SetWindowPosBool(hWnd, IntPtr.Zero, x, y, 0, 0, SWP.NOSIZE | SWP.NOZORDER | SWP.SHOWWINDOW);
+            bool result = User32.SetWindowPosBool(hWnd, IntPtr.Zero, x, y, w, h, SWP.NOZORDER | SWP.SHOWWINDOW);
 
             if (!result)
             {
