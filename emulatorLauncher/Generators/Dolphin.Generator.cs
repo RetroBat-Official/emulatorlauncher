@@ -498,6 +498,18 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("Display", "Fullscreen", "True");
 
+                    // Get gameID and game Name and log it
+                    string gameID = "";
+                    string gameName = "";
+                    string region = "";
+
+                    if (GetGameInformation(rom, path, out  gameID, out gameName, out region))
+                        SimpleLogger.Instance.Info("[INFO] Game: " + gameID + ", name: " + gameName + ", region : " + region);
+                    else
+                        SimpleLogger.Instance.Info("[WARNING] Unable to get GameID for current game");
+
+                    CheckGameSettings(path, gameID, system);
+
                     // Discord
                     BindBoolIniFeature(ini, "General", "UseDiscordPresence", "discord", "True", "False");
 
@@ -613,19 +625,12 @@ namespace EmulatorLauncher
                         }
 
                         // Gamecube saves
-                        if (system != "wii")
+                        else
                         {
                             string gc_region = "EUR";
-                            if (GetGameID(rom, path, out string gameID))
-                            {
-                                SimpleLogger.Instance.Info("[INFO] Game ID found: " + gameID);
 
-                                if (GetRegionFromGameId(gameID, out string region))
-                                {
-                                    gc_region = region;
-                                    SimpleLogger.Instance.Info("[INFO] Game region found: " + gc_region);
-                                }
-                            }
+                            if (!string.IsNullOrEmpty(region))
+                                gc_region = region;
 
                             if (SystemConfig.isOptSet("dolphin_gcregion") && !string.IsNullOrEmpty(SystemConfig["dolphin_gcregion"]))
                             {
@@ -637,11 +642,11 @@ namespace EmulatorLauncher
 
                             string gcSavesPathNoRegion = Path.Combine(savesPath, "dolphin-emu", "User", "GC");
                             SyncGCSaves(gcSavesPathNoRegion);
-                            
+
                             string gcSavePath = Path.Combine(savesPath, "dolphin-emu", "User", "GC", gc_region);
                             if (!Directory.Exists(gcSavePath)) try { Directory.CreateDirectory(gcSavePath); }
                                 catch { }
-                            
+
                             string sramFile = Path.Combine(savesPath, "dolphin-emu", "User", "GC", "SRAM." + gc_region + ".raw");
 
                             ini.WriteValue("Core", "GCIFolderAPath", gcSavePath);
@@ -731,72 +736,67 @@ namespace EmulatorLauncher
             catch { }
         }
 
-        private static bool GetGameID(string rom, string path, out string gameID)
+        private static bool GetGameInformation(string rom, string path, out string gameID, out string gameName, out string region)
         {
             gameID = null;
+            gameName = null;
+            region = null;
+            bool found = false;
 
             try
             {
                 string dolphinTool = Path.Combine(path, "DolphinTool.exe");
+
+                if (!File.Exists(dolphinTool))
+                    return false;
                 
                 var output = ProcessExtensions.RunWithOutput(dolphinTool, "header -i " + "\"" + rom + "\"");
 
                 foreach (string line in output.Split('\n'))
                 {
+                    if (line.StartsWith("Internal Name:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        gameName = line.Split(':')[1].Trim();
+                    }
+
                     if (line.StartsWith("Game ID:", StringComparison.OrdinalIgnoreCase))
                     {
                         gameID = line.Split(':')[1].Trim();
-                        return true;
+
+                        if (!string.IsNullOrEmpty(gameID) && gameID.Length > 3)
+                        {
+                            char regionCode = gameID[3];
+
+                            switch (regionCode)
+                            {
+                                case 'E':
+                                    region = "USA";
+                                    break;
+                                case 'P':
+                                case 'D':
+                                case 'F':
+                                case 'I':
+                                case 'S':
+                                case 'R':
+                                    region = "EUR";
+                                    break;
+                                case 'J':
+                                case 'K':
+                                case 'T':
+                                case 'A':
+                                    region = "JAP";
+                                    break;
+                            };
+                        }
+
+                        found = true;
                     }
                 }
             }
 
             catch { return false; }
 
-            return false;
-        }
-
-        private static bool GetRegionFromGameId(string gameId, out string region)
-        {
-            region = null;
-            
-            try
-            {
-                if (string.IsNullOrWhiteSpace(gameId) || gameId.Length < 4)
-                    return false;
-
-                char regionCode = gameId[3];
-
-                switch (regionCode)
-                {
-                    case 'E':
-                        region = "USA";
-                        break;
-                    case 'P':
-                    case 'D':
-                    case 'F':
-                    case 'I':
-                    case 'S':
-                    case 'R':
-                        region = "EUR";
-                        break;
-                    case 'J':
-                    case 'K':
-                    case 'T':
-                    case 'A':
-                        region = "JAP";
-                        break;
-                };
-
-                if (region != null)
-                    return true;
-                else
-                    return false;
-            } 
-            catch 
-            {
-                return false; 
-            }
+            return found;
         }
 
         private static void AddPathToIsoPath(string romPath, IniFile ini)
@@ -910,6 +910,43 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Warning("[WARNING] Failed to sync GameCube saves.");
             }
+        }
+
+        private void CheckGameSettings(string path, string gameID, string system)
+        {
+            if (string.IsNullOrEmpty(gameID))
+                return;
+
+            string gameSettingsPath = Path.Combine(path, "User", "GameSettings", gameID + ".ini");
+
+            if (File.Exists(gameSettingsPath))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] Game " + gameID + " has a dedicated Game Seetings file : " + gameSettingsPath + ", RetroBat settings might be ignored.");
+                using (var ini = new IniFile(gameSettingsPath, IniOptions.UseSpaces))
+                {
+                    var sections = ini.EnumerateSections().ToList();
+                    if (sections.Contains("Controls"))
+                    {
+                        var controlLines = ini.EnumerateValues("Controls");
+
+                        foreach (var c in controlLines)
+                        {
+                            if (system == "wii" && c.Key.ToLowerInvariant().StartsWith("wiimote", StringComparison.OrdinalIgnoreCase))
+                            {
+                                SimpleLogger.Instance.Info("[INFO] Game " + gameID + " : spcific Wiimote profile applied : " + c.Key + " - " + c.Value);
+                                break;
+                            }
+                            else if (system == "gamecube" && c.Key.ToLowerInvariant().StartsWith("pad", StringComparison.OrdinalIgnoreCase))
+                            {
+                                SimpleLogger.Instance.Info("[INFO] Game " + gameID + " : spcific Pad profile applied : " + c.Key + " - " + c.Value);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            
         }
 
         public override int RunAndWait(ProcessStartInfo path)
