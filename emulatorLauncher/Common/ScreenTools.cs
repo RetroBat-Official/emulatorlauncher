@@ -31,6 +31,7 @@ namespace EmulatorLauncher
                 if (process == null)
                     return;
 
+                Thread.Sleep(200);
                 IntPtr handle = IntPtr.Zero;
 
                 for (int i = 0; i < maxRetries; i++)
@@ -93,7 +94,7 @@ namespace EmulatorLauncher
                     int width = monitorBounds.Width;
                     int height = monitorBounds.Height;
 
-                    User32.SetWindowPosBool(handle, HWND_TOPMOST, x, y, width, height, SWP.SHOWWINDOW);
+                    User32.SetWindowPos(handle, HWND_TOPMOST, x, y, width, height, SWP.SHOWWINDOW);
                 }
                 else
                 {
@@ -126,17 +127,7 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info($"[SCREENMOVER] Moving window to ({x}, {y}, {w}, {h})");
 
-            bool result = User32.SetWindowPosBool(hWnd, IntPtr.Zero, x, y, w, h, SWP.NOZORDER | SWP.SHOWWINDOW);
-
-            if (!result)
-            {
-                int error = Marshal.GetLastWin32Error();
-                SimpleLogger.Instance.Error($"[SCREENMOVER] Failed to move window. Error code: {error}");
-            }
-            else
-            {
-                SimpleLogger.Instance.Info("[SCREENMOVER] Window moved successfully.");
-            }
+            User32.SetWindowPos(hWnd, IntPtr.Zero, x, y, w, h, SWP.NOZORDER | SWP.SHOWWINDOW);
         }
     }
 }
