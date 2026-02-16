@@ -7,6 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
+using System.Net;
 
 namespace RetrobatUpdater
 {
@@ -47,7 +49,10 @@ namespace RetrobatUpdater
                     return 1;
                 }
 
-                string url = RetrobatVersion.GetInstallUrl(string.Format(UpdateRelativeUrl, branch, remoteVersion));
+                string url = RetrobatVersion.GetInstallUrlNew(string.Format(UpdateRelativeUrl, branch, remoteVersion));
+                if (string.IsNullOrEmpty(url) || !UrlExists(url))
+                    url = RetrobatVersion.GetInstallUrl(string.Format(UpdateRelativeUrl, branch, remoteVersion));
+
                 if (string.IsNullOrEmpty(url))
                     return -1;
 
@@ -296,6 +301,38 @@ namespace RetrobatUpdater
             catch { }
 
             return upgrades ?? new UpgradeInformationFile();
+        }
+
+        public static bool UrlExists(string url)
+        {
+            try
+            {
+                var request = (HttpWebRequest)WebRequest.Create(url);
+                request.Method = "GET";
+                request.AllowAutoRedirect = true;
+                request.Timeout = 5000;
+
+                request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)";
+                request.Accept = "*/*";
+
+                request.AddRange(0, 0);
+
+                using (var response = (HttpWebResponse)request.GetResponse())
+                {
+                    return response.StatusCode == HttpStatusCode.OK ||
+                           response.StatusCode == HttpStatusCode.PartialContent;
+                }
+            }
+            catch (WebException ex)
+            {
+                var response = ex.Response as HttpWebResponse;
+
+                if (response != null &&
+                    response.StatusCode == HttpStatusCode.NotFound)
+                    return false;
+
+                return false;
+            }
         }
     }
 }
