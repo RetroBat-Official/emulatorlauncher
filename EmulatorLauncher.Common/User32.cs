@@ -266,6 +266,9 @@ namespace EmulatorLauncher.Common
         [DllImport("User32.dll", CharSet = CharSet.Auto)]
         public static extern int SetWindowPos(IntPtr hWnd, IntPtr hWndAfter, int X, int Y, int Width, int Height, [MarshalAs(UnmanagedType.U4)]SWP flags);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool SetWindowPosBool(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, [MarshalAs(UnmanagedType.U4)] SWP flags);
+
         [DllImport("user32.dll")]
         public static extern bool RedrawWindow(IntPtr hWnd, IntPtr lprcUpdate, IntPtr hrgnUpdate, RedrawWindowFlags flags);
 
