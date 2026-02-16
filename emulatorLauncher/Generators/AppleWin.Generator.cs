@@ -53,7 +53,17 @@ namespace EmulatorLauncher
             BindAppleWinFeature("Video Emulation", "screentype", "1");
 
             WriteApple2Option("Full-screen show subunit status", "0");
-            WriteApple2Option("Joystick0 Emu Type v3", Program.Controllers.Any(c => c.WinmmJoystick != null) ? "1" : "2");
+
+            // Joysticks
+            if (SystemConfig.isOptSet("applewin_joytype1") && !string.IsNullOrEmpty(SystemConfig["applewin_joytype1"]))
+                WriteApple2Option("Joystick0 Emu Type v3", SystemConfig["applewin_joytype1"]);
+            else
+                WriteApple2Option("Joystick0 Emu Type v3", Program.Controllers.Any(c => c.WinmmJoystick != null) ? "1" : "2");
+
+            if (SystemConfig.isOptSet("applewin_joytype2") && !string.IsNullOrEmpty(SystemConfig["applewin_joytype2"]))
+                WriteApple2Option("Joystick1 Emu Type v3", SystemConfig["applewin_joytype2"]);
+            else
+                WriteApple2Option("Joystick1 Emu Type v3", "0");
 
             bool usingReshader = false;
 
