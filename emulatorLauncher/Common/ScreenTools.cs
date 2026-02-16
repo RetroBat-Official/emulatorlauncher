@@ -66,13 +66,7 @@ namespace EmulatorLauncher
                     return;
                 }
 
-                const int WS_POPUP = unchecked((int)0x80000000);
-                const int WS_VISIBLE = 0x10000000;
-
-                int style = User32.GetWindowLong(handle, GWL.STYLE);
-                style |= WS_POPUP | WS_VISIBLE;
-
-                User32.SetWindowLong(handle, GWL.STYLE, new IntPtr(style));
+                
 
                 Screen[] screens = Screen.AllScreens;
                 if (targetMonitorIndex < 0 || targetMonitorIndex >= screens.Length)
@@ -82,14 +76,6 @@ namespace EmulatorLauncher
                 }
 
                 Screen targetScreen = screens[targetMonitorIndex];
-
-                User32.SetWindowPosBool(handle, IntPtr.Zero,
-                    targetScreen.Bounds.Left,
-                    targetScreen.Bounds.Top,
-                    targetScreen.Bounds.Width,
-                    targetScreen.Bounds.Height,
-                    SWP.NOZORDER | SWP.SHOWWINDOW);
-
                 Screen currentScreen = Screen.FromHandle(handle);
 
                 SimpleLogger.Instance.Info($"[SCREENMOVER] Window is currently on: {currentScreen.DeviceName} (Primary: {currentScreen.Primary})");
@@ -98,11 +84,26 @@ namespace EmulatorLauncher
                 if (!currentScreen.DeviceName.Equals(targetScreen.DeviceName))
                 {
                     SimpleLogger.Instance.Info($"[SCREENMOVER] Window is on the wrong screen. Moving...");
-                    MoveWindowToScreen(handle, targetScreen);
+
+                    const int WS_POPUP = unchecked((int)0x80000000);
+                    const int WS_VISIBLE = 0x10000000;
+
+                    int style = User32.GetWindowLong(handle, GWL.STYLE);
+                    style |= WS_POPUP | WS_VISIBLE;
+
+                    User32.SetWindowLong(handle, GWL.STYLE, new IntPtr(style));
+
+                    User32.SetWindowPosBool(handle, IntPtr.Zero,
+                    targetScreen.Bounds.Left,
+                    targetScreen.Bounds.Top,
+                    targetScreen.Bounds.Width,
+                    targetScreen.Bounds.Height,
+                    SWP.NOZORDER | SWP.SHOWWINDOW);
                 }
                 else
                 {
                     SimpleLogger.Instance.Info($"[SCREENMOVER] Window is already on the correct screen. No action taken.");
+                    //ApplyFullscreenStyle(handle);
                 }
             }
             catch (Exception ex)
@@ -111,14 +112,26 @@ namespace EmulatorLauncher
             }
         }
 
+        static void ApplyFullscreenStyle(IntPtr handle)
+        {
+            const int WS_POPUP = unchecked((int)0x80000000);
+            const int WS_VISIBLE = 0x10000000;
+
+            int style = User32.GetWindowLong(handle, GWL.STYLE);
+            style |= WS_POPUP | WS_VISIBLE;
+            User32.SetWindowLong(handle, GWL.STYLE, new IntPtr(style));
+        }
+
         static void MoveWindowToScreen(IntPtr hWnd, Screen targetScreen)
         {
             int x = targetScreen.Bounds.Left;
             int y = targetScreen.Bounds.Top;
+            int w = targetScreen.Bounds.Width;
+            int h = targetScreen.Bounds.Height;
 
-            SimpleLogger.Instance.Info($"[SCREENMOVER] Moving window to ({x}, {y})");
+            SimpleLogger.Instance.Info($"[SCREENMOVER] Moving window to ({x}, {y}, {w}, {h})");
 
-            bool result = User32.SetWindowPosBool(hWnd, IntPtr.Zero, x, y, 0, 0, SWP.NOSIZE | SWP.NOZORDER | SWP.SHOWWINDOW);
+            bool result = User32.SetWindowPosBool(hWnd, IntPtr.Zero, x, y, w, h, SWP.NOZORDER | SWP.SHOWWINDOW);
 
             if (!result)
             {
