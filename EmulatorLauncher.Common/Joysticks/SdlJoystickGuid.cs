@@ -239,8 +239,11 @@ namespace EmulatorLauncher.Common.Joysticks
             return ret;
         }
 
-        public static string GetGuidFromFile(string path, SdlGameController sdlCtrl, string inputGuid, string emulator, int guidIndex = 0)
+        public static string GetGuidFromFile(string path, SdlGameController sdlCtrl, string inputGuid, string emulator, int guidIndex = 0, string batPath = null)
         {
+            if (!File.Exists(path) && batPath != null)
+                path = Path.Combine(batPath, "user", "inputmapping", "controllerinfo.yml");
+
             if (!File.Exists(path))
                 return null;
 

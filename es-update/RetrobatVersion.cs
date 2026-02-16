@@ -21,13 +21,33 @@ namespace RetrobatUpdater
             return installerUrl + "/" + relativePath;
         }
 
+        public static string GetInstallUrlNew(string relativePath)
+        {
+            string installerUrl = RegistryKeyEx.GetRegistryValue(RegistryKeyEx.CurrentUser, @"SOFTWARE\RetroBat", "InstallRootUrlNew") as string;
+            if (string.IsNullOrEmpty(installerUrl))
+                return null;
+
+            if (installerUrl.EndsWith("/"))
+                return installerUrl + relativePath;
+
+            return installerUrl + "/" + relativePath;
+        }
+
         public static string GetRemoteVersion(string branch, string localversion)
         {
-            string url = GetInstallUrl(string.Format("{0}/{1}/remote_version.info", branch, localversion));
+            string url = GetInstallUrlNew(string.Format("{0}/{1}/remote_version.info", branch, localversion));
 
             string remoteVersion = WebTools.DownloadString(url);
+
+            if (string.IsNullOrEmpty(remoteVersion))
+            {
+                url = GetInstallUrl(string.Format("{0}/{1}/remote_version.info", branch, localversion));
+                remoteVersion = WebTools.DownloadString(url);
+            }
+
             if (!string.IsNullOrEmpty(remoteVersion))
                 return remoteVersion;
+
 
             return null;
         }

@@ -573,11 +573,11 @@ namespace EmulatorLauncher
                     // Write texture paths
                     if (!_triforce)
                     {
-                        string savesPath = AppConfig.GetFullPath("saves");
-                        string dolphinLoadPath = Path.Combine(savesPath, "dolphin", "User", "Load");
+                        string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), system);
+                        string dolphinLoadPath = Path.Combine(savesPath, "dolphin-emu", "User", "Load");
                         if (!Directory.Exists(dolphinLoadPath)) try { Directory.CreateDirectory(dolphinLoadPath); }
                             catch { }
-                        string dolphinResourcesPath = Path.Combine(savesPath, "dolphin", "User", "ResourcePacks");
+                        string dolphinResourcesPath = Path.Combine(savesPath, "dolphin-emu", "User", "ResourcePacks");
                         if (!Directory.Exists(dolphinResourcesPath)) try { Directory.CreateDirectory(dolphinResourcesPath); }
                             catch { }
 
@@ -592,22 +592,25 @@ namespace EmulatorLauncher
                             _saveStatesWatcher.PrepareEmulatorRepository();
                         }
                         // DumpPath
-                        string dumpPath = Path.Combine(savesPath, "dolphin", "User", "Dump");
+                        string dumpPath = Path.Combine(savesPath, "dolphin-emu", "User", "Dump");
                         if (!Directory.Exists(dumpPath)) try { Directory.CreateDirectory(dumpPath); }
                             catch { }
                         ini.WriteValue("General", "DumpPath", dumpPath);
 
                         // WFSPath
-                        string wfsPath = Path.Combine(savesPath, "dolphin", "User", "WFS");
+                        string wfsPath = Path.Combine(savesPath, "dolphin-emu", "User", "WFS");
                         if (!Directory.Exists(wfsPath)) try { Directory.CreateDirectory(wfsPath); }
                             catch { }
                         ini.WriteValue("General", "WFSPath", wfsPath);
 
                         // Wii NAND path
-                        string wiiNandPath = Path.Combine(savesPath, "wii", "dolphin-emu", "User", "Wii");
-                        if (!Directory.Exists(wiiNandPath)) try { Directory.CreateDirectory(wiiNandPath); }
-                            catch { }
-                        ini.WriteValue("General", "NANDRootPath", wiiNandPath);
+                        if (system == "wii")
+                        {
+                            string wiiNandPath = Path.Combine(savesPath, "dolphin-emu", "User", "Wii");
+                            if (!Directory.Exists(wiiNandPath)) try { Directory.CreateDirectory(wiiNandPath); }
+                                catch { }
+                            ini.WriteValue("General", "NANDRootPath", wiiNandPath);
+                        }
 
                         // Gamecube saves
                         if (system != "wii")
@@ -632,14 +635,14 @@ namespace EmulatorLauncher
 
                             ini.WriteValue("Core", "SlotA", SystemConfig["dolphin_slotA"] == "1" ? "1" : "8");
 
-                            string gcSavesPathNoRegion = Path.Combine(savesPath, "gamecube", "dolphin-emu", "User", "GC");
+                            string gcSavesPathNoRegion = Path.Combine(savesPath, "dolphin-emu", "User", "GC");
                             SyncGCSaves(gcSavesPathNoRegion);
                             
-                            string gcSavePath = Path.Combine(savesPath, "gamecube", "dolphin-emu", "User", "GC", gc_region);
+                            string gcSavePath = Path.Combine(savesPath, "dolphin-emu", "User", "GC", gc_region);
                             if (!Directory.Exists(gcSavePath)) try { Directory.CreateDirectory(gcSavePath); }
                                 catch { }
                             
-                            string sramFile = Path.Combine(savesPath, "gamecube", "dolphin-emu", "User", "GC", "SRAM." + gc_region + ".raw");
+                            string sramFile = Path.Combine(savesPath, "dolphin-emu", "User", "GC", "SRAM." + gc_region + ".raw");
 
                             ini.WriteValue("Core", "GCIFolderAPath", gcSavePath);
                             ini.WriteValue("Core", "MemcardAPath", sramFile);

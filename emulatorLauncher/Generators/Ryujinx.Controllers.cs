@@ -452,7 +452,8 @@ namespace EmulatorLauncher
                 ryuGuidString = "0000" + SdlJoystickGuidManager.FromSdlGuidString(sdl3Controller.GuidString).ToString().Substring(4);
 
             string overrideGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string overrideGuid = SdlJoystickGuid.GetGuidFromFile(overrideGuidPath, c.SdlController, c.Guid, "ryujinx");
+            string batPath = Path.Combine(AppConfig.GetFullPath("retrobat"));
+            string overrideGuid = SdlJoystickGuid.GetGuidFromFile(overrideGuidPath, c.SdlController, c.Guid, "ryujinx", 0, batPath);
             if (overrideGuid != null)
             {
                 SimpleLogger.Instance.Info("[INFO] Controller GUID replaced from yml file : " + overrideGuid);

@@ -115,8 +115,9 @@ namespace EmulatorLauncher
 
                 string newDeviceID = null;
                 string newDeviceIDPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
+                string batPath = Path.Combine(AppConfig.GetFullPath("retrobat"));
                 if (controller.SdlController != null && controller.SdlController.Guid != null)
-                    newDeviceID = SdlJoystickGuid.GetGuidFromFile(newDeviceIDPath, controller.SdlController, controller.Guid, "mednafen");
+                    newDeviceID = SdlJoystickGuid.GetGuidFromFile(newDeviceIDPath, controller.SdlController, controller.Guid, "mednafen", 0, batPath);
                 if (newDeviceID != null)
                     deviceID = newDeviceID;
 
@@ -390,7 +391,8 @@ namespace EmulatorLauncher
             }
 
             string newDeviceIDPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");
-            string newDeviceID = SdlJoystickGuid.GetGuidFromFile(newDeviceIDPath, controller.SdlController, controller.Guid, "mednafen");
+            string batPath = Path.Combine(AppConfig.GetFullPath("retrobat"));
+            string newDeviceID = SdlJoystickGuid.GetGuidFromFile(newDeviceIDPath, controller.SdlController, controller.Guid, "mednafen", 0, batPath);
             if (newDeviceID != null)
                 deviceID = newDeviceID;
 
