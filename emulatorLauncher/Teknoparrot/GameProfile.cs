@@ -25,6 +25,10 @@ namespace TeknoParrotUi.Common
         public string TestMenuExtraParameters { get; set; }
         public string IconName { get; set; }
         public string ValidMd5 { get; set; }
+        public string OnlineIdFieldName { get; set; }
+        public string OnlineIdType { get; set; }
+        public string GameVersion { get; set; }
+        public string OnlineProfileURL { get; set; }
         public bool ResetHint { get; set; }
         public string InvalidFiles { get; set; }
         public string Description { get; set; }
@@ -50,6 +54,7 @@ namespace TeknoParrotUi.Common
         public string ExecutableName2 { get; set; }
         public bool HasTwoExecutables { get; set; }
         public bool LaunchSecondExecutableFirst { get; set; }
+        public string SecondExecutableArguments { get; set; }
         public string GamePath2 { get; set; }
         // advanced users only!
         public string CustomArguments { get; set; }
