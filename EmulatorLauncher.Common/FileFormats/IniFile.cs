@@ -16,7 +16,8 @@ namespace EmulatorLauncher.Common.FileFormats
         AllowDuplicateValues = 4,
         KeepEmptyLines = 8,
         UseDoubleEqual = 16,  // nosgba inifile uses double equals as separator !
-        ManageKeysWithQuotes = 32   // manage ini files where key are between quotes
+        ManageKeysWithQuotes = 32,   // manage ini files where key are between quotes
+        AllowRawLines = 64
     }
 
     public class IniFile : IDisposable
@@ -77,6 +78,15 @@ namespace EmulatorLauncher.Common.FileFormats
                                 var key = new Key();
                                 
                                 string keyName = keyPair[0].Trim();
+
+                                if (_options.HasFlag(IniOptions.AllowRawLines) && keyPair.Length == 1 && !strLine.StartsWith(";") && !strLine.StartsWith("#"))
+                                {
+                                    key.Name = keyName;
+                                    key.IsRawLine = true;
+                                    currentSection.Add(key);
+                                    strLine = iniFile.ReadLine();
+                                    continue;
+                                }
 
                                 if (_options.HasFlag(IniOptions.ManageKeysWithQuotes))
                                 {
@@ -219,6 +229,25 @@ namespace EmulatorLauncher.Common.FileFormats
             _dirty = true;
         }
 
+        public void AppendRawLine(string sectionName, string line)
+        {
+            if (!_options.HasFlag(IniOptions.AllowRawLines))
+                return;
+
+            if (string.IsNullOrWhiteSpace(line))
+                return;
+
+            var section = _sections.GetOrAddSection(sectionName);
+
+            section.Add(new Key
+            {
+                Name = line.Trim(),
+                IsRawLine = true
+            });
+
+            _dirty = true;
+        }
+
         public void Remove(string sectionName, string keyName)
         {
             var section = _sections.Get(sectionName);
@@ -257,6 +286,12 @@ namespace EmulatorLauncher.Common.FileFormats
                     }
 
                     if (entry.IsComment)
+                    {
+                        sb.AppendLine(entry.Name);
+                        continue;
+                    }
+
+                    if (_options.HasFlag(IniOptions.AllowRawLines) && entry.IsRawLine)
                     {
                         sb.AppendLine(entry.Name);
                         continue;
@@ -347,6 +382,7 @@ namespace EmulatorLauncher.Common.FileFormats
             public string Name { get; set; }
             public string Value { get; set; }
             public string Comment { get; set; }
+            public bool IsRawLine { get; set; }
 
             public bool IsComment
             {

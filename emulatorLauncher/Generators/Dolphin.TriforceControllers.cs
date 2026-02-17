@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Xml.Serialization;
 
 namespace EmulatorLauncher
 {
@@ -13,7 +14,7 @@ namespace EmulatorLauncher
     {
         private static bool _triforcectrl = false;
 
-        private static void GenerateControllerConfig_triforce(string path)
+        private static void GenerateControllerConfig_triforce(string path, TriforceGame triforceGame, string region)
         {
             //string path = Program.AppConfig.GetFullPath("dolphin");
             string iniFile = Path.Combine(path, "User", "Config", "GCPadNew.ini");
@@ -26,6 +27,17 @@ namespace EmulatorLauncher
 
                 if (mappingKeys.ContainsKey(mappingKey))
                     anyMapping = mappingKeys[mappingKey];
+            }
+            else if (triforceGame != null && triforceGame.InputProfile != null)
+            {
+                anyMapping = triforceGame.InputProfile;
+            }
+
+            if (_emulator == "dolphin" && _emulator != "dolphin-emu")
+            {
+                anyMapping[InputKey.l3] = "Triforce/Service";
+                anyMapping[InputKey.r3] = "Triforce/Test";
+                anyMapping[InputKey.select] = "Triforce/Coin";
             }
 
             SimpleLogger.Instance.Info("[INFO] Triforce: Writing controller configuration in : " + iniFile);
@@ -307,7 +319,7 @@ namespace EmulatorLauncher
             ResetHotkeysToDefault(hotkeyini);
         }
 
-        static readonly InputKeyMapping triforceMapping = new InputKeyMapping()
+        public static readonly InputKeyMapping triforceMapping = new InputKeyMapping()
         {
             { InputKey.l2,              "Triggers/L-Analog" },
             { InputKey.r2,              "Triggers/R-Analog"},
@@ -327,32 +339,32 @@ namespace EmulatorLauncher
             { InputKey.joystick2up,     "C-Stick/Up" },
             { InputKey.joystick2left,   "C-Stick/Left"},
             { InputKey.hotkey,          "Buttons/Hotkey" },
-            { InputKey.r3,              "Buttons/Z" },
+            { InputKey.r3,              "Buttons/Z" }
         };
 
-        static readonly InputKeyMapping mkMapping = new InputKeyMapping()
+        public static readonly InputKeyMapping mkMapping = new InputKeyMapping()
         {
             { InputKey.l2,              "Triggers/L-Analog" },
             { InputKey.r2,              "Triggers/R-Analog"},
             { InputKey.b,               "Buttons/B" }, // cancel
-            { InputKey.select,          "Buttons/X" },// service
+            { InputKey.select,          "Buttons/X" },// coin
             { InputKey.a,               "Buttons/A" }, // item
             { InputKey.start,           "Buttons/Start" }, // start
             { InputKey.l2,              "Triggers/L" }, // brake
             { InputKey.r2,              "Triggers/R" }, // gaz
             { InputKey.joystick1left,   "Main Stick/Left" }, // turn
-            { InputKey.r3,              "Buttons/Z" } // test
+            { InputKey.r3,              "Buttons/Z" }
         };
 
-        static readonly InputKeyMapping vsMapping = new InputKeyMapping()
+        public static readonly InputKeyMapping vsMapping = new InputKeyMapping()
         {
             { InputKey.b,               "Triggers/R" }, // short pass
             { InputKey.y,               "Buttons/A" }, // long pass
-            { InputKey.select,          "Buttons/X" }, // service
+            { InputKey.select,          "Buttons/X" },
             { InputKey.a,               "Triggers/L" }, // shoot
             { InputKey.x,               "Buttons/B" }, // dash
             { InputKey.start,           "Buttons/Start" }, // start
-            { InputKey.r3,              "Buttons/Z" }, // test
+            { InputKey.r3,              "Buttons/Z" },
             { InputKey.joystick1up,     "Main Stick/Left" }, // movement
             { InputKey.joystick1left,   "Main Stick/Down" }, // movement
             { InputKey.right,           "D-Pad/Up" },
@@ -360,28 +372,28 @@ namespace EmulatorLauncher
             { InputKey.down,            "D-Pad/Right" }
         };
 
-        static readonly InputKeyMapping vs2002Mapping = new InputKeyMapping()
+        public static readonly InputKeyMapping vs2002Mapping = new InputKeyMapping()
         {
             { InputKey.b,               "Triggers/R" }, // short pass
             { InputKey.a,               "Buttons/A" }, // long pass
-            { InputKey.select,          "Buttons/X" }, // service
+            { InputKey.select,          "Buttons/X" },
             { InputKey.y,               "Triggers/L" }, // shoot
             { InputKey.start,           "Buttons/Start" }, // start
-            { InputKey.r3,              "Buttons/Z" }, // test
+            { InputKey.r3,              "Buttons/Z" },
             { InputKey.up,              "D-Pad/Up" },
             { InputKey.down,            "D-Pad/Down" },
             { InputKey.left,            "D-Pad/Left" },
             { InputKey.right,           "D-Pad/Right" }
         };
 
-        static readonly InputKeyMapping fzeroMapping = new InputKeyMapping()
+        public static readonly InputKeyMapping fzeroMapping = new InputKeyMapping()
         {
             { InputKey.l2,              "Triggers/L-Analog" },
             { InputKey.r2,              "Triggers/R-Analog"},
             { InputKey.pageup,          "Buttons/A" }, // paddle
             { InputKey.pagedown,        "Buttons/B" }, // paddle
             { InputKey.y,               "Buttons/Y" }, // boost
-            { InputKey.select,          "Buttons/X" }, // service
+            { InputKey.select,          "Buttons/X" },
             { InputKey.start,           "Buttons/Start" }, // start
             { InputKey.up,              "D-Pad/Up" }, // view 1
             { InputKey.down,            "D-Pad/Down" }, // view 2
@@ -389,10 +401,10 @@ namespace EmulatorLauncher
             { InputKey.right,           "D-Pad/Right" }, // view 4
             { InputKey.joystick1up,     "Main Stick/Up" },
             { InputKey.joystick1left,   "Main Stick/Left" }, // turn
-            { InputKey.r3,              "Buttons/Z" }, // test
+            { InputKey.r3,              "Buttons/Z" }
         };
 
-        static readonly Dictionary<string, string> vs4ReverseAxes = new Dictionary<string, string>()
+        public static readonly Dictionary<string, string> vs4ReverseAxes = new Dictionary<string, string>()
         {
             { "Main Stick/Down",   "Main Stick/Up" },
             { "Main Stick/Left",   "Main Stick/Right" }

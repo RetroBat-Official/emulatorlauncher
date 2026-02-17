@@ -1,5 +1,7 @@
 ﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,6 +9,8 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Xml.Serialization;
+using Newtonsoft.Json;
 
 namespace EmulatorLauncher
 {
@@ -39,17 +43,22 @@ namespace EmulatorLauncher
         private Rectangle _windowRect = Rectangle.Empty;
         private bool _runWiiMenu = false;
         private bool _sindenSoft = false;
+        private bool _crediar = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
 
-            _triforce = (emulator == "dolphin-triforce" || core == "dolphin-triforce" || emulator == "triforce" || core == "triforce");
+            _triforce = system == "triforce" || emulator.Contains("triforce");
 
-            string folderName = _triforce ? "dolphin-triforce" : "dolphin-emu";
+            string path = AppConfig.GetFullPath("dolphin-emu");
+            if (emulator == "dolphin-triforce" || emulator == "triforce")
+            {
+                path = AppConfig.GetFullPath("dolphin-triforce");
+                _crediar = true;
+            }
 
-            string path = AppConfig.GetFullPath(folderName);
-            if (!_triforce && string.IsNullOrEmpty(path))
+            if (string.IsNullOrEmpty(path))
                 path = AppConfig.GetFullPath("dolphin");
 
             if (string.IsNullOrEmpty(path))
@@ -61,11 +70,6 @@ namespace EmulatorLauncher
                 catch { }
 
             string exe = Path.Combine(path, "Dolphin.exe");
-            if (!File.Exists(exe))
-            {                
-                exe = Path.Combine(path, "DolphinWX.exe");
-                _triforce = File.Exists(exe);
-            }
 
             if (!File.Exists(exe))
                 return null;
@@ -508,7 +512,10 @@ namespace EmulatorLauncher
                     else
                         SimpleLogger.Instance.Info("[WARNING] Unable to get GameID for current game");
 
-                    CheckGameSettings(path, gameID, system);
+                    var triforceGame = TriforceGame.GetByGameId(gameID, _triforce);
+
+                    string gameSettingsPath = "";
+                    bool hasGameSettings = CheckGameSettings(path, gameID, system, triforceGame, out gameSettingsPath);
 
                     // Discord
                     BindBoolIniFeature(ini, "General", "UseDiscordPresence", "discord", "True", "False");
@@ -728,7 +735,7 @@ namespace EmulatorLauncher
                     BindIniFeatureSlider(ini, "AutoHDR-options", "HDR_DISPLAY_MAX_NITS", "hdr_max_nits", "400");
                     BindIniFeatureSlider(ini, "PerceptualHDR-options", "AMPLIFICATION", "hdr_amplification", "2.50", 2);
 
-                    DolphinControllers.WriteControllersConfig(path, ini, system, rom, _triforce, out _sindenSoft);
+                    DolphinControllers.WriteControllersConfig(path, ini, system, emulator, rom, _triforce, triforceGame, region, out _sindenSoft);
 
                     ini.Save();
                 }
@@ -747,6 +754,8 @@ namespace EmulatorLauncher
             {
                 string dolphinTool = Path.Combine(path, "DolphinTool.exe");
 
+                if (!File.Exists(dolphinTool))
+                    dolphinTool = Path.Combine(Program.AppConfig.GetFullPath("dolphin-emu"), "DolphinTool.exe");
                 if (!File.Exists(dolphinTool))
                     return false;
                 
@@ -912,17 +921,29 @@ namespace EmulatorLauncher
             }
         }
 
-        private void CheckGameSettings(string path, string gameID, string system)
+        private bool CheckGameSettings(string path, string gameID, string system, TriforceGame triforceGame,  out string GameSettingsPath)
         {
+            var ret = false;
+            
+            GameSettingsPath = null;
+
             if (string.IsNullOrEmpty(gameID))
-                return;
+                return false;
 
-            string gameSettingsPath = Path.Combine(path, "User", "GameSettings", gameID + ".ini");
-
-            if (File.Exists(gameSettingsPath))
+            GameSettingsPath = Path.Combine(path, "User", "GameSettings", gameID + ".ini");
+            
+            if (!File.Exists(GameSettingsPath) && _crediar && triforceGame != null && triforceGame.GameIDsCrediar != null && triforceGame.GameIDsCrediar.Count > 0)
             {
-                SimpleLogger.Instance.Warning("[WARNING] Game " + gameID + " has a dedicated Game Seetings file : " + gameSettingsPath + ", RetroBat settings might be ignored.");
-                using (var ini = new IniFile(gameSettingsPath, IniOptions.UseSpaces))
+                string crediarID = triforceGame.GameIDsCrediar.FirstOrDefault();
+                GameSettingsPath = Path.Combine(path, "User", "GameSettings", crediarID + ".ini");
+            }
+
+            if (File.Exists(GameSettingsPath))
+            {
+                ret = true;
+
+                SimpleLogger.Instance.Warning("[WARNING] Game " + gameID + " has a dedicated Game Seetings file : " + GameSettingsPath + ", RetroBat settings might be ignored.");
+                using (var ini = new IniFile(GameSettingsPath, IniOptions.UseSpaces | IniOptions.AllowRawLines))
                 {
                     var sections = ini.EnumerateSections().ToList();
                     if (sections.Contains("Controls"))
@@ -943,10 +964,91 @@ namespace EmulatorLauncher
                             }
                         }
                     }
+
+                    ApplyPatches(ini, Path.GetFileNameWithoutExtension(GameSettingsPath));
                 }
             }
 
+            else
+            {
+                using (var ini = new IniFile(GameSettingsPath, IniOptions.UseSpaces | IniOptions.AllowRawLines))
+                {
+                    ApplyPatches(ini, Path.GetFileNameWithoutExtension(GameSettingsPath));
+                }
+            }
             
+            return ret;
+        }
+
+        public void ApplyPatches(IniFile ini, string gameID)
+        {
+            string patchFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "triforce_patches.json");
+
+            if (!File.Exists(patchFile))
+                return;
+
+            try
+            {
+                string jsonText = File.ReadAllText(patchFile);
+                List<GamePatches> games = JsonConvert.DeserializeObject<List<GamePatches>>(jsonText);
+
+                var game = games.FirstOrDefault(g => g.GameId.Equals(gameID, StringComparison.OrdinalIgnoreCase));
+                if (game == null && _crediar)
+                {
+                    game = games.FirstOrDefault(g => g.GameIdCrediar.Equals(gameID, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (game == null)
+                    return;
+
+                var patches = game.Patches;
+
+                if (patches == null || patches.Count == 0)
+                    return;
+
+                foreach (var patch in patches)
+                {
+                    if (patch.Lines.Count == 0)
+                        continue;
+
+                    if (string.IsNullOrEmpty(patch.PatchName) || string.IsNullOrEmpty(patch.PatchFeature))
+                        continue;
+
+                    string featureName = patch.PatchFeature;
+                    string patchSection = patch.isGecko ? "Gecko" : "OnFrame";
+                    string enableSection = patch.isGecko ? "Gecko_Enabled" : "OnFrame_Enabled";
+
+                    // Add patch to file if it does not exist
+                    if (!ini.EnumerateKeys(patchSection).Contains(patch.PatchName, StringComparer.InvariantCultureIgnoreCase))
+                    {
+                        ini.AppendRawLine(patchSection, patch.PatchName);
+                        foreach (var line in patch.Lines)
+                        {
+                            ini.AppendRawLine(patchSection, line);
+                        }
+                    }
+
+                    // Disable patch if not enabled in features
+                    if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    {
+                        ini.Remove(enableSection, patch.PatchName);
+                        SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} has been disabled for game {gameID}");
+                    }
+                    else if (Features.IsSupported(featureName))
+                    {
+                        var keys = ini.EnumerateKeys(enableSection);
+
+                        if (!keys.Contains(patch.PatchName))
+                        {
+                            ini.AppendRawLine(enableSection, patch.PatchName);
+                            SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} has been enabled for game {gameID}");
+                        }
+                        else
+                            SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} already enabled for game {gameID}");
+                    }
+                }
+            }
+            catch { SimpleLogger.Instance.Error($"[ERROR] Failed to load patch file : {gameID}"); }
         }
 
         public override int RunAndWait(ProcessStartInfo path)
@@ -959,9 +1061,6 @@ namespace EmulatorLauncher
             if (monitorIndex < 0 || monitorIndex >= screens.Length)
                 monitorIndex = 0;
 
-            if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution, false, monitorIndex);
-
             int ret = 0;
 
             var process = Process.Start(path);
@@ -971,6 +1070,9 @@ namespace EmulatorLauncher
             {
                 ScreenTools.MoveWindow(process, monitorIndex);
 
+                if (_bezelFileInfo != null)
+                    bezel = _bezelFileInfo.ShowFakeBezel(_resolution, false, monitorIndex);
+
                 process.WaitForExit();
                 try { ret = process.ExitCode; }
                 catch { }
@@ -979,5 +1081,58 @@ namespace EmulatorLauncher
             bezel?.Dispose();
             return ret;
         }
+    }
+
+    public class TriforceGame
+    {
+        public string Game { get; set; }
+        public InputKeyMapping InputProfile { get; set; }
+        public List<string> GameIDs { get; private set; }
+        public List<string> GameIDsCrediar { get; private set; }
+
+        public static TriforceGame[] TriforceGames = new TriforceGame[]
+        {
+                new TriforceGame() { Game = "Mario_Kart_GP", InputProfile = DolphinControllers.mkMapping, GameIDs = new List<string> { "GKPJ6E" }, GameIDsCrediar = new List<string> { "SBKP" } },
+                new TriforceGame() { Game = "Mario_Kart_GP2", InputProfile = DolphinControllers.mkMapping, GameIDs = new List<string> { "GNLJ82" }, GameIDsCrediar = new List<string> { "SBNL" } },
+                new TriforceGame() { Game = "F-ZeroAX", InputProfile = DolphinControllers.fzeroMapping, GameIDs = new List<string> { "GGGE6E" }, GameIDsCrediar = new List<string> { "SBGG" } },
+                new TriforceGame() { Game = "F-ZeroAX_Monster_Ride", InputProfile = DolphinControllers.fzeroMapping, GameIDs = new List<string> { "GHAE6E" }, GameIDsCrediar = new List<string> { "SBHA" } },
+                new TriforceGame() { Game = "Gekitou_Pro_Yakyuu", InputProfile = DolphinControllers.vs2002Mapping, GameIDs = new List<string> { "GGXJ6E" }, GameIDsCrediar = new List<string> { "SBGX" } },
+                new TriforceGame() { Game = "VS3 2002", InputProfile = DolphinControllers.vs2002Mapping, GameIDs = new List<string> { "GEYP6E" }, GameIDsCrediar = new List<string> { "SBEY" } },
+                new TriforceGame() { Game = "VS4", InputProfile = DolphinControllers.vsMapping, GameIDs = new List<string> { "GJAP6E" }, GameIDsCrediar = new List<string> { "SBJA" } },
+                new TriforceGame() { Game = "VS4_2006_JAP", InputProfile = DolphinControllers.vsMapping, GameIDs = new List<string> { "GLKJ6E" }, GameIDsCrediar = new List<string> { "SBLK" } },
+                new TriforceGame() { Game = "VS4_2006", InputProfile = DolphinControllers.vsMapping, GameIDs = new List<string> { "GLLP6E" }, GameIDsCrediar = new List<string> { "SBLL" } },
+                new TriforceGame() { Game = "Standard", InputProfile = DolphinControllers.triforceMapping, GameIDs = new List<string>(), GameIDsCrediar = new List<string>() }
+        };
+
+        public static TriforceGame GetByGameId(string gameId, bool isTriforce)
+        {
+            if (!isTriforce)
+                return null;
+
+            if (string.IsNullOrEmpty(gameId))
+                return TriforceGames.First(g => g.Game == "Standard");
+
+            var game = TriforceGames.FirstOrDefault(g =>
+                (g.GameIDs != null && g.GameIDs.Contains(gameId, StringComparer.OrdinalIgnoreCase)) ||
+                (g.GameIDsCrediar != null && g.GameIDsCrediar.Contains(gameId, StringComparer.OrdinalIgnoreCase)));
+
+            return game ?? TriforceGames.First(g => g.Game == "Standard");
+        }
+    }
+
+    public class Patch
+    {
+        public string PatchFeature { get; set; }
+        public string PatchName { get; set; }
+        public bool isGecko { get; set; } = false;
+        public List<string> Lines { get; set; } = new List<string>();
+    }
+
+    public class GamePatches
+    {
+        public string GameName { get; set; }
+        public string GameId { get; set; }
+        public string GameIdCrediar { get; set; }
+        public List<Patch> Patches { get; set; } = new List<Patch>();
     }
 }
