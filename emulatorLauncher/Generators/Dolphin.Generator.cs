@@ -725,6 +725,8 @@ namespace EmulatorLauncher
                         ini.WriteValue("Interface", "UsePanicHandlers", "False");       // Disable panic handlers
                         ini.WriteValue("Core", "EnableCheats", "True");                 // Cheats must be enabled
                     }
+                    else
+                        ini.WriteValue("Core", "SerialPort1", "255");
 
                     // Bluetooth passthrough
                     BindBoolIniFeature(ini, "BluetoothPassthrough", "Enabled", "dolphin_bt_pass", "True", "False");
@@ -1070,8 +1072,12 @@ namespace EmulatorLauncher
             {
                 ScreenTools.MoveWindow(process, monitorIndex);
 
+                process.WaitForInputIdle();
+
                 if (_bezelFileInfo != null)
                     bezel = _bezelFileInfo.ShowFakeBezel(_resolution, false, monitorIndex);
+
+                User32.SetForegroundWindow(process.MainWindowHandle);
 
                 process.WaitForExit();
                 try { ret = process.ExitCode; }

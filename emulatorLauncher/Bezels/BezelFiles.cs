@@ -145,6 +145,11 @@ namespace EmulatorLauncher
 
             bezel.FakeBackground = fakeBackground;
             bezel.Show();
+            User32.SetWindowPos(
+                bezel.Handle,
+                new IntPtr(-1),
+                0, 0, 0, 0,
+                SWP.NOSIZE | SWP.NOMOVE | SWP.NOACTIVATE);
             return bezel;
         }
 
