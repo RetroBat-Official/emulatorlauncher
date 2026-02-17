@@ -735,7 +735,7 @@ namespace EmulatorLauncher
                     BindIniFeatureSlider(ini, "AutoHDR-options", "HDR_DISPLAY_MAX_NITS", "hdr_max_nits", "400");
                     BindIniFeatureSlider(ini, "PerceptualHDR-options", "AMPLIFICATION", "hdr_amplification", "2.50", 2);
 
-                    DolphinControllers.WriteControllersConfig(path, ini, system, emulator, rom, _triforce, triforceGame, region, out _sindenSoft);
+                    DolphinControllers.WriteControllersConfig(path, ini, system, emulator, rom, _triforce, _crediar, triforceGame, region, out _sindenSoft);
 
                     ini.Save();
                 }

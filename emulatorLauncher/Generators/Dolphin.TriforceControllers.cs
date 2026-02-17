@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 namespace EmulatorLauncher
@@ -14,7 +15,7 @@ namespace EmulatorLauncher
     {
         private static bool _triforcectrl = false;
 
-        private static void GenerateControllerConfig_triforce(string path, TriforceGame triforceGame, string region)
+        private static void GenerateControllerConfig_triforce(string path, TriforceGame triforceGame, string region, bool crediar)
         {
             //string path = Program.AppConfig.GetFullPath("dolphin");
             string iniFile = Path.Combine(path, "User", "Config", "GCPadNew.ini");
@@ -172,13 +173,38 @@ namespace EmulatorLauncher
                                 continue;
 
                             var name = ToDolphinKey(input.Id);
+
+                            if (value.StartsWith("Triforce/"))
+                            {
+                                if (value == "Triforce/Service")
+                                    name = string.IsNullOrEmpty(name) ? "`2`" : name + "|`2`";
+                                else if (value == "Triforce/Test")
+                                    name = string.IsNullOrEmpty(name) ? "`1`" : name + "|`1`";
+                                else if (value == "Triforce/Coin")
+                                    name = string.IsNullOrEmpty(name) ? "`5`" : name + "|`5`";
+                            }
+
                             ini.WriteValue(gcpad, value, name);
                         }
                         else if (tech == "XInput")
                         {
                             var mapping = pad.GetXInputMapping(x.Key);
                             if (mapping != XINPUTMAPPING.UNKNOWN && xInputMapping.ContainsKey(mapping))
-                                ini.WriteValue(gcpad, value, xInputMapping[mapping]);
+                            {
+                                string name = xInputMapping[mapping];
+
+                                if (value.StartsWith("Triforce/"))
+                                {
+                                    if (value == "Triforce/Service")
+                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:2`" : name + "|`DInput/0/Keyboard Mouse:2`";
+                                    else if (value == "Triforce/Test")
+                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:1`" : name + "|`DInput/0/Keyboard Mouse:1`";
+                                    else if (value == "Triforce/Coin")
+                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:5`" : name + "|`DInput/0/Keyboard Mouse:5`";
+                                }
+
+                                ini.WriteValue(gcpad, value, name);
+                            }
 
                             if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
                             {
@@ -204,7 +230,21 @@ namespace EmulatorLauncher
                                 else if (input.Id == 1) // invert A&B
                                     ini.WriteValue(gcpad, value, "`Button 0`");
                                 else
-                                    ini.WriteValue(gcpad, value, "`Button " + input.Id.ToString() + "`");
+                                {
+                                    string name = "`Button " + input.Id.ToString() + "`";
+                                    
+                                    if (value.StartsWith("Triforce/"))
+                                    {
+                                        if (value == "Triforce/Service")
+                                            name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:2`" : name + "|`DInput/0/Keyboard Mouse:2`";
+                                        else if (value == "Triforce/Test")
+                                            name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:1`" : name + "|`DInput/0/Keyboard Mouse:1`";
+                                        else if (value == "Triforce/Coin")
+                                            name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:5`" : name + "|`DInput/0/Keyboard Mouse:5`";
+                                    }
+
+                                    ini.WriteValue(gcpad, value, name);
+                                }
                             }
                             else if (input.Type == "axis")
                             {
@@ -226,14 +266,27 @@ namespace EmulatorLauncher
                                     return axis + "`";
                                 };
 
-                                ini.WriteValue(gcpad, value, axisValue(input, false));
+                                string name = axisValue(input, false);
+
+                                if (value.StartsWith("Triforce/"))
+                                {
+                                    if (value == "Triforce/Service")
+                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:2`" : name + "|`DInput/0/Keyboard Mouse:2`";
+                                    else if (value == "Triforce/Test")
+                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:1`" : name + "|`DInput/0/Keyboard Mouse:1`";
+                                    else if (value == "Triforce/Coin")
+                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:5`" : name + "|`DInput/0/Keyboard Mouse:5`";
+                                }
+
+                                ini.WriteValue(gcpad, value, name);
 
                                 if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
                                     ini.WriteValue(gcpad, reverseAxis, axisValue(input, true));
                             }
 
-                            // Z button is used to access test menu, do not map it with R1
-                            ini.WriteValue(gcpad, "Buttons/Z", "@(`Button 7`+`Button 8`)");
+                            // For Crediar Dolphin : Z button is used to access test menu, do not map it with R1
+                            if (crediar)
+                                ini.WriteValue(gcpad, "Buttons/Z", "@(`Button 7`+`Button 8`)");
                         }
                     }
 
