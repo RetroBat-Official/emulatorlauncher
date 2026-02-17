@@ -980,6 +980,18 @@ namespace EmulatorLauncher
                 }
             }
 
+            // This is required to parse the right path for saves and savestates
+            if (!standalone)
+            {
+                commandArray.Add("-comment_directory");
+                commandArray.Add(rom);
+            }
+
+            // Specific cases for some systems
+            // Disable softlist for .rpk extension with ti99
+            if (system == "ti99" && rom.EndsWith(".rpk"))
+                UseFileNameWithoutExtension = false;
+
             // Alternate ROM type for systems with mutiple media (ie cassette & floppy) / only if softlist not set
             if (!useSoftList)
             {
@@ -999,12 +1011,6 @@ namespace EmulatorLauncher
                         commandArray.Add("-" + romType);
                 }
             }
-
-            // Specific cases for some systems
-            // Disable softlist for .rpk extension with ti99
-            if (system == "ti99" && rom.EndsWith(".rpk"))
-                UseFileNameWithoutExtension = false;
-
 
             // Specific Managements for multi-disc roms using m3u
             // Go through the .m3u file and assign each line to a floppy drive
@@ -1074,6 +1080,7 @@ namespace EmulatorLauncher
             {
                 string softlist = SystemConfig["force_softlist"];
                 rom = softlist + ":" + Path.GetFileNameWithoutExtension(rom);
+                //rom = Path.GetFileNameWithoutExtension(rom);
                 commandArray.Add(rom);
             }
 
@@ -1082,12 +1089,7 @@ namespace EmulatorLauncher
                 commandArray.Add(this.UseFileNameWithoutExtension ? Path.GetFileNameWithoutExtension(rom) : rom);
 
             // Add an argument to mame core to fix saving of remap file naming
-            if (mame_arcade_systems.Contains(system) && MachineName == "%romname%")
-            {
-                commandArray.Add("-comment_directory");
-                commandArray.Add(rom);
-            }
-                return commandArray;
+            return commandArray;
         }
         #endregion
 
