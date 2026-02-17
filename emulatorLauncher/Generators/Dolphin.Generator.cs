@@ -1034,7 +1034,7 @@ namespace EmulatorLauncher
                         ini.Remove(enableSection, patch.PatchName);
                         SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} has been disabled for game {gameID}");
                     }
-                    else if (Features.IsSupported(featureName))
+                    else if (SystemConfig.getOptBoolean(featureName))
                     {
                         var keys = ini.EnumerateKeys(enableSection);
 
