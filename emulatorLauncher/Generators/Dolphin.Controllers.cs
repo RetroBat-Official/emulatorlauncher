@@ -33,10 +33,12 @@ namespace EmulatorLauncher
         }
 
         private static Dictionary<string, string> _gcSpecialHotkeys = new Dictionary<string, string>();
+        private static string _emulator;
 
-        public static bool WriteControllersConfig(string path, IniFile ini, string system, string rom, bool triforce, out bool sindenSoft)
+        public static bool WriteControllersConfig(string path, IniFile ini, string system, string emulator, string rom, bool triforce, TriforceGame triforceGame, string region, out bool sindenSoft)
         {
             sindenSoft = false;
+            _emulator = emulator;
 
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
@@ -94,7 +96,7 @@ namespace EmulatorLauncher
             #region triforce
             // Special mapping for triforce games to remove Z button from R1 (as this is used to access service menu and will be mapped to R3+L3)
             else if (triforce)
-                GenerateControllerConfig_triforce(path);
+                GenerateControllerConfig_triforce(path, triforceGame, region);
             #endregion
 
             #region gamecube

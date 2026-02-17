@@ -199,10 +199,25 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("Graphics", "AutoFrameSkip", "False");
 
-                    if (SystemConfig.isOptSet("ppsspp_textureenhancement") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement"]))
+                    if (SystemConfig.isOptSet("ppsspp_textureenhancement") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement"]) && SystemConfig["ppsspp_textureenhancement"].Contains("Tex") && SystemConfig["ppsspp_backend"].ToLowerInvariant().Contains("vulkan"))
+                    {
+                        ini.WriteValue("Graphics", "TexHardwareScaling", "True");
+                        ini.WriteValue("Graphics", "TextureShader", SystemConfig["ppsspp_textureenhancement"]);
+                    }
+                    else if (SystemConfig.isOptSet("ppsspp_textureenhancement") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement"]))
+                    {
                         ini.WriteValue("Graphics", "TexScalingType", SystemConfig["ppsspp_textureenhancement"]);
+                        ini.WriteValue("Graphics", "TexHardwareScaling", "False");
+                        ini.WriteValue("Graphics", "TextureShader", "Off");
+                    }
                     else
+                    {
                         ini.WriteValue("Graphics", "TexScalingType", "0");
+                        ini.WriteValue("Graphics", "TexHardwareScaling", "False");
+                        ini.WriteValue("Graphics", "TextureShader", "Off");
+                    }
+
+                    BindBoolIniFeature(ini, "Graphics", "TexDeposterize", "ppsspp_TexDeposterize", "True", "False");
 
                     if (SystemConfig.isOptSet("ppsspp_textureenhancement_level") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement_level"]))
                         ini.WriteValue("Graphics", "TexScalingLevel", SystemConfig["ppsspp_textureenhancement_level"].ToIntegerString());

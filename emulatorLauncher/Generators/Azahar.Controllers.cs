@@ -139,8 +139,17 @@ namespace EmulatorLauncher
                 ini.WriteValue("Controls", profile + "motion_device" + "\\default", "true");
                 ini.WriteValue("Controls", profile + "motion_device", "\"engine:motion_emu,update_period:100,sensitivity:0.01,tilt_clamp:90.0\"");
             }
-            ini.WriteValue("Controls", profile + "touch_device" + "\\default", "true");
-            ini.WriteValue("Controls", profile + "touch_device", "engine:emu_window");
+
+            if (SystemConfig.isOptSet("n3ds_touchdevice") && SystemConfig["n3ds_touchdevice"] == "cemuhook")
+            {
+                ini.WriteValue("Controls", profile + "touch_device" + "\\default", "false");
+                ini.WriteValue("Controls", profile + "touch_device", "\"engine:cemuhookudp,max_x:1800,max_y:850,min_x:100,min_y:50\"");
+            }
+            else
+            {
+                ini.WriteValue("Controls", profile + "touch_device" + "\\default", "true");
+                ini.WriteValue("Controls", profile + "touch_device", "\"engine:emu_window\"");
+            }
 
             // Use custom touch from button
             if (Program.SystemConfig.isOptSet("azahar_touchprofile") && !string.IsNullOrEmpty(Program.SystemConfig["azahar_touchprofile"]))
