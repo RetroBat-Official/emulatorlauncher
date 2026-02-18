@@ -9,6 +9,11 @@ namespace EmulatorLauncher
 {
     partial class BezelFiles
     {
+        #region public methods
+        /// <summary>
+        /// Get the tattoo file to be applied to the bezel / control center.
+        /// </summary>
+        /// <returns> Path to the tattoo file. </returns>
         public static string GetDefaultTatoo()
         {
             string system = Program.SystemConfig["system"];
@@ -32,6 +37,13 @@ namespace EmulatorLauncher
             return tattooFile;            
         }
 
+        /// <summary>
+        /// Generate image of bezel with tattoo applied.
+        /// </summary>
+        /// <param name="inputPng"></param>
+        /// <param name="outputPng"></param>
+        /// <param name="emulator"></param>
+        /// <returns> Path to the generated image. </returns>
         public static string GetTattooImage(string inputPng, string outputPng, string emulator)
         {
             SimpleLogger.Instance.Info("[GENERATOR] Tattoo enabled, fetching right tattoo file.");
@@ -177,17 +189,27 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[GENERATOR] Tattoo file: " + tattooName);
             return outputPng;
         }
+        #endregion
 
-        static List<string> gbSystems = new List<string>() { "gb", "gbc" };
+        #region private methods
+        static List<string> gbSystems = new List<string>() { "gb", "gbc", "gb2players", "gbc2players", "gameboy", "gameboycolor" };
         static List<string> psxSystems = new List<string>() { "psx", "ps1", "playstation" };
-        static List<string> ngpSystems = new List<string>() { "ngp", "ngpc" };
-        static List<string> jaguarSystems = new List<string>() { "jaguar", "jaguarcd" };
-        static List<string> megadriveSystems = new List<string>() { "genesis", "megacd", "megadrive", "megadrive-msu", "sega32x", "segacd" };
-        static List<string> n64Systems = new List<string>() { "n64", "n64dd" };
+        static List<string> ngpSystems = new List<string>() { "ngp", "ngpc", "neogeopocket" };
+        static List<string> jaguarSystems = new List<string>() { "jaguar", "jaguarcd", "atarijaguar", "atarijaguarcd" };
+        static List<string> megadriveSystems = new List<string>() { "genesis", "genesis-msu1", "megacd", "mega-cd", "megadrive", "megadrive-msu1", "sega32x", "segacd", "sega-cd" };
+        static List<string> n64Systems = new List<string>() { "n64", "n64dd", "nintendo64" };
         static List<string> nesSystems = new List<string>() { "fds", "nes", "famicom" };
         static List<string> pceSystems = new List<string>() { "pcengine", "pcenginecd", "turbografx", "turbografxcd" };
-        static List<string> snesSystems = new List<string>() { "satellaview", "snes", "snes-msu1", "sgb", "sufami", "sfc", "superfamicom" };
+        static List<string> snesSystems = new List<string>() { "satellaview", "snes", "snes-msu1", "sgb", "sgb-msu1", "sufami", "sfc", "superfamicom", "supernintendo" };
         static List<string> md3buttonsLibretro = new List<string>() { "257", "1025", "1537", "773", "2" };
+
+        /// <summary>
+        /// Logic to determine the tattoo name to be used for the default tattoo file, based on system, core, emulator and various configuration options.
+        /// </summary>
+        /// <param name="system"></param>
+        /// <param name="core"></param>
+        /// <param name="emulator"></param>
+        /// <returns> Name of the tatoo file. </returns>
         private static string GetTattooName(string system, string core, string emulator)
         {
             if (megadriveSystems.Contains(system))
@@ -934,7 +956,13 @@ namespace EmulatorLauncher
             }
         }
 
-        // Helper method to set image DPI without resizing it
+        /// <summary>
+        /// Helper method to set image DPI without resizing it
+        /// </summary>
+        /// <param name="image"></param>
+        /// <param name="targetDpiX"></param>
+        /// <param name="targetDpiY"></param>
+        /// <returns> Bitmap image. </returns>
         private static Bitmap SetImageToStandardDpi(Image image, float targetDpiX, float targetDpiY)
         {
             Bitmap result = new Bitmap(image.Width, image.Height);
@@ -947,5 +975,6 @@ namespace EmulatorLauncher
 
             return result;
         }
+        #endregion
     }
 }

@@ -52,16 +52,16 @@ namespace EmulatorLauncher
             }
         }
 
-                    
+        // Global variables       
         private BezelInfo _infos;
 
-
-        private static Size GetImageSize(string file)
-        {
-            using (Image img = Image.FromFile(file))
-                return img.Size;
-        }
-
+        #region public methods
+        /// <summary>
+        /// Show the fake bezel form.
+        /// </summary>
+        /// <param name="resolution"></param>
+        /// <param name="useFakeBackground"></param>
+        /// <param name="monitorIndex"></param>
         public FakeBezelFrm ShowFakeBezel(ScreenResolution resolution, bool useFakeBackground = false, int monitorIndex = -1)
         {
             var screen = Screen.PrimaryScreen;
@@ -153,123 +153,10 @@ namespace EmulatorLauncher
             return bezel;
         }
 
-        static string[] bezelPaths =
-        {            
-            // Bezels with exact rom name -> Uses {rom} for rom name
-            "{userpath}\\{bezel}\\games\\{gamesystem}\\{rom}.png",              // decorations\thebezelproject\games\mame\1942.png
-            "{systempath}\\{bezel}\\games\\{gamesystem}\\{rom}.png",            // system\decorations\thebezelproject\games\mame\1942.png
-            "{userpath}\\{bezel}\\games\\{rom}.png",                            // decorations\thebezelproject\games\1942.png
-            "{systempath}\\{bezel}\\games\\{rom}.png",                          // system\decorations\thebezelproject\games\1942.png
-
-            // Bezels with same IndexedRomName -> Uses * instead of rom name
-            "{userpath}\\{bezel}\\games\\{gamesystem}\\*.png",                  // decorations\thebezelproject\games\mame\*.png
-            "{systempath}\\{bezel}\\games\\{gamesystem}\\*.png",                // system\decorations\thebezelproject\games\mame\*.png
-            "{userpath}\\{bezel}\\games\\*.png",                                // decorations\thebezelproject\games\1942.png
-            "{systempath}\\{bezel}\\games\\*.png",                              // system\decorations\thebezelproject\games\1942.png
-
-            // System bezels
-            "{userpath}\\{bezel}\\systems\\{system}.png",                       // decorations\thebezelproject\systems\mame.png
-            "{systempath}\\{bezel}\\systems\\{system}.png",                     // system\decorations\thebezelproject\systems\mame.png
-            "{userpath}\\{bezel}\\default.png",                                 // decorations\thebezelproject\default.png
-            "{systempath}\\{bezel}\\default.png",                               // system\decorations\thebezelproject\default.png
-            
-            // Default_unglazed
-            "{userpath}\\default_unglazed\\systems\\{system}.png",              // decorations\default_unglazed\systems\mame.png
-            "{systempath}\\default_unglazed\\systems\\{system}.png",            // system\decorations\default_unglazed\systems\mame.png
-
-            // Default
-            "{userpath}\\default\\systems\\{system}.png",                       // decorations\default\systems\mame.png
-            "{systempath}\\default\\systems\\{system}.png"                      // system\decorations\default\systems\mame.png
-        };
-
-        private static bool IsPng(string filename)
-        {
-            try
-            {
-                // Open the file in binary mode and read the first 8 bytes
-                using (FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read))
-                {
-                    byte[] header = new byte[8];
-                    fileStream.Read(header, 0, 8);
-
-                    // Check if the bytes match the PNG file signature
-                    if (header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47 && header[4] == 0x0D && header[5] == 0x0A && header[6] == 0x1A && header[7] == 0x0A)
-                        return true;
-                }
-            }
-            catch { }
-
-            return false;
-        }
-
-        private static string FindBezel(string overlayUser, string overlaySystem, string bezel, string systemName, string romName, string perGameSystem, string emulator)
-        {
-            string indexedRomName = romName.AsIndexedRomName();
-
-            // specific cases (eg for 3ds (depending on layout))
-            systemName = GetSpecificBezels(systemName, emulator);
-
-            foreach (var path in bezelPaths)
-            {
-                if (string.IsNullOrEmpty(overlaySystem) && path.StartsWith("{systempath}"))
-                    continue;
-
-                if (string.IsNullOrEmpty(bezel) && path.StartsWith("{bezel}"))
-                    continue;
-
-                string result = path
-                    .Replace("{userpath}", overlayUser ?? "")
-                    .Replace("{systempath}", overlaySystem ?? "")
-                    .Replace("{bezel}", bezel ?? "")
-                    .Replace("{gamesystem}", perGameSystem ?? "")
-                    .Replace("{system}", systemName ?? "")
-                    .Replace("{rom}", romName ?? "");
-
-                if (result.Contains("*"))
-                {
-                    string dir = Path.GetDirectoryName(result);
-                    if (Directory.Exists(dir))
-                    {
-                        foreach (var file in Directory.GetFiles(dir, Path.GetFileName(result)))
-                        {
-                            if (Path.GetFileNameWithoutExtension(file).AsIndexedRomName() == indexedRomName)
-                                return Path.GetFullPath(file);
-                        }
-                    }
-
-                    continue;
-                }
-
-                if (File.Exists(result))
-                {
-                    // Check if it's a real PNG file, or a file containing the relative path to another png
-                    if (!IsPng(result) && new FileInfo(result).Length < 1024)
-                    {
-                        try
-                        {
-                            string link = File.ReadAllText(result);
-                            if (link[0] == '.')
-                            {
-                                string relative = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(result)), link));
-                                if (!File.Exists(relative) || !IsPng(relative))
-                                    continue;
-
-                                result = relative;
-                            }
-                        }
-                        catch 
-                        {
-                            continue;
-                        }
-                    }
-
-                    return Path.GetFullPath(result);
-                }
-            }
-
-            return null;
-        }
-      
+        /// <summary>
+        /// Main method to get bezel information 
+        /// </summary>
+        /// <returns> Bezel information </returns>
         public static BezelFiles GetBezelFiles(string systemName, string rom, ScreenResolution resolution, string emulator = null)
         {
             if (systemName == null || rom == null)
@@ -382,10 +269,133 @@ namespace EmulatorLauncher
             return ret;
         }
 
+        public static string GetStretchedBezel(string overlay_png_file, int resX, int resY)
+        {
+            var f = Path.GetFileNameWithoutExtension(overlay_png_file);
+            var d = Path.GetFileName(Path.GetDirectoryName(overlay_png_file));
+            var fn = "bezel." + d + "." + f + "." + resX + "x" + resY + ".png";
+            string output_png_file = Path.Combine(Path.GetTempPath(), fn);
+
+            if (File.Exists(output_png_file))
+                overlay_png_file = output_png_file;
+            else
+            {
+                try
+                {
+                    using (Image img = Image.FromFile(overlay_png_file))
+                    {
+                        if (img.Width == resX && img.Height == resY)
+                            return overlay_png_file;
+
+                        using (Bitmap bmp = new Bitmap(resX, resY))
+                        {
+                            using (Graphics g = Graphics.FromImage(bmp))
+                            {
+                                Rectangle rect = Misc.GetPictureRect(img.Size, new Rectangle(0, 0, resX, resY));
+                                if (rect.X != 0 && rect.Y != 0)
+                                {
+                                    g.ExcludeClip(rect);
+                                    g.FillRectangle(Brushes.Black, new Rectangle(0, 0, bmp.Width, bmp.Height));
+                                    g.ResetClip();
+                                }
+
+                                g.DrawImage(img, rect);
+                            }
+
+                            bmp.Save(output_png_file, System.Drawing.Imaging.ImageFormat.Png);
+                            overlay_png_file = output_png_file;
+                        }
+                    }
+                }
+                catch { }
+            }
+            return overlay_png_file;
+        }
+        #endregion
+
+        #region private methods
+        /// <summary>
+        /// Method to find the bezel file.
+        /// </summary>
+        /// <returns> Bezel file path </returns>
+        private static string FindBezel(string overlayUser, string overlaySystem, string bezel, string systemName, string romName, string perGameSystem, string emulator)
+        {
+            string indexedRomName = romName.AsIndexedRomName();
+
+            // specific cases (eg for 3ds (depending on layout))
+            systemName = GetSpecificBezels(systemName, emulator);
+
+            foreach (var path in bezelPaths)
+            {
+                if (string.IsNullOrEmpty(overlaySystem) && path.StartsWith("{systempath}"))
+                    continue;
+
+                if (string.IsNullOrEmpty(bezel) && path.StartsWith("{bezel}"))
+                    continue;
+
+                string result = path
+                    .Replace("{userpath}", overlayUser ?? "")
+                    .Replace("{systempath}", overlaySystem ?? "")
+                    .Replace("{bezel}", bezel ?? "")
+                    .Replace("{gamesystem}", perGameSystem ?? "")
+                    .Replace("{system}", systemName ?? "")
+                    .Replace("{rom}", romName ?? "");
+
+                if (result.Contains("*"))
+                {
+                    string dir = Path.GetDirectoryName(result);
+                    if (Directory.Exists(dir))
+                    {
+                        foreach (var file in Directory.GetFiles(dir, Path.GetFileName(result)))
+                        {
+                            if (Path.GetFileNameWithoutExtension(file).AsIndexedRomName() == indexedRomName)
+                                return Path.GetFullPath(file);
+                        }
+                    }
+
+                    continue;
+                }
+
+                if (File.Exists(result))
+                {
+                    // Check if it's a real PNG file, or a file containing the relative path to another png
+                    if (!IsPng(result) && new FileInfo(result).Length < 1024)
+                    {
+                        try
+                        {
+                            string link = File.ReadAllText(result);
+                            if (link[0] == '.')
+                            {
+                                string relative = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(result)), link));
+                                if (!File.Exists(relative) || !IsPng(relative))
+                                    continue;
+
+                                result = relative;
+                            }
+                        }
+                        catch 
+                        {
+                            continue;
+                        }
+                    }
+
+                    return Path.GetFullPath(result);
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Specific catch for some ports of n64 games and nds/3ds that have multiple screen layout options
+        /// </summary>
+        /// <param name="system"></param>
+        /// <param name="emulator"></param>
+        /// <returns></returns>
         private static string GetSpecificBezels(string system, string emulator)
         {
             string core = Program.SystemConfig["core"];
-            if (system == "3ds")
+            if (system == "3ds" || system == "nintendo3ds")
             {
                 switch (emulator)
                 {
@@ -431,7 +441,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (system == "nds")
+            if (system == "nds" || system == "nintendods")
             {
                 switch (emulator)
                 {
@@ -506,13 +516,20 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (system == "soh" || system == "starship" || system == "2ship")
+            if (emulator == "soh" || emulator == "2ship" || emulator == "starship")
                 return "n64";
             
             return system;
         }
 
-        public static BezelFiles CreateSindenBorderBezel(BezelFiles input, ScreenResolution resolution = null)
+        /// <summary>
+        /// Creation of the Sinden white border bezel.
+        /// Careful, some emulators use reshade for bezels, in such case it should be managed through shader with reshade.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="resolution"></param>
+        /// <returns></returns>
+        private static BezelFiles CreateSindenBorderBezel(BezelFiles input, ScreenResolution resolution = null)
         {
             if (input == null)
                 input = new BezelFiles();
@@ -628,48 +645,61 @@ namespace EmulatorLauncher
             return input;
         }
 
-        public static string GetStretchedBezel(string overlay_png_file, int resX, int resY)
+        private static Size GetImageSize(string file)
         {
-            var f = Path.GetFileNameWithoutExtension(overlay_png_file);
-            var d = Path.GetFileName(Path.GetDirectoryName(overlay_png_file));
-            var fn = "bezel." + d + "." + f + "." + resX + "x" + resY + ".png";
-            string output_png_file = Path.Combine(Path.GetTempPath(), fn);
-
-            if (File.Exists(output_png_file))
-                overlay_png_file = output_png_file;
-            else
-            {
-                try
-                {
-                    using (Image img = Image.FromFile(overlay_png_file))
-                    {
-                        if (img.Width == resX && img.Height == resY)
-                            return overlay_png_file;
-
-                        using (Bitmap bmp = new Bitmap(resX, resY))
-                        {
-                            using (Graphics g = Graphics.FromImage(bmp))
-                            {
-                                Rectangle rect = Misc.GetPictureRect(img.Size, new Rectangle(0, 0, resX, resY));
-                                if (rect.X != 0 && rect.Y != 0)
-                                {
-                                    g.ExcludeClip(rect);
-                                    g.FillRectangle(Brushes.Black, new Rectangle(0, 0, bmp.Width, bmp.Height));
-                                    g.ResetClip();
-                                }
-
-                                g.DrawImage(img, rect);
-                            }
-
-                            bmp.Save(output_png_file, System.Drawing.Imaging.ImageFormat.Png);
-                            overlay_png_file = output_png_file;
-                        }
-                    }
-                }
-                catch { }
-            }
-            return overlay_png_file;
+            using (Image img = Image.FromFile(file))
+                return img.Size;
         }
+
+        private static bool IsPng(string filename)
+        {
+            try
+            {
+                // Open the file in binary mode and read the first 8 bytes
+                using (FileStream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read))
+                {
+                    byte[] header = new byte[8];
+                    fileStream.Read(header, 0, 8);
+
+                    // Check if the bytes match the PNG file signature
+                    if (header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47 && header[4] == 0x0D && header[5] == 0x0A && header[6] == 0x1A && header[7] == 0x0A)
+                        return true;
+                }
+            }
+            catch { }
+
+            return false;
+        }
+        #endregion
+
+        static string[] bezelPaths =
+        {            
+            // Bezels with exact rom name -> Uses {rom} for rom name
+            "{userpath}\\{bezel}\\games\\{gamesystem}\\{rom}.png",              // decorations\thebezelproject\games\mame\1942.png
+            "{systempath}\\{bezel}\\games\\{gamesystem}\\{rom}.png",            // system\decorations\thebezelproject\games\mame\1942.png
+            "{userpath}\\{bezel}\\games\\{rom}.png",                            // decorations\thebezelproject\games\1942.png
+            "{systempath}\\{bezel}\\games\\{rom}.png",                          // system\decorations\thebezelproject\games\1942.png
+
+            // Bezels with same IndexedRomName -> Uses * instead of rom name
+            "{userpath}\\{bezel}\\games\\{gamesystem}\\*.png",                  // decorations\thebezelproject\games\mame\*.png
+            "{systempath}\\{bezel}\\games\\{gamesystem}\\*.png",                // system\decorations\thebezelproject\games\mame\*.png
+            "{userpath}\\{bezel}\\games\\*.png",                                // decorations\thebezelproject\games\1942.png
+            "{systempath}\\{bezel}\\games\\*.png",                              // system\decorations\thebezelproject\games\1942.png
+
+            // System bezels
+            "{userpath}\\{bezel}\\systems\\{system}.png",                       // decorations\thebezelproject\systems\mame.png
+            "{systempath}\\{bezel}\\systems\\{system}.png",                     // system\decorations\thebezelproject\systems\mame.png
+            "{userpath}\\{bezel}\\default.png",                                 // decorations\thebezelproject\default.png
+            "{systempath}\\{bezel}\\default.png",                               // system\decorations\thebezelproject\default.png
+            
+            // Default_unglazed
+            "{userpath}\\default_unglazed\\systems\\{system}.png",              // decorations\default_unglazed\systems\mame.png
+            "{systempath}\\default_unglazed\\systems\\{system}.png",            // system\decorations\default_unglazed\systems\mame.png
+
+            // Default
+            "{userpath}\\default\\systems\\{system}.png",                       // decorations\default\systems\mame.png
+            "{systempath}\\default\\systems\\{system}.png"                      // system\decorations\default\systems\mame.png
+        };
     }
 
     [DataContract]

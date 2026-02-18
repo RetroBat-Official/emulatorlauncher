@@ -17,7 +17,13 @@ namespace EmulatorLauncher.Libretro
     partial class LibRetroGenerator : Generator
     {
         private bool _coreVideoDriverForce = false;
+        private bool _isWidescreen;
 
+        /// <summary>
+        /// Method to get the Core Name as RetroArch uses it when creating config folders or remap files.
+        /// </summary>
+        /// <param name="core"></param>
+        /// <returns></returns>
         public static string GetCoreName(string core)
         {
             var coreNames = new Dictionary<string, string>()
@@ -301,9 +307,13 @@ namespace EmulatorLauncher.Libretro
             return sb.ToString();
         }
 
-
-        private bool _isWidescreen;
-
+        /// <summary>
+        /// Configuration of core options in file retroarch-core-options.cfg.
+        /// In some cases options can be changed in retroarch config or other files also.
+        /// </summary>
+        /// <param name="retroarchConfig"></param>
+        /// <param name="system"></param>
+        /// <param name="core"></param>
         private void ConfigureCoreOptions(ConfigFile retroarchConfig, string system, string core)
         {
             if (SystemConfig.isOptSet("game_specific_options") && SystemConfig.getOptBoolean("game_specific_options"))
@@ -1096,7 +1106,6 @@ namespace EmulatorLauncher.Libretro
 
             // Controls
         }
-
 
         private void ConfigureDesmume(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
