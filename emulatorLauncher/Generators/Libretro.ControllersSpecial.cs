@@ -10,12 +10,18 @@ namespace EmulatorLauncher.Libretro
 {
     partial class LibretroControllers
     {
-        // Used to automatically map special controllers like N64, saturn, megadrive
-        // The mapping is forced from json file located in retrobat\system\resources\inputmapping
-
         private static List<string> digitalDpadStrings = new List<string> { "down_btn", "up_btn", "left_btn", "right_btn" };
         private static List<string> analogDpadStrings = new List<string> { "down_axis", "up_axis", "left_axis", "right_axis" };
 
+        /// <summary>
+        /// Used to automatically map special controllers like N64, saturn, megadrive
+        /// The mapping is forced from json file located in retrobat\system\resources\inputmapping (or user\inputmapping) and is based on the controller guid used.
+        /// </summary>
+        /// <param name="inputConfig"></param>
+        /// <param name="system"></param>
+        /// <param name="controller"></param>
+        /// <param name="retroconfig"></param>
+        /// <returns></returns>
         private static bool performSpecialMapping(out Dictionary<string, string> inputConfig, string system, Controller controller, ConfigFile retroconfig)
         {
             inputConfig = new Dictionary<string, string>();
@@ -702,6 +708,14 @@ namespace EmulatorLauncher.Libretro
                 return false;
         }
 
+        /// <summary>
+        /// Method used to map specific arcade sticks that have a keyboard mode (like ipac2, xtank, etc.). 
+        /// The mapping files are yml files that can contain default mapping, system specific mapping, core specific mapping and game specific mapping.
+        /// </summary>
+        /// <param name="system"></param>
+        /// <param name="core"></param>
+        /// <param name="kbPadType"></param>
+        /// <param name="retroconfig"></param>
         private static bool performKBPadMapping(string system, string core, string kbPadType, ConfigFile retroconfig)
         {
             string romName = Path.GetFileNameWithoutExtension(Program.SystemConfig["rom"]);

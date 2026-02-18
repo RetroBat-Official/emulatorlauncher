@@ -27,12 +27,10 @@ namespace EmulatorLauncher.Libretro
         public string RetroarchPath { get; set; }
         public string RetroarchCorePath { get; set; }
         public string CurrentHomeDirectory { get; set; }
-
         public string LogFile
         {
             get { return Path.Combine(Program.LocalPath, ".emulationstation", "es_launch_stdout.log"); }
         }
-
         public LibRetroGenerator()
         {
             RetroarchPath = AppConfig.GetFullPath("retroarch");
@@ -286,7 +284,7 @@ namespace EmulatorLauncher.Libretro
             base.Cleanup();
         }
 
-        #region methods
+        #region private methods
         private string DetectBestCore(string system, string emulator, string core, string subCore, string rom)
         {
             // Detect best core for MAME games ( If not overridden by the user )
@@ -667,6 +665,91 @@ namespace EmulatorLauncher.Libretro
                 return false;
         }
 
+        private bool ShaderOverrideExists(string emulatorPath, string rom, string core, bool gl)
+        {
+            try
+            {
+                string cleanCoreName = GetCoreName(core);
+                string overridePath = Path.Combine(emulatorPath, "config", cleanCoreName);
+                if (!Directory.Exists(overridePath))
+                    return false;
+
+                // First check gameoverride
+                string gameName = Path.GetFileNameWithoutExtension(rom);
+                if (gl)
+                {
+                    string gameOverride = gameName + ".glslp";
+                    string gameOverrideFile = Path.Combine(overridePath, gameOverride);
+                    if (File.Exists(gameOverrideFile))
+                        return true;
+                }
+                else
+                {
+                    string gameOverride = gameName + ".slangp";
+                    string gameOverrideFile = Path.Combine(overridePath, gameOverride);
+                    if (File.Exists(gameOverrideFile))
+                        return true;
+                }
+
+                // Now check content folder override
+                string contentFolder = Path.GetDirectoryName(rom);
+                if (contentFolder != null)
+                {
+                    string lastDirectory = new DirectoryInfo(contentFolder).Name;
+
+                    if (gl)
+                    {
+                        string dirOverride = lastDirectory + ".glslp";
+                        string dirOverrideFile = Path.Combine(overridePath, dirOverride);
+                        if (File.Exists(dirOverrideFile))
+                            return true;
+                    }
+                    else
+                    {
+                        string dirOverride = lastDirectory + ".slangp";
+                        string dirOverrideFile = Path.Combine(overridePath, dirOverride);
+                        if (File.Exists(dirOverrideFile))
+                            return true;
+                    }
+                }
+
+                // Then check core override file
+                if (gl)
+                {
+                    string coreOverride = cleanCoreName + ".glslp";
+                    string coreOverrideFile = Path.Combine(overridePath, coreOverride);
+                    if (File.Exists(coreOverrideFile))
+                        return true;
+                }
+                else
+                {
+                    string coreOverride = cleanCoreName + ".slangp";
+                    string coreOverrideFile = Path.Combine(overridePath, coreOverride);
+                    if (File.Exists(coreOverrideFile))
+                        return true;
+                }
+
+                // Finally check global override file
+                if (gl)
+                {
+                    string globalOverride = "global.glslp";
+                    string globalOverrideFile = Path.Combine(emulatorPath, "config", globalOverride);
+                    if (File.Exists(globalOverrideFile))
+                        return true;
+                }
+                else
+                {
+                    string globalOverride = "global.slangp";
+                    string globalOverrideFile = Path.Combine(emulatorPath, "config", globalOverride);
+                    if (File.Exists(globalOverrideFile))
+                        return true;
+                }
+
+                return false;
+            }
+            catch { return false; }
+        }
+
         private bool GetSubCore(string core, out string newCore, out string subCore)
         {
             subCore = null;
@@ -764,14 +847,6 @@ namespace EmulatorLauncher.Libretro
 
             return false;
         }
-
-        private readonly Dictionary<string, string> coreConfigRemap = new Dictionary<string, string>()
-        {
-            { "boom3_xp", "boom3" },
-            { "vitaquake2-rogue", "vitaquake2" },
-            { "vitaquake2-xatrix", "vitaquake2" },
-            { "vitaquake2-zaero", "vitaquake2" }
-        };
 
         /// <summary>
         /// Remove input information from core override files to avoid conflicts with RetroBat's controller management
@@ -964,91 +1039,6 @@ namespace EmulatorLauncher.Libretro
                 }
             }
             return patchArgs;
-        }
-
-        private bool ShaderOverrideExists(string emulatorPath, string rom, string core, bool gl)
-        {
-            try
-            {
-                string cleanCoreName = GetCoreName(core);
-                string overridePath = Path.Combine(emulatorPath, "config", cleanCoreName);
-                if (!Directory.Exists(overridePath))
-                    return false;
-
-                // First check gameoverride
-                string gameName = Path.GetFileNameWithoutExtension(rom);
-                if (gl)
-                {
-                    string gameOverride = gameName + ".glslp";
-                    string gameOverrideFile = Path.Combine(overridePath, gameOverride);
-                    if (File.Exists(gameOverrideFile))
-                        return true;
-                }
-                else
-                {
-                    string gameOverride = gameName + ".slangp";
-                    string gameOverrideFile = Path.Combine(overridePath, gameOverride);
-                    if (File.Exists(gameOverrideFile))
-                        return true;
-                }
-
-                // Now check content folder override
-                string contentFolder = Path.GetDirectoryName(rom);
-                if (contentFolder != null)
-                {
-                    string lastDirectory = new DirectoryInfo(contentFolder).Name;
-
-                    if (gl)
-                    {
-                        string dirOverride = lastDirectory + ".glslp";
-                        string dirOverrideFile = Path.Combine(overridePath, dirOverride);
-                        if (File.Exists(dirOverrideFile))
-                            return true;
-                    }
-                    else
-                    {
-                        string dirOverride = lastDirectory + ".slangp";
-                        string dirOverrideFile = Path.Combine(overridePath, dirOverride);
-                        if (File.Exists(dirOverrideFile))
-                            return true;
-                    }
-                }
-
-                // Then check core override file
-                if (gl)
-                {
-                    string coreOverride = cleanCoreName + ".glslp";
-                    string coreOverrideFile = Path.Combine(overridePath, coreOverride);
-                    if (File.Exists(coreOverrideFile))
-                        return true;
-                }
-                else
-                {
-                    string coreOverride = cleanCoreName + ".slangp";
-                    string coreOverrideFile = Path.Combine(overridePath, coreOverride);
-                    if (File.Exists(coreOverrideFile))
-                        return true;
-                }
-
-                // Finally check global override file
-                if (gl)
-                {
-                    string globalOverride = "global.glslp";
-                    string globalOverrideFile = Path.Combine(emulatorPath, "config", globalOverride);
-                    if (File.Exists(globalOverrideFile))
-                        return true;
-                }
-                else
-                {
-                    string globalOverride = "global.slangp";
-                    string globalOverrideFile = Path.Combine(emulatorPath, "config", globalOverride);
-                    if (File.Exists(globalOverrideFile))
-                        return true;
-                }
-
-                return false;
-            }
-            catch { return false; }
         }
         #endregion
 
@@ -1645,10 +1635,6 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["video_viewport_bias_y"] = "0.000000";
         }
 
-        /// <summary>
-        /// Configure GPU index
-        /// </summary>
-        /// <param name="retroarchConfig"></param>
         private void ConfigureGPUIndex(ConfigFile retroarchConfig)
         {
             if (!Features.IsSupported("GPUIndex"))
@@ -1677,10 +1663,6 @@ namespace EmulatorLauncher.Libretro
             }
         }
 
-        /// <summary>
-        /// Synchronization options
-        /// </summary>
-        /// <param name="retroarchConfig"></param>
         private void ConfigureVSync(ConfigFile retroarchConfig)
         {
             if (Features.IsSupported("video_hard_sync"))
@@ -1750,10 +1732,6 @@ namespace EmulatorLauncher.Libretro
             }
         }
 
-        /// <summary>
-        /// AI service for game translations
-        /// </summary>
-        /// <param name="retroarchConfig"></param>
         private void ConfigureAIService(ConfigFile retroarchConfig)
         {
             // if (!Features.IsSupported("ai_service_enabled"))
@@ -1866,10 +1844,6 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(retroarchConfig, "content_show_netplay", "netplay", "true", "false");
         }
 
-        /// <summary>
-        /// Retroachievements / Cheevos
-        /// </summary>
-        /// <param name="retroarchConfig"></param>
         private void ConfigureRetroachievements(ConfigFile retroarchConfig)
         {
             if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements"))
@@ -1919,10 +1893,6 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["cheevos_enable"] = "false";
         }
 
-        /// <summary>
-        /// Language
-        /// </summary>
-        /// <param name="retroarchConfig"></param>
         private void SetLanguage(ConfigFile retroarchConfig)
         {
             Func<string, string> shortLang = new Func<string, string>(s =>
@@ -2024,13 +1994,6 @@ namespace EmulatorLauncher.Libretro
             return patched;
         }
 
-        /// <summary>
-        /// Bezels
-        /// </summary>
-        /// <param name="retroarchConfig"></param>
-        /// <param name="systemName"></param>
-        /// <param name="rom"></param>
-        /// <param name="resolution"></param>
         private void ConfigureBezels(ConfigFile retroarchConfig, string systemName, string rom, string core, ScreenResolution resolution)
         {
             retroarchConfig["input_overlay_hide_in_menu"] = "false";
@@ -2245,6 +2208,7 @@ namespace EmulatorLauncher.Libretro
         }
         #endregion
 
+        #region user interface mode
         class UIModeSetting
         {
             public UIModeSetting(string name, string minimal, string recommanded, string full)
@@ -2361,6 +2325,7 @@ namespace EmulatorLauncher.Libretro
             foreach(var item in UIModes)
                 retroarchConfig[item.Name] = item.GetValue(type);
         }
+        #endregion
 
         // List and dictionaries
         static List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", "6/5", "7/9", "8/3",
@@ -2380,6 +2345,13 @@ namespace EmulatorLauncher.Libretro
             { "flycast", "vulkan" },
             { "melondsds", "glcore" },
             { "pcsx2", "glcore" }
+        };
+        private readonly Dictionary<string, string> coreConfigRemap = new Dictionary<string, string>()
+        {
+            { "boom3_xp", "boom3" },
+            { "vitaquake2-rogue", "vitaquake2" },
+            { "vitaquake2-xatrix", "vitaquake2" },
+            { "vitaquake2-zaero", "vitaquake2" }
         };
         static Dictionary<string, retro_language> Languages = new Dictionary<string, retro_language>()
         {

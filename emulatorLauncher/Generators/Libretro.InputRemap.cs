@@ -1,4 +1,8 @@
-﻿using EmulatorLauncher.Common;
+﻿// Used to get user specific remap files from inputmapping yml file
+// Used to managed Retroarch remaps and align controls between several cores (Retrobat default remaps)
+// Used for options to invert buttons, etc.
+
+using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using System;
 using System.Collections.Generic;
@@ -10,14 +14,17 @@ namespace EmulatorLauncher.Libretro
 {
     partial class LibRetroGenerator : Generator
     {
-        // Used to get user specific remap files from inputmapping yml file
-        // Used to managed Retroarch remaps and align controls between several cores (Retrobat default remaps)
-        // Used for options to invert buttons, etc.
+        private static int _playerCount = 1;
+        private static int _maxCount = 2;
+        private static string _gameRemapName = null;
+        private bool _noRemap = false;
+        private static List<string> _cfgFilesToRestore = new List<string>();
+        private static string _inputRemapSave = null;
+        private Dictionary<string, string> InputRemap = new Dictionary<string, string>();
 
-
-        static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "superfamicom", "sattelaview", "sufami", "sgb", "gb-msu", "sfc" };
+        static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "superfamicom", "sattelaview", "sufami", "sgb", "sgb-msu1", "sfc" };
         static readonly List<string> systemButtonRotate = new List<string>() { "famicom", "nes", "fds", "mastersystem" };
-        static readonly List<string> systemMegadrive = new List<string>() { "genesis", "genesis-msu", "megadrive", "megacd", "megadrive-msu", "sega32x", "segacd" };
+        static readonly List<string> systemMegadrive = new List<string>() { "genesis", "genesis-msu1", "megadrive", "megacd", "megadrive-msu1", "sega32x", "segacd" };
         static readonly List<string> systemNES = new List<string>() { "nes", "fds", "famicom" };
         static readonly List<string> systemN64 = new List<string>() { "n64", "n64dd" };
         static readonly List<string> systemFBneo = new List<string>() { "cave", "cps1", "cps2", "cps3", "fbneo", "neogeo" };
@@ -35,13 +42,18 @@ namespace EmulatorLauncher.Libretro
                 { "supracan", "supracan"}
             };
 
-        private static int _playerCount = 1;
-        private static int _maxCount = 2;
-        private static string _gameRemapName = null;
-        private bool _noRemap = false;
-        private static List<string> _cfgFilesToRestore = new List<string>();
-        private static string _inputRemapSave = null;
-
+        /// <summary>
+        /// Called from libretro core options: generate input remap for the core.
+        /// Specifics for MAME
+        /// Specifics for a few systems or based on enabled features.
+        /// Specifics per game, per core or per system based on yml file in inputmapping folder.
+        /// Some default 
+        /// </summary>
+        /// <param name="system"></param>
+        /// <param name="core"></param>
+        /// <param name="inputremap"></param>
+        /// <param name="coreSettings"></param>
+        /// <param name="mameAuto"></param>
         public static void GenerateCoreInputRemap(string system, string core, Dictionary<string, string> inputremap, ConfigFile coreSettings, bool mameAuto = false)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -853,8 +865,6 @@ namespace EmulatorLauncher.Libretro
             return true;
         }
 
-        private Dictionary<string, string> InputRemap = new Dictionary<string, string>();
-
         private void CreateInputRemap(string cleanSystemName, Action<ConfigFile> createRemap)
         {
             if (string.IsNullOrEmpty(cleanSystemName))
@@ -1085,94 +1095,6 @@ namespace EmulatorLauncher.Libretro
             "{systempath}\\resources\\inputmapping\\libretro_{core}_{system}.yml",
             "{systempath}\\resources\\inputmapping\\libretro_{core}.yml",
             "{systempath}\\resources\\inputmapping\\libretro.yml"
-        };
-
-        // RETROARCH/MAME correspondance (example for sf2 with snes controls):
-        // A(EAST) => L
-        // B(SOUTH) => X
-        // X(NORTH) => A
-        // Y(WEST) => B
-        // L => Y
-        // R => R
-        private enum Mame_remap
-        {
-            L2 = 12,
-            L = 10,
-            SELECT = 2,
-            START = 3,
-            R2 = 13,
-            R = 11,
-            L3 = 14,
-            R3 = 15,
-            A = 8,
-            B = 0,
-            X = 9,
-            Y = 1,
-            JOY1DOWN = 18,
-            JOY1LEFT = 17,
-            JOY1UP = 19,
-            JOY1RIGHT = 16,
-            DPADRIGHT = 7,
-            DPADLEFT = 6,
-            DPADUP = 4,
-            DPADDOWN = 5,
-            JOY2DOWN = 22,
-            JOY2LEFT = 21,
-            JOY2UP = 23,
-            JOY2RIGHT = 20
-        };
-
-        private enum Atari800_remap
-        {
-            FIRE1 = 0,
-            FIRE2 = 8,
-            NUMPAD_DIESE = 1,
-            NUMPAD_STAR = 9,
-        };
-
-        private enum Dolphin_gamecube_remap
-        {
-            X = 9,
-            A = 8,
-            Y = 1,
-            B = 0,
-            LEFT_ANALOG = 14,
-            RIGHT_ANALOG = 15,
-            EMPTY = -1,
-        };
-
-        private enum Snes_remap
-        {
-            X = 9,
-            A = 8,
-            Y = 1,
-            B = 0,
-        };
-
-        private enum Nes_remap
-        {
-            TURBO_A = 9,
-            A = 8,
-            TURBO_B = 1,
-            B = 0,
-        };
-
-        private enum Flycast_remap
-        {
-            LP = 0,
-            BLOW_OFF = 1,
-            COIN = 2,
-            START = 3,
-            DPAD_UP = 4,
-            DPAD_DOWN = 5,
-            DPAD_LEFT = 6,
-            DPAD_RIGHT = 7,
-            SP = 8,
-            LK = 9,
-            SK = 11,
-            TEST = 14,
-            SERVICE = 15,
-            NON_ASSIGNED = -1,
         };
     }
 }

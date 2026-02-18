@@ -12,23 +12,6 @@ namespace EmulatorLauncher.Libretro
     {
         private bool _sindenSoft = false;
 
-        public bool HasMultipleGuns()
-        {
-            if (!SystemConfig.getOptBoolean("use_guns"))
-                return false;
-
-            var guns = RawLightgun.GetRawLightguns();
-            if (guns.Length < 2)
-                return false;
-
-            int gunCount = RawLightgun.GetUsableLightGunCount();
-            if (gunCount < 2)
-                return false;
-
-            // Set multigun to true in some cases
-            return true;
-        }
-
         /// <summary>
         /// Injects guns settings
         /// </summary>
@@ -64,6 +47,7 @@ namespace EmulatorLauncher.Libretro
 
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
+                // Start Sinden software automatically if a sinden gun is connected
                 Guns.StartSindenSoftware();
                 _sindenSoft = true;
             }
@@ -661,6 +645,64 @@ namespace EmulatorLauncher.Libretro
             }
         }
 
+        // Rule to get mouse button assignment for each core, based on dictionaries
+        // 2 type of cases : 
+        // 1 - Classic case ==> mouse left = trigger
+        // 2 - reverse case ==> mouse right = trigger
+        private string GetCoreMouseButton(string core, bool guninvert, string mbtn)
+        {
+            bool changeReload = SystemConfig.isOptSet("gun_reload_button") && SystemConfig.getOptBoolean("gun_reload_button");
+
+            string ret = "nul";
+
+            LibretroGunCoreInfo conf;
+            if (!LibretroGunCoreInfo.Instance.TryGetValue(core, out conf))
+                conf = new LibretroGunCoreInfo() { reload = "2", aux_a = "3" };
+
+            switch (mbtn)
+            {
+                case "reload":
+                    ret = changeReload ? "2" : conf.reload;
+                    break;
+                case "aux_a":
+                    ret = changeReload ? conf.aux_a_changereload : conf.aux_a;
+                    break;
+                case "aux_b":
+                    ret = changeReload ? conf.aux_b_changereload : conf.aux_b;
+                    break;
+                case "aux_c":
+                    ret = changeReload ? conf.aux_c_changereload : conf.aux_c;
+                    break;
+                case "start":
+                    ret = changeReload ? conf.start_changereload : conf.start;
+                    break;
+                case "select":
+                    ret = changeReload ? conf.select_changereload : conf.select;
+                    break;
+            }
+
+            if (ret == "2" && guninvert)
+                return "1";
+            
+            return ret;
+        }
+
+        private bool HasMultipleGuns()
+        {
+            if (!SystemConfig.getOptBoolean("use_guns"))
+                return false;
+
+            var guns = RawLightgun.GetRawLightguns();
+            if (guns.Length < 2)
+                return false;
+
+            int gunCount = RawLightgun.GetUsableLightGunCount();
+            if (gunCount < 2)
+                return false;
+
+            return true;
+        }
+
         // List of retroarch.cfg gun input lines (used to clean up)
         static readonly List<string> gunButtons = new List<string>()
         {
@@ -710,48 +752,6 @@ namespace EmulatorLauncher.Libretro
             "_gun_trigger_btn",
             "_gun_trigger_mbtn"
         };
-
-        // Rule to get mouse button assignment for each core, based on dictionaries
-        // 2 type of cases : 
-        // 1 - Classic case ==> mouse left = trigger
-        // 2 - reverse case ==> mouse right = trigger
-        private string GetCoreMouseButton(string core, bool guninvert, string mbtn)
-        {
-            bool changeReload = SystemConfig.isOptSet("gun_reload_button") && SystemConfig.getOptBoolean("gun_reload_button");
-
-            string ret = "nul";
-
-            LibretroGunCoreInfo conf;
-            if (!LibretroGunCoreInfo.Instance.TryGetValue(core, out conf))
-                conf = new LibretroGunCoreInfo() { reload = "2", aux_a = "3" };
-
-            switch (mbtn)
-            {
-                case "reload":
-                    ret = changeReload ? "2" : conf.reload;
-                    break;
-                case "aux_a":
-                    ret = changeReload ? conf.aux_a_changereload : conf.aux_a;
-                    break;
-                case "aux_b":
-                    ret = changeReload ? conf.aux_b_changereload : conf.aux_b;
-                    break;
-                case "aux_c":
-                    ret = changeReload ? conf.aux_c_changereload : conf.aux_c;
-                    break;
-                case "start":
-                    ret = changeReload ? conf.start_changereload : conf.start;
-                    break;
-                case "select":
-                    ret = changeReload ? conf.select_changereload : conf.select;
-                    break;
-            }
-
-            if (ret == "2" && guninvert)
-                return "1";
-            
-            return ret;
-        }
 
         /// <summary>
         /// Set all dictionnaries for mouse buttons (2 dictionaries for each button, one for default value, one for value when reload is forced on mouse rightclick)

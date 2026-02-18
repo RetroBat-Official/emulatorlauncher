@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Xml.Serialization;
-using System.Xml.Linq;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Compression;
 using EmulatorLauncher.Common.Compression.Wrappers;
+using EmulatorLauncher.Common.FileFormats;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using System.Xml.Serialization;
 
 namespace EmulatorLauncher
 {
@@ -410,6 +411,76 @@ namespace EmulatorLauncher
                     if (Version.TryParse(cleaned, out ver))
                     {
                         return ver.ToString();
+                    }
+                }
+                else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "eden")
+                {
+                    string versionExe = Path.Combine(Path.GetDirectoryName(exe), "eden-cli.exe");
+                    if (versionExe != null)
+                    {
+                        try
+                        {
+                            var p = new ProcessStartInfo
+                            {
+                                FileName = versionExe,
+                                Arguments = "--version",
+                                RedirectStandardOutput = true,
+                                RedirectStandardInput = true,
+                                RedirectStandardError = true,
+                                UseShellExecute = false,
+                                CreateNoWindow = true,
+                            };
+                            using (var process = Process.Start(p))
+                            {
+                                process.StartInfo = p;
+
+                                var output = new StringBuilder();
+                                process.OutputDataReceived += (s, e) =>
+                                {
+                                    if (e.Data != null)
+                                        output.AppendLine(e.Data);
+                                };
+
+                                process.Start();
+                                process.BeginOutputReadLine();
+
+                                if (!process.WaitForExit(100))
+                                    process.Kill();
+
+                                if (output.Length > 0)
+                                {
+                                    string outputString = output.ToString();
+                                    var match = Regex.Match(outputString, @"v([\d]+\.[\d]+\.[\d]+(-[a-z0-9]+)?)");
+                                    if (match.Success)
+                                    {
+                                        string versionEden = match.Groups[1].Value;
+
+                                        string numericVersion = versionEden.Split('-')[0];
+
+                                        Version ver = new Version();
+                                        if (Version.TryParse(numericVersion, out ver))
+                                        {
+                                            return ver.ToString();
+                                        }
+                                        else
+                                        {
+                                            var date = File.GetLastWriteTime(exe).ToUniversalTime().ToString("0.yy.MM.dd");
+                                            return date;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch 
+                        {
+                            var date = File.GetLastWriteTime(exe).ToUniversalTime().ToString("0.yy.MM.dd");
+                            return date;
+                        }
+                    }
+                    else
+                    {
+                        var date = File.GetLastWriteTime(exe).ToUniversalTime().ToString("0.yy.MM.dd");
+                        return date;
                     }
                 }
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "jzintv")
