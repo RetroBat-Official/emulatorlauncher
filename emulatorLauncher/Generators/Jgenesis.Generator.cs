@@ -130,15 +130,12 @@ namespace EmulatorLauncher
                 if (!Directory.Exists(savesPath))
                     try { Directory.CreateDirectory(savesPath); } catch { }
 
-                ini.DeleteSection("game_boy");
-
-                ini.WriteValue("common", "fullscreen_mode", SystemConfig.getOptBoolean("exclusivefs") ? "\"Exclusive\"" : "\"Borderless\"");
-
+                ini.DeleteSection("[recent_open_list]");
                 ini.WriteValue("common", "save_path", "\"Custom\"");
-
                 ini.WriteValue("common", "custom_save_path", "'" + savesPath + "'");
                 ini.WriteValue("common", "state_path", "\"EmulatorFolder\"");
                 ini.WriteValue("common", "custom_state_path", "\"\"");
+                ini.WriteValue("common", "pause_emulator", "\"EmulatorLosesFocus\"");
 
                 BindBoolIniFeatureOn(ini, "common", "audio_sync", "jgen_async", "true", "false");
 
@@ -183,6 +180,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("common", "scanlines", "\"" + "None" + "\"");
 
                 ConfigureGameboy(ini, jGenSystem);
+                ConfigureGameboyAdvance(ini, jGenSystem);
                 ConfigureGenesis(ini, jGenSystem);
                 ConfigureNes(ini, jGenSystem);
                 ConfigureSMS(ini, jGenSystem, system);
@@ -218,6 +216,31 @@ namespace EmulatorLauncher
             BindBoolIniFeature(ini, "game_boy", "audio_60hz_hack", "jgen_gb_60fps", "true", "false");
             BindBoolIniFeature(ini, "game_boy", "force_dmg_mode", "jgen_gb_dmg", "true", "false");
             BindBoolIniFeature(ini, "game_boy", "pretend_to_be_gba", "jgen_gb_gba", "true", "false");
+        }
+
+        private void ConfigureGameboyAdvance(IniFileJGenesis ini, string system)
+        {
+            if (system != "game_boy_advance")
+                return;
+
+            string gbaBios = Path.Combine(AppConfig.GetFullPath("bios"), "gba_bios.bin");
+
+            if (File.Exists(gbaBios))
+                ini.WriteValue("game_boy_advance", "bios_path", "'" + gbaBios + "'");
+
+            BindBoolIniFeature(ini, "game_boy_advance", "skip_bios_animation", "jgen_gba_skipbios", "true", "false");
+            BindBoolIniFeatureOn(ini, "game_boy_advance", "color_correction", "jgen_gba_colorcorrection", "\"GbaLcd\"", "\"None\"");
+            BindBoolIniFeatureOn(ini, "game_boy_advance", "frame_blending", "jgen_gba_frameblending", "true", "false");
+
+            if (SystemConfig.isOptSet("jgen_gba_ratio") && !string.IsNullOrEmpty(SystemConfig["jgen_gba_ratio"]))
+                ini.WriteValue("game_boy_advance", "aspect_ratio", "\"" + SystemConfig["jgen_gba_ratio"] + "\"");
+            else
+                ini.WriteValue("game_boy_advance", "aspect_ratio", "\"" + "SquarePixels" + "\"");
+
+            if (SystemConfig.isOptSet("jgen_gba_audio_interpolation") && !string.IsNullOrEmpty(SystemConfig["jgen_gba_audio_interpolation"]))
+                ini.WriteValue("game_boy_advance", "audio_interpolation", "\"" + SystemConfig["jgen_gba_audio_interpolation"] + "\"");
+            else
+                ini.WriteValue("game_boy_advance", "audio_interpolation", "\"" + "NearestNeighbor" + "\"");
         }
 
         private void ConfigureGenesis(IniFileJGenesis ini, string system)
@@ -257,26 +280,19 @@ namespace EmulatorLauncher
 
             if (system == "sega_cd")
             {
-                string regionbios = "bios_CD_U.bin";
-                if (SystemConfig.isOptSet("jgen_genesis_region") && !string.IsNullOrEmpty(SystemConfig["jgen_genesis_region"]))
-                {
-                    switch (SystemConfig["jgen_genesis_region"])
-                    {
-                        case "Europe":
-                            regionbios = "bios_CD_E.bin";
-                            break;
-                        case "Americas":
-                            regionbios = "bios_CD_U.bin";
-                            break;
-                        case "Japan":
-                            regionbios = "bios_CD_J.bin";
-                            break;
-                    }
-                }
+                string segaCdBios = Path.Combine(AppConfig.GetFullPath("bios"), "bios_CD_U.bin");
+                string segaCdBiosJap = Path.Combine(AppConfig.GetFullPath("bios"), "bios_CD_J.bin");
+                string segaCdBiosEU = Path.Combine(AppConfig.GetFullPath("bios"), "bios_CD_E.bin");
 
-                string segaCdBios = Path.Combine(AppConfig.GetFullPath("bios"), regionbios);
+                ini.WriteValue("sega_cd", "per_region_bios", "true");
 
-                ini.WriteValue("sega_cd", "bios_path", "'" + segaCdBios + "'");
+                if (File.Exists(segaCdBios))
+                    ini.WriteValue("sega_cd", "bios_path", "'" + segaCdBios + "'");
+                if (File.Exists(segaCdBiosJap))
+                    ini.WriteValue("sega_cd", "jp_bios_path", "'" + segaCdBiosJap + "'");
+                if (File.Exists(segaCdBiosEU))
+                    ini.WriteValue("sega_cd", "eu_bios_path", "'" + segaCdBiosEU + "'");
+
                 BindBoolIniFeatureOn(ini, "sega_cd", "enable_ram_cartridge", "jgen_segacd_ramcart", "true", "false");
                 BindBoolIniFeature(ini, "sega_cd", "load_disc_into_ram", "jgen_segacd_loadtoram", "true", "false");
             }
@@ -347,9 +363,9 @@ namespace EmulatorLauncher
                 ini.WriteValue("smsgg", "gg_aspect_ratio", "\"" + "GgLcd" + "\"");
 
             if (SystemConfig.isOptSet("jgen_sms_region") && !string.IsNullOrEmpty(SystemConfig["jgen_sms_region"]))
-                ini.WriteValue("smsgg", "sms_region", "\"" + SystemConfig["jgen_sms_region"] + "\"");
+                ini.WriteValue("smsgg", "forced_region", "\"" + SystemConfig["jgen_sms_region"] + "\"");
             else
-                ini.Remove("smsgg", "sms_region");
+                ini.Remove("smsgg", "forced_region");
 
             if (SystemConfig.isOptSet("jgen_sms_timing") && !string.IsNullOrEmpty(SystemConfig["jgen_sms_timing"]))
                 ini.WriteValue("smsgg", "sms_timing_mode", "\"" + SystemConfig["jgen_sms_timing"] + "\"");
@@ -438,6 +454,8 @@ namespace EmulatorLauncher
         {
             switch (system)
             {
+                case "game_boy_advance":
+                    return gbaMapping;
                 case "game_boy":
                     return gbMapping;
                 case "genesis":
@@ -478,6 +496,8 @@ namespace EmulatorLauncher
                 case "gb":
                 case "gbc":
                     return "game_boy";
+                case "gba":
+                    return "game_boy_advance";
                 case "sega32x":
                 case "mega32x":
                     return "sega_32x";
@@ -512,6 +532,8 @@ namespace EmulatorLauncher
                 case "gameboy":
                 case "gameboycolor":
                     return "GameBoy";
+                case "gba":
+                    return "GameBoyAdvance";
                 case "sega32x":
                 case "mega32x":
                     return "Sega32X";
@@ -526,6 +548,8 @@ namespace EmulatorLauncher
                 case "gb":
                 case "gameboy":
                     return "gb";
+                case "gba":
+                    return "gba";
                 case "gbc":
                 case "gameboycolor":
                     return "gbc";

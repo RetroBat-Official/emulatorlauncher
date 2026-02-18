@@ -103,6 +103,7 @@ namespace EmulatorLauncher.Common.FileFormats
                                 else if (keyPair.Length > 1)
                                 {
                                     namesInSection.Add(key.Name);
+                                    string valuePart = keyPair[1];
 
                                     // Handle comments within key-value pairs
                                     var commentIdx = keyPair[1].IndexOf(";");
@@ -112,7 +113,36 @@ namespace EmulatorLauncher.Common.FileFormats
                                         keyPair[1] = keyPair[1].Substring(0, commentIdx);
                                     }
 
-                                    key.Value = keyPair[1].Trim();
+                                    valuePart = valuePart.Trim();
+
+                                    if (valuePart == "[" || valuePart.EndsWith("["))
+                                    {
+                                        StringBuilder multiLine = new StringBuilder();
+                                        multiLine.AppendLine(valuePart);
+
+                                        int depth = 1;
+                                        string nextLine;
+
+                                        while ((nextLine = iniFile.ReadLine()) != null)
+                                        {
+                                            multiLine.AppendLine(nextLine);
+
+                                            if (nextLine.Contains("["))
+                                                depth++;
+
+                                            if (nextLine.Contains("]"))
+                                                depth--;
+
+                                            if (depth <= 0)
+                                                break;
+                                        }
+
+                                        key.Value = multiLine.ToString().TrimEnd();
+                                    }
+                                    else
+                                    {
+                                        key.Value = valuePart;
+                                    }
                                 }
 
                                 currentSection.Add(key);  // Add the key to the section

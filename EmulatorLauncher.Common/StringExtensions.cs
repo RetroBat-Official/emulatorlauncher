@@ -97,6 +97,16 @@ namespace EmulatorLauncher.Common
             return ret;
         }
 
+        public static string ToCleanDecimalString(this string value)
+        {
+            if (double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed))
+            {
+                return parsed.ToString("0.########", CultureInfo.InvariantCulture);
+            }
+
+            return value;
+        }
+
         public static float ToRatio(this string value)
         {
             if (string.IsNullOrEmpty(value))
