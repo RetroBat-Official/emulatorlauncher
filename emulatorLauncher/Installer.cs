@@ -333,6 +333,24 @@ namespace EmulatorLauncher
             return false;
         }
 
+        private bool GetVersionFromInfoFile(string exe, out string ret)
+        {
+            string verFile = Path.Combine(Path.GetDirectoryName(exe), "rbversioninfo.txt");
+            if (File.Exists(verFile))
+            {
+                var version = StringExtensions.FormatVersionString(File.ReadAllText(verFile));
+                var tmp = new Version(1, 0, 0, 0);
+                if (Version.TryParse(version, out tmp))
+                {
+                    ret = tmp.ToString();
+                    return true;
+                }
+            }
+
+            ret = null;
+            return false;
+        }
+
         private void SetVersionToVerFile(string exe, Version ver)
         {
             string verFile = Path.ChangeExtension(exe, ".ver");
@@ -354,6 +372,9 @@ namespace EmulatorLauncher
                     return null;
 
                 var versionInfo = FileVersionInfo.GetVersionInfo(exe);
+
+                if (GetVersionFromInfoFile(exe, out string fileVersion))
+                    return fileVersion;
 
                 string version = versionInfo.FileMajorPart + "." + versionInfo.FileMinorPart + "." + versionInfo.FileBuildPart + "." + versionInfo.FilePrivatePart;
                 if (version != "0.0.0.0" && !noVersionExe.Contains(shortExe))
