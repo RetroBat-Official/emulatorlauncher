@@ -22,7 +22,7 @@ namespace EmulatorLauncher.Libretro
         private static string _inputRemapSave = null;
         private Dictionary<string, string> InputRemap = new Dictionary<string, string>();
 
-        static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "superfamicom", "sattelaview", "sufami", "sgb", "sgb-msu1", "sfc" };
+        static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "snes-msu1", "superfamicom", "sattelaview", "sufami", "sgb", "sgb-msu1", "sfc" };
         static readonly List<string> systemButtonRotate = new List<string>() { "famicom", "nes", "fds", "mastersystem" };
         static readonly List<string> systemMegadrive = new List<string>() { "genesis", "genesis-msu", "megadrive", "megacd", "megadrive-msu", "sega32x", "segacd" };
         static readonly List<string> systemNES = new List<string>() { "nes", "fds", "famicom" };
