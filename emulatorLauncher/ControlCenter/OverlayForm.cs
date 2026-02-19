@@ -1,4 +1,6 @@
-﻿using System;
+﻿using EmulatorLauncher.Common;
+using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -43,17 +45,8 @@ namespace EmulatorLauncher.ControlCenter
 
             if (!ExclusiveFullScreen)
             {
-                try
-                {
-                    this.BackColor = Color.Fuchsia;
-                    this.TransparencyKey = this.BackColor;
-                    EnableFluent();
-                }
-                catch 
-                {                    
-                    this.BackColor = Color.Black;
-                    Opacity = 0.7;
-                }
+                //if (!EnableFluent())                  
+                Opacity = 0.7;
 
                 if (_background != null)
                 {
@@ -98,7 +91,9 @@ namespace EmulatorLauncher.ControlCenter
         const int WM_ERASEBKGND = 0x0014;
         const int WM_MOUSEACTIVATE = 0x0021;
         const int MA_NOACTIVATE = 3;
-        
+        const int WM_NCHITTEST = 0x84;
+        const int HTCLIENT = 1;
+
         protected override void WndProc(ref Message m)
         {
             if (m.Msg == WM_ERASEBKGND)
@@ -113,65 +108,58 @@ namespace EmulatorLauncher.ControlCenter
                 return;
             }
 
+            if (m.Msg == WM_NCHITTEST)
+            {
+                base.WndProc(ref m);
+
+                if ((int)m.Result == 0) // HTNOWHERE
+                    m.Result = (IntPtr)HTCLIENT;
+
+                return;
+            }
+
             base.WndProc(ref m);
         }
 
-        #region Fluent
-        [DllImport("user32.dll")]
-        static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct AccentPolicy
+        bool EnableFluent()
         {
-            public AccentState AccentState; // 3 = BlurBehind, 4 = Acrylic
-            public int AccentFlags;
-            public uint GradientColor; 
-            public int AnimationId;
+            if (!Misc.IsWindowsVersionAtLeast(WindowsVersion.Windows10))
+                return false;
+
+            try
+            {
+                var accent = new AccentPolicy();
+                accent.AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND;
+                accent.GradientColor = 0xC0000000;
+                accent.AccentFlags = 3;
+
+                if (Misc.IsWindowsVersionAtLeast(WindowsVersion.Windows11))
+                {
+                    accent.AccentState = AccentState.ACCENT_ENABLE_ACRYLICBLURBEHIND;
+                    accent.AccentFlags = 1;
+                }
+
+                var accentStructSize = Marshal.SizeOf(accent);
+                var accentPtr = Marshal.AllocHGlobal(accentStructSize);
+                Marshal.StructureToPtr(accent, accentPtr, false);
+
+                var data = new WindowCompositionAttributeData();
+                data.Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY;
+                data.SizeOfData = accentStructSize;
+                data.Data = accentPtr;
+
+                User32.SetWindowCompositionAttribute(this.Handle, ref data);
+
+                Marshal.FreeHGlobal(accentPtr);
+                
+                this.BackColor = Color.Fuchsia;
+                this.TransparencyKey = this.BackColor;
+
+                return true;
+            }
+            catch { }
+
+            return false;
         }
-
-        enum AccentState
-        {
-            ACCENT_DISABLED = 0,
-            ACCENT_ENABLE_GRADIENT = 1,
-            ACCENT_ENABLE_TRANSPARENTGRADIENT = 2,
-            ACCENT_ENABLE_BLURBEHIND = 3,
-            ACCENT_ENABLE_ACRYLICBLURBEHIND = 4,
-            ACCENT_INVALID_STATE = 5
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        struct WindowCompositionAttributeData
-        {
-            public WindowCompositionAttribute Attribute;
-            public IntPtr Data;
-            public int SizeOfData;
-        }
-
-        enum WindowCompositionAttribute
-        {
-            WCA_ACCENT_POLICY = 19
-        }
-
-        void EnableFluent()
-        {
-            var accent = new AccentPolicy();
-            accent.AccentState = AccentState.ACCENT_ENABLE_BLURBEHIND;
-            accent.GradientColor = 0xC0000000;
-            accent.AccentFlags = 3;
-
-            var accentStructSize = Marshal.SizeOf(accent);
-            var accentPtr = Marshal.AllocHGlobal(accentStructSize);
-            Marshal.StructureToPtr(accent, accentPtr, false);
-
-            var data = new WindowCompositionAttributeData();
-            data.Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY;
-            data.SizeOfData = accentStructSize;
-            data.Data = accentPtr;
-
-            SetWindowCompositionAttribute(this.Handle, ref data);
-
-            Marshal.FreeHGlobal(accentPtr);
-        }
-        #endregion
     }
 }

@@ -641,6 +641,13 @@ namespace EmulatorLauncher
                 }
             }
 
+            if (args.Any(a => "-testcontrolcenterui".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                var ccf = new EmulatorLauncher.ControlCenter.ControlCenterFrm();
+                Application.Run(ccf);
+                return;
+            }
+
             // Get Generator to use based on emulator or system if none found
             Generator generator = generators.Where(g => g.Key == SystemConfig["emulator"]).Select(g => g.Value()).FirstOrDefault();
             if (generator == null && !string.IsNullOrEmpty(SystemConfig["emulator"]) && SystemConfig["emulator"].StartsWith("lr-"))
@@ -653,11 +660,7 @@ namespace EmulatorLauncher
 
             // Splash video
             if (generator != null)
-            {
                 ShowSplashVideo();
-                //System.Threading.Thread.Sleep(5000);
-                //return;
-            }
 
             // Check if emulator is installed. Download & Install it if necessary. Propose update if available.
             Installer installer = Installer.GetInstaller();

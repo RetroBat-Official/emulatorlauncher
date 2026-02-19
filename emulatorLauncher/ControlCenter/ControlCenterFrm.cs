@@ -1,12 +1,13 @@
 ﻿using EmulatorLauncher.Common;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Windows.Forms;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
-using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace EmulatorLauncher.ControlCenter
 {
@@ -46,7 +47,7 @@ namespace EmulatorLauncher.ControlCenter
             this.TopMost = true;
             this.ShowInTaskbar = false;
             this.DoubleBuffered = true;
-
+ 
             label1.Text = Program.CurrentGame?.Name;
             label3.Text = Program.CurrentGame?.Description;
             label3.Font = new Font(SystemFonts.MessageBoxFont.FontFamily.Name, label3.Font.Size, FontStyle.Regular);
@@ -114,6 +115,8 @@ namespace EmulatorLauncher.ControlCenter
                 (Screen.PrimaryScreen.Bounds.Y + Screen.PrimaryScreen.Bounds.Height) / 2 - Height / 2);
 
             ReorganizeButtonLayout();
+
+            this.AddWindows11RoundCorners();
         }
 
         protected override void OnShown(EventArgs e)
@@ -297,8 +300,9 @@ namespace EmulatorLauncher.ControlCenter
 
             hWnds = hWnds.Distinct().ToList();
             if (hWnds.Any())
-                return hWnds.FirstOrDefault();        
+                return hWnds.FirstOrDefault();
 
+            return User32.GetActiveWindow();
             return IntPtr.Zero;
         }
 

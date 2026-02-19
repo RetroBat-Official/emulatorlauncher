@@ -23,7 +23,7 @@ namespace EmulatorLauncher.ControlCenter
             this.btnManual = new EmulatorLauncher.ControlCenter.ControlButton();
             this.btnKill = new EmulatorLauncher.ControlCenter.ControlButton();
             this.btnCancel = new EmulatorLauncher.ControlCenter.ControlButton();
-            this.label3 = new ScrollingLabel();
+            this.label3 = new EmulatorLauncher.ControlCenter.ScrollingLabel();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -36,7 +36,7 @@ namespace EmulatorLauncher.ControlCenter
             this.label1.Location = new System.Drawing.Point(0, 0);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(893, 36);
+            this.label1.Size = new System.Drawing.Size(893, 38);
             this.label1.TabIndex = 1;
             this.label1.Text = "Retrobat Game Control Center";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -135,6 +135,7 @@ namespace EmulatorLauncher.ControlCenter
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(375, 368);
             this.label3.TabIndex = 4;
+            this.label3.TabStop = false;
             this.label3.Text = "label3";
             // 
             // pictureBox1
