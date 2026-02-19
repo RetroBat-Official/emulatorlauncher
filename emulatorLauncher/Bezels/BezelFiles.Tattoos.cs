@@ -196,7 +196,7 @@ namespace EmulatorLauncher
         static List<string> psxSystems = new List<string>() { "psx", "ps1", "playstation" };
         static List<string> ngpSystems = new List<string>() { "ngp", "ngpc", "neogeopocket" };
         static List<string> jaguarSystems = new List<string>() { "jaguar", "jaguarcd", "atarijaguar", "atarijaguarcd" };
-        static List<string> megadriveSystems = new List<string>() { "genesis", "genesis-msu1", "megacd", "mega-cd", "megadrive", "megadrive-msu1", "sega32x", "segacd", "sega-cd" };
+        static List<string> megadriveSystems = new List<string>() { "genesis", "genesis-msu", "megacd", "mega-cd", "megadrive", "megadrive-msu", "sega32x", "segacd", "sega-cd" };
         static List<string> n64Systems = new List<string>() { "n64", "n64dd", "nintendo64" };
         static List<string> nesSystems = new List<string>() { "fds", "nes", "famicom" };
         static List<string> pceSystems = new List<string>() { "pcengine", "pcenginecd", "turbografx", "turbografxcd" };

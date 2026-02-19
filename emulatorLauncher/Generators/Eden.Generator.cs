@@ -1,4 +1,5 @@
 ﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using System;
 using System.Collections.Generic;
@@ -156,6 +157,45 @@ namespace EmulatorLauncher
                     _gamedirsIniPath = conf;
                     _gamedirsSize = gameDirsSize;
                     ini.WriteValue("UI", "Paths\\gamedirs\\size", "4");
+                }
+
+                // Set path for updates and dlc
+                string extraContentPath = Path.Combine(AppConfig.GetFullPath("roms"), "switchupdates").TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                if (!Directory.Exists(extraContentPath)) try { Directory.CreateDirectory(extraContentPath); }
+                    catch { }
+                var extraContentDirSize = ini.GetValue("UI", "Paths\\external_content_dirs\\size");
+                if (!string.IsNullOrEmpty(extraContentDirSize) && extraContentDirSize.ToInteger() > 0)
+                {
+                    bool pathDefined = false;
+                    try
+                    {
+                        for (int i = 0; i < extraContentDirSize.ToInteger(); i++)
+                        {
+                            int p = i + 1;
+                            string extraPath = ini.GetValue("UI", "Paths\\external_content_dirs\\" + p + "\\path");
+
+                            if (string.IsNullOrEmpty(extraPath))
+                                continue;
+
+                            string normalizedPath = Path.GetFullPath(extraPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+                            if (normalizedPath == extraContentPath)
+                                pathDefined = true;
+                        }
+
+                        if (!pathDefined)
+                        {
+                            int newIndex = extraContentDirSize.ToInteger() + 1;
+                            ini.WriteValue("UI", "Paths\\external_content_dirs\\" + newIndex + "\\path", extraContentPath.Replace("\\", "/"));
+                            ini.WriteValue("UI", "Paths\\external_content_dirs\\size", newIndex.ToString());
+                        }
+                    }
+                    catch { }
+                }
+                else
+                {
+                    ini.WriteValue("UI", "Paths\\external_content_dirs\\" + 1 + "\\path", extraContentPath.Replace("\\", "/"));
+                    ini.WriteValue("UI", "Paths\\external_content_dirs\\size", "1");
                 }
 
                 string screenshotpath = AppConfig.GetFullPath("screenshots").Replace("\\", "/") + "/eden";

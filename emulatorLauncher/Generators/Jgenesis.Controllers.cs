@@ -11,7 +11,7 @@ namespace EmulatorLauncher
 {
     partial class JgenesisGenerator : Generator
     {
-        private List<string> noPlayerSystem = new List<string> { "game_boy" };
+        private List<string> noPlayerSystem = new List<string> { "game_boy", "game_boy_advance" };
         private void SetupControllers(IniFileJGenesis ini, string jgenSystem)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -167,7 +167,7 @@ namespace EmulatorLauncher
                 if (noPlayerSystem.Contains(jgenSystem))
                     iniSection = "input." + jgenSystem + ".mapping_1." + kv.Key;
 
-                string inputInfo = GetInputInfo(ctrl, kv.Value);
+                string inputInfo = GetInputInfo(ctrl, kv.Value, isXInput);
                 if (inputInfo == null)
                     continue;
 
@@ -179,13 +179,13 @@ namespace EmulatorLauncher
             if (jgenSystem == "smsgg" && playerIndex == 1)
             {
                 string iniSection = "[[input.smsgg.mapping_1.pause]]";
-                    string inputInfo = GetInputInfo(ctrl, InputKey.start);
-                    if (inputInfo != null)
-                    {
-                        ini.WriteValue(iniSection, "type", "\"" + "Gamepad" + "\"");
-                        ini.WriteValue(iniSection, "gamepad_idx", index.ToString());
-                        ini.WriteValue(iniSection, "action", "\"" + inputInfo + "\"");
-                    }
+                string inputInfo = GetInputInfo(ctrl, InputKey.start, isXInput);
+                if (inputInfo != null)
+                {
+                    ini.WriteValue(iniSection, "type", "\"" + "Gamepad" + "\"");
+                    ini.WriteValue(iniSection, "gamepad_idx", index.ToString());
+                    ini.WriteValue(iniSection, "action", "\"" + inputInfo + "\"");
+                }
             }
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
@@ -308,6 +308,7 @@ namespace EmulatorLauncher
             { "smsgg", 2 },
             { "genesis", 2 },
             { "game_boy", 1 },
+            { "game_boy_advance", 1 },
             { "nes", 2 },
             { "snes", 2 }
         };
@@ -378,6 +379,20 @@ namespace EmulatorLauncher
             { "select", InputKey.select }
         };
 
+        static readonly Dictionary<string, InputKey> gbaMapping = new Dictionary<string, InputKey>()
+        {
+            { "joypad.up", InputKey.up },
+            { "joypad.left", InputKey.left },
+            { "joypad.right", InputKey.right },
+            { "joypad.down", InputKey.down },
+            { "joypad.a", InputKey.b },
+            { "joypad.b", InputKey.a },
+            { "joypad.l", InputKey.pageup },
+            { "joypad.r", InputKey.pagedown },
+            { "joypad.start", InputKey.start },
+            { "joypad.select", InputKey.select }
+        };
+
         static readonly Dictionary<string, string> defaultHotkeys = new Dictionary<string, string>()
         {
             { "exit", "Escape" },
@@ -395,7 +410,36 @@ namespace EmulatorLauncher
             { "open_debugger", "F11" }
         };
 
-        private string GetInputInfo(Controller c, InputKey key)
+        private string GetInputInfo(Controller c, InputKey key, bool isXInput)
+        {
+            switch (key)
+            {
+                case InputKey.a: return "Button 0";
+                case InputKey.b: return "Button 1";
+                case InputKey.x: return "Button 3";
+                case InputKey.y: return "Button 2";
+                case InputKey.start: return isXInput ? "Button 7" : "Button 6";
+                case InputKey.select: return isXInput ? "Button 6" : "Button 4";
+                case InputKey.pageup: return isXInput ? "Button 4" : "Button 9";
+                case InputKey.pagedown: return isXInput ? "Button 5" : "Button 10";
+                case InputKey.up: return "Hat 0 Up";
+                case InputKey.down: return "Hat 0 Down";
+                case InputKey.left: return "Hat 0 Left";
+                case InputKey.right: return "Hat 0 Right";
+                case InputKey.l2: return "Axis 4 -";
+                case InputKey.r2: return "Axis 5 -";
+                case InputKey.l3: return isXInput ? "Button 8" : "Button 7";
+                case InputKey.r3: return isXInput ? "Button 9" : "Button 8";
+                case InputKey.leftanalogup: return "Axis 1 -";
+                case InputKey.leftanalogdown: return "Axis 1 +";
+                case InputKey.leftanalogleft: return "Axis 0 -";
+                case InputKey.leftanalogright: return "Axis 0 +";
+            }
+
+            return null;
+        }
+
+        private string GetInputInfoOld(Controller c, InputKey key)
         {
             Int64 pid;
             Int64 pvalue;

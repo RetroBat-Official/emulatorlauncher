@@ -900,6 +900,16 @@ namespace EmulatorLauncher
                         ini.Remove(gcpad, "Swing/Right");
                         ini.Remove(gcpad, "Swing/Up");
                         ini.Remove(gcpad, "Swing/Left");
+
+                        if (Program.SystemConfig.isOptSet("wii_motion_deadzone") && !string.IsNullOrEmpty(Program.SystemConfig["wii_motion_deadzone"]))
+                        {
+                            string value = Program.SystemConfig["wii_motion_deadzone"].ToCleanDecimalString();
+                            if (!value.Contains('.'))
+                                value += ".0";
+                            ini.WriteValue(gcpad, "IMUGyroscope/Dead Zone", value);
+                        }
+                        else
+                            ini.Remove(gcpad, "IMUGyroscope/Dead Zone");
                     }
 
                     // Hide wiimote cursor
