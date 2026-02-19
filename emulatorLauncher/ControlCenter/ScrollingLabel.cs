@@ -141,21 +141,37 @@ namespace EmulatorLauncher.ControlCenter
         private void DrawJustifiedText(Graphics g)
         {
             float y = 0;
-            foreach (var words in WrapWords(g))
+
+            var lines = new List<string[]>(WrapWords(g));
+            int lastIndex = lines.Count - 1;
+
+            for (int i = 0; i < lines.Count; i++)
             {
+                var words = lines[i];
+
                 float lineWidth = 0;
                 foreach (var w in words)
                     lineWidth += g.MeasureString(w, Font).Width;
 
-                float space = words.Length > 1
-                    ? (ClientSize.Width - lineWidth) / (words.Length - 1)
-                    : 0;
-
                 float x = 0;
-                foreach (var w in words)
+
+                if (i != lastIndex && words.Length > 1)
                 {
-                    g.DrawString(w, Font, new SolidBrush(ForeColor), x, y);
-                    x += g.MeasureString(w, Font).Width + space;
+                    float space = (ClientSize.Width - lineWidth) / (words.Length - 1);
+
+                    foreach (var w in words)
+                    {
+                        g.DrawString(w, Font, new SolidBrush(ForeColor), x, y);
+                        x += g.MeasureString(w, Font).Width + space;
+                    }
+                }
+                else
+                {
+                    foreach (var w in words)
+                    {
+                        g.DrawString(w, Font, new SolidBrush(ForeColor), x, y);
+                        x += g.MeasureString(w + " ", Font).Width;
+                    }
                 }
 
                 y += Font.GetHeight(g);

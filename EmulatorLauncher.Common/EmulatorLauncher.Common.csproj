@@ -84,6 +84,7 @@
     <Compile Include="Compression\SevenZip\SevenZipInterface.cs" />
     <Compile Include="Compression\Wrappers\SquashFsArchive.cs" />
     <Compile Include="Compression\Zip.cs" />
+    <Compile Include="DWM.cs" />
     <Compile Include="EmulationStation\EmulationStationServices.cs" />
     <Compile Include="EmulationStation\EsFeatures.cs" />
     <Compile Include="EmulationStation\EsGameList.cs" />
