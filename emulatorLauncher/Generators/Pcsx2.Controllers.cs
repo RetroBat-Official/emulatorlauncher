@@ -17,6 +17,7 @@ namespace EmulatorLauncher
         private bool _forceDInput = false;
         private bool _multitap = false;
         private bool _dolphinbar = false;
+        private int _specialControllerIndex = 1;
         private List<Sdl3GameController> _sdl3Controllers = new List<Sdl3GameController>();
 
         /// <summary>
@@ -694,6 +695,36 @@ namespace EmulatorLauncher
                 }
             }
 
+            if (SetupGuitar(pcsx2ini, ctrl, out var guitarMappingDic, out Guitar guitar))
+            {
+                if (!string.IsNullOrEmpty(guitar.Driver))
+                {
+                    SimpleLogger.Instance.Info("[INFO] Guitar tech : " + guitar.Driver);
+                    switch (guitar.Driver)
+                    {
+                        case "dinput":
+                            techPadNumber = "DInput-" + guitar.DinputIndex + "/";
+                            break;
+                        case "sdl":
+                            techPadNumber = "SDL-" + sdl3index + "/";
+                            break;
+                        case "xinput":
+                            techPadNumber = "XInput-" + guitar.XInputIndex + "/";
+                            break;
+                    }
+                }
+                
+                string newPadNumber = "Pad" + _specialControllerIndex;
+                
+                pcsx2ini.WriteValue(newPadNumber, "Type", "Guitar");
+
+                foreach (var mapping in guitarMappingDic)
+                {
+                    pcsx2ini.WriteValue(newPadNumber, mapping.Key, techPadNumber + mapping.Value);
+                }
+                _specialControllerIndex++;
+            }
+
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
@@ -1139,6 +1170,100 @@ namespace EmulatorLauncher
             return "None";
         }
 
+        private bool SetupGuitar(IniFile pcsx2ini, Controller c, out Dictionary<string, string> guitarMappingDic, out Guitar usableGuitar)
+        {
+            guitarMappingDic = new Dictionary<string, string>();
+            usableGuitar = null;
+
+            if (!SystemConfig.getOptBoolean("use_guitar"))
+                return false;
+
+            var guitarModel = Guitar.GetGuitarType(c.DevicePath.ToUpperInvariant());
+
+            if (guitarModel != GuitarType.Default)
+                usableGuitar = new Guitar()
+                {
+                    Name = c.Name,
+                    VendorID = c.VendorID.ToString(),
+                    ProductID = c.ProductID.ToString(),
+                    DevicePath = c.DevicePath.ToLowerInvariant(),
+                    DinputIndex = c.DirectInput != null ? c.DirectInput.DeviceIndex : c.DeviceIndex,
+                    SDLIndex = c.SdlController != null ? c.SdlController.Index : c.DeviceIndex,
+                    XInputIndex = c.XInput != null ? c.XInput.DeviceIndex : c.DeviceIndex,
+                    ControllerIndex = c.DeviceIndex,
+                    Type = guitarModel
+                };
+
+            string guitarFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "guitars", "pcsx2_guitars.yml");
+
+            if (!File.Exists(guitarFile))
+            {
+                SimpleLogger.Instance.Info("[GUITAR] Mapping file for PCSX2 does not exist.");
+                return false;
+            }
+
+            YmlFile ymlFile = YmlFile.Load(guitarFile);
+
+            if (ymlFile.Elements.Count == 0)
+            {
+                SimpleLogger.Instance.Info("[GUITAR] Guitar mapping yml file is empty.");
+                return false;
+            }
+
+            var ymlDict = ymlFile.Elements
+                    .OfType<YmlContainer>()
+                    .ToDictionary(e => e.Name.ToLowerInvariant(), e => e);
+
+            string cGuid = c.Guid.ToString().ToLowerInvariant();
+
+            if (ymlDict.TryGetValue(guitarModel.ToString().ToLowerInvariant(), out var guitarMapping))
+            {
+                SimpleLogger.Instance.Info("[GUITAR] Found guitar mapping for controller " + c.Guid + " : " + guitarModel.ToString());
+
+                string iniSection = "Pad" + c.PlayerIndex;
+
+                if (guitarMapping == null || guitarMapping.Elements.Count == 0)
+                    return false;
+
+                foreach (var mapEntry in guitarMapping.Elements)
+                {
+                    if (mapEntry is YmlElement mapLine)
+                    {
+                        if (string.IsNullOrWhiteSpace(mapLine.Value) || mapLine.Value.Trim().ToLowerInvariant() == "nul")
+                            continue;
+
+                        if (mapLine.Name == "inputdriver")
+                        {
+                            switch (mapLine.Value?.Trim().ToLowerInvariant())
+                            {
+                                case "sdl":
+                                    pcsx2ini.WriteValue("InputSources", "SDL", "true");
+                                    usableGuitar.Driver = "sdl";
+                                    break;
+                                case "dinput":
+                                    pcsx2ini.WriteValue("InputSources", "DInput", "true");
+                                    usableGuitar.Driver = "dinput";
+                                    break;
+                                case "xinput":
+                                    pcsx2ini.WriteValue("InputSources", "XInput", "true");
+                                    usableGuitar.Driver = "xinput";
+                                    break;
+                            }
+
+                            continue;
+                        }
+
+                        string key = mapLine.Name;
+                        string value = mapLine.Value;
+                        guitarMappingDic[key] = value;
+                    }
+                }
+                return true;
+            }
+
+            return false;
+        }
+
         /*static readonly Dictionary<int, int> multitapPadNb = new Dictionary<int, int>()
         {
             { 1, 1 },
@@ -1150,5 +1275,5 @@ namespace EmulatorLauncher
             { 7, 7 },
             { 8, 8 },
         };*/
-    }
+        }
 }
