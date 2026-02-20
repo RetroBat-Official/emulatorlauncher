@@ -89,6 +89,7 @@ namespace EmulatorLauncher
             { "fpinball", () => new FpinballGenerator() },
             { "gemrb", () => new GemRBGenerator() },
             { "gopher64", () => new Gopher64Generator() },
+            { "groovymame", () => new Mame64Generator() },
             { "gsplus", () => new GsPlusGenerator() },
             { "gzdoom", () => new GZDoomGenerator() },
             { "hatari", () => new HatariGenerator() },

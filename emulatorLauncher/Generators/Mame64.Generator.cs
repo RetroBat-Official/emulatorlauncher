@@ -1,4 +1,5 @@
-﻿using EmulatorLauncher.Common;
+﻿using EmulatorLauncher;
+using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ namespace EmulatorLauncher
         private bool _multigun = false;
         private bool _mouseGun = false;
         private bool _separatecfg = false;
+        private bool _groovy = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -38,7 +40,9 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Error($"[ERROR] Failed to stop existing MameHooker: {ex.Message}");
             }
 
-            bool hbmame = system == "hbmame";
+            bool hbmame = emulator == "hbmame";
+            _groovy = emulator == "groovymame";
+
             _separatecfg = SystemConfig.getOptBoolean("mame_separate_cfg");
 
             // Get MAME executable path
@@ -75,6 +79,10 @@ namespace EmulatorLauncher
                 if (!mamehookStarted)
                     SimpleLogger.Instance.Warning("[WARNING] Failed to start MameHooker, continuing without it");
             }
+
+            // For GroovyMAME, do not put default bezel
+            if (_groovy && !SystemConfig.isOptSet("bezel"))
+                SystemConfig["bezel"] = "none";
 
             // Then configure MAME
             ConfigureBezels(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "artwork"), system, rom, resolution, emulator);
@@ -216,7 +224,7 @@ namespace EmulatorLauncher
         {
             var retList = new List<string>();
 
-            if (SystemConfig.isOptSet("noread_ini") && SystemConfig.getOptBoolean("noread_ini"))
+            if (!_groovy && SystemConfig.isOptSet("noread_ini") && SystemConfig.getOptBoolean("noread_ini"))
                 retList.Add("-norc");
 
             string sstatePath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "states");
@@ -274,34 +282,47 @@ namespace EmulatorLauncher
             // Video driver
             retList.Add("-video");
             if (SystemConfig.isOptSet("mame_video_driver") && !string.IsNullOrEmpty(SystemConfig["mame_video_driver"]))
-                retList.Add(SystemConfig["mame_video_driver"]);
+            {
+                if (_groovy && (SystemConfig["mame_video_driver"] == "gdi" || SystemConfig["mame_video_driver"] == "bgfx"))
+                    retList.Add("d3d");
+                else
+                    retList.Add(SystemConfig["mame_video_driver"]);
+            }
             else
                 retList.Add("d3d");
 
             // Resolution
-            if (resolution != null)
+            if (_groovy)
             {
-                if (SystemConfig["mame_video_driver"] != "gdi" && SystemConfig["mame_video_driver"] != "bgfx")
-                    retList.Add("-switchres");
-
-                retList.Add("-resolution");
-                retList.Add(resolution.Width+"x"+resolution.Height+"@"+resolution.DisplayFrequency);
-            }
-            else 
-            {                
-                retList.Add("-resolution");
-                retList.Add("auto");
-            }
-
-            // Aspect ratio
-            if (SystemConfig.isOptSet("mame_ratio") && SystemConfig["mame_ratio"] == "stretch")
-            {
-                    retList.Add("-noka");
+                retList.Add("-switchres");
             }
             else
             {
-                retList.Add("-aspect");
-                retList.Add("auto");
+
+                if (resolution != null)
+                {
+                    if (SystemConfig["mame_video_driver"] != "gdi" && SystemConfig["mame_video_driver"] != "bgfx")
+                        retList.Add("-switchres");
+
+                    retList.Add("-resolution");
+                    retList.Add(resolution.Width + "x" + resolution.Height + "@" + resolution.DisplayFrequency);
+                }
+                else
+                {
+                    retList.Add("-resolution");
+                    retList.Add("auto");
+                }
+
+                // Aspect ratio
+                if (SystemConfig.isOptSet("mame_ratio") && SystemConfig["mame_ratio"] == "stretch")
+                {
+                    retList.Add("-noka");
+                }
+                else
+                {
+                    retList.Add("-aspect");
+                    retList.Add("auto");
+                }
             }
             
             // Monitor index
@@ -321,34 +342,37 @@ namespace EmulatorLauncher
                 retList.Add("-tb");
 
             if ((!SystemConfig.isOptSet("vsync") || SystemConfig.getOptBoolean("vsync")) && SystemConfig["mame_video_driver"] != "gdi")
-                retList.Add("-waitvsync");
+                retList.Add(_groovy ? "-syncrefresh" : "-waitvsync");
 
             /// Effects and shaders
             /// Currently support: BGFX, OpenGL (GLSL) or simple effects
-            
+
             // BGFX Shaders (only for bgfx driver)
-            if (SystemConfig.isOptSet("bgfxshaders") && !string.IsNullOrEmpty(SystemConfig["bgfxshaders"]) && (SystemConfig["mame_video_driver"] == "bgfx"))
+            if (!_groovy)
             {
-                if (SystemConfig.isOptSet("bgfxbackend")  && !string.IsNullOrEmpty(SystemConfig["bgfxbackend"]))
-                { 
-                    retList.Add("-bgfx_backend");
-                    retList.Add(SystemConfig["bgfxbackend"]);
+                if (SystemConfig.isOptSet("bgfxshaders") && !string.IsNullOrEmpty(SystemConfig["bgfxshaders"]) && (SystemConfig["mame_video_driver"] == "bgfx"))
+                {
+                    if (SystemConfig.isOptSet("bgfxbackend") && !string.IsNullOrEmpty(SystemConfig["bgfxbackend"]))
+                    {
+                        retList.Add("-bgfx_backend");
+                        retList.Add(SystemConfig["bgfxbackend"]);
+                    }
+
+                    retList.Add("-bgfx_screen_chains");
+                    retList.Add(SystemConfig["bgfxshaders"]);
                 }
 
-                retList.Add("-bgfx_screen_chains");
-                retList.Add(SystemConfig["bgfxshaders"]);
-            }
+                else if (SystemConfig.isOptSet("glslshaders") && !string.IsNullOrEmpty(SystemConfig["glslshaders"]) && (SystemConfig["mame_video_driver"] == "opengl"))
+                {
+                    retList.Add("-gl_glsl");
+                    retList.AddRange(Getglslshaderchain());
+                }
 
-            else if (SystemConfig.isOptSet("glslshaders") && !string.IsNullOrEmpty(SystemConfig["glslshaders"]) && (SystemConfig["mame_video_driver"] == "opengl"))
-            {
-                retList.Add("-gl_glsl");
-                retList.AddRange(Getglslshaderchain());
-            }
-
-            else if (SystemConfig.isOptSet("effect") && !string.IsNullOrEmpty(SystemConfig["effect"]))
-            {
-                retList.Add("-effect");
-                retList.Add(SystemConfig["effect"]);
+                else if (SystemConfig.isOptSet("effect") && !string.IsNullOrEmpty(SystemConfig["effect"]))
+                {
+                    retList.Add("-effect");
+                    retList.Add(SystemConfig["effect"]);
+                }
             }
 
             // Adjust gamma, brightness and contrast
@@ -645,7 +669,28 @@ namespace EmulatorLauncher
                 ini["output"] = SystemConfig["mame_output"];
             else
                 ini["output"] = "auto";
-            
+
+            if (_groovy)
+            {
+                GroovyMameProfile.GroovyProfileType type = GroovyMameProfile.GroovyProfileType.LCD_ARCADE;
+
+                if (SystemConfig.isOptSet("groovy_profile") && !string.IsNullOrEmpty(SystemConfig["groovy_profile"]))
+                {
+                    string profile = SystemConfig["groovy_profile"].ToLowerInvariant();
+                    if (!Enum.TryParse(profile, true, out type))
+                    {
+                        SimpleLogger.Instance.Warning("[GROOVYMAME] Invalid GroovyMame profile specified: " + profile);
+                        type = GroovyMameProfile.GroovyProfileType.LCD_ARCADE;
+                    }
+
+                    foreach (var item in GroovyMameProfile.GroovyTypes)
+                    {
+                        if (item.GetValue(type) != null)
+                            ini[item.Name] = item.GetValue(type);
+                    }
+                }
+            }
+
             ini.Save();
 
             // Plugin.ini
@@ -773,6 +818,57 @@ namespace EmulatorLauncher
             }
 
             base.Cleanup();
+        }
+
+        class GroovyMameProfile
+        {
+            private readonly string[] _values;
+
+            public GroovyMameProfile(string name, params string[] values)
+            {
+                Name = name;
+
+                int expected = Enum.GetValues(typeof(GroovyProfileType)).Length;
+
+                if (values.Length != expected)
+                    SimpleLogger.Instance.Error("[GROOVYMAME] Invalid number of values for profile " + name + ", expected " + expected + " but got " + values.Length);
+
+                _values = values;
+            }
+
+            public string Name { get; }
+
+            public string GetValue(GroovyProfileType type)
+            {
+                return _values[(int)type];
+            }
+
+            public enum GroovyProfileType
+            {
+                CRT_TV_15,
+                CRT_ARCADE_15,
+                CRT_ARCADE_25,
+                CRT_ARCADE_31,
+                CRT_15_25,
+                CRT_15_25_31,
+                CRT_31_120,
+                PVM_BVM,
+                CRT_TV_PAL,
+                LCD_ARCADE
+            }
+
+            public static GroovyMameProfile[] GroovyTypes = new GroovyMameProfile[]
+            {
+                new GroovyMameProfile("monitor", "generic_15", "arcade_15", "arcade_25", "arcade_31", "arcade_15_25", "arcade_15_25_31", "pc_31_120", "ntsc", "pal", "lcd"),
+                new GroovyMameProfile("aspect", "4:3", "4:3", "4:3", "4:3", "4:3", "4:3", "4:3", "4:3", "4:3", "16:9"),
+                new GroovyMameProfile("super_width", "2560", "2560", "2560", "1920", "2560", "2560", "1920", "2560", "2560", "1920"),
+                new GroovyMameProfile("modeline_generation", "1", "1", "1", "1", "1", "1", "1", "1", "1", "0"),
+                new GroovyMameProfile("scale_proportional", "0", "0", "0", "1", "0", "0", "1", "0", "0", "1"),
+                new GroovyMameProfile("sync_refresh_tolerance", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0"),
+                new GroovyMameProfile("lock_unsupported_modes", "1", "1", "1", "1", "1", "1", "1", "1", "1", "0"),
+                new GroovyMameProfile("interlace", "1", "0", "0", "0", "0", "0", "0", "1", "1", "0"),
+                new GroovyMameProfile("lcd_range", null, null, null, null, null, null, null, null, null, "auto")
+            };
         }
     }
 
