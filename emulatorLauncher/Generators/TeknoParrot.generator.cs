@@ -109,6 +109,7 @@ namespace EmulatorLauncher
             { "MeltyBloodRE2",                   @"Melty Blood AACC\Game\MBAA_RWMasterBuild.exe" },
             { "MKDX",                            @"Mario kart dx\MK_AGP3_FINAL.exe" },
             { "MS",                              @"Sonic Storm aka Mach Storm\src\game\ACE7_WIN\ACE7_WIN_10.exe" },
+            { "OffroadThunder",                  @"Offroad Thunder\offroad3_x64.exe" },
             { "OG",                              @"Operation G.H.O.S.T\gs2.exe" },
             { "or2spdlx",                        @"Outrun 2 SP SDX\Jennifer\Jennifer" },
             { "Persona4U",                       @"Persona 4 - The Ultimax Ultra Suplex Hold\game.exe" },
@@ -320,11 +321,6 @@ namespace EmulatorLauncher
 
                     if (userProfile.GamePath == null && profile.GamePath != null)
                         userProfile.GamePath = profile.GamePath;
-                    else
-                    {
-                        SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable to find Game executable for " + rom);
-                        return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to find game executable" };
-                    }
                 }
             }
 

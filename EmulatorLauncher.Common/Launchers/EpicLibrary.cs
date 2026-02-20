@@ -31,14 +31,33 @@ namespace EmulatorLauncher.Common.Launchers
 
                 if (Directory.Exists(manifestPath))
                 {
+                    
                     foreach (var manifest in GetInstalledManifests())
                     {
-                        if (shorturl.Equals(manifest.AppName))
+                        string searchstring = manifest.CatalogNamespace + manifest.CatalogItemId + manifest.AppName;
+                        string Mainsearchstring = manifest.CatalogNamespace + manifest.CatalogItemId + manifest.AppName;
+
+                        if (!string.IsNullOrEmpty(searchstring) && shorturl.Equals(searchstring))
                         {
                             gameExecutable = manifest.LaunchExecutable;
                             break;
                         }
-                        else if (shorturl.Equals(manifest.MainGameAppName))
+                        else if (shorturl.StartsWith(manifest.CatalogNamespace) && shorturl.EndsWith(manifest.AppName))
+                        {
+                            gameExecutable = manifest.LaunchExecutable;
+                            break;
+                        }
+                        else if (shorturl.EndsWith(manifest.AppName))
+                        {
+                            gameExecutable = manifest.LaunchExecutable;
+                            break;
+                        }
+                        else if (!string.IsNullOrEmpty(searchstring) && shorturl.Equals(Mainsearchstring))
+                        {
+                            gameExecutable = manifest.LaunchExecutable;
+                            break;
+                        }
+                        else if (shorturl.EndsWith(manifest.MainGameAppName))
                         {
                             gameExecutable = manifest.LaunchExecutable;
                             break;
@@ -206,10 +225,13 @@ namespace EmulatorLauncher.Common.Launchers.Epic
     public class EpicGame
     {
         [DataMember]
-        public string AppName { get; set; }
+        public string AppName { get; set; } = "";
 
         [DataMember]
-        public string CatalogNamespace { get; set; }
+        public string CatalogNamespace { get; set; } = "";
+
+        [DataMember]
+        public string CatalogItemId { get; set; } = "";
 
         [DataMember]
         public string LaunchExecutable { get; set; }
@@ -218,7 +240,13 @@ namespace EmulatorLauncher.Common.Launchers.Epic
         public string InstallLocation;
 
         [DataMember]
-        public string MainGameAppName;
+        public string MainGameCatalogNamespace = "";
+
+        [DataMember]
+        public string MainGameAppName = "";
+
+        [DataMember]
+        public string MainGameCatalogItemId = "";
 
         [DataMember]
         public string DisplayName;
