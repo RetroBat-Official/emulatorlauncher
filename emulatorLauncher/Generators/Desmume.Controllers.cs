@@ -112,7 +112,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("Controls", "Left", GetDInputKeyName(controller, "leftx", index, false));
                     ini.WriteValue("Controls", "Right", GetDInputKeyName(controller, "leftx", index, true));
                     ini.WriteValue("Controls", "Up", GetDInputKeyName(controller, "lefty", index, false));
-                    ini.WriteValue("Controls", "Down", GetDInputKeyName(controller, "leftx", index, true));
+                    ini.WriteValue("Controls", "Down", GetDInputKeyName(controller, "lefty", index, true));
                 }
                 else
                 {
