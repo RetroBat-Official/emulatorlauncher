@@ -1,15 +1,25 @@
 ﻿using System;
-using System.Linq;
-using System.Drawing;
-using System.Diagnostics;
-using System.Net;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Linq;
 using System.Management;
+using System.Net;
 
 namespace EmulatorLauncher.Common
 {
     public static class Misc
     {
+        public static void AddWindows11RoundCorners(this System.Windows.Forms.Form form)
+        {
+            if (form != null && form.IsHandleCreated && IsWindowsVersionAtLeast(WindowsVersion.Windows11))
+            {
+                int preference = (int)DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
+                DWM.DwmSetWindowAttribute(form.Handle, DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE, ref preference, sizeof(int));
+            }
+        }
+
         /// <summary>
         /// Detects if WiimoteGun is running in gamepad mode
         /// </summary>
@@ -42,17 +52,67 @@ namespace EmulatorLauncher.Common
             }
         }
 
-        public static bool IsWindowsEightOrTen
+        public static bool IsWindowsEightOrTen { get { return IsWindowsVersionAtLeast(WindowsVersion.Windows8); } }
+        public static bool IsWindowsVersionAtLeast(WindowsVersion version) { return (int)WindowsVersion >= (int)version; }
+
+        private static WindowsVersion? _windowsVersion;
+
+        public static WindowsVersion WindowsVersion
         {
             get
             {
-                if (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 2)
-                    return true;
+                if (!_windowsVersion.HasValue)
+                {
+                    int majorVersion = Environment.OSVersion.Version.Major;
+                    int minorVersion = Environment.OSVersion.Version.Minor;
 
-                if (Environment.OSVersion.Version.Major >= 7)
-                    return true;
+                    if (majorVersion == 10 && minorVersion == 0)
+                        _windowsVersion = WindowsVersion.Windows10;
+                    else if (majorVersion == 10)
+                        _windowsVersion = WindowsVersion.Windows11;
+                    else if (majorVersion == 6)
+                    {
+                        if (minorVersion == 0)
+                            _windowsVersion = WindowsVersion.WindowsVista;
+                        else if (minorVersion == 1)
+                            _windowsVersion = WindowsVersion.Windows7;
+                        else
+                        {
+                            var ver = FileVersionInfo.GetVersionInfo(Path.Combine(Environment.SystemDirectory, "kernel32.dll"));
 
-                return false;
+                            if (ver.ProductMajorPart >= 11)
+                                _windowsVersion = WindowsVersion.Windows11;
+                            else if (ver.ProductMajorPart >= 10 && ver.ProductBuildPart >= 22000)
+                                _windowsVersion = WindowsVersion.Windows11;
+                            else if (ver.ProductMajorPart == 10)
+                                _windowsVersion = WindowsVersion.Windows10;
+                            else if (minorVersion == 3)
+                                _windowsVersion = WindowsVersion.Windows81;
+                            else
+                                _windowsVersion = WindowsVersion.Windows8;
+                        }
+                    }
+                    else if (majorVersion == 3)
+                        _windowsVersion = WindowsVersion.Windows95;
+                    else if (majorVersion == 4)
+                        _windowsVersion = WindowsVersion.Windows98;
+                    else if (majorVersion == 5)
+                    {
+                        switch (minorVersion)
+                        {
+                            case 0:
+                                return WindowsVersion.Windows2000;
+                            case 1:
+                                return WindowsVersion.WindowsXP;
+                            case 2:
+                                return WindowsVersion.WindowsXP;
+                        }
+                    }
+                    else
+                        _windowsVersion = WindowsVersion.WindowsXP;
+                }
+
+                return _windowsVersion.Value;
             }
         }
 
@@ -251,6 +311,19 @@ namespace EmulatorLauncher.Common
     }
 
 
-
-
+    public enum WindowsVersion : int
+    {
+        Unknown = 0,
+        Windows95 = 1,
+        Windows98 = 2,
+        WindowsMe = 3,
+        Windows2000 = 4,
+        WindowsXP = 5,
+        WindowsVista = 6,
+        Windows7 = 7,
+        Windows8 = 8,
+        Windows81 = 9,
+        Windows10 = 10,
+        Windows11 = 11
+    }
 }
