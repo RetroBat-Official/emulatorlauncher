@@ -48,6 +48,7 @@ namespace TeknoParrotUi.Common
         public bool RequiresAdmin { get; set; }
         public int msysType { get; set; }
         public bool InvertedMouseAxis { get; set; }
+        public bool HasTpoSupport { get; set; }
         public bool GunGame { get; set; }
         public bool DevOnly { get; set; }
         public string ExecutableName { get; set; }
@@ -56,6 +57,7 @@ namespace TeknoParrotUi.Common
         public bool LaunchSecondExecutableFirst { get; set; }
         public string SecondExecutableArguments { get; set; }
         public string GamePath2 { get; set; }
+        public bool UseRemoteThread { get; set; }
         // advanced users only!
         public string CustomArguments { get; set; }
         public short xAxisMin { get; set; }
