@@ -2,10 +2,12 @@
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.PadToKeyboard;
+using SharpDX;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Security.Policy;
 using System.Text.RegularExpressions;
@@ -22,13 +24,13 @@ namespace EmulatorLauncher
         }
 
         private string _systemName;
-        private string _exename = null;
-        private bool _isGameExePath;
-        private bool _steamRun = false;
-        private bool _gameExeFile; // When exe is specified in a .gameexe file
-        private bool _nonSteam = false;
-        private bool _batfile = false;
-        private bool _batfileNoWait = false;
+        private string _exename = null;         // variable used for EL to track the game process
+        private bool _isGameExePath = false;    // true if the target of a link or the the .game file points to an existing executable
+        private bool _steamRun = false;         // true when Steam URL is detected, to add -silent argument
+        private bool _gameExeFile = false;      // true if the process name was specified in the .gameexe file, to avoid override of the process name
+        private bool _nonSteam = false;         // true when Steam executable name was catched in icon file
+        private bool _batfile = false;          // true if extension is .bet or .cmd
+        private bool _batfileNoWait = false;    // true if executable is found in .bat file (and feature to search for exe in .bat is not disabled)
 
         private GameLauncher _gameLauncher;
 
@@ -46,284 +48,65 @@ namespace EmulatorLauncher
             if (Path.GetExtension(rom).ToLower() == ".wsquashfs")
                 _gameExeFile = GetProcessFromFile(rom);
 
-            rom = this.TryUnZipGameIfNeeded(system, rom);
-
             _systemName = system.ToLowerInvariant();
 
+            rom = this.TryUnZipGameIfNeeded(system, rom);
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
             string path = Path.GetDirectoryName(rom);
             string arguments = null;
-            _isGameExePath = false;
-            _gameExeFile = false;
             string extension = Path.GetExtension(rom);
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
-
+            // Manage link files
             if (extension == ".lnk")
             {
-                SimpleLogger.Instance.Info("[INFO] link file, searching for target.");
-                string target = FileTools.GetShortcutTargetwsh(rom);
-                arguments = FileTools.GetShortcutArgswsh(rom);
+                var result = HandlelinkFile(rom);
 
-                string exeName = Path.GetFileNameWithoutExtension(target);
-                if (exeName.Equals("GalaxyClient", StringComparison.OrdinalIgnoreCase))
-                {
-                    var match = Regex.Match(arguments, @"/gameId=(\d+)");
-                    if (match.Success)
-                    {
-                        string gameId = match.Groups[1].Value;
-                        var uri = new Uri($"goggalaxy:{gameId}");
-
-                        if (launchers.TryGetValue(uri.Scheme, out Func<Uri, GameLauncher> gameLauncherInstanceBuilder))
-                        {
-                            _gameLauncher = gameLauncherInstanceBuilder(uri);
-                            goto GOGBYPASS;
-                        }
-                    }
-                }
-
-                if (target != "" && target != null)
-                {
-                    _isGameExePath = File.Exists(target);
-                    
-                    if (_isGameExePath)
-                        SimpleLogger.Instance.Info("[INFO] Link target file found.");
-
-                    _gameExeFile = GetProcessFromFile(rom);
-                }
-
-                // if the target is not found in the link, see if a .gameexe file or a .uwp file exists
-                else
-                {
-                    // First case : user has directly specified the executable name in a .gameexe file
-                    _gameExeFile = GetProcessFromFile(rom);
-
-                    // Second case : user has specified the UWP app name in a .uwp file
-                    string uwpexecutableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".uwp");
-                    if (File.Exists(uwpexecutableFile) && !_gameExeFile)
-                    {
-                        var romLines = File.ReadAllLines(uwpexecutableFile);
-                        if (romLines.Length > 0)
-                        {
-                            string uwpAppName = romLines[0];
-                            int line = -1;
-                            var fileStream = GetStoreAppInfo(uwpAppName);
-
-                            if (fileStream != null && fileStream != "")
-                            {
-                                string[] lines = fileStream.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
-                                int m;
-                                for (m = 0; m < lines.Count(); m++)
-                                {
-                                    if (lines[m].Contains("InstallLocation"))
-                                    {
-                                        line = m + 2;
-                                    }
-                                }
-                                string installLocation = lines[line];
-
-                                if (Directory.Exists(installLocation))
-                                {
-                                    string appManifest = Path.Combine(installLocation, "AppxManifest.xml");
-
-                                    if (File.Exists(appManifest))
-                                    {
-                                        XDocument doc = XDocument.Load(appManifest);
-                                        XElement applicationElement = doc.Descendants().Where(x => x.Name.LocalName == "Application").FirstOrDefault();
-                                        if (applicationElement != null)
-                                        {
-                                            string exePath = applicationElement.Attribute("Executable").Value;
-                                            if (exePath != null)
-                                            {
-                                                _exename = Path.GetFileNameWithoutExtension(exePath);
-                                                _gameExeFile = true;
-                                                SimpleLogger.Instance.Info("[INFO] Executable name found for UWP app: " + _exename);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    else if (!_gameExeFile)
-                        SimpleLogger.Instance.Info("[INFO] Impossible to find executable name, using rom file name.");
-                }
-
-                if (_isGameExePath)
-                {
-                    rom = target;
-                    path = Path.GetDirectoryName(target);
-
-                    SimpleLogger.Instance.Info("[INFO] New ROM : " + rom);
-                }
+                rom = result.Rom;
+                path = result.WorkingDirectory;
+                arguments = result.Arguments;
             }
 
-            // Define if shortcut is an EpicGame or Steam shortcut
+            // Manage store games with .url extensions (Steam, Epic, ...)
             else if (extension == ".url")
             {
-                // executable process to monitor might be different from the target - user can specify true process executable in a .gameexe file
-                _gameExeFile = GetProcessFromFile(rom);
+                var result = HandleUrlFile(rom);
 
-                if (!_gameExeFile)
-                {
-                    try
-                    {
-                        var uri = new Uri(IniFile.FromFile(rom).GetValue("InternetShortcut", "URL"));
+                if (result.Error)
+                    return null;
 
-                        if (launchers.TryGetValue(uri.Scheme, out Func<Uri, GameLauncher> gameLauncherInstanceBuilder))
-                            _gameLauncher = gameLauncherInstanceBuilder(uri);
-                    }
-                    catch (Exception ex)
-                    {
-                        SetCustomError(ex.Message);
-                        SimpleLogger.Instance.Error("[ExeLauncherGenerator] " + ex.Message, ex);
-                        return null;
-                    }
-                }
-
-                // Run Steam games via their shortcuts and not just run the .url file
-                var urlLines = File.ReadAllLines(rom);
-
-                if (urlLines.Length > 0)
-                {
-                    // Get URL to run and add -silent argument
-                    if (urlLines.Any(l => l.StartsWith("URL=steam://rungameid")))
-                    {
-                        string urlline = urlLines.FirstOrDefault(l => l.StartsWith("URL=steam"));
-                        if (!string.IsNullOrEmpty(urlline) && !urlline.Contains("-silent"))
-                        {
-                            for (int i = 0; i < urlLines.Length; i++)
-                            {
-                                if (urlLines[i].StartsWith("URL="))
-                                {
-                                    string temp = urlLines[i];
-                                    urlLines[i] = urlLines[i] + "\"" + " -silent";
-                                }
-                            }
-                            try
-                            {
-                                File.WriteAllLines(rom, urlLines);
-                            }
-                            catch { }
-
-                            _steamRun = true;
-                        }
-                    }
-
-                    // Get executable name from icon path
-                    if (string.IsNullOrEmpty(_exename) && urlLines.Any(l => l.StartsWith("IconFile")))
-                    {
-                        string iconline = urlLines.FirstOrDefault(l => l.StartsWith("IconFile"));
-                        if (iconline.EndsWith(".exe"))
-                        {
-                            string iconPath = iconline.Substring(9, iconline.Length - 9);
-                            _exename = Path.GetFileNameWithoutExtension(iconPath);
-                            if (!string.IsNullOrEmpty(_exename))
-                            {
-                                _nonSteam = true;
-                                SimpleLogger.Instance.Info("[STEAM] Found name of executable from icon info: " + _exename);
-                            }
-                        }
-                    }
-                }
+                _gameExeFile = result.GameExeFile;
+                _gameLauncher = result.Launcher;
+                _steamRun = result.SteamRun;
+                _nonSteam = result.NonSteam;
+                _exename = result.ExeName;
             }
 
-            else if (extension == ".game")
+            else if (extension == ".game" && File.Exists(rom))
             {
-                string linkTarget = null;
-                string[] lines = File.ReadAllLines(rom);
+                var gameResult = HandleGameFile(rom, path);
 
-                if (lines.Length == 0)
-                    throw new Exception("No path specified in .game file.");
-                else
-                {
-                    linkTarget = lines[0];
-                    if (linkTarget.StartsWith(".\\") || linkTarget.StartsWith("./"))
-                        linkTarget = Path.Combine(path, linkTarget.Substring(2));
-                    else if (linkTarget.StartsWith("\\") || linkTarget.StartsWith("/"))
-                        linkTarget = Path.Combine(path, linkTarget.Substring(1));
-                }
-
-                if (lines.Length > 1)
-                {
-                    arguments = string.Join(" ", lines.Skip(1));
-                }
-
-                if (!File.Exists(linkTarget))
-                    throw new Exception("Target file " + linkTarget + " does not exist.");
-
-                _isGameExePath = File.Exists(linkTarget);
-
-                if (_isGameExePath)
-                {
-                    _gameExeFile = GetProcessFromFile(rom);
-                    rom = linkTarget;
-                    path = Path.GetDirectoryName(linkTarget);
-                }
+                rom = gameResult.Rom;
+                path = gameResult.WorkingDirectory;
+                arguments = gameResult.Arguments;
+                _isGameExePath = gameResult.IsGameExe;
             }
 
-        GOGBYPASS:
-
-            if (Directory.Exists(rom)) // If rom is a directory ( .pc .win .windows, .wine )
+            // If rom is a folder
+            if (Directory.Exists(rom))
             {
-                _gameExeFile = GetProcessFromFile(rom);
+                var folderResult = HandleFolder(rom, ref arguments);
 
-                path = rom;
-
-                if (File.Exists(Path.Combine(rom, "autorun.cmd")))
-                    rom = Path.Combine(rom, "autorun.cmd");
-                else if (File.Exists(Path.Combine(rom, "autorun.bat")))
-                    rom = Path.Combine(rom, "autorun.bat");
-                else if (File.Exists(Path.Combine(rom, "autoexec.cmd")))
-                    rom = Path.Combine(rom, "autoexec.cmd");
-                else if (File.Exists(Path.Combine(rom, "autoexec.bat")))
-                    rom = Path.Combine(rom, "autoexec.bat");
-                else
-                    rom = Directory.GetFiles(path, "*.exe").Where(f => !f.ToLowerInvariant().Contains("uninst")).FirstOrDefault();
-
-                if (Path.GetFileName(rom) == "autorun.cmd")
-                {
-                    var wineCmd = File.ReadAllLines(rom);
-                    if (wineCmd == null || wineCmd.Length == 0)
-                        throw new Exception("autorun.cmd is empty");
-
-                    var dir = wineCmd.Where(l => l.StartsWith("DIR=")).Select(l => l.Substring(4)).FirstOrDefault();
-
-                    var wineCommand = wineCmd.Where(l => l.StartsWith("CMD=")).Select(l => l.Substring(4)).FirstOrDefault();
-                    if (string.IsNullOrEmpty(wineCommand) && wineCmd.Length > 0)
-                        wineCommand = wineCmd.FirstOrDefault();
-
-                    var args = wineCommand.SplitCommandLine();
-                    if (args.Length > 0)
-                    {
-                        string exe = string.IsNullOrEmpty(dir) ? Path.Combine(path, args[0]) : Path.Combine(path, dir.Replace("/", "\\"), args[0]);
-                        if (File.Exists(exe))
-                        {
-                            rom = exe;
-
-                            if (!string.IsNullOrEmpty(dir))
-                            {
-                                string customDir = Path.Combine(path, dir);
-                                path = Directory.Exists(customDir) ? customDir : Path.GetDirectoryName(rom);
-                            }
-                            else
-                                path = Path.GetDirectoryName(rom);
-
-                            if (args.Length > 1)
-                                arguments = string.Join(" ", args.Skip(1).ToArray());
-                        }
-                        else
-                            throw new Exception("Invalid autorun.cmd executable");
-                    }
-                    else
-                        throw new Exception("Invalid autorun.cmd command");
-                }
+                rom = folderResult.Rom;
+                path = folderResult.WorkingDirectory;
+                _gameExeFile = folderResult.GameExeFile;
             }
 
+            // At that point, return if rom file does not exist
             if (!File.Exists(rom) && !_steamRun)
                 return null;
 
-            if (Path.GetExtension(rom).ToLower() == ".m3u")
+            // Manage .m3u extension
+            if (extension == ".m3u")
             {
                 rom = File.ReadAllText(rom);
 
@@ -345,12 +128,17 @@ namespace EmulatorLauncher
             if (arguments != null)
                 ret.Arguments = arguments;
 
+            // If rom is a batch or command file, try to get executable inside the file
             string ext = Path.GetExtension(rom).ToLower();
-            
             if (ext == ".bat" || ext == ".cmd")
             {
-                if (GetExecutableName(rom, out string exeName) && !_gameExeFile)
+                if (GetExecutableName(rom, out string exeName, out string targetExe) && !_gameExeFile)
                 {
+                    if (File.Exists(targetExe))
+                    {
+                        ret.FileName = targetExe;
+                        ret.WorkingDirectory = Path.GetDirectoryName(targetExe);
+                    }
                     _exename = exeName;
                     _batfileNoWait = true;
                     SimpleLogger.Instance.Info("[INFO] Executable name found in batch file: " + _exename);
@@ -475,59 +263,6 @@ namespace EmulatorLauncher
             BindBoolFeatureOn(json, "VRetrace", "VRetrace", "1", "0");
 
             json.Save();
-        }
-
-        // If .gameexe is used, the function to get the process name via launcher specific search is disabled
-        private bool GetProcessFromFile(string rom)
-        {
-            string dir = Path.GetDirectoryName(rom);
-            string file = Path.GetFileNameWithoutExtension(rom);
-
-            if (string.IsNullOrEmpty(dir))
-                dir = rom;
-
-            if (string.IsNullOrEmpty(file))
-                file = "default";
-
-            string executableFile = Path.Combine(dir, file + ".gameexe");
-
-            if (!File.Exists(executableFile))
-                return false;
-
-            var lines = File.ReadAllLines(executableFile);
-            if (lines.Length < 1)
-                return false;
-            else
-            {
-                string line = FileTools.ReadFirstValidLine(executableFile);
-                if (line.ToLowerInvariant().EndsWith(".exe"))
-                    line = line.Substring(0, line.Length - 4);
-                
-                _exename = line;
-                SimpleLogger.Instance.Info("[INFO] Executable name specified in .gameexe file: " + _exename);
-                return true;
-            }
-        }
-
-        // Method to get info for uwp apps
-        static string GetStoreAppInfo(string appName)
-        {
-            // PowerShell Process Start
-            Process process = new Process();
-            process.StartInfo.FileName = "powershell.exe";
-            process.StartInfo.Arguments = $"-Command (Get-AppxPackage -Name {appName} | Select Installlocation)";
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.CreateNoWindow = true;
-            process.Start();
-
-            // Read Result
-            string output = process.StandardOutput.ReadToEnd();
-
-            // Process End
-            process.WaitForExit();
-
-            return output;
         }
 
         readonly string[] launcherPprocessNames = { "Amazon Games UI", "EADesktop", "EpicGamesLauncher", "steam", "GalaxyClient" };
@@ -787,9 +522,10 @@ namespace EmulatorLauncher
             }
         }
 
-        private bool GetExecutableName(string batFilePath, out string executableName)
+        private bool GetExecutableName(string batFilePath, out string executableName, out string targetExe)
         {
             executableName = null;
+            targetExe = null;
 
             if (SystemConfig.isOptSet("batexesearch") && !SystemConfig.getOptBoolean("batexesearch"))
                 return false;
@@ -800,12 +536,432 @@ namespace EmulatorLauncher
             if (match.Success && !content.Contains("tasklist|findstr"))
             {
                 var path = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
-                executableName = Path.GetFileNameWithoutExtension(path);
+                if (path != null)
+                {
+                    targetExe = Path.Combine(Path.GetDirectoryName(batFilePath), path);
+                    executableName = Path.GetFileNameWithoutExtension(path);
+                }
                 return true;
             }
             return false;
         }
 
+        // If .gameexe is used, the function to get the process name via launcher specific search is disabled
+        private bool GetProcessFromFile(string rom)
+        {
+            string dir = Path.GetDirectoryName(rom);
+            string file = Path.GetFileNameWithoutExtension(rom);
+
+            if (string.IsNullOrEmpty(dir))
+                dir = rom;
+
+            if (string.IsNullOrEmpty(file))
+                file = "default";
+
+            string executableFile = Path.Combine(dir, file + ".gameexe");
+
+            if (!File.Exists(executableFile))
+                return false;
+
+            var lines = File.ReadAllLines(executableFile);
+            if (lines.Length < 1)
+                return false;
+            else
+            {
+                string line = FileTools.ReadFirstValidLine(executableFile);
+                if (line.ToLowerInvariant().EndsWith(".exe"))
+                    line = line.Substring(0, line.Length - 4);
+
+                _exename = line;
+                SimpleLogger.Instance.Info("[INFO] Executable name specified in .gameexe file: " + _exename);
+                return true;
+            }
+        }
+
+        #region LinkFiles
+        private class LinkResolutionResult
+        {
+            public string Rom;
+            public string WorkingDirectory;
+            public string Arguments;
+        }
+        private LinkResolutionResult HandlelinkFile(string rom)
+        {
+            var result = new LinkResolutionResult
+            {
+                Rom = rom,
+                WorkingDirectory = Path.GetDirectoryName(rom)
+            };
+
+            SimpleLogger.Instance.Info("[INFO] link file, searching for target.");
+            string target = FileTools.GetShortcutTargetwsh(rom);
+            result.Arguments = FileTools.GetShortcutArgswsh(rom);
+
+            // GOG Galaxy special coase
+            if (!string.IsNullOrEmpty(target))
+            {
+                string exeName = Path.GetFileNameWithoutExtension(target);
+                
+                if (exeName.Equals("GalaxyClient", StringComparison.OrdinalIgnoreCase))
+                {
+                    var match = Regex.Match(result.Arguments ?? "", @"/gameId=(\d+)");
+                    if (match.Success)
+                    {
+                        string gameId = match.Groups[1].Value;
+                        var uri = new Uri($"goggalaxy:{gameId}");
+
+                        if (launchers.TryGetValue(uri.Scheme, out Func<Uri, GameLauncher> gameLauncherInstanceBuilder))
+                        {
+                            _gameLauncher = gameLauncherInstanceBuilder(uri);
+                            return result;
+                        }
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(target) && File.Exists(target))
+            {
+                _isGameExePath = true;
+                _gameExeFile = GetProcessFromFile(rom);
+
+                result.Rom = target;
+                result.WorkingDirectory = Path.GetDirectoryName(target);
+
+                SimpleLogger.Instance.Info("[INFO] Link target file found.");
+                SimpleLogger.Instance.Info("[INFO] New ROM : " + result.Rom);
+
+                return result;
+            }
+
+            // if the target is not found in the link, see if a .gameexe file or a .uwp file exists
+            // First case : user has directly specified the executable name in a .gameexe file
+            _gameExeFile = GetProcessFromFile(rom);
+
+            // Second case : user has specified the UWP app name in a .uwp file
+            if (!_gameExeFile)
+                TryResolveUwpExecutable(rom);
+
+            if (!_gameExeFile)
+                SimpleLogger.Instance.Info("[INFO] Impossible to find executable name, using rom file name.");
+
+            return result;
+        }
+
+        private void TryResolveUwpExecutable(string rom)
+        {
+            string uwpexecutableFile = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom) + ".uwp");
+
+            if (!File.Exists(uwpexecutableFile))
+                return;
+
+            var romLines = File.ReadAllLines(uwpexecutableFile);
+            if (romLines.Length == 0)
+                return;
+
+            string uwpAppName = romLines[0];
+            var fileStream = GetStoreAppInfo(uwpAppName);
+
+            if (string.IsNullOrEmpty(fileStream))
+                return;
+
+            var installLocation = ExtractUWPInstallLocation(fileStream);
+            if (string.IsNullOrEmpty(installLocation))
+                return;
+
+            string appManifest = Path.Combine(installLocation, "AppxManifest.xml");
+            if (!File.Exists(appManifest))
+                return;
+
+            var doc = XDocument.Load(appManifest);
+            var app = doc.Descendants().FirstOrDefault(x => x.Name.LocalName == "Application");
+
+            var exePath = app?.Attribute("Executable")?.Value;
+
+            if (string.IsNullOrEmpty(exePath))
+                return;
+
+            _exename = Path.GetFileNameWithoutExtension(exePath);
+            _gameExeFile = true;
+            SimpleLogger.Instance.Info("[INFO] Executable name found for UWP app: " + _exename);
+        }
+
+        static string GetStoreAppInfo(string appName)
+        {
+            // PowerShell Process Start
+            Process process = new Process();
+            process.StartInfo.FileName = "powershell.exe";
+            process.StartInfo.Arguments = $"-Command (Get-AppxPackage -Name {appName} | Select Installlocation)";
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.Start();
+
+            // Read Result
+            string output = process.StandardOutput.ReadToEnd();
+
+            // Process End
+            process.WaitForExit();
+
+            return output;
+        }
+
+        private string ExtractUWPInstallLocation(string fileStream)
+        {
+            if (string.IsNullOrEmpty(fileStream))
+                return null;
+
+            var lines = fileStream.Split(
+                new[] { Environment.NewLine },
+                StringSplitOptions.None);
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (lines[i].Contains("InstallLocation"))
+                {
+                    int valueIndex = i + 2;
+
+                    if (valueIndex < lines.Length)
+                        return lines[valueIndex];
+
+                    return null;
+                }
+            }
+
+            return null;
+        }
+        #endregion
+
+        #region urlFiles
+        private class UrlResolutionResult
+        {
+            public bool GameExeFile;
+            public GameLauncher Launcher;
+            public bool SteamRun;
+            public bool NonSteam;
+            public string ExeName;
+            public bool Error;
+        }
+
+        private UrlResolutionResult HandleUrlFile(string rom)
+        {
+            var result = new UrlResolutionResult();
+
+            // executable process to monitor might be different from the target - user can specify true process executable in a .gameexe file
+            result.GameExeFile = GetProcessFromFile(rom);
+
+            if (!result.GameExeFile)
+            {
+                try
+                {
+                    var url = IniFile.FromFile(rom).GetValue("InternetShortcut", "URL");
+
+                    if (!string.IsNullOrWhiteSpace(url))
+                    {
+                        var uri = new Uri(url);
+
+                        if (launchers.TryGetValue(uri.Scheme, out var builder))
+                            result.Launcher = builder(uri);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SetCustomError(ex.Message);
+                    SimpleLogger.Instance.Error("[ExeLauncherGenerator] " + ex.Message, ex);
+                    result.Error = true;
+                    return result;
+                }
+            }
+
+            // Run Steam games via their shortcuts and not just run the .url file
+            HandleSteamUrl(rom, result);
+            
+            return result;
+        }
+
+        private void HandleSteamUrl(string rom, UrlResolutionResult result)
+        {
+            var urlLines = File.ReadAllLines(rom);
+
+            if (urlLines.Length == 0)
+                return;
+
+            // Get URL to run and add -silent argument
+            var steamLineIndex = Array.FindIndex(urlLines, l => l.StartsWith("URL=steam://rungameid", StringComparison.OrdinalIgnoreCase));
+
+            if (steamLineIndex >= 0)
+            {
+                result.SteamRun = true;
+
+                if (!urlLines[steamLineIndex].Contains("-silent"))
+                {
+                    urlLines[steamLineIndex] += " -silent";
+                    try { File.WriteAllLines(rom, urlLines); }
+                    catch { }
+                }
+            }
+
+            // Get executable name from icon path
+            if (string.IsNullOrEmpty(result.ExeName))
+            {
+                var iconLine = urlLines.FirstOrDefault(l => l.StartsWith("IconFile", StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrEmpty(iconLine))
+                {
+                    var parts = iconLine.Split('=');
+                    if (parts.Length == 2 && parts[1].EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var iconPath = parts[1].Trim();
+                        result.ExeName = Path.GetFileNameWithoutExtension(iconPath);
+
+                        if (!string.IsNullOrEmpty(result.ExeName))
+                        {
+                            result.NonSteam = true;
+                            SimpleLogger.Instance.Info("[STEAM] Found name of executable from icon info: " + result.ExeName);
+                        }
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region dotGameFiles
+        private class GameFileResolutionResult
+        {
+            public string Rom;
+            public string WorkingDirectory;
+            public string Arguments;
+            public bool IsGameExe;
+        }
+
+        private GameFileResolutionResult HandleGameFile(string rom, string path)
+        {
+            var result = new GameFileResolutionResult
+            {
+                Rom = rom,
+                WorkingDirectory = path
+            };
+
+            var lines = File.ReadAllLines(rom);
+
+            if (lines.Length == 0)
+                throw new Exception("No path specified in .game file.");
+
+            string target = lines[0];
+
+            if (target.StartsWith(".\\") || target.StartsWith("./"))
+                target = Path.Combine(path, target.Substring(2));
+            else if (target.StartsWith("\\") || target.StartsWith("/"))
+                target = Path.Combine(path, target.Substring(1));
+
+            if (lines.Length > 1)
+                result.Arguments = string.Join(" ", lines.Skip(1));
+
+            if (!File.Exists(target))
+                throw new Exception("Target file " + target + " does not exist.");
+
+            result.IsGameExe = File.Exists(target);
+
+            if (result.IsGameExe)
+            {
+                _gameExeFile = GetProcessFromFile(rom);
+                result.Rom = target;
+                result.WorkingDirectory = Path.GetDirectoryName(target);
+            }
+
+            return result;
+        }
+        #endregion
+
+        #region folderGames
+        private class FolderResolutionResult
+        {
+            public string Rom;
+            public string WorkingDirectory;
+            public string Arguments;
+            public bool GameExeFile;
+        }
+
+        private FolderResolutionResult HandleFolder(string folderPath, ref string arguments)
+        {
+            var result = new FolderResolutionResult
+            {
+                Rom = folderPath,
+                WorkingDirectory = folderPath
+            };
+
+            if (!Directory.Exists(folderPath))
+                return result;
+
+            _gameExeFile = GetProcessFromFile(folderPath);
+
+            string[] possibleAutoruns = new[]
+            {
+                "autorun.cmd",
+                "autorun.bat",
+                "autoexec.cmd",
+                "autoexec.bat"
+            };
+
+            foreach (var file in possibleAutoruns)
+            {
+                string fullPath = Path.Combine(folderPath, file);
+                if (File.Exists(fullPath))
+                {
+                    result.Rom = fullPath;
+                    break;
+                }
+            }
+            
+            if (result.Rom == folderPath)
+                result.Rom = Directory.GetFiles(folderPath, "*.exe")
+                    .FirstOrDefault(f => !f.ToLowerInvariant().Contains("uninst"));
+
+            result.WorkingDirectory = Path.GetDirectoryName(result.Rom);
+
+            // Cas spécial autorun.cmd
+            if (Path.GetFileName(result.Rom).Equals("autorun.cmd", StringComparison.OrdinalIgnoreCase))
+                TryResolveAutorunCmd(ref result.Rom, ref result.WorkingDirectory, ref arguments);
+
+            return result;
+        }
+        private void TryResolveAutorunCmd(ref string autorunPath, ref string path, ref string arguments)
+        {
+            path = Path.GetFullPath(path);
+
+            var lines = File.ReadAllLines(autorunPath);
+            if (lines.Length == 0)
+                throw new Exception("autorun.cmd is empty");
+
+            string dir = lines.FirstOrDefault(l => l.StartsWith("DIR="))?.Substring(4);
+            string cmd = lines.FirstOrDefault(l => l.StartsWith("CMD="))?.Substring(4);
+
+            if (string.IsNullOrEmpty(cmd) && lines.Length > 0)
+                cmd = lines[0];
+
+            var args = cmd.SplitCommandLine();
+            if (args.Length == 0)
+                throw new Exception("Invalid autorun.cmd command");
+
+            string exe = string.IsNullOrEmpty(dir)
+                ? Path.Combine(path, args[0])
+                : Path.Combine(path, dir.Replace("/", "\\"), args[0]);
+
+            if (!File.Exists(exe))
+                throw new Exception("Invalid autorun.cmd executable");
+
+            // Mise à jour du chemin et des arguments
+            autorunPath = exe;
+            path = string.IsNullOrEmpty(dir)
+                ? Path.GetDirectoryName(exe)
+                : Directory.Exists(Path.Combine(path, dir))
+                    ? Path.Combine(path, dir.Replace("/", "\\"))
+                    : Path.GetDirectoryName(exe);
+
+            arguments = args.Length > 1
+                ? string.Join(" ", args.Skip(1))
+                : null;
+        }
+
+        #endregion
         abstract class GameLauncher
         {
             public string LauncherExe { get; protected set; }
