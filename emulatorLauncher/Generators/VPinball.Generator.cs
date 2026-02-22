@@ -602,6 +602,10 @@ namespace EmulatorLauncher
                     foreach (Process pupDisplay in pupDisplays)
                         pupDisplay.Kill();
 
+                    Process[] pupDisplayXs = Process.GetProcessesByName("PinUpDisplayX");
+                    foreach (Process pupDisplayX in pupDisplayXs)
+                        pupDisplayX.Kill();
+
                     Process[] pupPlayers = Process.GetProcessesByName("PinUpPlayer");
                     foreach (Process pupPlayer in pupPlayers)
                         pupPlayer.Kill();
