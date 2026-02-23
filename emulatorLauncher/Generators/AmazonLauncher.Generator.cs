@@ -48,6 +48,7 @@ namespace EmulatorLauncher
                 var amazonGame = GetLauncherExeProcess();
                 if (amazonGame != null)
                 {
+                    Job.Current.AddProcess(amazonGame);
                     amazonGame.WaitForExit();
 
                     if ((!uiExists && Program.SystemConfig["killsteam"] != "0") || (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam")))

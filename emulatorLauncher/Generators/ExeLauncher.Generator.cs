@@ -145,7 +145,7 @@ namespace EmulatorLauncher
                 }
 
                 _batfile = true;
-                ret.WindowStyle = ProcessWindowStyle.Hidden;
+                //ret.WindowStyle = ProcessWindowStyle.Hidden;
                 ret.UseShellExecute = true;
             }
             else if (string.IsNullOrEmpty(_exename) && _gameLauncher == null)
@@ -291,7 +291,7 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waitttime.ToString() + " seconds for the game to run before returning to Game List");
 
                 Process process = Process.Start(path);
-                Job.Current.AddProcess(process);
+                
                 SimpleLogger.Instance.Info("Process started : " + _exename);
                 
                 Thread.Sleep(4000);
@@ -315,6 +315,7 @@ namespace EmulatorLauncher
                     if (gameProcess != null)
                     {
                         SimpleLogger.Instance.Info("[INFO] Game process '" + gameProcess.ProcessName + "' identified by window focus. Monitoring process.");
+                        Job.Current.AddProcess(gameProcess);
                         gameProcess.WaitForExit();
                         SimpleLogger.Instance.Info("[INFO] Game process has exited.");
 
@@ -345,6 +346,10 @@ namespace EmulatorLauncher
 
                     SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
                     Process game = gamelist.OrderBy(p => p.StartTime).FirstOrDefault();
+
+                    if (game != null)
+                        Job.Current.AddProcess(game);
+                    
                     game.WaitForExit();
                 }
 
@@ -379,7 +384,7 @@ namespace EmulatorLauncher
                         SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waitttime.ToString() + " seconds for the game to run before returning to Game List");
 
                         Process process = Process.Start(path);
-                        Job.Current.AddProcess(process);
+                        
                         SimpleLogger.Instance.Info("Process started : " + _exename);
 
                         Thread.Sleep(4000);
@@ -403,6 +408,7 @@ namespace EmulatorLauncher
                             if (gameProcess != null)
                             {
                                 SimpleLogger.Instance.Info("[INFO] Game process '" + gameProcess.ProcessName + "' identified by window focus. Monitoring process.");
+                                Job.Current.AddProcess(gameProcess);
                                 gameProcess.WaitForExit();
                                 SimpleLogger.Instance.Info("[INFO] Game process has exited.");
                             }
@@ -414,6 +420,11 @@ namespace EmulatorLauncher
                         else
                         {
                             SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
+                            var jobToAdd = Process.GetProcessesByName(_exename).FirstOrDefault();
+                            
+                            if (jobToAdd != null)
+                                Job.Current.AddProcess(jobToAdd);
+
                             while (Process.GetProcessesByName(_exename).Any())
                             {
                                 Thread.Sleep(1000);

@@ -26,6 +26,7 @@ namespace EmulatorLauncher
                 var epicGame = GetLauncherExeProcess();
                 if (epicGame != null)
                 {
+                    Job.Current.AddProcess(epicGame);
                     epicGame.WaitForExit();
 
                     if ((!uiExists && Program.SystemConfig["killsteam"] != "0") || (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam")))
