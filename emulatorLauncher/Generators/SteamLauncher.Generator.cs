@@ -1,10 +1,11 @@
-﻿using System;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.Launchers;
+using Microsoft.Win32;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Diagnostics;
-using EmulatorLauncher.Common.Launchers;
-using EmulatorLauncher.Common;
-using Microsoft.Win32;
 
 namespace EmulatorLauncher
 {
@@ -78,6 +79,7 @@ namespace EmulatorLauncher
 
                     if (steamGame != null)
                     {
+                        Job.Current.AddProcess(steamGame);
                         steamGame.WaitForExit();
                         SimpleLogger.Instance.Info("[INFO] Steam game closed : " + LauncherExe);
 
@@ -99,6 +101,7 @@ namespace EmulatorLauncher
                     if (gameProcess != null)
                     {
                         SimpleLogger.Instance.Info("[INFO] Game process '" + gameProcess.ProcessName + "' identified by window focus. Monitoring process.");
+                        Job.Current.AddProcess(gameProcess);
                         gameProcess.WaitForExit();
                         SimpleLogger.Instance.Info("[INFO] Game process has exited.");
 

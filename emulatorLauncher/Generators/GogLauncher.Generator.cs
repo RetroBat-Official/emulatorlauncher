@@ -1,10 +1,11 @@
-﻿using System;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Launchers;
+using EmulatorLauncher.Common.Launchers.Epic;
+using Microsoft.Win32;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Diagnostics;
-using EmulatorLauncher.Common.Launchers;
-using EmulatorLauncher.Common;
-using Microsoft.Win32;
 
 namespace EmulatorLauncher
 {
@@ -31,6 +32,7 @@ namespace EmulatorLauncher
                 var gogGame = GetLauncherExeProcess();
                 if (gogGame != null)
                 {
+                    Job.Current.AddProcess(gogGame);
                     SimpleLogger.Instance.Info("[INFO] Process found running: " + LauncherExe + " ,waiting to exit");
                     gogGame.WaitForExit();
 
