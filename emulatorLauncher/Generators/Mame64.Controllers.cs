@@ -27,7 +27,7 @@ namespace EmulatorLauncher
                 { "apfm1000", "apfm1000"},
                 { "arcadia", "arcadia"},
                 { "astrocade", "astrocde"},
-                { "casloopy", "casloopy"},
+                { "loopy", "casloopy"},
                 { "crvision", "crvision"},
                 { "gamecom", "gamecom"},
                 { "supracan", "supracan"}
