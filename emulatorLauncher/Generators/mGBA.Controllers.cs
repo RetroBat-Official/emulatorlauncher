@@ -32,6 +32,8 @@ namespace EmulatorLauncher
             if (c1.Config == null)
                 return;
 
+            bool invertButtons = Program.SystemConfig.getOptBoolean("buttonsInvert");
+            
             // Clearing
             ini.ClearSection("gba.input.QT_K");
             ini.ClearSection("gba.input.SDLB");
@@ -60,8 +62,16 @@ namespace EmulatorLauncher
             WriteKeyConfig(c1, InputKey.start, ini, section, "keyStart", "axisStartAxis", null, "axisStartValue");
             WriteKeyConfig(c1, InputKey.select, ini, section, "keySelect", "axisSelectAxis", null, "axisSelectValue");
 
-            WriteKeyConfig(c1, InputKey.a, ini, section, "keyB", "axisBAxis", null, "axisBValue");
-            WriteKeyConfig(c1, InputKey.b, ini, section, "keyA", "axisAAxis", null, "axisAValue");
+            if (invertButtons)
+            {
+                WriteKeyConfig(c1, InputKey.b, ini, section, "keyB", "axisBAxis", null, "axisBValue");
+                WriteKeyConfig(c1, InputKey.a, ini, section, "keyA", "axisAAxis", null, "axisAValue");
+            }
+            else
+            {
+                WriteKeyConfig(c1, InputKey.a, ini, section, "keyB", "axisBAxis", null, "axisBValue");
+                WriteKeyConfig(c1, InputKey.b, ini, section, "keyA", "axisAAxis", null, "axisAValue");
+            }
 
             ini.WriteValue(section, "tiltAxisY", "3");
             ini.WriteValue(section, "gyroAxisX", "0");

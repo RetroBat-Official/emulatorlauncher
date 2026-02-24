@@ -1342,6 +1342,18 @@ namespace EmulatorLauncher
             { InputKey.b,               "A" }
         };
 
+        private static readonly InputKeyMapping gbMapping_invert = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.start,           "Start" },
+            { InputKey.select,          "Select" },
+            { InputKey.b,               "B" },
+            { InputKey.a,               "A" }
+        };
+
         private static readonly InputKeyMapping gbaMapping = new InputKeyMapping()
         {
             { InputKey.up,              "Up"},
@@ -2022,6 +2034,12 @@ namespace EmulatorLauncher
                     newMapping[InputKey.b] = "B";
                     newMapping[InputKey.x] = "Y";
                 }
+            }
+
+            if (system == "gb" || system == "gbc")
+            {
+                if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
+                    return gbMapping_invert;
             }
 
             if ((system == "nes" || system =="famicom") && Program.SystemConfig.getOptBoolean("rotate_buttons"))

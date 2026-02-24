@@ -232,6 +232,7 @@ namespace EmulatorLauncher
                 system = "psx";
 
             string ret = system;
+            bool invertButtons = Program.SystemConfig.getOptBoolean("buttonsInvert");
 
             if (system == "3ds")
             {
@@ -305,16 +306,19 @@ namespace EmulatorLauncher
                         switch (core)
                         {
                             case "gambatte":
-                                ret = "gb_gambatte";
+                                ret = invertButtons ? "gb_gambatte_invert" : "gb_gambatte";
+                                break;
+                            default:
+                                ret = invertButtons ? "gb_invert" : "gb";
                                 break;
                         }
                         break;
-                    case "mgba":
-                        ret = "unknown";
-                        break;
                     case "mesen":
                     case "mednafen":
-                        ret = "gb_turbo";
+                        ret = invertButtons ? "gb_turbo_invert" : "gb_turbo";
+                        break;
+                    default:
+                        ret = invertButtons ? "gb_invert" : "gb";
                         break;
                 }
             }
@@ -876,7 +880,7 @@ namespace EmulatorLauncher
             }
             else if (system == "snes")
             {
-                if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
+                if (invertButtons)
                     ret = "snes_invert";
             }
             else if (system == "supegrafx")

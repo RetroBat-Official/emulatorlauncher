@@ -486,7 +486,17 @@ namespace EmulatorLauncher
         private static Dictionary<string, InputKey> ConfigureMappingPerSystem(Dictionary<string, InputKey> mapping, string jGenSystem, int playerIndex)
         {
             var newMapping = new Dictionary<string, InputKey>(mapping);
-            if (jGenSystem == "nes")
+
+            if (jGenSystem == "game_boy")
+            {
+                if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
+                {
+                    newMapping["a"] = InputKey.a;
+                    newMapping["b"] = InputKey.b;
+                }
+            }
+
+            else if (jGenSystem == "nes")
             {
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
                 {

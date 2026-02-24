@@ -179,16 +179,33 @@ namespace EmulatorLauncher
                     port = GetOrCreateContainer(systemSection, "Port1");
                     mapping = GetOrCreateContainer(port, "Mapping1");
                 }
-                mapping["A"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.b])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.b]));
-                mapping["B"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.a])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.a]));
+                if (SystemConfig.getOptBoolean("buttonsInvert"))
+                {
+                    mapping["A"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.a])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.a]));
+                    mapping["B"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.b])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.b]));
+                }
+                else
+                {
+                    mapping["A"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.b])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.b]));
+                    mapping["B"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.a])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.a]));
+                }
                 mapping["Select"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
                 mapping["Start"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.start])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.start]));
                 mapping["Up"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.up])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.up]));
                 mapping["Down"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.down])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.down]));
                 mapping["Left"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.left])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.left]));
                 mapping["Right"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.right])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.right]));
-                mapping["TurboA"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.x])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.x]));
-                mapping["TurboB"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.y])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.y]));
+
+                if (SystemConfig.getOptBoolean("buttonsInvert"))
+                {
+                    mapping["TurboA"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.y])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.y]));
+                    mapping["TurboB"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.x])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.x]));
+                }
+                else
+                {
+                    mapping["TurboA"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.x])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.x]));
+                    mapping["TurboB"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.y])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.y]));
+                }
             }
 
             else if (mesenSystem == "Gba")
