@@ -2220,7 +2220,17 @@ namespace EmulatorLauncher
         private static Dictionary<string, InputKey> ConfigureMappingPerSystem(Dictionary<string, InputKey> mapping, string mednafenCore, string padType, MednafenConfigFile cfg)
         {
             Dictionary<string, InputKey> newMapping = mapping;
-            if (mednafenCore == "nes")
+            if (mednafenCore == "gb")
+            {
+                if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
+                {
+                    newMapping["rapid_a"] = InputKey.y;
+                    newMapping["a"] = InputKey.a;
+                    newMapping["rapid_b"] = InputKey.x;
+                    newMapping["b"] = InputKey.b;
+                }
+            }
+            else if (mednafenCore == "nes")
             {
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
                 {
@@ -2281,6 +2291,16 @@ namespace EmulatorLauncher
                     newMapping["fire2"] = InputKey.a;
                     newMapping["rapid_fire1"] = InputKey.x;
                     newMapping["rapid_fire2"] = InputKey.b;
+                }
+            }
+            else if (mednafenCore == "snes")
+            {
+                if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
+                {
+                    newMapping["x"] = InputKey.y;
+                    newMapping["a"] = InputKey.a;
+                    newMapping["y"] = InputKey.x;
+                    newMapping["b"] = InputKey.b;
                 }
             }
             else if (mednafenCore == "ss")
@@ -2354,5 +2374,7 @@ namespace EmulatorLauncher
         {
             USB_PRODUCT.NINTENDO_SWITCH_PRO, USB_PRODUCT.NINTENDO_SNES_CONTROLLER
         };
+
+
     }
 }
