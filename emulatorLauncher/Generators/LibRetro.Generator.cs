@@ -779,7 +779,7 @@ namespace EmulatorLauncher.Libretro
                 commandArray.Add("--host");
             else if (SystemConfig["netplaymode"] == "client" || SystemConfig["netplaymode"] == "spectator")
             {
-                commandArray.Add("--connect" + SystemConfig["netplayip"]);
+                commandArray.Add("--connect");
                 commandArray.Add(SystemConfig["netplayip"]);
                 commandArray.Add("--port");
                 commandArray.Add(SystemConfig["netplayport"]);
@@ -789,7 +789,10 @@ namespace EmulatorLauncher.Libretro
             {
                 // Suported with retroarch 1.17+ only
                 if (IsVersionAtLeast(new Version(1, 17, 0, 0)))
-                    commandArray.Add("--mitm-session " + SystemConfig["netplaysession"]);
+                {
+                    commandArray.Add("--mitm-session");
+                    commandArray.Add(SystemConfig["netplaysession"]);
+                }
             }
         }
 
