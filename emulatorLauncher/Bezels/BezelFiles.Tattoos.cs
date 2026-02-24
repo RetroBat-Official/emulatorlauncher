@@ -330,33 +330,36 @@ namespace EmulatorLauncher
                         switch (core)
                         {
                             case "mgba":
-                                ret = "gba_turbo";
+                                ret = invertButtons ? "gba_turbo_invert" : "gba_turbo";
                                 break;
                             case "mednafen_gba":
-                                ret = "gba_solar";
+                                ret = invertButtons ? "gba_solar_invert" : "gba_solar";
                                 break;
                             case "gpsp":
-                                ret = "gba_gpsp";
+                                ret = invertButtons ? "gba_gpsp_invert" : "gba_gpsp";
                                 break;
                         }
                         break;
                     case "mesen":
-                        ret = "gba_turbo";
+                        ret = invertButtons ? "gba_turbo_invert" : "gba_turbo";
                         break;
                     case "mednafen":
-                        ret = "gba_turboface";
+                        ret = invertButtons ? "gba_turboface_invert" : "gba_turboface";
                         break;
                     case "bizhawk":
                         if (Program.SystemConfig.getOptBoolean("bizhawk_gba_turbo"))
-                            ret = "gba_turbo";
+                            ret = invertButtons ? "gba_turbo_invert" : "gba_turbo";
                         else
-                            ret = "gba";
+                            ret = invertButtons ? "gba_invert" : "gba";
                         break;
                     case "mgba":
-                        ret = "gba";
+                        ret = invertButtons ? "gba_invert" : "gba";
                         break;
                     case "nosgba":
                         ret = "unknown";
+                        break;
+                    default:
+                        ret = invertButtons ? "gba_invert" : "gba";
                         break;
                 }
             }

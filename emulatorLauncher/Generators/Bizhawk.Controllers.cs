@@ -518,7 +518,12 @@ namespace EmulatorLauncher
 
             if (system == "gba" && SystemConfig.getOptBoolean("bizhawk_gba_turbo"))
             {
-                foreach (var x in gbaAutofireMapping)
+                var gbaTurboMap = gbaAutofireMapping;
+
+                if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
+                    gbaTurboMap = gbaAutofireMapping_invert;
+
+                foreach (var x in gbaTurboMap)
                 {
                     InputKey key = x.Key;
                     string value = x.Value;
@@ -1368,10 +1373,32 @@ namespace EmulatorLauncher
             { InputKey.pagedown,        "R" }
         };
 
+        private static readonly InputKeyMapping gbaMapping_invert = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.start,           "Start" },
+            { InputKey.select,          "Select" },
+            { InputKey.a,               "A" },
+            { InputKey.b,               "B" },
+            { InputKey.pageup,          "L" },
+            { InputKey.pagedown,        "R" }
+        };
+
         private static readonly InputKeyMapping gbaAutofireMapping = new InputKeyMapping()
         {
             { InputKey.y,               "B" },
             { InputKey.x,               "A" },
+            { InputKey.l2,              "L" },
+            { InputKey.r2,              "R" }
+        };
+
+        private static readonly InputKeyMapping gbaAutofireMapping_invert = new InputKeyMapping()
+        {
+            { InputKey.x,               "B" },
+            { InputKey.y,               "A" },
             { InputKey.l2,              "L" },
             { InputKey.r2,              "R" }
         };
@@ -2036,16 +2063,22 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (system == "gb" || system == "gbc")
+            else if (system == "gb" || system == "gbc")
             {
                 if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
                     return gbMapping_invert;
             }
 
-            if ((system == "nes" || system =="famicom") && Program.SystemConfig.getOptBoolean("rotate_buttons"))
+            else if (system == "gba")
+            {
+                if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
+                    return gbaMapping_invert;
+            }
+
+            else if ((system == "nes" || system =="famicom") && Program.SystemConfig.getOptBoolean("rotate_buttons"))
                 return nesMapping_rotate;
 
-            if ((system == "megadrive" || system == "sega32x" || system == "genesis" || system == "mega32x") && !Program.SystemConfig.getOptBoolean("md_3buttons"))
+            else if ((system == "megadrive" || system == "sega32x" || system == "genesis" || system == "mega32x") && !Program.SystemConfig.getOptBoolean("md_3buttons"))
             {
                 if (Program.SystemConfig.isOptSet("megadrive_control_layout"))
                 {
@@ -2063,19 +2096,19 @@ namespace EmulatorLauncher
                 }
             }
 
-            if ((system == "snes" || system == "sfc" || system == "superfamicom") || (system == "sgb" && core == "BSNES"))
+            else if ((system == "snes" || system == "sfc" || system == "superfamicom") || (system == "sgb" && core == "BSNES"))
             {
                 if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
                     return snesMapping_invert;
             }
 
-            if (system == "mastersystem")
+            else if (system == "mastersystem")
             {
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
                     return smsMapping_rotate;
             }
 
-            if (system == "n64")
+            else if (system == "n64")
             {
                 bool switchTriggers = !Program.SystemConfig.isOptSet("ares64_inputprofile") || Program.SystemConfig["ares64_inputprofile"] == "zl";
                 bool n64XboxLayout = Program.SystemConfig.isOptSet("ares64_inputprofile") && Program.SystemConfig["ares64_inputprofile"] == "xbox";
@@ -2085,7 +2118,7 @@ namespace EmulatorLauncher
                     return n64Mapping_zl;
             }
 
-            if (system == "saturn")
+            else if (system == "saturn")
             {
                 bool switchTriggers = Program.SystemConfig.getOptBoolean("saturn_invert_triggers");
                 if (Program.SystemConfig.isOptSet("saturn_padlayout") && !string.IsNullOrEmpty(Program.SystemConfig["saturn_padlayout"]))
@@ -2150,7 +2183,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (system == "psx" && Program.SystemConfig.getOptBoolean("psx_triggerswap"))
+            else if (system == "psx" && Program.SystemConfig.getOptBoolean("psx_triggerswap"))
             {
                 if (core == "Nymashock")
                     return dualshockNymaGTMapping;
@@ -2158,7 +2191,7 @@ namespace EmulatorLauncher
                     return dualshockOctoGTMapping;
             }
 
-                return newMapping;
+            return newMapping;
         }
 
         private static readonly Dictionary<string, string> systemController = new Dictionary<string, string>()

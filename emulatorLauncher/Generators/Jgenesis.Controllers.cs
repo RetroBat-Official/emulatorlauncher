@@ -496,6 +496,15 @@ namespace EmulatorLauncher
                 }
             }
 
+            if (jGenSystem == "game_boy_advance")
+            {
+                if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
+                {
+                    newMapping["joypad.a"] = InputKey.a;
+                    newMapping["joypad.b"] = InputKey.b;
+                }
+            }
+
             else if (jGenSystem == "nes")
             {
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
