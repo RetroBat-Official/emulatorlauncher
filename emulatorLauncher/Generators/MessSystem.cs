@@ -334,7 +334,7 @@ namespace EmulatorLauncher
             new MessSystem("scv"          ,"scv"      ,"cart"  ),           // Super Cassette Vision
             new MessSystem("astrocde"     ,"astrocde" ,"cart"  ),           // Bally Astrocade
             new MessSystem("astrocade"    ,"astrocde" ,"cart"  ),           // Bally Astrocade
-            new MessSystem("casloopy"     ,"casloopy" ,"cart"  ),           // casio Loopy
+            new MessSystem("loopy"        ,"casloopy" ,"cart"  ),           // casio Loopy
             new MessSystem("pv1000"       ,"pv1000"   ,"cart"  ),           // Casio PV-1000
             new MessSystem("gamecom"      ,"gamecom"  ,"cart1" ),           // GameCom
             new MessSystem("gp32"         ,"gp32"     ,"memc"  ),           // GamePark 32             
