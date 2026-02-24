@@ -579,18 +579,19 @@ namespace EmulatorLauncher
             { "reload", new ExeLauncherGame { RomName = "reload", Architecture = "x32", Target = "windows" } },
             { "robinhood", new ExeLauncherGame { RomName = "rhood", Architecture = "x32", Target = "arcadepc" } },
             { "segadreamraiders", new ExeLauncherGame { RomName = "sdr", Architecture = "x32", Target = "ringwide" } },
-            { "silenthillthearcade", new ExeLauncherGame { RomName = "sha", Architecture = "x32", Target = "ttx" } },			
+            { "silenthillthearcade", new ExeLauncherGame { RomName = "sha", Architecture = "x32", Target = "ttx" } },
             { "targetbravo", new ExeLauncherGame { RomName = "tb", Architecture = "x32", Target = "ringwide" } },
             { "thehouseofthedead2", new ExeLauncherGame { RomName = "hod2pc", Architecture = "x32", Target = "windows" } },
             { "thehouseofthedead3", new ExeLauncherGame { RomName = "hod3pc", Architecture = "x32", Target = "windows" } },
             { "thehouseofthedeadoverkill", new ExeLauncherGame { RomName = "hodo", Architecture = "x32", Target = "windows" } },
             { "thehouseofthedeadremake", new ExeLauncherGame { RomName = "hotdra", Architecture = "x64", Target = "windows" } },
             { "thehouseofthedeadscarletdawn", new ExeLauncherGame { RomName = "hodsd", Architecture = "x64", Target = "alls" } },
+            { "timecrisis5", new ExeLauncherGame { RomName = "tc5", Architecture = "x64", Target = "es3" } },
             { "tombraiderarcade", new ExeLauncherGame { RomName = "tra", Architecture = "x64", Target = "arcadepc" } },
             { "transformershumanalliance", new ExeLauncherGame { RomName = "tha", Architecture = "x32", Target = "ringwide" } },
             { "transformershumanalliancetc5", new ExeLauncherGame { RomName = "tc5", Architecture = "x64", Target = "es3" } },
             { "transformersshadowsrising", new ExeLauncherGame { RomName = "tsr", Architecture = "x32", Target = "ringedge2" } },
-            { "wildwestshootout", new ExeLauncherGame { RomName = "wws", Architecture = "x32", Target = "arcadepc" } } 
+            { "wildwestshootout", new ExeLauncherGame { RomName = "wws", Architecture = "x32", Target = "arcadepc" } }
         };
     }
 }
