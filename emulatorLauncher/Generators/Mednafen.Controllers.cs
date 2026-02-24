@@ -2230,6 +2230,16 @@ namespace EmulatorLauncher
                     newMapping["b"] = InputKey.b;
                 }
             }
+            else if (mednafenCore == "gba")
+            {
+                if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
+                {
+                    newMapping["rapid_a"] = InputKey.y;
+                    newMapping["a"] = InputKey.a;
+                    newMapping["rapid_b"] = InputKey.x;
+                    newMapping["b"] = InputKey.b;
+                }
+            }
             else if (mednafenCore == "nes")
             {
                 if (Program.SystemConfig.getOptBoolean("rotate_buttons"))
