@@ -405,7 +405,13 @@ namespace EmulatorLauncher
             try 
             {
                 var process = Process.Start(path);
-                Job.Current.AddProcess(process);
+
+                bool isBatch = !string.IsNullOrEmpty(path?.FileName) && (path.FileName.EndsWith(".bat", StringComparison.OrdinalIgnoreCase) || path.FileName.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase));
+                bool isLnkorUrl = !string.IsNullOrEmpty(path?.FileName) && (path.FileName.EndsWith(".url", StringComparison.OrdinalIgnoreCase) || path.FileName.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase));
+
+                if (!isBatch && !isLnkorUrl)
+                    Job.Current.AddProcess(process);
+                
                 process.WaitForExit();
                                  
                 int exitCode = process.ExitCode;
