@@ -187,6 +187,7 @@ namespace EmulatorLauncher
             if (!_namco2x6)
                 rom = this.TryUnZipGameIfNeeded(system, rom);
 
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
             string gameName = Path.GetFileNameWithoutExtension(rom);
             SimpleLogger.Instance.Info("[INFO] Game name : " + gameName);
 
@@ -344,7 +345,12 @@ namespace EmulatorLauncher
             if (windowed != null && SystemConfig.isOptSet("tp_fsmode") && (SystemConfig["tp_fsmode"] == "1" || SystemConfig["tp_fsmode"] == "2"))
                 windowed.FieldValue = "0";
             else if (windowed != null)
-                windowed.FieldValue = "1";
+            {
+                if (fullscreen)
+                    windowed.FieldValue = "0";
+                else
+                    windowed.FieldValue = "1";
+            }
 
             var displaymode = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "DisplayMode");
             if (displaymode != null && SystemConfig.isOptSet("tp_fsmode") && !string.IsNullOrEmpty(SystemConfig["tp_fsmode"]))
@@ -363,6 +369,9 @@ namespace EmulatorLauncher
                     case "2":
                         if (displaymode.FieldOptions != null && displaymode.FieldOptions.Any(f => f == "Fullscreen"))
                             displaymode.FieldValue = "Fullscreen";
+                        break;
+                    default:
+                        displaymode.FieldValue = fullscreen ? "Fullscreen" : "Windowed";
                         break;
                 }
             }
@@ -390,11 +399,21 @@ namespace EmulatorLauncher
                     resolutionWidth.FieldValue = resX.ToString();
                     resolutionHeight.FieldValue = resY.ToString();
                 }
+                else if (SystemConfig.getOptBoolean("tp_customres"))
+                {
+                    customResolution.FieldValue = "1";
+
+                    if (resolution != null)
+                    {
+                        resolutionWidth.FieldValue = resolution.Width.ToString();
+                        resolutionHeight.FieldValue = resolution.Height.ToString();
+                    }
+                }
                 else
                 {
                     var profileWidth = profile.ConfigValues.FirstOrDefault(c => c.FieldName == "ResolutionWidth");
                     var profileHeight = profile.ConfigValues.FirstOrDefault(c => c.FieldName == "ResolutionHeight");
-                    
+
                     customResolution.FieldValue = "0";
 
                     if (profileWidth != null && profileHeight != null)

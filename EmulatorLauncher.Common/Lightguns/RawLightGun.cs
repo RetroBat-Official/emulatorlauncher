@@ -182,6 +182,7 @@ namespace EmulatorLauncher.Common.Lightguns
         private int GetGunPriority()
         {
             Priority = 1000 + Index;
+
             switch (Type)
             {
                 case RawLighGunType.Gun4Ir:
@@ -313,7 +314,31 @@ namespace EmulatorLauncher.Common.Lightguns
                     break;
             }
 
+            if (IsLikelyIntegrated())
+                return 10000 + Index;
+
             return Priority;
+        }
+
+        private bool IsLikelyIntegrated()
+        {
+            if (string.IsNullOrEmpty(DevicePath))
+                return false;
+
+            string path = DevicePath.ToUpperInvariant();
+
+            // No VID => almost certainly not USB
+            if (!path.Contains("VID_"))
+                return true;
+
+            // Known integrated touchpad vendors
+            if (path.Contains("ASUP") ||
+                path.Contains("ELAN") ||
+                path.Contains("SYN") ||
+                path.Contains("MSFT"))
+                return true;
+
+            return false;
         }
 
         public override string ToString()

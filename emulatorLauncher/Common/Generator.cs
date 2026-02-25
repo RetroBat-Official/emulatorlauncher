@@ -413,13 +413,16 @@ namespace EmulatorLauncher
                     Job.Current.AddProcess(process);
                 
                 process.WaitForExit();
-                                 
+                SimpleLogger.Instance.Info("[Generator] Process exited with code " + process.ExitCode);
                 int exitCode = process.ExitCode;
 
                 if (exitCode == unchecked((int)0xc0000005)) // Null pointer - happen sometimes with Yuzu
                     return 0;
 
                 if (exitCode == unchecked((int)0xc0000374)) // Heap corruption - happen sometimes with scummvm
+                    return 0;
+
+                if (exitCode == -1) // Happens with some emulators (WinUAE)
                     return 0;
 
                 return exitCode;

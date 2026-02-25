@@ -110,10 +110,9 @@ namespace EmulatorLauncher
 
             bezel?.Dispose();
 
-            if (ret == 1)
+            if (ret != 0)
             {
-                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
-                return 0;
+                ret = 0;
             }
             ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
             return ret;
