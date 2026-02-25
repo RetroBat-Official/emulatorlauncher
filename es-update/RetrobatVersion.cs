@@ -37,6 +37,9 @@ namespace RetrobatUpdater
         {
             string url = GetInstallUrlNew(string.Format("{0}/{1}/remote_version.info", branch, localversion));
 
+            if (string.IsNullOrEmpty(url))
+                url = GetInstallUrl(string.Format("{0}/{1}/remote_version.info", branch, localversion));
+
             string remoteVersion = WebTools.DownloadString(url);
 
             if (string.IsNullOrEmpty(remoteVersion))
