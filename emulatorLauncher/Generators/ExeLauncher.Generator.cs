@@ -177,6 +177,7 @@ namespace EmulatorLauncher
             return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
         }
 
+        #region mugen_ikemen
         private void UpdateMugenConfig(string path, bool fullscreen, ScreenResolution resolution)
         {
             if (_systemName != "mugen")
@@ -219,51 +220,103 @@ namespace EmulatorLauncher
             if (_systemName != "ikemen")
                 return;
 
-            var json = DynamicJson.Load(Path.Combine(path, "save", "config.json"));
-
             ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator);
+
+            string jsonConfFile = Path.Combine(path, "save", "config.json");
+            string iniFile = Path.Combine(path, "save", "config.ini");
+            
+            if (!File.Exists(jsonConfFile) && !File.Exists(iniFile))
+                return;
+
+            string width = resolution == null ? ScreenResolution.CurrentResolution.Width.ToString() : resolution.Width.ToString();
+            string height = resolution == null ? ScreenResolution.CurrentResolution.Height.ToString() : resolution.Height.ToString();
+
+            if (SystemConfig.isOptSet("resolution") && !string.IsNullOrEmpty(SystemConfig["resolution"]) && SystemConfig["resolution"].Split('_').Length > 1)
+            {
+                width = SystemConfig["resolution"].Split('_')[0];
+                height = SystemConfig["resolution"].Split('_')[1];
+            }
 
             if (resolution == null)
                 resolution = ScreenResolution.CurrentResolution;
 
-            json["FirstRun"] = "false";           
-            json["Fullscreen"] = fullscreen ? "true" : "false";
 
-            if (SystemConfig["resolution"] == "240p")
+            // Some games use config.json
+            if (File.Exists(jsonConfFile))
             {
-                json["GameWidth"] = "320";
-                json["GameHeight"] = "240";
-            }
-            else if (SystemConfig["resolution"] == "480p")
-            {
-                json["GameWidth"] = "640";
-                json["GameHeight"] = "480";
-            }
-            else if (SystemConfig["resolution"] == "720p")
-            {
-                json["GameWidth"] = "1280";
-                json["GameHeight"] = "720";
-            }
-            else if (SystemConfig["resolution"] == "960p")
-            {
-                json["GameWidth"] = "1280";
-                json["GameHeight"] = "960";
-            }
-            else if (SystemConfig["resolution"] == "1080p")
-            {
-                json["GameWidth"] = "1920";
-                json["GameHeight"] = "1080";
-            }
-            else
-            {
-                json["GameWidth"] = resolution.Width.ToString();
-                json["GameHeight"] = resolution.Height.ToString();
+                var json = DynamicJson.Load(jsonConfFile);
+
+                if (json.IsDefined("FirstRun"))
+                    json["FirstRun"] = "false";
+
+                if (json.IsDefined("Fullscreen"))
+                    json["Fullscreen"] = fullscreen ? "true" : "false";
+
+                if (json.IsDefined("Borderless"))
+                    json["Borderless"] = SystemConfig.getOptBoolean("exclusivefs") ? "false" : "true";
+
+                if (json.IsDefined("GameWidth"))
+                {
+                    if (SystemConfig.isOptSet(SystemConfig["resolution"]) && SystemConfig["resolution"] == "screen")
+                    {
+                        json["GameWidth"] = resolution.Width.ToString();
+                        json["GameHeight"] = resolution.Height.ToString();
+                    }
+                    else if (SystemConfig.isOptSet(SystemConfig["resolution"]))
+                    {
+                        json["GameWidth"] = width;
+                        json["GameHeight"] = height;
+                    }
+                }
+
+                if (json.IsDefined("VRetrace"))
+                    BindBoolFeatureOn(json, "VRetrace", "VRetrace", "1", "0");
+
+                if (json.IsDefined("MSAA"))
+                    BindBoolFeature(json, "MSAA", "ikemen_msaa", "true", "false");
+
+                json.Save();
+
+                return;
             }
 
-            BindBoolFeatureOn(json, "VRetrace", "VRetrace", "1", "0");
+            // Some games use config.ini
+            if (File.Exists(iniFile))
+            {
+                using (var ini = IniFile.FromFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyLines))
+                {
+                    if (ini.KeyExists("Config", "FirstRun"))
+                        ini.WriteValue("Config", "FirstRun", "0");
 
-            json.Save();
+                    if (ini.KeyExists("Video", "Fullscreen"))
+                        ini.WriteValue("Video", "Fullscreen", fullscreen ? "1" : "0");
+
+                    if (ini.KeyExists("Video", "Borderless"))
+                        ini.WriteValue("Video", "Borderless", SystemConfig.getOptBoolean("exclusivefs") ? "0" : "1");
+
+                    if (ini.KeyExists("Video", "GameWidth"))
+                    {
+                        if (SystemConfig.isOptSet(SystemConfig["resolution"]) && SystemConfig["resolution"] == "screen")
+                        {
+                            ini.WriteValue("Video", "GameWidth", resolution.Width.ToString());
+                            ini.WriteValue("Video", "GameHeight", resolution.Height.ToString());
+                        }
+                        else if (SystemConfig.isOptSet(SystemConfig["resolution"]))
+                        {
+                            ini.WriteValue("Video", "GameWidth", width);
+                            ini.WriteValue("Video", "GameHeight", height);
+                        }
+                    }
+
+                    if (ini.KeyExists("Video", "VSync"))
+                        BindBoolIniFeatureOn(ini, "Video", "VSync", "VRetrace", "1", "0");
+
+                    if (ini.KeyExists("Video", "MSAA"))
+                        BindBoolIniFeature(ini, "Video", "MSAA", "ikemen_msaa", "1", "0");
+                }
+            }
         }
+        #endregion
 
         readonly string[] launcherPprocessNames = { "Amazon Games UI", "EADesktop", "EpicGamesLauncher", "steam", "GalaxyClient" };
 

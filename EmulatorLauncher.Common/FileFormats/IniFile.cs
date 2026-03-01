@@ -199,6 +199,15 @@ namespace EmulatorLauncher.Common.FileFormats
             return null;
         }
 
+        public bool KeyExists(string sectionName, string keyName)
+        {
+            var section = _sections.Get(sectionName);
+            if (section == null)
+                return false;
+
+            return section.Exists(keyName);
+        }
+
         public void WriteValue(string sectionName, string keyName, string value)
         {
             var section = _sections.GetOrAddSection(sectionName);
