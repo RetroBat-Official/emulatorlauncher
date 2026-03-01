@@ -21,7 +21,7 @@ namespace EmulatorLauncher.Common.Compression.Wrappers
 
         public static string GetRdSquashFSDllPath()
         {
-            return Path.Combine(Path.GetDirectoryName(typeof(Zip).Assembly.Location), "libsquashfs.dll");
+            return Path.Combine(Path.GetDirectoryName(typeof(Zip).Assembly.Location), IntPtr.Size == 4 ? "libsquashfs.dll" : "libsquashfs-x64.dll");
         }
 
         private SquashFsArchive() { }
@@ -54,7 +54,7 @@ namespace EmulatorLauncher.Common.Compression.Wrappers
 
         private IArchiveEntry[] ListEntriesInternal()
         {            
-            if (File.Exists(GetRdSquashFSDllPath()))
+            if (File.Exists(GetRdSquashFSDllPath()) && Kernel32.IsX64(GetRdSquashFSDllPath()) == (IntPtr.Size == 8))
             {
                 try { return ListDllEntriesInternal(); }
                 catch { }
