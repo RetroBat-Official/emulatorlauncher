@@ -38,7 +38,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		libs\SharpDX.DirectInput.dll = libs\SharpDX.DirectInput.dll
 		libs\SharpDX.dll = libs\SharpDX.dll
 		libs\SharpDX.XInput.dll = libs\SharpDX.XInput.dll
-		libs\System.Compiler.dll = libs\System.Compiler.dll
+		System.Compiler.dll = System.Compiler.dll
 		libs\System.Data.SQLite.dll = libs\System.Data.SQLite.dll
 		libs\xbox-iso-vfs.exe = libs\xbox-iso-vfs.exe
 	EndProjectSection
