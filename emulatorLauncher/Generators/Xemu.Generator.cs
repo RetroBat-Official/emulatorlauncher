@@ -8,6 +8,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Compression;
 
 namespace EmulatorLauncher
 {
@@ -77,20 +78,7 @@ namespace EmulatorLauncher
                         string zipFile = Path.Combine(savePath, "xbox_hdd.qcow2.zip");
                         File.WriteAllBytes(zipFile, Properties.Resources.xbox_hdd_qcow2);
 
-                        string unzip = Path.Combine(Path.GetDirectoryName(typeof(XEmuGenerator).Assembly.Location), "unzip.exe");
-                        if (File.Exists(unzip))
-                        {
-                            Process.Start(new ProcessStartInfo()
-                            {
-                                FileName = unzip,
-                                Arguments = "-o \"" + zipFile + "\" -d \"" + savePath + "\"",
-                                WorkingDirectory = savePath,
-                                WindowStyle = ProcessWindowStyle.Hidden,
-                                UseShellExecute = true
-                            })
-                            .WaitForExit();
-                        }
-
+                        Zip.Extract(zipFile, savePath);
                         File.Delete(zipFile);
                     }
 
