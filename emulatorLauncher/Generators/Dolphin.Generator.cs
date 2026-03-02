@@ -571,7 +571,7 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Core", "MMU", "enable_mmu", "True", "False");
 
                     // CPU Thread (Dual Core)
-                    BindBoolIniFeatureOn(ini, "Core", "CPUThread", "dolphin_cputhread", "True", "False");
+                    BindBoolIniFeature(ini, "Core", "CPUThread", "dolphin_cputhread", "True", "False");
 
                     // gamecube pads forced as standard pad
                     bool emulatedWiiMote = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig.getOptBoolean("emulatedwiimotes"));
