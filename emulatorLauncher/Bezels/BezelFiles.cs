@@ -409,11 +409,28 @@ namespace EmulatorLauncher
                             return "3ds_bigsmall";
                         break;
                     case "libretro":
-                        if (Program.SystemConfig.isOptSet("citra_layout_option") && Program.SystemConfig["citra_layout_option"] == "Side by Side")
-                            return "3ds_side_by_side";
-                        else if (Program.SystemConfig.isOptSet("citra_layout_option") && Program.SystemConfig["citra_layout_option"] == "Large Screen, Small Screen")
-                            return "3ds_lr_hybrid";
-                        break;
+                        {
+                            switch (core)
+                            {
+                                case "azahar":
+                                    {
+                                        if (Program.SystemConfig.isOptSet("azaharlr_layout_option") && Program.SystemConfig["azaharlr_layout_option"] == "side_by_side")
+                                            return "3ds_side_by_side";
+                                        else if (Program.SystemConfig.isOptSet("azaharlr_layout_option") && Program.SystemConfig["azaharlr_layout_option"] == "large_screen")
+                                            return "3ds_lr_hybrid";
+                                        break;
+                                    }
+                                case "citra":
+                                    {
+                                        if (Program.SystemConfig.isOptSet("citra_layout_option") && Program.SystemConfig["citra_layout_option"] == "Side by Side")
+                                            return "3ds_side_by_side";
+                                        else if (Program.SystemConfig.isOptSet("citra_layout_option") && Program.SystemConfig["citra_layout_option"] == "Large Screen, Small Screen")
+                                            return "3ds_lr_hybrid";
+                                        break;
+                                    }
+                            }
+                            break;
+                        }
                     case "lime3ds":
                         if (Program.SystemConfig.isOptSet("lime_layout_option") && Program.SystemConfig["lime_layout_option"] == "3")
                             return "3ds_side_by_side";
