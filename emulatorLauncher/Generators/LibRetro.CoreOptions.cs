@@ -38,6 +38,7 @@ namespace EmulatorLauncher.Libretro
                 { "ardens", "Ardens" },
                 { "arduous", "arduous" },
                 { "atari800", "Atari800" },
+                { "azahar", "Azahar" },
                 { "b2", "b2" },
                 { "bennugd", "BennuGD" },
                 { "bk", "bk" },
@@ -350,6 +351,7 @@ namespace EmulatorLauncher.Libretro
             Configure81(retroarchConfig, coreSettings, system, core);
             Configurea5200(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
+            ConfigureAzahar(retroarchConfig, coreSettings, system, core);
             ConfigureB2(retroarchConfig, coreSettings, system, core);
             ConfigureBennuGD(retroarchConfig, coreSettings, system, core);
             ConfigureBoom3(retroarchConfig, coreSettings, system, core);
@@ -763,6 +765,32 @@ namespace EmulatorLauncher.Libretro
             }
 
             atariCfg.Save(Path.Combine(RetroarchPath, ".atari800.cfg"), false);
+        }
+
+        private void ConfigureAzahar(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "azahar")
+                return;
+
+            coreSettings["citra_use_libretro_save_path"] = "LibRetro Default";
+
+            BindFeature(coreSettings, "citra_audio_emulation", "azaharlr_audio_emulation", "hle");
+            BindFeature(coreSettings, "citra_resolution_factor", "azaharlr_resolution_factor", "1");
+            BindFeature(coreSettings, "citra_is_new_3ds", "azaharlr_is_new_3ds", "New 3DS");
+            BindFeature(coreSettings, "citra_layout_option", "azaharlr_layout_option", "default");
+            BindBoolFeature(coreSettings, "citra_swap_screen", "azaharls_swap_screen", "Bottom", "Top");
+            BindBoolFeature(coreSettings, "citra_use_hw_shader", "azaharlr_use_hw_shaders", "disabled", "enabled");
+            BindFeature(coreSettings, "citra_texture_filter", "azaharlr_texture_filter", "none");
+            BindBoolFeature(coreSettings, "citra_custom_textures", "azaharlr_custom_textures", "enabled", "disabled");
+            BindFeature(coreSettings, "citra_region_value", "azaharlr_region_value", "Auto");
+            BindFeature(coreSettings, "citra_language_value", "azaharlr_language", "English");
+            BindBoolFeature(coreSettings, "citra_use_virtual_sd", "azaharlr_use_virtual_sd", "disabled", "enabled");
+            BindFeature(coreSettings, "citra_graphics_api", "azaharlr_graphics_api", "OpenGL");
+            BindBoolFeature(coreSettings, "citra_enable_mouse_touchscreen", "azaharlr_mouse_touchscreen", "disabled", "enabled");
+            BindFeature(coreSettings, "citra_analog_function", "azaharlr_analog_function", "c_stick_and_touchscreen");
+            BindBoolFeature(coreSettings, "citra_render_touchscreen", "azaharlr_render_touchscreen", "enabled", "disabled");
+            BindFeatureSlider(coreSettings, "citra_analog_deadzone", "azaharlr_analog_deadzone", "15");
+            BindBoolFeatureOn(coreSettings, "citra_enable_motion", "azaharlr_enable_motion", "enabled", "disabled");
         }
 
         private void ConfigureB2(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -1264,7 +1292,6 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             coreSettings["dosbox_pure_savestate"] = "on";
-            retroarchConfig["video_font_enable"] = "false"; // Disable OSD for dosbox_pure
 
             BindFeature(coreSettings, "dosbox_pure_aspect_correction", "dosbox_pure_aspect_correction", "true");
             BindFeature(coreSettings, "dosbox_pure_cga", "cga", "early_auto");

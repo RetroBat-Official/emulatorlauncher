@@ -241,14 +241,31 @@ namespace EmulatorLauncher
                 {
                     case "libretro":
                         {
-                            if (Program.SystemConfig["citra_analog_function"] == "C-Stick and Touchscreen Pointer" || !Program.SystemConfig.isOptSet("citra_analog_function"))
-                                ret = revert ? "3ds_stylus_cstick_revert" : "3ds_stylus_cstick";
-                            else if (Program.SystemConfig["citra_analog_function"] == "Touchscreen Pointer")
-                                ret = revert ? "3ds_stylus_revert" : "3ds_stylus";
-                            else if (Program.SystemConfig["citra_analog_function"] == "C-Stick")
-                                ret = revert ? "3ds_revert" : "3ds";
-                            break;
+                            switch (core)
+                            {
+                                case "citra":
+                                    {
+                                        if (Program.SystemConfig["citra_analog_function"] == "C-Stick and Touchscreen Pointer" || !Program.SystemConfig.isOptSet("citra_analog_function"))
+                                            ret = revert ? "3ds_stylus_cstick_revert" : "3ds_stylus_cstick";
+                                        else if (Program.SystemConfig["citra_analog_function"] == "Touchscreen Pointer")
+                                            ret = revert ? "3ds_stylus_revert" : "3ds_stylus";
+                                        else if (Program.SystemConfig["citra_analog_function"] == "C-Stick")
+                                            ret = revert ? "3ds_revert" : "3ds";
+                                        break;
+                                    }
+                                case "azahar":
+                                    {
+                                        if (Program.SystemConfig["azaharlr_analog_function"] == "c_stick_and_touchscreen" || !Program.SystemConfig.isOptSet("azaharlr_analog_function"))
+                                            ret = revert ? "3ds_stylus_cstick_revert" : "3ds_stylus_cstick";
+                                        else if (Program.SystemConfig["azaharlr_analog_function"] == "touchscreen_pointer")
+                                            ret = revert ? "3ds_stylus_revert" : "3ds_stylus";
+                                        else if (Program.SystemConfig["azaharlr_analog_function"] == "c_stick")
+                                            ret = revert ? "3ds_revert" : "3ds";
+                                        break;
+                                    }
+                            }
                         }
+                        break;
                     case "citra":
                     case "citra-canary":
                     case "lime3ds":
