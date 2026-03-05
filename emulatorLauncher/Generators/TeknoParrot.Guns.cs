@@ -110,7 +110,19 @@ namespace EmulatorLauncher
             // Get keyboards
             var hidDevices = RawInputDevice.GetRawInputDevices();
             var keyboards = hidDevices.Where(t => t.Type == RawInputDeviceType.Keyboard).OrderBy(u => u.DevicePath).ToList();
-            if (keyboards.Count > 0)
+            var filteredKbs = hidDevices
+                .Where(t => t.Type == RawInputDeviceType.Keyboard)
+                .Where(k => !guns.Any(g => g.DevicePath.Contains(GetVIDPID(k.DevicePath))))
+                .OrderBy(u => u.DevicePath)
+                .ToList();
+            
+            if (filteredKbs.Count > 0)
+            {
+                int kbCount = filteredKbs.Count;
+                SimpleLogger.Instance.Info("[GUNS] Found " + kbCount + " usable keyboards.");
+                keyboard = filteredKbs[0];
+            }
+            else if (keyboards.Count > 0)
             {
                 int kbCount = keyboards.Count;
                 SimpleLogger.Instance.Info("[GUNS] Found " + kbCount + " usable keyboards.");
@@ -194,7 +206,7 @@ namespace EmulatorLauncher
             }
 
             // Fetch name of keyboard to add in TP userprofile !
-            int kbs = 1;
+            int kbs = 0;
             foreach (var k in keyboards)
             {
                 string cleanPath = "";
