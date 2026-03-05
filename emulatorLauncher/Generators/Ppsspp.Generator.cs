@@ -115,6 +115,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("General", "FirstRun", "False");
                     ini.WriteValue("Control", "AllowMappingCombos", "True");
                     ini.WriteValue("General", "MemStickInserted", "True");
+                    ini.WriteValue("General", "PauseOnLostFocus", "True");
 
                     BindBoolIniFeature(ini, "General", "EnableCheats", "ppsspp_cheats", "True", "False");
 
