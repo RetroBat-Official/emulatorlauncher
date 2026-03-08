@@ -561,7 +561,7 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "Core", "GFXBackend", "dolphin_gfxbackend", "Vulkan");
 
                     // Cheats - default false
-                    if (!_triforce)
+                    if (!_crediar)
                         BindBoolIniFeature(ini, "Core", "EnableCheats", "enable_cheats", "True", "False");
 
                     // Fast Disc Speed - Default Off
