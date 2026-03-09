@@ -19,6 +19,7 @@ namespace EmulatorLauncher
         private bool _messcfgInput = false;
         private GameMapping _gameMapping = null;
         private Layout _gameLayout = null;
+        private string _gamename = null;
         private List<string> _filesToRestore = new List<string>();
         private string _messSystem = null;
         static readonly Dictionary<string, string> messFiles = new Dictionary<string, string>()
@@ -112,6 +113,7 @@ namespace EmulatorLauncher
 
                     if (gameLayout != null)
                     {
+                        _gamename = gameMapping.Name != null ? gameMapping.Name : null;
                         _gameMapping = gameMapping;
                         _gameLayout = gameLayout;
                     }
@@ -306,6 +308,11 @@ namespace EmulatorLauncher
             }
 
             // Generate xml document
+            if (_gamename != null)
+            {
+                system.SetAttributeValue("name", _gamename);
+            }
+
             XDocument xdoc = new XDocument(new XDeclaration("1.0", null, null));
             xdoc.Add(mameconfig);
             mameconfig.Add(system);
