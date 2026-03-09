@@ -446,7 +446,7 @@ namespace EmulatorLauncher
             // Pedal
             if (SystemConfig.isOptSet("mame_pedal") && !string.IsNullOrEmpty(SystemConfig["mame_pedal"]))
             {
-                retList.Add("-pedal_device ");
+                retList.Add("-pedal_device");
                 retList.Add(SystemConfig["mame_pedal"]);
             }
             else
@@ -553,8 +553,6 @@ namespace EmulatorLauncher
             retList.Add("-joystickprovider");
             if (SystemConfig.isOptSet("mame_joystick_driver") && !string.IsNullOrEmpty(SystemConfig["mame_joystick_driver"]))
                 retList.Add(SystemConfig["mame_joystick_driver"]);
-            else if (SystemConfig.getOptBoolean("use_guns") && SystemConfig["mame_lightgun"] != "joystick")
-                retList.Add("none");
             else
                 retList.Add("winhybrid");
 

@@ -202,6 +202,7 @@ namespace EmulatorLauncher.Libretro
                 { "pcsx_rearmed_interpreter", "PCSX ReARMed [Interpreter]" },
                 { "pcsx_rearmed", "PCSX-ReARMed" },
                 { "pcsx_rearmed_neon", "PCSX ReARMed [NEON]" },
+                { "pd777", "Pd777" },
                 { "picodrive", "PicoDrive" },
                 { "play", "Play!" },
                 { "pocketcdg", "pocketcdg" },
@@ -432,6 +433,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureOpera(retroarchConfig, coreSettings, system, core);
             ConfigureParallelN64(retroarchConfig, coreSettings, system, core);
             ConfigurePcsxRearmed(retroarchConfig, coreSettings, system, core);
+            ConfigurePd777(retroarchConfig, coreSettings, system, core);
             ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
             ConfigurePocketCDG(retroarchConfig, coreSettings, system, core);
             ConfigurePokeMini(retroarchConfig, coreSettings, system, core);
@@ -4033,6 +4035,12 @@ namespace EmulatorLauncher.Libretro
             // Disable multitap for multiple guns
             if (SystemConfig.isOptSet("use_guns") && SystemConfig.getOptBoolean("use_guns"))
                 coreSettings["pcsx_rearmed_multitap"] = "disabled";
+        }
+
+        private void ConfigurePd777(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "pd777")
+                return;
         }
 
         private void ConfigurePicodrive(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

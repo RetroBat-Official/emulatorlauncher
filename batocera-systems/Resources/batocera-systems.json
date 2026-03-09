@@ -973,7 +973,7 @@
     "name": "Java",
     "biosFiles": [
       {
-        "md5": "c575f2dd51217ce82fd925b2a27a857c",
+        "md5": "a6f31483d1da4558cc19025e21f95c1d",
         "file": "bios/freej2me-lr.jar"
       }
     ]
@@ -1815,6 +1815,16 @@
       {
         "md5": "",
         "file": "bios/mame/hash/ti99_cart.xml"
+      }
+    ]
+  },
+
+  "triforce": {
+    "name": "Triforce",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "emulators/dolphin-emu/User/Triforce/segaboot.gcm"
       }
     ]
   },

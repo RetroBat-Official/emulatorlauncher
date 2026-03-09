@@ -127,6 +127,15 @@ namespace EmulatorLauncher.Libretro
             }
             catch { SimpleLogger.Instance.Warning("[WARNING] Failed duplicate index check"); }
 
+            // Remove potential keys with -1 as it crashes RetroArch
+            for (int i = 1; i <= 16; i++)
+            {
+                string joypadKey = $"input_player{i}_joypad_index";
+
+                if (retroconfig[joypadKey] == "-1")
+                    retroconfig.DisableAll(joypadKey);
+            }
+
             WriteKBHotKeyConfig(retroconfig, core);
             if (_specialController && _specialControllerHotkey)
                 return true;
