@@ -239,6 +239,7 @@ namespace EmulatorLauncher.Libretro
                 { "stella", "Stella" },
                 { "stonesoup", "Dungeon Crawl Stone Soup" },
                 { "superbroswar", "Super Bros War" },
+                { "supermodel", "Supermodel" },
                 { "swanstation", "SwanStation" },
                 { "tempgba", "TempGBA" },
                 { "testaudio_callback", "TestAudio Callback" },
@@ -454,6 +455,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureSNes9x2005(retroarchConfig, coreSettings, system, core);
             ConfigureStella(retroarchConfig, coreSettings, system, core);
             ConfigureStella2014(retroarchConfig, coreSettings, system, core);
+            ConfigureSupermodel(retroarchConfig, coreSettings, system, core);
             ConfigureSwanStation(retroarchConfig, coreSettings, system, core);
             ConfigureTGBDual(retroarchConfig, coreSettings, system, core);
             ConfigureTheodore(retroarchConfig, coreSettings, system, core);
@@ -1230,49 +1232,45 @@ namespace EmulatorLauncher.Libretro
             if (core != "dolphin")
                 return;
 
-            //coreSettings["dolphin_renderer"] = "Hardware";
-            //coreSettings["dolphin_cpu_core"] = "JIT64";
-            //coreSettings["dolphin_dsp_hle"] = "enabled";
-            //coreSettings["dolphin_dsp_jit"] = "enabled";
-            //coreSettings["dolphin_widescreen_hack"] = "disabled";
+            coreSettings["dolphin_save_load_settings"] = "disabled";
 
+            BindBoolFeature(coreSettings, "dolphin_main_mmu", "enable_mmu", "enabled", "disabled");
+            BindFeature(coreSettings, "dolphin_cpu_core", "dolphin_cpu_core", "1");
             BindFeature(coreSettings, "dolphin_efb_scale", "dolphin_efb_scale", "1");
-            BindFeature(coreSettings, "dolphin_max_anisotropy", "dolphin_max_anisotropy", "0");
-            BindFeature(coreSettings, "dolphin_shader_compilation_mode", "dolphin_shader_compilation_mode", "0");
             BindBoolFeature(coreSettings, "dolphin_wait_for_shaders", "dolphin_wait_for_shaders", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_enhance_hdr_output", "enable_hdr", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_gpu_texture_decoding", "dolphin_gpu_texture_decoding", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_crop_overscan", "dolphin_crop_overscan", "enabled", "disabled");
+            BindFeature(coreSettings, "dolphin_shader_compilation_mode", "dolphin_shader_compilation_mode", "0");
+            BindFeature(coreSettings, "dolphin_max_anisotropy", "dolphin_max_anisotropy", "0");
+            BindFeature(coreSettings, "dolphin_anti_aliasing", "dolphin_anti_aliasing", "0");
+            BindFeature(coreSettings, "dolphin_force_texture_filtering_mode", "dolphin_force_texture_filtering_mode", "0");
+            BindBoolFeature(coreSettings, "dolphin_widescreen_hack", "dolphin_widescreen_hack", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_vertex_rounding", "VertexRounding", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_vi_skip", "VISkip", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "dolphin_xfb_to_texture_enable", "dolphin_xfbtotexture", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_fast_texture_sampling", "manual_texture_sampling", "disabled", "enabled");
             BindBoolFeature(coreSettings, "dolphin_load_custom_textures", "dolphin_load_custom_textures", "enabled", "disabled");
             BindBoolFeature(coreSettings, "dolphin_cache_custom_textures", "dolphin_cache_custom_textures", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "dolphin_enable_rumble", "dolphin_enable_rumble", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "dolphin_osd_enabled", "dolphin_osd_enabled", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "dolphin_cheats_enabled", "dolphin_cheats_enabled", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "dolphin_fast_texture_sampling", "manual_texture_sampling", "disabled", "enabled");
-
-            if (SystemConfig.getOptBoolean("dolphin_cheats_enabled"))
-            {
-                DolphinSyncCheats(system);
-            }
-
-            BindFeature(coreSettings, "dolphin_force_texture_filtering_mode", "dolphin_force_texture_filtering_mode", "0");
             BindFeature(coreSettings, "dolphin_language", "dolphin_language", "1");
             BindBoolFeature(coreSettings, "dolphin_pal60", "dolphin_pal60", "enabled", "disabled");
-            BindFeature(coreSettings, "dolphin_progressive_scan", "dolphin_progressive_scan", "enabled");
-            BindBoolFeature(coreSettings, "dolphin_widescreen_hack", "dolphin_widescreen_hack", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_cheats_enabled", "dolphin_cheats_enabled", "enabled", "disabled");
+            
+            if (SystemConfig.getOptBoolean("dolphin_cheats_enabled"))
+                DolphinSyncCheats(system);
+            
             BindBoolFeature(coreSettings, "dolphin_main_cpu_thread", "dolphin_cputhread", "enabled", "disabled");
-            BindFeature(coreSettings, "dolphin_anti_aliasing", "dolphin_anti_aliasing", "0");
-
-            // Wii Controllers
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "dolphin_p1_controller", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "dolphin_p2_controller", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p3", "dolphin_p3_controller", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p4", "dolphin_p4_controller", "1");
+            BindBoolFeature(coreSettings, "dolphin_osd_enabled", "dolphin_osd_enabled", "enabled", "disabled");
 
             // gamecube
             if (system == "gamecube" || system == "gc")
             {
+                BindBoolFeatureOn(coreSettings, "dolphin_skip_gc_bios", "skip_bios", "enabled", "disabled");
                 string gcSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "gamecube", "dolphin-emu", "User", "GC");
                 DolphinGenerator.SyncGCSaves(gcSavesPath);
-                BindBoolFeatureOn(coreSettings, "dolphin_skip_gc_bios", "skip_bios", "enabled", "disabled");
             }
+
+            BindBoolFeature(coreSettings, "dolphin_enable_rumble", "dolphin_enable_rumble", "enabled", "disabled");
 
             // wii
             if (system == "wii")
@@ -1282,10 +1280,25 @@ namespace EmulatorLauncher.Libretro
                 else
                     coreSettings["dolphin_widescreen"] = "disabled";
 
+                BindBoolFeature(coreSettings, "dolphin_progressive_scan", "dolphin_progressive_scan", "enabled", "disabled");
                 BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "0");
                 BindBoolFeature(coreSettings, "dolphin_wiimote_continuous_scanning", "dolphin_nowiimotescan", "disabled", "enabled");
                 BindBoolFeature(coreSettings, "dolphin_bluetooth_passthrough", "dolphin_bt_pass", "enabled", "disabled");
+                BindBoolFeatureOn(coreSettings, "dolphin_widescreen", "dolphin_widescreen", "disabled", "enabled");
+                BindFeature(coreSettings, "dolphin_ir_modifier", "dolphin_ir_modifier", "None");
+                BindFeature(coreSettings, "dolphin_swing_modifier", "dolphin_swing_modifier", "Disabled");
             }
+
+            if (system == "triforce")
+                coreSettings["dolphin_gc_sp1"] = "6";
+            else
+                coreSettings["dolphin_gc_sp1"] = "255";
+
+            // Wii Controllers
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "dolphin_p1_controller", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "dolphin_p2_controller", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "dolphin_p3_controller", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "dolphin_p4_controller", "1");
         }
 
         private void ConfigureDosboxPure(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -4851,6 +4864,23 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["stella2014_low_pass_range"] = "60";
                 }
             }
+        }
+
+        private void ConfigureSupermodel(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "supermodel")
+                return;
+
+            BindFeature(coreSettings, "supermodel_resolution", "supermodel_resolution", "native");
+            BindBoolFeatureOn(coreSettings, "supermodel_vsync", "supermodel_vsync", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "supermodel_wide_screen", "supermodel_wide_screen", "enabled", "disabled");
+
+            BindFeature(coreSettings, "supermodel_service_buttons", "supermodel_service_buttons", "sticks");
+            BindFeatureSlider(coreSettings, "supermodel_analog_sensitivity", "supermodel_analog_sensitivity", "100");
+            BindBoolFeature(coreSettings, "supermodel_crosshairs", "supermodel_crosshairs", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "supermodel_force_feedback", "supermodel_force_feedback", "enabled", "disabled");
+
+            //SetupLightGuns(retroarchConfig, "1", core);
         }
 
         private void ConfigureSwanStation(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
