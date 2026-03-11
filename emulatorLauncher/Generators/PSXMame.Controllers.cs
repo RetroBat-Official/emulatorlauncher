@@ -107,7 +107,7 @@ namespace EmulatorLauncher
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "P1_GAMBLE_SERVICE"),
-                            new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightstick", xinputCtrl) + " OR KEYCODE_F2")));
+                            new XElement("newseq", new XAttribute("type", "standard"), joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightstick", xinputCtrl) + " OR KEYCODE_0")));
 
                     input.Add(new XElement
                         ("port", new XAttribute("type", "SERVICE1"),

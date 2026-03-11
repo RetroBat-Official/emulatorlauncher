@@ -662,7 +662,7 @@ namespace EmulatorLauncher
                                 ctrlini.ClearSection("digital");
 
                                 ctrlini.WriteValue("digital", "bind0", "6:insert_card");        //C
-                                ctrlini.WriteValue("digital", "bind1", "17:btn_dpad2_up");      //N
+                                ctrlini.WriteValue("digital", "bind1", "97:btn_dpad2_up");      //9
                                 ctrlini.WriteValue("digital", "bind10", "30:btn_start");         //1
 
                                 int i = 11;
@@ -677,7 +677,7 @@ namespace EmulatorLauncher
                                 ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");   //LEFT
                                 ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");   //DOWN
                                 ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");     //UP
-                                ctrlini.WriteValue("digital", "bind6", "5:btn_dpad2_down");     //B
+                                ctrlini.WriteValue("digital", "bind6", "98:btn_dpad2_down");     //0
                                 ctrlini.WriteValue("digital", "bind7", "20:btn_a");             //Q
                                 ctrlini.WriteValue("digital", "bind8", "29:btn_b");             //Z
                                 ctrlini.WriteValue("digital", "bind9", "34:btn_d");             //5
@@ -757,7 +757,7 @@ namespace EmulatorLauncher
                                 if (index == 1)
                                 {
                                     ctrlini.WriteValue("digital", "bind0", "6:insert_card");        //C
-                                    ctrlini.WriteValue("digital", "bind1", "17:btn_dpad2_up");      //N
+                                    ctrlini.WriteValue("digital", "bind1", "97:btn_dpad2_up");      //9
                                     ctrlini.WriteValue("digital", "bind10", "30:btn_start");         //1
                                     int i = 11;
                                     foreach (var hk in hotkeyMapping)
@@ -770,7 +770,7 @@ namespace EmulatorLauncher
                                     ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");   //LEFT
                                     ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");   //DOWN
                                     ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");     //UP
-                                    ctrlini.WriteValue("digital", "bind6", "5:btn_dpad2_down");     //B
+                                    ctrlini.WriteValue("digital", "bind6", "98:btn_dpad2_down");     //0
                                     ctrlini.WriteValue("digital", "bind7", "20:btn_a");             //Q
                                     ctrlini.WriteValue("digital", "bind8", "29:btn_b");             //Z
                                     ctrlini.WriteValue("digital", "bind9", "34:btn_d");             //5
