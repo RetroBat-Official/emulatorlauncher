@@ -177,9 +177,9 @@ namespace EmulatorLauncher
                             if (value.StartsWith("Triforce/"))
                             {
                                 if (value == "Triforce/Service")
-                                    name = string.IsNullOrEmpty(name) ? "`2`" : name + "|`2`";
+                                    name = string.IsNullOrEmpty(name) ? "`9`" : name + "|`9`";
                                 else if (value == "Triforce/Test")
-                                    name = string.IsNullOrEmpty(name) ? "`1`" : name + "|`1`";
+                                    name = string.IsNullOrEmpty(name) ? "`0`" : name + "|`0`";
                                 else if (value == "Triforce/Coin")
                                     name = string.IsNullOrEmpty(name) ? "`5`" : name + "|`5`";
                             }
@@ -196,9 +196,9 @@ namespace EmulatorLauncher
                                 if (value.StartsWith("Triforce/"))
                                 {
                                     if (value == "Triforce/Service")
-                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:2`" : name + "|`DInput/0/Keyboard Mouse:2`";
+                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:9`" : name + "|`DInput/0/Keyboard Mouse:9`";
                                     else if (value == "Triforce/Test")
-                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:1`" : name + "|`DInput/0/Keyboard Mouse:1`";
+                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:0`" : name + "|`DInput/0/Keyboard Mouse:0`";
                                     else if (value == "Triforce/Coin")
                                         name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:5`" : name + "|`DInput/0/Keyboard Mouse:5`";
                                 }
@@ -236,9 +236,9 @@ namespace EmulatorLauncher
                                     if (value.StartsWith("Triforce/"))
                                     {
                                         if (value == "Triforce/Service")
-                                            name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:2`" : name + "|`DInput/0/Keyboard Mouse:2`";
+                                            name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:9`" : name + "|`DInput/0/Keyboard Mouse:9`";
                                         else if (value == "Triforce/Test")
-                                            name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:1`" : name + "|`DInput/0/Keyboard Mouse:1`";
+                                            name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:0`" : name + "|`DInput/0/Keyboard Mouse:0`";
                                         else if (value == "Triforce/Coin")
                                             name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:5`" : name + "|`DInput/0/Keyboard Mouse:5`";
                                     }
@@ -271,9 +271,9 @@ namespace EmulatorLauncher
                                 if (value.StartsWith("Triforce/"))
                                 {
                                     if (value == "Triforce/Service")
-                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:2`" : name + "|`DInput/0/Keyboard Mouse:2`";
+                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:9`" : name + "|`DInput/0/Keyboard Mouse:9`";
                                     else if (value == "Triforce/Test")
-                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:1`" : name + "|`DInput/0/Keyboard Mouse:1`";
+                                        name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:0`" : name + "|`DInput/0/Keyboard Mouse:0`";
                                     else if (value == "Triforce/Coin")
                                         name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:5`" : name + "|`DInput/0/Keyboard Mouse:5`";
                                 }

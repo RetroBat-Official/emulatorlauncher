@@ -175,8 +175,8 @@ namespace EmulatorLauncher
                     WriteKeyboardMapping(11, InputKey.r2, "btn_trigger_right");                                     // right trigger
                     ctrlini.WriteValue("digital", "bind12", "34:btn_d");                                            // coin (5)
                     WriteKeyboardMapping(13, InputKey.start, "btn_start");                                          // start
-                    ctrlini.WriteValue("digital", "bind14", "58:btn_dpad2_up");                                     // service (F1)
-                    ctrlini.WriteValue("digital", "bind15", "59:btn_dpad2_down");                                   // test (F2)
+                    ctrlini.WriteValue("digital", "bind14", "97:btn_dpad2_up");                                     // service (9)
+                    ctrlini.WriteValue("digital", "bind15", "98:btn_dpad2_down");                                   // test (0)
                     WriteKeyboardMapping(16, InputKey.right, "btn_dpad1_right");
                     WriteKeyboardMapping(17, InputKey.left, "btn_dpad1_left");
                     WriteKeyboardMapping(18, InputKey.down, "btn_dpad1_down");
@@ -277,8 +277,8 @@ namespace EmulatorLauncher
                     digitalBinds.Add("34:btn_d");
                     digitalBinds.Add("40:btn_start");
                     digitalBinds.Add("42:reload");
-                    digitalBinds.Add("62:btn_dpad2_up");
-                    digitalBinds.Add("63:btn_dpad2_down");
+                    digitalBinds.Add("97:btn_dpad2_up");
+                    digitalBinds.Add("98:btn_dpad2_down");
                     digitalBinds.Add("79:btn_dpad1_right");
                     digitalBinds.Add("80:btn_dpad1_left");
                     digitalBinds.Add("81:btn_dpad1_down");

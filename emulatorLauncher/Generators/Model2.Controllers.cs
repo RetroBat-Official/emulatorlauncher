@@ -1336,8 +1336,8 @@ namespace EmulatorLauncher
                 bytes[68] = (byte)0x39;     // SPACE
                 bytes[72] = (byte)0x03;     // 2
                 bytes[76] = (byte)0x07;     // 6
-                bytes[80] = (byte)0x3B;     // F1
-                bytes[84] = (byte)0x3C;     // F2
+                bytes[80] = (byte)0x0A;     // 9
+                bytes[84] = (byte)0x0B;     // 0
                 bytes[88] = (byte)0x42;     // F8
                 bytes[92] = (byte)0x41;     // F7
                 bytes[96] = (byte)0x40;     // F6
@@ -1530,9 +1530,9 @@ namespace EmulatorLauncher
 
             if (!SystemConfig.isOptSet("m2_enable_service") || !SystemConfig.getOptBoolean("m2_enable_service"))
             {
-                bytes[startByte] = (byte)0x3B;
+                bytes[startByte] = (byte)0x0A;
                 bytes[startByte + 1] = 0x00;
-                bytes[startByte + 4] = (byte)0x3C;
+                bytes[startByte + 4] = (byte)0x0B;
                 bytes[startByte + 5] = 0x00;
             }
             else

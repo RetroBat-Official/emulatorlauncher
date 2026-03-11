@@ -974,14 +974,20 @@ namespace EmulatorLauncher
                     break;
                 }
             }
-            
+
             if (result.Rom == folderPath)
-                result.Rom = Directory.GetFiles(folderPath, "*.exe")
-                    .FirstOrDefault(f => !f.ToLowerInvariant().Contains("uninst"));
+            {
+                var exeFiles = Directory.GetFiles(folderPath, "*.exe").ToArray();
+
+                if (exeFiles.Length > 0)
+                {
+                    result.Rom = exeFiles.FirstOrDefault(f => !Path.GetFileName(f).ToLowerInvariant().Contains("unins")) ?? exeFiles.First();
+                }
+            }
 
             result.WorkingDirectory = Path.GetDirectoryName(result.Rom);
 
-            // Cas spécial autorun.cmd
+            // Special case autorun.cmd
             if (Path.GetFileName(result.Rom).Equals("autorun.cmd", StringComparison.OrdinalIgnoreCase))
                 TryResolveAutorunCmd(ref result.Rom, ref result.WorkingDirectory, ref arguments);
 
