@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Diagnostics;
-using System.Windows.Forms;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+using static KeyboardInterceptor;
 
 namespace EmulatorLauncher
 {
@@ -409,43 +410,46 @@ namespace EmulatorLauncher
                 var px = Process.Start(path);
                 Job.Current.AddProcess(px);
 
-                while (!px.HasExited)
+                using (var escHook = new KeyboardInterceptor(px, new KeyTrigger(Keys.Escape)))
                 {
-                    if (px.WaitForExit(10))
-                        break;
-
-                    if (_bezelFileInfo != null)
+                    while (!px.HasExited)
                     {
-                        IntPtr hWnd = User32.FindHwnds(px.Id).FirstOrDefault(h => User32.GetClassName(h) == "MYWIN");
-                        if (hWnd != IntPtr.Zero)
+                        if (px.WaitForExit(10))
+                            break;
+
+                        if (_bezelFileInfo != null)
                         {
-                            var style = User32.GetWindowStyle(hWnd);
-                            if (style.HasFlag(WS.CAPTION))
+                            IntPtr hWnd = User32.FindHwnds(px.Id).FirstOrDefault(h => User32.GetClassName(h) == "MYWIN");
+                            if (hWnd != IntPtr.Zero)
                             {
-                                int resX = (_resolution == null ? Screen.PrimaryScreen.Bounds.Width : _resolution.Width);
-                                int resY = (_resolution == null ? Screen.PrimaryScreen.Bounds.Height : _resolution.Height);
+                                var style = User32.GetWindowStyle(hWnd);
+                                if (style.HasFlag(WS.CAPTION))
+                                {
+                                    int resX = (_resolution == null ? Screen.PrimaryScreen.Bounds.Width : _resolution.Width);
+                                    int resY = (_resolution == null ? Screen.PrimaryScreen.Bounds.Height : _resolution.Height);
 
-                                User32.SetWindowStyle(hWnd, style & ~WS.CAPTION);
-                                User32.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, resX, resY, SWP.NOZORDER | SWP.FRAMECHANGED);
-                                User32.SetMenu(hWnd, IntPtr.Zero);
+                                    User32.SetWindowStyle(hWnd, style & ~WS.CAPTION);
+                                    User32.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, resX, resY, SWP.NOZORDER | SWP.FRAMECHANGED);
+                                    User32.SetMenu(hWnd, IntPtr.Zero);
 
-                                if (_bezelFileInfo != null && bezel == null)
-                                    bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+                                    if (_bezelFileInfo != null && bezel == null)
+                                        bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+                                }
                             }
                         }
-                    }                   
-                    else if (fullScreenHost != null && !fullScreenHost.IsAttached)
-                    {
-                        IntPtr hWnd = User32.FindHwnds(px.Id).FirstOrDefault(h => User32.GetClassName(h) == "MYWIN");
-                        if (hWnd != IntPtr.Zero)
+                        else if (fullScreenHost != null && !fullScreenHost.IsAttached)
                         {
-                            fullScreenHost.AttachHandle(hWnd);
-                            px.WaitForExit();
-                            return px.ExitCode;
+                            IntPtr hWnd = User32.FindHwnds(px.Id).FirstOrDefault(h => User32.GetClassName(h) == "MYWIN");
+                            if (hWnd != IntPtr.Zero)
+                            {
+                                fullScreenHost.AttachHandle(hWnd);
+                                px.WaitForExit();
+                                return px.ExitCode;
+                            }
                         }
+
+                        Application.DoEvents();
                     }
-                    
-                    Application.DoEvents();
                 }
 
                 return px.ExitCode;
