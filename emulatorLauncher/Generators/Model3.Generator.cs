@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using static KeyboardInterceptor;
+using static EmulatorLauncher.Common.KeyboardInterceptor;
 
 namespace EmulatorLauncher
 {

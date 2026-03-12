@@ -302,7 +302,7 @@ namespace EmulatorLauncher.Common.Launchers
                 }
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }
@@ -540,10 +540,7 @@ namespace EmulatorLauncher.Common.Launchers
 
                     games.Add(game);
                 }
-                catch (Exception ex)
-                {
-
-                }
+                catch { }
             }
 
             return games;

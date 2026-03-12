@@ -303,7 +303,6 @@ namespace EmulatorLauncher.ControlCenter
                 return hWnds.FirstOrDefault();
 
             return User32.GetActiveWindow();
-            return IntPtr.Zero;
         }
 
         private static void KillChildrenProcesses(int pid, bool root = true)

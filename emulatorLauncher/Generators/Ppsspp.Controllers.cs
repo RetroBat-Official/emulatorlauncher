@@ -81,8 +81,8 @@ namespace EmulatorLauncher
                 string AnDown = "20-4003,21-4003,22-4003,23-4003";
                 string AnLeft = "20-4001,21-4001,22-4001,23-4001";
                 string AnRight = "20-4000,21-4000,22-4000,23-4000";
-                string thumbLeft = "20-106,21-106,22-106,23-106";
-                string thumbRight = "20-107,21-107,22-107,23-107";
+                //string thumbLeft = "20-106,21-106,22-106,23-106";
+                //string thumbRight = "20-107,21-107,22-107,23-107";
 
                 ini.WriteValue("ControlMapping", "Up", controlUp);
                 ini.WriteValue("ControlMapping", "Down", controlDown);

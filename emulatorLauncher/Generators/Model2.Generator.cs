@@ -1,4 +1,5 @@
 ﻿using EmulatorLauncher.Common;
+using static EmulatorLauncher.Common.KeyboardInterceptor;
 using EmulatorLauncher.Common.FileFormats;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using static KeyboardInterceptor;
 
 namespace EmulatorLauncher
 {
