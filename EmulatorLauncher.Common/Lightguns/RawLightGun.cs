@@ -314,7 +314,7 @@ namespace EmulatorLauncher.Common.Lightguns
                     break;
             }
 
-            if (IsLikelyIntegrated())
+            if (Type == RawLighGunType.Mouse && IsLikelyIntegrated())
                 return 10000 + Index;
 
             return Priority;
@@ -327,15 +327,19 @@ namespace EmulatorLauncher.Common.Lightguns
 
             string path = DevicePath.ToUpperInvariant();
 
-            // No VID => almost certainly not USB
-            if (!path.Contains("VID_"))
-                return true;
+            // Special cases to exclude that do not have VID
+            if (path.ToLowerInvariant().Contains("vmulti"))
+                return false;
 
             // Known integrated touchpad vendors
             if (path.Contains("ASUP") ||
                 path.Contains("ELAN") ||
                 path.Contains("SYN") ||
                 path.Contains("MSFT"))
+                return true;
+
+            // No VID => almost certainly not USB
+            if (!path.Contains("VID_"))
                 return true;
 
             return false;
@@ -351,14 +355,14 @@ namespace EmulatorLauncher.Common.Lightguns
     public enum RawLighGunType
     {
         SindenLightgun,
-        MayFlashWiimote, // Using mode 1
+        MayFlashWiimote, // Using mode 1 and 2
         Gun4Ir,
         AELightgun,
         RetroShooter,
         Blamcon,
         Aimtrak,
         Xenas,
-        Wiimote4Guns,
+        Wiimote4Guns, // using wiimote4guns plugin
         Xgunner,
         Mouse
     }

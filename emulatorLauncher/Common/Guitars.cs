@@ -18,10 +18,10 @@ namespace EmulatorLauncher.Common
         {
             if (!string.IsNullOrEmpty(devicePath))
             {
-                List<string> knownWheelsVidPid = knownWheelsTypes.Keys.ToList();
+                List<string> knownGuitarsVidPid = knownGuitarsTypes.Keys.ToList();
 
-                if (knownWheelsVidPid.Any(d => devicePath.Contains(d)))
-                    return knownWheelsTypes[knownWheelsVidPid.First(d => devicePath.Contains(d))];
+                if (knownGuitarsVidPid.Any(d => devicePath.Contains(d)))
+                    return knownGuitarsTypes[knownGuitarsVidPid.First(d => devicePath.Contains(d))];
 
                 else
                     return GuitarType.Default;
@@ -51,7 +51,7 @@ namespace EmulatorLauncher.Common
                 return (int)Type;
         }
 
-        private static readonly Dictionary<string, GuitarType> knownWheelsTypes = new Dictionary<string, GuitarType>
+        private static readonly Dictionary<string, GuitarType> knownGuitarsTypes = new Dictionary<string, GuitarType>
         {
             { "VID_1430&PID_4748", GuitarType.CRKD_Guitar_XP }
         };
