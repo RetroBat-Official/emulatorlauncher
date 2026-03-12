@@ -193,9 +193,6 @@ namespace EmulatorLauncher.Libretro
         {
             retroconfig.DisableAll("input_player");
 
-            for(int i = 1 ; i <= 5 ; i++)
-                retroconfig[string.Format("input_player{0}_joypad_index", i)] = (i - 1).ToString();
-
             // Clean controller hotkeys
             retroconfig.DisableAllPattern("input_", "_btn");
 
@@ -605,7 +602,7 @@ namespace EmulatorLauncher.Libretro
             if (!forceArcadeIndex)
             {
                 if (_inputDriver == "sdl2" && !string.IsNullOrEmpty(controller.DevicePath) && controller.SdlController != null)
-                    index = controller.SdlController.Index;
+                    index = controller.SdlController.Index > -1 ? controller.SdlController.Index : controller.DeviceIndex;
                 else if (_inputDriver == "dinput" && controller.DirectInput != null && controller.DirectInput.DeviceIndex > -1)
                     index = controller.DirectInput.DeviceIndex;
                 else if (_inputDriver == "xinput" && controller.XInput != null && controller.XInput.DeviceIndex > -1)

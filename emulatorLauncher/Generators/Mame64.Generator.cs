@@ -298,7 +298,6 @@ namespace EmulatorLauncher
             }
             else
             {
-
                 if (resolution != null)
                 {
                     if (SystemConfig["mame_video_driver"] != "gdi" && SystemConfig["mame_video_driver"] != "bgfx")
@@ -314,15 +313,15 @@ namespace EmulatorLauncher
                 }
 
                 // Aspect ratio
-                if (SystemConfig.isOptSet("mame_ratio") && SystemConfig["mame_ratio"] == "stretch")
+                if (SystemConfig.isOptSet("mame_ratio"))
                 {
-                    retList.Add("-noka");
+                    if (SystemConfig["mame_ratio"] == "stretch")
+                        retList.Add("-noka");
+                    else
+                        retList.Add("-ka");
                 }
                 else
-                {
-                    retList.Add("-aspect");
-                    retList.Add("auto");
-                }
+                    retList.Add("-ka");
             }
             
             // Monitor index
