@@ -482,8 +482,6 @@ namespace EmulatorLauncher
             if (c == null)
                 return false;
 
-            int direction = 1;
-
             if (c.ButtonMappings == null)
             {
                 SimpleLogger.Instance.Info("[INFO] No mapping found for the controller.");
@@ -524,20 +522,6 @@ namespace EmulatorLauncher
             }
 
             return false;
-        }
-
-        private string GetAxis(string axis)
-        {
-            if (axis.StartsWith("-a") || axis.StartsWith("+a"))
-            {
-                return axis.Substring(2);
-            }
-            else if (axis.StartsWith("a"))
-            {
-                return axis.Substring(1);
-            }
-            
-            return axis;
         }
 
         private string doubleDigitString(string x)
