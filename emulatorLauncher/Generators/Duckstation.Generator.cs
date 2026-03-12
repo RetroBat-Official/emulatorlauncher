@@ -16,7 +16,7 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private SaveStatesWatcher _saveStatesWatcher;
         private Version _duckstationVersion;
-        private bool _internalBezel = false;
+        private bool _internalBezel = true;
         private bool _cleanupbezel = false;
         private string _path;
         private KeyValuePair<string, string>[] _stage1;
@@ -74,9 +74,11 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("gfxbackend") && !string.IsNullOrEmpty(SystemConfig["gfxbackend"]))
                 renderer = SystemConfig["gfxbackend"];
 
-            if (SystemConfig.getOptBoolean("duckstation_internalBezel") && fullscreen)
+            if (SystemConfig.isOptSet("duckstation_internalBezel") && !SystemConfig.getOptBoolean("duckstation_internalBezel"))
+                _internalBezel = false;
+            
+            if (fullscreen)
             {
-                _internalBezel = true;
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             }
 
@@ -117,7 +119,6 @@ namespace EmulatorLauncher
                 commandArray.Add("-fastboot");
 
             commandArray.Add("-batch");
-            //commandArray.Add("-portable");        DEPRECATED
 
             if (fullscreen)
                 commandArray.Add("-fullscreen");
@@ -430,7 +431,6 @@ namespace EmulatorLauncher
                     _postproc = ini.EnumerateValues("PostProcessing");
                     stages.Add(_stage1); stages.Add(_stage2); stages.Add(_stage3); stages.Add(_stage4); stages.Add(_stage5); stages.Add(_stage6); stages.Add(_stage7); stages.Add(_stage8);
 
-
                     if (SystemConfig.isOptSet("duck_shaders") && !string.IsNullOrEmpty(SystemConfig["duck_shaders"]))
                     {
                         
@@ -444,6 +444,20 @@ namespace EmulatorLauncher
                         ini.WriteValue("PostProcessing", "StageCount", "1");
                         ini.WriteValue("PostProcessing/Stage1", "ShaderName", SystemConfig["duck_shaders"].Replace("_", "/"));
                         _restoreShaders = true;
+                    }
+
+                    // Custom textures
+                    if (SystemConfig.isOptSet("duck_custom_textures") && SystemConfig.getOptBoolean("duck_custom_textures"))
+                    {
+                        ini.WriteValue("GPU", "EnableTextureCache", "true");
+                        ini.WriteValue("TextureReplacements", "EnableTextureReplacements", "true");
+                        ini.WriteValue("TextureReplacements", "PreloadTextures", SystemConfig.getOptBoolean("duck_preload_textures") ? "true" : "false");
+                    }
+                    else
+                    {
+                        ini.WriteValue("GPU", "EnableTextureCache", "false");
+                        ini.WriteValue("TextureReplacements", "EnableTextureReplacements", "false");
+                        ini.WriteValue("TextureReplacements", "PreloadTextures", "false");
                     }
 
                     BindBoolIniFeatureOn(ini, "Display", "ShowOSDMessages", "duckstation_osd_enabled", "true", "false");
