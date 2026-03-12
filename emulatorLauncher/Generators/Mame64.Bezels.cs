@@ -65,6 +65,9 @@ namespace EmulatorLauncher
             }
 
             // Check if ratio is forced
+            if (Path.GetFileName(pngFile).StartsWith("sinden") && (!SystemConfig.isOptSet("mame_ratio") || SystemConfig["mame_ratio"] == "keep"))
+                SystemConfig["mame_ratio"] = "4:3";
+            
             if (Features.IsSupported("mame_ratio") && SystemConfig.isOptSet("mame_ratio"))
             {
                 var ratio = Program.SystemConfig["mame_ratio"].ToRatio();
