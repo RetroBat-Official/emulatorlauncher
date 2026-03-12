@@ -327,6 +327,10 @@ namespace EmulatorLauncher.Common.Lightguns
 
             string path = DevicePath.ToUpperInvariant();
 
+            // vmulti virtual devices are not integrated (Wiimote4Guns fork Aynshe)
+            if (path.Contains("VMULTI"))
+                return false;
+
             // No VID => almost certainly not USB
             if (!path.Contains("VID_"))
                 return true;
