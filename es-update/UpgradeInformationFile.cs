@@ -59,6 +59,13 @@ namespace RetrobatUpdater
                 else
                     SimpleLogger.Instance.Info("[INFO] Performing upgrade actions specific to source version: " + upgrade.Version);
 
+                if (upgrade.MoveFirstActions != null)
+                    foreach (var action in upgrade.MoveFirstActions)
+                    {
+                        SimpleLogger.Instance.Info("[UPGRADE ACTION] Preparing to delete: " + action.path);
+                        action.Execute(rootPath);
+                    }
+
                 if (upgrade.DeleteActions != null)
                     foreach (var action in upgrade.DeleteActions)
                     {
@@ -164,6 +171,9 @@ namespace RetrobatUpdater
 
         [XmlElement("move")]
         public MoveAction[] MoveActions { get; set; }
+
+        [XmlElement("movefirst")]
+        public MoveFirstAction[] MoveFirstActions { get; set; }
 
         [XmlElement("merge")]
         public MergeDirectoryAction[] MergeDirectoryActions { get; set; }
@@ -312,6 +322,80 @@ namespace RetrobatUpdater
     }
 
     public partial class MoveAction
+    {
+        [XmlAttribute("path")]
+        public string path { get; set; }
+
+        [XmlAttribute("to")]
+        public string to { get; set; }
+
+        public void Execute(string root)
+        {
+            string oldPath = Path.Combine(root, path);
+            string newPath = Path.Combine(root, to);
+
+            if (File.Exists(oldPath))
+            {
+                try
+                {
+                    if (!Directory.Exists(Path.GetDirectoryName(newPath)))
+                        try { Directory.CreateDirectory(Path.GetDirectoryName(newPath)); }
+                        catch { SimpleLogger.Instance.Warning("[Upgrade] Unable to create target directory: " + newPath); }
+
+                    if (File.Exists(newPath))
+                    {
+                        try
+                        {
+                            File.Move(newPath, newPath + ".old");
+                            SimpleLogger.Instance.Info("[Upgrade] Renamed " + newPath + " to " + newPath + ".old");
+                        }
+                        catch { SimpleLogger.Instance.Warning("[Upgrade] Unable to rename existing file: " + newPath + " to .old"); }
+                    }
+
+                    try
+                    {
+                        File.Move(oldPath, newPath);
+                        SimpleLogger.Instance.Info("[Upgrade] Moved " + oldPath + " to " + newPath);
+                    }
+                    catch { SimpleLogger.Instance.Warning("[Upgrade] Unable to move: " + oldPath + " to " + newPath); }
+                }
+                catch { SimpleLogger.Instance.Warning("[Upgrade] Unable to move: " + oldPath + " to " + newPath); }
+            }
+            else
+                SimpleLogger.Instance.Warning("[Upgrade] Source file does not exist, checking folder.");
+
+            if (Directory.Exists(oldPath))
+            {
+                if (Directory.Exists(newPath))
+                {
+                    SimpleLogger.Instance.Info("[Upgrade] Target directory exists, renaming to .old.");
+                    try { Directory.Move(newPath, newPath + ".old"); }
+                    catch { SimpleLogger.Instance.Warning("[Upgrade] Unable to rename existing folder: " + newPath); }
+                }
+                if (!Directory.Exists(newPath))
+                {
+                    string parentPath = Path.GetDirectoryName(newPath);
+                    try { Directory.CreateDirectory(parentPath); }
+                    catch { SimpleLogger.Instance.Warning("[Upgrade] Unable to create target directory parent: " + parentPath); }
+
+                    try
+                    {
+                        Directory.Move(oldPath, newPath);
+                        SimpleLogger.Instance.Info("[Upgrade] Moved " + oldPath + " to " + newPath);
+                    }
+                    catch { SimpleLogger.Instance.Warning("[Upgrade] Unable to move: " + oldPath + " to " + newPath); }
+                }
+                else
+                    SimpleLogger.Instance.Warning("[Upgrade] Unable to move: " + oldPath + " to " + newPath);
+            }
+            else
+            {
+                SimpleLogger.Instance.Warning("[Upgrade] Source folder does not exist.");
+            }
+        }
+    }
+
+    public partial class MoveFirstAction
     {
         [XmlAttribute("path")]
         public string path { get; set; }
