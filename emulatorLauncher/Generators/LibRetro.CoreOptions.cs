@@ -4880,7 +4880,7 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "supermodel_crosshairs", "supermodel_crosshairs", "enabled", "disabled");
             BindBoolFeature(coreSettings, "supermodel_force_feedback", "supermodel_force_feedback", "enabled", "disabled");
 
-            //SetupLightGuns(retroarchConfig, "1", core);
+            SetupLightGuns(retroarchConfig, "1", core);
         }
 
         private void ConfigureSwanStation(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

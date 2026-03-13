@@ -24,7 +24,7 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> mdSystems = new List<string>() { "megadrive", "genesis", "megadrive-msu", "genesis-msu", "segacd", "megacd", "sega32x", "mega32x" };
         static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "snes-msu1", "sattelaview", "sufami", "sfc" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
-        static readonly List<string> arcadeSystems = new List<string>() { "arcade", "mame", "hbmame", "fbneo", "cave", "cps1", "cps2", "cps3", "atomiswave", "naomi", "naomi2", "gaelco", "segastv", "neogeo64" };
+        static readonly List<string> arcadeSystems = new List<string>() { "arcade", "mame", "hbmame", "fbneo", "cave", "cps1", "cps2", "cps3", "atomiswave", "naomi", "naomi2", "gaelco", "segastv", "neogeo64", "model3", "model2" };
         private static Dictionary<int, int> _indexes = new Dictionary<int, int>();
 
         /// <summary>
@@ -365,7 +365,7 @@ namespace EmulatorLauncher.Libretro
                 if (input.Type == "key")
                 {
                     // For arcade systems, when using keyboard, set 1 and 5.... as select and start
-                    if (arcadeSystems.Contains(system) && controller.IsKeyboard && controller.PlayerIndex < 5 && (btnkey.Value == "start" || btnkey.Value == "select"))
+                    if (arcadeSystems.Contains(system) && controller.IsKeyboard && controller.PlayerIndex < 5 && (btnkey.Value == "start" || btnkey.Value == "select" || btnkey.Value == "l3" || btnkey.Value == "r3"))
                     {
                         int index = controller.PlayerIndex;
                         string value = btnkey.Value;
@@ -379,6 +379,19 @@ namespace EmulatorLauncher.Libretro
                                 int startNumValue = index;
                                 value = "num" + startNumValue.ToString();
                                 break;
+                        }
+
+                        if (controller.PlayerIndex == 1)
+                        {
+                            switch (value)
+                            {
+                                case "r3":
+                                    value = "num" + 9.ToString();
+                                    break;
+                                case "l3":
+                                    value = "num" + 0.ToString();
+                                    break;
+                            }
                         }
 
                         config[string.Format("input_player{0}_{1}", controller.PlayerIndex, btnkey.Value)] = value;
