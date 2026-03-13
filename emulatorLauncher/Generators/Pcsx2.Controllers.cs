@@ -146,6 +146,8 @@ namespace EmulatorLauncher
                 pcsx2ini.WriteValue("InputSources", "DInput", "false");
             }
 
+            bool revertP1P2 = !_forceSDL && !_forceDInput && SystemConfig.getOptBoolean("revertXIndex");
+
             BindBoolIniFeature(pcsx2ini, "InputSources", "SDLControllerEnhancedMode", "ps_controller_enhanced", "true", "false");
 
             // Reset hotkeys
@@ -157,8 +159,13 @@ namespace EmulatorLauncher
                 foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).Take(8))
                 {
                     int padSectionNumber = controller.PlayerIndex;
+                    if (padSectionNumber == 1 && revertP1P2)
+                        padSectionNumber = 2;
+                     else if (padSectionNumber == 2 && revertP1P2)
+                        padSectionNumber = 1;
+
                     if (_multitap)
-                        padSectionNumber = GetPadNumber(multitap, controller.PlayerIndex);
+                        padSectionNumber = GetPadNumber(multitap, controller.PlayerIndex, revertP1P2);
 
                     string padNumber = "Pad" + padSectionNumber.ToString();
 
@@ -171,9 +178,13 @@ namespace EmulatorLauncher
                 foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(8))
                 {
                     int padSectionNumber = controller.PlayerIndex;
-                    if (_multitap)
-                        padSectionNumber = GetPadNumber(multitap, controller.PlayerIndex);
+                    if (padSectionNumber == 1 && revertP1P2)
+                        padSectionNumber = 2;
+                    else if (padSectionNumber == 2 && revertP1P2)
+                        padSectionNumber = 1;
 
+                    if (_multitap)
+                        padSectionNumber = GetPadNumber(multitap, controller.PlayerIndex, revertP1P2);
 
                     string padNumber = "Pad" + padSectionNumber.ToString();
 
@@ -971,18 +982,24 @@ namespace EmulatorLauncher
             return "None";
         }
 
-        private int GetPadNumber(string multitap, int playerindex)
+        private int GetPadNumber(string multitap, int playerindex, bool revert = false)
         {
             if (multitap == "none" || playerindex == 1)
                 return playerindex;
 
             switch (playerindex)
             {
+                case 1:
+                    if (multitap == "port1" || multitap == "both")
+                        return revert ? 3 : 1;
+                    if (multitap == "port2")
+                        return revert ? 2 : 1;
+                    break;
                 case 2:
                     if (multitap == "port1" || multitap == "both")
-                        return 3;
+                        return revert ? 1 : 3;
                     if (multitap == "port2")
-                        return 2;
+                        return revert ? 1 : 2;
                     break;
                 case 3:
                     if (multitap == "port1" || multitap == "both")
