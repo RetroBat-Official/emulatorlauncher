@@ -9,63 +9,59 @@ namespace EmulatorLauncher
 {
     partial class VPinballGenerator : Generator
     {
-        private static bool IsComServerAvailable(string name)
+        private static bool IsProgIdRegistered(string progId)
         {
-            RegistryKey key = Registry.ClassesRoot.OpenSubKey(name, false);
-            if (key == null)
-                return false;
-
-            object defaultValue = key.GetValue(null);
-
-            if (!"mscoree.dll".Equals(defaultValue) && FileUrlValueExists(key.GetValue(null)))
-            {
-                key.Close();
-                return true;
-            }
-
-            if ("mscoree.dll".Equals(defaultValue) && FileUrlValueExists(key.GetValue("CodeBase")))
-            {
-                key.Close();
-                return true;
-            }
-
-            key.Close();
-            return false;
+            using (var key = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(progId))
+                return key != null;
         }
 
-        private static void EnsureUltraDMDRegistered(string path)
+        private static bool IsAnyDmdRegistered()
+        {
+            return
+                IsProgIdRegistered("UltraDMD.DMDObject") ||
+                IsProgIdRegistered("UltraDMD.Server") ||
+                IsProgIdRegistered("FlexDMD.FlexDMD") ||
+                IsProgIdRegistered("FlexDMD.FlexDMDObject");
+        }
+
+        private static void EnsureDMDRegistered(string path)
         {
             try
             {
-                SimpleLogger.Instance.Info("[Generator] Ensuring UltraDMD is registered.");
+                SimpleLogger.Instance.Info("[Generator] Ensuring DMD COM server is registered.");
 
-                // Check for valid out-of-process COM server ( UltraDMD ) 
-                if (IsComServerAvailable(@"CLSID\{E1612654-304A-4E07-A236-EB64D6D4F511}\LocalServer32"))
+                if (IsAnyDmdRegistered())
                     return;
 
-                // Check for valid in-process COM server ( FlexDMD )
-                if (IsComServerAvailable(@"CLSID\{E1612654-304A-4E07-A236-EB64D6D4F511}\InprocServer32"))
+                string registerDMD = Path.Combine(path, "VPinMAME", "register_flex.bat");
+                if (!File.Exists(registerDMD))
+                    registerDMD = Path.Combine(path, "UltraDMD", "UltraDMD.exe");
+                if (!File.Exists(registerDMD))
+                    registerDMD = Path.Combine(path, "XDMD", "regUltraDMD.bat");
+                if (!File.Exists(registerDMD))
+                    registerDMD = Path.Combine(path, "XDMD", "UltraDMD.exe");
+
+                if (!File.Exists(registerDMD))
                     return;
 
-                string ultraDMD = Path.Combine(path, "UltraDMD", "UltraDMD.exe");
-                if (!File.Exists(ultraDMD))
-                    ultraDMD = Path.Combine(path, "XDMD", "UltraDMD.exe");
+                var px = new Process();
+                px.StartInfo.Verb = "runas";
+                px.StartInfo.UseShellExecute = true;
+                px.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
 
-                if (File.Exists(ultraDMD))
+                if (Path.GetExtension(registerDMD).Equals(".bat", StringComparison.OrdinalIgnoreCase))
                 {
-                    Process px = new Process
-                    {
-                        EnableRaisingEvents = true
-                    };
-                    px.StartInfo.Verb = "RunAs";
-                    px.StartInfo.FileName = ultraDMD;
-                    px.StartInfo.Arguments = " /i";
-                    px.StartInfo.UseShellExecute = true;
-                    px.StartInfo.CreateNoWindow = true;
-                    px.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                    px.Start();
-                    px.WaitForExit();
+                    px.StartInfo.FileName = "cmd.exe";
+                    px.StartInfo.Arguments = $"/c \"{registerDMD}\"";
                 }
+                else
+                {
+                    px.StartInfo.FileName = registerDMD;
+                    px.StartInfo.Arguments = "/i";
+                }
+
+                px.Start();
+                px.WaitForExit();
             }
             catch { }
         }
@@ -557,20 +553,18 @@ namespace EmulatorLauncher
             }
         }
 
-        private static bool FileUrlValueExists(object value)
+        private static bool FileUrlValueExists(string value)
         {
-            if (value == null)
+            if (string.IsNullOrEmpty(value))
                 return false;
 
-            try
-            {
-                string localPath = new Uri(value.ToString()).LocalPath;
-                if (File.Exists(localPath))
-                    return true;
-            }
-            catch { }
+            string path = value.Trim().Trim('"');
 
-            return false;
+            int exeIndex = path.IndexOf(".exe", StringComparison.OrdinalIgnoreCase);
+            if (exeIndex > 0)
+                path = path.Substring(0, exeIndex + 4);
+
+            return File.Exists(path);
         }
     }
 }
