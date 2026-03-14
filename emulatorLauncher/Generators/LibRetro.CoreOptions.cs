@@ -1,6 +1,7 @@
 ﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -1226,11 +1227,158 @@ namespace EmulatorLauncher.Libretro
             catch
             { }
         }
-        
+
+        private static bool DolphinGetGameInformation(string rom, out string gameID, out string gameName, out string region)
+        {
+            gameID = null;
+            gameName = null;
+            region = null;
+            bool found = false;
+
+            try
+            {
+                string dolphinTool = Path.Combine(Program.AppConfig.GetFullPath("bios"), "dolphin-emu", "DolphinTool.exe");
+
+                if (!File.Exists(dolphinTool))
+                    dolphinTool = Path.Combine(Program.AppConfig.GetFullPath("dolphin-emu"), "DolphinTool.exe");
+                if (!File.Exists(dolphinTool))
+                    return false;
+
+                var output = ProcessExtensions.RunWithOutput(dolphinTool, "header -i " + "\"" + rom + "\"");
+
+                foreach (string line in output.Split('\n'))
+                {
+                    if (line.StartsWith("Internal Name:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        gameName = line.Split(':')[1].Trim();
+                    }
+
+                    if (line.StartsWith("Game ID:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        gameID = line.Split(':')[1].Trim();
+
+                        if (!string.IsNullOrEmpty(gameID) && gameID.Length > 3)
+                        {
+                            char regionCode = gameID[3];
+
+                            switch (regionCode)
+                            {
+                                case 'E':
+                                    region = "USA";
+                                    break;
+                                case 'P':
+                                case 'D':
+                                case 'F':
+                                case 'I':
+                                case 'S':
+                                case 'R':
+                                    region = "EUR";
+                                    break;
+                                case 'J':
+                                case 'K':
+                                case 'T':
+                                case 'A':
+                                    region = "JAP";
+                                    break;
+                            }
+                            ;
+                        }
+
+                        found = true;
+                    }
+                }
+            }
+
+            catch { return false; }
+
+            return found;
+        }
+
+        private void ApplyDolphinPatches(IniFile ini, string gameID)
+        {
+            string patchFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "triforce_patches.json");
+
+            if (!File.Exists(patchFile))
+                return;
+
+            try
+            {
+                string jsonText = File.ReadAllText(patchFile);
+                List<GamePatches> games = JsonConvert.DeserializeObject<List<GamePatches>>(jsonText);
+
+                var game = games.FirstOrDefault(g => g.GameId.Equals(gameID, StringComparison.OrdinalIgnoreCase));
+                if (game == null)
+                {
+                    game = games.FirstOrDefault(g => g.GameIdCrediar.Equals(gameID, StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (game == null)
+                    return;
+
+                var patches = game.Patches;
+
+                if (patches == null || patches.Count == 0)
+                    return;
+
+                foreach (var patch in patches)
+                {
+                    if (patch.Lines.Count == 0)
+                        continue;
+
+                    if (string.IsNullOrEmpty(patch.PatchName) || string.IsNullOrEmpty(patch.PatchFeature))
+                        continue;
+
+                    string featureName = patch.PatchFeature;
+                    string patchSection = patch.isGecko ? "Gecko" : "OnFrame";
+                    string enableSection = patch.isGecko ? "Gecko_Enabled" : "OnFrame_Enabled";
+
+                    // Add patch to file if it does not exist
+                    if (!ini.EnumerateKeys(patchSection).Contains(patch.PatchName, StringComparer.InvariantCultureIgnoreCase))
+                    {
+                        ini.AppendRawLine(patchSection, patch.PatchName);
+                        foreach (var line in patch.Lines)
+                        {
+                            ini.AppendRawLine(patchSection, line);
+                        }
+                    }
+
+                    // Disable patch if not enabled in features
+                    if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    {
+                        ini.Remove(enableSection, patch.PatchName);
+                        SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} has been disabled for game {gameID}");
+                    }
+                    else if (SystemConfig.getOptBoolean(featureName))
+                    {
+                        var keys = ini.EnumerateKeys(enableSection);
+
+                        if (!keys.Contains(patch.PatchName))
+                        {
+                            ini.AppendRawLine(enableSection, patch.PatchName);
+                            SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} has been enabled for game {gameID}");
+                        }
+                        else
+                            SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} already enabled for game {gameID}");
+                    }
+                }
+            }
+            catch { SimpleLogger.Instance.Error($"[ERROR] Failed to load patch file : {gameID}"); }
+        }
+
         private void ConfigureDolphin(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "dolphin")
                 return;
+
+            string rom = SystemConfig["rom"];
+            string gameID = "";
+            string gameName = "";
+            string region = "";
+
+            if (rom != null && DolphinGetGameInformation(rom, out gameID, out gameName, out region))
+                SimpleLogger.Instance.Info("[INFO] Game: " + gameID + ", name: " + gameName + ", region : " + region);
+            else
+                SimpleLogger.Instance.Info("[WARNING] Unable to get GameID for current game");
 
             coreSettings["dolphin_save_load_settings"] = "disabled";
 
@@ -1289,8 +1437,26 @@ namespace EmulatorLauncher.Libretro
                 BindFeature(coreSettings, "dolphin_swing_modifier", "dolphin_swing_modifier", "Disabled");
             }
 
+            // Triforce
+            if (system == "triforce" && !string.IsNullOrEmpty(gameID))
+            {
+                string gameIniFile = Path.Combine(AppConfig.GetFullPath("saves"), "triforce", "dolphin-emu", "User", "GameSettings", gameID + ".ini");
+
+                using (var ini = new IniFile(gameIniFile, IniOptions.UseSpaces | IniOptions.AllowRawLines))
+                {
+                    ApplyDolphinPatches(ini, Path.GetFileNameWithoutExtension(gameIniFile));
+                }
+            }
+
             if (system == "triforce")
+            {
+                if (SystemConfig.isOptSet("dolphin_cheats_enabled") && !SystemConfig.getOptBoolean("dolphin_cheats_enabled"))
+                    coreSettings["dolphin_cheats_enabled"] = "disabled";
+                else
+                    coreSettings["dolphin_cheats_enabled"] = "enabled";
+
                 coreSettings["dolphin_gc_sp1"] = "6";
+            }
             else
                 coreSettings["dolphin_gc_sp1"] = "255";
 
