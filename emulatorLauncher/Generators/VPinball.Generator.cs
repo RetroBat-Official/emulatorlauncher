@@ -63,7 +63,7 @@ namespace EmulatorLauncher
             _splash = ShowSplash(rom);
 
             ScreenResolution.SetHighDpiAware(exe);
-            EnsureUltraDMDRegistered(path);
+            EnsureDMDRegistered(path);
             EnsureBackglassServerRegistered(path);
             EnsureVPinMameRegistered(path);
             EnsurePinupPlayerRegistered(path);
