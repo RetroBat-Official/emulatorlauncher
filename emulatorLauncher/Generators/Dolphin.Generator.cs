@@ -982,7 +982,7 @@ namespace EmulatorLauncher
             return ret;
         }
 
-        public void ApplyPatches(IniFile ini, string gameID)
+        private void ApplyPatches(IniFile ini, string gameID)
         {
             string patchFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "triforce_patches.json");
 
