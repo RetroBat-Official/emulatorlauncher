@@ -422,7 +422,10 @@ namespace EmulatorLauncher
                 if (exitCode == unchecked((int)0xc0000374)) // Heap corruption - happen sometimes with scummvm
                     return 0;
 
-                if (exitCode == -1) // Happens with some emulators (WinUAE)
+                if (exitCode == -1 || exitCode == 1) // Happens with some emulators (WinUAE)
+                    return 0;
+
+                if (exitCode == unchecked((int)0xC000013A))
                     return 0;
 
                 return exitCode;
