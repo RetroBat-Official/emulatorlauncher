@@ -1450,6 +1450,7 @@ namespace EmulatorLauncher.Libretro
 
             if (system == "triforce")
             {
+                coreSettings["dolphin_skip_gc_bios"] = "enabled";
                 if (SystemConfig.isOptSet("dolphin_cheats_enabled") && !SystemConfig.getOptBoolean("dolphin_cheats_enabled"))
                     coreSettings["dolphin_cheats_enabled"] = "disabled";
                 else

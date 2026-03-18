@@ -522,6 +522,8 @@ namespace EmulatorLauncher
 
                     // Skip BIOS
                     BindBoolIniFeatureOn(ini, "Core", "SkipIPL", "skip_bios", "True", "False");
+                    if (_triforce)
+                        ini.WriteValue("Core", "SkipIPL", "True");
 
                     // Interface
                     BindBoolIniFeatureOn(ini, "Interface", "OnScreenDisplayMessages", "OnScreenDisplayMessages", "True", "False");
