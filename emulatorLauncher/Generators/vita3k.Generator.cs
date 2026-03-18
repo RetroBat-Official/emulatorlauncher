@@ -179,6 +179,12 @@ namespace EmulatorLauncher
                 lleModules.Elements.Clear();
             }
 
+            // Custom textures
+            if (SystemConfig.isOptSet("vita_custom_textures") && SystemConfig.getOptBoolean("vita_custom_textures"))
+                yml["import-textures"] = "true";
+            else
+                yml["import-textures"] = "false";
+
             // Controls
             var buttonMap = yml.GetOrCreateContainer("controller-binds");
             buttonMap.Elements.Clear();
