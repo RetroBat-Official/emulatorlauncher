@@ -127,6 +127,8 @@ namespace EmulatorLauncher
             if (fullscreen)
                 commandArray.Add("--fullscreen");
 
+            //AddSettingsCommand(commandArray);
+
             string args = string.Join(" ", commandArray);
 
             var bml = BmlFile.Load(Path.Combine(path, "settings.bml"));
@@ -141,7 +143,7 @@ namespace EmulatorLauncher
             {
                 FileName = exe,
                 WorkingDirectory = path,
-                Arguments = args,                
+                Arguments = args,
             };
         }
 
@@ -245,10 +247,10 @@ namespace EmulatorLauncher
             BindFeatureSlider(video, "Gamma", "ares_gamma", "1.0", 2);
 
             if (!SystemConfig.isOptSet("ares_n64_quality") || SystemConfig["ares_n64_quality"] == "SD")
-                    video["Supersampling"] = "false";
+                video["Supersampling"] = "false";
             else
                 BindBoolFeature(video, "Supersampling", "ares_supersampling", "true", "false");
-            
+
             bool supersample = SystemConfig.getOptBoolean("ares_supersampling");
 
             if (!supersample)
@@ -274,17 +276,17 @@ namespace EmulatorLauncher
 
             // Paths
             var paths = bml.GetOrCreateContainer("Paths");
-            
+
             string screenshotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "ares");
             if (!Directory.Exists(screenshotsPath)) try { Directory.CreateDirectory(screenshotsPath); }
                 catch { }
             string aresScreenshotsPath = screenshotsPath + "/";
-            
+
             string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "ares");
             if (!Directory.Exists(savesPath)) try { Directory.CreateDirectory(savesPath); }
                 catch { }
             string aresSavesPath = savesPath + "/";
-            
+
             paths["Screenshots"] = aresScreenshotsPath.Replace("\\", "/");
             paths["Saves"] = aresSavesPath.Replace("\\", "/");
 
@@ -311,7 +313,7 @@ namespace EmulatorLauncher
 
                 if (!hotkeys.ContainsKey("ToggleFullscreen"))
                     hotkey["ToggleFullscreen"] = "0x1/0/40;;";      // F
-                
+
                 if (!hotkeys.ContainsKey("QuitEmulator"))
                     hotkey["QuitEmulator"] = "0x1/0/0;;";           // Escape
 
@@ -552,48 +554,99 @@ namespace EmulatorLauncher
             {
                 mapping = PadToKey.Load(Path.Combine(Path.GetTempPath(), "padToKey.xml"));
             }
-            
+
             return mapping;
         }
 
         private static readonly Dictionary<string, string> aresSystems = new Dictionary<string, string>
         {
-            { "Atari2600", "Atari2600" },
+            { "Atari2600", "Atari 2600" },
             { "ColecoVision", "ColecoVision" },
             { "Famicom", "Famicom" },
-            { "FamicomDiskSystem", "FamicomDiskSystem" },
-            { "GameBoy", "GameBoy" },
-            { "GameBoyColor", "GameBoyColor" },
-            { "GameBoyAdvance", "GameBoyAdvance" },
-            { "GameGear", "GameGear" },
-            { "MasterSystem", "MasterSystem" },
-            { "MegaDrive", "MegaDrive" },
-            { "Mega32X", "Mega32X" },
-            { "MegaCD", "MegaCD" },
-            { "MegaCD32X", "MegaCD32X" },
+            { "FamicomDiskSystem", "Famicom Disk System" },
+            { "GameBoy", "Game Boy" },
+            { "GameBoyColor", "Game Boy Color" },
+            { "GameBoyAdvance", "Game Boy Advance" },
+            { "GameGear", "Game Gear" },
+            { "MasterSystem", "Master System" },
+            { "MegaDrive", "Mega Drive" },
+            { "Mega32X", "Mega 32X" },
+            { "MegaCD", "Mega CD" },
+            { "MegaCD32X", "Mega CD 32X" },
             { "MegaLD", "LaserActive (SEGA PAC)" },
             { "MSX", "MSX" },
             { "MSX2", "MSX2" },
             { "MyVision", "MyVision" },
             { "NecLD", "LaserActive (NEC PAC)" },
-            { "NeoGeoAES", "NeoGeoAES" },
-            { "NeoGeoMVS", "NeoGeoMVS" },
-            { "NeoGeoPocket", "NeoGeoPocket" },
-            { "NeoGeoPocketColor", "NeoGeoPocketColor" },
-            { "Nintendo64", "Nintendo64" },
-            { "Nintendo64DD", "Nintendo64DD" },
-            { "PCEngine", "PCEngine" },
-            { "PCEngineCD", "PCEngineCD" },
-            { "PocketChallengeV2", "PocketChallengeV2" },
+            { "NeoGeoAES", "Neo Geo AES" },
+            { "NeoGeoMVS", "Neo Geo MVS" },
+            { "NeoGeoPocket", "Neo Geo Pocket" },
+            { "NeoGeoPocketColor", "Neo Geo Pocket Color" },
+            { "Nintendo64", "Nintendo 64" },
+            { "Nintendo64DD", "Nintendo 64DD" },
+            { "PCEngine", "PC Engine" },
+            { "PCEngineCD", "PC Engine CD" },
+            { "PocketChallengeV2", "Pocket Challenge V2" },
             { "PlayStation", "PlayStation" },
-            { "SG-1000", "SG1000" },
+            { "SC-3000", "SC-3000" },
+            { "SG-1000", "SG-1000" },
             { "SuperGrafx", "SuperGrafx" },
-            { "SuperGrafxCD", "SuperGrafxCD" },
-            { "SuperFamicom", "SuperFamicom" },
+            { "SuperGrafxCD", "SuperGrafx CD" },
+            { "SuperFamicom", "Super Famicom" },
             { "WonderSwan", "WonderSwan" },
-            { "WonderSwanColor", "WonderSwanColor" },
-            { "ZXSpectrum", "ZXSpectrum" },
-            { "ZXSpectrum128", "ZXSpectrum128" }
+            { "WonderSwanColor", "WonderSwan Color" },
+            { "ZXSpectrum", "ZX Spectrum" },
+            { "ZXSpectrum128", "ZX Spectrum 128" }
         };
+
+        private void AddSettingsCommand(List<string> commandArray)
+        {
+            if (_system != null)
+            {
+                switch (_system)
+                {
+                    case "megadrive":
+                    case "genesis":
+                        {
+                            if (SystemConfig.isOptSet("ares_controller_type") && !string.IsNullOrEmpty(SystemConfig["ares_controller_type"]))
+                            {
+                                string value = SystemConfig["ares_controller_type"].Replace("_", " ");
+                                for (int i = 1; i < 3; i++)
+                                {
+                                    commandArray.Add("--setting Ports/MegaDrive/ControllerPort" + i + "=\"" + value + "\"");
+                                }
+                            }
+                            else
+                            {
+                                for (int i = 1; i < 3; i++)
+                                {
+                                    commandArray.Add("--setting Ports/MegaDrive/ControllerPort" + i + "=\"Fighting Pad\"");
+                                }
+                            }
+                        }
+                        break;
+                    case "megacd":
+                    case "segacd":
+                        {
+                            if (SystemConfig.isOptSet("ares_controller_type") && !string.IsNullOrEmpty(SystemConfig["ares_controller_type"]))
+                            {
+                                string value = SystemConfig["ares_controller_type"].Replace("_", " ");
+                                for (int i = 1; i < 3; i++)
+                                {
+                                    commandArray.Add("--setting Ports/MegaCD/ControllerPort" + i + "=\"" + value + "\"");
+                                }
+                            }
+                            else
+                            {
+                                for (int i = 1; i < 3; i++)
+                                {
+                                    commandArray.Add("--setting Ports/MegaCD/ControllerPort" + i + "=\"Fighting Pad\"");
+                                }
+                            }
+                        }
+                        break;
+                }
+            }
+        }
     }
 }

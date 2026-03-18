@@ -340,7 +340,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Manage fullscreen
+            // Manage fullscreen & display options
             var windowed = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Windowed");
             if (windowed != null && SystemConfig.isOptSet("tp_fsmode") && (SystemConfig["tp_fsmode"] == "1" || SystemConfig["tp_fsmode"] == "2"))
                 windowed.FieldValue = "0";
@@ -350,6 +350,15 @@ namespace EmulatorLauncher
                     windowed.FieldValue = "0";
                 else
                     windowed.FieldValue = "1";
+            }
+
+            var borderLess = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Borderless Fullscreen");
+            if (borderLess != null)
+            {
+                if (SystemConfig.isOptSet("tp_fsmode") && (SystemConfig["tp_fsmode"] == "0" || SystemConfig["tp_fsmode"] == "2"))
+                    borderLess.FieldValue = "0";
+                else
+                    borderLess.FieldValue = "1";
             }
 
             var displaymode = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "DisplayMode");
@@ -374,15 +383,6 @@ namespace EmulatorLauncher
                         displaymode.FieldValue = fullscreen ? "Fullscreen" : "Windowed";
                         break;
                 }
-            }
-
-            var hideCursor = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "HideCursor");
-            if (hideCursor != null)
-            {
-                if (SystemConfig.isOptSet("tp_display_cursor") && SystemConfig.getOptBoolean("tp_display_cursor"))
-                    hideCursor.FieldValue = "0";
-                else
-                    hideCursor.FieldValue = "1";
             }
 
             var customResolution = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "CustomResolution");
@@ -424,6 +424,43 @@ namespace EmulatorLauncher
                 }
             }
 
+            // region
+            var pcbRegion = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "PcbRegion");
+            var region = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Region");
+            var language = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Language");
+
+            if ((pcbRegion != null || region != null || language != null) && SystemConfig.isOptSet("tp_region") && !string.IsNullOrEmpty(SystemConfig["tp_region"]))
+            {
+                string regionToSet = SystemConfig["tp_region"];
+                switch (regionToSet)
+                {
+                    case "japan":
+                        if (pcbRegion.FieldOptions != null && pcbRegion.FieldOptions.Any(f => f == "JAPAN"))
+                            pcbRegion.FieldValue = "JAPAN";
+                        if (region.FieldOptions != null && region.FieldOptions.Any(f => f == "JAPAN"))
+                            region.FieldValue = "JAPAN";
+                        if (language.FieldOptions != null && language.FieldOptions.Any(f => f == "Japanese"))
+                            language.FieldValue = "Japanese";
+                        break;
+                    case "export":
+                        if (pcbRegion.FieldOptions != null && pcbRegion.FieldOptions.Any(f => f == "EXPORT"))
+                            pcbRegion.FieldValue = "EXPORT";
+                        if (region.FieldOptions != null && region.FieldOptions.Any(f => f == "EXPORT"))
+                            region.FieldValue = "EXPORT";
+                        if (language.FieldOptions != null && language.FieldOptions.Any(f => f == "English"))
+                            language.FieldValue = "English";
+                        break;
+                    case "usa":
+                        if (pcbRegion.FieldOptions != null && pcbRegion.FieldOptions.Any(f => f == "USA"))
+                            pcbRegion.FieldValue = "USA";
+                        if (region.FieldOptions != null && region.FieldOptions.Any(f => f == "USA"))
+                            region.FieldValue = "USA";
+                        if (language.FieldOptions != null && language.FieldOptions.Any(f => f == "English"))
+                            language.FieldValue = "English";
+                        break;
+                }
+            }
+
             // Option to disable RequiresAdmin tag
             var requiresadmin = profile.RequiresAdmin;
             
@@ -442,6 +479,55 @@ namespace EmulatorLauncher
                     apm3id.FieldValue = rbapm3id;
             }
 
+            // Other options
+            var hideCursor = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "HideCursor");
+            if (hideCursor != null)
+            {
+                if (SystemConfig.isOptSet("tp_display_cursor") && SystemConfig.getOptBoolean("tp_display_cursor"))
+                    hideCursor.FieldValue = "0";
+                else
+                    hideCursor.FieldValue = "1";
+            }
+
+            var freePlay = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "FreePlay");
+            if (freePlay != null)
+            {
+                if (SystemConfig.isOptSet("tp_freePlay") && !SystemConfig.getOptBoolean("tp_freePlay"))
+                    freePlay.FieldValue = "0";
+                else
+                    freePlay.FieldValue = "1";
+            }
+
+            var offScreenHack = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "OffScreenReloadHack");
+            if (offScreenHack != null)
+            {
+                if (SystemConfig.isOptSet("tp_offscreenhack") && !SystemConfig.getOptBoolean("tp_offscreenhack"))
+                    offScreenHack.FieldValue = "0";
+                else
+                    offScreenHack.FieldValue = "1";
+            }
+
+            var crosshairs = userProfile.ConfigValues.FirstOrDefault(c => c.CategoryName == "Crosshairs" && c.FieldName == "Enable");
+            var crosshairsAlt = userProfile.ConfigValues.FirstOrDefault(c => c.CategoryName == "Crosshairs" && c.FieldName == "Display");
+            if (crosshairs != null || crosshairsAlt != null)
+            {
+                if (SystemConfig.isOptSet("tp_nocrosshair") && SystemConfig.getOptBoolean("tp_nocrosshair"))
+                {
+                    if (crosshairs != null)
+                        crosshairs.FieldValue = "0";
+                    if (crosshairsAlt != null)
+                        crosshairsAlt.FieldValue = "Never";
+                }
+                else
+                {
+                    if (crosshairs != null)
+                        crosshairs.FieldValue = "1";
+                    if (crosshairsAlt != null)
+                        crosshairsAlt.FieldValue = "Always";
+                }
+            }
+
+            // Controls
             ConfigureControllers(userProfile, rom);
 
             if (_namco2x6)

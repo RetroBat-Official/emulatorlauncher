@@ -179,6 +179,12 @@ namespace EmulatorLauncher
                 lleModules.Elements.Clear();
             }
 
+            // Custom textures
+            if (SystemConfig.isOptSet("vita_custom_textures") && SystemConfig.getOptBoolean("vita_custom_textures"))
+                yml["import-textures"] = "true";
+            else
+                yml["import-textures"] = "false";
+
             // Controls
             var buttonMap = yml.GetOrCreateContainer("controller-binds");
             buttonMap.Elements.Clear();
@@ -249,12 +255,25 @@ namespace EmulatorLauncher
                 { "ru", "8" },
                 { "ko", "9" },
                 { "zh", "10" },
+                { "cn", "11" },
+                { "fi", "12" },
+                { "sv", "13" },
+                { "da", "14" },
+                { "nn", "15" },
                 { "pl", "16" }
             };
 
-            // Special case for Taiwanese which is zh_TW
+            // Special cases
             if (SystemConfig["Language"] == "zh_TW")
                 return "11";
+            if (SystemConfig["Language"] == "zh_CN")
+                return "11";
+            if (SystemConfig["Language"] == "pt_BR")
+                return "17";
+            if (SystemConfig["Language"] == "en_GB")
+                return "18";
+            if (SystemConfig["Language"] == "nb")
+                return "15";
 
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))

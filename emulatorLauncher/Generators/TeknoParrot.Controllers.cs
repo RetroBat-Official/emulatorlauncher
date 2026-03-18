@@ -117,7 +117,7 @@ namespace EmulatorLauncher
                 }
             }
             
-            if (inputAPI.FieldValue == "XInput" && c1.IsXInputDevice)
+            if (inputAPI != null && inputAPI.FieldValue == "XInput" && c1.IsXInputDevice)
                 SimpleLogger.Instance.Info("[INFO] Controller for player 1 has XInput index " + c1.XInput.DeviceIndex.ToString());
 
             // Look for number of players based on string search in userprofile file (Px, Player x)
