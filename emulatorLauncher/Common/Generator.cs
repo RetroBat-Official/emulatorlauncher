@@ -334,6 +334,8 @@ namespace EmulatorLauncher
             string[] ps2Extensions = new string[] { ".m3u", ".chd", ".iso", ".ciso", ".cso", ".bin", ".mdf", ".img", ".gz" };
             string[] saturnExtensions = new string[] { ".m3u", ".chd", ".cue", ".iso", ".ccd", ".mds", ".toc" };
             string[] scummVMExtensions = new string[] { ".scummvm" };
+            string[] snesMSUExtensions = new string[] { ".sfc", ".smc" };
+            string[] sgbMSUExtensions = new string[] { ".gb", ".gbc" };
             string[] extensions = new string[] { };
             bool tryMount = false;
             bool silent = false;
@@ -363,7 +365,17 @@ namespace EmulatorLauncher
                 extensions = scummVMExtensions;
                 tryMount = true;
             }
-            
+            else if (system == "snes-msu1")
+            {
+                extensions = snesMSUExtensions;
+                tryMount = true;
+            }
+            else if (system == "sgb-msu1")
+            {
+                extensions = sgbMSUExtensions;
+                tryMount = true;
+            }
+
             else
                 return null;
 
