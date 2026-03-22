@@ -322,7 +322,7 @@ namespace EmulatorLauncher
         private void SetupCheevos(string path, string system)
         {
             string iniFile = Path.Combine(path, "User", "Config", "RetroAchievements.ini");
-            List<string> cheevosSystems = new List<string>() { "gc", "gamecube" };
+            List<string> cheevosSystems = new List<string>() { "gc", "gamecube", "wii" };
 
             try
             {

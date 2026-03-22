@@ -413,6 +413,8 @@ namespace EmulatorLauncher
                         return ver.ToString();
                     }
                 }*/
+
+                // Dolphin uses letters, so we convert them to numbers (e.g. 2603a becomes 2603.1, 2603b becomes 2603.2, etc.)
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "dolphin")
                 {
                     var output = ProcessExtensions.RunWithOutput(exe, "--version");
@@ -421,13 +423,18 @@ namespace EmulatorLauncher
                     if (output != null && versionCheck)
                         SimpleLogger.Instance.Info("[INFO] Uncleaned Dolphin version: " + output);
 
-                    string cleaned = output;
                     string[] parts = output.Split('.');
-                    if (parts.Length >= 1)
-                    {
-                        parts[0] = Regex.Match(parts[0], @"\d+").Value;
-                        cleaned = string.Join(".", parts);
-                    }
+                    string majorPart = parts[0];
+                    
+                    Match majorMatch = Regex.Match(majorPart, @"\d+");
+                    int major = majorMatch.Success ? int.Parse(majorMatch.Value) : 0;
+
+                    Match letterMatch = Regex.Match(majorPart, @"([a-zA-Z])$");
+                    int minor = 0;
+                    if (letterMatch.Success)
+                        minor = char.ToLower(letterMatch.Value[0]) - 'a' + 1;
+
+                    string cleaned = minor > 0 ? $"{major}.{minor}" : $"{major}";
 
                     Version ver = new Version();
                     if (Version.TryParse(cleaned, out ver))
