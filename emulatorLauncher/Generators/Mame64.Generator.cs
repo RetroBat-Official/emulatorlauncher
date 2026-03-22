@@ -46,7 +46,9 @@ namespace EmulatorLauncher
             _separatecfg = SystemConfig.getOptBoolean("mame_separate_cfg");
 
             // Get MAME executable path
-            string path = AppConfig.GetFullPath("mame");
+            string path = AppConfig.GetFullPath(emulator);
+            if (string.IsNullOrEmpty(path))
+                path = AppConfig.GetFullPath("mame");
             if (string.IsNullOrEmpty(path) && Environment.Is64BitOperatingSystem)
                 path = AppConfig.GetFullPath("mame64");
 
@@ -58,10 +60,6 @@ namespace EmulatorLauncher
 
             if (hbmame)
             {
-                path = AppConfig.GetFullPath("hbmame");
-                if (string.IsNullOrEmpty(path))
-                    return null;
-
                 exe = Path.Combine(path, "hbmameui.exe");
             }
 
