@@ -4,10 +4,12 @@
 
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace EmulatorLauncher.Libretro
@@ -132,6 +134,8 @@ namespace EmulatorLauncher.Libretro
             }
 
             bool remapFromFile = SetupCoreGameRemaps(system, core, romName, inputremap, coreSettings, mameAuto);
+            if (core == "cap32")
+                remapFromFile = SetupAmstradRemaps(system, core, romName, inputremap, coreSettings);
             if (remapFromFile)
                 return;
 
@@ -862,7 +866,7 @@ namespace EmulatorLauncher.Libretro
                 
             }
             _gameRemapName = romName;
-            SimpleLogger.Instance.Info("[INFO] Generated controller configuration based on inputmapping file.");
+            SimpleLogger.Instance.Info("[CORE REMAP] Generated controller configuration based on inputmapping file.");
 
             return true;
         }
@@ -1098,5 +1102,104 @@ namespace EmulatorLauncher.Libretro
             "{systempath}\\resources\\inputmapping\\libretro_{core}.yml",
             "{systempath}\\resources\\inputmapping\\libretro.yml"
         };
+
+        static string[] mappingPathsAmstrad =
+        {            
+            // User specific
+            "{userpath}\\inputmapping\\libretro_cap32.json",
+
+            // RetroBat Default
+            "{systempath}\\resources\\inputmapping\\libretro_cap32.json"
+        };
+
+        private static bool SetupAmstradRemaps(string system, string core, string romName, Dictionary<string, string> inputremap, ConfigFile coreSettings)
+        {
+            if (core == null || system == null || romName == null)
+                return false;
+
+            string coreMapping = null;
+
+            foreach (var path in mappingPathsAmstrad)
+            {
+                coreMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), path
+                    .Replace("{systempath}", "system")
+                    .Replace("{userpath}", "user"));
+
+                if (File.Exists(coreMapping))
+                    break;
+            }
+
+            if (coreMapping == null)
+            {
+                SimpleLogger.Instance.Info("[CORE REMAP] File for cap32 remap does not exist.");
+                return false;
+            }
+
+            string json = File.ReadAllText(coreMapping);
+            var root = JsonConvert.DeserializeObject<Root>(json);
+
+            var game = root.Games.FirstOrDefault(g => g.Roms != null &&g.Roms.Any(r => r.Equals(romName, StringComparison.OrdinalIgnoreCase)));
+            if (game == null)
+            {
+                SimpleLogger.Instance.Info("[CORE REMAP] No remap found for game: " + romName + ", trying to normalize name");
+                string normalized = Normalize(romName);
+
+                game = root.Games.FirstOrDefault(g => g.Name == normalized);
+                if (game == null)
+                    SimpleLogger.Instance.Info("[CORE REMAP] No remap found for normalized game: " + normalized);
+            }
+
+            if (game == null)
+                return false;
+
+            if (game.Input == null)
+            {
+                SimpleLogger.Instance.Info("[CORE REMAP] Cap32 game found in remap file but there is no remap lines.");
+                return false;
+            }
+
+            if (game != null && game.Input != null)
+            {
+                foreach (var button in game.Input)
+                {
+                    inputremap[button.Key] = button.Value;
+                }
+            }
+            
+            _gameRemapName = romName;
+            SimpleLogger.Instance.Info("[CORE REMAP] Generated controller configuration based on inputmapping file.");
+
+            return true;
+        }
+
+        class Root
+        {
+            public List<GameEntry> Games { get; set; }
+        }
+
+        class GameEntry
+        {
+            public string Name { get; set; }
+            public List<string> Roms { get; set; }
+            public Dictionary<string, string> Input { get; set; }
+        }
+
+        static string Normalize(string fileName)
+        {
+            string name = Path.GetFileNameWithoutExtension(fileName);
+            name = name.ToLowerInvariant();
+
+            // Remove (...) and [...]
+            name = Regex.Replace(name, @"\([^)]*\)", "");
+            name = Regex.Replace(name, @"\[[^\]]*\]", "");
+
+            // Remove special characters
+            name = Regex.Replace(name, @"[^a-z0-9\s\-]", "");
+
+            // Remove spaces + hyphens
+            name = Regex.Replace(name, @"[\s\-]", "");
+
+            return name;
+        }
     }
 }
