@@ -1382,6 +1382,7 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["dolphin_save_load_settings"] = "disabled";
 
+            BindFeature(coreSettings, "dolphin_aspect_ratio", "dolphin_aspect_ratio", "0");
             BindBoolFeature(coreSettings, "dolphin_main_mmu", "enable_mmu", "enabled", "disabled");
             BindFeature(coreSettings, "dolphin_cpu_core", "dolphin_cpu_core", "1");
             BindFeature(coreSettings, "dolphin_efb_scale", "dolphin_efb_scale", "1");
