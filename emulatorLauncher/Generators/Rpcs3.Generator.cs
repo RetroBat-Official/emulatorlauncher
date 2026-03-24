@@ -313,7 +313,8 @@ namespace EmulatorLauncher
                 BindBoolFeature(core, "Accurate RSX reservation access", "accuratersx", "true", "false");
                 BindFeature(core, "RSX FIFO Fetch Accuracy", "rpcs3_rsxfifoaccuracy", "Fast");
                 BindBoolFeature(core, "PPU Accurate Vector NaN Values", "vectornan", "true", "false");
-                BindFeature(core, "XFloat Accuracy", "rpcs3_xfloat", "Accurate");
+                BindFeature(core, "SPU XFloat Accuracy", "rpcs3_xfloat", "Accurate");
+                BindFeature(core, "Sleep Timers Accuracy", "rpcs3_sleeptimersaccuracy", "Usleep Only");
 
                 // Handle Video part of yml file
                 YmlContainer video = yml.GetOrCreateContainer("Video");
@@ -323,12 +324,12 @@ namespace EmulatorLauncher
                 BindFeature(video, "Aspect ratio", "rpcs3_ratio", "16:9");
                 BindFeature(video, "Frame limit", "framelimit", "Auto");
                 BindBoolFeatureOn(video, "MSAA", "msaa", "Auto", "Disabled");
-                BindFeature(video, "Shader Mode", "shadermode", "Async Shader Recompiler");
+                BindFeature(video, "Shader Mode", "shadermode", "Async Recompiler (multi-threaded)");
                 BindBoolFeature(video, "Write Color Buffers", "writecolorbuffers", "true", "false");
                 BindBoolFeature(video, "Write Depth Buffer", "writedepthbuffers", "true", "false");
                 BindBoolFeature(video, "Read Color Buffers", "readcolorbuffers", "true", "false");
                 BindBoolFeature(video, "Read Depth Buffer", "readdepthbuffers", "true", "false");
-                BindBoolFeatureOn(video, "VSync", "rpcs3_vsync", "true", "false");
+                BindFeature(video, "VSync Mode", "rpcs3_vsync", "Adaptive");
                 BindBoolFeature(video, "Stretch To Display Area", "stretchtodisplay", "true", "false");
                 BindBoolFeature(video, "Strict Rendering Mode", "strict_rendering", "true", "false");
                 BindBoolFeature(video, "Disable Vertex Cache", "disablevertex", "true", "false");
@@ -366,7 +367,7 @@ namespace EmulatorLauncher
 
                 // Handle Vulkan part of yml file
                 YmlContainer vulkan = video.GetOrCreateContainer("Vulkan");
-                BindBoolFeature(vulkan, "Asynchronous Texture Streaming 2", "asynctexturestream", "true", "false");
+                BindBoolFeature(vulkan, "Asynchronous Texture Streaming", "asynctexturestream", "true", "false");
 
                 if (SystemConfig.getOptBoolean("exclusivefs"))
                     vulkan["Exclusive Fullscreen Mode"] = "Enable";
