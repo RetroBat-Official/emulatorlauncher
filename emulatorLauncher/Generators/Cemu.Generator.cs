@@ -186,6 +186,7 @@ namespace EmulatorLauncher
 
             xdoc.SetElementValue("check_update", "false");
             BindFeature(xdoc, "console_language", "wiiu_language", GetDefaultWiiULanguage());
+            BindBoolFeature(xdoc, "open_pad", "cemu_open_pad", "true", "false");
 
             if (!fullscreen)
                 xdoc.SetElementValue("fullscreen", "false");
