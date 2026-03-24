@@ -470,6 +470,16 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("xenia_framerate_limit"))
                         ini.AppendValue("GPU", "framerate_limit", "60");
 
+                    if (SystemConfig.isOptSet("xenia_anisotropic_override") && !string.IsNullOrEmpty(SystemConfig["xenia_anisotropic_override"]))
+                        ini.AppendValue("GPU", "anisotropic_override", SystemConfig["xenia_anisotropic_override"]);
+                    else if (Features.IsSupported("xenia_anisotropic_override"))
+                        ini.AppendValue("GPU", "anisotropic_override", "-1");
+
+                    if (SystemConfig.isOptSet("xenia_async_shader_compilation") && !SystemConfig.getOptBoolean("xenia_async_shader_compilation"))
+                        ini.AppendValue("GPU", "async_shader_compilation", "false");
+                    else
+                        ini.AppendValue("GPU", "async_shader_compilation", "true");
+
                     // Video section
                     if (SystemConfig.isOptSet("xenia_video_standard") && !string.IsNullOrEmpty(SystemConfig["xenia_video_standard"]))
                         ini.AppendValue("Video", "video_standard", SystemConfig["xenia_video_standard"]);
@@ -670,9 +680,9 @@ namespace EmulatorLauncher
                         ini.AppendValue("GPU", "gpu_allow_invalid_fetch_constants", "false");
 
                     if (SystemConfig.isOptSet("vsync") && !SystemConfig.getOptBoolean("vsync"))
-                        ini.AppendValue("GPU", "vsync", "false");
+                        ini.AppendValue("GPU", "guest_display_refresh_cap", "false");
                     else if (Features.IsSupported("vsync"))
-                        ini.AppendValue("GPU", "vsync", "true");
+                        ini.AppendValue("GPU", "guest_display_refresh_cap", "true");
 
                     if (SystemConfig.isOptSet("query_occlusion_sample_lower_threshold") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_sample_lower_threshold"]))
                         ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", SystemConfig["query_occlusion_sample_lower_threshold"]);
@@ -699,6 +709,16 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("xenia_framerate_limit"))
                         ini.AppendValue("GPU", "framerate_limit", "60");
 
+                    if (SystemConfig.isOptSet("xenia_async_shader_compilation") && !SystemConfig.getOptBoolean("xenia_async_shader_compilation"))
+                        ini.AppendValue("GPU", "async_shader_compilation", "false");
+                    else
+                        ini.AppendValue("GPU", "async_shader_compilation", "true");
+
+                    if (SystemConfig.isOptSet("xenia_clear_memory_page_state") && SystemConfig.getOptBoolean("xenia_clear_memory_page_state"))
+                        ini.AppendValue("GPU", "clear_memory_page_state", "true");
+                    else if (Features.IsSupported("xenia_clear_memory_page_state"))
+                        ini.AppendValue("GPU", "clear_memory_page_state", "false");
+
                     // Video section
                     if (SystemConfig.isOptSet("xenia_video_standard") && !string.IsNullOrEmpty(SystemConfig["xenia_video_standard"]))
                         ini.AppendValue("Video", "video_standard", SystemConfig["xenia_video_standard"]);
@@ -709,11 +729,6 @@ namespace EmulatorLauncher
                         ini.AppendValue("Video", "avpack", SystemConfig["xenia_avpack"]);
                     else if (Features.IsSupported("xenia_avpack"))
                         ini.AppendValue("Video", "avpack", "8");
-
-                    if (SystemConfig.isOptSet("async_shader_compilation") && SystemConfig.getOptBoolean("async_shader_compilation"))
-                        ini.AppendValue("Video", "async_shader_compilation", "true");
-                    else if (Features.IsSupported("async_shader_compilation"))
-                        ini.AppendValue("Video", "async_shader_compilation", "false");
 
                     if (SystemConfig.isOptSet("xenia_widescreen") && !string.IsNullOrEmpty(SystemConfig["xenia_widescreen"]))
                         ini.AppendValue("Video", "widescreen", SystemConfig["xenia_widescreen"]);
