@@ -182,20 +182,41 @@ namespace EmulatorLauncher
 
         public static string GetUpdateUrl(string fileName)
         {
+            string installerUrlNew = RegistryKeyEx.GetRegistryValue(
+                RegistryKeyEx.CurrentUser,
+                @"SOFTWARE\RetroBat",
+                "InstallRootUrlNew") as string;
+
             string installerUrl = RegistryKeyEx.GetRegistryValue(
                 RegistryKeyEx.CurrentUser,
                 @"SOFTWARE\RetroBat",
                 "InstallRootUrl") as string;
 
-            if (string.IsNullOrEmpty(installerUrl))
-                return string.Empty;
+            if (!string.IsNullOrEmpty(installerUrlNew))
+            {
+                string newUrl = BuildUrl(installerUrlNew, fileName);
 
-            if (installerUrl.EndsWith("/"))
-                installerUrl = installerUrl + UpdatesType + "/emulators/" + fileName;
-            else
-                installerUrl = installerUrl + "/" + UpdatesType + "/emulators/" + fileName;
+                if (WebTools.UrlExists(newUrl))
+                    return newUrl;
+            }
 
-            return installerUrl;
+            if (!string.IsNullOrEmpty(installerUrl))
+            {
+                string oldUrl = BuildUrl(installerUrl, fileName);
+
+                if (WebTools.UrlExists(oldUrl))
+                    return oldUrl;
+            }
+
+            return string.Empty;
+        }
+
+        private static string BuildUrl(string baseUrl, string fileName)
+        {
+            if (baseUrl.EndsWith("/"))
+                return baseUrl + UpdatesType + "/emulators/" + fileName;
+
+            return baseUrl + "/" + UpdatesType + "/emulators/" + fileName;
         }
 
         public static string GetUpdateUrlCores(string fileName)
