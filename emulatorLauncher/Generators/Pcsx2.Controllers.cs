@@ -772,8 +772,8 @@ namespace EmulatorLauncher
         static public Dictionary<InputKey, KeyValuePair<string, string>> hotkeys = new Dictionary<InputKey, KeyValuePair<string, string>>()
         {
             { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/F1") },
-            { InputKey.x, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F4") },
-            { InputKey.y, new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F2") },
+            { InputKey.y, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F4") },
+            { InputKey.x, new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F2") },
             { InputKey.r3, new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
             { InputKey.l3, new KeyValuePair<string, string>("ToggleFullscreen", "Keyboard/F") },
             { InputKey.up, new KeyValuePair<string, string>("NextSaveStateSlot", "Keyboard/F7") },
@@ -786,8 +786,8 @@ namespace EmulatorLauncher
         static public Dictionary<string, KeyValuePair<string, string>> dinputHotkeys = new Dictionary<string, KeyValuePair<string, string>>()
         {
             { "a", new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/F1") },
-            { "x", new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F4") },
-            { "y", new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F2") },
+            { "y", new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F4") },
+            { "x", new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F2") },
             { "rightstick", new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
             { "leftstick", new KeyValuePair<string, string>("ToggleFullscreen", "Keyboard/F") },
             { "dpup", new KeyValuePair<string, string>("NextSaveStateSlot", "Keyboard/F7") },
