@@ -416,8 +416,8 @@ namespace EmulatorLauncher
         {
             { InputKey.l3, new KeyValuePair<string, string>("ToggleFullscreen", "Keyboard/F") },
             { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/F1") },
-            { InputKey.x, new KeyValuePair<string, string>("LoadSelectedSaveState", "Keyboard/F4") },
-            { InputKey.y, new KeyValuePair<string, string>("SaveSelectedSaveState", "Keyboard/F2") },
+            { InputKey.y, new KeyValuePair<string, string>("LoadSelectedSaveState", "Keyboard/F4") },
+            { InputKey.x, new KeyValuePair<string, string>("SaveSelectedSaveState", "Keyboard/F2") },
             { InputKey.r3, new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
             { InputKey.up, new KeyValuePair<string, string>("SelectNextSaveStateSlot", "Keyboard/F7") },
             { InputKey.down, new KeyValuePair<string, string>("SelectPreviousSaveStateSlot", "Keyboard/F6") },
