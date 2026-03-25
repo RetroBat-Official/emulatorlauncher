@@ -153,6 +153,7 @@ namespace EmulatorLauncher
                 // Skip Boot anim
                 BindBoolIniFeatureAuto(ini, "general", "skip_boot_anim", "show_boot", "true", "false", "true");
                 BindBoolIniFeature(ini, "display.ui", "show_notifications", "xemu_notifications", "true", "false");
+                BindBoolIniFeatureOn(ini, "perf", "cache_shaders", "xemu_cache_shaders", "true", "false");
 
                 // Controllers
                 if (!SystemConfig.getOptBoolean("disableautocontrollers"))

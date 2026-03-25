@@ -154,6 +154,11 @@ namespace EmulatorLauncher.Common.FileFormats
                                     if (value.StartsWith("[") && value.EndsWith("]"))
                                     {
                                         _tomlArrays[keyName] = ParseTomlArray(value);
+                                        key.Value = value;
+                                    }
+                                    else
+                                    {
+                                        key.Value = value;
                                     }
 
                                 }
