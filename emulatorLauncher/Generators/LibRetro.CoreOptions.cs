@@ -796,6 +796,13 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "citra_render_touchscreen", "azaharlr_render_touchscreen", "enabled", "disabled");
             BindFeatureSlider(coreSettings, "citra_analog_deadzone", "azaharlr_analog_deadzone", "15");
             BindBoolFeatureOn(coreSettings, "citra_enable_motion", "azaharlr_enable_motion", "enabled", "disabled");
+
+            string emuNandPath = Path.Combine(AppConfig.GetFullPath("saves"), "3ds", "azahar", "nand");
+            if (!Directory.Exists(emuNandPath)) try { Directory.CreateDirectory(emuNandPath); }
+                catch { }
+            string nandPath = Path.Combine(emuNandPath, "data", "00000000000000000000000000000000", "sysdata", "00010017", "00000000", "config");
+            if (File.Exists(nandPath))
+                AzaharGenerator.Write3DSnand(nandPath, true);
         }
 
         private void ConfigureB2(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

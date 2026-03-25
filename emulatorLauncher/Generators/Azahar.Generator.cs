@@ -358,19 +358,29 @@ namespace EmulatorLauncher
             }
         }
 
-        private void Write3DSnand(string path)
+        public static void Write3DSnand(string path, bool libretro = false)
         {
             if (!File.Exists(path))
                 return;
 
             SimpleLogger.Instance.Info("[Generator] Writing to 3DS nand file.");
 
-            int langId;
+            int langId = 1;
 
-            if (SystemConfig.isOptSet("n3ds_language") && !string.IsNullOrEmpty(SystemConfig["n3ds_language"]))
-                langId = SystemConfig["n3ds_language"].ToInteger();
+            if (!libretro)
+            {
+                if (Program.SystemConfig.isOptSet("n3ds_language") && !string.IsNullOrEmpty(Program.SystemConfig["n3ds_language"]))
+                    langId = Program.SystemConfig["n3ds_language"].ToInteger();
+                else
+                    langId = AzaharGenerator.Get3DSLangFromEnvironment();
+            }
             else
-                langId = Get3DSLangFromEnvironment();
+            {
+                if (Program.SystemConfig.isOptSet("azaharlr_language") && LibretroLanguages.ContainsKey(Program.SystemConfig["azaharlr_language"]))
+                    langId = LibretroLanguages[Program.SystemConfig["azaharlr_language"]];
+                else
+                    langId = AzaharGenerator.Get3DSLangFromEnvironment();
+            }
 
             // Read nand file
             byte[] bytes = File.ReadAllBytes(path);
@@ -410,7 +420,23 @@ namespace EmulatorLauncher
             return -1;
         }
 
-        private int Get3DSLangFromEnvironment()
+        private static readonly Dictionary<string, int> LibretroLanguages = new Dictionary<string, int>()
+        {
+            { "Japanese", 0 },
+            { "English", 1 },
+            { "French", 2 },
+            { "German", 3 },
+            { "Italian", 4 },
+            { "Spanish", 5 },
+            { "Simplified Chinese", 6 },
+            { "Korean", 7 },
+            { "Dutch", 8 },
+            { "Portuguese", 9 },
+            { "Russian", 10 },
+            { "Traditional Chinese", 11 }
+        };
+
+        private static int Get3DSLangFromEnvironment()
         {
             var availableLanguages = new Dictionary<string, int>()  //OA = 10, OB = 11 (traditional chinese)
             {
@@ -431,7 +457,7 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[Generator] Getting language from RetroBat language.");
 
             // Special case for Taiwanese which is zh_TW
-            if (SystemConfig["Language"] == "zh_TW")
+            if (Program.SystemConfig["Language"] == "zh_TW")
                 return 11;
 
             var lang = GetCurrentLanguage();
