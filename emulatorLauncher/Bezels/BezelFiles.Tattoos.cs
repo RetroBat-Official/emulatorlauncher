@@ -271,10 +271,7 @@ namespace EmulatorLauncher
                     case "lime3ds":
                     case "mandarine":
                     case "azahar":
-                        if (Program.SystemConfig["n3ds_motion"] == "sdl")
-                            ret = revert ? "3ds_stylus_cstick_revert" : "3ds_stylus_cstick";
-                        else
-                            ret = revert ? "3ds_revert" : "3ds";
+                        ret = revert ? "3ds_revert" : "3ds";
                         break;
                     case "bizhawk":
                         if (Program.SystemConfig["bizhawk3ds_analog_function"] == "C-Stick and Touchscreen Pointer" || !Program.SystemConfig.isOptSet("bizhawk3ds_analog_function"))
