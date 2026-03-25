@@ -793,7 +793,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "citra_graphics_api", "azaharlr_graphics_api", "OpenGL");
             BindBoolFeature(coreSettings, "citra_enable_mouse_touchscreen", "azaharlr_mouse_touchscreen", "disabled", "enabled");
             BindFeature(coreSettings, "citra_analog_function", "azaharlr_analog_function", "c_stick_and_touchscreen");
-            BindBoolFeature(coreSettings, "citra_render_touchscreen", "azaharlr_render_touchscreen", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "citra_enable_touch_pointer_timeout", "azaharlr_enable_touch_pointer_timeout", "enabled", "disabled");
             BindFeatureSlider(coreSettings, "citra_analog_deadzone", "azaharlr_analog_deadzone", "15");
             BindBoolFeatureOn(coreSettings, "citra_enable_motion", "azaharlr_enable_motion", "enabled", "disabled");
 
