@@ -52,7 +52,7 @@ namespace EmulatorLauncher
                 if (rom.StartsWith(".\\") || rom.StartsWith("./"))
                     rom = Path.Combine(romPath, rom.Substring(2));
                 else if (rom.StartsWith("\\") || rom.StartsWith("/"))
-                    rom = Path.Combine(path, rom.Substring(1));
+                    rom = Path.Combine(romPath, rom.Substring(1));
             }
 
             // Extract SDL2 version info
