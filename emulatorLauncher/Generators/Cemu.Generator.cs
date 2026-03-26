@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Diagnostics;
-using System.Xml.Linq;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.Joysticks;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Xml.Linq;
 
 namespace EmulatorLauncher
 {
@@ -44,15 +45,22 @@ namespace EmulatorLauncher
             rom = TryUnZipGameIfNeeded(system, rom);
 
             //read m3u if rom is in m3u format
-            if (Path.GetExtension(rom).ToLower() == ".m3u")
+            if (Path.GetExtension(rom).Equals(".m3u", StringComparison.OrdinalIgnoreCase))
             {
                 string romPath = Path.GetDirectoryName(rom);
-                rom = File.ReadAllText(rom);
+                string content = FileTools.ReadFirstValidLine(rom)?.Trim();
 
-                if (rom.StartsWith(".\\") || rom.StartsWith("./"))
-                    rom = Path.Combine(romPath, rom.Substring(2));
-                else if (rom.StartsWith("\\") || rom.StartsWith("/"))
-                    rom = Path.Combine(romPath, rom.Substring(1));
+                if (string.IsNullOrEmpty(content))
+                    throw new ApplicationException("Unable to find any path in the m3u.");
+
+                if (Path.IsPathRooted(content))
+                    rom = content;
+                else if (content.StartsWith(".\\") || content.StartsWith("./"))
+                    rom = Path.Combine(romPath, content.Substring(2));
+                else if (content.StartsWith("\\") || content.StartsWith("/"))
+                    rom = Path.Combine(romPath, content.Substring(1));
+                else
+                    rom = Path.Combine(romPath, content);
             }
 
             // Extract SDL2 version info
