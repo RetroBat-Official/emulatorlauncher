@@ -27,9 +27,6 @@ namespace EmulatorLauncher
 
             _isArcade = !nonArcadeSystems.Contains(system);
 
-            if (!this.Controllers.Any(c => !c.IsKeyboard))
-                return;
-
             string ctrlrIniFile = Path.Combine(path, "padDemul.ini");
 
             using (var ctrlIni = IniFile.FromFile(ctrlrIniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
@@ -59,7 +56,11 @@ namespace EmulatorLauncher
                 return;
 
             if (controller.IsKeyboard)
+            {
+                ini.WriteValue("PORTA", "device", "16777216");
+                ini.WriteValue("PORTA", "port0", "234881024");
                 return;
+            }
             else
                 ConfigureJoystick(controller, ctrlIni, ini, system);
         }

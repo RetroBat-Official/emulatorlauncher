@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Runtime.Remoting.Contexts;
 
 namespace EmulatorLauncher
 {
@@ -45,40 +46,42 @@ namespace EmulatorLauncher
                         throw new ApplicationException("Unable to find any game in the provided folder");
                 }
 
-                else if (Path.GetExtension(rom).ToLower() == ".m3u")
+                else if (Path.GetExtension(rom).Equals(".m3u", StringComparison.OrdinalIgnoreCase))
                 {
                     string romPath = Path.GetDirectoryName(rom);
-                    string line = FileTools.ReadFirstValidLine(rom);
+                    string line = FileTools.ReadFirstValidLine(rom)?.Trim();
 
                     if (string.IsNullOrEmpty(line))
                         throw new ApplicationException("Unable to find any path in the m3u.");
 
-                    rom = line.Trim();
-
-                    if (rom.StartsWith("EMULATORPATH", StringComparison.OrdinalIgnoreCase))
-                        rom = Path.Combine(path, rom.Substring(13));
-                    else if (rom.StartsWith("SAVESPATH", StringComparison.OrdinalIgnoreCase))
-                        rom = Path.Combine(savesPath, rom.Substring(10));
-                    else if (rom.StartsWith("ROMPATH", StringComparison.OrdinalIgnoreCase))
-                        rom = Path.Combine(romPath, rom.Substring(8));
-                    else if (rom.StartsWith(".\\") || rom.StartsWith("./"))
-                        rom = Path.Combine(romPath, rom.Substring(2));
-                    else if (rom.StartsWith("\\") || rom.StartsWith("/"))
-                        rom = Path.Combine(savesPath, rom.Substring(1));
-                    else if (rom.StartsWith("GAMEID", StringComparison.OrdinalIgnoreCase))
+                    if (Path.IsPathRooted(line))
+                        rom = line;
+                    else if (line.StartsWith("EMULATORPATH", StringComparison.OrdinalIgnoreCase))
+                        rom = Path.Combine(path, line.Substring(13));
+                    else if (line.StartsWith("SAVESPATH", StringComparison.OrdinalIgnoreCase))
+                        rom = Path.Combine(savesPath, line.Substring(10));
+                    else if (line.StartsWith("ROMPATH", StringComparison.OrdinalIgnoreCase))
+                        rom = Path.Combine(romPath, line.Substring(8));
+                    else if (line.StartsWith(".\\") || line.StartsWith("./"))
+                        rom = Path.Combine(romPath, line.Substring(2));
+                    else if (line.StartsWith("\\") || line.StartsWith("/"))
+                        rom = Path.Combine(romPath, line.Substring(1));
+                    else if (line.StartsWith("GAMEID", StringComparison.OrdinalIgnoreCase))
                     {
-                        int colonIndex = rom.IndexOf(':');
+                        int colonIndex = line.IndexOf(':');
                         if (colonIndex != -1)
                         {
-                            string gameID = rom.Substring(colonIndex + 1).Trim();
+                            string gameID = line.Substring(colonIndex + 1).Trim();
                             rom = "%RPCS3_GAMEID%:" + gameID;
                         }
                         else
                         {
-                            string gameID = rom.Substring(6).Trim();
+                            string gameID = line.Substring(6).Trim();
                             rom = "%RPCS3_GAMEID%:" + gameID;
                         }
                     }
+                    else
+                        rom = Path.Combine(romPath, line);
                 }
             }
             catch (Exception ex)

@@ -406,6 +406,7 @@ namespace EmulatorLauncher
             int ratio = 1;
             int progScan = 0;
             int irSensitivity = 3;
+            int pal60 = 0;
 
             if (SystemConfig.isOptSet("wii_language") && !string.IsNullOrEmpty(SystemConfig["wii_language"]))
                 langId = SystemConfig["wii_language"].ToInteger();
@@ -423,6 +424,9 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("wii_progscan") && SystemConfig.getOptBoolean("wii_progscan"))
                 progScan = 1;
+            
+            if (SystemConfig.isOptSet("dolphin_pal60") && SystemConfig.getOptBoolean("dolphin_pal60"))
+                pal60 = 1;
 
             // Read SYSCONF file
             byte[] bytes = File.ReadAllBytes(path);
@@ -481,6 +485,17 @@ namespace EmulatorLauncher
                     bytes[index5 + i] = toSet[i];
             }
             SimpleLogger.Instance.Info("[INFO] Writing wii IR sensitivity " + irSensitivity.ToString() + " to wii system nand");
+
+            // Search IPL.E60 pattern and replace with target value
+            byte[] iple60 = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x45, 0x36, 0x30 };
+            int index6 = bytes.IndexOf(iple60);
+            if (index6 >= 0 && index6 + iple60.Length + 1 < bytes.Length)
+            {
+                var toSet = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x45, 0x36, 0x30, (byte)pal60 };
+                for (int i = 0; i < toSet.Length; i++)
+                    bytes[index6 + i] = toSet[i];
+            }
+            SimpleLogger.Instance.Info("[INFO] Writing PAL60 " + pal60.ToString() + " to wii system nand");
 
             File.WriteAllBytes(path, bytes);
         }
@@ -738,6 +753,9 @@ namespace EmulatorLauncher
                     BindIniFeatureSlider(ini, "AutoHDR-options", "AUTO_HDR_SHOULDER_START_ALPHA", "hdr_start_alpha", "0.00", 2);
                     BindIniFeatureSlider(ini, "AutoHDR-options", "HDR_DISPLAY_MAX_NITS", "hdr_max_nits", "400");
                     BindIniFeatureSlider(ini, "PerceptualHDR-options", "AMPLIFICATION", "hdr_amplification", "2.50", 2);
+
+                    // SDL hints
+                    BindBoolIniFeature(ini, "SDL_Hints", "SDL_JOYSTICK_DIRECTINPUT", "input_sdldinput", "1", "0");
 
                     DolphinControllers.WriteControllersConfig(path, ini, system, emulator, rom, _triforce, _crediar, triforceGame, region, out _sindenSoft);
 
