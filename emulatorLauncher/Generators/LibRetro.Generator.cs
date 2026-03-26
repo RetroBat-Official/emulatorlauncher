@@ -1628,10 +1628,28 @@ namespace EmulatorLauncher.Libretro
             }
 
             // Set default video driver per core
-            if (!SystemConfig.isOptSet("video_driver") && defaultVideoDriver.ContainsKey(core))
+            if (!SystemConfig.isOptSet("video_driver") && _video_driver == "gl")
             {
-                _video_driver = defaultVideoDriver[core];
-                retroarchConfig["video_driver"] = defaultVideoDriver[core];
+                if (defaultVideoDriver.ContainsKey(core))
+                {
+                    _video_driver = defaultVideoDriver[core];
+                    retroarchConfig["video_driver"] = defaultVideoDriver[core];
+                }
+
+                else
+                {
+                    string definedShaders = SystemConfig.isOptSet("shader") ? SystemConfig["shader"] : "";
+
+                    if (!string.IsNullOrEmpty(definedShaders) 
+                        && (definedShaders.ToLowerInvariant().Contains("mega_bezel") 
+                        || definedShaders.ToLowerInvariant().Contains("cyberlab") 
+                        || definedShaders.ToLowerInvariant().Contains("koko-aio")
+                        || definedShaders.ToLowerInvariant().Contains("sonkun")))
+                    {
+                        _video_driver = "vulkan";
+                        retroarchConfig["video_driver"] = "vulkan";
+                    }
+                }
             }
 
             if (SystemConfig["ratio"] == "custom")
