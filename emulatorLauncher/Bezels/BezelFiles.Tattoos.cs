@@ -568,6 +568,7 @@ namespace EmulatorLauncher
                     case "project64":
                     case "mupen64":
                     case "simple64":
+                    case "gopher64":
                         if (Program.SystemConfig.isOptSet("mupen64_inputprofile1") && !string.IsNullOrEmpty(Program.SystemConfig["mupen64_inputprofile1"]))
                         {
                             string profile = Program.SystemConfig["mupen64_inputprofile1"];
@@ -583,9 +584,6 @@ namespace EmulatorLauncher
                         }
                         else
                             ret = "n64-standalone";
-                        break;
-                    case "gopher64":
-                        ret = "n64-standalone";
                         break;
                 }
             }
