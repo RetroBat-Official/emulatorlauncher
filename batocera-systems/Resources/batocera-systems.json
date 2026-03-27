@@ -1043,12 +1043,12 @@
         "file": "bios/laseractive/[BIOS] LaserActive PCE-LP1 (Japan) (v1.02).bin"
       },
       {
-        "md5": "a5a2f9aae57d464bc66b80ee79c3da6e",
-        "file": "bios/laseractive/Pioneer LaserActive Sega PAC Boot ROM v1.02 (1993)(Pioneer - Sega)(JP)(en-ja).bin"
+        "md5": "",
+        "file": "bios/laseractive/[BIOS] LaserActive PAC-S10 (US) (v1.04).bin"
       },
       {
-        "md5": "0e7393cd0951d6dde818fcd4cd819466",
-        "file": "bios/laseractive/Pioneer LaserActive Sega PAC Boot ROM v1.04 (1993)(Pioneer - Sega)(US).bin"
+        "md5": "",
+        "file": "bios/laseractive/[BIOS] LaserActive PAC-S1 (Japan) (v1.05).bin"
       }
     ]
   },
