@@ -513,8 +513,8 @@ namespace EmulatorLauncher
                 string biosn10 = Path.Combine(biosfolderPioneer, "[BIOS] LaserActive PAC-N10 (US) (v1.02).bin");
                 string biosn1 = Path.Combine(biosfolderPioneer, "[BIOS] LaserActive PAC-N1 (Japan) (v1.02).bin");
                 string bioslp1 = Path.Combine(biosfolderPioneer, "[BIOS] LaserActive PCE-LP1 (Japan) (v1.02).bin");
-                string gexpresscard = Path.Combine(biosfolderPioneer, "gexpress.pce");
-                string biospcecd1 = Path.Combine(biosfolderPioneer, "syscard1.pce");
+                string gexpresscard = Path.Combine(AppConfig.GetFullPath("bios"), "gexpress.pce");
+                string biospcecd1 = Path.Combine(AppConfig.GetFullPath("bios"), "syscard1.pce");
                 
                 if (File.Exists(biosn10))
                     firmware["PAC-N10.US"] = biosn10.Replace("\\", "/");
