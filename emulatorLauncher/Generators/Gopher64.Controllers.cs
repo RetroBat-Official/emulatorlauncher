@@ -113,7 +113,7 @@ namespace EmulatorLauncher
             // Mappings
             var mapping = standardMapping;
 
-            string mappingProfile = "gopher64_inputprofile" + controller.PlayerIndex.ToString();
+            string mappingProfile = "mupen64_inputprofile" + controller.PlayerIndex.ToString();
 
             if (SystemConfig.isOptSet(mappingProfile) && !string.IsNullOrEmpty(SystemConfig[mappingProfile]))
             {
