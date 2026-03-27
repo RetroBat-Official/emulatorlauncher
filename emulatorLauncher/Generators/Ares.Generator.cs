@@ -486,9 +486,18 @@ namespace EmulatorLauncher
             {
                 var sys = bml.GetOrCreateContainer("LaserActiveSEGAPAC");
                 var firmware = sys.GetOrCreateContainer("Firmware");
+                string biosfolderPioneer = Path.Combine(AppConfig.GetFullPath("bios"), "laseractive");
 
-                string bios_japan = Path.Combine(AppConfig.GetFullPath("bios"), "Pioneer LaserActive Sega PAC Boot ROM v1.02 (1993)(Pioneer - Sega)(JP)(en-ja).bin");
-                string bios_us = Path.Combine(AppConfig.GetFullPath("bios"), "Pioneer LaserActive Sega PAC Boot ROM v1.04 (1993)(Pioneer - Sega)(US).bin");
+                string bios_japan = Path.Combine(biosfolderPioneer, "[BIOS] LaserActive PAC-S1 (Japan) (v1.05).bin");
+                if (!File.Exists(bios_japan))
+                    bios_japan = Path.Combine(biosfolderPioneer, "[BIOS] LaserActive PAC-S1 (Japan) (v1.02).bin");
+                if (!File.Exists(bios_japan))
+                    bios_japan = Path.Combine(biosfolderPioneer, "[BIOS] LaserActive PAC-S1 (Japan) (v1.01).bin");
+                
+                string bios_us = Path.Combine(biosfolderPioneer, "[BIOS] LaserActive PAC-S10 (US) (v1.04).bin");
+                if (!File.Exists(bios_us))
+                    bios_us = Path.Combine(biosfolderPioneer, "[BIOS] LaserActive PAC-S10 (US) (v1.02).bin");
+                
                 if (File.Exists(bios_japan))
                     firmware["BIOS.Japan"] = bios_japan.Replace("\\", "/");
                 if (File.Exists(bios_us))
@@ -499,12 +508,14 @@ namespace EmulatorLauncher
             {
                 var sys = bml.GetOrCreateContainer("LaserActiveNECPAC");
                 var firmware = sys.GetOrCreateContainer("Firmware");
+                string biosfolderPioneer = Path.Combine(AppConfig.GetFullPath("bios"), "laseractive");
 
-                string biosn10 = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] LaserActive PAC-N10 (US) (v1.02).bin");
-                string biosn1 = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] LaserActive PAC-N1 (Japan) (v1.02).bin");
-                string bioslp1 = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] LaserActive PCE-LP1 (Japan) (v1.02).bin");
-                string gexpresscard = Path.Combine(AppConfig.GetFullPath("bios"), "gexpress.pce");
-                string biospcecd1 = Path.Combine(AppConfig.GetFullPath("bios"), "syscard1.pce");
+                string biosn10 = Path.Combine(biosfolderPioneer, "[BIOS] LaserActive PAC-N10 (US) (v1.02).bin");
+                string biosn1 = Path.Combine(biosfolderPioneer, "[BIOS] LaserActive PAC-N1 (Japan) (v1.02).bin");
+                string bioslp1 = Path.Combine(biosfolderPioneer, "[BIOS] LaserActive PCE-LP1 (Japan) (v1.02).bin");
+                string gexpresscard = Path.Combine(biosfolderPioneer, "gexpress.pce");
+                string biospcecd1 = Path.Combine(biosfolderPioneer, "syscard1.pce");
+                
                 if (File.Exists(biosn10))
                     firmware["PAC-N10.US"] = biosn10.Replace("\\", "/");
                 if (File.Exists(biosn1))
