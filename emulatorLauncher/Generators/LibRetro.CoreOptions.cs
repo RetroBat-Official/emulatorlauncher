@@ -357,6 +357,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureAzahar(retroarchConfig, coreSettings, system, core);
             ConfigureB2(retroarchConfig, coreSettings, system, core);
             ConfigureBennuGD(retroarchConfig, coreSettings, system, core);
+            ConfigureBK(retroarchConfig, coreSettings, system, core);
             ConfigureBoom3(retroarchConfig, coreSettings, system, core);
             ConfigureBlueMsx(retroarchConfig, coreSettings, system, core);
             Configurebsnes(retroarchConfig, coreSettings, system, core);
@@ -821,6 +822,20 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(coreSettings, "bennugd_override_scaling", "bennugd_override_scaling", "off");
             BindBoolFeature(coreSettings, "bennugd_force_frame_limiter", "bennugd_force_frame_limiter", "true", "false");
+        }
+
+        private void ConfigureBK(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "bk")
+                return;
+
+            BindFeature(coreSettings, "bk_model", "bk_model", "BK-0010");
+            BindFeature(coreSettings, "bk_peripheral", "bk_peripheral", "none");
+            BindFeature(coreSettings, "bk_aspect_ratio", "bk_aspect_ratio", "1:1");
+            BindFeature(coreSettings, "bk_keyboard_type", "bk_keyboard_type", "poll");
+            BindFeature(coreSettings, "bk_layout", "bk_layout", "qwerty");
+            BindBoolFeature(coreSettings, "bk_doublespeed", "bk_doublespeed", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "bk_color", "bk_color", "enabled", "disabled");
         }
 
         private void ConfigureBoom3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
