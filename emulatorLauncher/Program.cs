@@ -88,6 +88,7 @@ namespace EmulatorLauncher
             { "flycast", () => new FlycastGenerator() },
             { "fpinball", () => new FpinballGenerator() },
             { "gemrb", () => new GemRBGenerator() },
+            { "ghostship", () => new GhostshipGenerator() },
             { "gopher64", () => new Gopher64Generator() },
             { "groovymame", () => new Mame64Generator() },
             { "gsplus", () => new GsPlusGenerator() },

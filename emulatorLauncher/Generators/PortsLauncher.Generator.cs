@@ -27,6 +27,9 @@ namespace EmulatorLauncher
     partial class Dhewm3Generator : PortsLauncherGenerator
     { public Dhewm3Generator() { _exeName = "dhewm3.exe"; DependsOnDesktopResolution = false; } }
 
+    partial class GhostshipGenerator : PortsLauncherGenerator
+    { public GhostshipGenerator() { _exeName = "Ghostship.exe"; DependsOnDesktopResolution = true; } }
+
     partial class OpenJazzGenerator : PortsLauncherGenerator
     { public OpenJazzGenerator() { _exeName = "OpenJazz.exe"; DependsOnDesktopResolution = true; } }
 
@@ -209,6 +212,7 @@ namespace EmulatorLauncher
             { "cgenius", "CGenius.exe"},
             { "corsixth", "CorsixTH.exe"},
             { "dhewm3", "dhewm3.exe"},
+            { "ghostship", "Ghostship.exe"},
             { "opengoal", "gk.exe"},
             { "openjazz", "OpenJazz.exe"},
             { "pdark", "pd.x86_64.exe"},
@@ -234,6 +238,7 @@ namespace EmulatorLauncher
             { "cgenius", "yes"},
             { "corsixth", "yes"},
             { "dhewm3", "reshade"},
+            { "ghostship", "yes"},
             { "pdark", "yes"},
             { "rtcw", "no"},
             { "sonic3air", "no"},
