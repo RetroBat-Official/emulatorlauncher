@@ -31,6 +31,7 @@ namespace EmulatorLauncher
             Configurecgenius(commandArray, rom);
             Configurecorsixth(commandArray, rom);
             Configuredhewm3(commandArray, rom);
+            ConfigureGhostship(rom, exe);
             ConfigureOpenGoal(commandArray, rom);
             ConfigureOpenJazz(commandArray, rom);
             ConfigurePDark(commandArray, rom);
@@ -519,6 +520,218 @@ namespace EmulatorLauncher
                 lines = lines.Where(line => !line.StartsWith("bind \"JOY")).ToArray();
                 File.WriteAllLines(cfgFile, lines);
             }
+        }
+
+        private void ConfigureGhostship(string rom, string exe)
+        {
+            if (_emulator != "ghostship")
+                return;
+
+            var otrFiles = Directory.GetFiles(_path, "*.o2r");
+            var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("ghostship.o2r", StringComparison.OrdinalIgnoreCase));
+
+            if (!gameOtrFiles.Any())
+            {
+                string emulatorRom = Path.Combine(_path, Path.GetFileName(rom));
+                try { File.Copy(rom, emulatorRom); } catch { SimpleLogger.Instance.Warning("[WARNING] Impossible to copy game file to Ghostship folder."); }
+            }
+
+            // Settings
+            JObject jsonObj;
+            JObject cvars;
+            JObject advancedRes;
+            JObject intScale;
+            JObject controllers;
+            JObject settings;
+            JObject window;
+            JObject backend;
+            JObject fs;
+
+            string settingsFile = Path.Combine(_path, "ghostship.cfg.json");
+            if (File.Exists(settingsFile))
+            {
+                string jsonString = File.ReadAllText(settingsFile);
+                try { jsonObj = JObject.Parse(jsonString); } catch { jsonObj = new JObject(); }
+            }
+            else
+                jsonObj = new JObject();
+
+            if (jsonObj["CVars"] == null)
+            {
+                cvars = new JObject();
+                jsonObj["CVars"] = cvars;
+            }
+            else
+                cvars = (JObject)jsonObj["CVars"];
+
+            if (cvars["gAdvancedResolution"] == null)
+            {
+                advancedRes = new JObject();
+                cvars["gAdvancedResolution"] = advancedRes;
+            }
+            else
+                advancedRes = (JObject)cvars["gAdvancedResolution"];
+
+            if (advancedRes["IntegerScale"] == null)
+            {
+                intScale = new JObject();
+                advancedRes["IntegerScale"] = intScale;
+            }
+            else
+                intScale = (JObject)advancedRes["IntegerScale"];
+
+            if (cvars["gControllers"] == null)
+            {
+                controllers = new JObject();
+                cvars["gControllers"] = controllers;
+            }
+            else
+                controllers = (JObject)cvars["gControllers"];
+
+            if (cvars["gSettings"] == null)
+            {
+                settings = new JObject();
+                cvars["gSettings"] = settings;
+            }
+            else
+                settings = (JObject)cvars["gSettings"];
+
+            if (jsonObj["Window"] == null)
+            {
+                window = new JObject();
+                jsonObj["Window"] = window;
+            }
+            else
+                window = (JObject)jsonObj["Window"];
+
+            if (window["Backend"] == null)
+            {
+                backend = new JObject();
+                window["Backend"] = backend;
+            }
+            else
+                backend = (JObject)window["Backend"];
+
+            if (window["Fullscreen"] == null)
+            {
+                fs = new JObject();
+                window["Fullscreen"] = fs;
+            }
+            else
+                fs = (JObject)window["Fullscreen"];
+
+            // Ensure config windows are not opened
+            settings.Remove("Menu");
+            cvars.Remove("gOpenWindows");
+
+            // Aspect ratio
+            if (SystemConfig.isOptSet("ghostship_ratio") && !string.IsNullOrEmpty(SystemConfig["ghostship_ratio"]))
+            {
+                string ghostshipRatio = SystemConfig["ghostship_ratio"];
+                switch (ghostshipRatio)
+                {
+                    case "off":
+                        advancedRes["AspectRatioX"] = 0.0;
+                        advancedRes["AspectRatioY"] = 0.0;
+                        break;
+                    case "native":
+                        advancedRes["AspectRatioX"] = 4.0;
+                        advancedRes["AspectRatioY"] = 3.0;
+                        break;
+                    case "widescreen":
+                        advancedRes["AspectRatioX"] = 16.0;
+                        advancedRes["AspectRatioY"] = 9.0;
+                        break;
+                    case "3ds":
+                        advancedRes["AspectRatioX"] = 5.0;
+                        advancedRes["AspectRatioY"] = 3.0;
+                        break;
+                    case "16:10":
+                        advancedRes["AspectRatioX"] = 16.0;
+                        advancedRes["AspectRatioY"] = 10.0;
+                        break;
+                    case "ultrawide":
+                        advancedRes["AspectRatioX"] = 21.0;
+                        advancedRes["AspectRatioY"] = 9.0;
+                        break;
+                }
+            }
+            else
+            {
+                advancedRes["AspectRatioX"] = 0.0;
+                advancedRes["AspectRatioY"] = 0.0;
+            }
+
+            advancedRes["Enabled"] = 1;
+
+            if (SystemConfig.isOptSet("integerscale") && SystemConfig.getOptBoolean("integerscale"))
+            {
+                intScale["Factor"] = 0;
+                intScale["FitAutomatically"] = 1;
+                intScale["NeverExceedBounds"] = 1;
+                advancedRes["PixelPerfectMode"] = 1;
+            }
+            else
+            {
+                intScale["Factor"] = 0;
+                intScale["FitAutomatically"] = 0;
+                intScale["NeverExceedBounds"] = 1;
+                advancedRes["PixelPerfectMode"] = 0;
+            }
+
+            BindFeatureInt(advancedRes, "VerticalPixelCount", "ghostship_resolution", "720");
+
+            advancedRes["VerticalResolutionToggle"] = 1;
+            cvars["gControlNav"] = 1;
+
+            ConfigureShipControls(controllers);
+
+            cvars["gEnableMultiViewports"] = 1;
+            cvars["gInternalResolution"] = 1.0;
+
+            if (SystemConfig.isOptSet("ghostship_fps") && !string.IsNullOrEmpty(SystemConfig["ghostship_fps"]))
+            {
+                int ghostshipFPS = SystemConfig["ghostship_fps"].ToInteger();
+                settings["InterpolationFPS"] = ghostshipFPS;
+                settings["MatchRefreshRate"] = 0;
+            }
+            else
+            {
+                settings["InterpolationFPS"] = 60;
+                settings["MatchRefreshRate"] = 1;
+            }
+
+            BindFeatureSliderInt(cvars, "gMSAAValue", "ghostship_msaa", "1");
+
+            cvars["gSdlWindowedFullscreen"] = _exclusivefs ? 0 : 1;
+            BindFeatureInt(cvars, "gTextureFilter", "ghostship_texturefilter", "1");
+            BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "ghostship_vsync", "1", "0");
+            BindFeature(window, "AudioBackend", "ghostship_audioapi", "wasapi");
+
+            if (SystemConfig.isOptSet("ghostship_renderer") && !string.IsNullOrEmpty(SystemConfig["ghostship_renderer"]))
+            {
+                string ghostshipRenderer = SystemConfig["ghostship_renderer"];
+                switch (ghostshipRenderer)
+                {
+                    case "OpenGL":
+                        backend["Id"] = 1;
+                        backend["Name"] = "OpenGL";
+                        break;
+                    case "DirectX":
+                        backend["Id"] = 0;
+                        backend["Name"] = "DirectX";
+                        break;
+                }
+            }
+            else
+            {
+                backend["Id"] = 1;
+                backend["Name"] = "OpenGL";
+            }
+
+            fs["Enabled"] = _fullscreen ? true : false;
+
+            File.WriteAllText(settingsFile, jsonObj.ToString(Formatting.Indented));
         }
 
         private void ConfigureOpenGoal(List<string> commandArray, string rom)
@@ -1522,7 +1735,7 @@ namespace EmulatorLauncher
             // Language
             BindFeatureInt(gsettings, "Languages", "soh_language", "0");
 
-            ConfigureSOHControls(controllers);
+            ConfigureShipControls(controllers);
 
             File.WriteAllText(settingsFile, jsonObj.ToString(Formatting.Indented));
         }

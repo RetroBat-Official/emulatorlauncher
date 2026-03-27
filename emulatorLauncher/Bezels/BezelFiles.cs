@@ -533,7 +533,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (emulator == "soh" || emulator == "2ship" || emulator == "starship")
+            if (emulator == "soh" || emulator == "2ship" || emulator == "ghostship" || emulator == "starship")
                 return "n64";
             
             return system;
