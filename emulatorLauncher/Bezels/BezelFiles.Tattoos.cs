@@ -22,12 +22,15 @@ namespace EmulatorLauncher
             string rom = Program.SystemConfig["rom"];
             string gameName = rom != null ? Path.GetFileNameWithoutExtension(rom) : "system";
 
-            string tattooFile = Path.Combine(Program.AppConfig.GetFullPath("user"), "tattoos", "games", system, gameName + ".png");
-
+            string tattooFile = Path.Combine(Program.AppConfig.GetFullPath("user"), "tattoos", "games", system, GetGameTattooName(system, gameName));
             if (!File.Exists(tattooFile))
-                tattooFile = Path.Combine(Program.AppConfig.GetFullPath("user"), "tattoos", "default", system + ".png");
+                tattooFile = Path.Combine(Program.AppConfig.GetFullPath("user"), "tattoos", "games", GetGameTattooName(system, gameName));
             if (!File.Exists(tattooFile))
-                tattooFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tattoos", "games", system, gameName + ".png");
+                tattooFile = Path.Combine(Program.AppConfig.GetFullPath("user"), "tattoos", "default", GetTattooName(system, core, emulator));
+            if (!File.Exists(tattooFile))
+                tattooFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tattoos", "games", system, GetGameTattooName(system, gameName));
+            if (!File.Exists(tattooFile))
+                tattooFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tattoos", "games", GetGameTattooName(system, gameName));
             if (!File.Exists(tattooFile))
                 tattooFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tattoos", "default", GetTattooName(system, core, emulator));
 
@@ -192,6 +195,7 @@ namespace EmulatorLauncher
         #endregion
 
         #region private methods
+        static List<string> arcadeSystems = new List<string>() { "mame", "fbneo", "atomiswave", "model3", "naomi", "naomi2" };
         static List<string> gbSystems = new List<string>() { "gb", "gbc", "gb2players", "gbc2players", "gameboy", "gameboycolor" };
         static List<string> psxSystems = new List<string>() { "psx", "ps1", "playstation" };
         static List<string> ngpSystems = new List<string>() { "ngp", "ngpc", "neogeopocket" };
@@ -230,6 +234,8 @@ namespace EmulatorLauncher
                 system = "ngp";
             else if (psxSystems.Contains(system))
                 system = "psx";
+            else if (arcadeSystems.Contains(system))
+                system = "arcade";
 
             string ret = system;
             bool invertButtons = Program.SystemConfig.getOptBoolean("buttonsInvert");
@@ -940,6 +946,30 @@ namespace EmulatorLauncher
                     case "magicengine":
                         ret = "pcengine_simple_6buttons";
                         break;
+                }
+            }
+            else if (system == "arcade")
+            {
+                if (!string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))
+                {
+                    string layout = Program.SystemConfig["controller_layout"];
+                    ret = system + "_" + layout;
+                }
+            }
+
+            return ret + ".png";
+        }
+
+        private static string GetGameTattooName(string system, string gameName)
+        {
+            string ret = gameName;
+
+            if (system == "arcade")
+            {
+                if (!string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))
+                {
+                    string layout = Program.SystemConfig["controller_layout"];
+                    ret = gameName + "_" + layout;
                 }
             }
 
