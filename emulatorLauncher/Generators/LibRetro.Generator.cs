@@ -1430,6 +1430,7 @@ namespace EmulatorLauncher.Libretro
             // Misc
             BindBoolFeature(retroarchConfig, "video_smooth", "smooth", "true", "false");
             BindBoolFeature(retroarchConfig, "video_scale_integer", "integerscale", "true", "false");
+            BindFeature(retroarchConfig, "video_scale_integer_scaling", "video_scale_integer_scaling", "0");
             BindBoolFeature(retroarchConfig, "video_threaded", "video_threaded", "true", "false");
             BindBoolFeature(retroarchConfig, "fps_show", "showFPS", "true", "false");
             BindBoolFeature(retroarchConfig, "video_frame_delay_auto", "video_frame_delay_auto", "true", "false"); // Auto frame delay (input delay reduction via frame timing)

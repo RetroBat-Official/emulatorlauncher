@@ -758,7 +758,7 @@ namespace EmulatorLauncher
                     pcsx2ini.WriteValue("Hotkeys", hotkey.Value.Key, hotkey.Value.Value);
 
                 pcsx2ini.WriteValue("Hotkeys", "ToggleTurbo", "Keyboard/Space");
-                pcsx2ini.WriteValue("Hotkeys", "TogglePause", "Keyboard/P");
+                pcsx2ini.WriteValue("Hotkeys", "ToggleFullscreen", "Keyboard/F");
                 pcsx2ini.WriteValue("Hotkeys", "FrameAdvance", "Keyboard/K");
             }
 
@@ -775,7 +775,7 @@ namespace EmulatorLauncher
             { InputKey.y, new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F4") },
             { InputKey.x, new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F2") },
             { InputKey.r3, new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
-            { InputKey.l3, new KeyValuePair<string, string>("ToggleFullscreen", "Keyboard/F") },
+            { InputKey.l3, new KeyValuePair<string, string>("TogglePause", "Keyboard/P") },
             { InputKey.up, new KeyValuePair<string, string>("NextSaveStateSlot", "Keyboard/F7") },
             { InputKey.down, new KeyValuePair<string, string>("PreviousSaveStateSlot", "Keyboard/F6") },
             { InputKey.left, new KeyValuePair<string, string>("ToggleSlowMotion", "Keyboard/Backspace") },
@@ -789,7 +789,7 @@ namespace EmulatorLauncher
             { "y", new KeyValuePair<string, string>("LoadStateFromSlot", "Keyboard/F4") },
             { "x", new KeyValuePair<string, string>("SaveStateToSlot", "Keyboard/F2") },
             { "rightstick", new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
-            { "leftstick", new KeyValuePair<string, string>("ToggleFullscreen", "Keyboard/F") },
+            { "leftstick", new KeyValuePair<string, string>("TogglePause", "Keyboard/P") },
             { "dpup", new KeyValuePair<string, string>("NextSaveStateSlot", "Keyboard/F7") },
             { "dpdown", new KeyValuePair<string, string>("PreviousSaveStateSlot", "Keyboard/F6") },
             { "dpleft", new KeyValuePair<string, string>("ToggleSlowMotion", "Keyboard/Backspace") },

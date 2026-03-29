@@ -174,7 +174,7 @@ namespace EmulatorLauncher.Libretro
         static public Dictionary<InputKey, string> retroarchspecials = new Dictionary<InputKey, string>()
         {
             { InputKey.start, "exit_emulator"},
-            // { InputKey.b, "pause_toggle"},
+            { InputKey.l3, "pause_toggle"},
             { InputKey.a, "menu_toggle"},
             { InputKey.x, "load_state"},
             { InputKey.y, "save_state"},
