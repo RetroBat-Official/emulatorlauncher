@@ -129,7 +129,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("ControlMapping", "Save State", "1-132,20-109:20-99,21-109:21-99,22-109:22-99,23-109:23-99");        // SELECT + WEST                                                                                                                  //ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139,20-109:20-97,21-109:21-97,22-109:22-97,23-109:23-97"); // SELECT + EAST
                     ini.WriteValue("ControlMapping", "Pause", "1-131,20-109:20-96,21-109:21-96,22-109:22-96,23-109:23-96");             // SELECT + SOUTH
                     ini.WriteValue("ControlMapping", "Screenshot", "1-138,20-109:20-107,21-109:21-107,22-109:22-107,23-109:23-107");    // SELECT + R3
-                    ini.WriteValue("ControlMapping", "Toggle Fullscreen", "1-34,20-109:20-106,21-109:21-106,22-109:22-106,23-109:23-106");    // SELECT + L3
+                    ini.WriteValue("ControlMapping", "Pause (no menu)", "1-34,20-109:20-106,21-109:21-106,22-109:22-106,23-109:23-106");    // SELECT + L3
                     ini.WriteValue("ControlMapping", "Previous Slot", "1-136,20-109:20-19,21-109:21-19,22-109:22-19,23-109:23-19"); // SELECT + UP
                     ini.WriteValue("ControlMapping", "Next Slot", "1-137,20-109:20-20,21-109:21-20,22-109:22-20,23-109:23-20");     // SELECT + DOWN
                 }
@@ -200,7 +200,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("ControlMapping", "Pause", "1-131," + controllerID + "196" + ":" + controllerID + "189");
                     //ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139," + controllerID + "196" + ":" + controllerID + "190");         // SELECT + EAST
                     ini.WriteValue("ControlMapping", "Screenshot", "1-138," + controllerID + "196" + ":" + controllerID + "107");
-                    ini.WriteValue("ControlMapping", "Toggle Fullscreen", "1-34," + controllerID + "196" + ":" + controllerID + "106");
+                    ini.WriteValue("ControlMapping", "Pause (no menu)", "1-34," + controllerID + "196" + ":" + controllerID + "106");
                     ini.WriteValue("ControlMapping", "Previous Slot", "1-136," + controllerID + "196" + ":" + controllerID + "20");
                     ini.WriteValue("ControlMapping", "Next Slot", "1-137," + controllerID + "196" + ":" + controllerID + "19");
                 }

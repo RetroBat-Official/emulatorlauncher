@@ -1753,7 +1753,7 @@ namespace EmulatorLauncher
             { "exit", "input_exit_emulator" },
             { "state_slot_dec", "input_state_slot_decrease" },
             { "state_slot_inc", "input_state_slot_increase" },
-            { "toggle_help", "input_menu_toggle" },
+            { "pause", "input_menu_toggle" },
             { "insert_eject_disk", "input_disk_eject_toggle" },
             { "take_snapshot", "input_screenshot" },
             { "fast_forward", "input_hold_fast_forward" },
@@ -1771,12 +1771,11 @@ namespace EmulatorLauncher
             { "exit", InputKey.start },
             { "state_slot_dec", InputKey.down },
             { "state_slot_inc", InputKey.up },
-            { "toggle_help", InputKey.a },
+            { "pause", InputKey.a },
             { "insert_eject_disk", InputKey.pageup },
             { "take_snapshot", InputKey.r3 },
             { "fast_forward", InputKey.right },
             { "state_rewind", InputKey.left },
-            //{ "pause", InputKey.b },
             { "toggle_fs", InputKey.l3 },
             { "select_disk", InputKey.r2 }
         };

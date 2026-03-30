@@ -1430,6 +1430,7 @@ namespace EmulatorLauncher.Libretro
             // Misc
             BindBoolFeature(retroarchConfig, "video_smooth", "smooth", "true", "false");
             BindBoolFeature(retroarchConfig, "video_scale_integer", "integerscale", "true", "false");
+            BindFeature(retroarchConfig, "video_scale_integer_scaling", "video_scale_integer_scaling", "0");
             BindBoolFeature(retroarchConfig, "video_threaded", "video_threaded", "true", "false");
             BindBoolFeature(retroarchConfig, "fps_show", "showFPS", "true", "false");
             BindBoolFeature(retroarchConfig, "video_frame_delay_auto", "video_frame_delay_auto", "true", "false"); // Auto frame delay (input delay reduction via frame timing)
@@ -1708,15 +1709,9 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            if (SystemConfig.isOptSet("video_swap_interval") && !string.IsNullOrEmpty(SystemConfig["video_swap_interval"]))
-                retroarchConfig["video_swap_interval"] = SystemConfig["video_swap_interval"].ToIntegerString();
-            else
-                retroarchConfig["video_swap_interval"] = "0";
-
-            if (SystemConfig.isOptSet("video_black_frame_insertion") && !string.IsNullOrEmpty(SystemConfig["video_black_frame_insertion"]))
-                retroarchConfig["video_black_frame_insertion"] = SystemConfig["video_black_frame_insertion"].ToIntegerString();
-            else
-                retroarchConfig["video_black_frame_insertion"] = "0";
+            BindFeatureSlider(retroarchConfig, "video_swap_interval", "video_swap_interval", "0");
+            BindFeatureSlider(retroarchConfig, "video_black_frame_insertion", "video_black_frame_insertion", "0");
+            BindFeatureSlider(retroarchConfig, "video_max_swapchain_images", "video_max_swapchain_images", "3");
 
             BindBoolFeature(retroarchConfig, "vrr_runloop_enable", "vrr_runloop_enable", "true", "false");
 

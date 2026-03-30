@@ -408,13 +408,13 @@ namespace EmulatorLauncher
 
                 ini.WriteValue("Hotkeys", "ToggleFastForward", "Keyboard/Space");
                 ini.WriteValue("Hotkeys", "FrameStep", "Keyboard/K");
-                ini.WriteValue("Hotkeys", "TogglePause", "Keyboard/P");
+                ini.WriteValue("Hotkeys", "ToggleFullscreen", "Keyboard/F");
             }
         }
 
         static public Dictionary<InputKey, KeyValuePair<string, string>> hotkeys = new Dictionary<InputKey, KeyValuePair<string, string>>()
         {
-            { InputKey.l3, new KeyValuePair<string, string>("ToggleFullscreen", "Keyboard/F") },
+            { InputKey.l3, new KeyValuePair<string, string>("TogglePause", "Keyboard/P") },
             { InputKey.a, new KeyValuePair<string, string>("OpenPauseMenu", "Keyboard/F1") },
             { InputKey.y, new KeyValuePair<string, string>("LoadSelectedSaveState", "Keyboard/F4") },
             { InputKey.x, new KeyValuePair<string, string>("SaveSelectedSaveState", "Keyboard/F2") },
