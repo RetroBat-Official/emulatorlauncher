@@ -38,6 +38,19 @@ namespace EmulatorLauncher.Common
         }
 
         /// <summary>
+        /// Check if path is a root path
+        /// </summary>
+        /// <param name="path"></param>
+        public static bool IsRootPath(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return false;
+
+            string root = Path.GetPathRoot(path);
+            return string.Equals(path, root, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
         /// Get MD5 hash
         /// </summary>
         /// <param name="file"></param>
