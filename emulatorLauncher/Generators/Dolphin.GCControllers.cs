@@ -26,6 +26,7 @@ namespace EmulatorLauncher
 
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
             Dictionary<string, string> specialHK = null;
+            SdlToDirectInput sdlCtrl = null;
 
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
@@ -73,16 +74,19 @@ namespace EmulatorLauncher
                     {
                         var s = pad.SdlController;
                         if (s == null)
-                            continue;
+                            tech = "DInput";
+                        else
+                            tech = "SDL";
 
-                        tech = "SDL";
-
-                        if (pad.IsXInputDevice)
+                        if (tech == "SDL" && pad.IsXInputDevice)
                         {
                             xinputAsSdl = true;
                         }
 
                         deviceName = pad.Name != null ? pad.Name : "";
+
+                        if (tech == "DInput")
+                            deviceName = pad.DirectInput.Name != null ? pad.DirectInput.Name : "";
 
                         string newNamePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
                         if (File.Exists(newNamePath))
@@ -106,6 +110,37 @@ namespace EmulatorLauncher
 
                     if (pad.IsXInputDevice)
                         xIndex = pad.XInput != null ? pad.XInput.DeviceIndex : pad.DeviceIndex;
+
+                    // DInput controller mapping search in file
+                    if (tech == "DInput")
+                    {
+                        string gamecontrollerDB = Path.Combine(Program.AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
+                        string searchGuid = (pad.Guid.ToString()).Substring(0, 24) + "00000000";
+
+                        if (!File.Exists(gamecontrollerDB))
+                        {
+                            SimpleLogger.Instance.Info("[CONTROLLERS] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
+                            return;
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[CONTROLLERS] Player " + pad.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + searchGuid);
+
+                        sdlCtrl = GameControllerDBParser.ParseByGuid(gamecontrollerDB, searchGuid);
+
+                        if (sdlCtrl == null)
+                        {
+                            SimpleLogger.Instance.Info("[CONTROLLERS] Player " + pad.PlayerIndex + ". No controller found in gamecontrollerdb.txt file for guid : " + searchGuid);
+                            return;
+                        }
+                        else
+                            SimpleLogger.Instance.Info("[CONTROLLERS] Player " + pad.PlayerIndex + ": " + searchGuid + " found in gamecontrollerDB file.");
+
+                        if (sdlCtrl.ButtonMappings == null)
+                        {
+                            SimpleLogger.Instance.Info("[CONTROLLERS] No mapping found for the controller." + searchGuid);
+                            return;
+                        }
+                    }
 
                     if (tech == "XInput" && !xinputAsSdl)
                         ini.WriteValue(gcpad, "Device", tech + "/" + xIndex + "/" + deviceName);
@@ -245,6 +280,36 @@ namespace EmulatorLauncher
                             }
                         }
 
+                        else if (tech == "DInput")
+                        {
+                            string dinputName = DInputMapping[x.Key] != null ? DInputMapping[x.Key] : "";
+                            if (string.IsNullOrEmpty(dinputName))
+                                continue;
+
+                            if (!sdlCtrl.ButtonMappings.ContainsKey(dinputName))
+                                continue;
+
+                            string button = sdlCtrl.ButtonMappings[dinputName];
+
+                            string mapTarget = GetDInputCode(button, sdlCtrl, false);
+                            if (!string.IsNullOrEmpty(mapTarget))
+                                ini.WriteValue(gcpad, value, mapTarget);
+
+                            if (gamecubeReverseAxes.TryGetValue(value, out string reverseAxis))
+                            {
+                                if (joyRevertAxisDInput.ContainsKey(x.Key))
+                                {
+                                    var revertKey = joyRevertAxisDInput[x.Key];
+                                    if (sdlCtrl.ButtonMappings.ContainsKey(revertKey))
+                                    {
+                                        string mapTargetRevert = GetDInputCode(sdlCtrl.ButtonMappings[revertKey], sdlCtrl, true);
+                                        if (!string.IsNullOrEmpty(mapTargetRevert))
+                                            ini.WriteValue(gcpad, reverseAxis, mapTargetRevert);
+                                    }
+                                }
+                            }
+                        }
+
                         else // SDL
                         {
                             var input = pad.GetSdlMapping(x.Key);
@@ -348,7 +413,7 @@ namespace EmulatorLauncher
 
             // Reset hotkeys
             string hotkeyini = Path.Combine(path, "User", "Config", "Hotkeys.ini");
-            ResetHotkeysToDefault(hotkeyini, _gcSpecialHotkeys);
+            ResetHotkeysToDefault(hotkeyini, _gcSpecialHotkeys, sdlCtrl);
         }
 
         private static void RemoveControllerConfig_gamecube(string path, IniFile ini)
@@ -418,6 +483,14 @@ namespace EmulatorLauncher
             { InputKey.joystick2up,   InputKey.joystick2down },
             { InputKey.joystick1left,   InputKey.joystick1right },
             { InputKey.joystick2left,   InputKey.joystick2right },
+        };
+
+        static readonly Dictionary<InputKey, string> joyRevertAxisDInput = new Dictionary<InputKey, string>()
+        {
+            { InputKey.joystick1up,   "lefty" },
+            { InputKey.joystick2up,   "righty" },
+            { InputKey.joystick1left,   "leftx" },
+            { InputKey.joystick2left,   "rightx" },
         };
 
         private static bool ConfigureGCAdapter(string gcpad, string gamecubepad, string guid, Controller pad, IniFile ini, out Dictionary<string, string> specialHK)

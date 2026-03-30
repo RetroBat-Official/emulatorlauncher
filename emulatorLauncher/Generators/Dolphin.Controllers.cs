@@ -125,7 +125,7 @@ namespace EmulatorLauncher
             return true;
         }
 
-        private static void ResetHotkeysToDefault(string iniFile, Dictionary<string, string> specialHK = null)
+        private static void ResetHotkeysToDefault(string iniFile, Dictionary<string, string> specialHK = null, SdlToDirectInput sdlCtrl = null)
         {
             if (Program.Controllers.Count == 0)
                 return;
@@ -176,6 +176,11 @@ namespace EmulatorLauncher
                         tech = "SDL";
                         deviceName = s.Name;
                     }
+                    else
+                    {
+                        tech = "DInput";
+                        deviceName = c1.dinputCtrl != null ? c1.dinputCtrl.Name : c1.Name;
+                    }
 
                     string newNamePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
                     string newName = SdlJoystickGuid.GetNameFromFile(newNamePath, c1.Guid, "dolphin");
@@ -215,7 +220,73 @@ namespace EmulatorLauncher
 
                     WriteKBHotkeys(ini, true);
 
-                    if (tech == "SDL" && _triforcectrl)
+                    if (tech == "DInput" && sdlCtrl != null && sdlCtrl.ButtonMappings.Count > 0)
+                    {
+                        foreach (var hk in padHKMapping)
+                        {
+                            string value = hk.Value;
+
+                            string hotkeyButton = "";
+                            if (sdlCtrl.ButtonMappings.ContainsKey("back"))
+                            {
+                                string targetSDLButton = sdlCtrl.ButtonMappings["back"];
+                                hotkeyButton = GetDInputCode(targetSDLButton, sdlCtrl);
+
+                            }
+                            if (string.IsNullOrEmpty(hotkeyButton))
+                            {
+                                SimpleLogger.Instance.Warning("[HOTKEYS] Failed to get DInput code for Back button. Hotkeys will not be set.");
+                                return;
+                            }
+
+                            // Special case for screenshot to use same button as SaveState
+                            if (hk.Key == "General/Take Screenshot")
+                            {
+                                if (padHKMapping.ContainsKey("Save State/Save to Selected Slot"))
+                                {
+                                    value = padHKMapping["Save State/Save to Selected Slot"];
+                                }
+                            }
+
+                            // Dinput specifics
+                            if (value == "l3")
+                                value = "leftstick";
+                            else if (value == "r3")
+                                value = "rightstick";
+                            else if (value == "up")
+                                value = "dpup";
+                            else if (value == "down")
+                                value = "dpdown";
+                            else if (value == "left")
+                                value = "dpleft";
+                            else if (value == "right")
+                                value = "dpright";
+                            else if (value == "pageup")
+                                value = "leftshoulder";
+                            else if (value == "pagedown")
+                                value = "rightshoulder";
+                            else if (value == "l2")
+                                value = "lefttrigger";
+                            else if (value == "r2")
+                                value = "righttrigger";
+
+                            string kbKey = "";
+                            if (!string.IsNullOrEmpty(ini.GetValue("Hotkeys", hk.Key)))
+                                kbKey = "|" + ini.GetValue("Hotkeys", hk.Key);
+
+                            string targetKey = "";
+                            if (sdlCtrl.ButtonMappings.ContainsKey(value))
+                            {
+                                string sdlTargetButton = sdlCtrl.ButtonMappings[value];
+                                targetKey = GetDInputCode(sdlTargetButton, sdlCtrl);
+                            }
+
+                            if (!string.IsNullOrEmpty(targetKey))
+                                ini.WriteValue("Hotkeys", hk.Key, hotkeyButton + "&" + targetKey + kbKey);
+                        }
+                    }
+
+                    else if (tech == "SDL" && _triforcectrl)
                     {
                         Func<Input, bool, string> axisValue = (inp, revertAxis) =>
                         {
@@ -434,6 +505,82 @@ namespace EmulatorLauncher
                 else
                     ini.WriteValue("Core", "SIDevice" + i, "0");
             }
+        }
+
+        static readonly InputKeyMapping DInputMapping = new InputKeyMapping()
+        {
+            { InputKey.l3,              "leftstick"},
+            { InputKey.r3,              "rightstick"},
+            { InputKey.l2,              "lefttrigger" },
+            { InputKey.r2,              "righttrigger"},
+            { InputKey.y,               "y" },
+            { InputKey.b,               "a" },
+            { InputKey.x,               "x" },
+            { InputKey.a,               "b" },
+            { InputKey.start,           "start" },
+            { InputKey.pagedown,        "rightshoulder" },
+            { InputKey.pageup,          "leftshoulder" },
+            { InputKey.up,              "dpup" },
+            { InputKey.down,            "dpdown" },
+            { InputKey.left,            "dpleft" },
+            { InputKey.right,           "dpright" },
+            { InputKey.joystick1up,     "lefty" },
+            { InputKey.joystick1left,   "leftx" },
+            { InputKey.joystick2up,     "righty" },
+            { InputKey.joystick2left,   "rightx"},
+            { InputKey.select,          "back" },
+        };
+
+        private static string GetDInputCode(string button, SdlToDirectInput ctrl, bool revertAxis = false)
+        {
+            if (button.StartsWith("h"))
+            {
+                int hatID = button.Substring(3).ToInteger();
+                switch (hatID)
+                {
+                    case 1: return "`Hat 0 N`";
+                    case 2: return "`Hat 0 E`";
+                    case 4: return "`Hat 0 S`";
+                    case 8: return "`Hat 0 W`";
+                }
+                ;
+            }
+
+            else if (button.StartsWith("b"))
+            {
+                var test = button.Substring(1).ToLower();
+                int buttonID = button.Substring(1).ToInteger();
+                return "`Button " + buttonID + "`";
+            }
+
+            else if (button.StartsWith("a") || button.StartsWith("-a") || button.StartsWith("+a"))
+            {
+                int axisID = button.Substring(1).ToInteger();
+
+                if (button.StartsWith("-a") || button.StartsWith("+a"))
+                    axisID = button.Substring(2).ToInteger();
+
+                else if (button.StartsWith("a"))
+                    axisID = button.Substring(1).ToInteger();
+
+                switch (axisID)
+                {
+                    case 0:
+                        return "`Axis X" + (revertAxis ? "+" : "-") + "`";
+                    case 1:
+                        return "`Axis Y" + (revertAxis ? "+" : "-") + "`";
+                    case 2:
+                        return "`Axis Z" + (revertAxis ? "+" : "-") + "`";
+                    case 3:
+                        return "`Axis Xr" + (revertAxis ? "+" : "-") + "`";
+                    case 4:
+                        return "`Axis Yr" + (revertAxis ? "+" : "-") + "`";
+                    case 5:
+                        return "`Axis Zr" + (revertAxis ? "+" : "-") + "`";
+                }
+            }
+
+            return "";
         }
 
         private static string GetSDLMappingName(Controller pad, InputKey key)

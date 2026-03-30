@@ -17,6 +17,8 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
         private string _destFile;
         private string _path;
         private bool _isCustomRetrobatOpenBor; // This Version support harcoded NumButtons / NumAxes values for generic injection
@@ -27,6 +29,7 @@ namespace EmulatorLauncher
             string newPath;
             string newExe;
             string exe = Path.Combine(path, "OpenBOR.exe");
+            _resolution = resolution;
 
             if (Path.GetExtension(rom) != ".exe")
             {
@@ -124,17 +127,16 @@ namespace EmulatorLauncher
             var bezels = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             if (bezels != null && ((SystemConfig.isOptSet("ratio") && SystemConfig["ratio"] == "1")))
                 SystemConfig["forceNoBezel"] = "1";
-            
-            ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, emulator, false);
+            else
+                _bezelFileInfo = bezels;
+
+            //ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, emulator, false);
         }
 
         public override void Cleanup()
         {
             if (_destFile != null && File.Exists(_destFile))
                 File.Delete(_destFile);
-
-            if (_path != null)
-                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
 
             base.Cleanup();
         }
@@ -302,7 +304,7 @@ namespace EmulatorLauncher
                     conf.keys[idx].esc = 0;
             }
         }*/
-        
+
         /*private bool setupConfigBorCfg(string path)
         {
             savedata conf = new Savedata();
@@ -413,6 +415,23 @@ namespace EmulatorLauncher
             return true;
         }*/
         #endregion
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            bezel?.Dispose();
+
+            if (ret == 1)
+                return 0;
+
+            return ret;
+        }
     }
 
     #region v6330
