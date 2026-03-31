@@ -24,10 +24,11 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            rom = this.TryUnZipGameIfNeeded(system, rom, false, false);
+            rom = this.TryUnZipGameIfNeeded(system, rom, false);
             bool autodetect = false;
             string romFile = null;
-
+            bool testRootPath = FileTools.IsRootPath(rom);
+            
             if (Directory.Exists(rom))
             {
                 romFile = Directory.GetFiles(rom, "*.scummvm").FirstOrDefault();
@@ -61,8 +62,8 @@ namespace EmulatorLauncher
             commandArray.Add("--config=\"" + iniPath + "\"");
             commandArray.Add("--logfile=\"" + Path.ChangeExtension(iniPath, ".log") + "\"");
 
-            if (File.Exists(rom))
-                commandArray.Add("-p\"" + Path.GetDirectoryName(rom)+"\"");
+            if (File.Exists(rom) && !testRootPath)
+                commandArray.Add("-p\"" + Path.GetDirectoryName(rom) + "\"");
             else
                 commandArray.Add("-p\"" + rom + "\"");
 

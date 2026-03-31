@@ -50,6 +50,7 @@ namespace EmulatorLauncher.Libretro
         private string _video_driver;
         private string _dosBoxTempRom;
         private bool _bias = true;
+        private bool _overrideAspect = false;
 
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -86,7 +87,7 @@ namespace EmulatorLauncher.Libretro
                 CheckCoreAndUpdateIfNeeded(core);
 
             // Get target rom
-            rom = GetRomOverride (system, emulator, core, rom, romName);
+            rom = GetRomOverride(system, emulator, core, rom, romName);
 
             // Special checks
             EnsureJavaIfNeeded(core);
@@ -1369,6 +1370,15 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("custom").ToString();
                     retroarchConfig["video_viewport_bias_x"] = "0.000000";
                     retroarchConfig["video_viewport_bias_y"] = "0.000000";
+
+                    if (CustomRatio.GetRatioFromFile(rom, system, out CustomRatio ratio))
+                    {
+                        retroarchConfig["custom_viewport_height"] = ratio.height.ToString();
+                        retroarchConfig["custom_viewport_width"] = ratio.width.ToString();
+                        retroarchConfig["custom_viewport_x"] = ratio.left.ToString();
+                        retroarchConfig["custom_viewport_y"] = ratio.top.ToString();
+                        _overrideAspect = true;
+                    }
                 }
                 else
                 {
@@ -1641,9 +1651,9 @@ namespace EmulatorLauncher.Libretro
                 {
                     string definedShaders = SystemConfig.isOptSet("shader") ? SystemConfig["shader"] : "";
 
-                    if (!string.IsNullOrEmpty(definedShaders) 
-                        && (definedShaders.ToLowerInvariant().Contains("mega_bezel") 
-                        || definedShaders.ToLowerInvariant().Contains("cyberlab") 
+                    if (!string.IsNullOrEmpty(definedShaders)
+                        && (definedShaders.ToLowerInvariant().Contains("mega_bezel")
+                        || definedShaders.ToLowerInvariant().Contains("cyberlab")
                         || definedShaders.ToLowerInvariant().Contains("koko-aio")
                         || definedShaders.ToLowerInvariant().Contains("sonkun")))
                     {
@@ -2121,7 +2131,7 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["input_overlay_opacity"] = infos.opacity.ToString().Replace(",", "."); // "1.0";
             // for testing : retroarchConfig["input_overlay_opacity"] = "0.5";
 
-            if (bezelNeedAdaptation)
+            if (bezelNeedAdaptation && !_overrideAspect)
             {
                 float wratio = resX / (float)infos.width;
                 float hratio = resY / (float)infos.height;
@@ -2161,7 +2171,7 @@ namespace EmulatorLauncher.Libretro
                 if (!stretchImage)
                     overlay_png_file = BezelFiles.GetStretchedBezel(overlay_png_file, resX, resY);
             }
-            else
+            else if (!_overrideAspect)
             {
                 if (viewPortUsed)
                 {
@@ -2294,7 +2304,7 @@ namespace EmulatorLauncher.Libretro
             new UIModeSetting("quick_menu_show_controls", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_core_options_flush", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_download_thumbnails", "false", "false", "true"),
-            new UIModeSetting("quick_menu_show_options", "false", "true", "true"),          
+            new UIModeSetting("quick_menu_show_options", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_reset_core_association", "false", "false", "true"),
             new UIModeSetting("quick_menu_show_restart_content", "false", "true", "true"),
             new UIModeSetting("quick_menu_show_save_content_dir_overrides", "false", "false", "true"),
@@ -2338,7 +2348,7 @@ namespace EmulatorLauncher.Libretro
             else if (SystemConfig["OptionsMenu"] == "full" || retroarchConfig["game_specific_options"] == "true")
                 type = UIModeType.Full;
 
-            foreach(var item in UIModes)
+            foreach (var item in UIModes)
                 retroarchConfig[item.Name] = item.GetValue(type);
         }
         #endregion
@@ -2353,11 +2363,11 @@ namespace EmulatorLauncher.Libretro
         static List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
         static List<string> coreNoGL = new List<string>() { "citra", "kronos", "mednafen_psx", "mednafen_psx_hw", "pcsx2", "swanstation" };
         static List<string> CoreSaveSort = new List<string>() { "dolphin" };
-        static List<string> CoreNoZip = new List<string>() { "mednafen_pce", "mednafen_pce_fast","mednafen_psx_hw", "mednafen_psx", "mednafen_saturn", "swanstation", "pcsx_rearmed", "pcsx2" };
+        static List<string> CoreNoZip = new List<string>() { "mednafen_pce", "mednafen_pce_fast", "mednafen_psx_hw", "mednafen_psx", "mednafen_saturn", "swanstation", "pcsx_rearmed", "pcsx2" };
         static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "fuse", "513" } };
         static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
-        static Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>() 
-        { 
+        static Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>()
+        {
             { "flycast", "vulkan" },
             { "melondsds", "glcore" },
             { "pcsx2", "glcore" },
@@ -2455,7 +2465,7 @@ namespace EmulatorLauncher.Libretro
         {
             new SubSystem("fbneo", "colecovision", "cv"),
 
-            new SubSystem("fbneo", "msx", "msx"),                        
+            new SubSystem("fbneo", "msx", "msx"),
             new SubSystem("fbneo", "msx1", "msx"),
 
             new SubSystem("fbneo", "supergrafx", "sgx"),
@@ -2465,7 +2475,7 @@ namespace EmulatorLauncher.Libretro
             new SubSystem("fbneo", "turbografx", "tg"),
             new SubSystem("fbneo", "turbografxcd", "tg"),
             new SubSystem("fbneo", "turbografx16", "tg"),
-            
+
             new SubSystem("fbneo", "gamegear", "gg"),
             new SubSystem("fbneo", "mastersystem", "sms"),
             new SubSystem("fbneo", "megadrive", "md"),
@@ -2473,10 +2483,10 @@ namespace EmulatorLauncher.Libretro
 
             new SubSystem("fbneo", "sg1000", "sg1k"),
             new SubSystem("fbneo", "sg-1000", "sg1k"),
-            
+
             new SubSystem("fbneo", "zxspectrum", "spec"),
 
-            new SubSystem("fbneo", "neogeocd", "neocd")            
+            new SubSystem("fbneo", "neogeocd", "neocd")
         };
 
         public static string GetSubSystem(string core, string system)
@@ -2499,4 +2509,64 @@ namespace EmulatorLauncher.Libretro
         public string Core { get; set; }
         public string SubSystemId { get; set; }
     }
+
+    public class CustomRatio
+    {
+        public int width { get; set; }
+        public int height { get; set; }
+        public int top { get; set; }
+        public int left { get; set; }
+
+        public static bool GetRatioFromFile(string rom, string system, out CustomRatio ratio)
+        {
+            if (string.IsNullOrEmpty(rom) || string.IsNullOrEmpty(system))
+            {
+                ratio = null;
+                return false;
+            }
+
+            string romPath = Path.GetDirectoryName(rom);
+            string customRatioPath = null;
+            bool ratioFound = false;
+            ratio = null;
+            string romName = Path.GetFileNameWithoutExtension(rom);
+
+            foreach (var path in ratioFilePaths)
+            {
+                customRatioPath = path
+                    .Replace("{rompath}", romPath)
+                    .Replace("{system}", system)
+                    .Replace("{romname}", romName)
+                    .Replace("{userpath}", Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "user"));
+
+                if (File.Exists(customRatioPath))
+                    break;
+            }
+
+            if (!File.Exists(customRatioPath))
+                return false;
+
+            try
+            {
+                string json = File.ReadAllText(customRatioPath);
+                ratio = JsonSerializer.DeserializeFile<CustomRatio>(customRatioPath);
+                ratioFound = true;
+            }
+            catch
+            {
+                return false;
+            }
+
+            return ratioFound;
+        }
+
+        static readonly string[] ratioFilePaths =
+        {            
+            // User specific
+            "{rompath}\\{romname}_customratio.txt",
+            "{rompath}\\{system}_customratio.txt",
+            "{userpath}\\customratio\\{system}_{romname}_customratio.txt",
+            "{userpath}\\customratio\\{system}_customratio.txt",
+        };
+    };
 }
