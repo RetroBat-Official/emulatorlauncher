@@ -53,6 +53,9 @@ namespace EmulatorLauncher
                     return _mountedIso.Drive.Name;
             }
 
+            if (SystemConfig.getOptBoolean("nevermount"))
+                tryMount = false;
+
             // Try mount file as a drive letter
             if (Zip.IsCompressedFile(fileName) && tryMount)
             {
