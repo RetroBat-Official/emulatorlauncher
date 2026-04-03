@@ -235,6 +235,13 @@ namespace EmulatorLauncher
                             ini.WriteValue("GSFrame", "screen", index.ToString());
                         }
                     }
+
+                    ini.WriteValue("Shortcuts", "game_window_pause_play", "P");
+                    ini.WriteValue("Shortcuts", "game_window_savestate", "F2");
+                    ini.WriteValue("Shortcuts", "game_window_screenshot", "F8");
+                    ini.WriteValue("Shortcuts", "game_window_toggle_fullscreen", "F");
+                    ini.WriteValue("Shortcuts", "gw_home_menu", "F1");
+                    ini.WriteValue("Shortcuts", "gw_mute_unmute", "M");
                 }
             }
             catch (Exception ex)
