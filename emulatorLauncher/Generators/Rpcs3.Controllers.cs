@@ -153,7 +153,7 @@ namespace EmulatorLauncher
             writemapping("Right Stick Up", InputKey.rightanalogup);
             writemapping("Start", InputKey.start);
             writemapping("Select", InputKey.select);
-            writemapping("PS Button", InputKey.hotkey);
+            //writemapping("PS Button", InputKey.hotkey);
             writemapping("Square", InputKey.y);
             writemapping("Cross", InputKey.b);
             writemapping("Circle", InputKey.a);
@@ -337,7 +337,7 @@ namespace EmulatorLauncher
                 config["Right Stick Up"] = "RS Y+";
                 config["Start"] = "Options";
                 config["Select"] = "Share";
-                config["PS Button"] = "PS Button";
+                config["PS Button"] = "\"Cross&Share,PS Button\"";
                 config["Square"] = "Square";
                 config["Cross"] = "Cross";
                 config["Circle"] = "Circle";
@@ -372,7 +372,7 @@ namespace EmulatorLauncher
                 config["Right Stick Up"] = "RS Y+";
                 config["Start"] = "Start";
                 config["Select"] = "Select";
-                config["PS Button"] = "PS Button";
+                config["PS Button"] = "\"Cross&Select,PS Button\"";
                 config["Square"] = "Square";
                 config["Cross"] = "Cross";
                 config["Circle"] = "Circle";
@@ -407,7 +407,7 @@ namespace EmulatorLauncher
                 config["Right Stick Up"] = "RS Y+";
                 config["Start"] = "Options";
                 config["Select"] = "Share";
-                config["PS Button"] = "PS Button";
+                config["PS Button"] = "\"Cross&Share,PS Button\"";
                 config["Square"] = "Square";
                 config["Cross"] = "Cross";
                 config["Circle"] = "Circle";
@@ -442,7 +442,7 @@ namespace EmulatorLauncher
                 config["Right Stick Up"] = GetInputKeyNameX(ctrl, InputKey.joystick2up);       //RS Y+
                 config["Start"] = GetInputKeyNameX(ctrl, InputKey.start);                      //Start
                 config["Select"] = GetInputKeyNameX(ctrl, InputKey.select);                    //Back
-                config["PS Button"] = "Guide";                                                 //Guide (fixed)
+                config["PS Button"] = "\"Back&A,Guide\"";                                                 //Guide (fixed)
                 config["Square"] = GetInputKeyNameX(ctrl, InputKey.y);                         //Y
                 config["Cross"] = GetInputKeyNameX(ctrl, InputKey.b);                          //B
                 config["Circle"] = GetInputKeyNameX(ctrl, InputKey.a);                         //A
@@ -472,7 +472,7 @@ namespace EmulatorLauncher
                 config["Right Stick Up"] = GetInputKeyNameSDL(ctrl, InputKey.joystick2up, isXinput);       //LS Y+
                 config["Start"] = GetInputKeyNameSDL(ctrl, InputKey.start, isXinput);                      //Start
                 config["Select"] = GetInputKeyNameSDL(ctrl, InputKey.select, isXinput);                    //Back
-                config["PS Button"] = "Guide";                                                   //Guide
+                config["PS Button"] = "\"Back&South,Guide\"";                                                   //Guide
                 config["Square"] = GetInputKeyNameSDL(ctrl, InputKey.x, isXinput);                         //X (or Y on nintendo)
                 config["Cross"] = GetInputKeyNameSDL(ctrl, InputKey.a, isXinput);                          //A (or B on nintendo)
                 config["Circle"] = GetInputKeyNameSDL(ctrl, InputKey.b, isXinput);                         //B (or A on nintendo)
@@ -501,7 +501,7 @@ namespace EmulatorLauncher
                 config["Right Stick Up"] = "RS Y+";
                 config["Start"] = "Start";
                 config["Select"] = "Back";
-                config["PS Button"] = "Guide";
+                config["PS Button"] = "\"Back&A,Guide\"";
                 config["Square"] = "X";
                 config["Cross"] = "A";
                 config["Circle"] = "B";
