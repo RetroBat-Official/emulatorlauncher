@@ -27,11 +27,8 @@ namespace EmulatorLauncher
 
             string folderName = emulator;
 
-            string path = AppConfig.GetFullPath(folderName);
-            if (folderName == "xenia-manager")
-                path = Path.Combine(path, "Emulators", "Xenia Canary");
-
             string exeName = null;
+            
             switch (emulator)
             {
                 case "xenia":
@@ -46,6 +43,28 @@ namespace EmulatorLauncher
                 case "xenia-manager":
                     exeName = "xenia_canary.exe";
                     break;
+            }
+
+            string path = AppConfig.GetFullPath(folderName);
+            if (folderName == "xenia-manager")
+            {
+                string managerEmuFolder = "Xenia Canary";
+                switch (core)
+                {
+                    case "canary":
+                        managerEmuFolder = "Xenia Canary";
+                        exeName = "xenia_canary.exe";
+                        break;
+                    case "mousehook":
+                        managerEmuFolder = "Xenia Mousehook";
+                        exeName = "xenia_canary_mousehook.exe";
+                        break;
+                    case "netplay":
+                        managerEmuFolder = "Xenia Netplay";
+                        exeName = "xenia_canary_netplay.exe";
+                        break;
+                    }
+                path = Path.Combine(path, "Emulators", managerEmuFolder);
             }
 
             string exe = Path.Combine(path, exeName);

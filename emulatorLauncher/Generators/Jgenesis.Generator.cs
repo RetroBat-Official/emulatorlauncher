@@ -135,7 +135,10 @@ namespace EmulatorLauncher
                 ini.WriteValue("common", "custom_save_path", "'" + savesPath + "'");
                 ini.WriteValue("common", "state_path", "\"EmulatorFolder\"");
                 ini.WriteValue("common", "custom_state_path", "\"\"");
-                ini.WriteValue("common", "pause_emulator", "\"EmulatorLosesFocus\"");
+                if (SystemConfig.getOptBoolean("nopauseonlostfocus"))
+                    ini.WriteValue("common", "pause_emulator", "\"Never\"");
+                else
+                    ini.WriteValue("common", "pause_emulator", "\"EmulatorLosesFocus\"");
 
                 BindBoolIniFeatureOn(ini, "common", "audio_sync", "jgen_async", "true", "false");
 

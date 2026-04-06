@@ -98,8 +98,8 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("[INFO] Writing Azahar configuration file: " + conf);
 
-                ini.WriteValue("UI", "pauseWhenInBackground\\default", "false");
-                ini.WriteValue("UI", "pauseWhenInBackground", "true");
+                ini.WriteValue("UI", "pauseWhenInBackground\\default", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "true" : "false");
+                ini.WriteValue("UI", "pauseWhenInBackground", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true");
 
                 // Define rom path
                 string romPath = Path.GetDirectoryName(rom);

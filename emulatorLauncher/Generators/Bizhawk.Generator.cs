@@ -230,7 +230,7 @@ namespace EmulatorLauncher
             }
 
             // General settings
-            json["PauseWhenMenuActivated"] = "true";
+            json["PauseWhenMenuActivated"] = SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true";
             json["MainFormStayOnTop"] = "true";
             json["SingleInstanceMode"] = "true";
             json["ShowContextMenu"] = "false";

@@ -206,8 +206,16 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "hideInactiveMouse\\default", "true");
                 ini.WriteValue("UI", "hideInactiveMouse", "true");
 
-                ini.WriteValue("UI", "pauseWhenInBackground\\default", "false");
-                ini.WriteValue("UI", "pauseWhenInBackground", "true");
+                if (SystemConfig.getOptBoolean("nopauseonlostfocus"))
+                {
+                    ini.WriteValue("UI", "pauseWhenInBackground\\default", "true");
+                    ini.WriteValue("UI", "pauseWhenInBackground", "false");
+                }
+                else
+                {
+                    ini.WriteValue("UI", "pauseWhenInBackground\\default", "false");
+                    ini.WriteValue("UI", "pauseWhenInBackground", "true");
+                }
 
                 // Controller applet
                 if (SystemConfig.isOptSet("sudachi_controller_applet") && !SystemConfig.getOptBoolean("sudachi_controller_applet"))

@@ -126,7 +126,7 @@ namespace EmulatorLauncher
 
                 // General Settings
                 ini.WriteValue("ports.qt", "pauseOnMinimize", "1");
-                ini.WriteValue("ports.qt", "pauseOnFocusLost", "1");
+                ini.WriteValue("ports.qt", "pauseOnFocusLost", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "0" : "1");
 
                 if (SystemConfig.isOptSet("smooth") && SystemConfig.getOptBoolean("smooth"))
                     ini.WriteValue("ports.qt", "resampleVideo", "1");

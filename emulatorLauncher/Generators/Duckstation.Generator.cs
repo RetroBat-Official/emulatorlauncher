@@ -497,7 +497,7 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("Main", "EnableDiscordPresence", "false");
 
-                    ini.WriteValue("Main", "PauseOnFocusLoss", "true");
+                    ini.WriteValue("Main", "PauseOnFocusLoss", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true");
                     ini.WriteValue("Main", "DoubleClickTogglesFullscreen", "false");
                     ini.WriteValue("Main", "Language", GetDefaultpsxLanguage());
                     

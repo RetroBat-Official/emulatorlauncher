@@ -584,7 +584,7 @@ namespace EmulatorLauncher
             {
                 ini.WriteValue("UI", "HideMouseCursor", "true");
                 ini.WriteValue("UI", "StartPaused", "false");
-                ini.WriteValue("UI", "PauseOnFocusLoss", "true");
+                ini.WriteValue("UI", "PauseOnFocusLoss", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true");
 
                 CreateControllerConfiguration(ini);
                 SetupGunQT(ini, path);

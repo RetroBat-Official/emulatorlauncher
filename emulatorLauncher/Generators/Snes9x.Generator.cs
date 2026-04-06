@@ -104,8 +104,9 @@ namespace EmulatorLauncher
 						ini.WriteValue(@"Settings\Win\Files", pair.Key, pair.Value);
 				}
 
-				// General settings
-				ini.WriteValue(@"Sound\Win", "SoundDriver", "4"); // Force XAudio
+                // General settings
+                ini.WriteValue(@"Settings\Win", "PauseWhenInactive", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "FALSE" : "TRUE");
+                ini.WriteValue(@"Sound\Win", "SoundDriver", "4"); // Force XAudio
 				ini.WriteValue(@"Sound\Win", "BufferSize", "64");
 				BindBoolIniFeature(ini, @"Display\Win", "HideMenu", "snes9x_showmenu", "FALSE", "TRUE");    // Hide menu at startup, ESC to toggle
                 ini.WriteValue(@"Display\Win", "FullscreenOnOpen", "FALSE");

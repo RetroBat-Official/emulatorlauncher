@@ -84,6 +84,8 @@ namespace EmulatorLauncher
                 ini.WriteValue("Settings", "Auto Full Screen", fullscreen ? "1" : "0");
                 BindBoolIniFeature(ini, "Settings", "Enable Discord RPC", "discord", "1", "0");
 
+                ini.WriteValue("Settings", "Auto Sleep", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "0" : "1");
+
                 // N64DD bios paths
                 string IPLJap = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus", "IPL_JAP.n64");
                 if (File.Exists(IPLJap))

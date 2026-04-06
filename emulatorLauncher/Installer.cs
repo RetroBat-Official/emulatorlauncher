@@ -456,7 +456,7 @@ namespace EmulatorLauncher
                     if (letterMatch.Success)
                         minor = char.ToLower(letterMatch.Value[0]) - 'a' + 1;
 
-                    string cleaned = minor > 0 ? $"{major}.{minor}" : $"{major}";
+                    string cleaned = $"{major}.{minor}";
 
                     Version ver = new Version();
                     if (Version.TryParse(cleaned, out ver))

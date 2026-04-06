@@ -180,7 +180,7 @@ namespace EmulatorLauncher
 
                     BindBoolIniFeatureOn(ini, "main", "timehack", "timehack", "true", "false");
                     ini.WriteValue("main", "VMUscreendisable", "true");
-                    ini.WriteValue("main", "PausedIfFocusLost", "true");
+                    ini.WriteValue("main", "PausedIfFocusLost", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true");
 
                     SetupControllers(path, ini, system);
 

@@ -1118,7 +1118,7 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["input_remap_binds_enable"] = "true";
             retroarchConfig["input_remap_sort_by_controller_enable"] = "false";
             retroarchConfig["input_remapping_directory"] = ":\\config\\remaps";
-            retroarchConfig["pause_nonactive"] = "true";
+            retroarchConfig["pause_nonactive"] = SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true";
 
             // Resolution & monitor
             bool forcefs = SystemConfig.getOptBoolean("forcefullscreen");
