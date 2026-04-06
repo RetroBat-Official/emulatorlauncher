@@ -739,14 +739,15 @@ namespace EmulatorLauncher
             List<string> openGoalGames = new List<string> { "jak1", "jak2", "jak3" };
             Dictionary<string, string> openGoalDefaultRes = new Dictionary<string, string> 
             {
-                { "jak1", "aspect4x3 4 3 #t" },
-                { "jak2", "aspect4x3 4 3 #t" }
+                { "jak1", "aspect4x3 4 3 #f" },
+                { "jak2", "aspect4x3 4 3 #t" },
+                { "jak3", "aspect4x3 4 3 #t" }
              };
 
             Dictionary<string, string> jak1ResList = new Dictionary<string, string>
             {
-                { "4_3", "aspect16x9 4 3 #f" },
-                { "16_9", "aspect16x9 16 9 #f" },
+                { "4_3", "aspect4x3 4 3 #f" },
+                { "16_9", "aspect4x3 16 9 #f" },
                 { "4_3_ps2", "aspect4x3 4 3 #f" },
                 { "16_9_ps2", "aspect16x9 4 3 #f" },
                 { "16_10", "aspect4x3 16 10 #f" },
@@ -756,10 +757,21 @@ namespace EmulatorLauncher
 
             Dictionary<string, string> jak2ResList = new Dictionary<string, string>
             {
-                { "4_3", "aspect4x3 4 3 #t" },
+                { "4_3", "aspect4x3 4 3 #f" },
                 { "16_9", "aspect4x3 16 9 #f" },
-                { "4_3_ps2", "aspect4x3 0 0 " },
-                { "16_9_ps2", "aspect16x9 0 0 " },
+                { "4_3_ps2", "aspect4x3 4 3 #t" },
+                { "16_9_ps2", "aspect16x9 4 3 #t" },
+                { "16_10", "aspect4x3 16 10 #f" },
+                { "21_9", "aspect4x3 21 9 #f" },
+                { "64_27", "aspect4x3 64 27 #f" }
+             };
+
+            Dictionary<string, string> jak3ResList = new Dictionary<string, string>
+            {
+                { "4_3", "aspect4x3 4 3 #f" },
+                { "16_9", "aspect4x3 16 9 #f" },
+                { "4_3_ps2", "aspect4x3 4 3 #t" },
+                { "16_9_ps2", "aspect16x9 4 3 #t" },
                 { "16_10", "aspect4x3 16 10 #f" },
                 { "21_9", "aspect4x3 21 9 #f" },
                 { "64_27", "aspect4x3 64 27 #f" }
@@ -777,7 +789,7 @@ namespace EmulatorLauncher
                 throw new ApplicationException("Game not supported by engine, ensure the game name is correct : " + gameName);
 
             // Check if game has been extracted already, if not, user can set path to iso in ES
-            string outDataPath = Path.Combine(_path, "data", "out", gameName);
+            string outDataPath = Path.Combine(_path, "data", "out", gameName, "iso");
             {
                 if (!Directory.Exists(outDataPath))
                 {
@@ -794,11 +806,19 @@ namespace EmulatorLauncher
                         {
                             SimpleLogger.Instance.Error("[INFO] Trying to extract game file with provided path: " + isoPath);
                             
+                            var openGoalExtractorCommands = new List<string>
+                            {
+                                "-g",
+                                gameName,
+                                "\"" + isoPath + "\""
+                            };
+                            var args = string.Join(" ", openGoalExtractorCommands);
+
                             var openGoalExtract = new ProcessStartInfo()
                             {
                                 FileName = Path.Combine(_path, "extractor.exe"),
                                 WorkingDirectory = _path,
-                                Arguments = "\"" + isoPath + "\"",
+                                Arguments = args,
                             };
 
                             try
@@ -919,8 +939,8 @@ namespace EmulatorLauncher
                     case "jak2":
                         bindFeature("aspect-state", jak2ResList.ContainsKey(opengalRatio) ? jak2ResList[opengalRatio] : "");
                         break;
-                    default:
-                        bindFeature("aspect-state", openGoalDefaultRes[gameName]);
+                    case "jak3":
+                        bindFeature("aspect-state", jak3ResList.ContainsKey(opengalRatio) ? jak3ResList[opengalRatio] : "");
                         break;
                 }
 
@@ -955,9 +975,9 @@ namespace EmulatorLauncher
                 bindFeature("discord-rpc?", "#f");
 
             if (SystemConfig.isOptSet("opengoal_subtitles") && !SystemConfig.getOptBoolean("opengoal_subtitles"))
-                bindFeature(gameName == "jak2" ? "memcard-subtitles?" : "subtitles ?", "#f");
+                bindFeature(gameName == "jak1" ? "subtitles?" : "memcard-subtitles?", "#f");
             else
-                bindFeature(gameName == "jak2" ? "memcard-subtitles?" : "subtitles?", "#t");
+                bindFeature(gameName == "jak1" ? "subtitles?" : "memcard-subtitles?", "#t");
 
             if (SystemConfig.isOptSet("opengoal_region") && !string.IsNullOrEmpty(SystemConfig["opengoal_region"]))
                 bindFeature("territory", SystemConfig["opengoal_region"]);
@@ -967,10 +987,10 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("opengoal_language") && !string.IsNullOrEmpty(SystemConfig["opengoal_language"]))
                 bindFeature("game-language", SystemConfig["opengoal_language"]);
 
-            if (SystemConfig.isOptSet("opengoal_menulang") && !string.IsNullOrEmpty(SystemConfig["opengoal_menulang"]))
+            if (SystemConfig.isOptSet("opengoal_menulang") && !string.IsNullOrEmpty(SystemConfig["opengoal_menulang"]) && gameName != "jak3")
                 bindFeature("text-language", SystemConfig["opengoal_menulang"]);
 
-            if (SystemConfig.isOptSet("opengoal_sublang") && !string.IsNullOrEmpty(SystemConfig["opengoal_sublang"]))
+            if (SystemConfig.isOptSet("opengoal_sublang") && !string.IsNullOrEmpty(SystemConfig["opengoal_sublang"]) && gameName != "jak3")
                 bindFeature("subtitle-language", SystemConfig["opengoal_sublang"]);
 
             File.WriteAllLines(configFilePath, configLines);
