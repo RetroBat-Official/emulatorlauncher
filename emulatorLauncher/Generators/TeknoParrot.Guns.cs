@@ -1,12 +1,14 @@
-﻿using System.Linq;
-using TeknoParrotUi.Common;
-using System.IO;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
-using System.Collections.Generic;
+using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.Lightguns;
-using System.Management;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Management;
+using System.Reflection;
+using TeknoParrotUi.Common;
 using Keys = System.Windows.Forms.Keys;
 
 namespace EmulatorLauncher
@@ -206,32 +208,22 @@ namespace EmulatorLauncher
             }
 
             // Fetch name of keyboard to add in TP userprofile !
-            int kbs = 0;
+            int kbEnumIndex = 0;
             foreach (var k in keyboards)
             {
-                string cleanPath = "";
+                string friendlyName, manufacturer;
 
-                string devicepathHID1 = k.DevicePath.Substring(4).ToUpperInvariant().Replace("#", "\\");
-
-                try
+                if (DeviceHelper.GetFriendlyName(k.DevicePath, out friendlyName, out manufacturer))
                 {
-                    if (devicepathHID1.Length > 39)
-                        cleanPath = devicepathHID1.Substring(0, devicepathHID1.Length - 39);
-
-                    string query = ("SELECT * FROM Win32_PNPEntity" + " WHERE DeviceID = '" + cleanPath + "'").Replace("\\", "\\\\");
-                    ManagementObjectSearcher moSearch1 = new ManagementObjectSearcher(query);
-                    ManagementObjectCollection moCollection1 = moSearch1.Get();
-                    foreach (ManagementObject mo in moCollection1.Cast<ManagementObject>())
-                    {
-                        string desc1 = mo["Description"].ToString();
-                        string manuf = mo["Manufacturer"].ToString();
-                        k.FriendlyName = desc1;
-                        k.Manufacturer = manuf;
-                        SimpleLogger.Instance.Info("[GUNS] Identified keyboard " + kbs + " with name: " + desc1 + " and path:" + k.DevicePath);
-                    }
+                    k.FriendlyName = friendlyName;
+                    k.Manufacturer = manufacturer;
+                    SimpleLogger.Instance.Info(string.Format("[GUNS] Identified keyboard {0} with name: {1} and path: {2}", kbEnumIndex, friendlyName, k.DevicePath));
                 }
-                catch { SimpleLogger.Instance.Info("[GUNS] Cannot get friendly name for Keyboard " + kbs); }
-                kbs++;
+                else
+                {
+                    SimpleLogger.Instance.Info(string.Format("[GUNS] Could not resolve friendly name for keyboard {0} at path: {1}", kbEnumIndex, k.DevicePath));
+                }
+                kbEnumIndex++;
             }
 
             if (keyboard != null && keyboard.FriendlyName != null)
