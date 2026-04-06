@@ -1758,7 +1758,6 @@ namespace EmulatorLauncher
             { "take_snapshot", "input_screenshot" },
             { "fast_forward", "input_hold_fast_forward" },
             { "state_rewind", "input_rewind" },
-            { "pause", "input_pause_toggle" },
             { "toggle_fs", "input_toggle_fullscreen" },
             { "advance_frame", "input_frame_advance" },
             { "select_disk", "input_disk_next" }
