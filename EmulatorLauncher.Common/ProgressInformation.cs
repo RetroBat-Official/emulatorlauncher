@@ -43,9 +43,12 @@ namespace EmulatorLauncher.Common
         }
 
         public void SetText(string text)
-        {
+        {            
             if (_label != null)
             {
+                if (_label.InvokeRequired)
+                    return;
+
                 _label.Text = text;
                 System.Windows.Forms.Application.DoEvents();
             }
