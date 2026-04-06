@@ -125,6 +125,8 @@ namespace EmulatorLauncher
 
                 ini.Remove("", "RecentROM");
 
+                ini.WriteValue("", "PauseLostFocus", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true");
+
                 CreateControllerConfiguration(ini);
 
                 bool dsi = SystemConfig.isOptSet("melonds_console") && SystemConfig["melonds_console"] == "dsi";

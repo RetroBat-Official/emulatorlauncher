@@ -96,8 +96,8 @@ namespace EmulatorLauncher
 
             preference["AutomaticallyCheckForUpdates"] = false;
             preference["SingleInstance"] = true;
-            preference["PauseWhenInBackground"] = true;
-            preference["PauseWhenInMenusAndConfig"] = true;
+            preference["PauseWhenInBackground"] = SystemConfig.getOptBoolean("nopauseonlostfocus") ? false : true;
+            preference["PauseWhenInMenusAndConfig"] = SystemConfig.getOptBoolean("nopauseonlostfocus") ? false : true;
             preference["AllowBackgroundInput"] = true;
             preference["ConfirmExitResetPower"] = false;
             preference["AssociateSnesRomFiles"] = false;

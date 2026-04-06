@@ -116,6 +116,14 @@ namespace EmulatorLauncher
                     arcadeRomPath.SetAttributeValue("Value", romPath);
                 }
 
+                // Focus lost
+                XElement pausewhenfocuslost = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "ui.pausewhenfocuslost").FirstOrDefault();
+
+                if (SystemConfig.getOptBoolean("nopauseonlostfocus"))
+                    pausewhenfocuslost.SetAttributeValue("Value", false);
+                else
+                    pausewhenfocuslost.SetAttributeValue("Value", true);
+
                 // Language
                 XElement language = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "system.language").FirstOrDefault();
 

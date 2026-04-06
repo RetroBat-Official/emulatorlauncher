@@ -3546,7 +3546,7 @@ namespace EmulatorLauncher.Libretro
             coreSettings["mupen64plus-rsp-plugin"] = "hle";
             coreSettings["mupen64plus-EnableLODEmulation"] = "True";
             coreSettings["mupen64plus-EnableCopyAuxToRDRAM"] = "True";
-            coreSettings["mupen64plus-EnableHWLighting"] = "True";
+            //coreSettings["mupen64plus-EnableHWLighting"] = "True";
             coreSettings["mupen64plus-txHiresFullAlphaChannel"] = "True";
             coreSettings["mupen64plus-GLideN64IniBehaviour"] = "early";
             coreSettings["mupen64plus-parallel-rdp-native-tex-rect"] = "True";
@@ -3679,7 +3679,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mupen64plus-pak4", "mupen64plus-pak4", "none");
 
             // Glide
-            BindFeature(coreSettings, "mupen64plus-txEnhancementMode", "Texture_Enhancement", "As Is");
+            BindFeature(coreSettings, "mupen64plus-txEnhancementMode", "Texture_Enhancement", "None");
             BindFeature(coreSettings, "mupen64plus-43screensize", "43screensize", "640x480");
             BindFeature(coreSettings, "mupen64plus-169screensize", "169screensize", "960x540");
             BindFeature(coreSettings, "mupen64plus-BilinearMode", "BilinearMode", "3point");
@@ -3693,14 +3693,14 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "mupen64plus-parallel-rdp-dither-filter", "mupen64plus-parallel-rdp-dither-filter", "True", "False");
             BindBoolFeatureOn(coreSettings, "mupen64plus-parallel-rdp-divot-filter", "mupen64plus-parallel-rdp-divot-filter", "True", "False");
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-downscaling", "mupen64plus-parallel-rdp-downscaling", "disable");
-            BindBoolFeature(coreSettings, "mupen64plus-parallel-rdp-gamma-dither", "mupen64plus-parallel-rdp-gamma-dither", "True", "False");
+            BindBoolFeatureOn(coreSettings, "mupen64plus-parallel-rdp-gamma-dither", "mupen64plus-parallel-rdp-gamma-dither", "True", "False");
             BindBoolFeature(coreSettings, "mupen64plus-parallel-rdp-native-texture-lod", "mupen64plus-parallel-rdp-native-texture-lod", "True", "False");
-            BindFeatureSlider(coreSettings, "mupen64plus-parallel-rdp-overscan", "mupen64plus-parallel-rdp-overscan", "16");
+            BindFeatureSlider(coreSettings, "mupen64plus-parallel-rdp-overscan", "mupen64plus-parallel-rdp-overscan", "0");
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-super-sampled-read-back", "mupen64plus-parallel-rdp-super-sampled-read-back", "False");
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-super-sampled-read-back-dither", "mupen64plus-parallel-rdp-super-sampled-read-back-dither", "False");
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-upscaling", "mupen64plus-parallel-rdp-upscaling", "1x");
-            BindBoolFeature(coreSettings, "mupen64plus-parallel-rdp-vi-aa", "mupen64plus-parallel-rdp-vi-aa", "True", "False");
-            BindBoolFeature(coreSettings, "mupen64plus-parallel-rdp-vi-bilinear", "mupen64plus-parallel-rdp-vi-bilinear", "True", "False");
+            BindBoolFeatureOn(coreSettings, "mupen64plus-parallel-rdp-vi-aa", "mupen64plus-parallel-rdp-vi-aa", "True", "False");
+            BindBoolFeatureOn(coreSettings, "mupen64plus-parallel-rdp-vi-bilinear", "mupen64plus-parallel-rdp-vi-bilinear", "True", "False");
         }
 
         private void ConfigureMelonDS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

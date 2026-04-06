@@ -454,7 +454,7 @@ namespace EmulatorLauncher
                 misc["Automatically start games after boot"] = "true";
                 misc["Exit RPCS3 when process finishes"] = "true";
                 misc["Prevent display sleep while running games"] = "true";
-                misc["Pause emulation on RPCS3 focus loss"] = "true";                
+                misc["Pause emulation on RPCS3 focus loss"] = SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true";                
                 BindBoolFeature(misc, "Show shader compilation hint", "rpcs3_hidehints", "false", "true");
                 BindBoolFeature(misc, "Show PPU compilation hint", "rpcs3_hidehints", "false", "true");
 

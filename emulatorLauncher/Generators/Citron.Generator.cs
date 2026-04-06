@@ -123,8 +123,8 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "hideInactiveMouse\\default", "true");
                 ini.WriteValue("UI", "hideInactiveMouse", "true");
 
-                ini.WriteValue("UI", "pauseWhenInBackground\\default", "false");
-                ini.WriteValue("UI", "pauseWhenInBackground", "true");
+                ini.WriteValue("UI", "pauseWhenInBackground\\default", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "true" : "false");
+                ini.WriteValue("UI", "pauseWhenInBackground", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true");
 
                 if (SystemConfig.isOptSet("citron_controller_applet") && !SystemConfig.getOptBoolean("citron_controller_applet"))
                 {
