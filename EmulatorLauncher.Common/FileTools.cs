@@ -38,6 +38,34 @@ namespace EmulatorLauncher.Common
         }
 
         /// <summary>
+        /// Check if path is a full path (not a relative path)
+        /// </summary>
+        /// <param name="path"></param>
+        public static bool IsPathFullyQualified(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return false;
+
+            // Must be rooted first
+            if (!Path.IsPathRooted(path))
+                return false;
+
+            // Reject paths like "\folder\file.txt"
+            if (path.StartsWith("\\") && !path.StartsWith("\\\\"))
+                return false;
+
+            // Handle UNC paths (\\server\share)
+            if (path.StartsWith("\\\\"))
+                return true;
+
+            // Check for drive letter (C:\...)
+            return path.Length > 2 &&
+                   char.IsLetter(path[0]) &&
+                   path[1] == ':' &&
+                   (path[2] == '\\' || path[2] == '/');
+        }
+
+        /// <summary>
         /// Check if path is a root path
         /// </summary>
         /// <param name="path"></param>

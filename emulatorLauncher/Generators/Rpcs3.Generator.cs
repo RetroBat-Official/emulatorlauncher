@@ -54,7 +54,7 @@ namespace EmulatorLauncher
                     if (string.IsNullOrEmpty(line))
                         throw new ApplicationException("Unable to find any path in the m3u.");
 
-                    if (Path.IsPathRooted(line))
+                    if (FileTools.IsPathFullyQualified(line))
                         rom = line;
                     else if (line.StartsWith("EMULATORPATH", StringComparison.OrdinalIgnoreCase))
                         rom = Path.Combine(path, line.Substring(13));
@@ -62,10 +62,6 @@ namespace EmulatorLauncher
                         rom = Path.Combine(savesPath, line.Substring(10));
                     else if (line.StartsWith("ROMPATH", StringComparison.OrdinalIgnoreCase))
                         rom = Path.Combine(romPath, line.Substring(8));
-                    else if (line.StartsWith(".\\") || line.StartsWith("./"))
-                        rom = Path.Combine(romPath, line.Substring(2));
-                    else if (line.StartsWith("\\") || line.StartsWith("/"))
-                        rom = Path.Combine(romPath, line.Substring(1));
                     else if (line.StartsWith("GAMEID", StringComparison.OrdinalIgnoreCase))
                     {
                         int colonIndex = line.IndexOf(':');
@@ -80,8 +76,23 @@ namespace EmulatorLauncher
                             rom = "%RPCS3_GAMEID%:" + gameID;
                         }
                     }
+
                     else
-                        rom = Path.Combine(romPath, line);
+                    {
+                        string tempPath;
+                        if (line.StartsWith(".\\") || line.StartsWith("./"))
+                            tempPath = line.Substring(2);
+                        else if (line.StartsWith("\\") || line.StartsWith("/"))
+                            tempPath = line.Substring(1);
+                        else
+                            tempPath = line;
+
+                        rom = Path.Combine(romPath, tempPath);
+                        if (!File.Exists(rom))
+                            rom = Path.Combine(savesPath, tempPath);
+                        if (!File.Exists(rom))
+                            rom = Path.Combine(path, tempPath);
+                    }
                 }
             }
             catch (Exception ex)
