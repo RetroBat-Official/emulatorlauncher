@@ -82,10 +82,15 @@ namespace EmulatorLauncher
             if (_groovy && !SystemConfig.isOptSet("bezel"))
                 SystemConfig["bezel"] = "none";
 
+            // Inipath
+            string iniPath = hbmame ? Path.Combine(AppConfig.GetFullPath("bios"), "hbmame", "ini") : Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini");
+            if (_groovy)
+                iniPath = Path.Combine(AppConfig.GetFullPath("bios"), "groovymame", "ini");
+
             // Then configure MAME
             ConfigureBezels(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "artwork"), system, rom, resolution, emulator);
-            ConfigureUIini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
-            ConfigureMameini(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini"));
+            ConfigureUIini(iniPath);
+            ConfigureMameini(iniPath);
 
             string args;
 
@@ -167,7 +172,6 @@ namespace EmulatorLauncher
                 UpdateOrCreateMameConfigFiles(Path.Combine(cfgPath, romName + ".cfg"), romName);
 
                 // Ini path
-                string iniPath = hbmame ? Path.Combine(AppConfig.GetFullPath("bios"), "hbmame", "ini") : Path.Combine(AppConfig.GetFullPath("bios"), "mame", "ini");
                 if (!Directory.Exists(iniPath)) try { Directory.CreateDirectory(iniPath); }
                     catch { }
                 if (!string.IsNullOrEmpty(iniPath) && Directory.Exists(iniPath))
