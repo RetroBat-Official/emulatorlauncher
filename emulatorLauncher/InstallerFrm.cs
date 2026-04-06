@@ -338,15 +338,18 @@ namespace EmulatorLauncher
             {
                 Zip.Extract(fileName, destinationPath, null, (o, pe) =>
                 {
-                    if (!shown)
+                    if (!InvokeRequired)
                     {
-                        SetupLayout(InstallerLayout.ProgressAndText);
-                        progressBar1.Visible = true;
-                        shown = true;
-                        Refresh();
-                    }
+                        if (!shown)
+                        {
+                            SetupLayout(InstallerLayout.ProgressAndText);
+                            progressBar1.Visible = true;
+                            shown = true;
+                            Refresh();
+                        }
 
-                    progressBar1.Value = pe.ProgressPercentage;
+                        progressBar1.Value = pe.ProgressPercentage;
+                    }
                 });
 
             }
