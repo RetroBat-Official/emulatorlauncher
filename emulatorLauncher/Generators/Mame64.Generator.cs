@@ -559,7 +559,9 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("mame_ctrlr_profile") && SystemConfig["mame_ctrlr_profile"] != "none" && SystemConfig["mame_ctrlr_profile"] != "retrobat_auto")
             {
-                string ctrlrProfile = hbmame? Path.Combine(AppConfig.GetFullPath("saves"), "hbmame", "ctrlr", SystemConfig["mame_ctrlr_profile"] + ".cfg") : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr", SystemConfig["mame_ctrlr_profile"] + ".cfg");
+                string ctrlrProfile = hbmame? 
+                    Path.Combine(AppConfig.GetFullPath("saves"), "hbmame", "ctrlr", SystemConfig["mame_ctrlr_profile"] + ".cfg") 
+                    : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "ctrlr", SystemConfig["mame_ctrlr_profile"] + ".cfg");
 
                 if (File.Exists(ctrlrProfile) && SystemConfig["mame_ctrlr_profile"] != "per_game")
                 {
@@ -686,6 +688,8 @@ namespace EmulatorLauncher
                     {
                         if (item.GetValue(type) != null)
                             ini[item.Name] = item.GetValue(type);
+                        else
+                            ini[item.Name] = "";
                     }
                 }
             }
@@ -853,20 +857,25 @@ namespace EmulatorLauncher
                 CRT_31_120,
                 PVM_BVM,
                 CRT_TV_PAL,
-                LCD_ARCADE
+                LCD_ARCADE,
+                LCD_ARCADE_VERTICAL
             }
 
             public static GroovyMameProfile[] GroovyTypes = new GroovyMameProfile[]
             {
-                new GroovyMameProfile("monitor", "generic_15", "arcade_15", "arcade_25", "arcade_31", "arcade_15_25", "arcade_15_25_31", "pc_31_120", "ntsc", "pal", "lcd"),
-                new GroovyMameProfile("aspect", "4:3", "4:3", "4:3", "4:3", "4:3", "4:3", "4:3", "4:3", "4:3", "16:9"),
-                new GroovyMameProfile("super_width", "2560", "2560", "2560", "1920", "2560", "2560", "1920", "2560", "2560", "1920"),
-                new GroovyMameProfile("modeline_generation", "1", "1", "1", "1", "1", "1", "1", "1", "1", "0"),
-                new GroovyMameProfile("scale_proportional", "0", "0", "0", "1", "0", "0", "1", "0", "0", "1"),
-                new GroovyMameProfile("sync_refresh_tolerance", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0"),
-                new GroovyMameProfile("lock_unsupported_modes", "1", "1", "1", "1", "1", "1", "1", "1", "1", "0"),
-                new GroovyMameProfile("interlace", "1", "0", "0", "0", "0", "0", "0", "1", "1", "0"),
-                new GroovyMameProfile("lcd_range", null, null, null, null, null, null, null, null, null, "auto")
+                new GroovyMameProfile
+                (
+                    "monitor", 
+                    "generic_15", "arcade_15", "arcade_25", "arcade_31", "arcade_15_25", "arcade_15_25_31", "pc_31_120", "ntsc", "pal", "lcd", "lcd"
+                ),
+                new GroovyMameProfile("aspect", "4:3", "4:3", "4:3", "4:3", "4:3", "4:3", "4:3", "4:3", "4:3", "16:9", null),
+                new GroovyMameProfile("super_width", "2560", "2560", "2560", "1920", "2560", "2560", "1920", "2560", "2560", "1920", null),
+                new GroovyMameProfile("modeline_generation", "1", "1", "1", "1", "1", "1", "1", "1", "1", "0", "0"),
+                new GroovyMameProfile("scale_proportional", "0", "0", "0", "1", "0", "0", "1", "0", "0", "1", "1"),
+                new GroovyMameProfile("sync_refresh_tolerance", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0", "2.0"),
+                new GroovyMameProfile("lock_unsupported_modes", "1", "1", "1", "1", "1", "1", "1", "1", "1", "0", "0"),
+                new GroovyMameProfile("interlace", "1", "0", "0", "0", "0", "0", "0", "1", "1", "0", "0"),
+                new GroovyMameProfile("lcd_range", null, null, null, null, null, null, null, null, null, "auto", "auto")
             };
         }
     }
