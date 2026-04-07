@@ -779,6 +779,10 @@ namespace EmulatorLauncher
                 if (settings == null)
                     return false;
 
+                // Do not propose emulator update on stable channel if RetroBat is not up to date
+                if (UpdatesType != "beta" && !isRetroBatUpToDate(settings))
+                    return false;
+
                 var serverVersion = settings
                     .Descendants()
                     .Where(d => d.Name == "system" && d.Attribute("name") != null && d.Attribute("version") != null && d.Attribute("name").Value == DefaultFolderName)
@@ -806,6 +810,70 @@ namespace EmulatorLauncher
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Check if RetroBat is up to date by comparing its version in the versions.xml with the local version.
+        /// Assume it is up to date unless check returns false, to avoid blocking emulator updates if there is an issue with the version check.
+        /// </summary>
+        /// <param name="versionsXml"></param>
+        /// <returns></returns>
+        private static bool isRetroBatUpToDate(XDocument versionsXml)
+        {
+            bool ret = true;
+
+            try
+            {
+                var serverVersion = versionsXml
+                        .Descendants()
+                        .Where(d => d.Name == "system" && d.Attribute("name") != null && d.Attribute("version") != null && d.Attribute("name").Value == "retrobat")
+                        .Select(d => new { Version = d.Attribute("version").Value, Path = d.Attribute("file") == null ? null : d.Attribute("file").Value })
+                        .FirstOrDefault();
+
+                if (serverVersion != null)
+                {
+                    Version local = GetRetroBatVersion();
+                    Version server = new Version();
+
+                    if (local != null && Version.TryParse(serverVersion.Version, out server))
+                    {
+                        if (local < server)
+                        {
+                            SimpleLogger.Instance.Warning($"[EMULATOR] RetroBat not up to date, emulator update check cancelled.");
+                            return false;
+                        }
+                    }
+                }
+            }
+            catch { }
+            
+            return ret;
+        }
+
+        private static Version GetRetroBatVersion()
+        {
+            try
+            {
+                string versionFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "version.info");
+
+                if (!File.Exists(versionFile))
+                    return null;
+
+                string line = File.ReadLines(versionFile).FirstOrDefault()?.Trim();
+
+                if (string.IsNullOrEmpty(line))
+                    return null;
+
+                var match = Regex.Match(line, @"^\d+(\.\d+)*");
+
+                if (!match.Success)
+                    return null;
+
+                Version ver;
+                return Version.TryParse(match.Value, out ver) ? ver : null;
+            }
+            catch { }
+            return null;
         }
 
         public static bool CoreHasUpdateAvailable(string core, string date, string version, out string ServerVersion)
