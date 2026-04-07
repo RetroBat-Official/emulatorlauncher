@@ -385,8 +385,17 @@ namespace EmulatorLauncher
             catch { }
 
             var app = new PadToKeyApp() { Name = name };
-            app.Input.Add(new PadToKeyInput() { Name = InputKey.a, Code = "KEY_SPACE" });
-            app.Input.Add(new PadToKeyInput() { Name = InputKey.b, Key = "(%{F4})" });
+
+            if (Program.SystemConfig.getOptBoolean("InvertButtons"))
+            {
+                app.Input.Add(new PadToKeyInput() { Name = InputKey.b, Code = "KEY_SPACE" });
+                app.Input.Add(new PadToKeyInput() { Name = InputKey.a, Key = "(%{F4})" });
+            }
+            else
+            {
+                app.Input.Add(new PadToKeyInput() { Name = InputKey.a, Code = "KEY_SPACE" });
+                app.Input.Add(new PadToKeyInput() { Name = InputKey.b, Key = "(%{F4})" });
+            }
             app.Input.Add(new PadToKeyInput() { Name = InputKey.x, Key = "(%{F4})" });
             app.Input.Add(new PadToKeyInput() { Name = InputKey.left, Code = "KEY_LEFT" });
             app.Input.Add(new PadToKeyInput() { Name = InputKey.right, Code = "KEY_RIGHT" });
