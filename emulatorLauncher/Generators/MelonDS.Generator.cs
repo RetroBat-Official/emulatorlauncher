@@ -102,9 +102,9 @@ namespace EmulatorLauncher
         {
             string settingsFile = Path.Combine(path, "melonDS.toml");
 
-            using (IniFile ini = IniFile.FromFile(settingsFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues))
+            using (IniTomlFile ini = IniTomlFile.FromFile(settingsFile, IniTomlOptions.UseSpaces | IniTomlOptions.KeepEmptyValues))
             {
-                if (ini.EnumerateValues("").Any(i => i.Key == "RecentROM"))
+                /*if (ini.EnumerateValues("").Any(i => i.Key == "RecentROM"))
                 {
                     ini.Remove("", "RecentROM");
                 }
@@ -123,7 +123,7 @@ namespace EmulatorLauncher
                         ini.Remove("", k);
                 }
 
-                ini.Remove("", "RecentROM");
+                ini.Remove("", "RecentROM");*/
 
                 ini.WriteValue("", "PauseLostFocus", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true");
 

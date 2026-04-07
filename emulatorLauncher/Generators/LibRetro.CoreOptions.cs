@@ -35,6 +35,7 @@ namespace EmulatorLauncher.Libretro
                 { "81", "EightyOne" },
                 { "a5200", "a5200" },
                 { "advanced_tests", "Advanced Test" },
+                { "amiarcadia", "AmiArcadia" },
                 { "anarch", "anarch" },
                 { "ardens", "Ardens" },
                 { "arduous", "arduous" },
@@ -353,6 +354,7 @@ namespace EmulatorLauncher.Libretro
             Configure4Do(retroarchConfig, coreSettings, system, core);
             Configure81(retroarchConfig, coreSettings, system, core);
             Configurea5200(retroarchConfig, coreSettings, system, core);
+            ConfigureamiArcadia(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureAzahar(retroarchConfig, coreSettings, system, core);
             ConfigureB2(retroarchConfig, coreSettings, system, core);
@@ -639,6 +641,16 @@ namespace EmulatorLauncher.Libretro
             // Controls
             BindFeature(coreSettings, "a5200_input_hack", "a5200_input_hack", "disabled");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "a5200_controller1", "1");
+        }
+
+        private void ConfigureamiArcadia(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "amiarcadia")
+                return;
+
+            BindBoolFeatureOn(coreSettings, "amiarcadia_demultiplex", "amiarcadia_demultiplex", "enabled", "disabled");
+            BindFeature(coreSettings, "amiarcadia_machine", "amiarcadia_machine", system == "arcadia" ? "Arcadia" : "Interton");
+            BindFeature(coreSettings, "amiarcadia_region", "amiarcadia_region", "PAL");
         }
 
         private void ConfigureAtari800(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

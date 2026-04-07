@@ -717,8 +717,12 @@ namespace EmulatorLauncher
                 misc["Automatically start games after boot"] = "true";
                 misc["Exit RPCS3 when process finishes"] = "true";
                 misc["Prevent display sleep while running games"] = "true";
-                if (Program.SystemConfig.isOptSet("tp_rpcs3_writecolorbuffers") && !string.IsNullOrEmpty(Program.SystemConfig["tp_rpcs3_writecolorbuffers"]))
-                    video["Write Color Buffers"] = Program.SystemConfig.getOptBoolean("tp_rpcs3_writecolorbuffers") ? "true" : "false";
+                
+                // Write color buffers option required for gun games
+                if (Program.SystemConfig.getOptBoolean("tp_rpcs3_writecolorbuffers"))
+                    video["Write Color Buffers"] = "true";
+                else if (!Program.SystemConfig.isOptSet("tp_rpcs3_writecolorbuffers"))
+                    video["Write Color Buffers"] = Program.SystemConfig.getOptBoolean("use_guns") ? "true" : "false";
                 else
                     video["Write Color Buffers"] = "false";
 

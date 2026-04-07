@@ -84,6 +84,7 @@ namespace EmulatorLauncher
             { "eden", () => new EdenGenerator() },
             { "eduke32", () => new EDukeGenerator() },
             { "eka2l1", () => new Eka2l1Generator() },
+            { "exodos", () => new exoDOSGenerator() },
             { "fbneo", () => new FbneoGenerator() },
             { "flycast", () => new FlycastGenerator() },
             { "fpinball", () => new FpinballGenerator() },
