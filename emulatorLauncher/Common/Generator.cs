@@ -1167,6 +1167,24 @@ namespace EmulatorLauncher
             }
         }
 
+        protected void BindIniFeatureSlider(IniTomlFile ini, string section, string settingName, string featureName, string defaultValue, int decimalPlaces = 0, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (decimalPlaces > 0 && decimalPlaces < 7)
+                {
+                    int toRemove = 6 - decimalPlaces;
+                    string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+                    if (value != defaultValue)
+                        ini.WriteValue(section, settingName, value.Substring(0, value.Length - toRemove));
+                    else
+                        ini.WriteValue(section, settingName, value);
+                }
+                else
+                    ini.WriteValue(section, settingName, SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue));
+            }
+        }
+
         protected void BindBoolIniFeatureAuto(IniFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, string autoValue, bool force = false) // use when there is an "auto" value !
         {
             if (force || Features.IsSupported(featureName))

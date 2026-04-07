@@ -13,7 +13,7 @@ namespace EmulatorLauncher
         /// Create controller configuration
         /// </summary>
         /// <param name="ini"></param>
-        private void CreateControllerConfiguration(IniFile ini)
+        private void CreateControllerConfiguration(IniTomlFile ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
@@ -43,7 +43,7 @@ namespace EmulatorLauncher
         /// <param name="ini"></param>
         /// <param name="c1"></param>
         // All mappings generated here are detailed in the wiki, this is the most balanced mapping after intensive testing, if users need different mapping they might disable autoconfiguration
-        private void WriteJoystickMapping(IniFile ini, Controller ctrl)
+        private void WriteJoystickMapping(IniTomlFile ini, Controller ctrl)
         {
             if (ctrl == null || ctrl.Config == null)
                 return;
@@ -129,7 +129,7 @@ namespace EmulatorLauncher
         /// </summary>
         /// <param name="ini"></param>
         /// <param name="ctrl"></param>
-        private void WriteKeyboardMapping(IniFile ini, Controller ctrl)
+        private void WriteKeyboardMapping(IniTomlFile ini, Controller ctrl)
         {
             if (ctrl == null || ctrl.Config == null)
                 return;
@@ -157,7 +157,7 @@ namespace EmulatorLauncher
             WriteKeyboardMapping("Y", InputKey.y);
         }
 
-        private void WriteKeyboardHotkeys(IniFile ini)
+        private void WriteKeyboardHotkeys(IniTomlFile ini)
         {
             foreach (string x in hotkeysList)
                 ini.WriteValue("Instance0.Keyboard", x, "-1");
