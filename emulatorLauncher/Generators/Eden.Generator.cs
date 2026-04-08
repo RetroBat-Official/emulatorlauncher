@@ -306,6 +306,11 @@ namespace EmulatorLauncher
 
             using (var ini = new IniFile(_gamedirsIniPath))
                 ini.WriteValue("UI", "Paths\\gamedirs\\size", _gamedirsSize);
+
+            var cliProcesses = Process.GetProcessesByName("eden-cli");
+            foreach (var p in cliProcesses)
+                try { p.Kill(); }
+                catch { }
         }
     }
 }
