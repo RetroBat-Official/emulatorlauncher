@@ -14,7 +14,8 @@ namespace EmulatorLauncher
     {
         public static void UpdateGames()
         {
-            if (!Program.SystemConfig.getOptBoolean("scanStore") && !Program.SystemConfig.getOptBoolean("exodosScan"))
+            if (!Program.SystemConfig.getOptBoolean("scanStore") && !Program.SystemConfig.getOptBoolean("exodosScan")
+                && !Program.SystemConfig.isOptSet("agsPath"))
             {
                 SimpleLogger.Instance.Info("[ImportStore] Option to scan installed store games is disabled.");
                 return;
@@ -23,6 +24,11 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.getOptBoolean("exodosScan") && Program.SystemConfig.isOptSet("exodosPath") && !string.IsNullOrEmpty(Program.SystemConfig["exodosPath"]))
             {
                 exoDOSGenerator.UpdateGames();
+            }
+
+            if (Program.SystemConfig.isOptSet("agsPath") && !string.IsNullOrEmpty(Program.SystemConfig["agsPath"]))
+            {
+                UaeGenerator.UpdateAGS(Program.SystemConfig["agsPath"]);
             }
 
             if (Program.SystemConfig.getOptBoolean("scanStore"))

@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
@@ -26,6 +27,40 @@ namespace EmulatorLauncher
                     Arguments = "\"" + rom + "\"",
                     WorkingDirectory = path,
                 };
+            }
+
+            else if (Path.GetExtension(rom).ToLower() == ".ags")
+            {
+                SimpleLogger.Instance.Info("AGS file, reading for path to Amiga Game Selector.");
+                var lines = File.ReadAllLines(rom);
+                if (lines.Length > 0)
+                {
+                    string selectorPath = lines[0].Trim();
+                    if (Directory.Exists(selectorPath))
+                    {
+                        SimpleLogger.Instance.Info("Launching Amiga Game Selector from: " + selectorPath);
+                        
+                        string selectorExe = Path.Combine(selectorPath, "winuae64.exe");
+
+                        if (!File.Exists(selectorExe))
+                        {
+                            SimpleLogger.Instance.Error("Amiga Game Selector WinUAE executable not found at: " + selectorExe);
+                            return null;
+                        }
+
+                        var uaeFile = Directory.EnumerateFiles(selectorPath, "*.uae", SearchOption.TopDirectoryOnly).FirstOrDefault();
+
+                        if (uaeFile != null)
+                        {
+                            return new ProcessStartInfo()
+                            {
+                                FileName = selectorExe,
+                                Arguments = "-f \"" + uaeFile + "\"",
+                                WorkingDirectory = selectorPath,
+                            };
+                        }
+                    }
+                }
             }
 
             var disks = DetectDiscs(rom);
@@ -639,6 +674,30 @@ namespace EmulatorLauncher
             File.WriteAllText(gameUae, sb.ToString());
 
             return gameUae;
+        }
+
+        public static void UpdateAGS(string path)
+        {
+            if (!File.Exists(path) && !Directory.Exists(path))
+            {
+                SimpleLogger.Instance.Error("[AGS] Invalid AGS path.");
+                return;
+            }
+
+            string uaePath = Path.GetDirectoryName(path);
+            string executable = Path.Combine(uaePath, "winuae64.exe");
+            var uaeFile = Directory.EnumerateFiles(uaePath, "*.uae", SearchOption.TopDirectoryOnly).FirstOrDefault();
+
+            if (uaeFile != null && File.Exists(executable))
+            {
+                string romPath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "roms", "amiga500");
+
+                if (Directory.Exists(romPath))
+                {
+                    string agsFile = Path.Combine(romPath, "Amiga Game Selector.ags");
+                    File.WriteAllText(agsFile, uaePath);
+                }
+            }
         }
     }
 }
