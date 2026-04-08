@@ -35,17 +35,6 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> systemFBneo = new List<string>() { "cave", "cps1", "cps2", "cps3", "fbneo", "neogeo" };
         static readonly List<string> megadrive3ButtonsList = new List<string>() { "2", "257", "1025", "1537", "773" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
-        static readonly Dictionary<string,string> messFiles = new Dictionary<string,string>()
-            {
-                { "advision", "advision"},
-                { "apfm1000", "apfm1000"},
-                { "arcadia", "arcadia"},
-                { "astrocade", "astrocde"},
-                { "loopy", "casloopy"},
-                { "crvision", "crvision"},
-                { "gamecom", "gamecom"},
-                { "supracan", "supracan"}
-            };
 
         /// <summary>
         /// Called from libretro core options: generate input remap for the core.
