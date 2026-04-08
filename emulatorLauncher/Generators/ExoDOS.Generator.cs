@@ -1,13 +1,16 @@
 ﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.PadToKeyboard;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace EmulatorLauncher
 {
@@ -17,10 +20,13 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = true;
         }
+        private string _system;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+
+            _system = system;
 
             return new ProcessStartInfo()
             {
@@ -28,7 +34,118 @@ namespace EmulatorLauncher
             };
         }
 
-        public static void UpdateGames()
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            PadToKey.AddOrUpdateKeyMapping(mapping, "86Box", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "PCBox", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "DOSBox", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox_gamelink", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox_x64", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox_noopt", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox_debug", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox-debug", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox__", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox_with_debugger", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "DOSBox_debug", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "scummvm", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox-x", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox-x_MinGWx64_SDL1", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox-x_MinGWx64_SDL2", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox-x_MinGWx86_SDL1", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox-x_MinGWx86_SDL2", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox-x_x64_SDL1", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox-x_x64_SDL2", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox-x_x86_SDL1", InputKey.hotkey | InputKey.start, "(%{KILL})");
+            PadToKey.AddOrUpdateKeyMapping(mapping, "dosbox-x_x86_SDL2", InputKey.hotkey | InputKey.start, "(%{KILL})");
+
+            return mapping;
+        }
+
+        public override int RunAndWait(System.Diagnostics.ProcessStartInfo path)
+        {
+            KillRunningEmulators();
+
+            var process = Process.Start(path);
+            //Job.Current.AddProcess(process);
+
+            int maxRetries = 10;
+            Process emulator = null;
+
+            for (int i = 0; i < maxRetries; i++)
+            {
+                emulator = GetFirstRunningEmulator();
+
+                if (emulator != null)
+                {
+                    Job.Current.AddProcess(emulator);
+                    break;
+                }
+
+                Thread.Sleep(3000);
+
+                if (i == maxRetries - 1)
+                    return 0;
+            }
+
+            try
+            {
+                if (emulator.ProcessName != null)
+                {
+                    SimpleLogger.Instance.Info($"[EMULATOR] Process {emulator.ProcessName} found, waiting for it to exit.");
+                }
+                emulator.WaitForExit();
+            }
+            catch { }
+
+            return 0;
+        }
+
+        Process GetFirstRunningEmulator()
+        {
+            return Process.GetProcesses()
+                .FirstOrDefault(p =>
+                {
+                    try
+                    {
+                        var name = p.ProcessName;
+
+                        return name.Equals("86Box", StringComparison.OrdinalIgnoreCase)
+                            || name.Equals("PCBox", StringComparison.OrdinalIgnoreCase)
+                            || name.StartsWith("dosbox", StringComparison.OrdinalIgnoreCase)
+                            || name.Equals("scummvm", StringComparison.OrdinalIgnoreCase);
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                });
+        }
+
+        void KillRunningEmulators()
+        {
+            SimpleLogger.Instance.Info("[EMULATOR] Checking for running ExoDOS emulators and closing them.");
+            foreach (var p in Process.GetProcesses())
+            {
+                try
+                {
+                    var name = p.ProcessName;
+
+                    if (name.Equals("86Box", StringComparison.OrdinalIgnoreCase)
+                        || name.Equals("PCBox", StringComparison.OrdinalIgnoreCase)
+                        || name.StartsWith("dosbox", StringComparison.OrdinalIgnoreCase)
+                        || name.Equals("scummvm", StringComparison.OrdinalIgnoreCase))
+                    {
+                        p.Kill();
+                        p.WaitForExit();
+                    }
+                }
+                catch
+                { }
+            }
+        }
+
+        public static void UpdateDOSGames()
         {
             try
             {
@@ -46,27 +163,110 @@ namespace EmulatorLauncher
                 if (!Directory.Exists(baseInstalledGamesPath))
                     return;
 
-                var games = GetGames(baseInstalledGamesPath);
+                var games = GetGames(baseInstalledGamesPath, "!dos");
 
                 if (games.Count == 0)
                     return;
 
-                CreateShortcuts(games);
+                CreateShortcuts(games, "exodos");
             }
             catch { }
         }
 
-        private static List<ExoDosGame> GetGames(string baseInstalledGamesPath)
+        public static void UpdateWin3xGames()
+        {
+            try
+            {
+                string exoPath = Path.GetDirectoryName(Program.SystemConfig["exowin3xPath"]);
+                if (!Directory.Exists(exoPath))
+                {
+                    SimpleLogger.Instance.Error("[ExoWin3x] Invalid ExoWin3x path.");
+                    return;
+                }
+
+                CleanExoDOSScripts(exoPath);
+
+                string baseInstalledGamesPath = Path.Combine(exoPath, "eXo", "eXoWin3x");
+
+                if (!Directory.Exists(baseInstalledGamesPath))
+                    return;
+
+                var games = GetGames(baseInstalledGamesPath, "!win3x");
+
+                if (games.Count == 0)
+                    return;
+
+                CreateShortcuts(games, "exowin3x");
+            }
+            catch { }
+        }
+
+        public static void UpdateWin9xGames()
+        {
+            try
+            {
+                string exoPath = Path.GetDirectoryName(Program.SystemConfig["exowin9xPath"]);
+                if (!Directory.Exists(exoPath))
+                {
+                    SimpleLogger.Instance.Error("[ExoWin9x] Invalid ExoWin9x path.");
+                    return;
+                }
+
+                CleanExoDOSScripts(exoPath);
+
+                string baseInstalledGamesPath = Path.Combine(exoPath, "eXo", "eXoWin9x");
+
+                if (!Directory.Exists(baseInstalledGamesPath))
+                    return;
+
+                var games = GetGames(baseInstalledGamesPath, "!win9x");
+
+                if (games.Count == 0)
+                    return;
+
+                CreateShortcuts(games, "exowin9x");
+            }
+            catch { }
+        }
+
+        private static List<ExoDosGame> GetGames(string baseInstalledGamesPath, string exoType)
         {
             var games = new List<ExoDosGame>();
 
-            var folders = Directory.EnumerateDirectories(baseInstalledGamesPath)
-                .Where(d => !Path.GetFileName(d).StartsWith("!"));
+            List<string> validFolders = new List<string>();
 
-            foreach (var dir in folders)
+            var folders = Directory.EnumerateDirectories(baseInstalledGamesPath)
+                .Where(d =>
+                {
+                    var name = Path.GetFileName(d);
+                    return !name.StartsWith("!");
+                }).ToList();
+
+            validFolders = folders.Where(d => !(Path.GetFileName(d).Length == 4 && Path.GetFileName(d).All(char.IsDigit))).ToList();
+
+            foreach (var folder in folders)
+            {
+                string folderName = Path.GetFileName(folder);
+                if (folderName.Length == 4 && folderName.All(char.IsDigit))
+                {
+                    var subfolders = Directory.EnumerateDirectories(folder)
+                    .Where(d =>
+                    {
+                        var name = Path.GetFileName(d);
+                        return !name.StartsWith("!");
+                    }).ToList();
+
+                    validFolders.AddRange(subfolders);
+                }
+            }
+
+            foreach (var dir in validFolders)
             {
                 string dirName = Path.GetFileName(dir);
-                var gameBatPath = Path.Combine(baseInstalledGamesPath, "!dos", dirName);
+                string yearPath = Path.GetDirectoryName(dir);
+                string year = Path.GetFileName(yearPath);
+
+                var gameBatPath = exoType == "!win9x" ? Path.Combine(baseInstalledGamesPath, exoType, year, dirName) : Path.Combine(baseInstalledGamesPath, exoType, dirName);
 
                 if (!Directory.Exists(gameBatPath))
                     continue;
@@ -88,8 +288,18 @@ namespace EmulatorLauncher
             return games;
         }
 
-        private static void CreateShortcuts(List<ExoDosGame> games)
+        private static void CreateShortcuts(List<ExoDosGame> games, string romFolder)
         {
+            string targetFolder = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "roms", romFolder);
+            if (!Directory.Exists(targetFolder))
+                try { Directory.CreateDirectory(targetFolder); } catch { }
+
+            if (!Directory.Exists(targetFolder))
+            {
+                SimpleLogger.Instance.Error($"[{romFolder}] Unable to create shortcuts folder: {targetFolder}");
+                return;
+            }
+
             dynamic shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
 
             foreach (var game in games)
@@ -97,7 +307,7 @@ namespace EmulatorLauncher
                 try
                 {
                     dynamic shortcut = shell.CreateShortcut(
-                        Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "roms", "exodos", game.Name + ".lnk"));
+                        Path.Combine(targetFolder, game.Name + ".lnk"));
 
                     shortcut.TargetPath = game.BatPath;
                     shortcut.WorkingDirectory = game.WorkingDirectory;
