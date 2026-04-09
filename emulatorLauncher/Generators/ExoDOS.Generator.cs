@@ -1,5 +1,6 @@
 ﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.PadToKeyboard;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Navigation;
 using System.Xml.Linq;
 
 namespace EmulatorLauncher
@@ -28,10 +30,172 @@ namespace EmulatorLauncher
 
             _system = system;
 
+            ConfigureExo(system, rom);
+
             return new ProcessStartInfo()
             {
                 FileName = rom
             };
+        }
+
+        private void ConfigureExo(string system, string rom)
+        {
+            string path;
+            switch (system)
+            {
+                case "exodos":
+                    path = Program.SystemConfig["exodosPath"];
+                    break;
+                case "exowin3x":
+                    path = Program.SystemConfig["exowin3xPath"];
+                    break;
+                case "exowin9x":
+                    path = Program.SystemConfig["exowin9xPath"];
+                    break;
+                default:
+                    return;
+            }
+
+            if (string.IsNullOrEmpty(path))
+                return;
+            else
+                path = Path.GetDirectoryName(path);
+
+            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            string gameRes = SystemConfig.isOptSet("exo_resolution") && !string.IsNullOrEmpty(SystemConfig["exo_resolution"])? SystemConfig["exo_resolution"] : "medium";
+            bool aspectRatio = SystemConfig.getOptBoolean("exo_aspect_ratio") || !SystemConfig.isOptSet("exo_aspect_ratio");
+
+            string emulatorPath = Path.Combine(path, "eXo", "emulators");
+            string utilPath = Path.Combine(path, "eXo", "util");
+
+            try
+            {
+                string linkTarget = FileTools.GetShortcutTargetwsh(rom);
+
+                string romPath = null;
+                if (linkTarget != null)
+                {
+                    romPath = Path.GetDirectoryName(linkTarget);
+                }
+
+                var iniFiles = new List<string>();
+                
+                if (system == "exodos")
+                {
+                    iniFiles.Add(Path.Combine(emulatorPath, "dosbox", "options.conf"));
+
+                    if (!string.IsNullOrEmpty(romPath))
+                    {
+                        iniFiles.Add(Path.Combine(romPath, "dosbox.conf"));
+                    }
+                }
+
+                if (system == "exowin9x")
+                {
+                    iniFiles.Add(Path.Combine(emulatorPath, "dosbox", "options.conf"));
+                    iniFiles.Add(Path.Combine(emulatorPath, "dosbox", "options9x.conf"));
+                    
+                    if (!string.IsNullOrEmpty(romPath))
+                    {
+                        iniFiles.Add(Path.Combine(romPath, "Play.conf"));
+                    }
+                }
+
+                if (system == "exowin3x")
+                {
+                    iniFiles.Add(Path.Combine(emulatorPath, "dosbox", "options.conf"));
+
+                    if (!string.IsNullOrEmpty(romPath))
+                    {
+                        iniFiles.Add(Path.Combine(romPath, "dosbox.conf"));
+                        iniFiles.Add(Path.Combine(romPath, "dosbox2.conf"));
+                    }
+                }
+
+                foreach (var file in iniFiles)
+                {
+                    if (File.Exists(file))
+                        ApplyIniSettings(file, gameRes, aspectRatio, fullscreen);
+                }
+
+                UpdateSelFiles(utilPath, gameRes, aspectRatio, fullscreen);
+            }
+            catch { }
+        }
+
+        private void ApplyIniSettings(string file, string gameRes, bool aspectRatio, bool fullscreen)
+        {
+            try
+            {
+                using (var ini = new IniFile(file))
+                {
+                    string resolution;
+                    switch (gameRes)
+                    {
+                        case "small":
+                            resolution = "640x480";
+                            break;
+                        case "large":
+                            resolution = "2560x1920";
+                            break;
+                        case "medium":
+                        default:
+                            resolution = "1280x960";
+                            break;
+                    }
+
+                    ini.WriteValue("sdl", "windowresolution", resolution);
+                    ini.WriteValue("render", "aspect", aspectRatio ? "true" : "false");
+                    ini.WriteValue("sdl", "fullscreen", fullscreen ? "true" : "false");
+                }
+            }
+            catch { }
+        }
+
+        private void UpdateSelFiles(string utilPath, string gameRes, bool aspectRatio, bool fullscreen)
+        {
+            // Resolution
+            string resFile;
+            if (gameRes == "small")
+                resFile = "SML.SEL";
+            else if (gameRes == "large")
+                resFile = "LRG.SEL";
+            else
+                resFile = "MED.SEL";
+
+            SetExclusiveFile(utilPath, resFile, new string[] { "SML.SEL", "MED.SEL", "LRG.SEL" });
+
+            // Aspect ratio
+            string aspectFile = aspectRatio ? "AYES.SEL" : "ANO.SEL";
+            SetExclusiveFile(utilPath, aspectFile, new string[] { "AYES.SEL", "ANO.SEL" });
+
+            // Fullscreen
+            string screenFile = fullscreen ? "FULL.SEL" : "WIN.SEL";
+            SetExclusiveFile(utilPath, screenFile, new string[] { "FULL.SEL", "WIN.SEL" });
+        }
+
+        private void SetExclusiveFile(string path, string keep, string[] allFiles)
+        {
+            try
+            {
+                foreach (var file in allFiles)
+                {
+                    string fullPath = Path.Combine(path, file);
+
+                    if (string.Equals(file, keep, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (!File.Exists(fullPath))
+                            File.WriteAllText(fullPath, "");
+                    }
+                    else
+                    {
+                        if (File.Exists(fullPath))
+                            try { File.Delete(fullPath); } catch { }
+                    }
+                }
+            }
+            catch
+            { }
         }
 
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
