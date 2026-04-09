@@ -76,8 +76,10 @@ namespace EmulatorLauncher
                     wiiMapping[InputKey.b] = "Buttons/2";
                     wiiMapping[InputKey.a] = "Buttons/B";
                     wiiMapping[InputKey.l2] = "Shake/X";
-                    wiiMapping[InputKey.l2] = "Shake/Y";
-                    wiiMapping[InputKey.l2] = "Shake/Z";
+                    extraMapping["Shake/Y"] = InputKey.l2;
+                    extraMapping["Shake/Z"] = InputKey.l2;
+                    //wiiMapping[InputKey.l2] = "Shake/Y";
+                    //wiiMapping[InputKey.l2] = "Shake/Z";
                     wiiMapping[InputKey.select] = "Buttons/-";
                     wiiMapping[InputKey.start] = "Buttons/+";
                     wiiMapping[InputKey.pageup] = "Tilt/Left";
@@ -156,19 +158,25 @@ namespace EmulatorLauncher
                     if (Program.SystemConfig.getOptBoolean("nunchuk_swing"))
                     {
                         wiiMapping[InputKey.l2] = "Nunchuk/Swing/Left";
-                        wiiMapping[InputKey.l2] = "Nunchuk/Swing/Up";
-                        wiiMapping[InputKey.l2] = "Nunchuk/Swing/Forward";
+                        extraMapping["Nunchuk/Swing/Up"] = InputKey.l2;
+                        extraMapping["Nunchuk/Swing/Forward"] = InputKey.l2;
+                        //wiiMapping[InputKey.l2] = "Nunchuk/Swing/Up";
+                        //wiiMapping[InputKey.l2] = "Nunchuk/Swing/Forward";
                     }
                     else
                     {
                         wiiMapping[InputKey.l2] = "Nunchuk/Shake/X";
-                        wiiMapping[InputKey.l2] = "Nunchuk/Shake/Y";
-                        wiiMapping[InputKey.l2] = "Nunchuk/Shake/Z";
+                        extraMapping["Nunchuk/Shake/Y"] = InputKey.l2;
+                        extraMapping["Nunchuk/Shake/Z"] = InputKey.l2;
+                        //wiiMapping[InputKey.l2] = "Nunchuk/Shake/Y";
+                        //wiiMapping[InputKey.l2] = "Nunchuk/Shake/Z";
                     }
 
                     wiiMapping[InputKey.r2] = "Shake/X";
-                    wiiMapping[InputKey.r2] = "Shake/Y";
-                    wiiMapping[InputKey.r2] = "Shake/Z";
+                    extraMapping["Shake/Y"] = InputKey.r2;
+                    extraMapping["Shake/Z"] = InputKey.r2;
+                    //wiiMapping[InputKey.r2] = "Shake/Y";
+                    //wiiMapping[InputKey.r2] = "Shake/Z";
                 }
 
                 string[] nunchukLastTags = { ".in.", ".sn.", ".tn." };
@@ -183,20 +191,26 @@ namespace EmulatorLauncher
                     wiiMapping[InputKey.select] = "Buttons/-";
                     wiiMapping[InputKey.start] = "Buttons/+";
                     wiiMapping[InputKey.l2] = "Shake/X";
-                    wiiMapping[InputKey.l2] = "Shake/Y";
-                    wiiMapping[InputKey.l2] = "Shake/Z";
+                    extraMapping["Shake/Y"] = InputKey.l2;
+                    extraMapping["Shake/Z"] = InputKey.l2;
+                    //wiiMapping[InputKey.l2] = "Shake/Y";
+                    //wiiMapping[InputKey.l2] = "Shake/Z";
 
                     if (Program.SystemConfig.getOptBoolean("nunchuk_swing"))
                     {
                         wiiMapping[InputKey.r2] = "Nunchuk/Swing/Left";
-                        wiiMapping[InputKey.r2] = "Nunchuk/Swing/Up";
-                        wiiMapping[InputKey.r2] = "Nunchuk/Swing/Forward";
+                        extraMapping["Nunchuk/Swing/Up"] = InputKey.r2;
+                        extraMapping["Nunchuk/Swing/Forward"] = InputKey.r2;
+                        //wiiMapping[InputKey.r2] = "Nunchuk/Swing/Up";
+                        //wiiMapping[InputKey.r2] = "Nunchuk/Swing/Forward";
                     }
                     else
                     {
                         wiiMapping[InputKey.r2] = "Nunchuk/Shake/X";
-                        wiiMapping[InputKey.r2] = "Nunchuk/Shake/Y";
-                        wiiMapping[InputKey.r2] = "Nunchuk/Shake/Z";
+                        extraMapping["Nunchuk/Shake/Y"] = InputKey.r2;
+                        extraMapping["Nunchuk/Shake/Z"] = InputKey.r2;
+                        //wiiMapping[InputKey.r2] = "Nunchuk/Shake/Y";
+                        //wiiMapping[InputKey.r2] = "Nunchuk/Shake/Z";
                     }
                 }
 
