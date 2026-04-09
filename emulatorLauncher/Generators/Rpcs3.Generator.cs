@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Remoting.Contexts;
+using System.Windows.Forms;
+using static EmulatorLauncher.Common.KeyboardInterceptor;
 
 namespace EmulatorLauncher
 {
@@ -192,16 +194,20 @@ namespace EmulatorLauncher
 
             Process process = Process.Start(path);
             Job.Current.AddProcess(process);
-            process.WaitForExit();
 
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
+            using (var escHook = new KeyboardInterceptor(process, new KeyTrigger(Keys.Escape)))
+            {
+                process.WaitForExit();
 
-            // In some cases, the process seems to be launched again by the main one
-            process = Process.GetProcessesByName("rpcs3").FirstOrDefault();
-            process?.WaitForExit();
+                if (_sindenSoft)
+                    Guns.KillSindenSoftware();
 
-            return 0;
+                // In some cases, the process seems to be launched again by the main one
+                process = Process.GetProcessesByName("rpcs3").FirstOrDefault();
+                process?.WaitForExit();
+
+                return 0;
+            }
         }
 
         /// <summary>
