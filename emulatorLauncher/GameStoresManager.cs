@@ -1,4 +1,5 @@
-﻿using EmulatorLauncher.Common;
+﻿
+using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Launchers;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,8 @@ namespace EmulatorLauncher
         public static void UpdateGames()
         {
             if (!Program.SystemConfig.getOptBoolean("scanStore") && !Program.SystemConfig.getOptBoolean("exodosScan")
-                && !Program.SystemConfig.isOptSet("agsPath"))
+                && !Program.SystemConfig.isOptSet("agsPath") && !Program.SystemConfig.getOptBoolean("exowin3xScan")
+                && !Program.SystemConfig.getOptBoolean("exowin9xScan"))
             {
                 SimpleLogger.Instance.Info("[ImportStore] Option to scan installed store games is disabled.");
                 return;
@@ -23,7 +25,17 @@ namespace EmulatorLauncher
 
             if (Program.SystemConfig.getOptBoolean("exodosScan") && Program.SystemConfig.isOptSet("exodosPath") && !string.IsNullOrEmpty(Program.SystemConfig["exodosPath"]))
             {
-                exoDOSGenerator.UpdateGames();
+                exoDOSGenerator.UpdateDOSGames();
+            }
+
+            if (Program.SystemConfig.getOptBoolean("exowin3xScan") && Program.SystemConfig.isOptSet("exowin3xScan") && !string.IsNullOrEmpty(Program.SystemConfig["exowin3xPath"]))
+            {
+                exoDOSGenerator.UpdateWin3xGames();
+            }
+
+            if (Program.SystemConfig.getOptBoolean("exowin9xScan") && Program.SystemConfig.isOptSet("exowin9xScan") && !string.IsNullOrEmpty(Program.SystemConfig["exowin9xPath"]))
+            {
+                exoDOSGenerator.UpdateWin9xGames();
             }
 
             if (Program.SystemConfig.isOptSet("agsPath") && !string.IsNullOrEmpty(Program.SystemConfig["agsPath"]))

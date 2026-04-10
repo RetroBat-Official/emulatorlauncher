@@ -291,9 +291,6 @@ namespace EmulatorLauncher.Libretro
             // Detect best core for MAME games ( If not overridden by the user )
             if (GetBestMameCore(system, subCore, core, emulator, rom, out string newCore))
                 core = newCore;
-
-            else if (Path.GetExtension(rom).ToLowerInvariant() == ".game")
-                core = Path.GetFileNameWithoutExtension(rom);
             else if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")
                 core = Path.GetFileNameWithoutExtension(rom);
             else if (core == "boom3")

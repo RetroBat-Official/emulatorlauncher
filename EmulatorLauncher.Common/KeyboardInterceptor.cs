@@ -1,6 +1,7 @@
 ﻿using EmulatorLauncher.Common;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -15,6 +16,7 @@ namespace EmulatorLauncher.Common
         private bool _closing;
         private KeyTrigger _trigger;
         private int _timeoutSeconds;
+        public IntPtr TargetHwnd { get; set; }
 
         public KeyboardInterceptor(Process process, KeyTrigger trigger, int timeoutSeconds = 3)
         {
@@ -44,14 +46,12 @@ namespace EmulatorLauncher.Common
                         SimpleLogger.Instance.Info($"[KEYBOARDHOOK] {_trigger.Key} pressed for process {_targetProcess.ProcessName}, exiting process.");
                     }
 
-                    if (GetForegroundWindow() != _targetProcess.MainWindowHandle)
-                        return CallNextHookEx(_hookID, nCode, wParam, lParam);
+                    //if (GetForegroundWindow() != _targetProcess.MainWindowHandle)
+                    //    return CallNextHookEx(_hookID, nCode, wParam, lParam);
 
                     _closing = true;
 
-                    Task.Factory.StartNew(
-                        () => CloseEmulator(_targetProcess, _timeoutSeconds),
-                        TaskCreationOptions.LongRunning);
+                    Task.Factory.StartNew(() => CloseEmulator(_targetProcess, _timeoutSeconds, TargetHwnd),TaskCreationOptions.LongRunning);
 
                     return (IntPtr)1;
                 }
@@ -95,16 +95,23 @@ namespace EmulatorLauncher.Common
 
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
-        static void CloseEmulator(Process process, int timeoutSeconds = 3)
+        static void CloseEmulator(Process process, int timeoutSeconds = 3, IntPtr hwndOverride = default)
         {
             if (process == null || process.HasExited)
                 return;
 
             process.Refresh();
-            IntPtr hwnd = process.MainWindowHandle;
-
+            IntPtr hwnd = hwndOverride != IntPtr.Zero? hwndOverride : process.MainWindowHandle;
+            
             if (hwnd != IntPtr.Zero)
-                PostMessage(hwnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+            {
+                SimpleLogger.Instance.Info($"[KEYBOARDHOOK] Sending WM_CLOSE directly to window {hwnd}");
+                SendMessage(hwnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+            }
+            else
+            {
+                SimpleLogger.Instance.Info($"[KEYBOARDHOOK] No window handle found for {process.ProcessName}");
+            }
 
             if (process.WaitForExit(timeoutSeconds * 1000))
                 return;
@@ -149,6 +156,9 @@ namespace EmulatorLauncher.Common
 
         [DllImport("user32.dll")]
         private static extern short GetKeyState(int nVirtKey);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
 
         private const int VK_MENU = 0x12; // ALT
         private const int VK_CONTROL = 0x11; // CTRL

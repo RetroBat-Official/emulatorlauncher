@@ -269,6 +269,7 @@ namespace EmulatorLauncher
             private IntPtr _hWnd;
             private Image _logo;
             private Image _image;
+            public IntPtr HandleToAttach => _hWnd;
 
             public FullScreenHostFrm()
             {
@@ -412,6 +413,9 @@ namespace EmulatorLauncher
 
                 using (var escHook = new KeyboardInterceptor(px, new KeyTrigger(Keys.Escape)))
                 {
+                    if (fullScreenHost != null && fullScreenHost.IsAttached)
+                        escHook.TargetHwnd = fullScreenHost.HandleToAttach;
+
                     while (!px.HasExited)
                     {
                         if (px.WaitForExit(10))
@@ -443,6 +447,7 @@ namespace EmulatorLauncher
                             if (hWnd != IntPtr.Zero)
                             {
                                 fullScreenHost.AttachHandle(hWnd);
+                                escHook.TargetHwnd = hWnd;
                                 px.WaitForExit();
                                 return px.ExitCode;
                             }

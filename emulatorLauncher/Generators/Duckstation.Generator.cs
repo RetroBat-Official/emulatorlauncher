@@ -321,6 +321,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("BorderOverlay", "DisplayStartY", top);
                         ini.WriteValue("BorderOverlay", "DisplayEndX", right);
                         ini.WriteValue("BorderOverlay", "DisplayEndY", bottom);
+                        ini.WriteValue("BorderOverlay", "DestinationAlphaBlend", "true");
                         _cleanupbezel = true;
                     }
 

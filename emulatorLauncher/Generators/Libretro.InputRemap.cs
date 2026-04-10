@@ -3,6 +3,7 @@
 // Used for options to invert buttons, etc.
 
 using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using Newtonsoft.Json;
 using System;
@@ -34,17 +35,6 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> systemFBneo = new List<string>() { "cave", "cps1", "cps2", "cps3", "fbneo", "neogeo" };
         static readonly List<string> megadrive3ButtonsList = new List<string>() { "2", "257", "1025", "1537", "773" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
-        static readonly Dictionary<string,string> messFiles = new Dictionary<string,string>()
-            {
-                { "advision", "advision"},
-                { "apfm1000", "apfm1000"},
-                { "arcadia", "arcadia"},
-                { "astrocade", "astrocde"},
-                { "loopy", "casloopy"},
-                { "crvision", "crvision"},
-                { "gamecom", "gamecom"},
-                { "supracan", "supracan"}
-            };
 
         /// <summary>
         /// Called from libretro core options: generate input remap for the core.
@@ -90,6 +80,10 @@ namespace EmulatorLauncher.Libretro
             string rom = Program.SystemConfig["rom"];
             if (!string.IsNullOrEmpty(rom) && File.Exists(rom))
                 romName = System.IO.Path.GetFileNameWithoutExtension(rom);
+            if (romName == null)
+                romName = system;
+
+            MessSystem messSystem = null;
 
             if (core == "mame")
             {
@@ -101,13 +95,15 @@ namespace EmulatorLauncher.Libretro
                 else if (File.Exists(defaultctrlFile) && !File.Exists(defaultcfgFile) && !mameAuto)
                     try { File.Copy(defaultctrlFile, defaultcfgFile); } catch { }
 
+                messSystem = MessSystem.GetMessSystem(system);
+
                 // Per system/game
                 string cfgFile;
                 string ctrlFile;
 
-                if (messFiles.ContainsKey(system))
+                if (messSystem != null && messSystem.Name != null)
                 {
-                    string messcfgFile = messFiles[system] + ".cfg";
+                    string messcfgFile = messSystem.Name + ".cfg";
                     cfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", messcfgFile);
                     ctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", messcfgFile);
                 }
@@ -133,7 +129,7 @@ namespace EmulatorLauncher.Libretro
                     try { File.Copy(ctrlFile, cfgFile); } catch { }
             }
 
-            bool remapFromFile = SetupCoreGameRemaps(system, core, romName, inputremap, coreSettings, mameAuto);
+            bool remapFromFile = SetupCoreGameRemaps(system, core, romName, inputremap, coreSettings, mameAuto, messSystem);
             if (core == "cap32")
                 remapFromFile = SetupAmstradRemaps(system, core, romName, inputremap, coreSettings);
             if (remapFromFile)
@@ -761,8 +757,9 @@ namespace EmulatorLauncher.Libretro
             return;
         }
 
-        private static bool SetupCoreGameRemaps(string system, string core, string romName, Dictionary<string, string> inputremap, ConfigFile coreSettings, bool mameAuto = false)
+        private static bool SetupCoreGameRemaps(string system, string core, string romName, Dictionary<string, string> inputremap, ConfigFile coreSettings, bool mameAuto = false, MessSystem messSystem = null)
         {
+            List<string> mameArcade = new List<string> { "mame", "hbmame", "neogeo64", "model2", "zinc", "cave" };
             if (core == null || system == null || romName == null || mameAuto)
                 return false;
 
@@ -831,15 +828,21 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            string defsearch = "default";
-            if (!string.IsNullOrEmpty(controLayout))
-                defsearch = defsearch + "_" + controLayout;
+            string orgdefsearch = "default";
+            string defsearch = null;
 
-            if (game == null)
+            // search default only for arcade systems, not for all MESS systems
+            if (messSystem != null && messSystem.Name != null && !mameArcade.Contains(messSystem.Name))
+                orgdefsearch = messSystem.Name;
+
+            if (!string.IsNullOrEmpty(controLayout))
+                defsearch = orgdefsearch + "_" + controLayout;
+
+            if (game == null && !string.IsNullOrEmpty(defsearch))
                 game = ymlFile.Elements.Where(c => c.Name == defsearch).FirstOrDefault() as YmlContainer;
 
             if (game == null)
-                game = ymlFile.Elements.Where(c => c.Name == "default").FirstOrDefault() as YmlContainer;
+                game = ymlFile.Elements.Where(c => c.Name == orgdefsearch).FirstOrDefault() as YmlContainer;
 
             if (game == null)
                 return false;
