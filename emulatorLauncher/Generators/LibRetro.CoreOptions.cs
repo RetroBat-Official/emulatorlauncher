@@ -1536,18 +1536,13 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "dosbox_pure_voodoo", "dosbox_pure_voodoo", "8mb");
             BindFeature(coreSettings, "dosbox_pure_voodoo_perf", "dosbox_pure_voodoo_perf", "4");
             BindFeature(coreSettings, "dosbox_pure_voodoo_scale", "dosbox_pure_voodoo_scale", "1");
-
             BindBoolFeature(coreSettings, "dosbox_pure_bootos_forcenormal", "dosbox_pure_bootos_forcenormal", "true", "false");
             BindFeature(coreSettings, "dosbox_pure_auto_mapping", "dosbox_pure_auto_mapping", "true");
-
             BindFeature(coreSettings, "dosbox_pure_bootos_ramdisk", "dosbox_pure_bootos_ramdisk", "false");
 
-            if (!SystemConfig.isOptSet("dosbox_pure_on_screen_keyboard") || SystemConfig.getOptBoolean("dosbox_pure_on_screen_keyboard"))
-                coreSettings["dosbox_pure_on_screen_keyboard"] = "true";
-            else
-                coreSettings["dosbox_pure_on_screen_keyboard"] = "false";
 
-            // Controller type
+            // Controls
+            BindFeature(coreSettings, "dosbox_pure_on_screen_keyboard", "dosbox_pure_on_screen_keyboard", "keyboard");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "dos_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "dos_controller2", "1");
         }
