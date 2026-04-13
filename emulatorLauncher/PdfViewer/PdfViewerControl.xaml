@@ -10,26 +10,36 @@
              MouseWheel="OnMouseWheel"
              PreviewKeyDown="OnPreviewKeyDown"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid x:Name="Root" ClipToBounds="True" RenderOptions.BitmapScalingMode="Fant" RenderOptions.EdgeMode="Unspecified">
+    <ScrollViewer x:Name="Scroller"
+              HorizontalScrollBarVisibility="Disabled"
+              VerticalScrollBarVisibility="Disabled"
+              Focusable="False">
+        <Grid x:Name="Root" ClipToBounds="True" 
+          RenderOptions.BitmapScalingMode="Fant" 
+          RenderOptions.EdgeMode="Unspecified">
 
-        <Border x:Name="BorderCurrent">
-            <Border.RenderTransform>
-                <TranslateTransform />
-            </Border.RenderTransform>
+            <Border x:Name="BorderCurrent">
+                <Border.RenderTransform>
+                    <TranslateTransform />
+                </Border.RenderTransform>
+                <Image x:Name="ImageCurrent" Stretch="Uniform"/>
+            </Border>
 
-            <Image x:Name="ImageCurrent"
-                   Stretch="Uniform"/>
-        </Border>
+            <Border x:Name="BorderNext" Visibility="Hidden">
+                <Border.RenderTransform>
+                    <TranslateTransform />
+                </Border.RenderTransform>
+                <Image x:Name="ImageNext" Stretch="Uniform"/>
+            </Border>
 
-        <Border x:Name="BorderNext"
-                Visibility="Hidden">
-            <Border.RenderTransform>
-                <TranslateTransform />
-            </Border.RenderTransform>
-
-            <Image x:Name="ImageNext"
-                   Stretch="Uniform"/>
-        </Border>
-
-    </Grid>
+            <TextBlock x:Name="PageLabel"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Bottom"
+                   Margin="0,0,0,12"
+                   Padding="10,4"
+                   FontSize="13"
+                   Foreground="#FFFFFF"
+                   Background="#66000000"/>
+        </Grid>
+    </ScrollViewer>
 </UserControl>

@@ -766,6 +766,8 @@ namespace EmulatorLauncher
                             app.Input.Add(new PadToKeyInput() { Name = InputKey.right, Code = "KEY_RIGHT" });
                             app.Input.Add(new PadToKeyInput() { Name = InputKey.down, Code = "KEY_DOWN" });
                             app.Input.Add(new PadToKeyInput() { Name = InputKey.up, Code = "KEY_UP" });
+                            app.Input.Add(new PadToKeyInput() { Name = InputKey.pagedown, Key = "{PGUP}" });
+                            app.Input.Add(new PadToKeyInput() { Name = InputKey.pageup, Key = "{PGDN}" });
                             mapping.Applications.Add(app);
                         }                        
 

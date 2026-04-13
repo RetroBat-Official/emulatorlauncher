@@ -29,6 +29,14 @@ namespace EmulatorLauncher
         private string[] _pages;
         private int _index;
         private bool _animating;
+        private string _folder;
+        private int _totalPages;
+        private int _availablePages;
+        private double _zoom = 1.0;
+        private double _zoomStep = 0.25;
+        private const double ZoomMin = 1.0;
+        private const double ZoomMax = 4.0;
+        private const double PanStep = 50.0;
 
         public PdfViewerControl()
         {
@@ -72,21 +80,50 @@ namespace EmulatorLauncher
             _pages = new string[] { image };
             _index = 0;
 
-            ImageCurrent.Source = new BitmapImage(new Uri(image, UriKind.Absolute));
+            var source = new BitmapImage(new Uri(image, UriKind.Absolute));
+            ImageCurrent.Source = source;
+            ComputeZoomStep(source);
             return true;
         }
 
         public bool LoadFolder(string ppmFolder)
         {
+            _folder = ppmFolder;
             _pages = Directory.GetFiles(ppmFolder, "*.ppm");
             if (_pages.Length == 0)
                 return false;
 
             Array.Sort(_pages);
             _index = 0;
+            _availablePages = _pages.Length;
 
-            ImageCurrent.Source = LoadPpm(_pages[0]);
+            var source = LoadPpm(_pages[0]);
+            ImageCurrent.Source = source;
+            ComputeZoomStep(source);
             return true;
+        }
+
+        public void NotifyPagesAvailable(int upToPage, int total)
+        {
+            _totalPages = total;
+
+            if (!string.IsNullOrEmpty(_folder))
+            {
+                _pages = Directory.GetFiles(_folder, "*.ppm");
+                Array.Sort(_pages);
+                _availablePages = _pages.Length;
+            }
+
+            UpdatePageIndicator();
+        }
+
+        private void UpdatePageIndicator()
+        {
+            bool stillLoading = _availablePages < _totalPages;
+            string zoomStr = _zoom > 1.0 ? $"  {(int)(_zoom * 100)}%" : "";
+            PageLabel.Text = $"{_index + 1} / {(_totalPages > 0 ? _totalPages.ToString() : "?")}"
+                           + zoomStr
+                           + (stillLoading ? "  …" : "");
         }
 
         private void OnMouseWheel(object sender, MouseWheelEventArgs e)
@@ -103,13 +140,48 @@ namespace EmulatorLauncher
         {
             if (_animating) return;
 
-            if (e.Key == Key.Right) Show(_index + 1, true);
-            if (e.Key == Key.Left) Show(_index - 1, false);
+            if (e.Key == Key.PageUp) { ApplyZoom(_zoom + _zoomStep); return; }
+            if (e.Key == Key.PageDown) { ApplyZoom(_zoom - _zoomStep); return; }
+
+            if (_zoom > 1.0)
+            {
+                // When zoomed in, arrow keys pan — but flip page if at the edge
+                if (e.Key == Key.Right)
+                {
+                    if (Scroller.HorizontalOffset >= Scroller.ScrollableWidth)
+                        Show(_index + 1, true);
+                    else
+                        Scroller.ScrollToHorizontalOffset(Scroller.HorizontalOffset + PanStep);
+                }
+                else if (e.Key == Key.Left)
+                {
+                    if (Scroller.HorizontalOffset <= 0)
+                        Show(_index - 1, false);
+                    else
+                        Scroller.ScrollToHorizontalOffset(Scroller.HorizontalOffset - PanStep);
+                }
+                else if (e.Key == Key.Down)
+                    Scroller.ScrollToVerticalOffset(Scroller.VerticalOffset + PanStep);
+                else if (e.Key == Key.Up)
+                    Scroller.ScrollToVerticalOffset(Scroller.VerticalOffset - PanStep);
+            }
+            else
+            {
+                // When not zoomed, arrow keys flip pages
+                if (e.Key == Key.Right) Show(_index + 1, true);
+                if (e.Key == Key.Left) Show(_index - 1, false);
+            }
         }
 
         private void Show(int newIndex, bool left)
         {
             if (newIndex < 0 || newIndex >= _pages.Length) return;
+            if (!File.Exists(_pages[newIndex])) return;
+
+            _zoom = 1.0;
+            ApplyZoom(_zoom);
+            Scroller.ScrollToHorizontalOffset(0);
+            Scroller.ScrollToVerticalOffset(0);
 
             _animating = true;
             double w = ActualWidth;
@@ -152,16 +224,30 @@ namespace EmulatorLauncher
 
                 // Swap images
                 ImageCurrent.Source = ImageNext.Source;
+                ComputeZoomStep(ImageCurrent.Source as BitmapSource);
 
                 ImageNext.Source = null;
                 BorderNext.Visibility = System.Windows.Visibility.Hidden;
 
                 _index = newIndex;
                 _animating = false;
+                UpdatePageIndicator();
             };
 
             tCur.BeginAnimation(TranslateTransform.XProperty, outAnim);
             tNext.BeginAnimation(TranslateTransform.XProperty, inAnim);
+        }
+
+        private void ComputeZoomStep(BitmapSource image)
+        {
+            if (image == null) return;
+
+            double fitX = ActualWidth / image.PixelWidth;
+            double fitY = ActualHeight / image.PixelHeight;
+            double fitRatio = Math.Min(fitX, fitY);  // how much the image is scaled down to fit
+
+            // One step = 10% of the fit ratio, clamped to a sensible range
+            _zoomStep = Math.Max(0.05, Math.Min(0.25, fitRatio * 0.2));
         }
 
         private BitmapSource LoadPpm(string path)
@@ -201,6 +287,31 @@ namespace EmulatorLauncher
             {
                 bmp.UnlockBits(data);
             }
+        }
+
+        private void ApplyZoom(double newZoom)
+        {
+            _zoom = Math.Max(ZoomMin, Math.Min(ZoomMax, newZoom));
+
+            var transform = new ScaleTransform(_zoom, _zoom);
+            ImageCurrent.LayoutTransform = transform;
+            ImageNext.LayoutTransform = transform;
+
+            if (_zoom <= 1.0)
+            {
+                // Back to normal — reset scroll position
+                Scroller.ScrollToHorizontalOffset(0);
+                Scroller.ScrollToVerticalOffset(0);
+                ScrollViewer.SetHorizontalScrollBarVisibility(Scroller, ScrollBarVisibility.Disabled);
+                ScrollViewer.SetVerticalScrollBarVisibility(Scroller, ScrollBarVisibility.Disabled);
+            }
+            else
+            {
+                ScrollViewer.SetHorizontalScrollBarVisibility(Scroller, ScrollBarVisibility.Auto);
+                ScrollViewer.SetVerticalScrollBarVisibility(Scroller, ScrollBarVisibility.Auto);
+            }
+
+            UpdatePageIndicator();
         }
     }
 }
