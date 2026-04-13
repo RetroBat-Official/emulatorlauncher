@@ -3,90 +3,59 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace EmulatorLauncher.Common
 {
     public class PdfExtractor
     {
-        public static string ExtractPdfPages(string pdfPath, int quality = 125)
+        private static Dictionary<string, string> _cache = new Dictionary<string, string>();
+
+        public static void ClearCache()
         {
-            string pdfFolder = Path.Combine(Path.GetTempPath(), "pdftmp");
-
-            try
+            foreach (var folder in _cache.Values)
             {
-                if (Directory.Exists(pdfFolder))
-                    Directory.Delete(pdfFolder, true);
-
-                Directory.CreateDirectory(pdfFolder);
+                try { if (Directory.Exists(folder)) Directory.Delete(folder, true); }
+                catch { }
             }
-            catch { }
+            _cache.Clear();
+        }
 
-            int numberOfPagesToProcess = 2;
-            var pages = GetPdfPageCount(pdfPath);
+        public static string BeginExtractPdfPages(string pdfPath, int quality = 300, Action<int, int> onPageReady = null)
+        {
+            // Return cached folder if already extracted
+            if (_cache.TryGetValue(pdfPath, out string existing)
+                && Directory.Exists(existing)
+                && Directory.GetFiles(existing, "*.ppm").Length > 0)
+            {
+                int available = Directory.GetFiles(existing, "*.ppm").Length;
+                Task.Factory.StartNew(() => onPageReady?.Invoke(available, available));
+                return existing;
+            }
+
+            int pages = GetPdfPageCount(pdfPath);
             if (pages == 0)
                 return null;
 
-            var tasks = new List<Task>();
+            string pdfFolder = Path.Combine(Path.GetTempPath(), "pdftmp_" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(pdfFolder);
+            _cache[pdfPath] = pdfFolder;
 
-            for (int i = 0; i <= pages; i += numberOfPagesToProcess)
+            // Extract page 1 synchronously so viewer can open immediately
+            ExtractPdfPage(pdfPath, 1, 1, quality, pdfFolder);
+            onPageReady?.Invoke(1, pages);
+
+            // Extract remaining pages in background
+            Task.Factory.StartNew(() =>
             {
-                int startPage = i;
-                tasks.Add(Task.Factory.StartNew(() => ExtractPdfPage(pdfPath, startPage, numberOfPagesToProcess, quality, false)));
-            }
-
-            Task.WaitAll(tasks.ToArray());
-            return pdfFolder;
-        }
-
-        public static string ExtractPdfPage(string pdfPath, int pageIndex, int pageCount = 1, int quality = 125, bool resetDirectory = true)
-        {
-            if (pageIndex < 0)
-                return null;
-
-            string pdfFolder = Path.Combine(Path.GetTempPath(), "pdftmp");
-
-            if (resetDirectory)
-            {
-                try
+                const int batch = 2;
+                for (int i = 2; i <= pages; i += batch)
                 {
-                    if (Directory.Exists(pdfFolder))
-                        Directory.Delete(pdfFolder, true);
-
-                    Directory.CreateDirectory(pdfFolder);
+                    int count = Math.Min(batch, pages - i + 1);
+                    ExtractPdfPage(pdfPath, i, count, quality, pdfFolder);
+                    onPageReady?.Invoke(i + count - 1, pages);
                 }
-                catch { }
-            }
-
-            string squality = quality.ToString();
-            string prefix = "extract";
-            string page = "";
-
-            if (pageIndex >= 0)
-            {
-                string buffer = pageIndex.ToString("D8");
-
-                if (pageIndex < 0)
-                    prefix = "page-" + squality + "-" + buffer + "-pdf"; // page
-                else
-                    prefix = Path.GetFileNameWithoutExtension(pdfPath) + "-" + squality + "-" + buffer + "-pdf"; // page
-
-                page = " -f " + pageIndex.ToString() + " -l " + (pageIndex + pageCount - 1).ToString();
-            }
-
-            var psi = new ProcessStartInfo
-            {
-                FileName = "pdftoppm.exe",
-                Arguments = "-r " + squality + page + " \"" + pdfPath + "\" \"" + pdfFolder + "/" + prefix + "\"",
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using (var process = Process.Start(psi))
-                process.WaitForExit();
+            });
 
             return pdfFolder;
         }
@@ -96,58 +65,66 @@ namespace EmulatorLauncher.Common
             if (!File.Exists(pdfPath))
                 return 0;
 
-            var psi = new ProcessStartInfo
+            try
             {
-                FileName = "pdfinfo.exe",
-                Arguments = $"\"{pdfPath}\"",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            };
-
-            using (var process = Process.Start(psi))
-            {
-                if (process == null)
-                    throw new InvalidOperationException("Failed to start pdfinfo");
-
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-
-                process.WaitForExit();
-
-                if (process.ExitCode != 0)
-                    throw new Exception("pdfinfo error: " + error);
-
-                using (var sr = new StringReader(output))
+                var psi = new ProcessStartInfo
                 {
-                    string line;
-                    while ((line = sr.ReadLine()) != null)
+                    FileName = "pdfinfo.exe",
+                    Arguments = $"\"{pdfPath}\"",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using (var process = Process.Start(psi))
+                {
+                    if (process == null)
+                        return 0;
+
+                    string output = process.StandardOutput.ReadToEnd();
+                    process.WaitForExit();
+
+                    if (process.ExitCode != 0)
+                        return 0;
+
+                    using (var sr = new StringReader(output))
                     {
-                        if (line.StartsWith("Pages:", StringComparison.OrdinalIgnoreCase))
+                        string line;
+                        while ((line = sr.ReadLine()) != null)
                         {
-                            var parts = line.Substring(6).Trim();
-                            if (int.TryParse(parts, NumberStyles.Integer, CultureInfo.InvariantCulture, out int pages))
-                                return pages;
+                            if (line.StartsWith("Pages:", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var parts = line.Substring(6).Trim();
+                                if (int.TryParse(parts, NumberStyles.Integer, CultureInfo.InvariantCulture, out int count))
+                                    return count;
+                            }
                         }
                     }
                 }
             }
+            catch { }
 
-            throw new Exception("Pages info not found in pdfinfo output");
+            return 0;
         }
-        /*
-        int getPdfPageCount(string fileName)
-		{
-			var lines = executeEnumerationScript("pdfinfo \"" + fileName + "\"");
-			for (var line in lines)
-			{
-				auto splits = Utils::String::split(line, ':', true);
-				if (splits.size() == 2 && splits[0] == "Pages")
-					return atoi(Utils::String::trim(splits[1]).c_str());
-			}
 
-			return 0;
-		}*/
+        private static void ExtractPdfPage(string pdfPath, int pageIndex, int pageCount, int quality, string outputFolder)
+        {
+            string prefix = Path.GetFileNameWithoutExtension(pdfPath)
+                            + "-" + quality
+                            + "-" + pageIndex.ToString("D8")
+                            + "-pdf";
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = "pdftoppm.exe",
+                Arguments = $"-r {quality} -f {pageIndex} -l {pageIndex + pageCount - 1} \"{pdfPath}\" \"{outputFolder}/{prefix}\"",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using (var process = Process.Start(psi))
+                process.WaitForExit();
+        }
     }
 }

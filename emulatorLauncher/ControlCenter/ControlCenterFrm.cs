@@ -210,6 +210,8 @@ namespace EmulatorLauncher.ControlCenter
         {
             base.OnClosed(e);
 
+            PdfExtractor.ClearCache();
+
             if (SuspendEmulator(false))
                 Thread.Sleep(350);
 
