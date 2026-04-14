@@ -23,7 +23,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            //bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            //bool fullscreen = ShouldRunFullscreen();
 
             string gamePath = AppConfig.GetFullPath(rom);
             string gameExtension = Path.GetExtension(rom).Replace(".", "");

@@ -27,7 +27,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             // Retroachievements
             SetupRetroAchievements(path);

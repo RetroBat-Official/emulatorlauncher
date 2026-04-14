@@ -118,7 +118,7 @@ namespace EmulatorLauncher
                 _xeniaManagerConfig = true;
             }
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             if (!_xeniaManagerConfig)
                 SetupConfiguration(path, emulator);

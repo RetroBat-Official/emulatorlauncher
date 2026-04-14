@@ -74,7 +74,7 @@ namespace EmulatorLauncher
             else
                 _saveStatesWatcher = null;
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             _path = path;
 

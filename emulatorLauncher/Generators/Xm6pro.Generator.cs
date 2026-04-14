@@ -26,7 +26,7 @@ namespace EmulatorLauncher
 			if (!File.Exists(exe))
 				return null;
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             if (SystemConfig.isOptSet("68k_stretch") && SystemConfig["68k_stretch"] == "true")
                 SystemConfig["bezel"] = "none";

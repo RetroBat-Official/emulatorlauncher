@@ -325,7 +325,7 @@ namespace EmulatorLauncher
 
         private void SetupOptions(ScreenResolution resolution)
         {
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
             if (regKeyc != null)

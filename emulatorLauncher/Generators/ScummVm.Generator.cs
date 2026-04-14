@@ -47,7 +47,7 @@ namespace EmulatorLauncher
             
             _resolution = resolution;
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             string iniPath = Path.ChangeExtension(exe, ".ini");
 

@@ -34,7 +34,7 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             var commandArray = new List<string>();
             

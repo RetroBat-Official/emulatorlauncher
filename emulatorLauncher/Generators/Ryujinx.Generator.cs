@@ -139,7 +139,7 @@ namespace EmulatorLauncher
         //Manage Config.json file settings
         private void SetupConfiguration(string setupPath, string path)
         {
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             // Read and parse JSON
             string filePath = Path.Combine(setupPath, "Config.json");

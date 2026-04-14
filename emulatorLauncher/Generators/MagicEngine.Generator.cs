@@ -25,7 +25,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            _fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            _fullscreen = ShouldRunFullscreen();
 
             var commandArray = new List<string>
             {

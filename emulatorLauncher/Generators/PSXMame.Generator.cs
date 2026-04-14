@@ -28,7 +28,7 @@ namespace EmulatorLauncher
 
             _gameName = Path.GetFileNameWithoutExtension(rom);
             _resolution = resolution;
-            _fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            _fullscreen = ShouldRunFullscreen();
 
             string args;
 

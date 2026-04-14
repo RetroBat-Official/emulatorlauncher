@@ -44,7 +44,7 @@ namespace EmulatorLauncher
             string hardware = GetJgenesisHardware(system);
             string jGenSystem = GetJgenesisSystem(system);
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             string[] extensions = new string[] { ".cue", ".sms", ".gg", ".md", ".chd", ".nes", ".sfc", ".gb", ".gbc", ".bin" };
 

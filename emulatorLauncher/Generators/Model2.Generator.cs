@@ -43,7 +43,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             string pakDir = Path.Combine(path, "roms");
             if (!Directory.Exists(pakDir))
@@ -400,7 +400,7 @@ namespace EmulatorLauncher
             FakeBezelFrm bezel = null;
             FullScreenHostFrm fullScreenHost = null;
 
-            if (_bezelFileInfo == null && (!IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen")))
+            if (_bezelFileInfo == null && ShouldRunFullscreen())
             {
                 fullScreenHost = new FullScreenHostFrm();
                 fullScreenHost.Show();

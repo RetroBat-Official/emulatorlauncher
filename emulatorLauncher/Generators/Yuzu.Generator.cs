@@ -33,7 +33,7 @@ namespace EmulatorLauncher
             if (!Directory.Exists(userFolder)) try { Directory.CreateDirectory(userFolder); }
                 catch { }
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             SetupConfigurationYuzu(path, rom, fullscreen);
 

@@ -34,7 +34,7 @@ namespace EmulatorLauncher
                 rom = Path.GetFileNameWithoutExtension(rom);
             }
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             //Applying bezels
             if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, _path, resolution, emulator))

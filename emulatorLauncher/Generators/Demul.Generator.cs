@@ -46,7 +46,7 @@ namespace EmulatorLauncher
 
             string demulCore = GetDemulCore(emulator, core, system);
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
             if (!fullscreen)
                 SystemConfig["forceNoBezel"] = "true";
 

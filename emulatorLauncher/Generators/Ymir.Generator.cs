@@ -29,7 +29,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
             bool startBios = SystemConfig.getOptBoolean("saturn_startbios");
 
             if (fullscreen)

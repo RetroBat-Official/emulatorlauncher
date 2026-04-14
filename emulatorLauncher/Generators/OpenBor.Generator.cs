@@ -148,7 +148,7 @@ namespace EmulatorLauncher
             if (!_isCustomRetrobatOpenBor)
                 return false;
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             var conf = ConfigFile.FromFile(ini);
             

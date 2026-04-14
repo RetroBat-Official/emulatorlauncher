@@ -42,7 +42,7 @@ namespace EmulatorLauncher
             if (!File.Exists(confFile))
                 File.WriteAllText(confFile, "");
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             // Bezels
             if (fullscreen)

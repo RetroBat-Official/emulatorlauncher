@@ -68,7 +68,7 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "Dark_Forces", "enableAutoaim", "forceengine_autoaim", "false", "true");
 
                 // Graphics
-                bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+                bool fullscreen = ShouldRunFullscreen();
                 if (fullscreen)
                     ini.WriteValue("Window", "fullscreen", "true");
                 else

@@ -514,8 +514,10 @@ namespace EmulatorLauncher
                         _bezelFileInfo = null;
                         ini.WriteValue("Display", "Fullscreen", "False");
                     }
-                    else
+                    else if (ShouldRunFullscreen())
                         ini.WriteValue("Display", "Fullscreen", "True");
+                    else
+                        ini.WriteValue("Display", "Fullscreen", "False");
 
                     // Get gameID and game Name and log it
                     string gameID = "";

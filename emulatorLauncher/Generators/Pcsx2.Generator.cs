@@ -61,7 +61,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            _fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            _fullscreen = ShouldRunFullscreen();
 
             if (!_fullscreen)
                 SystemConfig["bezel"] = "none";

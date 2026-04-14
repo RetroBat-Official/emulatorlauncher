@@ -51,7 +51,7 @@ namespace EmulatorLauncher
             _systemName = system.ToLowerInvariant();
 
             rom = this.TryUnZipGameIfNeeded(system, rom);
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
             string path = Path.GetDirectoryName(rom);
             string arguments = null;
             string extension = Path.GetExtension(rom);

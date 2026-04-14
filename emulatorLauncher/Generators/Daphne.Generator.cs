@@ -282,7 +282,7 @@ namespace EmulatorLauncher
                 }
             }
             
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             if (fullscreen)
                 commandArray.Add("-fullscreen");

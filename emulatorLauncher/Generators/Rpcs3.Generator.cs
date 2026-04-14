@@ -104,7 +104,7 @@ namespace EmulatorLauncher
             }
 
             // Fullscreen
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             List<string> commandArray = new List<string>
             {
