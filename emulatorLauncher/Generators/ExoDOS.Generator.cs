@@ -127,7 +127,7 @@ namespace EmulatorLauncher
         {
             try
             {
-                using (var ini = new IniFile(file))
+                using (var ini = new IniFile(file, IniOptions.UseSpaces | IniOptions.AllowRawLines))
                 {
                     string resolution;
                     switch (gameRes)
@@ -230,9 +230,9 @@ namespace EmulatorLauncher
         {
             KillRunningEmulators();
 
-            var process = Process.Start(path);
-            //Job.Current.AddProcess(process);
+            Process.Start(path);
 
+            Thread.Sleep(3000);
             int maxRetries = 10;
             Process emulator = null;
 
@@ -252,16 +252,37 @@ namespace EmulatorLauncher
                     return 0;
             }
 
-            try
-            {
-                if (emulator.ProcessName != null)
-                {
-                    SimpleLogger.Instance.Info($"[EMULATOR] Process {emulator.ProcessName} found, waiting for it to exit.");
-                }
-                emulator.WaitForExit();
-            }
-            catch { }
+            SimpleLogger.Instance.Info($"[EMULATOR] Process {emulator.ProcessName} ({emulator.Id}) found, waiting for it to exit.");
 
+            int trackedId = emulator.Id;
+
+            while (true)
+            {
+                var running = GetFirstRunningEmulator();
+
+                if (running == null)
+                    break;
+
+                // Only log + re-track if it's a new process
+                if (running.Id != trackedId)
+                {
+                    SimpleLogger.Instance.Info($"[EMULATOR] New process {running.ProcessName} ({running.Id}) detected, tracking it.");
+                    Job.Current.AddProcess(running);
+                    trackedId = running.Id;
+                }
+
+                try
+                {
+                    // Block until this specific process exits (no timeout)
+                    running.WaitForExit();
+                }
+                catch { }
+
+                // Brief pause before checking if a successor process spawned
+                Thread.Sleep(1000);
+            }
+
+            SimpleLogger.Instance.Info("[EMULATOR] No emulator process found, exiting.");
             return 0;
         }
 

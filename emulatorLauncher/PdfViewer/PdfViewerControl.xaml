@@ -22,14 +22,14 @@
                 <Border.RenderTransform>
                     <TranslateTransform />
                 </Border.RenderTransform>
-                <Image x:Name="ImageCurrent" Stretch="Uniform"/>
+                <Image x:Name="ImageCurrent" Stretch="None"/>
             </Border>
 
             <Border x:Name="BorderNext" Visibility="Hidden">
                 <Border.RenderTransform>
                     <TranslateTransform />
                 </Border.RenderTransform>
-                <Image x:Name="ImageNext" Stretch="Uniform"/>
+                <Image x:Name="ImageNext" Stretch="None"/>
             </Border>
 
             <TextBlock x:Name="PageLabel"
