@@ -221,6 +221,17 @@ namespace RetrobatUpdater
                 if (File.Exists(rbIniFile))
                     RetroBatIni.UpgradeRBIniFile(rbIniFile, rootPath);
 
+                // Delete emulationstation temp folder
+                string esTempFolder = Path.Combine(Path.GetTempPath(), "emulationstation.tmp");
+                if (Directory.Exists(esTempFolder))
+                {
+                    foreach (var tf in Directory.GetFiles(esTempFolder))
+                    {
+                        try { File.Delete(tf); }
+                        catch { }
+                    }
+                }
+
                 ConsoleOutput("UPDATE DONE");
                 return 0;
             }

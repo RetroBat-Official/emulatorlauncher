@@ -37,6 +37,7 @@ namespace EmulatorLauncher
         private const double ZoomMin = 1.0;
         private const double ZoomMax = 4.0;
         private const double PanStep = 50.0;
+        private double _fitRatio = 1.0;
 
         public PdfViewerControl()
         {
@@ -46,8 +47,15 @@ namespace EmulatorLauncher
             {
                 UpdateMargins();
                 Focus();
+                ComputeZoomStep(ImageCurrent.Source as BitmapSource);
+                ApplyZoom(1.0);
             };
-            SizeChanged += (s, e) => UpdateMargins();
+            SizeChanged += (s, e) =>
+            {
+                UpdateMargins();
+                ComputeZoomStep(ImageCurrent.Source as BitmapSource);
+                ApplyZoom(_zoom);
+            };
             KeyDown += OnKeyDown;
         }
 
@@ -81,8 +89,7 @@ namespace EmulatorLauncher
             _index = 0;
 
             var source = new BitmapImage(new Uri(image, UriKind.Absolute));
-            ImageCurrent.Source = source;
-            ComputeZoomStep(source);
+            ImageCurrent.Source = new BitmapImage(new Uri(image, UriKind.Absolute));
             return true;
         }
 
@@ -98,8 +105,7 @@ namespace EmulatorLauncher
             _availablePages = _pages.Length;
 
             var source = LoadPpm(_pages[0]);
-            ImageCurrent.Source = source;
-            ComputeZoomStep(source);
+            ImageCurrent.Source = LoadPpm(_pages[0]);
             return true;
         }
 
@@ -120,6 +126,7 @@ namespace EmulatorLauncher
         private void UpdatePageIndicator()
         {
             bool stillLoading = _availablePages < _totalPages;
+            // _zoom = 1.0 means fitted, show as 100%
             string zoomStr = _zoom > 1.0 ? $"  {(int)(_zoom * 100)}%" : "";
             PageLabel.Text = $"{_index + 1} / {(_totalPages > 0 ? _totalPages.ToString() : "?")}"
                            + zoomStr
@@ -240,14 +247,14 @@ namespace EmulatorLauncher
 
         private void ComputeZoomStep(BitmapSource image)
         {
-            if (image == null) return;
+            if (image == null || ActualWidth == 0 || ActualHeight == 0) return;
 
             double fitX = ActualWidth / image.PixelWidth;
             double fitY = ActualHeight / image.PixelHeight;
-            double fitRatio = Math.Min(fitX, fitY);  // how much the image is scaled down to fit
+            _fitRatio = Math.Min(fitX, fitY);
 
-            // One step = 10% of the fit ratio, clamped to a sensible range
-            _zoomStep = Math.Max(0.05, Math.Min(0.25, fitRatio * 0.2));
+            // One step = 10% of the fitted display size
+            _zoomStep = _fitRatio * 0.2;
         }
 
         private BitmapSource LoadPpm(string path)
@@ -293,13 +300,14 @@ namespace EmulatorLauncher
         {
             _zoom = Math.Max(ZoomMin, Math.Min(ZoomMax, newZoom));
 
-            var transform = new ScaleTransform(_zoom, _zoom);
+            // Apply scaling relative to fit ratio so zoom 1.0 = fitted size
+            double scale = _fitRatio * _zoom;
+            var transform = new ScaleTransform(scale, scale);
             ImageCurrent.LayoutTransform = transform;
             ImageNext.LayoutTransform = transform;
 
             if (_zoom <= 1.0)
             {
-                // Back to normal — reset scroll position
                 Scroller.ScrollToHorizontalOffset(0);
                 Scroller.ScrollToVerticalOffset(0);
                 ScrollViewer.SetHorizontalScrollBarVisibility(Scroller, ScrollBarVisibility.Disabled);
