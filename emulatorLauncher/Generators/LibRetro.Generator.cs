@@ -1174,7 +1174,7 @@ namespace EmulatorLauncher.Libretro
             else if (IsEmulationStationWindowed())
             {
                 var res = ScreenResolution.CurrentResolution;
-                bool identicalRes = resolution.Height.ToString() == res.Width.ToString();
+                bool identicalRes = resolution.Width == res.Width && resolution.Height == res.Height;
 
                 retroarchConfig["video_fullscreen_x"] = resolution.Width.ToString();
                 retroarchConfig["video_fullscreen_y"] = resolution.Height.ToString();
@@ -1199,16 +1199,16 @@ namespace EmulatorLauncher.Libretro
             else
             {
                 var res = ScreenResolution.CurrentResolution;
-                bool identicalRes = resolution.Height.ToString() == res.Width.ToString();
+                bool isNativeResolution = resolution.Width == res.Width && resolution.Height == res.Height;
+                float dpiScale = isNativeResolution ? 1.0f : GetDpiScaleFactor();
+                int physicalWidth = (int)(resolution.Width * dpiScale);
+                int physicalHeight = (int)(resolution.Height * dpiScale);
 
-                retroarchConfig["video_fullscreen_x"] = resolution.Width.ToString();
-                retroarchConfig["video_fullscreen_y"] = resolution.Height.ToString();
+                retroarchConfig["video_fullscreen_x"] = physicalWidth.ToString();
+                retroarchConfig["video_fullscreen_y"] = physicalHeight.ToString();
                 retroarchConfig["video_refresh_rate"] = resolution.DisplayFrequency.ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
 
-                if (identicalRes)
-                    retroarchConfig["video_windowed_fullscreen"] = exclusivefs ? "false" : "true";
-                else
-                    retroarchConfig["video_windowed_fullscreen"] = "false";
+                retroarchConfig["video_windowed_fullscreen"] = isNativeResolution && !exclusivefs ? "true" : "false";
 
                 retroarchConfig["video_fullscreen"] = "true";
             }
@@ -2060,13 +2060,21 @@ namespace EmulatorLauncher.Libretro
 
             int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
             int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
+            
+            var currentRes = ScreenResolution.CurrentResolution;
+            bool isNativeResolution = resolution == null ||
+                (resolution.Width == currentRes.Width && resolution.Height == currentRes.Height);
+
+            float dpiScale = isNativeResolution ? 1.0f : GetDpiScaleFactor();
+            int physicalResX = (int)(resX * dpiScale);
+            int physicalResY = (int)(resY * dpiScale);
 
             float screenRatio = (float)resX / (float)resY;
             float bezelRatio = (float)imageSize.Width / (float)imageSize.Height;
 
             if (viewPortUsed)
             {
-                if (resX != infos.width.GetValueOrDefault() || resY != infos.height.GetValueOrDefault())
+                if (physicalResX != infos.width.GetValueOrDefault() || physicalResY != infos.height.GetValueOrDefault())
                 {
                     if (screenRatio < 1.6) // use bezels only for 16:10, 5:3, 16:9 and wider aspect ratios
                         return;
@@ -2130,15 +2138,15 @@ namespace EmulatorLauncher.Libretro
 
             if (bezelNeedAdaptation && !_overrideAspect)
             {
-                float wratio = resX / (float)infos.width;
-                float hratio = resY / (float)infos.height;
+                float wratio = physicalResX / (float)infos.width;
+                float hratio = physicalResY / (float)infos.height;
 
-                int xoffset = resX - infos.width.Value;
-                int yoffset = resY - infos.height.Value;
+                int xoffset = physicalResX - infos.width.Value;
+                int yoffset = physicalResY - infos.height.Value;
 
                 bool stretchImage = false;
 
-                if (resX < infos.width || resY < infos.height) // If width or height < original, can't add black borders. Just stretch
+                if (physicalResX < infos.width || physicalResY < infos.height) // If width or height < original, can't add black borders. Just stretch
                     stretchImage = true;
                 else if (Math.Abs(screenRatio - bezelRatio) < 0.2) // FCA : About the same ratio ? Just stretch
                     stretchImage = true;
@@ -2156,8 +2164,8 @@ namespace EmulatorLauncher.Libretro
                     }
                     else
                     {
-                        retroarchConfig["custom_viewport_x"] = ((int)(infos.left + xoffset / 2)).ToString();
-                        retroarchConfig["custom_viewport_y"] = ((int)(infos.top + yoffset / 2)).ToString();
+                        retroarchConfig["custom_viewport_x"] = ((int)((infos.left + xoffset / 2))).ToString();
+                        retroarchConfig["custom_viewport_y"] = ((int)((infos.top + yoffset / 2))).ToString();
                         retroarchConfig["custom_viewport_width"] = ((int)((infos.width - infos.left - infos.right))).ToString();
                         retroarchConfig["custom_viewport_height"] = ((int)((infos.height - infos.top - infos.bottom))).ToString();
                         retroarchConfig["video_message_pos_x"] = (infos.messagex.Value + xoffset / 2).ToString(CultureInfo.InvariantCulture);
@@ -2166,7 +2174,7 @@ namespace EmulatorLauncher.Libretro
                 }
 
                 if (!stretchImage)
-                    overlay_png_file = BezelFiles.GetStretchedBezel(overlay_png_file, resX, resY);
+                    overlay_png_file = BezelFiles.GetStretchedBezel(overlay_png_file, physicalResX, physicalResY);
             }
             else if (!_overrideAspect)
             {
