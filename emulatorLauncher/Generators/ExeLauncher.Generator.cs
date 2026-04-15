@@ -145,7 +145,7 @@ namespace EmulatorLauncher
                 }
 
                 _batfile = true;
-                //ret.WindowStyle = ProcessWindowStyle.Hidden;
+                ret.WindowStyle = ProcessWindowStyle.Hidden;
                 ret.UseShellExecute = true;
             }
             else if (string.IsNullOrEmpty(_exename) && _gameLauncher == null)
@@ -171,7 +171,7 @@ namespace EmulatorLauncher
             else if (_gameLauncher != null) 
                 return _gameLauncher.SetupCustomPadToKeyMapping(mapping);
 
-            else if ((_systemName != "mugen" || _systemName != "ikemen") && string.IsNullOrEmpty(_exename))
+            else if ((_systemName != "mugen" && _systemName != "ikemen") && string.IsNullOrEmpty(_exename))
                 return mapping;
 
             return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
@@ -318,92 +318,30 @@ namespace EmulatorLauncher
         }
         #endregion
 
-        readonly string[] launcherPprocessNames = { "Amazon Games UI", "EADesktop", "EpicGamesLauncher", "steam", "GalaxyClient" };
+        readonly string[] launcherProcessNames = { "Amazon Games UI", "EADesktop", "EpicGamesLauncher", "steam", "GalaxyClient" };
 
         public override int RunAndWait(ProcessStartInfo path)
         {
             if (_isGameExePath || _gameExeFile || _nonSteam)
             {
-                Dictionary<string, bool> launcherProcessStatusBefore = new Dictionary<string, bool>();
-                Dictionary<string, bool> launcherProcessStatusAfter = new Dictionary<string, bool>();
-                
-                foreach (string processName in launcherPprocessNames)
-                {
-                    bool uiExists = Process.GetProcessesByName(processName).Any();
+                var launcherProcessStatusBefore = new Dictionary<string, bool>();
+                var launcherProcessStatusAfter = new Dictionary<string, bool>();
 
-                    if (uiExists)
+                foreach (string processName in launcherProcessNames)
+                {
+                    if (Process.GetProcessesByName(processName).Any())
                     {
                         SimpleLogger.Instance.Info("[INFO] Launcher: " + processName + " found running.");
                         launcherProcessStatusBefore.Add(processName, true);
                     }
                 }
 
-                int waitttime = 30;
-                if (Program.SystemConfig.isOptSet("steam_wait") && !string.IsNullOrEmpty(Program.SystemConfig["steam_wait"]))
-                    waitttime = Program.SystemConfig["steam_wait"].ToInteger();
-                SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waitttime.ToString() + " seconds for the game to run before returning to Game List");
+                StartAndWaitForGame(path);
 
-                Process process = Process.Start(path);
-                
-                SimpleLogger.Instance.Info("Process started : " + _exename);
-                
-                Thread.Sleep(4000);
-
-                int i = 1;
-
-                Process[] gamelist = Process.GetProcessesByName(_exename);
-
-                while (i <= waitttime && gamelist.Length == 0)
+                foreach (string processName in launcherProcessNames)
                 {
-                    gamelist = Process.GetProcessesByName(_exename);
-                    Thread.Sleep(1000);
-                    i++;
-                }
-
-                if (gamelist.Length == 0)
-                {
-                    SimpleLogger.Instance.Info("Process : " + _exename + " not running.");
-
-                    var gameProcess = FindGameProcessByWindowFocus();
-                    if (gameProcess != null)
-                    {
-                        SimpleLogger.Instance.Info("[INFO] Game process '" + gameProcess.ProcessName + "' identified by window focus. Monitoring process.");
-                        Job.Current.AddProcess(gameProcess);
-                        gameProcess.WaitForExit();
-                        SimpleLogger.Instance.Info("[INFO] Game process has exited.");
-
-                        foreach (string processName in launcherPprocessNames)
-                        {
-                            bool uihasStarted = Process.GetProcessesByName(processName).Any();
-
-                            if (uihasStarted)
-                                launcherProcessStatusAfter.Add(processName, true);
-                        }
-                        KillLauncher(launcherProcessStatusAfter, launcherProcessStatusBefore);
-                    }
-                    else
-                        SimpleLogger.Instance.Info("[INFO] All fallback methods failed. Unable to monitor game process.");
-
-                    return 0;
-                }
-
-                else
-                {
-                    foreach (string processName in launcherPprocessNames)
-                    {
-                        bool uihasStarted = Process.GetProcessesByName(processName).Any();
-
-                        if (uihasStarted)
-                            launcherProcessStatusAfter.Add(processName, true);
-                    }
-
-                    SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
-                    Process game = gamelist.OrderBy(p => p.StartTime).FirstOrDefault();
-
-                    if (game != null)
-                        Job.Current.AddProcess(game);
-                    
-                    game.WaitForExit();
+                    if (Process.GetProcessesByName(processName).Any())
+                        launcherProcessStatusAfter.Add(processName, true);
                 }
 
                 KillLauncher(launcherProcessStatusAfter, launcherProcessStatusBefore);
@@ -414,7 +352,7 @@ namespace EmulatorLauncher
             {
                 using (var frm = new System.Windows.Forms.Form())
                 {
-                    // Some games fail to allocate DirectX surface if EmulationStation is showing fullscren : pop an invisible window between ES & the game solves the problem
+                    // Some games fail to allocate DirectX surface if EmulationStation is showing fullscreen : pop an invisible window between ES & the game solves the problem
                     frm.ShowInTaskbar = false;
                     frm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
                     frm.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -429,68 +367,12 @@ namespace EmulatorLauncher
                         return _gameLauncher.RunAndWait(path);
                     }
 
-                    else
-                    {
-                        int waitttime = 30;
-                        if (Program.SystemConfig.isOptSet("steam_wait") && !string.IsNullOrEmpty(Program.SystemConfig["steam_wait"]))
-                            waitttime = Program.SystemConfig["steam_wait"].ToInteger();
-                        SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waitttime.ToString() + " seconds for the game to run before returning to Game List");
-
-                        Process process = Process.Start(path);
-                        
-                        SimpleLogger.Instance.Info("Process started : " + _exename);
-
-                        Thread.Sleep(4000);
-
-                        int i = 1;
-
-                        Process[] gamelist = Process.GetProcessesByName(_exename);
-
-                        while (i <= waitttime && gamelist.Length == 0)
-                        {
-                            gamelist = Process.GetProcessesByName(_exename);
-                            Thread.Sleep(1000);
-                            i++;
-                        }
-
-                        if (gamelist.Length == 0)
-                        {
-                            SimpleLogger.Instance.Info("Process : " + _exename + " not running.");
-
-                            var gameProcess = FindGameProcessByWindowFocus();
-                            if (gameProcess != null)
-                            {
-                                SimpleLogger.Instance.Info("[INFO] Game process '" + gameProcess.ProcessName + "' identified by window focus. Monitoring process.");
-                                Job.Current.AddProcess(gameProcess);
-                                gameProcess.WaitForExit();
-                                SimpleLogger.Instance.Info("[INFO] Game process has exited.");
-                            }
-                            else
-                                SimpleLogger.Instance.Info("[INFO] All fallback methods failed. Unable to monitor game process.");
-
-                            return 0;
-                        }
-                        else
-                        {
-                            SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
-                            var jobToAdd = Process.GetProcessesByName(_exename).FirstOrDefault();
-                            
-                            if (jobToAdd != null)
-                                Job.Current.AddProcess(jobToAdd);
-
-                            while (Process.GetProcessesByName(_exename).Any())
-                            {
-                                Thread.Sleep(1000);
-                            }
-                        }
-                        return 0;
-                    }
+                    StartAndWaitForGame(path);
+                    return 0;
                 }
             }
 
-            else
-                base.RunAndWait(path);
-
+            base.RunAndWait(path);
             return 0;
         }
 
@@ -549,7 +431,7 @@ namespace EmulatorLauncher
 
         private void KillLauncher(Dictionary<string, bool> launcherProcessAfter, Dictionary<string, bool> launcherProcessBefore)
         {
-            foreach (var processName in launcherPprocessNames) // always kill launchers
+            foreach (var processName in launcherProcessNames) // always kill launchers
             {
                 if (Program.SystemConfig.getOptBoolean("killsteam"))
                 {
@@ -563,7 +445,7 @@ namespace EmulatorLauncher
                         catch { }
                     }
                 }
-                else if (SystemConfig.isOptSet("killsteam")) // do not kill launchers
+                else if (SystemConfig.isOptSet("killsteam") && !SystemConfig.getOptBoolean("killsteam")) // do not kill launchers
                 {
                     SimpleLogger.Instance.Info("[INFO] Option set to NOT kill launcher process.");
                     return;
@@ -627,18 +509,66 @@ namespace EmulatorLauncher
             if (!File.Exists(executableFile))
                 return false;
 
-            var lines = File.ReadAllLines(executableFile);
-            if (lines.Length < 1)
+            string line = FileTools.ReadFirstValidLine(executableFile);
+            if (line == null)
                 return false;
             else
             {
-                string line = FileTools.ReadFirstValidLine(executableFile);
                 if (line.ToLowerInvariant().EndsWith(".exe"))
                     line = line.Substring(0, line.Length - 4);
 
                 _exename = line;
                 SimpleLogger.Instance.Info("[INFO] Executable name specified in .gameexe file: " + _exename);
                 return true;
+            }
+        }
+
+        private Process WaitForGameProcess(int waitSeconds)
+        {
+            Thread.Sleep(4000);
+
+            for (int i = 0; i < waitSeconds; i++)
+            {
+                var list = Process.GetProcessesByName(_exename);
+                if (list.Length > 0)
+                    return list.OrderBy(p => p.StartTime).FirstOrDefault();
+                Thread.Sleep(1000);
+            }
+            return null;
+        }
+
+        private void StartAndWaitForGame(ProcessStartInfo path)
+        {
+            int waittime = 30;
+            if (Program.SystemConfig.isOptSet("steam_wait") && !string.IsNullOrEmpty(Program.SystemConfig["steam_wait"]))
+                waittime = Program.SystemConfig["steam_wait"].ToInteger();
+            SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waittime + " seconds for the game to run before returning to Game List");
+
+            Process.Start(path);
+            SimpleLogger.Instance.Info("Process started : " + _exename);
+
+            Process game = WaitForGameProcess(waittime);
+
+            if (game == null)
+            {
+                SimpleLogger.Instance.Info("Process : " + _exename + " not running.");
+
+                var gameProcess = FindGameProcessByWindowFocus();
+                if (gameProcess != null)
+                {
+                    SimpleLogger.Instance.Info("[INFO] Game process '" + gameProcess.ProcessName + "' identified by window focus. Monitoring process.");
+                    Job.Current.AddProcess(gameProcess);
+                    gameProcess.WaitForExit();
+                    SimpleLogger.Instance.Info("[INFO] Game process has exited.");
+                }
+                else
+                    SimpleLogger.Instance.Info("[INFO] All fallback methods failed. Unable to monitor game process.");
+            }
+            else
+            {
+                SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
+                Job.Current.AddProcess(game);
+                game.WaitForExit();
             }
         }
 
@@ -922,14 +852,11 @@ namespace EmulatorLauncher
             if (!File.Exists(target))
                 throw new Exception("Target file " + target + " does not exist.");
 
-            result.IsGameExe = File.Exists(target);
+            result.IsGameExe = true;
 
-            if (result.IsGameExe)
-            {
-                _gameExeFile = GetProcessFromFile(rom);
-                result.Rom = target;
-                result.WorkingDirectory = Path.GetDirectoryName(target);
-            }
+            _gameExeFile = GetProcessFromFile(rom);
+            result.Rom = target;
+            result.WorkingDirectory = Path.GetDirectoryName(target);
 
             return result;
         }
@@ -1056,13 +983,13 @@ namespace EmulatorLauncher
             {
                 Process launcherprocess = null;
 
-                int waitttime = 30;
+                int waittime = 30;
                 if (Program.SystemConfig.isOptSet("steam_wait") && !string.IsNullOrEmpty(Program.SystemConfig["steam_wait"]))
-                    waitttime = Program.SystemConfig["steam_wait"].ToInteger();
+                    waittime = Program.SystemConfig["steam_wait"].ToInteger();
 
-                SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waitttime.ToString() + " seconds for the game to run before returning to Game List");
+                SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waittime.ToString() + " seconds for the game to run before returning to Game List");
 
-                for (int i = 0; i < waitttime; i++)
+                for (int i = 0; i < waittime; i++)
                 {
                     launcherprocess = Process.GetProcessesByName(LauncherExe).FirstOrDefault();
                     if (launcherprocess != null)
