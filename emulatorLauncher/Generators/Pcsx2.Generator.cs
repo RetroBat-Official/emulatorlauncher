@@ -728,9 +728,9 @@ namespace EmulatorLauncher
                 else
                     ini.WriteValue("UI", "StartFullscreen", "false");
 
-                ini.Remove("UI", "MainWindowGeometry");
-                ini.Remove("UI", "MainWindowState");
-                ini.Remove("UI", "DisplayWindowGeometry");
+                //ini.Remove("UI", "MainWindowGeometry");
+                //ini.Remove("UI", "MainWindowState");
+                //ini.Remove("UI", "DisplayWindowGeometry");
 
                 // Emucore section
                 ini.WriteValue("EmuCore", "EnableGameFixes", "true");
