@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace EmulatorLauncher
@@ -583,6 +584,20 @@ namespace EmulatorLauncher
             return isWindowed && bounds.Width > 0 && bounds.Height > 0;
         }
         #endregion
+
+        public static bool ShouldRunFullscreen()
+        {
+            if (Program.SystemConfig.getOptBoolean("forcefullscreen"))
+                return true;
+
+            if (Program.SystemConfig.isOptSet("forcefullscreen") && !Program.SystemConfig.getOptBoolean("forcefullscreen"))
+                return false;
+
+            if (IsEmulationStationWindowed())
+                return false;
+
+            return true;
+        }
 
         protected static string GetCurrentLanguage()
         {
@@ -1300,6 +1315,22 @@ namespace EmulatorLauncher
                 else
                     cfg[settingName] = SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue);
             }
+        }
+
+        [DllImport("user32.dll")]
+        static extern IntPtr GetDC(IntPtr hWnd);
+
+        [DllImport("gdi32.dll")]
+        static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+
+        const int LOGPIXELSX = 88;
+        const int LOGPIXELSY = 90;
+
+        public static float GetDpiScaleFactor()
+        {
+            IntPtr hdc = GetDC(IntPtr.Zero);
+            int dpiX = GetDeviceCaps(hdc, LOGPIXELSX);
+            return dpiX / 96.0f; // 96 is the default (100%) DPI
         }
     }
 

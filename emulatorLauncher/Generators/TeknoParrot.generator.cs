@@ -187,7 +187,7 @@ namespace EmulatorLauncher
             if (!_namco2x6)
                 rom = this.TryUnZipGameIfNeeded(system, rom);
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
             string gameName = Path.GetFileNameWithoutExtension(rom);
             SimpleLogger.Instance.Info("[INFO] Game name : " + gameName);
 

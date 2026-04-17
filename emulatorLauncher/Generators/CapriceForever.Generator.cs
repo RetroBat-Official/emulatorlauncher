@@ -88,7 +88,7 @@ namespace EmulatorLauncher
             if (Path.GetExtension(rom).ToLower() == ".cpr")
                 romType = "cart";
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             SetupConfig(path, system, romType, driveADisk, driveBDisk, rom);
             SetupDevice(path, rom, romType);

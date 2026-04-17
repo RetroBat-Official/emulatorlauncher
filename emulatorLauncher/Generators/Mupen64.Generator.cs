@@ -54,7 +54,7 @@ namespace EmulatorLauncher
             if (!File.Exists(portableFile))
                 File.WriteAllText(portableFile, "");
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             SetupConfiguration(path, rom, system, emulator, core, fullscreen);
             

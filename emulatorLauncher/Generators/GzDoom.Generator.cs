@@ -21,7 +21,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 			
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             string configFile = Path.Combine(path, "gzdoom_portable.ini");
             string romPath = Path.GetDirectoryName(rom);

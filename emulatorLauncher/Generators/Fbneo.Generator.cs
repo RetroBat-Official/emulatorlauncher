@@ -30,7 +30,7 @@ namespace EmulatorLauncher
                 return null;
 
             _romName = Path.GetFileNameWithoutExtension(rom);
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             //Applying bezels
             if (fullscreen)

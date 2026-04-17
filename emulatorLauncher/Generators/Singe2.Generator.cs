@@ -31,7 +31,7 @@ namespace EmulatorLauncher
             if (!Directory.Exists(actionMaxRom))
                 actionMaxRom = Path.Combine(Path.GetDirectoryName(rom), "ActionMax");
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
             _actionMax = system == "actionmax";
 
             if (_actionMax && !Directory.Exists(actionMaxRom))

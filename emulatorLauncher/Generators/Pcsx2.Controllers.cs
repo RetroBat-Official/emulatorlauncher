@@ -780,7 +780,7 @@ namespace EmulatorLauncher
             { InputKey.down, new KeyValuePair<string, string>("PreviousSaveStateSlot", "Keyboard/F6") },
             { InputKey.left, new KeyValuePair<string, string>("ToggleSlowMotion", "Keyboard/Backspace") },
             { InputKey.right, new KeyValuePair<string, string>("HoldTurbo", "Keyboard/L") },
-            { InputKey.start, new KeyValuePair<string, string>("ShutdownVM", "") },
+            { InputKey.start, new KeyValuePair<string, string>("ShutdownVM", "Keyboard/Escape") },
         };
 
         static public Dictionary<string, KeyValuePair<string, string>> dinputHotkeys = new Dictionary<string, KeyValuePair<string, string>>()
@@ -794,7 +794,7 @@ namespace EmulatorLauncher
             { "dpdown", new KeyValuePair<string, string>("PreviousSaveStateSlot", "Keyboard/F6") },
             { "dpleft", new KeyValuePair<string, string>("ToggleSlowMotion", "Keyboard/Backspace") },
             { "dpright", new KeyValuePair<string, string>("HoldTurbo", "Keyboard/L") },
-            { "start", new KeyValuePair<string, string>("ShutdownVM", "") },
+            { "start", new KeyValuePair<string, string>("ShutdownVM", "Keyboard/Escape") },
         };
 
 

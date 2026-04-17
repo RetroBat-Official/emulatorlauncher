@@ -38,7 +38,7 @@ namespace EmulatorLauncher
 
             _isArcade = (system != "dreamcast" && system != "dc");
             _romName = Path.GetFileNameWithoutExtension(rom);
-            _fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            _fullscreen = ShouldRunFullscreen();
             bool wide = SystemConfig.isOptSet("flycast_ratio") && SystemConfig["flycast_ratio"] != "normal";
 
             //Applying bezels

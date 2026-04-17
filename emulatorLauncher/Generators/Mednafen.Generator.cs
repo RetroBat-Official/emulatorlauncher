@@ -40,7 +40,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             // Configure cfg file
             SetupConfig(cfg, mednafenCore, system, rom);

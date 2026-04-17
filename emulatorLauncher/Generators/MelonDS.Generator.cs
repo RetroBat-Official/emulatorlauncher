@@ -30,7 +30,7 @@ namespace EmulatorLauncher
             _path = path;
 
             bool bootToDSINand = Path.GetExtension(rom).ToLowerInvariant() == ".bin";
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             //Applying bezels (reshade is not working well and unglazed not aligned for standalone)
             if (fullscreen)

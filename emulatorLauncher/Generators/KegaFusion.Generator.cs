@@ -85,7 +85,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("", "ScreenshotPath", screenshotpath);
 
                 // VIDEO
-                bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+                bool fullscreen = ShouldRunFullscreen();
 
                 if (fullscreen)
                     ini.WriteValue("", "FullScreen", "1");

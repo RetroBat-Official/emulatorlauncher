@@ -43,7 +43,7 @@ namespace EmulatorLauncher
             if (!Directory.Exists(portableFolder)) try { Directory.CreateDirectory(portableFolder); }
                 catch { }
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             // Bezels
             if (fullscreen)

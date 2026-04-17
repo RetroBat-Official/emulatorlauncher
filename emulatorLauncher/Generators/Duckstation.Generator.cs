@@ -46,7 +46,7 @@ namespace EmulatorLauncher
 
             _path = path;
 
-            bool fullscreen = (!SystemConfig.getOptBoolean("disable_fullscreen") && !IsEmulationStationWindowed()) || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen() && !SystemConfig.getOptBoolean("disable_fullscreen");
 
             string exe = Path.Combine(path, "duckstation-qt-x64-ReleaseLTCG.exe");
             if (!File.Exists(exe))
@@ -106,7 +106,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            SetupSettings(path, rom, system);
+            SetupSettings(path, rom, system, fullscreen);
 
             _resolution = resolution;
 
@@ -169,7 +169,7 @@ namespace EmulatorLauncher
             return "en";
         }
 
-        private void SetupSettings(string path, string rom, string system)
+        private void SetupSettings(string path, string rom, string system, bool fullscreen = true)
         {
             string iniFile = Path.Combine(path, "settings.ini");
 
@@ -485,9 +485,6 @@ namespace EmulatorLauncher
                     BindIniFeatureSlider(ini, "Main", "EmulationSpeed", "duck_EmulationSpeed", "1", 1);
 
                     // fullscreen (disable fullscreen start option, workaround for people with multi-screen that cannot get emulator to start fullscreen on the correct monitor)
-
-                    bool fullscreen = (!IsEmulationStationWindowed() && !SystemConfig.getOptBoolean("disable_fullscreen")) || SystemConfig.getOptBoolean("forcefullscreen");
-
                     if (!fullscreen)
                         ini.WriteValue("Main", "StartFullscreen", "false");
                     else

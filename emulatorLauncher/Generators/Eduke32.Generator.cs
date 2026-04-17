@@ -70,7 +70,7 @@ namespace EmulatorLauncher
 
         private void SetupConfiguration(string path, string grp, ScreenResolution resolution)
         {
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             try
             {

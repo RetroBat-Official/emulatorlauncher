@@ -55,7 +55,7 @@ namespace EmulatorLauncher
 
         private void SetupConfiguration(string path)
         {
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             // Delete interfering files
             string gameSettingsPath = Path.Combine(path, "Setting", "Saturn");

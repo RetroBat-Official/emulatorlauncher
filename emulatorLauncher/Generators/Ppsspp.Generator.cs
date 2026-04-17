@@ -64,7 +64,7 @@ namespace EmulatorLauncher
                 _saveStatesWatcher.PrepareEmulatorRepository();
             }
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             WriteInstalledFile(path, memPath);
             SetupConfig(memPath, rom, fullscreen);

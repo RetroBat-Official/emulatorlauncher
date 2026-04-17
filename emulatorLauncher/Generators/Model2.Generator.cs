@@ -23,7 +23,7 @@ namespace EmulatorLauncher
 
         public Model2Generator()
         {
-            DependsOnDesktopResolution = false;
+            DependsOnDesktopResolution = true;
         }
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -43,7 +43,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             string pakDir = Path.Combine(path, "roms");
             if (!Directory.Exists(pakDir))
@@ -135,9 +135,10 @@ namespace EmulatorLauncher
                     if (SystemConfig.isOptSet("m2_widescreen") && SystemConfig.getOptBoolean("m2_widescreen"))
                         ini.WriteValue("Renderer", "WideScreenWindow", "1");
 
-                    ini.WriteValue("Renderer", "FullScreenWidth", (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
-                    ini.WriteValue("Renderer", "FullScreenHeight", (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
-                    
+                    var currentRes = ScreenResolution.CurrentResolution;
+                    ini.WriteValue("Renderer", "FullScreenWidth", currentRes.Width.ToString());
+                    ini.WriteValue("Renderer", "FullScreenHeight", currentRes.Height.ToString());
+
                     BindBoolIniFeatureOn(ini, "Renderer", "ForceSync", "VSync", "1", "0");
                     BindBoolIniFeatureOn(ini, "Renderer", "Bilinear", "bilinear_filtering", "1", "0");
                     BindBoolIniFeature(ini, "Renderer", "Trilinear", "trilinear_filtering", "1", "0");
@@ -400,7 +401,7 @@ namespace EmulatorLauncher
             FakeBezelFrm bezel = null;
             FullScreenHostFrm fullScreenHost = null;
 
-            if (_bezelFileInfo == null && (!IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen")))
+            if (_bezelFileInfo == null && ShouldRunFullscreen())
             {
                 fullScreenHost = new FullScreenHostFrm();
                 fullScreenHost.Show();

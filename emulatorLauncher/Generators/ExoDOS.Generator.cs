@@ -26,7 +26,7 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             _system = system;
 
@@ -61,7 +61,7 @@ namespace EmulatorLauncher
             else
                 path = Path.GetDirectoryName(path);
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
             string gameRes = SystemConfig.isOptSet("exo_resolution") && !string.IsNullOrEmpty(SystemConfig["exo_resolution"])? SystemConfig["exo_resolution"] : "medium";
             bool aspectRatio = SystemConfig.getOptBoolean("exo_aspect_ratio") || !SystemConfig.isOptSet("exo_aspect_ratio");
 

@@ -35,7 +35,7 @@ namespace EmulatorLauncher
             if (!Directory.Exists(userFolder)) try { Directory.CreateDirectory(userFolder); }
                 catch { }
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             string portableFile = Path.Combine(path, "portable.txt");
             if (!File.Exists(portableFile))

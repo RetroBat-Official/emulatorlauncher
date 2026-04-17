@@ -24,7 +24,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             if (!GetVita3kPrefPath(path))
                 _prefPath = Path.Combine(AppConfig.GetFullPath("saves"), "psvita", "vita3k");

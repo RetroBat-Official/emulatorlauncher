@@ -135,7 +135,7 @@ namespace EmulatorLauncher
             var process = Process.Start(path);
             Job.Current.AddProcess(process);
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             while (process != null)
             {

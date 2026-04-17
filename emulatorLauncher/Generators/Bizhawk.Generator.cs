@@ -82,7 +82,7 @@ namespace EmulatorLauncher
             else
                 _saveStatesWatcher = null;
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             // Json Config file
             string configFile = Path.Combine(path, "config.ini");

@@ -37,7 +37,7 @@ namespace EmulatorLauncher
                 File.WriteAllText(portableFile, "");
 
             _isArcade = system == "namco2x6";
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
             _romName = Path.GetFileNameWithoutExtension(rom);
 
             //settings

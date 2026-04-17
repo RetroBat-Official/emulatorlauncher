@@ -41,7 +41,7 @@ namespace EmulatorLauncher
             _path = path;
             _system = system;
 
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             //Applying bezels
             if (!fullscreen)

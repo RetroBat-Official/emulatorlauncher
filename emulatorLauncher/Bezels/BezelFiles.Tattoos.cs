@@ -98,41 +98,14 @@ namespace EmulatorLauncher
                 return inputPng;
             }
 
-            Image back = Image.FromFile(inputPng);
+            Image back = LoadImageAtPhysicalSize(inputPng);
 
-            // Preserve the original DPI values of the tattoo before normalization
-            float originalTattooDpiX = tattoo.HorizontalResolution;
-            float originalTattooDpiY = tattoo.VerticalResolution;
+            int w = back.Width;
+            int h = back.Height;
+            int tw = tattoo.Width;
+            int th = tattoo.Height;
 
-            // Normalize both images to 96x96 DPI to avoid scaling issues
-            if (back.HorizontalResolution != 96 || back.VerticalResolution != 96)
-            {
-                back = SetImageToStandardDpi(back, 96, 96);  // Set the background image to 96 DPI
-            }
-
-            if (tattoo.HorizontalResolution != 96 || tattoo.VerticalResolution != 96)
-            {
-                tattoo = SetImageToStandardDpi(tattoo, 96, 96);  // Set the tattoo image to 96 DPI
-            }
-
-            // Calculate resizing factor for the tattoo based on original DPI and normalized DPI
-            float dpiScaleFactorX = originalTattooDpiX / 96.0f;
-            float dpiScaleFactorY = originalTattooDpiY / 96.0f;
-
-            // Resize the tattoo to account for its original DPI, so it doesn't appear too large
-            int newTattooWidth = (int)(tattoo.Width / dpiScaleFactorX);
-            int newTattooHeight = (int)(tattoo.Height / dpiScaleFactorY);
-            tattoo = ResizeImage(tattoo, newTattooWidth, newTattooHeight);
-
-            // Convert both images to RGBA
-            back = ConvertToRgba(back);
-            tattoo = ConvertToRgba(tattoo);
-
-            var backSize = FastImageSize(inputPng);
-            var tattooSize = FastImageSize(tattooFile);
-            int w = backSize.Item1, h = backSize.Item2;
-            int tw = tattooSize.Item1, th = tattooSize.Item2;
-
+            // Resize tattoo to correct proportional size based on background dimensions
             if (Program.SystemConfig.isOptSet("resize_tattoo") && Program.SystemConfig.getOptBoolean("resize_tattoo"))
             {
                 if (tw > w || th > h)
@@ -140,6 +113,7 @@ namespace EmulatorLauncher
                     float pcent = (float)w / tw;
                     th = (int)(th * pcent);
                     tattoo = ResizeImage(tattoo, w, th);
+                    tw = w;
                 }
             }
             else
@@ -151,40 +125,49 @@ namespace EmulatorLauncher
                 tw = twtemp;
             }
 
-            Bitmap tattooCanvas = new Bitmap(back.Width, back.Height);
-            using (Graphics g = Graphics.FromImage(tattooCanvas))
-            {
-                g.Clear(Color.Transparent);
-            }
-
             int margin = (int)((20.0 / 1080) * h);
             string corner = Program.SystemConfig.isOptSet("tattoo_corner") ? Program.SystemConfig["tattoo_corner"] : "NW";
 
-            using (Graphics g = Graphics.FromImage(tattooCanvas))
+            // Create final image at exact physical pixel size, with DPI locked to 96
+            Bitmap finalImage = new Bitmap(w, h);
+            finalImage.SetResolution(96, 96);
+
+            using (Graphics g = Graphics.FromImage(finalImage))
             {
+                // KEY FIX: set unit to Pixel so GDI+ doesn't scale coordinates
+                // based on the Graphics object's DPI vs the image's DPI
+                g.PageUnit = System.Drawing.GraphicsUnit.Pixel;
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+
+                g.Clear(Color.Transparent);
+
+                // Draw background at exact pixel coordinates
+                g.DrawImage(back, new Rectangle(0, 0, w, h));
+
+                // Draw tattoo at correct corner position
+                int x, y;
                 switch (corner)
                 {
                     case "NE":
-                        g.DrawImage(tattoo, w - (tw/2), margin);
+                        x = w - tw;
+                        y = margin;
                         break;
                     case "SE":
-                        g.DrawImage(tattoo, w - (tw/2), h - (th/2) - margin);
+                        x = w - tw;
+                        y = h - th - margin;
                         break;
                     case "SW":
-                        g.DrawImage(tattoo, 0, h - (th/2) - margin);
+                        x = 0;
+                        y = h - th - margin;
                         break;
                     default: // NW
-                        g.DrawImage(tattoo, 0, margin);
+                        x = 0;
+                        y = margin;
                         break;
                 }
-            }
 
-            Bitmap finalImage = new Bitmap(w, h);
-            using (Graphics g = Graphics.FromImage(finalImage))
-            {
-                g.Clear(Color.Transparent);
-                g.DrawImage(back, 0, 0);
-                g.DrawImage(tattooCanvas, 0, 0);
+                g.DrawImage(tattoo, new Rectangle(x, y, tw, th));
             }
 
             finalImage.Save(outputPng, ImageFormat.Png);
@@ -1023,6 +1006,31 @@ namespace EmulatorLauncher
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Loads an image and redraws it into a new bitmap at its true physical pixel
+        /// dimensions, with resolution forced to 96 DPI. This prevents GDI+ from
+        /// applying any DPI-based scaling when drawing or compositing the image.
+        /// </summary>
+        private static Bitmap LoadImageAtPhysicalSize(string filePath)
+        {
+            using (Image src = Image.FromFile(filePath))
+            {
+                // src.Width/Height are already in physical pixels for PNG files,
+                // but the embedded DPI metadata can cause GDI+ to scale when drawing.
+                // Redrawing into a 96 DPI bitmap with PageUnit.Pixel eliminates this.
+                Bitmap bmp = new Bitmap(src.Width, src.Height, PixelFormat.Format32bppArgb);
+                bmp.SetResolution(96, 96);
+
+                using (Graphics g = Graphics.FromImage(bmp))
+                {
+                    g.PageUnit = System.Drawing.GraphicsUnit.Pixel;
+                    g.DrawImage(src, new Rectangle(0, 0, src.Width, src.Height));
+                }
+
+                return bmp;
+            }
         }
         #endregion
     }

@@ -65,7 +65,7 @@ namespace EmulatorLauncher
 
         private void ConfigureCommandLineArguments(List<string> commandArray)
         {
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             commandArray.Add("-fullscreen");
             commandArray.Add(fullscreen ? "1" : "0");

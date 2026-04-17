@@ -132,7 +132,7 @@ namespace EmulatorLauncher
             rom = MountIso(rom);
 
             _resolution = resolution;
-            bool fullscreen = !IsEmulationStationWindowed() || SystemConfig.getOptBoolean("forcefullscreen");
+            bool fullscreen = ShouldRunFullscreen();
 
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             
