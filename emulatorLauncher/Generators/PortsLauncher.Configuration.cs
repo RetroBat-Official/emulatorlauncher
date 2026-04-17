@@ -1656,6 +1656,7 @@ namespace EmulatorLauncher
                 fs = (JObject)window["Fullscreen"];
 
             gwindows["Menu"] = 0;
+            gsettings["ControlNav"] = 1;
 
             // Settings
             advres["Enabled"] = 1;
@@ -1677,7 +1678,12 @@ namespace EmulatorLauncher
                 advres["VerticalPixelCount"] = 480;
 
             // Aspect ratio
-            if (SystemConfig.isOptSet("soh_Ratio") && !string.IsNullOrEmpty(SystemConfig["sohRatio"]))
+            if (advres["UIComboItem"] == null)
+                advres["UIComboItem"] = new JObject();
+
+            advres["UIComboItem"]["AspectRatio"] = 1;
+
+            if (SystemConfig.isOptSet("soh_Ratio") && !string.IsNullOrEmpty(SystemConfig["soh_Ratio"]))
             {
                 string sohRatio = SystemConfig["soh_Ratio"];
                 switch (sohRatio)
