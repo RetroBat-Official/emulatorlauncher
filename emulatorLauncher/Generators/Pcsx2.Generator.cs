@@ -129,6 +129,14 @@ namespace EmulatorLauncher
                 if (!SystemConfig.isOptSet("pcsx2_gui") || !SystemConfig.getOptBoolean("pcsx2_gui"))
                     commandArray.Add("-nogui");
 
+                if (!SystemConfig.getOptBoolean("disable_fullscreen") && _fullscreen)
+                    commandArray.Add("-fullscreen");
+
+                if (SystemConfig.isOptSet("bigpicture") && SystemConfig.getOptBoolean("bigpicture"))
+                {
+                    commandArray.Add("-bigpicture");
+                }
+
                 if (SystemConfig.isOptSet("pcsx2_startbios") && SystemConfig.getOptBoolean("pcsx2_startbios"))
                 {
                     commandArray.Add("-bios");
@@ -139,13 +147,6 @@ namespace EmulatorLauncher
                         WorkingDirectory = _path,
                         Arguments = argsBios,
                     };
-                }
-
-                if (SystemConfig.isOptSet("bigpicture") && SystemConfig.getOptBoolean("bigpicture"))
-                {
-                    if (!SystemConfig.getOptBoolean("disable_fullscreen") || SystemConfig.getOptBoolean("forcefullscreen"))
-                        commandArray.Add("-fullscreen");
-                    commandArray.Add("-bigpicture");
                 }
 
                 if (SystemConfig.isOptSet("fullboot") && !SystemConfig.getOptBoolean("fullboot"))
