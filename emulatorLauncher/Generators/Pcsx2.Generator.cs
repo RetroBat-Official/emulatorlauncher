@@ -1066,10 +1066,10 @@ namespace EmulatorLauncher
                 {
                     RECT rc = bezel.ViewPort;
 
-                    if (rc.bottom - rc.top == (_resolution ?? ScreenResolution.CurrentResolution).Height)
-                        rc.bottom--;
+                    //if (rc.bottom - rc.top == (_resolution ?? ScreenResolution.CurrentResolution).Height)
+                    //    rc.bottom--;
 
-                    var process = StartProcessAndMoveItsWindowTo(path, rc);
+                    var process = StartProcessAndMoveItsWindowTo(path, rc, monitorIndex);
                     if (process != null)
                     {
                         Job.Current.AddProcess(process);
@@ -1089,7 +1089,7 @@ namespace EmulatorLauncher
 
             if (monitorIndex >= 0)
             {
-                var process = StartProcessAndMoveItsWindowTo(path, Screen.AllScreens[monitorIndex].Bounds);
+                var process = StartProcessAndMoveItsWindowTo(path, Screen.AllScreens[monitorIndex].Bounds, monitorIndex);
                 if (process != null)
                 {
                     Job.Current.AddProcess(process);
@@ -1105,10 +1105,14 @@ namespace EmulatorLauncher
             return base.RunAndWait(path);
         }
 
-        private Process StartProcessAndMoveItsWindowTo(ProcessStartInfo path, RECT rc)
+        private Process StartProcessAndMoveItsWindowTo(ProcessStartInfo path, RECT rc, int monitorIndex)
         {
-            int retryCount = 0;
             var process = Process.Start(path);
+
+            if (monitorIndex == 0)
+                return process;
+
+            int retryCount = 0;
 
             while (process != null)
             {
@@ -1131,12 +1135,16 @@ namespace EmulatorLauncher
                 if (!User32.IsWindowVisible(hWnd))
                     continue;
 
-                User32.SetWindowPos(hWnd, IntPtr.Zero, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, SWP.ASYNCWINDOWPOS);
-                if (SystemConfig["pcsx2_crosshair"] == "disabled")
-                {
-                    Thread.Sleep(500);
-                    User32.ShowWindow(hWnd, SW.SHOWMAXIMIZED);
-                }
+                Thread.Sleep(200);
+
+                User32.SetWindowPos(
+                    hWnd,
+                    IntPtr.Zero,
+                    rc.left, rc.top,
+                    rc.right - rc.left, rc.bottom - rc.top,
+                    SWP.NOZORDER | SWP.NOACTIVATE
+                );
+
                 break;
             }
             return process;
