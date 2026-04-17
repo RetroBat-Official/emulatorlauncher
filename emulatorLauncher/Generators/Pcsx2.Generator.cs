@@ -1054,17 +1054,10 @@ namespace EmulatorLauncher
         {
             int ret = 0;
             int monitorIndex = SystemConfig["MonitorIndex"].ToInteger();
-            
-            for (int i = 0; i < Screen.AllScreens.Length; i++)
-            {
-                var s = Screen.AllScreens[i];
-                SimpleLogger.Instance.Info($"[PCSX2] Screen[{i}]: L={s.Bounds.Left} T={s.Bounds.Top} W={s.Bounds.Width} H={s.Bounds.Height} Primary={s.Primary}");
-            }
-            SimpleLogger.Instance.Info($"[PCSX2] MonitorIndex={monitorIndex}");
 
             var screens = Screen.AllScreens;
             if (monitorIndex < 0 || monitorIndex >= screens.Length)
-                monitorIndex = 0;
+                monitorIndex = Array.FindIndex(screens, s => s.Primary);
 
             if (_bezelFileInfo != null)
             {
@@ -1151,12 +1144,6 @@ namespace EmulatorLauncher
                     rc.right - rc.left, rc.bottom - rc.top,
                     SWP.NOZORDER | SWP.NOACTIVATE
                 );
-
-                if (SystemConfig["pcsx2_crosshair"] == "disabled")
-                {
-                    Thread.Sleep(500);
-                    User32.ShowWindow(hWnd, SW.SHOWMAXIMIZED);
-                }
                 break;
             }
             return process;

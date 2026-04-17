@@ -610,6 +610,17 @@ namespace EmulatorLauncher
             }
             catch { SimpleLogger.Instance.Error("[Startup] Error while getting local version"); }
 
+            // log screens
+            var allScreens = Screen.AllScreens;
+            if (allScreens != null && allScreens.Length > 0)
+            {
+                for (int i = 0; i < allScreens.Length; i++)
+                {
+                    var s = allScreens[i];
+                    SimpleLogger.Instance.Info($"[Generator] Screen[{i}]: L={s.Bounds.Left} T={s.Bounds.Top} W={s.Bounds.Width} H={s.Bounds.Height} Primary={s.Primary}");
+                }
+            }
+
             // Game info
             if (SystemConfig.isOptSet("gameinfo") && File.Exists(SystemConfig.GetFullPath("gameinfo")))
             {
