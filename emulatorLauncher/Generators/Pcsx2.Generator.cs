@@ -125,7 +125,7 @@ namespace EmulatorLauncher
             if (_isPcsxqt)
             {
                 commandArray.Add("-batch");
-                
+
                 if (!SystemConfig.isOptSet("pcsx2_gui") || !SystemConfig.getOptBoolean("pcsx2_gui"))
                     commandArray.Add("-nogui");
 
@@ -151,7 +151,7 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("fullboot") && !SystemConfig.getOptBoolean("fullboot"))
                     commandArray.Add("-slowboot");
             }
-            else 
+            else
             {
                 commandArray.Add("--portable");
 
@@ -186,9 +186,9 @@ namespace EmulatorLauncher
         #region 1.6 version
         private void SetupPaths(bool fullscreen)
         {
-            var biosList = new string[] { 
-                            "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC", 
-                            "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN", 
+            var biosList = new string[] {
+                            "SCPH30004R.bin", "SCPH30004R.MEC", "scph39001.bin", "scph39001.MEC",
+                            "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN",
                             "ps2-0230a-20080220.bin", "ps2-0230e-20080220.bin", "ps2-0230j-20080220.bin", "ps2-0250e-20100415.bin", "ps3_ps2_emu_bios.bin" };
 
             string iniFile = Path.Combine(_path, "inis", "PCSX2_ui.ini");
@@ -264,7 +264,7 @@ namespace EmulatorLauncher
                             ini.WriteValue("Filenames", "GS", "GSdx32-SSE2.dll");
                     }
 
-                    foreach (var key in new string[] { "SPU2", "CDVD", "USB", "FW", "DEV9", "BIOS"})
+                    foreach (var key in new string[] { "SPU2", "CDVD", "USB", "FW", "DEV9", "BIOS" })
                     {
                         string value = ini.GetValue("Filenames", key);
                         if (value == null || value == "Please Configure")
@@ -364,7 +364,7 @@ namespace EmulatorLauncher
             try
             {
                 using (var ini = new IniFile(iniFile))
-                {                
+                {
                     //Activate user hacks - default activation if a hack is enabled later  
                     if (SystemConfig.isOptSet("UserHacks") && SystemConfig.getOptBoolean("UserHacks"))
                         ini.WriteValue("Settings", "UserHacks", "1");
@@ -520,7 +520,7 @@ namespace EmulatorLauncher
                     }
                     else
                         ini.WriteValue("Settings", "UserHacks_SkipDraw_Offset", "0");
-                    
+
                     if (SystemConfig.isOptSet("UserHacks_SkipDraw_End") && !string.IsNullOrEmpty(SystemConfig["UserHacks_SkipDraw_End"]))
                     {
                         ini.WriteValue("Settings", "UserHacks_SkipDraw", SystemConfig["UserHacks_SkipDraw_End"].ToIntegerString());
@@ -575,7 +575,7 @@ namespace EmulatorLauncher
         /// <param name="path"></param>
         private void SetupConfigurationQT(string path, string rom, string system, bool fullscreen)
         {
-            var biosList = new string[] { "ps2-0230a-20080220.bin", "ps2-0230e-20080220.bin", "ps2-0250e-20100415.bin", "ps2-0230j-20080220.bin", "ps3_ps2_emu_bios.bin", 
+            var biosList = new string[] { "ps2-0230a-20080220.bin", "ps2-0230e-20080220.bin", "ps2-0250e-20100415.bin", "ps2-0230j-20080220.bin", "ps3_ps2_emu_bios.bin",
                 "SCPH30004R.bin", "scph39001.bin", "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };
 
             string conf = Path.Combine(_path, "inis", "PCSX2.ini");
@@ -613,13 +613,13 @@ namespace EmulatorLauncher
                     ini.WriteValue("Achievements", "LBOverlays", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
                     ini.WriteValue("Achievements", "SoundEffects", "true");
                     ini.WriteValue("Achievements", "Overlays", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "true" : "false");
-                    
+
                     // Inject credentials
                     if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
                     {
                         ini.WriteValue("Achievements", "Username", SystemConfig["retroachievements.username"]);
                         ini.WriteValue("Achievements", "Token", SystemConfig["retroachievements.token"]);
-                        
+
                         if (string.IsNullOrEmpty(ini.GetValue("Achievements", "Token")))
                             ini.WriteValue("Achievements", "LoginTimestamp", Convert.ToString((int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds));
                     }
@@ -631,7 +631,7 @@ namespace EmulatorLauncher
                 }
 
                 // Define paths
-                
+
                 // Add rom path to RecursivePaths
                 AddPathToRecursivePaths(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
 
@@ -645,7 +645,7 @@ namespace EmulatorLauncher
 
                 if (Directory.GetFiles(biosPath).Length == 0)                 // if no bios, do not set
                     biosPath = AppConfig.GetFullPath("bios");
-                
+
                 if (!biosList.Any(b => File.Exists(Path.Combine(biosPath, b))))
                     throw new ApplicationException("No BIOS found in bios/pcsx2/bios folder.");
 
@@ -667,15 +667,15 @@ namespace EmulatorLauncher
                 // Cheats Path
                 var cheatsRootPath = AppConfig.GetFullPath("cheats");
                 cheatsRootPath = string.IsNullOrEmpty(cheatsRootPath) ? path : Path.Combine(cheatsRootPath, "pcsx2");
-                
+
                 SetIniPath(ini, "Folders", "Cheats", Path.Combine(cheatsRootPath, "cheats"));
-                
+
                 // Snapshots path
                 string screenShotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "pcsx2");
                 SetIniPath(ini, "Folders", "Snapshots", screenShotsPath);
 
                 // Memory cards path
-                string memcardsPath = Path.Combine(AppConfig.GetFullPath("saves"), "ps2", "pcsx2", "memcards");                
+                string memcardsPath = Path.Combine(AppConfig.GetFullPath("saves"), "ps2", "pcsx2", "memcards");
                 SetIniPath(ini, "Folders", "MemoryCards", memcardsPath);
 
                 bool newSaveStates = Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported("pcsx2");
@@ -734,12 +734,12 @@ namespace EmulatorLauncher
                 // Emucore section
                 ini.WriteValue("EmuCore", "EnableGameFixes", "true");
                 ini.WriteValue("EmuCore", "EnablePatches", "true");
-                
+
                 if (!SystemConfig.isOptSet("fullboot") || SystemConfig.getOptBoolean("fullboot"))
                     ini.WriteValue("EmuCore", "EnableFastBoot", "true");
                 else
                     ini.WriteValue("EmuCore", "EnableFastBoot", "false");
-                
+
                 ini.WriteValue("EmuCore", "EnableFastBootFastForward", SystemConfig.getOptBoolean("pcsx2_fastboot") ? "true" : "false");
 
                 //Enable cheats automatically on load if Retroachievements-hardcore is not set only
@@ -749,7 +749,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("EmuCore", "EnableCheats", "false");
 
                 BindBoolIniFeature(ini, "EmuCore", "EnableDiscordPresence", "discord", "true", "false");
-                
+
                 BindBoolIniFeatureOn(ini, "EmuCore", "EnableWideScreenPatches", "widescreen_patch", "true", "false");
                 BindBoolIniFeatureOn(ini, "EmuCore", "EnableNoInterlacingPatches", "interlacing_patch", "true", "false");
 
@@ -762,7 +762,7 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "EmuCore/GS", "FMVAspectRatioSwitch", "fmv_ratio", "Off");
                 BindIniFeature(ini, "EmuCore/GS", "Renderer", "renderer", "-1");
                 BindIniFeature(ini, "EmuCore/GS", "deinterlace_mode", "interlace", "0");
-                
+
                 if (SystemConfig.isOptSet("deinterlace_mode") && !string.IsNullOrEmpty(SystemConfig["deinterlace_mode"]) && SystemConfig["deinterlace_mode"] != "1")
                     ini.WriteValue("EmuCore/GS", "disable_interlace_offset", "true");
                 else if (Features.IsSupported("deinterlace_mode"))
@@ -831,8 +831,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("EmuCore/GS", "UserHacks_TCOffsetY", "0");
                 }
                 // Automate hacks if any is activated
-                var userhacks = SystemConfig.Where(c=>c.Name.StartsWith("ps2.UserHacks")).ToList();
-                if (userhacks.Count > 0 && userhacks.Any(c=>c.Value != "0"))
+                var userhacks = SystemConfig.Where(c => c.Name.StartsWith("ps2.UserHacks")).ToList();
+                if (userhacks.Count > 0 && userhacks.Any(c => c.Value != "0"))
                     ini.WriteValue("EmuCore/GS", "UserHacks", "true");
 
                 // Custom textures
@@ -977,7 +977,7 @@ namespace EmulatorLauncher
                 {
                     string memCardFolder = Path.Combine(memcardsPath, "Mcdf01.ps2");
                     if (!Directory.Exists(memCardFolder))
-                        try {Directory.CreateDirectory(memCardFolder);} catch { }
+                        try { Directory.CreateDirectory(memCardFolder); } catch { }
                     string superblock = Path.Combine(memCardFolder, "_pcsx2_superblock");
                     if (!File.Exists(superblock))
                         try { File.WriteAllText(superblock, ""); } catch { }
@@ -994,7 +994,7 @@ namespace EmulatorLauncher
                 // Network
                 if (SystemConfig.isOptSet("pcsx2_ethenable") && !string.IsNullOrEmpty(SystemConfig["pcsx2_ethenable"]))
                 {
-                     if (SystemConfig.getOptBoolean("pcsx2_ethenable"))
+                    if (SystemConfig.getOptBoolean("pcsx2_ethenable"))
                         ini.WriteValue("DEV9/Eth", "EthEnable", "true");
                     else
                         ini.WriteValue("DEV9/Eth", "EthEnable", "false");
@@ -1034,7 +1034,7 @@ namespace EmulatorLauncher
                     if (ethdevice == null || ethdevice == "")
                         ini.WriteValue("DEV9/Eth", "EthDevice", "Auto");
                 }
-                    
+
             }
         }
 
@@ -1054,7 +1054,7 @@ namespace EmulatorLauncher
         {
             int ret = 0;
             int monitorIndex = SystemConfig["MonitorIndex"].ToInteger();
-
+            
             for (int i = 0; i < Screen.AllScreens.Length; i++)
             {
                 var s = Screen.AllScreens[i];
@@ -1067,7 +1067,7 @@ namespace EmulatorLauncher
                 monitorIndex = 0;
 
             if (_bezelFileInfo != null)
-            {               
+            {
                 var bezel = _bezelFileInfo.ShowFakeBezel(_resolution, true, monitorIndex);
                 if (bezel != null)
                 {
@@ -1116,11 +1116,11 @@ namespace EmulatorLauncher
         {
             var process = Process.Start(path);
 
-            if (monitorIndex == 0)
+            var screen = Screen.AllScreens[monitorIndex];
+            if (screen.Primary)
                 return process;
 
             int retryCount = 0;
-
             while (process != null)
             {
                 if (process.WaitForExit(50))
@@ -1144,11 +1144,6 @@ namespace EmulatorLauncher
 
                 Thread.Sleep(200);
 
-                var screen = Screen.AllScreens[monitorIndex];
-                var bounds = screen.Bounds;
-
-                SimpleLogger.Instance.Info($"[PCSX2] Monitor {monitorIndex} bounds: L={bounds.Left} T={bounds.Top} W={bounds.Width} H={bounds.Height}");
-
                 User32.SetWindowPos(
                     hWnd,
                     IntPtr.Zero,
@@ -1157,6 +1152,11 @@ namespace EmulatorLauncher
                     SWP.NOZORDER | SWP.NOACTIVATE
                 );
 
+                if (SystemConfig["pcsx2_crosshair"] == "disabled")
+                {
+                    Thread.Sleep(500);
+                    User32.ShowWindow(hWnd, SW.SHOWMAXIMIZED);
+                }
                 break;
             }
             return process;
