@@ -32,11 +32,14 @@ namespace EmulatorLauncher
             {
                 if (Path.GetExtension(rom).ToLower() == ".m3u")
                 {
-                    string tempRom = File.ReadLines(rom).FirstOrDefault();
-                    if (File.Exists(tempRom))
-                        rom = tempRom;
-                    else
-                        rom = Path.Combine(Path.GetDirectoryName(rom), tempRom);
+                    string tempRom = File.ReadLines(rom).FirstOrDefault(l => !string.IsNullOrWhiteSpace(l));
+                    if (tempRom != null)
+                    {
+                        if (FileTools.IsPathFullyQualified(tempRom))
+                            rom = tempRom;
+                        else
+                            rom = Path.Combine(Path.GetDirectoryName(rom), tempRom);
+                    }
                 }
             }
 
@@ -83,13 +86,13 @@ namespace EmulatorLauncher
 
             // System preferences
             var systemSection = GetOrCreateContainer(json, mesenSystem);
-            ConfigureNes(systemSection, system);
-            ConfigureSMS(systemSection, system);
-            ConfigurePCEngine(systemSection, system, path);
-            ConfigureSnes(systemSection, system);
-            ConfigureGameboy(systemSection, system, path);
-            ConfigureGba(systemSection, system, path);
-            ConfigureColeco(systemSection, system, path);
+            ConfigureNes(systemSection, mesenSystem, system);
+            ConfigureSMS(systemSection, mesenSystem, system);
+            ConfigurePCEngine(systemSection, mesenSystem, system, path);
+            ConfigureSnes(systemSection, mesenSystem, system);
+            ConfigureGameboy(systemSection, mesenSystem, system, path);
+            ConfigureGba(systemSection, mesenSystem, system, path);
+            ConfigureColeco(systemSection, mesenSystem, system, path);
 
             // Emulator preferences
             var preference = GetOrCreateContainer(json, "Preferences");
@@ -199,9 +202,9 @@ namespace EmulatorLauncher
             File.WriteAllText(settingsFile, json.ToString(Formatting.Indented));
         }
 
-        private void ConfigureNes(JObject section, string system)
+        private void ConfigureNes(JObject section, string mesenSystem, string system)
         {
-            if (system != "nes" && system != "fds" && system != "famicom")
+            if (mesenSystem != "Nes")
                 return;
             section["AutoConfigureInput"] = false;
             BindBoolFeature(section, "EnableHdPacks", "mesen_customtextures");
@@ -216,9 +219,9 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ConfigureSMS(JObject section, string system)
+        private void ConfigureSMS(JObject section, string mesenSystem, string system)
         {
-            if (system != "mastersystem")
+            if (mesenSystem != "Sms")
                 return;
             BindFeature(section, "Region", "mesen_region", "Auto");
             BindFeature(section, "Revision", "mesen_sms_revision", "Compatibility");
@@ -226,9 +229,9 @@ namespace EmulatorLauncher
             BindBoolFeatureOn(section, "EnableFmAudio", "mesen_sms_fmaudio");
         }
 
-        private void ConfigurePCEngine(JObject section, string system, string path)
+        private void ConfigurePCEngine(JObject section, string mesenSystem, string system, string path)
         {
-            if (system != "pcengine" && system != "pcenginecd" && system != "turbografx" && system != "turbografxcd" && system != "turbografx16")
+            if (mesenSystem != "PcEngine")
                 return;
 
             BindBoolFeature(section, "RemoveSpriteLimit", "mesen_spritelimit");
@@ -247,14 +250,14 @@ namespace EmulatorLauncher
                 if (File.Exists(sourceFirmware1) && !File.Exists(targetFirmware1) && Directory.Exists(targetFirmwarePath))
                     File.Copy(sourceFirmware1, targetFirmware1);
 
-                if (!File.Exists(sourceFirmware1))
+                if (!File.Exists(targetFirmware1))
                     throw new ApplicationException("PCE CD firmware is missing (syscard3.pce)");
             }
         }
 
-        private void ConfigureGameboy(JObject section, string system, string path)
+        private void ConfigureGameboy(JObject section, string mesenSystem, string system, string path)
         {
-            if (system != "gb" && system != "gbc" && system != "sgb")
+            if (mesenSystem != "Gameboy")
                 return;
 
             if (system == "gb")
@@ -282,14 +285,14 @@ namespace EmulatorLauncher
                 if (File.Exists(sourceFirmware2) && !File.Exists(targetFirmware2) && Directory.Exists(targetFirmwarePath))
                     File.Copy(sourceFirmware2, targetFirmware2);
 
-                if (!File.Exists(sourceFirmware1) && !File.Exists(sourceFirmware2))
+                if (!File.Exists(targetFirmware1) && !File.Exists(targetFirmware2))
                     throw new ApplicationException("Super Gameboy firmware is missing (SGB1.sfc and/or SGB2.sfc)");
             }
         }
 
-        private void ConfigureGba(JObject section, string system, string path)
+        private void ConfigureGba(JObject section, string mesenSystem, string system, string path)
         {
-            if (system != "gba")
+            if (mesenSystem != "Gba")
                 return;
 
             BindBoolFeature(section, "SkipBootScreen", "mesen_gba_skipboot");
@@ -305,13 +308,13 @@ namespace EmulatorLauncher
             if (File.Exists(sourceFirmware1) && !File.Exists(targetFirmware1) && Directory.Exists(targetFirmwarePath))
                 File.Copy(sourceFirmware1, targetFirmware1);
 
-            if (!File.Exists(sourceFirmware1))
+            if (!File.Exists(targetFirmware1))
                 throw new ApplicationException("GBA firmware is missing (gba_bios.bin)");
         }
 
-        private void ConfigureColeco(JObject section, string system, string path)
+        private void ConfigureColeco(JObject section, string mesenSystem, string system, string path)
         {
-            if (system != "colecovision")
+            if (mesenSystem != "Cv")
                 return;
 
             BindFeature(section, "Region", "mesen_coleco_region", "Auto");
@@ -327,13 +330,13 @@ namespace EmulatorLauncher
             if (File.Exists(sourceFirmware1) && !File.Exists(targetFirmware1) && Directory.Exists(targetFirmwarePath))
                 File.Copy(sourceFirmware1, targetFirmware1);
 
-            if (!File.Exists(sourceFirmware1))
+            if (!File.Exists(targetFirmware1))
                 throw new ApplicationException("Colecovision firmware is missing (colecovision.rom)");
         }
 
-        private void ConfigureSnes(JObject section, string system)
+        private void ConfigureSnes(JObject section, string mesenSystem, string system)
         {
-            if (system != "snes" && system != "sfc" && system != "superfamicom")
+            if (mesenSystem != "Snes")
                 return;
 
             BindFeature(section, "Region", "mesen_region", "Auto");
@@ -471,20 +474,30 @@ namespace EmulatorLauncher
             switch (System)
             {
                 case "nes":
+                case "famicom":
                 case "fds":
                     return "Nes";
                 case "snes":
+                case "snes-msu1":
+                case "superfamicom":
+                case "sfamicom":
                     return "Snes";
                 case "gba":
                     return "Gba";
                 case "gb":
+                case "gameboy":
                 case "gbc":
                 case "sgb":
                     return "Gameboy";
                 case "pcengine":
+                case "turbografx":
+                case "turbografx16":
+                case "turbografxcd":
                 case "pcenginecd":
                 case "supergrafx":
                     return "PcEngine";
+                case "ms":
+                case "sms":
                 case "mastersystem":
                     return "Sms";
                 case "colecovision":

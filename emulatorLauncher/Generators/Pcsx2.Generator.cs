@@ -1137,6 +1137,11 @@ namespace EmulatorLauncher
 
                 Thread.Sleep(200);
 
+                var screen = Screen.AllScreens[monitorIndex];
+                var bounds = screen.Bounds;
+
+                SimpleLogger.Instance.Info($"[PCSX2] Monitor {monitorIndex} bounds: L={bounds.Left} T={bounds.Top} W={bounds.Width} H={bounds.Height}");
+
                 User32.SetWindowPos(
                     hWnd,
                     IntPtr.Zero,
