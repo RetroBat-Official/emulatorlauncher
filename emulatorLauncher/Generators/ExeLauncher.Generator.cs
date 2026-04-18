@@ -12,6 +12,7 @@ using System.Linq;
 using System.Security.Policy;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace EmulatorLauncher
@@ -98,7 +99,8 @@ namespace EmulatorLauncher
 
                 rom = folderResult.Rom;
                 path = folderResult.WorkingDirectory;
-                _gameExeFile = folderResult.GameExeFile;
+                if (!_gameExeFile)
+                    _gameExeFile = folderResult.GameExeFile;
             }
 
             // At that point, return if rom file does not exist
@@ -132,14 +134,15 @@ namespace EmulatorLauncher
             string ext = Path.GetExtension(rom).ToLower();
             if (ext == ".bat" || ext == ".cmd")
             {
-                if (GetExecutableName(rom, out string exeName, out string targetExe) && !_gameExeFile)
+                if (GetExecutableName(rom, out string exeName, out string targetExe))
                 {
                     if (File.Exists(targetExe))
                     {
                         ret.FileName = targetExe;
                         ret.WorkingDirectory = Path.GetDirectoryName(targetExe);
                     }
-                    _exename = exeName;
+                    if (!_gameExeFile)
+                        _exename = exeName;
                     _batfileNoWait = true;
                     SimpleLogger.Instance.Info("[INFO] Executable name found in batch file: " + _exename);
                 }
@@ -882,7 +885,10 @@ namespace EmulatorLauncher
             if (!Directory.Exists(folderPath))
                 return result;
 
-            _gameExeFile = GetProcessFromFile(folderPath);
+            if (_exename == null)
+                _gameExeFile = GetProcessFromFile(folderPath);
+            else
+                _gameExeFile = true;
 
             string[] possibleAutoruns = new[]
             {
