@@ -13,21 +13,39 @@ namespace EmulatorLauncher.Common.Compression
 {
     public class MountFile : IDisposable
     {
-        public static MountFile Mount(string filename, string extractionpath, string overlayPath)
+        public static MountFile Mount(string filename, string extractionpath, string overlayPath, bool useSquash)
         {
             if (!Zip.IsCompressedFile(filename))
                 return null;
 
             string mountPath = Path.Combine(Path.GetDirectoryName(typeof(MountFile).Assembly.Location), "mount.exe");
+
+            if (useSquash && IsWinFspAvailable())
+            {
+                string mountExeDir = Path.GetDirectoryName(mountPath);
+                mountPath = Path.Combine(mountExeDir, "mountsquashfs.exe");
+
+                if (File.Exists(mountPath))
+                    SimpleLogger.Instance.Info("[GENERATOR] Using winfsp for mounting drive.");
+                else
+                {
+                    mountPath = Path.Combine(Path.GetDirectoryName(typeof(MountFile).Assembly.Location), "mount.exe");
+                    SimpleLogger.Instance.Info("[GENERATOR] winfsp not found, using dokan for mounting drive.");
+                }
+            }
+            else if (useSquash && !IsWinFspAvailable() && !IsDokanAvailable())
+            {
+                SimpleLogger.Instance.Info("[GENERATOR] Neither WinFSP nor Dokan available, cannot mount.");
+                return null;
+            }
+            else if (IsDokanAvailable())
+            {
+                SimpleLogger.Instance.Info("[GENERATOR] Using Dokan for mounting drive.");
+            }
+            else
+                return null;
+
             if (!File.Exists(mountPath))
-                return null;
-
-            string dokan = Environment.GetEnvironmentVariable("DokanLibrary2");
-            if (!Directory.Exists(dokan))
-                return null;
-
-            dokan = Path.Combine(dokan, "dokan2.dll");
-            if (!File.Exists(dokan))
                 return null;
 
             var drive = FileTools.FindFreeDriveLetter();
@@ -80,10 +98,9 @@ namespace EmulatorLauncher.Common.Compression
                 CreateNoWindow = !Debugger.IsAttached
             });
 
-            int time = Environment.TickCount;
-            int elapsed = 0;
+            int startTime = Environment.TickCount;
 
-            while (elapsed < 5000)
+            while (Environment.TickCount - startTime < 5000)
             {
                 if (mountProcess.WaitForExit(10))
                     return null;
@@ -93,16 +110,34 @@ namespace EmulatorLauncher.Common.Compression
                     Job.Current.AddProcess(mountProcess);
                     return new MountFile(mountProcess, filename, drive, extractionpath, overlayPath);
                 }
-
-                int newTime = Environment.TickCount;
-                elapsed = time - newTime;
-                time = newTime;
             }
 
             try { mountProcess.Kill(); }
             catch { }
 
             return null;
+        }
+
+        private static bool IsWinFspAvailable()
+        {
+            // WinFSP standard install paths
+            string dll64 = @"C:\Program Files (x86)\WinFsp\bin\winfsp-x64.dll";
+            string dll32 = @"C:\Program Files (x86)\WinFsp\bin\winfsp-x86.dll";
+
+            return File.Exists(dll64) || File.Exists(dll32);
+        }
+
+        private static bool IsDokanAvailable()
+        {
+            string dokan = Environment.GetEnvironmentVariable("DokanLibrary2");
+            if (!Directory.Exists(dokan))
+                return false;
+
+            dokan = Path.Combine(dokan, "dokan2.dll");
+            if (!File.Exists(dokan))
+                return false;
+
+            return true;
         }
 
         private MountFile(Process process, string filename, string driveLetter, string extractionpath, string overlayPath)

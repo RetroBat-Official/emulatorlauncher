@@ -54,6 +54,8 @@ namespace EmulatorLauncher
                     return _mountedIso.Drive.Name;
             }
 
+            bool isSquash = Path.GetExtension(fileName).ToLowerInvariant().Contains("squashfs");
+
             if (SystemConfig.getOptBoolean("nevermount"))
                 tryMount = false;
 
@@ -90,7 +92,7 @@ namespace EmulatorLauncher
                 if (!string.IsNullOrEmpty(savesPath))
                     overlayPath = Path.Combine(savesPath, system, Path.GetFileName(fileName));
 
-                _mountFile = MountFile.Mount(fileName, extractionPath, overlayPath);
+                _mountFile = MountFile.Mount(fileName, extractionPath, overlayPath, isSquash);
                 if (_mountFile != null)
                     return _mountFile.DriveLetter;
             }
