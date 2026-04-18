@@ -271,6 +271,24 @@ namespace EmulatorLauncher
             User32.ForceForegroundWindow(Handle);
         }
 
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            this.TopMost = true;
+            User32.ForceForegroundWindow(Handle);
+            button1.Focus();
+
+            var timer = new System.Windows.Forms.Timer();
+            timer.Interval = 200;
+            timer.Tick += (s, args) =>
+            {
+                this.TopMost = false;
+                timer.Stop();
+                timer.Dispose();
+            };
+            timer.Start();
+        }
+
         public void UpdateAll()
         {
             progressBar1.Visible = false;
