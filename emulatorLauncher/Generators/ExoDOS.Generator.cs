@@ -12,6 +12,7 @@ using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Navigation;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace EmulatorLauncher
@@ -330,20 +331,21 @@ namespace EmulatorLauncher
             }
         }
 
+        #region library
         public static void UpdateDOSGames()
         {
             try
             {
-                string exoDOSPath = Path.GetDirectoryName(Program.SystemConfig["exodosPath"]);
-                if (!Directory.Exists(exoDOSPath))
+                string exoPath = Path.GetDirectoryName(Program.SystemConfig["exodosPath"]);
+                if (!Directory.Exists(exoPath))
                 {
                     SimpleLogger.Instance.Error("[ExoDOS] Invalid ExoDOS path.");
                     return;
                 }
 
-                CleanExoDOSScripts(exoDOSPath);
+                CleanExoDOSScripts(exoPath);
 
-                string baseInstalledGamesPath = Path.Combine(exoDOSPath, "eXo", "eXoDOS");
+                string baseInstalledGamesPath = Path.Combine(exoPath, "eXo", "eXoDOS");
 
                 if (!Directory.Exists(baseInstalledGamesPath))
                     return;
@@ -354,6 +356,7 @@ namespace EmulatorLauncher
                     return;
 
                 CreateShortcuts(games, "exodos");
+                UpdateGamelist(games, "exodos", exoPath);
             }
             catch { }
         }
@@ -382,6 +385,7 @@ namespace EmulatorLauncher
                     return;
 
                 CreateShortcuts(games, "exowin3x");
+                UpdateGamelist(games, "exowin3x", exoPath);
             }
             catch { }
         }
@@ -410,6 +414,7 @@ namespace EmulatorLauncher
                     return;
 
                 CreateShortcuts(games, "exowin9x");
+                UpdateGamelist(games, "exowin9x", exoPath);
             }
             catch { }
         }
@@ -506,6 +511,176 @@ namespace EmulatorLauncher
             System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shell);
         }
 
+        private static void UpdateGamelist(List<ExoDosGame> games, string romFolder, string exoDOSPath)
+        {
+            string mediaSubFolder = "MS-DOS";
+            if (romFolder == "exowin3x")
+                mediaSubFolder = "Windows 3x";
+            else if (romFolder == "exowin9x")
+                mediaSubFolder = "Windows 9x";
+
+            string xmlPath = Path.Combine(exoDOSPath, "xml", "all", "MS-DOS.xml");
+            if (romFolder == "exowin3x")
+                xmlPath = Path.Combine(exoDOSPath, "xml", "Windows 3x.xml");
+            else if (romFolder == "exowin9x")
+                xmlPath = Path.Combine(exoDOSPath, "xml", "Windows 9x.xml");
+
+            var launchBoxIndex = BuildLaunchBoxIndex(xmlPath);
+            var imageIndexFront = BuildImageIndex(Path.Combine(exoDOSPath, "Images", mediaSubFolder, "Box - Front"));
+            var bannerIndex = BuildImageIndex(Path.Combine(exoDOSPath, "Images", mediaSubFolder, "Banner"));
+            var fanartIndex = BuildImageIndex(Path.Combine(exoDOSPath, "Images", mediaSubFolder, "Fanart - Background"));
+            var boxBackIndex = BuildImageIndex(Path.Combine(exoDOSPath, "Images", mediaSubFolder, "Box - Back"));
+            var shotIndex = BuildImageIndex(Path.Combine(exoDOSPath, "Images", mediaSubFolder, "Screenshot - Game Title"));
+
+            string romPath = Path.Combine(Program.AppConfig.GetFullPath("roms"), romFolder);
+            string gamelistXml = Path.Combine(romPath, "gamelist.xml");
+
+            XDocument doc = File.Exists(gamelistXml)
+                ? XDocument.Load(gamelistXml)
+                : new XDocument(
+                    new XDeclaration("1.0", null, null),
+                    new XElement("gameList")
+                );
+
+            if (doc.Root == null)
+                doc.Add(new XElement("gameList"));
+
+            foreach (ExoDosGame game in games)
+            {
+                string normalizedPath = game.Name.TrimStart('.', '/', '\\') + ".lnk";
+
+                XElement existing = doc.Root
+                    .Elements("game")
+                    .FirstOrDefault(g => string.Equals(
+                        g.Element("path") != null ? g.Element("path").Value.TrimStart('.', '/', '\\') : string.Empty,
+                        normalizedPath,
+                        StringComparison.OrdinalIgnoreCase));
+
+                if (existing == null)
+                {
+                    existing = new XElement("game",
+                        new XElement("path", "./" + normalizedPath),
+                        new XElement("name", CleanGameName(game.Name))
+                    );
+
+                    // Manuals
+                    string manualPath = Path.Combine(exoDOSPath, "Manuals", mediaSubFolder, game.Name + ".pdf");
+                    string targetManualPath = Path.Combine(romPath, "manuals");
+                    if (!Directory.Exists(manualPath))
+                        try { Directory.CreateDirectory(targetManualPath); } catch { }
+                    string targetManualFile = Path.Combine(targetManualPath, game.Name + "-manual.pdf");
+
+                    if (!File.Exists(targetManualFile) && File.Exists(manualPath))
+                        try { File.Copy(manualPath, targetManualFile); } catch { }
+
+                    if (File.Exists(targetManualFile))
+                    {
+                        XElement manual = new XElement("manual", "./manuals/" + game.Name + "-manual.pdf");
+                        existing.Add(manual);
+                    }
+
+                    // Videos
+                    string videoPath = Path.Combine(exoDOSPath, "Videos", mediaSubFolder, game.Name + ".mp4");
+                    string targetVideoPath = Path.Combine(romPath, "videos");
+                    if (!Directory.Exists(targetVideoPath))
+                        try { Directory.CreateDirectory(targetVideoPath); } catch { }
+                    string targetVideoFile = Path.Combine(targetVideoPath, game.Name + "-video.mp4");
+
+                    if (!File.Exists(targetVideoFile) && File.Exists(videoPath))
+                        try { File.Copy(videoPath, targetVideoFile); } catch { }
+
+                    if (File.Exists(targetVideoFile))
+                    {
+                        XElement video = new XElement("video", "./videos/" + game.Name + "-video.mp4");
+                        existing.Add(video);
+                    }
+
+                    string toSearch = Path.GetFileName(game.BatPath ?? "");
+                    UpdateMetadata(existing, launchBoxIndex, toSearch, out string gameTitle);
+
+                    if (!string.IsNullOrEmpty(gameTitle))
+                    {
+                        gameTitle = gameTitle.Replace(':', '_');
+                        GetImagesFromLaunchBox(existing, imageIndexFront, gameTitle, romPath, game, "thumbnail", "-thumb");
+                        GetImagesFromLaunchBox(existing, bannerIndex, gameTitle, romPath, game, "marquee", "-marquee");
+                        GetImagesFromLaunchBox(existing, fanartIndex, gameTitle, romPath, game, "fanart", "-fanart");
+                        GetImagesFromLaunchBox(existing, boxBackIndex, gameTitle, romPath, game, "boxback", "-boxback");
+                        GetImagesFromLaunchBox(existing, shotIndex, gameTitle, romPath, game, "image", "-image");
+                    }
+
+                    doc.Root.Add(existing);
+                }
+            }
+
+            doc.Save(gamelistXml);
+        }
+
+        private static void GetImagesFromLaunchBox(XElement existing, Dictionary<string, string> index, string gameTitle, string romPath, ExoDosGame game, string imageType, string suffix)
+        {
+            string imageFile = null;
+
+            if (!index.TryGetValue(gameTitle + "-00", out imageFile))
+                index.TryGetValue(gameTitle + "-01", out imageFile);
+
+            // Priority 2: exact title match
+            if (imageFile == null)
+                index.TryGetValue(gameTitle, out imageFile);
+
+            // Priority 3: starts with title
+            if (imageFile == null)
+                imageFile = index
+                    .FirstOrDefault(kv => kv.Key.StartsWith(gameTitle, StringComparison.OrdinalIgnoreCase))
+                    .Value;
+
+            if (imageFile != null)
+            {
+                string targetImagePath = Path.Combine(romPath, "images");
+                if (!Directory.Exists(targetImagePath))
+                    Directory.CreateDirectory(targetImagePath);
+
+                string ext = Path.GetExtension(imageFile);
+                string targetFrontImageFile = Path.Combine(targetImagePath, game.Name + suffix + ext);
+                if (!File.Exists(targetFrontImageFile))
+                    try { File.Copy(imageFile, targetFrontImageFile); } catch { }
+
+                if (File.Exists(targetFrontImageFile))
+                    existing.SetElementValue(imageType, "./images/" + game.Name + suffix + ext);
+            }
+        }
+
+        private static void UpdateMetadata(XElement existing, Dictionary<string, LaunchBoxGame> index, string toSearch, out string title)
+        {
+            title = null;
+
+            LaunchBoxGame game;
+            if (!index.TryGetValue(toSearch, out game))
+                return;
+
+            title = game.Title;
+
+            if (!string.IsNullOrEmpty(game.Title))
+                existing.SetElementValue("name", game.Title);
+            if (!string.IsNullOrEmpty(game.Developer))
+                existing.SetElementValue("developer", game.Developer);
+            if (!string.IsNullOrEmpty(game.Publisher))
+                existing.SetElementValue("publisher", game.Publisher);
+            if (!string.IsNullOrEmpty(game.Genre))
+                existing.SetElementValue("genre", game.Genre);
+            if (!string.IsNullOrEmpty(game.Notes))
+                existing.SetElementValue("desc", game.Notes);
+            if (!string.IsNullOrEmpty(game.MaxPlayers))
+                existing.SetElementValue("players", game.MaxPlayers);
+            if (!string.IsNullOrEmpty(game.ReleaseDate))
+                existing.SetElementValue("releasedate", game.ReleaseDate);
+        }
+
+        private static string CleanGameName(string name)
+        {
+            string cleaned = System.Text.RegularExpressions.Regex.Replace(name, @"[\(\[].*?[\)\]]", "");
+            cleaned = System.Text.RegularExpressions.Regex.Replace(cleaned, @"\s+", " ").Trim();
+            return cleaned;
+        }
+
         class ExoDosGame
         {
             public string Name { get; set; }
@@ -535,5 +710,162 @@ namespace EmulatorLauncher
                 File.WriteAllText(ipScript, content);
             }
         }
+
+        private static Dictionary<string, LaunchBoxGame> BuildLaunchBoxIndex(string xmlPath)
+        {
+            var index = new Dictionary<string, LaunchBoxGame>(StringComparer.OrdinalIgnoreCase);
+
+            if (!File.Exists(xmlPath))
+                return index;
+
+            using (var reader = XmlReader.Create(xmlPath))
+            {
+                LaunchBoxGame current = null;
+                string activeElement = null;
+
+                while (reader.Read())
+                {
+                    switch (reader.NodeType)
+                    {
+                        case XmlNodeType.Element:
+                            if (reader.Name == "Game")
+                                current = new LaunchBoxGame();
+                            else if (current != null)
+                                activeElement = reader.IsEmptyElement ? null : reader.Name;
+                            break;
+
+                        case XmlNodeType.Text:
+                            if (current != null)
+                            {
+                                switch (activeElement)
+                                {
+                                    case "Title": current.Title = reader.Value; break;
+                                    case "Developer": current.Developer = reader.Value; break;
+                                    case "Publisher": current.Publisher = reader.Value; break;
+                                    case "Notes": current.Notes = reader.Value; break;
+                                    case "Genre": current.Genre = reader.Value; break;
+                                    case "MaxPlayers": current.MaxPlayers = reader.Value; break;
+                                    case "ApplicationPath": current.ApplicationPath = reader.Value; break;
+                                    case "ReleaseDate":
+                                        DateTime dt;
+                                        if (DateTime.TryParse(reader.Value, out dt))
+                                            current.ReleaseDate = dt.ToString("yyyyMMdd") + "T000000";
+                                        break;
+                                }
+                            }
+                            break;
+
+                        case XmlNodeType.EndElement:
+                            activeElement = null;
+                            if (reader.Name == "Game" && current != null)
+                            {
+                                if (!string.IsNullOrEmpty(current.ApplicationPath))
+                                {
+                                    string key = Path.GetFileName(current.ApplicationPath);
+                                    if (!index.ContainsKey(key))
+                                        index[key] = current;
+                                }
+                                current = null;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            return index;
+        }
+
+        private static Dictionary<string, string> BuildImageIndex(string imageFolder)
+        {
+            var index = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            if (!Directory.Exists(imageFolder))
+                return index;
+
+            foreach (var file in Directory.EnumerateFiles(imageFolder, "*.*", SearchOption.AllDirectories))
+            {
+                string ext = Path.GetExtension(file).ToLowerInvariant();
+                if (ext != ".jpg" && ext != ".png")
+                    continue;
+
+                string filename = Path.GetFileNameWithoutExtension(file);
+                if (!index.ContainsKey(filename))
+                    index[filename] = file;
+            }
+
+            return index;
+        }
+
+        public class LaunchBoxGame
+        {
+            public string Title { get; set; }
+            public string Developer { get; set; }
+            public string Publisher { get; set; }
+            public string Notes { get; set; }
+            public string MaxPlayers { get; set; }
+            public string Genre { get; set; }
+            public string ReleaseDate { get; set; } // formatted as 19921024T000000
+            internal string ApplicationPath { get; set; } // used for matching only
+        }
+
+        public static bool FindGameByApplicationPath(string xmlFile, string applicationPathSuffix, out LaunchBoxGame game)
+        {
+            game = null;
+
+            using (var reader = XmlReader.Create(xmlFile))
+            {
+                LaunchBoxGame current = null;
+                string activeElement = null;
+
+                while (reader.Read())
+                {
+                    switch (reader.NodeType)
+                    {
+                        case XmlNodeType.Element:
+                            if (reader.Name == "Game")
+                                current = new LaunchBoxGame();
+                            else if (current != null)
+                                activeElement = reader.Name;
+                            break;
+
+                        case XmlNodeType.Text:
+                            if (current != null)
+                            {
+                                switch (activeElement)
+                                {
+                                    case "Title": current.Title = reader.Value; break;
+                                    case "Developer": current.Developer = reader.Value; break;
+                                    case "Publisher": current.Publisher = reader.Value; break;
+                                    case "Notes": current.Notes = reader.Value; break;
+                                    case "MaxPlayers": current.MaxPlayers = reader.Value; break;
+                                    case "Genre": current.Genre = reader.Value; break;
+                                    case "ReleaseDate":
+                                        DateTime dt;
+                                        if (DateTime.TryParse(reader.Value, out dt))
+                                            current.ReleaseDate = dt.ToString("yyyyMMdd") + "T000000";
+                                        break;
+                                }
+                            }
+                            break;
+
+                        case XmlNodeType.EndElement:
+                            activeElement = null;
+                            if (reader.Name == "Game" && current != null)
+                            {
+                                if (current.ApplicationPath != null && current.ApplicationPath.EndsWith(applicationPathSuffix, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    game = current;
+                                    return true;
+                                }
+                                current = null;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            return false;
+        }
+        #endregion
     }
 }
