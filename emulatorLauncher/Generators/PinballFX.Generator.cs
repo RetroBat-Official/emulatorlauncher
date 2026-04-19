@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Diagnostics;
-using System.Threading;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.PadToKeyboard;
 using Microsoft.Win32;
-using EmulatorLauncher.Common;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading;
 
 namespace EmulatorLauncher
 {
@@ -18,8 +20,31 @@ namespace EmulatorLauncher
 
         private string _exename;
         private string _corename;
+        private List<string> _exenames;
 
         private static readonly List<string> pinballfxsystems = new List<string>() { "pinballfx", "pinballfx2", "pinballfx3", "pinballm" };
+        private static readonly Dictionary<string, string> _systemExeNames = new Dictionary<string, string>()
+        {
+            { "pinballfx",  "PinballFX" },
+            { "pinballfx2", "Pinball FX2" },
+            { "pinballfx3", "Pinball FX Classic" },
+            { "pinballm",   "Pinball FX Midnight" }
+        };
+
+        private static readonly Dictionary<string, string> _steamAppIds = new Dictionary<string, string>()
+        {
+            { "pinballfx",  "2328760" },
+            { "pinballfx2", "226980" },
+            { "pinballfx3", "442120" },
+            { "pinballm",   "2337640" }
+        };
+        private static readonly Dictionary<string, List<string>> _fallbackExeNames = new Dictionary<string, List<string>>()
+        {
+            { "pinballfx",  new List<string> { "PinballFX", "Pinball FX", "pinballFX", "pinballfx", "Pinball Fx", "Pinball_FX", "PinballFX-Win64-Shipping" } },
+            { "pinballfx2", new List<string> { "Pinball FX2", "PinballFX2", "Pinball_FX2" } },
+            { "pinballfx3", new List<string> { "Pinball FX3", "PinballFX3", "Pinball_FX3", "Pinball FX Classic" } },
+            { "pinballm",   new List<string> { "PinballM", "Pinball M", "Pinball FX Midnight", "PinballM-Win64-Shipping" } }
+        };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -29,17 +54,11 @@ namespace EmulatorLauncher
             string exe = null;
             _corename = core;
 
-            if (system == "pinballfx")
-                _exename = "PinballFX";
+            if (_systemExeNames.TryGetValue(system, out string exeName))
+                _exename = exeName;
 
-            if (system == "pinballfx2")
-                _exename = "Pinball FX2";
-
-            if (system == "pinballfx3")
-                _exename = "Pinball FX3";
-
-            if (system == "pinballm")
-                _exename = "PinballM";
+            if (_fallbackExeNames.TryGetValue(system, out var candidates))
+                _exenames = candidates;
 
             if (core == "steam")
             {
@@ -69,7 +88,11 @@ namespace EmulatorLauncher
             if (core == "hack" || core == "nonsteam")
             {
                 path = AppConfig.GetFullPath(system);
-                exe = Path.Combine(path, _exename + ".exe");
+                exe = _exenames
+                    .Select(name => Path.Combine(path, name + ".exe"))
+                    .FirstOrDefault(File.Exists) ?? Path.Combine(path, _exename + ".exe");
+
+                _exename = Path.GetFileNameWithoutExtension(exe);
             }
 
             if (system == "pinballfx" || system == "pinballm")
@@ -139,27 +162,38 @@ namespace EmulatorLauncher
 
         }
 
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            foreach (var name in _exenames)
+                PadToKey.AddOrUpdateKeyMapping(mapping, name, InputKey.hotkey | InputKey.start, "(%{CLOSE})");
+
+            return mapping;
+        }
+
         public override int RunAndWait(ProcessStartInfo path)
         {
             if (_corename == "steam")
             {
-                foreach (var z in Process.GetProcessesByName(_exename))
-                    try
-                    {
-                        z.Kill();
-                        z.WaitForExit(3000);
-                    }
-                    catch { }
+                foreach (var name in _exenames)
+                    foreach (var z in Process.GetProcessesByName(name))
+                        try
+                        {
+                            z.Kill();
+                            z.WaitForExit(3000);
+                        }
+                        catch { }
 
                 Process process = Process.Start(path);
 
                 int i = 1;
-                Process[] pinballfxlist = Process.GetProcessesByName(_exename);
+                Process[] pinballfxlist = new Process[0];
 
-                while (i <= 5 && pinballfxlist.Length == 0)
+                while (i <= 10 && pinballfxlist.Length == 0)
                 {
-                    pinballfxlist = Process.GetProcessesByName(_exename);
-                    Thread.Sleep(8000);
+                    pinballfxlist = _exenames
+                        .SelectMany(name => Process.GetProcessesByName(name))
+                        .ToArray();
+                    Thread.Sleep(4000);
                     i++;
                 }
 
@@ -168,17 +202,16 @@ namespace EmulatorLauncher
                 else
                 {
                     Process pinballfx = pinballfxlist.OrderBy(p => p.StartTime).FirstOrDefault();
+                    SimpleLogger.Instance.Info("PinballFX process found: " + pinballfx.ProcessName);
+                    Job.Current.AddProcess(pinballfx);
                     pinballfx.WaitForExit();
                     if (SystemConfig.isOptSet("killsteam") && SystemConfig.getOptBoolean("killsteam"))
                     {
                         foreach (var p in Process.GetProcessesByName("steam"))
-                        {
                             p.Kill();
-                        }
                     }
                     else
                         return 0;
-
                 }
                 return 0;                
             }
@@ -187,6 +220,5 @@ namespace EmulatorLauncher
 
             return 0;
         }
-
     }
 }
