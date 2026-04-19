@@ -342,7 +342,7 @@ namespace EmulatorLauncher.Common.Launchers
             return null;
         }
 
-        public static string GetSteamGameExecutableName(Uri uri, string steamdb, out string shorturl)
+        public static string GetSteamGameExecutableName(Uri uri, string steamdb, string gameName, out string shorturl)
         {
             // Get Steam app ID from url
             shorturl = uri.AbsolutePath.Substring(1);
@@ -382,7 +382,7 @@ namespace EmulatorLauncher.Common.Launchers
 
             // Then : Call method to get executable name from Steam vdf files
             if (exe == null)
-                exe = FindExecutableName(steamAppId, SteamAppIdLong);
+                exe = FindExecutableName(steamAppId, gameName, SteamAppIdLong);
 
             if (string.IsNullOrEmpty(exe))
             {
@@ -395,7 +395,7 @@ namespace EmulatorLauncher.Common.Launchers
             return Path.GetFileNameWithoutExtension(exe);
         }
 
-        static string FindExecutableName(int steamAppId, ulong SteamAppIdLong = 1999999999999999999)
+        static string FindExecutableName(int steamAppId, string gameName, ulong SteamAppIdLong = 1999999999999999999)
         {
             // Get Steam installation path in registry
             string path = GetInstallPath();
@@ -511,6 +511,43 @@ namespace EmulatorLauncher.Common.Launchers
                         }
                     }
                 }
+                else
+                {
+                    SimpleLogger.Instance.Info("[INFO] Searching executable in Steam file 'appinfo.vdf' : alternative method 2");
+                    index = appInfo.IndexOf(gameName.ToString());
+                    if (index != -1)
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Found Game \"" + gameName + "\" in 'appinfo.vdf'");
+                        string substringToSearch = appInfo.Substring(index);
+
+                        int exeIndex = substringToSearch.IndexOf(".exe");
+                        if (exeIndex != -1)
+                        {
+                            int actualExeIndex = index + exeIndex;
+
+                            // Restrict the search to the substring between the name and the .exe
+                            int sectionStart = index;
+                            int sectionEnd = actualExeIndex;
+                            if (sectionEnd != -1)
+                            {
+                                string restrictedContent = appInfo.Substring(sectionStart, sectionEnd - sectionStart);
+                                if (restrictedContent != null)
+                                {
+                                    int nullIndex = restrictedContent.LastIndexOf('\0');
+                                    if (nullIndex != -1)
+                                    {
+                                        string steamExeName = restrictedContent.Substring(nullIndex + 1);
+                                        if (steamExeName != null)
+                                        {
+                                            SimpleLogger.Instance.Info("[INFO] Game executable " + steamExeName + " found (alternative method 2).");
+                                            return steamExeName;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             catch 
             {
@@ -594,7 +631,7 @@ namespace EmulatorLauncher.Common.Launchers
                 InstallDirectory = installDir,
                 LauncherUrl = string.Format(GameLaunchUrl, gameId) + "\"" + " -silent",
                 PreviewImageUrl = string.Format(HeaderImageUrl, gameId),
-                ExecutableName = FindExecutableName(gameId.ToInteger()),
+                ExecutableName = FindExecutableName(gameId.ToInteger(), name),
                 Launcher = GameLauncherType.Steam,
                 IsInstalled = true
             };
