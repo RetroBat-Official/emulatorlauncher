@@ -435,27 +435,27 @@ namespace EmulatorLauncher
                 switch (regionToSet)
                 {
                     case "japan":
-                        if (pcbRegion.FieldOptions != null && pcbRegion.FieldOptions.Any(f => f == "JAPAN"))
+                        if (pcbRegion != null && pcbRegion.FieldOptions != null && pcbRegion.FieldOptions.Any(f => f == "JAPAN"))
                             pcbRegion.FieldValue = "JAPAN";
-                        if (region.FieldOptions != null && region.FieldOptions.Any(f => f == "JAPAN"))
+                        if (region != null && region.FieldOptions != null && region.FieldOptions.Any(f => f == "JAPAN"))
                             region.FieldValue = "JAPAN";
-                        if (language.FieldOptions != null && language.FieldOptions.Any(f => f == "Japanese"))
+                        if (language != null && language.FieldOptions != null && language.FieldOptions.Any(f => f == "Japanese"))
                             language.FieldValue = "Japanese";
                         break;
                     case "export":
-                        if (pcbRegion.FieldOptions != null && pcbRegion.FieldOptions.Any(f => f == "EXPORT"))
+                        if (pcbRegion != null && pcbRegion.FieldOptions != null && pcbRegion.FieldOptions.Any(f => f == "EXPORT"))
                             pcbRegion.FieldValue = "EXPORT";
-                        if (region.FieldOptions != null && region.FieldOptions.Any(f => f == "EXPORT"))
+                        if (region != null && region.FieldOptions != null && region.FieldOptions.Any(f => f == "EXPORT"))
                             region.FieldValue = "EXPORT";
-                        if (language.FieldOptions != null && language.FieldOptions.Any(f => f == "English"))
+                        if (language != null && language.FieldOptions != null && language.FieldOptions.Any(f => f == "English"))
                             language.FieldValue = "English";
                         break;
                     case "usa":
-                        if (pcbRegion.FieldOptions != null && pcbRegion.FieldOptions.Any(f => f == "USA"))
+                        if (pcbRegion != null && pcbRegion.FieldOptions != null && pcbRegion.FieldOptions.Any(f => f == "USA"))
                             pcbRegion.FieldValue = "USA";
-                        if (region.FieldOptions != null && region.FieldOptions.Any(f => f == "USA"))
+                        if (region != null && region.FieldOptions != null && region.FieldOptions.Any(f => f == "USA"))
                             region.FieldValue = "USA";
-                        if (language.FieldOptions != null && language.FieldOptions.Any(f => f == "English"))
+                        if (language != null && language.FieldOptions != null && language.FieldOptions.Any(f => f == "English"))
                             language.FieldValue = "English";
                         break;
                 }
