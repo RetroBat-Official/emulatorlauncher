@@ -485,7 +485,7 @@ namespace EmulatorLauncher
                     var val = GetInputValuexml(ctrl, k, r);
                     writer.WriteStartElement("entry");
                     writer.WriteElementString("mapping", v);
-                    writer.WriteElementString("button", GetInputValuexml(ctrl, k, r));
+                    writer.WriteElementString("button", val);
                     writer.WriteEndElement();
                 }
             };
@@ -688,9 +688,9 @@ namespace EmulatorLauncher
 
                     if (SystemConfig.isOptSet("cemu_gamepadmic") && !string.IsNullOrEmpty(SystemConfig["cemu_gamepadmic"]))
                     {
-                        string screenButton = SystemConfig["cemu_gamepadmic"];
+                        string micButton = SystemConfig["cemu_gamepadmic"];
 
-                        switch (screenButton)
+                        switch (micButton)
                         {
                             case "leftstick":
                                 WriteMapping("25", InputKey.l3, false);
@@ -704,9 +704,9 @@ namespace EmulatorLauncher
 
                     if (SystemConfig.isOptSet("cemu_gamepadscreen") && !string.IsNullOrEmpty(SystemConfig["cemu_gamepadscreen"]))
                     {
-                        string micButton = SystemConfig["cemu_gamepadscreen"];
+                        string screenButton = SystemConfig["cemu_gamepadscreen"];
 
-                        switch (micButton)
+                        switch (screenButton)
                         {
                             case "leftstick":
                                 WriteMapping("26", InputKey.l3, false);

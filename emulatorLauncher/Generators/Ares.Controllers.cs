@@ -191,11 +191,12 @@ namespace EmulatorLauncher
 
             Bypassn64Controllers:
 
+            string mdjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
             bool needMDActivationSwitch = false;
             bool md_pad = Program.SystemConfig.getOptBoolean("md_pad");
-            if (_mdSystems.Contains(_system) && SystemConfig.getOptBoolean("md_pad"))
+            
+            if (_mdSystems.Contains(_system) && File.Exists(mdjson))
             {
-                string mdjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
                 try
                 {
                     var mdControllers = MegadriveController.LoadControllersFromJson(mdjson);

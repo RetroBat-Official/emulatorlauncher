@@ -300,8 +300,6 @@ namespace EmulatorLauncher
                 Array.Copy(vsBytes, 0, bytes, 0x58, 4);
             }
 
-            uint UserSectionChecksum = ~ChecksumCalculate(bytes, 0x64, 0x5C);
-
             uint userSum = ~ChecksumCalculate(bytes, 0x64, 0x5C);
             Array.Copy(BitConverter.GetBytes(userSum), 0, bytes, 0x60, 4);
 
@@ -375,7 +373,7 @@ namespace EmulatorLauncher
                     {
                         try
                         {
-                            var hWnd = User32.FindHwnd(process.Id);
+                            var hWnd = User32.FindHwnd(proc.Id);
                             if (hWnd == IntPtr.Zero)
                                 continue;
 
@@ -410,9 +408,9 @@ namespace EmulatorLauncher
                         proc?.WaitForExit();
                     }
                     System.Threading.Thread.Sleep(500);
-
-                    bezel?.Dispose();
                 }
+
+                bezel?.Dispose();
 
                 return 0;
             }

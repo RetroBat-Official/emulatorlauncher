@@ -307,9 +307,6 @@ namespace EmulatorLauncher
 
             if (File.Exists(sourceFirmware1) && !File.Exists(targetFirmware1) && Directory.Exists(targetFirmwarePath))
                 File.Copy(sourceFirmware1, targetFirmware1);
-
-            if (!File.Exists(targetFirmware1))
-                throw new ApplicationException("GBA firmware is missing (gba_bios.bin)");
         }
 
         private void ConfigureColeco(JObject section, string mesenSystem, string system, string path)

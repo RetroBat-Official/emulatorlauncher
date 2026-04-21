@@ -48,7 +48,7 @@ namespace EmulatorLauncher
                 p1Y.SetObject("Deadzone", 0.1);
             }
 
-            if (system == "nes")
+            if (system == "nes" || system == "famicom")
             {
                 var nesTroller = trollers.GetOrCreateContainer(systemController[system]);
 
@@ -67,7 +67,7 @@ namespace EmulatorLauncher
                 p2zapperY.SetObject("Deadzone", 0.1);
             }
 
-            if (system == "snes")
+            if (system == "snes" || system == "superfamicom")
             {
                 var snesTroller = trollers.GetOrCreateContainer(systemController[system]);
 

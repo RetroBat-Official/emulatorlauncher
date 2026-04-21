@@ -25,7 +25,7 @@ namespace EmulatorLauncher
             var portList = nesPorts;
             if (mesenSystem == "Snes")
                 portList = snesPorts;
-            else if (mesenSystem == "GameBoy")
+            else if (mesenSystem == "Gameboy")
                 portList = gbPorts;
             else if (mesenSystem == "Gba")
                 portList = gbaPorts;
@@ -110,7 +110,8 @@ namespace EmulatorLauncher
 
             var port = GetOrCreateContainer(systemSection, portSection);
             var mapping = GetOrCreateContainer(port, "Mapping1");
-            var inputKeyMapping = inputKeyMappingDefault;
+            var inputKeyMapping = new Dictionary<InputKey, string>(inputKeyMappingDefault);
+            
             if (isNintendo)
             {
                 inputKeyMapping[InputKey.b] = "South";
@@ -511,7 +512,7 @@ namespace EmulatorLauncher
         {
             if (mesenSystem == "Nes")
             {
-                if (SystemConfig.isOptSet("mesen_nes_multitap") && (!string.IsNullOrEmpty(SystemConfig["mesen_nes_multitap"]) || SystemConfig["mesen_nes_multitap"] != "none"))
+                if (SystemConfig.isOptSet("mesen_nes_multitap") && SystemConfig["mesen_nes_multitap"] != "none")
                 {
                     switch (playerIndex)
                     {

@@ -369,7 +369,7 @@ namespace EmulatorLauncher
             else
             {
                 cfg["psx.region_autodetect"] = "1";
-                cfg["psx.region_default"] = "eu";
+                cfg["psx.region_default"] = "na";
             }
 
             if (SystemConfig.isOptSet("mednafen_psx_multitap") && SystemConfig["mednafen_psx_multitap"] == "1")

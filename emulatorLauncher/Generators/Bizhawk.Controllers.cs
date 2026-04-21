@@ -551,7 +551,7 @@ namespace EmulatorLauncher
             if (system == "mastersystem" || system == "sg1000" || system == "multivision")
             {
                 if (isDInput)
-                    controllerConfig["Pause"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.select);
+                    controllerConfig["Pause"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.start);
                 else
                     controllerConfig["Pause"] = "X" + index + " " + GetXInputKeyName(controller, InputKey.start);
             }
@@ -664,7 +664,7 @@ namespace EmulatorLauncher
                             touchX.SetObject("Mult", 1.0);
                             touchX.SetObject("Deadzone", deadzone);
 
-                            touchY["Value"] = "X" + index + " RightThumbX Axis";
+                            touchY["Value"] = "X" + index + " RightThumbY Axis";
                             touchY.SetObject("Mult", 1.0);
                             touchY.SetObject("Deadzone", deadzone);
                             break;
@@ -687,7 +687,7 @@ namespace EmulatorLauncher
                             touchX.SetObject("Mult", 1.0);
                             touchX.SetObject("Deadzone", deadzone);
 
-                            touchY["Value"] = "X" + index + " RightThumbX Axis";
+                            touchY["Value"] = "X" + index + " RightThumbY Axis";
                             touchY.SetObject("Mult", 1.0);
                             touchY.SetObject("Deadzone", deadzone);
                             break;
@@ -2206,6 +2206,7 @@ namespace EmulatorLauncher
             { "famicom", "NES Controller" },
             { "gamegear", "GG Controller" },
             { "gb", "Gameboy Controller" },
+            { "gbc", "Gameboy Controller" },
             { "gba", "GBA Controller" },
             { "genesis", "GPGX Genesis Controller" },
             { "intellivision", "Intellivision Controller" },
@@ -2338,7 +2339,7 @@ namespace EmulatorLauncher
 
             else
             {
-                for (int i = 1; i < totalNB; i++)
+                for (int i = 1; i < totalNB + 1; i++)
                 {
                     foreach (var x in mapping)
                     {

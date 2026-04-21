@@ -524,8 +524,6 @@ namespace EmulatorLauncher
             string gbBios = Path.Combine(AppConfig.GetFullPath("bios"), "gb_bios.bin");
             if (system == "gbc")
                 gbBios = Path.Combine(AppConfig.GetFullPath("bios"), "gbc_bios.bin");
-            else if (system == "gba")
-                gbBios = Path.Combine(AppConfig.GetFullPath("bios"), "gba_bios.bin");
 
             if (File.Exists(gbBios) && SystemConfig.getOptBoolean("bizhawk_gb_bios"))
                 sameboySync["EnableBIOS"] = "true";
@@ -694,10 +692,10 @@ namespace EmulatorLauncher
                     melonDSSync["UseRealBIOS"] = "false";
 
                     // Copy the loaded nand to the bios folder before loading, so that multiple nand files can be used.
-                    string biosPath = Path.Combine(AppConfig.GetFullPath("bios"));
+                    string biosPath = AppConfig.GetFullPath("bios");
                     if (!string.IsNullOrEmpty(biosPath))
                     {
-                        string nandFileTarget = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_nand.bin");
+                        string nandFileTarget = Path.Combine(biosPath, "dsi_nand.bin");
                         string nandFileSource = rom;
 
                         if (File.Exists(nandFileTarget) && File.Exists(nandFileSource))
@@ -765,17 +763,17 @@ namespace EmulatorLauncher
             if (Controllers.Count > 5)
             {
                 mednafenValues["psx.input.pport1.multitap"] = "1";
-                mednafenValues["psx.input.pport1.multitap"] = "1";
+                mednafenValues["psx.input.pport2.multitap"] = "1";
             }
             else if (Controllers.Count > 2)
             {
                 mednafenValues["psx.input.pport1.multitap"] = "0";
-                mednafenValues["psx.input.pport1.multitap"] = "1";
+                mednafenValues["psx.input.pport2.multitap"] = "1";
             }
             else
             {
                 mednafenValues["psx.input.pport1.multitap"] = "0";
-                mednafenValues["psx.input.pport1.multitap"] = "0";
+                mednafenValues["psx.input.pport2.multitap"] = "0";
             }
 
             if (SystemConfig.isOptSet("bizhawk_psx_region") && !string.IsNullOrEmpty(SystemConfig["bizhawk_psx_region"]))

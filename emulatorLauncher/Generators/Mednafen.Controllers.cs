@@ -474,7 +474,6 @@ namespace EmulatorLauncher
                             if (hkMappingRA.ContainsKey(button.Key))
                             {
                                 string cfgKey = "command." + button.Key;
-                                string raMapping = hkMappingRA[button.Key];
 
                                 if (kbHKDicToUse.ContainsKey(button.Key))
                                 {
@@ -499,7 +498,6 @@ namespace EmulatorLauncher
                             if (hkMappingRA.ContainsKey(button.Key))
                             {
                                 string cfgKey = "command." + button.Key;
-                                string raMapping = hkMappingRA[button.Key];
 
                                 if (kbHKDicToUse.ContainsKey(button.Key))
                                 {
@@ -548,7 +546,6 @@ namespace EmulatorLauncher
                             if (hkMappingRA.ContainsKey(button.Key))
                             {
                                 string cfgKey = "command." + button.Key;
-                                string raMapping = hkMappingRA[button.Key];
 
                                 if (kbHKDicToUse.ContainsKey(button.Key))
                                 {
@@ -572,7 +569,6 @@ namespace EmulatorLauncher
                             if (hkMappingRA.ContainsKey(button.Key))
                             {
                                 string cfgKey = "command." + button.Key;
-                                string raMapping = hkMappingRA[button.Key];
 
                                 if (kbHKDicToUse.ContainsKey(button.Key))
                                 {
@@ -2013,7 +2009,7 @@ namespace EmulatorLauncher
             { SDL.SDL_Keycode.SDLK_m, SDL.SDL_Keycode.SDLK_COMMA },
             { SDL.SDL_Keycode.SDLK_SEMICOLON, SDL.SDL_Keycode.SDLK_m },
             { SDL.SDL_Keycode.SDLK_COMMA, SDL.SDL_Keycode.SDLK_SEMICOLON },
-            { SDL.SDL_Keycode.SDLK_PERIOD, SDL.SDL_Keycode.SDLK_KP_COLON },
+            { SDL.SDL_Keycode.SDLK_PERIOD, SDL.SDL_Keycode.SDLK_SEMICOLON },
             { SDL.SDL_Keycode.SDLK_SLASH, SDL.SDL_Keycode.SDLK_EXCLAIM },
         };
         #endregion

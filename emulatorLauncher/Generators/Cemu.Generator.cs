@@ -67,7 +67,7 @@ namespace EmulatorLauncher
             try
             {
                 string sdl2 = Path.Combine(path, "SDL2.dll");
-                if (FileVersionInfo.GetVersionInfo(exe).ProductMajorPart <= 1 && File.Exists(sdl2))
+                if (versionInfo.ProductMajorPart <= 1 && File.Exists(sdl2))
                 {
                     _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
                     _sdl2dll = sdl2;
