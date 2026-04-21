@@ -282,6 +282,7 @@ namespace EmulatorLauncher
         {
             int exitCode = base.RunAndWait(path);
 
+            KillProcesses("eden-cli");
             // Eden always returns 0xc0000005 ( null pointer !? )
             if (exitCode == unchecked((int)0xc0000005))
                 return 0;
@@ -301,16 +302,44 @@ namespace EmulatorLauncher
                 try { Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", null, EnvironmentVariableTarget.User); } catch { }
             }
 
+            KillProcesses("eden-cli");
+
             if (string.IsNullOrEmpty(_gamedirsIniPath) || string.IsNullOrEmpty(_gamedirsSize))
                 return;
 
             using (var ini = new IniFile(_gamedirsIniPath))
                 ini.WriteValue("UI", "Paths\\gamedirs\\size", _gamedirsSize);
+        }
 
-            var cliProcesses = Process.GetProcessesByName("eden-cli");
-            foreach (var p in cliProcesses)
-                try { p.Kill(); }
+        private static void KillProcesses(string processName, int timeoutMs = 3000)
+        {
+            var processes = Process.GetProcessesByName(processName);
+            if (processes.Length == 0)
+                return;
+
+            foreach (var p in processes)
+            {
+                try
+                {
+                    if (!p.HasExited)
+                        p.Kill();
+                }
                 catch { }
+            }
+
+            // Wait for all of them to fully exit
+            var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);
+            foreach (var p in processes)
+            {
+                try
+                {
+                    int remaining = (int)(deadline - DateTime.UtcNow).TotalMilliseconds;
+                    if (remaining > 0)
+                        p.WaitForExit(remaining);
+                }
+                catch { }
+                finally { p.Dispose(); }
+            }
         }
     }
 }
