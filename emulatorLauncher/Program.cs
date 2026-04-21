@@ -35,7 +35,8 @@ namespace EmulatorLauncher
 {
     static class Program
     {
-        static string[] emulatorsNoControlCenter = new string [] { }; // "m2emulator" 
+        static string[] emulatorsNoControlCenter = new string [] { "pinballfx", "pinballfx2", "pinballfx3", "pinballm", "windows" };
+        static string[] coresNoControlCenter = new string[] {};
 
         /// <summary>
         /// Link between emulator declared in es_systems.cfg and generator to use to launch emulator
@@ -824,7 +825,10 @@ namespace EmulatorLauncher
 
             if (emulatorsNoControlCenter.Contains(SystemConfig["emulator"]))
                 return;
-                                                
+
+            if (coresNoControlCenter.Contains(SystemConfig["core"]))
+                return;
+
             ControlCenterManager.ShowControlCenter();
         }
 

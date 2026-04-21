@@ -112,13 +112,37 @@ namespace EmulatorLauncher.Common.Launchers
 
         private static string GetGalaxyClientPath()
         {
-            using (var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\GOG.com\GalaxyClient"))
+            var registryLocations = new[]
             {
-                if (key != null)
+                new[] { @"SOFTWARE\WOW6432Node\GOG.com\GalaxyClient\paths", "client" },
+                new[] { @"SOFTWARE\WOW6432Node\GOG.com\GalaxyClient", "path" },
+                new[] { @"SOFTWARE\GOG.com\GalaxyClient\paths", "client" },
+                new[] { @"SOFTWARE\GOG.com\GalaxyClient", "path" },
+            };
+
+            var roots = new[]
+            {
+                Microsoft.Win32.Registry.LocalMachine,
+                Microsoft.Win32.Registry.CurrentUser,
+            };
+
+            foreach (var root in roots)
+            {
+                foreach (var location in registryLocations)
                 {
-                    var path = key.GetValue("path") as string;
-                    if (!string.IsNullOrEmpty(path))
+                    using (var key = root.OpenSubKey(location[0]))
                     {
+                        if (key == null)
+                            continue;
+
+                        var path = key.GetValue(location[1]) as string;
+
+                        if (string.IsNullOrEmpty(path))
+                            continue;
+
+                        if (File.Exists(path))
+                            return path;
+
                         var exePath = Path.Combine(path, "GalaxyClient.exe");
                         if (File.Exists(exePath))
                             return exePath;

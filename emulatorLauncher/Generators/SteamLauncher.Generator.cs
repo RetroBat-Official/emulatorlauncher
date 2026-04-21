@@ -19,14 +19,16 @@ namespace EmulatorLauncher
 
             public SteamGameLauncher(Uri uri)
             {
+                string gameName = Path.GetFileNameWithoutExtension(Program.SystemConfig["rom"]);
                 // Call method to get Steam executable
                 _uri = uri;
                 string steamInternalDBPath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "steamexecutables.json");
-                LauncherExe = SteamLibrary.GetSteamGameExecutableName(uri, steamInternalDBPath, out _steamID);
+                LauncherExe = SteamLibrary.GetSteamGameExecutableName(uri, steamInternalDBPath, gameName, out _steamID);
             }
 
             public override int RunAndWait(System.Diagnostics.ProcessStartInfo path)
             {
+                string gameName = Path.GetFileNameWithoutExtension(path.FileName);
                 // Check if steam is already running
                 bool uiExists = Process.GetProcessesByName("steam").Any();
                 if (uiExists)
@@ -52,7 +54,7 @@ namespace EmulatorLauncher
                     {
                         // Re-check for executable now that it's installed
                         string steamInternalDBPath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "steamexecutables.json");
-                        LauncherExe = SteamLibrary.GetSteamGameExecutableName(_uri, steamInternalDBPath, out _steamID);
+                        LauncherExe = SteamLibrary.GetSteamGameExecutableName(_uri, steamInternalDBPath, gameName, out _steamID);
                     }
                     else
                     {
