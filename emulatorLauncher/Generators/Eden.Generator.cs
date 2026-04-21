@@ -282,6 +282,7 @@ namespace EmulatorLauncher
         {
             int exitCode = base.RunAndWait(path);
 
+            KillProcesses("eden-cli");
             // Eden always returns 0xc0000005 ( null pointer !? )
             if (exitCode == unchecked((int)0xc0000005))
                 return 0;
