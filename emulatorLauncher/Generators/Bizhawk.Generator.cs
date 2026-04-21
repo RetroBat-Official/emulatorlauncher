@@ -137,9 +137,9 @@ namespace EmulatorLauncher
             if (core == "melonDS" && Path.GetExtension(rom) == ".bin")
             {
                 string romPath = Path.GetDirectoryName(rom);
-                var romToLaunch = Directory.EnumerateFiles(romPath, "*.nds")
-                    .FirstOrDefault();
-                rom = romToLaunch;
+                var romToLaunch = Directory.EnumerateFiles(romPath, "*.nds").FirstOrDefault();
+                if (romToLaunch != null)
+                    rom = romToLaunch;
             }
 
             // Command line arguments

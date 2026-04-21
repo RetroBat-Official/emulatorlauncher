@@ -216,13 +216,13 @@ namespace EmulatorLauncher
                 userProfile = JoystickHelper.DeSerializeGameProfile(userProfilePath, true);
             }
 
-            userProfile.ProfileName = Path.GetFileNameWithoutExtension(userProfilePath);
-
             if (userProfile == null)
             {
                 SimpleLogger.Instance.Error("[TeknoParrotGenerator] Unable create userprofile for " + rom);
                 return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to create userprofile" };
             }
+
+            userProfile.ProfileName = Path.GetFileNameWithoutExtension(userProfilePath);
 
             bool multiExe = false;
 
@@ -325,7 +325,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (profile.ExecutableName2 != null)
+            if (profile.ExecutableName2 != null && userProfile.ExecutableName2 != null)
             {
                 if (userProfile.GamePath2 == null || !File.Exists(userProfile.GamePath2))
                 {
@@ -671,13 +671,13 @@ namespace EmulatorLauncher
             var graphicsBackend = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Graphics Backend");
             if (graphicsBackend != null && Program.SystemConfig.isOptSet("tp_play_gpuapi") && !string.IsNullOrEmpty(Program.SystemConfig["tp_play_gpuapi"]))
                 graphicsBackend.FieldValue = Program.SystemConfig["tp_play_gpuapi"];
-            else
+            else if (graphicsBackend != null)
                 graphicsBackend.FieldValue = "Vulkan";
 
             var resolution = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Resolution");
             if (resolution != null && Program.SystemConfig.isOptSet("tp_play_resolution") && !string.IsNullOrEmpty(Program.SystemConfig["tp_play_resolution"]))
                 resolution.FieldValue = Program.SystemConfig["tp_play_resolution"];
-            else
+            else if (resolution != null)
                 resolution.FieldValue = "480p";
         }
 
