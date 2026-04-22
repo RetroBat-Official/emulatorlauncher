@@ -98,6 +98,7 @@ namespace EmulatorLauncher
             // Manage new launch from zip files with hypseus (do not unzip these)
             string zipSinge = null;
             bool zipHypseus = false;
+            bool oneGun = SystemConfig.getOptBoolean("one_gun");
             if (Path.GetDirectoryName(rom).EndsWith("roms"))
             {
                 zipSinge = rom;
@@ -214,7 +215,7 @@ namespace EmulatorLauncher
                         "-singedir", systemRomBasePath,
                         "-zlua", zipSinge,
                         "-framefile", frameFile,
-                        "-manymouse",
+                        oneGun? "" : "-manymouse",
                         "-datadir", _daphneHomedir,
                         "-homedir", _daphneHomedir
                                             });
@@ -230,7 +231,7 @@ namespace EmulatorLauncher
                         "-zlua", zipSinge,
                         "-usealt", romName,
                         "-framefile", frameFile,
-                        "-manymouse",
+                        oneGun? "" : "-manymouse",
                         "-datadir", _daphneHomedir,
                         "-homedir", _daphneHomedir
                         });
@@ -245,7 +246,7 @@ namespace EmulatorLauncher
                         "-singedir", romPath,
                         "-framefile", frameFile,
                         "-script", singeFile,
-                        "-manymouse",
+                        oneGun? "" : "-manymouse",
                         "-datadir", _daphneHomedir,
                         "-homedir", _daphneHomedir
                         });

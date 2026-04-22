@@ -222,6 +222,9 @@ namespace EmulatorLauncher
                 return new ProcessStartInfo() { FileName = "WARNING", Arguments = "Unable to create userprofile" };
             }
 
+            if (userProfile.ConfigValues == null)
+                userProfile.ConfigValues = new List<FieldInformation>();
+
             userProfile.ProfileName = Path.GetFileNameWithoutExtension(userProfilePath);
 
             bool multiExe = false;
