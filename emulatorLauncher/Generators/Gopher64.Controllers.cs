@@ -1,15 +1,17 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
 using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
-using System.Linq;
-using EmulatorLauncher.Common.EmulationStation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using static EmulatorLauncher.PadToKeyboard.SendKey;
+using SharpDX.DirectInput;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Input;
+using static EmulatorLauncher.PadToKeyboard.SendKey;
 
 namespace EmulatorLauncher
 {
@@ -82,14 +84,7 @@ namespace EmulatorLauncher
 
         private void ConfigureInput(JObject profile, Controller controller, JArray controllerAssignment)
         {
-            string cPath = controller.DirectInput.DevicePath
-                    .Replace("hid#", "HID#")
-                    .Replace("_vid", "_VID")
-                    .Replace("_pid", "_PID")
-                    .Replace("vid_", "VID_")
-                    .Replace("pid_", "PID_")
-                    .Replace("ig_", "IG_")
-                    ;
+            string cPath = FormatDeviceId(controller.DirectInput.DevicePath);
 
             if (controller.IsXInputDevice)
             {
@@ -291,6 +286,16 @@ namespace EmulatorLauncher
                 deadzone = SystemConfig["gopher64_deadzone"].ToIntegerString().ToInteger();
 
             profile["deadzone"] = deadzone;
+        }
+
+        private string FormatDeviceId(string deviceId)
+        {
+            int secondHash = deviceId.IndexOf('#', deviceId.IndexOf('#') + 1);
+            if (secondHash == -1)
+                return deviceId;
+
+            return deviceId.Substring(0, secondHash).ToUpper()
+                 + deviceId.Substring(secondHash).ToLower();
         }
 
         private static Dictionary<InputKey, InputKey> revertedAxis = new Dictionary<InputKey, InputKey>()

@@ -100,6 +100,8 @@ namespace EmulatorLauncher
 
                 ini.WriteValue("UI", "pauseWhenInBackground\\default", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "true" : "false");
                 ini.WriteValue("UI", "pauseWhenInBackground", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true");
+                ini.WriteValue("UI", "saveStateWarning\\default", "false");
+                ini.WriteValue("UI", "saveStateWarning", "false");
 
                 // Define rom path
                 string romPath = Path.GetDirectoryName(rom);

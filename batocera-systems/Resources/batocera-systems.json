@@ -690,6 +690,10 @@
     "biosFiles": [
       {
         "md5": "2c66f5911e5b42b8ebe113403548eee7",
+        "file": "bios/coleco.rom"
+      },
+      {
+        "md5": "2c66f5911e5b42b8ebe113403548eee7",
         "file": "bios/colecovision.rom"
       },
       {
@@ -702,6 +706,10 @@
   "crvision": {
     "name": "Creativision",
     "biosFiles": [
+      {
+        "md5": "3b1ef759d8e3fb4071582efd33dd05f9",
+        "file": "bios/bioscv.rom"
+      },
       {
         "md5": "",
         "file": "bios/crvision.zip"

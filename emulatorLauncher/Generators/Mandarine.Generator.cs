@@ -28,7 +28,9 @@ namespace EmulatorLauncher
             if (string.IsNullOrEmpty(path))
                 return null;
 
-            string exe = Path.Combine(path, "mandarine.exe");
+            string exe = Path.Combine(path, "mandarine-qt.exe");
+            if (!File.Exists(exe))
+                exe = Path.Combine(path, "mandarine.exe");
             if (!File.Exists(exe))
                 return null;
 
@@ -99,6 +101,9 @@ namespace EmulatorLauncher
             using (var ini = new IniFile(conf))
             {
                 SimpleLogger.Instance.Info("[Generator] Writing Mandarine configuration file: " + conf);
+
+                ini.WriteValue("UI", "pauseWhenInBackground\\default", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "true" : "false");
+                ini.WriteValue("UI", "pauseWhenInBackground", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true");
 
                 // Define rom path
                 string romPath = Path.GetDirectoryName(rom);
@@ -431,6 +436,13 @@ namespace EmulatorLauncher
                 return 0;
 
             return ret;
+        }
+
+        public override void Cleanup()
+        {
+            base.Cleanup();
+
+            try { Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", null, EnvironmentVariableTarget.User); } catch { }
         }
     }
 }

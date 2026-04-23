@@ -62,10 +62,8 @@ namespace EmulatorLauncher
             {
                 ini.WriteValue("UI", "check_for_updates_on_start\\default", "false");
                 ini.WriteValue("UI", "check_for_updates_on_start", "false");
-                ini.WriteValue("UI", "showIntroAnimation\\default", "false");
-                ini.WriteValue("UI", "showIntroAnimation", "false");
-                ini.WriteValue("UI", "farewellShown\\default", "false");
-                ini.WriteValue("UI", "farewellShown", "true");
+                ini.WriteValue("UI", "firstStart\\default", "true");
+                ini.WriteValue("UI", "firstStart", "false");
 
                 // Set up paths
                 bool mutualize = SystemConfig.getOptBoolean("yuzu_mutualize");
@@ -218,7 +216,7 @@ namespace EmulatorLauncher
 
                 BindQtIniFeature(ini, "Audio", "output_engine", "citron_audio_backend", "auto");
                 BindQtIniFeature(ini, "System", "sound_index", "citron_sound_index", "1");            
-                BindQtIniFeature(ini, "Renderer", "backend", "citron_backend", "1");
+                //BindQtIniFeature(ini, "Renderer", "backend", "citron_backend", "0");
                 BindQtIniFeature(ini, "Renderer", "resolution_setup", "citron_resolution_setup", "3");
                 BindQtIniFeature(ini, "Renderer", "aspect_ratio", "citron_ratio", "0");
                 BindQtIniFeature(ini, "Renderer", "max_anisotropy", "citron_anisotropy", "0");

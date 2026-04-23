@@ -4762,6 +4762,7 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "scummvm_analog_response", "scummvm_analog_response", "linear");
+            BindFeature(coreSettings, "scummvm_pointer_device", "scummvm_pointer_device", "mouse");
 
             try
             {

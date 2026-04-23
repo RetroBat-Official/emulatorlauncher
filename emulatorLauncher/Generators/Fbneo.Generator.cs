@@ -104,6 +104,7 @@ namespace EmulatorLauncher
             if (File.Exists(iniFile))
             {
                 var cfg = FbneoConfigFile.FromFile(iniFile);
+                cfg["bSkipStartupCheck"] = "1";
 
                 // Write paths
                 cfg["szAppRomPaths[0]"] = Path.GetDirectoryName(rom) + "\\";
