@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace EmulatorLauncher
 {
@@ -73,7 +74,23 @@ namespace EmulatorLauncher
             return ret;
 		}
 
-		private void SetupConfiguration(string path, string rom, string system, bool fullscreen)
+        static string EncodeToFakeCJK(string input)
+        {
+            var sb = new StringBuilder();
+            byte[] bytes = Encoding.ASCII.GetBytes(input);
+            for (int i = 0; i < bytes.Length - 1; i += 2)
+            {
+                // low byte first, high byte second — straight UTF-16 LE interpretation
+                ushort codepoint = (ushort)(bytes[i] | (bytes[i + 1] << 8));
+                sb.Append((char)codepoint);
+            }
+            // handle odd-length strings
+            if (bytes.Length % 2 != 0)
+                sb.Append((char)bytes[bytes.Length - 1]);
+            return sb.ToString();
+        }
+
+        private void SetupConfiguration(string path, string rom, string system, bool fullscreen)
         {
             string conf = Path.Combine(path, "snes9x.conf");
 			if (!File.Exists(conf))
@@ -81,10 +98,21 @@ namespace EmulatorLauncher
 
             using (var ini = IniFile.FromFile(conf, IniOptions.KeepEmptyLines))
 			{
-				//string shaderPath;
+				string username = SystemConfig["retroachievements.username"];
+				string token = SystemConfig["retroachievements.token"];
 
-				// Inject path
-				Dictionary<string, string> userPath = new Dictionary<string, string>
+				string finalUsername = EncodeToFakeCJK(username);
+                string finalToken = EncodeToFakeCJK(token);
+
+                //retroachievements
+                ini.WriteValue("RetroAchievements", "Enabled", SystemConfig.getOptBoolean("retroachievements") ? "TRUE" : "FALSE");
+                ini.WriteValue("RetroAchievements", "HardcoreMode", SystemConfig.getOptBoolean("retroachievements.hardcore") ? "TRUE" : "FALSE");
+                ini.WriteValue("RetroAchievements", "Username", finalUsername);
+                ini.WriteValue("RetroAchievements", "ApiToken", finalToken);
+                ini.WriteValue("RetroAchievements", "EmulatorName", "SuperSnes9x");
+
+                // Inject path
+                Dictionary<string, string> userPath = new Dictionary<string, string>
 				{
 					{ "Dir:Roms", Path.Combine(AppConfig.GetFullPath("roms"), system) },
 					{ "Dir:Screenshots", Path.Combine(AppConfig.GetFullPath("screenshots"), "snes9x") },
@@ -175,9 +203,13 @@ namespace EmulatorLauncher
 
 				// NTSC filters
 				if (SystemConfig.isOptSet("snes9x_ntsc_filters") && !string.IsNullOrEmpty(SystemConfig["snes9x_ntsc_filters"]))
+				{
 					ini.WriteValue(@"Display\Win", "FilterType", SystemConfig["snes9x_ntsc_filters"]);
+                }
 				else
+				{
 					ini.WriteValue(@"Display\Win", "FilterType", "0");
+                }
 
 				// Video drivers
 				BindIniFeature(ini, @"Display\Win", "OutputMethod", "snes9x_renderer", "2");

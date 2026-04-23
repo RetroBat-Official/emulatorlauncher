@@ -137,6 +137,7 @@ namespace EmulatorLauncher.Libretro
                 { "imageviewer", "image display" },
                 { "ishiiruka", "Ishiiruka" },
                 { "jaxe", "JAXE" },
+                { "jollycv", "Jollycv" },
                 { "jumpnbump", "jumpnbump" },
                 { "kronos", "Kronos" },
                 { "lowresnx", "LowRes NX" },
@@ -404,6 +405,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureHandy(retroarchConfig, coreSettings, system, core);
             ConfigureHatari(retroarchConfig, coreSettings, system, core);
             ConfigureHatariB(retroarchConfig, coreSettings, system, core);
+            ConfigureJollyCV(retroarchConfig, coreSettings, system, core);
             ConfigureKronos(retroarchConfig, coreSettings, system, core);
             ConfigureLRPS2(retroarchConfig, coreSettings, system, core);
             ConfigureM2000(retroarchConfig, coreSettings, system, core);
@@ -2618,6 +2620,16 @@ namespace EmulatorLauncher.Libretro
             }
         }
 
+        private void ConfigureJollyCV(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "jollycv")
+                return;
+
+            coreSettings["jollycv_autoreset"] = "on";
+            BindFeature(coreSettings, "jollycv_aspect", "jollycv_aspect", "Auto");
+            BindFeature(coreSettings, "jollycv_tmspalette", "jollycv_tmspalette", "TeaTime");
+        }
+
         private void ConfigureKronos(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "kronos")
@@ -4750,6 +4762,7 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "scummvm_analog_response", "scummvm_analog_response", "linear");
+            BindFeature(coreSettings, "scummvm_pointer_device", "scummvm_pointer_device", "mouse");
 
             try
             {

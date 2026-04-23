@@ -14,7 +14,12 @@ namespace EmulatorLauncher
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
-                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled, just configuring shortcuts.");
+                ConfigureShortcuts(ini);
+                ini.WriteValue("Controls", "profiles\\1\\button_gpio14\\default", "false");
+                ini.WriteValue("Controls", "profiles\\1\\button_gpio14", "\"" + "code:16777233,engine:keyboard" + "\"");
+                ini.WriteValue("Controls", "profiles\\1\\button_home\\default", "false");
+                ini.WriteValue("Controls", "profiles\\1\\button_home", "\"" + "code:16777232,engine:keyboard" + "\"");
                 return;
             }
 
@@ -26,6 +31,8 @@ namespace EmulatorLauncher
                 ConfigureKeyboard(c1, ini);
             else
                 ConfigureJoystick(c1, ini);
+
+            ConfigureShortcuts(ini);
         }
 
         private void ConfigureJoystick(Controller controller, IniFile ini)
@@ -83,8 +90,10 @@ namespace EmulatorLauncher
             //Keep default keyboard buttons for debug and gpio14
             ini.WriteValue("Controls", profile + "button_debug" + "\\default", "true");
             ini.WriteValue("Controls", profile + "button_debug", "\"" + "code:79,engine:keyboard" + "\"");
-            ini.WriteValue("Controls", profile + "button_gpio14" + "\\default", "true");
-            ini.WriteValue("Controls", profile + "button_gpio14", "\"" + "code:80,engine:keyboard" + "\"");
+            ini.WriteValue("Controls", profile + "button_gpio14" + "\\default", "false");
+            ini.WriteValue("Controls", profile + "button_gpio14", "\"" + "code:16777233,engine:keyboard" + "\"");
+            ini.WriteValue("Controls", profile + "button_home" + "\\default", "false");
+            ini.WriteValue("Controls", profile + "button_home", "\"" + "code:16777232,engine:keyboard" + "\"");
 
             //Manage mapping of triggers ZL and ZR
             foreach (var map in Zmapping)
@@ -104,10 +113,6 @@ namespace EmulatorLauncher
                     ini.WriteValue("Controls", name, "\"" + cvalue + "\"");
                 }
             }
-
-            //Home button - empty
-            ini.WriteValue("Controls", profile + "button_home" + "\\default", "true");
-            ini.WriteValue("Controls", profile + "button_home", "\"code:66,engine:keyboard\"");
 
             //Manage sticks
             //left stick = circle pad
@@ -286,14 +291,14 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", profile + "button_select", "\"" + "code:78,engine:keyboard" + "\"");
             ini.WriteValue("Controls", profile + "button_debug\\default", "true");
             ini.WriteValue("Controls", profile + "button_debug", "\"" + "code:79,engine:keyboard" + "\"");
-            ini.WriteValue("Controls", profile + "button_gpio14\\default", "true");
-            ini.WriteValue("Controls", profile + "button_gpio14", "\"" + "code:80,engine:keyboard" + "\"");
+            ini.WriteValue("Controls", profile + "button_gpio14\\default", "false");
+            ini.WriteValue("Controls", profile + "button_gpio14", "\"" + "code:16777233,engine:keyboard" + "\"");
             ini.WriteValue("Controls", profile + "button_zl\\default", "true");
             ini.WriteValue("Controls", profile + "button_zl", "\"" + "code:49,engine:keyboard" + "\"");
             ini.WriteValue("Controls", profile + "button_zr\\default", "true");
             ini.WriteValue("Controls", profile + "button_zr", "\"" + "code:50,engine:keyboard" + "\"");
-            ini.WriteValue("Controls", profile + "button_home\\default", "true");
-            ini.WriteValue("Controls", profile + "button_home", "\"" + "code:66,engine:keyboard" + "\"");
+            ini.WriteValue("Controls", profile + "button_home\\default", "false");
+            ini.WriteValue("Controls", profile + "button_home", "\"" + "code:16777232,engine:keyboard" + "\"");
             ini.WriteValue("Controls", profile + "circle_pad\\default", "true");
             ini.WriteValue("Controls", profile + "circle_pad", "\"" + "down:code$016777237$1engine$0keyboard,engine:analog_from_button,left:code$016777234$1engine$0keyboard,modifier:code$068$1engine$0keyboard,modifier_scale:0.500000,right:code$016777236$1engine$0keyboard,up:code$016777235$1engine$0keyboard" + "\"");
             ini.WriteValue("Controls", profile + "c_stick\\default", "true");
@@ -350,28 +355,31 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", "profiles\\size", "1");
         }
 
-        /*static Dictionary<string, string> DefKeys = new Dictionary<string, string>()
+        private void ConfigureShortcuts(IniFile ini)
         {
-            { "button_a", "code:65,engine:keyboard" },
-            { "button_b","code:83,engine:keyboard" },
-            { "button_x","code:90,engine:keyboard" },
-            { "button_y","code:88,engine:keyboard" },
-            { "button_up","code:84,engine:keyboard" },
-            { "button_down","code:71,engine:keyboard" },
-            { "button_left","code:70,engine:keyboard" },
-            { "button_right","code:72,engine:keyboard" },
-            { "button_l","code:81,engine:keyboard" },
-            { "button_r","code:87,engine:keyboard" },
-            { "button_start","code:77,engine:keyboard" },
-            { "button_select","code:78,engine:keyboard" },
-            { "button_debug","code:79,engine:keyboard" },
-            { "button_gpio14","code:80,engine:keyboard" },
-            { "button_zl","code:49,engine:keyboard" },
-            { "button_zr","code:50,engine:keyboard" },
-            { "button_home","code:66,engine:keyboard" },
-            { "circle_pad","down:code$016777237$1engine$0keyboard,engine:analog_from_button,left:code$016777234$1engine$0keyboard,modifier:code$068$1engine$0keyboard,modifier_scale:0.500000,right:code$016777236$1engine$0keyboard,up:code$016777235$1engine$0keyboard" },
-            { "c_stick","down:code$075$1engine$0keyboard,engine:analog_from_button,left:code$074$1engine$0keyboard,modifier:code$068$1engine$0keyboard,modifier_scale:0.500000,right:code$076$1engine$0keyboard,up:code$073$1engine$0keyboard" }, 
-        };*/
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\KeySeq", "F8");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\KeySeq", "P");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Azahar\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Azahar\\KeySeq", "Esc");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Fullscreen\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Fullscreen\\KeySeq", "Tab");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Fullscreen\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Fullscreen\\KeySeq", "F1");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Load%20Amiibo\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Load%20Amiibo\\KeySeq", "Ctrl+F2");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Remove%20Amiibo\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Remove%20Amiibo\\KeySeq", "Ctrl+F3");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Quick%20Save\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Quick%20Save\\KeySeq", "F2");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Quick%20Load\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Quick%20Load\\KeySeq", "F4");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Restart%20Emulation\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Restart%20Emulation\\KeySeq", "Ctrl+F6");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Rotate%20Screens%20Upright\\KeySeq\\default", "false");
+            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Rotate%20Screens%20Upright\\KeySeq", "Ctrl+F8");
+        }
 
         static InputKeyMapping Mapping = new InputKeyMapping()
         {

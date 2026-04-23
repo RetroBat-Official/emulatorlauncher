@@ -1,14 +1,15 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
 using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
-using System.Linq;
-using EmulatorLauncher.Common.EmulationStation;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace EmulatorLauncher
 {
@@ -54,6 +55,7 @@ namespace EmulatorLauncher
             string setupPath = Path.Combine(path, "portable_data", "config");
 
             SetupConfiguration(setupPath, fullscreen);
+            SetupCheevos(setupPath);
 
             var commandArray = new List<string>();
 
@@ -133,9 +135,34 @@ namespace EmulatorLauncher
             // Emulation
             BindBoolFeature(emulation, "disable_expansion_pak", "gopher64_disable_expansion_pak");
 
-            //save config file
-            string jsonString = root.ToString(Newtonsoft.Json.Formatting.Indented);
+            string jsonString = root.ToString(Formatting.Indented);
+            File.WriteAllText(configFile, jsonString);
+        }
 
+        private void SetupCheevos(string setupPath)
+        {
+            string configFile = Path.Combine(setupPath, "retroachievements.json");
+
+            JObject root;
+
+            if (File.Exists(configFile))
+            {
+                string jsonText = File.ReadAllText(configFile);
+                root = JObject.Parse(jsonText);
+            }
+            else
+            {
+                root = new JObject();
+            }
+
+            root["username"] = SystemConfig["retroachievements.username"];
+            root["token"] = SystemConfig["retroachievements.token"];
+            root["enabled"] = SystemConfig.getOptBoolean("retroachievements") ? true : false;
+            root["hardcore"] = SystemConfig.getOptBoolean("retroachievements.hardcore") ? true : false;
+            root["challenge"] = SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? true : false;
+            root["leaderboard"] = SystemConfig.getOptBoolean("retroachievements.leaderboards") ? true : false;
+
+            string jsonString = root.ToString(Formatting.Indented);
             File.WriteAllText(configFile, jsonString);
         }
 
