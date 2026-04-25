@@ -217,6 +217,14 @@ namespace EmulatorLauncher
             var edenGuid = guid.ToString().ToLowerInvariant();
             bool joyconPair = controller.Name.Contains("Joy-Con") && controller.Name.Contains("L/R");
 
+            string deadzone = "0.15";
+            if (SystemConfig.isOptSet("eden_deadzone") && !string.IsNullOrEmpty(SystemConfig["eden_deadzone"]))
+                deadzone = (SystemConfig["eden_deadzone"].ToDouble() / 100).ToString(CultureInfo.InvariantCulture);
+
+            string range = "1.000000";
+            if (SystemConfig.isOptSet("eden_range") && !string.IsNullOrEmpty(SystemConfig["eden_range"]))
+                range = (SystemConfig["eden_range"].ToDouble() / 100).ToString("F6", CultureInfo.InvariantCulture);
+
             // Eden deactivates RAWINPUT with SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, 0) when enable_raw_input is set to false (default value) 
             // Convert Guid to XInput
             if (_norawinput)
@@ -410,9 +418,9 @@ namespace EmulatorLauncher
                 ini.WriteValue("Controls", player + "button_screenshot" + "\\default", "false");
                 ini.WriteValue("Controls", player + "button_screenshot", "\"" + "engine:joycon,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,button:2097152\"");
                 ini.WriteValue("Controls", player + "lstick" + "\\default", "false");
-                ini.WriteValue("Controls", player + "lstick", "\"" + "engine:joycon,axis_x:0,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,axis_y:1,deadzone:0.150000\"");
+                ini.WriteValue("Controls", player + "lstick", "\"" + "engine:joycon,axis_x:0,guid:00000000000000000000000000000001,port:" + _joyconIndex + ",pad:1,axis_y:1,deadzone:" + deadzone + ",range:" + range + "\"");
                 ini.WriteValue("Controls", player + "rstick" + "\\default", "false");
-                ini.WriteValue("Controls", player + "rstick", "\"" + "engine:joycon,axis_x:2,guid:00000000000000000000000000000002,port:" + _joyconIndex + ",pad:2,axis_y:3,deadzone:0.150000\"");
+                ini.WriteValue("Controls", player + "rstick", "\"" + "engine:joycon,axis_x:2,guid:00000000000000000000000000000002,port:" + _joyconIndex + ",pad:2,axis_y:3,deadzone:" + deadzone + ",range:" + range + "\"");
                 _joyconIndex++;
             }
 
@@ -465,8 +473,8 @@ namespace EmulatorLauncher
                 ini.WriteValue("Controls", player + "button_screenshot" + "\\default", "false");
                 ini.WriteValue("Controls", player + "button_screenshot", "[empty]");
 
-                ProcessStick(controller, player, "lstick", ini, edenGuid, index);
-                ProcessStick(controller, player, "rstick", ini, edenGuid, index);
+                ProcessStick(controller, player, "lstick", ini, edenGuid, index, deadzone, range);
+                ProcessStick(controller, player, "rstick", ini, edenGuid, index, deadzone, range);
             }
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
@@ -537,15 +545,11 @@ namespace EmulatorLauncher
             return value;
         }
 
-        private void ProcessStick(Controller controller, string player, string stickName, IniFile ini, string guid, int index)
+        private void ProcessStick(Controller controller, string player, string stickName, IniFile ini, string guid, int index, string deadzone = "0.15", string range = "1.000000")
         {
             var cfg = controller.Config;
 
             string name = player + stickName;
-            string deadzone = "0.15";
-            if (SystemConfig.isOptSet("eden_deadzone") && !string.IsNullOrEmpty(SystemConfig["eden_deadzone"]))
-                deadzone = (SystemConfig["eden_deadzone"].ToDouble() / 100).ToString(CultureInfo.InvariantCulture);
-
             var leftVal = cfg[stickName == "lstick" ? InputKey.joystick1left : InputKey.joystick2left];
             var topVal = cfg[stickName == "lstick" ? InputKey.joystick1up : InputKey.joystick2up];
 
@@ -561,7 +565,7 @@ namespace EmulatorLauncher
                     edentopval = 4;
                 }
 
-                string value = "engine:sdl," + "axis_x:" + edenleftval + ",port:" + index + ",guid:" + guid + ",axis_y:" + edentopval + ",deadzone:" + deadzone + ", range:1.000000";
+                string value = "engine:sdl," + "axis_x:" + edenleftval + ",port:" + index + ",guid:" + guid + ",axis_y:" + edentopval + ",deadzone:" + deadzone + ",range:" + range;
 
                 ini.WriteValue("Controls", name + "\\default", "false");
                 ini.WriteValue("Controls", name, "\"" + value + "\"");
