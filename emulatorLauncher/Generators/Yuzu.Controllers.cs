@@ -208,6 +208,14 @@ namespace EmulatorLauncher
             var guid = controller.GetSdlGuid(SdlVersion.SDL2_0_X, true);
             var yuzuGuid = guid.ToString().ToLowerInvariant();
 
+            string deadzone = "0.15";
+            if (SystemConfig.isOptSet("yuzu_deadzone") && !string.IsNullOrEmpty(SystemConfig["yuzu_deadzone"]))
+                deadzone = (SystemConfig["yuzu_deadzone"].ToDouble() / 100).ToString(CultureInfo.InvariantCulture);
+
+            string range = "1.000000";
+            if (SystemConfig.isOptSet("yuzu_range") && !string.IsNullOrEmpty(SystemConfig["yuzu_range"]))
+                range = (SystemConfig["yuzu_range"].ToDouble() / 100).ToString("F6", CultureInfo.InvariantCulture);
+
             // Yuzu deactivates RAWINPUT with SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, 0) when enable_raw_input is set to false (default value) 
             // Convert Guid to XInput
             if (_norawinput)
@@ -464,14 +472,12 @@ namespace EmulatorLauncher
             return value;
         }
 
-        private void ProcessStick(Controller controller, string player, string stickName, IniFile ini, string guid, int index)
+        private void ProcessStick(Controller controller, string player, string stickName, IniFile ini, string guid, int index, string deadzone = "0.15", string range = "1.000000")
         {
             var cfg = controller.Config;
 
             string name = player + stickName;
-            string deadzone = "0.15";
-            if (SystemConfig.isOptSet("yuzu_deadzone") && !string.IsNullOrEmpty(SystemConfig["yuzu_deadzone"]))
-                deadzone = (SystemConfig["yuzu_deadzone"].ToDouble() / 100).ToString(CultureInfo.InvariantCulture);
+            
 
             var leftVal = cfg[stickName == "lstick" ? InputKey.joystick1left : InputKey.joystick2left];
             var topVal = cfg[stickName == "lstick" ? InputKey.joystick1up : InputKey.joystick2up];
@@ -488,7 +494,7 @@ namespace EmulatorLauncher
                     yuzutopval = 4;
                 }
 
-                string value = "engine:sdl," + "axis_x:" + yuzuleftval + ",port:" + index + ",guid:" + guid + ",axis_y:" + yuzutopval + ",deadzone:" + deadzone + ", range:1.000000";
+                string value = "engine:sdl," + "axis_x:" + yuzuleftval + ",port:" + index + ",guid:" + guid + ",axis_y:" + yuzutopval + ",deadzone:" + deadzone + ",range:" + range;
 
                 ini.WriteValue("Controls", name + "\\default", "false");
                 ini.WriteValue("Controls", name, "\"" + value + "\"");
