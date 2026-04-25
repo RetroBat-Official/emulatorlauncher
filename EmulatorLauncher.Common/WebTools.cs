@@ -66,6 +66,12 @@ namespace EmulatorLauncher.Common
 
                 resp.Close();
             }
+            catch (WebException ex) when (ex.Response is HttpWebResponse resp)
+            {
+                resp.Close();
+                _urlExistsCache[url] = false;
+                return false;
+            }
             catch (Exception ex)
             {
                 SimpleLogger.Instance.Error("[UrlExists] Exception " + ex.Message, ex);
