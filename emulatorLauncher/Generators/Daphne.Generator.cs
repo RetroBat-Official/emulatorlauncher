@@ -53,6 +53,14 @@ namespace EmulatorLauncher
                     commandArray.Add(xString);
                 }
 
+                if (SystemConfig.isOptSet("hypseus_screen"))
+                {
+                    string screenString = SystemConfig["hypseus_screen"].ToIntegerString();
+                    commandArray.Add("-screen");
+                    // decrement to match the standard screen index behavior
+                    commandArray.Add((int.Parse(screenString) - 1).ToString());
+                }
+
                 if (SystemConfig.isOptSet("hypseus_renderer") && SystemConfig["hypseus_renderer"] == "vulkan")
                 {
                     commandArray.Remove("-opengl");
@@ -84,7 +92,7 @@ namespace EmulatorLauncher
                     string ret = FindFile(d, pattern, predicate);
                     if (ret != null)
                         return ret;
-                }                
+                }
             }
             catch { }
 
@@ -110,7 +118,7 @@ namespace EmulatorLauncher
 
             string romName = Path.GetFileNameWithoutExtension(rom);
             bool useAlt = false;
-            
+
             string singeFile = null;
             string frameFile = null;
 
@@ -197,7 +205,7 @@ namespace EmulatorLauncher
             List<string> commandArray = new List<string>();
 
             // extension used .daphne and the file to start the game is in the folder .daphne with the extension .txt
-        
+
             string daphneDatadir = emulatorPath;
             _daphneHomedir = Path.GetDirectoryName(rom);
 
@@ -282,13 +290,13 @@ namespace EmulatorLauncher
                    });
                 }
             }
-            
+
             bool fullscreen = ShouldRunFullscreen();
 
             if (fullscreen)
                 commandArray.Add("-fullscreen");
 
-            /* 
+            /*
             In future we can use -gamepad to use SDL codes for controller settings, however this does not currently allow to specify the controller index...
             It will also need modification of daphne.controllers.cs with SDL codes instead of dinput numbers
             if (this.Controllers.Any(c => !c.IsKeyboard))
@@ -304,14 +312,14 @@ namespace EmulatorLauncher
                 commandArray.Add((resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
             }
 
-            commandArray.Add("-opengl");            
+            commandArray.Add("-opengl");
             commandArray.Add("-fastboot");
 
             if (emulator == "hypseus" && SystemConfig.isOptSet("daphne_vsync") && !SystemConfig.getOptBoolean("daphne_vsync"))
                 commandArray.Add("-novsync");
 
-            UpdateCommandline(commandArray);       
-            
+            UpdateCommandline(commandArray);
+
             // The folder may have a file with the game name and .commands with extra arguments to run the game.
             if (File.Exists(commandsFile))
             {
@@ -340,7 +348,7 @@ namespace EmulatorLauncher
 
                         commandArray.Add(s);
                     }
-                    
+
                     else if (_executableName == "hypseus")
                     {
                         if (s == "singe" && commandArray[0] != "singe")
@@ -350,7 +358,7 @@ namespace EmulatorLauncher
                         }
 
                         if (s == romName || s == "singe" || s == "vdlp" || s == "-fullscreen" ||
-                            s == "-opengl" || s == "-vulkan" || s == "-fastboot" || s == "-retropath" || s == "-manymouse" || s == "force_aspect_ratio" || 
+                            s == "-opengl" || s == "-vulkan" || s == "-fastboot" || s == "-retropath" || s == "-manymouse" || s == "force_aspect_ratio" ||
                             s == "-ignore_aspect_ratio" || s == " - novsync" || s == "-nolinear_scale" || s == "-nocrosshair")
                             continue;
 
@@ -454,7 +462,7 @@ namespace EmulatorLauncher
 
                 string frameFile = Path.Combine(_daphneHomedir, "framefile");
                 if (Directory.Exists(frameFile))
-                    new DirectoryInfo(frameFile).Delete(true);     
+                    new DirectoryInfo(frameFile).Delete(true);
 
                 if (_executableName == "daphne")
                     ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _daphnePath);
