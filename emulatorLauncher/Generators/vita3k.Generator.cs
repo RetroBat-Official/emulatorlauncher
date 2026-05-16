@@ -84,6 +84,7 @@ namespace EmulatorLauncher
 
             //setup config.ini file
             SetupConfiguration(configfile);
+            SetupGUIConfiguration(path);
 
             //Start emulator
             return new ProcessStartInfo()
@@ -96,9 +97,9 @@ namespace EmulatorLauncher
         }
 
         //Configure config.yml file
-        private void SetupConfiguration(string path)
+        private void SetupConfiguration(string configPpath)
         {
-            if (!File.Exists(path))
+            if (!File.Exists(configPpath))
             {
                 string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "vita3k", "config.yml");
 
@@ -106,7 +107,7 @@ namespace EmulatorLauncher
                 {
                     try
                     {
-                        File.Copy(templateFile, path);
+                        File.Copy(templateFile, configPpath);
                     }
                     catch (Exception ex)
                     {
@@ -115,13 +116,13 @@ namespace EmulatorLauncher
                 }
             }
             
-            if (!File.Exists(path))
+            if (!File.Exists(configPpath))
             {
                 SimpleLogger.Instance.Error("Config file not found and template file not found, cannot create config file for vita3k.");
                 return;
             }
 
-            var yml = YmlFile.Load(Path.Combine(path));
+            var yml = YmlFile.Load(Path.Combine(configPpath));
 
             //write pref-path with emulator path
             yml["pref-path"] = _prefPath;
@@ -226,6 +227,30 @@ namespace EmulatorLauncher
 
             //save config file
             yml.Save();
+        }
+
+        private void SetupGUIConfiguration(string path)
+        {
+            string guiSettingsPath = Path.Combine(path, "gui-configs");
+            if (!Directory.Exists(guiSettingsPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(guiSettingsPath);
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Error("Error creating gui-configs directory: " + ex.Message);
+                    return;
+                }
+            }
+
+            string guiConfigFile = Path.Combine(guiSettingsPath, "CurrentSettings.ini");
+
+            using (var ini = new IniFile(guiConfigFile))
+            {
+                ini.WriteValue("MainWindow", "confirmExitApp", "false");
+            }
         }
 
         /// <summary>
