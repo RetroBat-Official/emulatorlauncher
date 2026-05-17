@@ -165,16 +165,6 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Input", "HoldGears", "m2_HoldGears", "1", "0");
                     BindBoolIniFeature(ini, "Input", "UseRawInput", "m2_rawinput", "1", "0");
 
-                    if (SystemConfig.isOptSet("m2_deadzone") && !string.IsNullOrEmpty(SystemConfig["m2_deadzone"]))
-                    {
-                        string deadzone = SystemConfig["m2_deadzone"].ToIntegerString() + "00";
-                        ini.WriteValue("Input", "FE_CENTERING_Deadband", deadzone);
-                    }
-                    else
-                    {
-                        ini.WriteValue("Input", "FE_CENTERING_Deadband", "1000");
-                    }
-
                     ConfigureInput(path, ini, rom);
                 }
             }

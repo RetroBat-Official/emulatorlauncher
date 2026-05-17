@@ -20,7 +20,7 @@ namespace EmulatorLauncher
             if (!Directory.Exists(path))
                 return null;
 
-            string exe = Path.Combine(path, "vita3k.exe");
+            string exe = Path.Combine(path, "Vita3K.exe");
             if (!File.Exists(exe))
                 return null;
 
@@ -30,11 +30,6 @@ namespace EmulatorLauncher
                 _prefPath = Path.Combine(AppConfig.GetFullPath("saves"), "psvita", "vita3k");
 
             SimpleLogger.Instance.Info("[Generator] Setting '" + _prefPath + "' as content path for the emulator");
-
-            // Check if firmware is intalled
-            string firmware = Path.Combine(_prefPath, "vs0", "vsh", "initialsetup");
-            if (!Directory.Exists(firmware))
-                throw new ApplicationException("PSVita firmware is not installed in Vita3K emulator, launch the emulator and install the firware.");
 
             //Check extension of rom
             /*
@@ -80,15 +75,16 @@ namespace EmulatorLauncher
             string gamepath = Path.Combine(_prefPath, "ux0", "app", gameID);
             
             if (!Directory.Exists(gamepath) && (ext == ".vpk" || ext == ".psvita"))
-                commandArray.Add("-path " + "\"" + rom + "\"");     //path used to install the game
+                commandArray.Add("-path " + "\"" + rom + "\"");
 
             if (!string.IsNullOrEmpty(gameID) && (Directory.Exists(gamepath) || ext == ".m3u"))
-                commandArray.Add("-r " + gameID);                    //r used to run installed games
+                commandArray.Add("-r " + gameID);
 
             string args = string.Join(" ", commandArray);
 
             //setup config.ini file
-            SetupConfiguration(path);
+            SetupConfiguration(configfile);
+            SetupGUIConfiguration(path);
 
             //Start emulator
             return new ProcessStartInfo()
@@ -101,10 +97,36 @@ namespace EmulatorLauncher
         }
 
         //Configure config.yml file
-        private void SetupConfiguration(string path)
+        private void SetupConfiguration(string configPpath)
         {
-            var yml = YmlFile.Load(Path.Combine(path, "config.yml"));
+            if (!File.Exists(configPpath))
+            {
+                string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "vita3k", "config.yml");
+
+                if (File.Exists(templateFile))
+                {
+                    try
+                    {
+                        File.Copy(templateFile, configPpath);
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Instance.Error("Error copying config template file: " + ex.Message);
+                    }
+                }
+            }
             
+            if (!File.Exists(configPpath))
+            {
+                SimpleLogger.Instance.Error("Config file not found and template file not found, cannot create config file for vita3k.");
+                return;
+            }
+
+            var yml = YmlFile.Load(Path.Combine(configPpath));
+
+            //write pref-path with emulator path
+            yml["pref-path"] = _prefPath;
+
             //First tackle the GUI stuff
             yml["initial-setup"] = "true";
             yml["user-auto-connect"] = "true";
@@ -133,9 +155,8 @@ namespace EmulatorLauncher
             BindFeature(yml, "performance-overlay", "performance-overlay", "false");
             BindFeature(yml, "high-accuracy", "vita3k_high_accuracy", "true");
             BindBoolFeature(yml, "fps-hack", "vita3k_fpshack", "true", "false");
-            BindBoolFeature(yml, "show-gui", "vita3k_gui", "true", "false");
             BindBoolFeature(yml, "show-compile-shaders", "vita3k_showShaderCompile", "true", "false");
-            yml["check-for-updates"] = "false";
+            yml["check-for-updates-mode"] = "0";
 
             //Performance overlay options
             if (SystemConfig.isOptSet("performance-overlay") && SystemConfig["performance-overlay"] != "false")
@@ -145,9 +166,6 @@ namespace EmulatorLauncher
             }
             else
                 yml["performance-overlay"] = "false";
-
-            //write pref-path with emulator path
-            yml["pref-path"] = _prefPath;
 
             //Add modules if user has set option to manage from RETROBAT
             if (SystemConfig.isOptSet("modules") && SystemConfig["modules"] == "1")
@@ -189,23 +207,12 @@ namespace EmulatorLauncher
             var buttonMap = yml.GetOrCreateContainer("controller-binds");
             buttonMap.Elements.Clear();
             
-            var c1 = this.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
+            /*var c1 = this.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
 
-            if (c1 != null && c1.VendorID == Common.Joysticks.USB_VENDOR.NINTENDO)
-            {
-                buttonMap.Elements.Add(new YmlElement() { Value = "- 1" });
-                buttonMap.Elements.Add(new YmlElement() { Value = "- 0" });
-                buttonMap.Elements.Add(new YmlElement() { Value = "- 3" });
-                buttonMap.Elements.Add(new YmlElement() { Value = "- 2" });
-            }
-            else
-            {
-                buttonMap.Elements.Add(new YmlElement() { Value = "- 0" });
-                buttonMap.Elements.Add(new YmlElement() { Value = "- 1" });
-                buttonMap.Elements.Add(new YmlElement() { Value = "- 2" });
-                buttonMap.Elements.Add(new YmlElement() { Value = "- 3" });
-            }
-
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 0" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 1" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 2" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 3" });
             buttonMap.Elements.Add(new YmlElement() { Value = "- 4" });
             buttonMap.Elements.Add(new YmlElement() { Value = "- 5" });
             buttonMap.Elements.Add(new YmlElement() { Value = "- 6" });
@@ -216,10 +223,34 @@ namespace EmulatorLauncher
             buttonMap.Elements.Add(new YmlElement() { Value = "- 11" });
             buttonMap.Elements.Add(new YmlElement() { Value = "- 12" });
             buttonMap.Elements.Add(new YmlElement() { Value = "- 13" });
-            buttonMap.Elements.Add(new YmlElement() { Value = "- 14" });
+            buttonMap.Elements.Add(new YmlElement() { Value = "- 14" });*/
 
             //save config file
             yml.Save();
+        }
+
+        private void SetupGUIConfiguration(string path)
+        {
+            string guiSettingsPath = Path.Combine(path, "gui-configs");
+            if (!Directory.Exists(guiSettingsPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(guiSettingsPath);
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Error("Error creating gui-configs directory: " + ex.Message);
+                    return;
+                }
+            }
+
+            string guiConfigFile = Path.Combine(guiSettingsPath, "CurrentSettings.ini");
+
+            using (var ini = new IniFile(guiConfigFile))
+            {
+                ini.WriteValue("MainWindow", "confirmExitApp", "false");
+            }
         }
 
         /// <summary>
@@ -287,29 +318,13 @@ namespace EmulatorLauncher
 
         private bool GetVita3kPrefPath(string path)
         {
-            string configFilePath = Path.Combine(path, "config.yml");
-            if (!File.Exists(configFilePath))
-                return false;
-
-            var yml = YmlFile.Load(Path.Combine(path, "config.yml"));
-            if (yml == null)
-                return false;
-
-            if (yml["pref-path"] == null)
-                return false;
-
-            string prefPath = yml["pref-path"];
-
-            if (string.IsNullOrEmpty(prefPath))
-                return false;
-
-            if (!Directory.Exists(prefPath) || prefPath.StartsWith(".") || prefPath.StartsWith("/") || prefPath.StartsWith("\\"))
-                return false;
-            else
+            if (SystemConfig.isOptSet("vita3k_pref_path") && !string.IsNullOrEmpty(SystemConfig["vita3k_pref_path"]))
             {
-                _prefPath = prefPath;
+                _prefPath = SystemConfig["vita3k_pref_path"].Replace("/", "\\");
                 return true;
             }
+            else
+                return false;
         }
     }
 }

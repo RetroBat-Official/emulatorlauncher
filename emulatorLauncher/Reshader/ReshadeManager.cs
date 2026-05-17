@@ -254,16 +254,16 @@ namespace EmulatorLauncher
         {
             string dllName = Path.Combine(path, GetEnumDescription(type));
             if (File.Exists(dllName))
-                File.Delete(dllName);
+                try { File.Delete(dllName); } catch { }
 
             if (File.Exists(Path.Combine(path, "ReShade.ini")))
-                File.Delete(Path.Combine(path, "ReShade.ini"));
+                try { File.Delete(Path.Combine(path, "ReShade.ini")); } catch { }
 
             if (File.Exists(Path.Combine(path, "ReShadePreset.ini")))
-                File.Delete(Path.Combine(path, "ReShadePreset.ini"));
+                try { File.Delete(Path.Combine(path, "ReShadePreset.ini")); } catch { }
 
             if (Directory.Exists(Path.Combine(path, ReshadeFolder)))
-                Directory.Delete(Path.Combine(path, ReshadeFolder), true);
+                try { Directory.Delete(Path.Combine(path, ReshadeFolder), true); } catch { }
         }
 
         static List<string> LoadKnownTechniques(bool oldVersion)

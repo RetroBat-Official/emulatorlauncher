@@ -17,6 +17,8 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
         private string _path;
         private bool _sindenSoft;
         private string _romName;
@@ -90,6 +92,15 @@ namespace EmulatorLauncher
             List<string> commandArray = new List<string>();
 
             bool fullscreen = ShouldRunFullscreen();
+
+            // Bezels
+            if (fullscreen)
+            {
+                if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, emulator))
+                    _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            }
+
+            _resolution = resolution;
 
             SetupConfiguration(configFile, commandArray, gamePath, fullscreen);
             CreateControllerConfiguration(controlsFile, gamePath);
@@ -207,9 +218,18 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "Emulation", "REGION", "ll_region", "EX");
                     BindBoolIniFeature(ini, "Emulation", "FREEPLAY", "ll_freeplay", "true", "none");
 
-                    BindIniFeature(ini, "Graphics", "GPU_VENDOR", "ll_gpuvendor", "0");
-
-                    BindBoolIniFeature(ini, "CrossHairs", "ENABLE_CROSSHAIRS", "ll_crosshair", "true", "false");
+                    if (SystemConfig.getOptBoolean("ll_crosshair"))
+                    {
+                        ini.WriteValue("CrossHairs", "ENABLE_CROSSHAIRS", "true");
+                        ini.WriteValue("CrossHairs", "GSEVO_CROSSHAIR_ALWAYS_ON", "true");
+                        ini.WriteValue("CrossHairs", "GSEVO_CROSSHAIR_ALWAYS_OFF", "false");
+                    }
+                    else
+                    {
+                        ini.WriteValue("CrossHairs", "ENABLE_CROSSHAIRS", "false");
+                        ini.WriteValue("CrossHairs", "GSEVO_CROSSHAIR_ALWAYS_ON", "false");
+                        ini.WriteValue("CrossHairs", "GSEVO_CROSSHAIR_ALWAYS_OFF", "true");
+                    }
 
                     // crosshairs
                     string cross1Path = Path.Combine(_path, "cross", "cross1.png");
@@ -241,11 +261,23 @@ namespace EmulatorLauncher
 
         public override int RunAndWait(ProcessStartInfo path)
         {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
             Process process = Process.Start(path);
             Job.Current.AddProcess(process);
             
             process.WaitForExit();
-            
+
+            try
+            {
+                bezel?.Dispose();
+                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
+            }
+            catch { }
+
             return 0;
         }
 
