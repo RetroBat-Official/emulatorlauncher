@@ -2981,6 +2981,11 @@ namespace EmulatorLauncher.Libretro
             else
                 pluginsIni["layout"] = "1";
 
+            if (SystemConfig.isOptSet("mame_offscreenreload") && SystemConfig.getOptBoolean("mame_offscreenreload"))
+                pluginsIni["offscreenreload"] = "1";
+            else
+                pluginsIni["offscreenreload"] = "0";
+
             pluginsIni.Save();
         }
 
