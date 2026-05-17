@@ -257,9 +257,9 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("ymir_trigger_deadzone") && !string.IsNullOrEmpty(SystemConfig["ymir_trigger_deadzone"]))
                 triggerDeadzone = SystemConfig["ymir_trigger_deadzone"];
 
-            ini.WriteValue("Input", "GamepadAnalogToDigitalSensitivity", deadzone);
-            ini.WriteValue("Input", "GamepadLSDeadzone", triggerDeadzone);
-            ini.WriteValue("Input", "GamepadRSDeadzone", triggerDeadzone);
+            ini.WriteValue("Input.Gamepad", "AnalogToDigitalSensitivity", deadzone);
+            ini.WriteValue("Input.Gamepad", "LSDeadzone", triggerDeadzone);
+            ini.WriteValue("Input.Gamepad", "RSDeadzone", triggerDeadzone);
         }
 
         private Dictionary<string, string> hotkeys = new Dictionary<string, string>()

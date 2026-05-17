@@ -12,7 +12,7 @@ namespace EmulatorLauncher
     {
         public YmirGenerator()
         {
-            DependsOnDesktopResolution = false;
+            DependsOnDesktopResolution = true;
         }
 
         private BezelFiles _bezelFileInfo;
@@ -106,6 +106,7 @@ namespace EmulatorLauncher
                     }
 
                     ini.WriteValue("System.IPL", "Path", "'" + saturnBiosPath + "'");
+                    BindBoolIniFeatureOn(ini, "System", "InternalBackupRAMPerGame", "saturn_pergame_backup", "true", "false");
 
                     // Paths override
                     string ymirSavesPath = Path.Combine(AppConfig.GetFullPath("saves"), "saturn", "ymir");
@@ -172,14 +173,28 @@ namespace EmulatorLauncher
                     }
 
                     BindBoolIniFeature(ini, "Video", "ForceIntegerScaling", "integerscale", "true", "false");
-                    BindBoolIniFeature(ini, "Video", "Deinterlace", "saturn_deinterlace", "true", "false");
-                    BindBoolIniFeature(ini, "Video", "TransparentMeshes", "saturn_meshmode", "true", "false");
-                    BindBoolIniFeatureOn(ini, "System", "InternalBackupRAMPerGame", "saturn_pergame_backup", "true", "false");
+                    BindBoolIniFeature(ini, "Video.Enhancements", "Deinterlace", "saturn_deinterlace", "true", "false");
+                    BindBoolIniFeature(ini, "Video.Enhancements", "TransparentMeshes", "saturn_meshmode", "true", "false");
+
+                    // Resolution
+                    ini.WriteValue("Video.FullScreenMode", "Borderless", "true");
+
+                    ini.WriteValue("Video.FullScreenMode", "Height", "0");
+                    ini.WriteValue("Video.FullScreenMode", "Width", "0");
+                    ini.WriteValue("Video.FullScreenMode", "RefreshRate", "0.0");
 
                     if (SystemConfig.isOptSet("ymir_videoformat") && !string.IsNullOrEmpty(SystemConfig["ymir_videoformat"]))
                         ini.WriteValue("System", "VideoStandard", "'" + SystemConfig["ymir_videoformat"] + "'");
                     else
                         ini.WriteValue("System", "VideoStandard", "'NTSC'");
+
+                    if (SystemConfig.isOptSet("ymir_renderer") && !string.IsNullOrEmpty(SystemConfig["ymir_renderer"]))
+                    {
+                        string renderer = SystemConfig["ymir_renderer"];
+                        ini.WriteValue("Video", "GraphicsBackend", "'" + renderer + "'");
+                    }
+                    else
+                        ini.WriteValue("Video", "GraphicsBackend", "'Default'");
 
                     ini.Save();
                 }
