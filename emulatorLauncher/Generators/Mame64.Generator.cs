@@ -412,6 +412,8 @@ namespace EmulatorLauncher
                 pluginList.Add("hiscore");
             if (SystemConfig.isOptSet("layout_enable") && SystemConfig.getOptBoolean("layout_enable"))
                 pluginList.Add("layout");
+            if (SystemConfig.isOptSet("mame_offscreenreload") && SystemConfig.getOptBoolean("mame_offscreenreload"))
+                pluginList.Add("offscreenreload");
 
             if (pluginList.Count > 0)
             {
@@ -718,6 +720,11 @@ namespace EmulatorLauncher
                 pluginsIni["layout"] = "1";
             else
                 pluginsIni["layout"] = "0";
+
+            if (SystemConfig.isOptSet("mame_offscreenreload") && SystemConfig.getOptBoolean("mame_offscreenreload"))
+                pluginsIni["offscreenreload"] = "1";
+            else
+                pluginsIni["offscreenreload"] = "0";
 
             pluginsIni.Save();
         }
