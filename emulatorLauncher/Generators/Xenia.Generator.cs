@@ -704,9 +704,9 @@ namespace EmulatorLauncher
                         ini.AppendValue("GPU", "guest_display_refresh_cap", "true");
 
                     if (SystemConfig.isOptSet("occlusion_query") && !string.IsNullOrEmpty(SystemConfig["occlusion_query"]))
-                        ini.AppendValue("GPU", "occlusion_query", SystemConfig["occlusion_query"]);
+                        ini.AppendValue("GPU", "occlusion_query", StringExtensions.QuoteString(SystemConfig["occlusion_query"], true));
                     else if (Features.IsSupported("occlusion_query"))
-                        ini.AppendValue("GPU", "occlusion_query", "fake");
+                        ini.AppendValue("GPU", "occlusion_query", "fake".QuoteString(true));
 
                     if (SystemConfig.isOptSet("xenia_clear_memory_page_state") && SystemConfig.getOptBoolean("xenia_clear_memory_page_state"))
                         ini.AppendValue("GPU", "clear_memory_page_state", "true");
