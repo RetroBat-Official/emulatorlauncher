@@ -22,6 +22,8 @@ namespace EmulatorLauncher
 
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private SaveStatesWatcher _saveStatesWatcher;
+        private int _saveStateSlot;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -52,6 +54,18 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
+            if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
+            {
+                string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
+                string emulatorPath = Path.Combine(path, "portable_data", "data", "states");
+
+                _saveStatesWatcher = new Gopher64SaveStatesMonitor(rom, emulatorPath, localPath);
+                _saveStatesWatcher.PrepareEmulatorRepository();
+                _saveStateSlot = _saveStatesWatcher.Slot;
+            }
+            else
+                _saveStatesWatcher = null;
+
             string setupPath = Path.Combine(path, "portable_data", "config");
 
             SetupConfiguration(setupPath, fullscreen);
@@ -61,6 +75,13 @@ namespace EmulatorLauncher
 
             if (fullscreen)
                 commandArray.Add("--fullscreen");
+
+            if (_saveStatesWatcher != null && !string.IsNullOrEmpty(SystemConfig["state_file"]) && File.Exists(SystemConfig["state_file"]))
+            {
+                commandArray.Add("--load-state");
+                commandArray.Add(_saveStateSlot.ToString());
+            }
+
             commandArray.Add("\"" + rom + "\"");
 
             string args = string.Join(" ", commandArray);
@@ -183,6 +204,17 @@ namespace EmulatorLauncher
             }
 
             return ret;
+        }
+
+        public override void Cleanup()
+        {
+            if (_saveStatesWatcher != null)
+            {
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
+            }
+
+            base.Cleanup();
         }
     }
 }
