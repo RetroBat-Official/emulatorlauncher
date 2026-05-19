@@ -4062,8 +4062,8 @@ namespace EmulatorLauncher.Libretro
             // If ROM includes the word 'Disc', assume it's a multi disc game, and enable shared nvram if the option isn't set.
             if (Features.IsSupported("opera_nvram_storage"))
             {
-                if (SystemConfig.isOptSet("nvram_storage"))
-                    coreSettings["opera_nvram_storage"] = SystemConfig["nvram_storage"];
+                if (SystemConfig.isOptSet("opera_nvram_storage"))
+                    coreSettings["opera_nvram_storage"] = SystemConfig["opera_nvram_storage"];
                 else if (!string.IsNullOrEmpty(SystemConfig["rom"]) && SystemConfig["rom"].ToLower().Contains("disc"))
                     coreSettings["opera_nvram_storage"] = "shared";
                 else
