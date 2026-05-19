@@ -68,10 +68,9 @@ namespace EmulatorLauncher
 
             string setupPath = Path.Combine(path, "portable_data", "config");
 
-            SetupConfiguration(setupPath, fullscreen);
-            SetupCheevos(setupPath);
-
             var commandArray = new List<string>();
+            SetupConfiguration(setupPath, fullscreen);
+            SetupCheevos(setupPath, commandArray);
 
             if (fullscreen)
                 commandArray.Add("--fullscreen");
@@ -160,7 +159,7 @@ namespace EmulatorLauncher
             File.WriteAllText(configFile, jsonString);
         }
 
-        private void SetupCheevos(string setupPath)
+        private void SetupCheevos(string setupPath, List<string> commandArray)
         {
             string configFile = Path.Combine(setupPath, "retroachievements.json");
 
@@ -185,6 +184,29 @@ namespace EmulatorLauncher
 
             string jsonString = root.ToString(Formatting.Indented);
             File.WriteAllText(configFile, jsonString);
+
+            if (SystemConfig.getOptBoolean("retroachievements"))
+            {
+                commandArray.Add("--ra-username");
+                commandArray.Add(SystemConfig["retroachievements.username"]);
+                commandArray.Add("--ra-password");
+                commandArray.Add(SystemConfig["retroachievements.password"]);
+
+                if (SystemConfig.getOptBoolean("retroachievements.hardcore"))
+                {
+                    commandArray.Add("--ra-hardcore");
+                }
+
+                if (SystemConfig.getOptBoolean("retroachievements.challenge_indicators"))
+                {
+                    commandArray.Add("--ra-challenge");
+                }
+
+                if (SystemConfig.getOptBoolean("retroachievements.leaderboards"))
+                {
+                    commandArray.Add("--ra-leaderboard");
+                }
+            }
         }
 
         public override int RunAndWait(ProcessStartInfo path)
