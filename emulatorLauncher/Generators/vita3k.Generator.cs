@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.PadToKeyboard;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace EmulatorLauncher
@@ -11,6 +13,8 @@ namespace EmulatorLauncher
     class Vita3kGenerator : Generator
     {
         private string _prefPath = "";
+        private bool _fullscreen = true;
+        Process _vita3kProcess = null;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -24,7 +28,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            bool fullscreen = ShouldRunFullscreen();
+            _fullscreen = ShouldRunFullscreen();
 
             if (!GetVita3kPrefPath(path))
                 _prefPath = Path.Combine(AppConfig.GetFullPath("saves"), "psvita", "vita3k");
@@ -59,7 +63,7 @@ namespace EmulatorLauncher
             //-w, -f is used to avoid vita3k regenerating the config file as it is very fussy with it !
             //-c to specify the configfile to use
             //-r for game rom/ID
-            if (fullscreen)
+            if (_fullscreen)
                 commandArray.Add("-F");
 
             commandArray.Add("-w");
@@ -131,6 +135,7 @@ namespace EmulatorLauncher
             yml["initial-setup"] = "true";
             yml["user-auto-connect"] = "true";
             yml["show-welcome"] = "false";
+            yml["boot-apps-full-screen"] = _fullscreen ? "true" : "false";
 
             // Discord
             if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
@@ -325,6 +330,19 @@ namespace EmulatorLauncher
             }
             else
                 return false;
+        }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            return PadToKey.AddOrUpdateKeyMapping(mapping, "vita3k", InputKey.hotkey | InputKey.start,
+                action: () =>
+                {
+                    var p = Process.GetProcessesByName("Vita3K")
+                    .OrderBy(x => x.StartTime)
+                    .FirstOrDefault();
+                    if (p != null && !p.HasExited)
+                        p.Kill();
+                });
         }
     }
 }
