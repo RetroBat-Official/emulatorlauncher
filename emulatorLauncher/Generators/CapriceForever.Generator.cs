@@ -31,7 +31,9 @@ namespace EmulatorLauncher
             if (string.IsNullOrEmpty(path))
                 return null;
 
-            string exe = Path.Combine(path, "Caprice64.exe");
+            string exe = Path.Combine(path, "Caprice.exe");
+            if (!File.Exists(exe))
+                exe = Path.Combine(path, "Caprice64.exe");
             if (!File.Exists(exe))
                 return null;
 
@@ -216,7 +218,7 @@ namespace EmulatorLauncher
                             case "per_game":
                                 controllerConfig = false;
                                 string romName = Path.GetFileNameWithoutExtension(rom);
-                                ini.WriteValue("Inputs", "DefaultProfileFilename", "romName.prfl");
+                                ini.WriteValue("Inputs", "DefaultProfileFilename", romName + ".prfl");
                                 break;
                             case "custom":
                                 controllerConfig = false;
@@ -245,7 +247,7 @@ namespace EmulatorLauncher
 
                     // Cartridges (gx4000)
                     string cartFolder = Path.GetFullPath(rom).Replace(Path.GetFileName(rom), "");
-                    ini.WriteValue("Roms", "CartridgesDirectory", cartFolder);
+                    ini.WriteValue("Emulator", "HomeCartridgesDirectory", cartFolder);
 
                     // Keyboard as joystick
                     ini.WriteValue("Joystick Keyboard", "JoystickKey129", "38");
@@ -357,22 +359,22 @@ namespace EmulatorLauncher
                         switch (xmem)
                         {
                             case "xmem":
-                                ini.WriteValue("Emulator", "XMem", "1");
+                                ini.WriteValue("Emulator", "XMEM", "1");
                                 ini.WriteValue("Emulator", "XMEMBoot", "0");
                                 break;
                             case "xmem_boot":
-                                ini.WriteValue("Emulator", "XMem", "1");
+                                ini.WriteValue("Emulator", "XMEM", "1");
                                 ini.WriteValue("Emulator", "XMEMBoot", "1");
                                 break;
                             case "no":
-                                ini.WriteValue("Emulator", "XMem", "0");
+                                ini.WriteValue("Emulator", "XMEM", "0");
                                 ini.WriteValue("Emulator", "XMEMBoot", "0");
                                 break;
                         }   
                     }
                     else
                     {
-                        ini.WriteValue("Emulator", "XMem", "0");
+                        ini.WriteValue("Emulator", "XMEM", "0");
                         ini.WriteValue("Emulator", "XMEMBoot", "0");
                     }
 

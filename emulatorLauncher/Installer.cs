@@ -35,7 +35,7 @@ namespace EmulatorLauncher
             { new Installer("bizhawk", "bizhawk", "EmuHawk.exe") },
             { new Installer("bstone", "bstone", "bstone.exe") },
             { new Installer("bsyndrome", "bsyndrome", "bs.exe") },
-            { new Installer("capriceforever", "capriceforever", "Caprice64.exe") },
+            { new Installer("capriceforever", new string[] { "capriceforever", "caprice32", "caprice64" }, new string[] {"Caprice.exe", "Caprice64.exe" }) },
             { new Installer("cdogs", new string[] { "cdogs", "cdogs/bin" }, "cdogs-sdl.exe") },
             { new Installer("cemu", "cemu", "Cemu.exe") },
             { new Installer("cgenius", "cgenius", "CGenius.exe") },
