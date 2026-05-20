@@ -1,15 +1,18 @@
-﻿using System;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace EmulatorLauncher
 {
     partial class CapriceForeverGenerator : Generator
     {
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+
         public CapriceForeverGenerator()
         {
             DependsOnDesktopResolution = true;
@@ -91,6 +94,13 @@ namespace EmulatorLauncher
                 romType = "cart";
 
             bool fullscreen = ShouldRunFullscreen();
+
+            if (fullscreen)
+            {
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            }
+
+            _resolution = resolution;
 
             SetupConfig(path, system, romType, driveADisk, driveBDisk, rom);
             SetupDevice(path, rom, romType);
@@ -398,6 +408,25 @@ namespace EmulatorLauncher
                 }
             }
             catch { }
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            bezel?.Dispose();
+
+            if (ret == 1)
+            {
+                return 0;
+            }
+
+            return ret;
         }
     }
 }
