@@ -3780,6 +3780,29 @@ namespace EmulatorLauncher.Libretro
             if (core != "melondsds")
                 return;
 
+            // nand region
+            if (SystemConfig.isOptSet("melondsds_nandregion") && !string.IsNullOrEmpty(SystemConfig["melondsds_nandregion"]))
+            {
+                string nand = "dsi_nand.bin";
+                string region = SystemConfig["melondsds_nandregion"].ToLowerInvariant();
+                string biosPath = AppConfig.GetFullPath("bios");
+                var nandFiles = Directory.GetFiles(biosPath, "dsi_nand*.bin");
+                
+                if (nandFiles.Length > 0)
+                {
+                    foreach (var file in nandFiles)
+                    {
+                        string nandFile = Path.GetFileNameWithoutExtension(file).ToLowerInvariant();
+                        if (nandFile.Contains(region))
+                        {
+                            nand = Path.GetFileName(file);
+                            break;
+                        }
+                    }
+                }
+                coreSettings["melonds_dsi_nand_path"] = nand;
+            }
+
             // Audio
             BindFeature(coreSettings, "melonds_audio_bitdepth", "melondsds_audio_depth", "auto");
             BindFeature(coreSettings, "melonds_audio_interpolation", "melondsds_audio_interpolation", "disabled");

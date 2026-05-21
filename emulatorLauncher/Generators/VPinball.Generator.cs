@@ -29,6 +29,7 @@ namespace EmulatorLauncher
         private string _processName;
         private string _exe;
         private string _gamePath;
+        private bool _remapexit = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -171,6 +172,9 @@ namespace EmulatorLauncher
 
             if (_version >= new Version(10, 7, 0, 0))
                 commands.Add("-ExtMinimized");
+
+            if (SystemConfig.isOptSet("vp_minimized") && SystemConfig.getOptBoolean("vp_minimized"))
+                commands.Add("-minimized");
 
             if (_version >= new Version(10, 8, 0, 0))
             {
@@ -349,6 +353,12 @@ namespace EmulatorLauncher
                 }
                 else
                     SetupVPinballControls(ini);
+
+                if (SystemConfig.getOptBoolean("vp_useexit"))
+                {
+                    ini.WriteValue("Player", "ExitGameKey", "45");
+                    _remapexit = true;
+                }
 
                 ini.Save();
             }
@@ -575,7 +585,7 @@ namespace EmulatorLauncher
                 var px = Process.Start(path);
                 Job.Current.AddProcess(px);
 
-                using (var kb = new KeyboardManager(() => KillProcess(px)))
+                using (var kb = new KeyboardManager(() => GracefulKill(px)))
                 {
                     kb.RegisterKeyboardAction(() => SaveScreenshot(), (vkCode, scanCode) => vkCode == 44 && scanCode == 55);
 
@@ -592,23 +602,23 @@ namespace EmulatorLauncher
                 {
                     Process[] backGlasses = Process.GetProcessesByName("B2SBackglassServerEXE");
                     foreach (Process backGlass in backGlasses)
-                        backGlass.Kill();
+                        GracefulKill(backGlass);
 
                     Process[] ultraDMDs = Process.GetProcessesByName("UltraDMD");
                     foreach (Process ultraDMD in ultraDMDs)
-                        ultraDMD.Kill();
+                        GracefulKill(ultraDMD);
 
                     Process[] pupDisplays = Process.GetProcessesByName("PinUpDisplay");
                     foreach (Process pupDisplay in pupDisplays)
-                        pupDisplay.Kill();
+                        GracefulKill(pupDisplay);
 
                     Process[] pupDisplayXs = Process.GetProcessesByName("PinUpDisplayX");
                     foreach (Process pupDisplayX in pupDisplayXs)
-                        pupDisplayX.Kill();
+                        GracefulKill(pupDisplayX);
 
                     Process[] pupPlayers = Process.GetProcessesByName("PinUpPlayer");
                     foreach (Process pupPlayer in pupPlayers)
-                        pupPlayer.Kill();
+                        GracefulKill(pupPlayer);
                 }
                 catch { }
 
@@ -628,8 +638,24 @@ namespace EmulatorLauncher
             return -1;
         }
 
+        static void GracefulKill(Process p, int waitMs = 2000)
+        {
+            try
+            {
+                if (p.HasExited) return;
+                if (!p.CloseMainWindow() || !p.WaitForExit(waitMs))
+                    KillProcess(p);
+            }
+            catch { }
+        }
+
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
+            if (_remapexit)
+                mapping = PadToKey.AddOrUpdateKeyMapping(mapping, _processName, InputKey.hotkey | InputKey.start, null, action: () => SendKeys.SendWait("x"));
+            else
+                PadToKey.AddOrUpdateKeyMapping(mapping, _processName, InputKey.hotkey | InputKey.start, "(%{CLOSE})");
+
             return PadToKey.AddOrUpdateKeyMapping(mapping, _processName, InputKey.hotkey | InputKey.r3, () => SaveScreenshot());
         }
 
