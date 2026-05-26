@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
+using static EmulatorLauncher.Common.KeyboardInterceptor;
 
 namespace EmulatorLauncher
 {
@@ -337,12 +339,59 @@ namespace EmulatorLauncher
             return PadToKey.AddOrUpdateKeyMapping(mapping, "vita3k", InputKey.hotkey | InputKey.start,
                 action: () =>
                 {
-                    var p = Process.GetProcessesByName("Vita3K")
-                    .OrderBy(x => x.StartTime)
-                    .FirstOrDefault();
-                    if (p != null && !p.HasExited)
-                        p.Kill();
+                    var p = Process.GetProcessesByName("Vita3K").FirstOrDefault();
+                    if (p == null)
+                        return;
+
+                    try
+                    {
+                        if (!p.HasExited)
+                        {
+                            p.CloseMainWindow();
+                            p.WaitForExit(3000);
+                        }
+                    }
+                    catch { }
+
+                    try
+                    {
+                        if (!p.HasExited)
+                            p.Kill();
+                    }
+                    catch { }
                 });
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            try
+            {
+                var px = Process.Start(path);
+
+                if (px == null)
+                    return 0;
+
+                using (var escHook = new KeyboardInterceptor(px, new KeyTrigger(Keys.Escape)))
+                {
+                    px.WaitForExit();
+                    SimpleLogger.Instance.Info("[Generator] Process exited with code " + px.ExitCode);
+                    int exitCode = px.ExitCode;
+
+                    foreach (var p in Process.GetProcessesByName("Vita3K").Where(p => !p.HasExited))
+                        try { p.CloseMainWindow(); } catch { }
+
+                    foreach (var p in Process.GetProcessesByName("Vita3K").Where(p => !p.HasExited))
+                        try { p.WaitForExit(2000); } catch { }
+
+                    foreach (var p in Process.GetProcessesByName("Vita3K").Where(p => !p.HasExited))
+                        try { if (!p.HasExited) p.Kill(); } catch { }
+
+                    return 0;
+                }
+            }
+            catch { }
+
+            return 0;
         }
     }
 }
