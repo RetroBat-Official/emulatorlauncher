@@ -560,13 +560,13 @@ namespace EmulatorLauncher
                 if (reshadeExe.Contains(';'))
                 {
                     string[] reshadeExes = reshadeExe.Split(';');
-                    reshadeExecutablePath = FindReshadeFolder(reshadeExes[0], rom);
+                    reshadeExecutablePath = FindReshadeFolder(reshadeExes[0], rom, reshadePlatform);
 
                     if (reshadeExes.Length > 1 && reshadeExecutablePath == null)
-                        reshadeExecutablePath = FindReshadeFolder(reshadeExes[1], rom);
+                        reshadeExecutablePath = FindReshadeFolder(reshadeExes[1], rom, reshadePlatform);
                 }
                 else
-                    reshadeExecutablePath = FindReshadeFolder(reshadeExe, rom);
+                    reshadeExecutablePath = FindReshadeFolder(reshadeExe, rom, reshadePlatform);
 
                 if (reshadeExecutablePath != null)
                 {
@@ -1248,7 +1248,7 @@ namespace EmulatorLauncher
             catch { return false; }
         }
 
-        private string FindReshadeFolder(string executable, string rom)
+        private string FindReshadeFolder(string executable, string rom, ReshadePlatform reshadePlatform)
         {
             string ret = null;
 
@@ -1263,8 +1263,13 @@ namespace EmulatorLauncher
                     ret = Path.Combine(AppConfig.GetFullPath("teknoparrot"), "TeknoParrot");
                     break;
                 case "elf_budgie":
-                    ret = Path.Combine(AppConfig.GetFullPath("teknoparrot"), "ElfLdr2");
-                    break;
+                    {
+                        if (reshadePlatform == ReshadePlatform.x64)
+                            ret = Path.Combine(AppConfig.GetFullPath("teknoparrot"), "ElfLdr2", "x64");
+                        else
+                            ret = Path.Combine(AppConfig.GetFullPath("teknoparrot"), "ElfLdr2");
+                        break;
+                    }
                 default:
                     string exeLocation = Directory.GetFiles(rom, executable, SearchOption.AllDirectories).FirstOrDefault();
                     if (exeLocation != null)
