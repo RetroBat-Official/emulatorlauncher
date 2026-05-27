@@ -3245,9 +3245,9 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "beetle_psx_hw_shared_memory_cards", "beetle_psx_hw_shared_memory_cards", "enabled", "disabled");
 
             // PGXP
-            if (SystemConfig.isOptSet("mednafen_pgxp") && SystemConfig.getOptBoolean("mednafen_pgxp"))
+            if (SystemConfig.isOptSet("mednafen_pgxp") && !string.IsNullOrEmpty(SystemConfig["mednafen_pgxp"]))
             {
-                coreSettings["beetle_psx_hw_pgxp_mode"] = "memory only";
+                coreSettings["beetle_psx_hw_pgxp_mode"] = SystemConfig["mednafen_pgxp"];
                 coreSettings["beetle_psx_hw_pgxp_texture"] = "enabled";
             }
             else
