@@ -3781,9 +3781,10 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             // nand region
+            string nand = "dsi_nand.bin";
             if (SystemConfig.isOptSet("melondsds_nandregion") && !string.IsNullOrEmpty(SystemConfig["melondsds_nandregion"]))
             {
-                string nand = "dsi_nand.bin";
+                
                 string region = SystemConfig["melondsds_nandregion"].ToLowerInvariant();
                 string biosPath = AppConfig.GetFullPath("bios");
                 var nandFiles = Directory.GetFiles(biosPath, "dsi_nand*.bin");
@@ -3800,8 +3801,8 @@ namespace EmulatorLauncher.Libretro
                         }
                     }
                 }
-                coreSettings["melonds_dsi_nand_path"] = nand;
             }
+            coreSettings["melonds_dsi_nand_path"] = nand;
 
             // Audio
             BindFeature(coreSettings, "melonds_audio_bitdepth", "melondsds_audio_depth", "auto");

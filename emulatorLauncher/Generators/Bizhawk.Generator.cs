@@ -4,6 +4,7 @@ using EmulatorLauncher.PadToKeyboard;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 
@@ -553,15 +554,20 @@ namespace EmulatorLauncher
                 string dsiFirmware = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_firmware.bin");
                 if (File.Exists(dsiFirmware))
                     firmware["NDS+firmwarei"] = dsiFirmware;
+                
+                string biosPath = AppConfig.GetFullPath("bios");
+                var nandFiles = Directory.GetFiles(biosPath, "dsi_nand*.bin");
                 string dsiNand = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_nand.bin");
-                if (File.Exists(dsiNand))
+                if (nandFiles.Length > 0)
                 {
-                    firmware["NDS+NAND (EUR)"] = dsiNand;
-                    firmware["NDS+NAND (JPN)"] = dsiNand;
-                    firmware["NDS+NAND (USA)"] = dsiNand;
-                    firmware["NDS+NAND (AUS)"] = dsiNand;
-                    firmware["NDS+NAND (CHN)"] = dsiNand;
-                    firmware["NDS+NAND (KOR)"] = dsiNand;
+                    var regions = new[] { "EUR", "JPN", "USA", "AUS", "CHN", "KOR" };
+
+                    foreach (var region in regions)
+                    {
+                        string key = $"NDS+NAND ({region})";
+                        string match = nandFiles.FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).IndexOf(region, StringComparison.OrdinalIgnoreCase) >= 0);
+                        firmware[key] = match ?? dsiNand;
+                    }
                 }
             }
 
