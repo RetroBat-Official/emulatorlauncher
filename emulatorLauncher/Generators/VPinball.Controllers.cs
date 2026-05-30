@@ -50,7 +50,7 @@ namespace EmulatorLauncher
             ini.WriteValue("Player", "MechTilt", "20");
             ini.WriteValue("Player", "RMagnaSave", "157");
             ini.WriteValue("Player", "LMagnaSave", "29");
-            ini.WriteValue("Player", "ExitGameKey", "16");
+            ini.WriteValue("Player", "ExitGameKey", "45");
             ini.WriteValue("Player", "VolumeUp", "13");
             ini.WriteValue("Player", "VolumeDown", "12");
             ini.WriteValue("Player", "LockbarKey", "56");

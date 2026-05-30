@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
 
 namespace EmulatorLauncher
 {
@@ -182,10 +183,22 @@ namespace EmulatorLauncher
                 if (dsi)
                 {
                     ini.WriteValue("Emu", "ConsoleType", "1");
-                    string dsibios9 = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_bios9.bin");
-                    string dsifirmware = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_firmware.bin");
-                    string dsibios7 = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_bios7.bin");
-                    string dsinand = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_nand.bin");
+                    string biosPath = AppConfig.GetFullPath("bios");
+                    string dsibios9 = Path.Combine(biosPath, "dsi_bios9.bin");
+                    string dsifirmware = Path.Combine(biosPath, "dsi_firmware.bin");
+                    string dsibios7 = Path.Combine(biosPath, "dsi_bios7.bin");
+                    string dsinand = Path.Combine(biosPath, "dsi_nand.bin");
+
+                    if (SystemConfig.isOptSet("melonds_nandregion") && !string.IsNullOrEmpty(SystemConfig["melonds_nandregion"]))
+                    {
+                        string region = SystemConfig["melonds_nandregion"];
+                        string match = Directory.GetFiles(biosPath, "dsi_nand*.bin")
+                            .FirstOrDefault(f => Path.GetFileNameWithoutExtension(f)
+                                .IndexOf(region, StringComparison.OrdinalIgnoreCase) >= 0);
+
+                        if (match != null)
+                            dsinand = match;
+                    }
 
                     if (bootToDSINand)
                     {
@@ -193,29 +206,24 @@ namespace EmulatorLauncher
                         ini.WriteValue("DSi", "FullBIOSBoot", "true");
 
                         // Copy the loaded nand to the bios folder before loading, so that multiple nand files can be used.
-                        string biosPath = Path.Combine(AppConfig.GetFullPath("bios"));
-                        if (!string.IsNullOrEmpty(biosPath))
-                        {
-                            string nandFileTarget = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_nand.bin");
-                            string nandFileSource = rom;
+                        string nandTarget = Path.Combine(biosPath, "dsi_nand.bin");
 
-                            if (File.Exists(nandFileTarget) && File.Exists(nandFileSource))
-                                File.Delete(nandFileTarget);
+                        if (File.Exists(nandTarget))
+                            File.Delete(nandTarget);
 
-                            if (File.Exists(nandFileSource))
-                                File.Copy(nandFileSource, nandFileTarget);
-                        }
+                        if (File.Exists(rom))
+                            File.Copy(rom, nandTarget);
+
+                        dsinand = nandTarget;
                     }
 
                     if (!File.Exists(dsifirmware) || !File.Exists(dsibios7) || !File.Exists(dsibios9) || !File.Exists(dsinand))
                         throw new ApplicationException("Cannot run dsi system, dsi bios files are missing");
-                    else
-                    {
-                        ini.WriteValue("DSi", "BIOS9Path", "\"" + dsibios9.Replace("\\", "/") + "\"");
-                        ini.WriteValue("DSi", "BIOS7Path", "\"" + dsibios7.Replace("\\", "/") + "\"");
-                        ini.WriteValue("DSi", "FirmwarePath", "\"" + dsifirmware.Replace("\\", "/") + "\"");
-                        ini.WriteValue("DSi", "NANDPath", "\"" + dsinand.Replace("\\", "/") + "\"");
-                    }
+                    
+                    ini.WriteValue("DSi", "BIOS9Path", "\"" + dsibios9.Replace("\\", "/") + "\"");
+                    ini.WriteValue("DSi", "BIOS7Path", "\"" + dsibios7.Replace("\\", "/") + "\"");
+                    ini.WriteValue("DSi", "FirmwarePath", "\"" + dsifirmware.Replace("\\", "/") + "\"");
+                    ini.WriteValue("DSi", "NANDPath", "\"" + dsinand.Replace("\\", "/") + "\"");
                 }
 
                 BindBoolIniFeature(ini, "Instance0", "EnableCheats", "melonds_cheats", "true", "false");

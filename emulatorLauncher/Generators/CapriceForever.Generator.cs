@@ -1,15 +1,18 @@
-﻿using System;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace EmulatorLauncher
 {
     partial class CapriceForeverGenerator : Generator
     {
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+
         public CapriceForeverGenerator()
         {
             DependsOnDesktopResolution = true;
@@ -31,7 +34,9 @@ namespace EmulatorLauncher
             if (string.IsNullOrEmpty(path))
                 return null;
 
-            string exe = Path.Combine(path, "Caprice64.exe");
+            string exe = Path.Combine(path, "Caprice.exe");
+            if (!File.Exists(exe))
+                exe = Path.Combine(path, "Caprice64.exe");
             if (!File.Exists(exe))
                 return null;
 
@@ -89,6 +94,13 @@ namespace EmulatorLauncher
                 romType = "cart";
 
             bool fullscreen = ShouldRunFullscreen();
+
+            if (fullscreen)
+            {
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            }
+
+            _resolution = resolution;
 
             SetupConfig(path, system, romType, driveADisk, driveBDisk, rom);
             SetupDevice(path, rom, romType);
@@ -216,7 +228,7 @@ namespace EmulatorLauncher
                             case "per_game":
                                 controllerConfig = false;
                                 string romName = Path.GetFileNameWithoutExtension(rom);
-                                ini.WriteValue("Inputs", "DefaultProfileFilename", "romName.prfl");
+                                ini.WriteValue("Inputs", "DefaultProfileFilename", romName + ".prfl");
                                 break;
                             case "custom":
                                 controllerConfig = false;
@@ -245,7 +257,7 @@ namespace EmulatorLauncher
 
                     // Cartridges (gx4000)
                     string cartFolder = Path.GetFullPath(rom).Replace(Path.GetFileName(rom), "");
-                    ini.WriteValue("Roms", "CartridgesDirectory", cartFolder);
+                    ini.WriteValue("Emulator", "HomeCartridgesDirectory", cartFolder);
 
                     // Keyboard as joystick
                     ini.WriteValue("Joystick Keyboard", "JoystickKey129", "38");
@@ -357,22 +369,22 @@ namespace EmulatorLauncher
                         switch (xmem)
                         {
                             case "xmem":
-                                ini.WriteValue("Emulator", "XMem", "1");
+                                ini.WriteValue("Emulator", "XMEM", "1");
                                 ini.WriteValue("Emulator", "XMEMBoot", "0");
                                 break;
                             case "xmem_boot":
-                                ini.WriteValue("Emulator", "XMem", "1");
+                                ini.WriteValue("Emulator", "XMEM", "1");
                                 ini.WriteValue("Emulator", "XMEMBoot", "1");
                                 break;
                             case "no":
-                                ini.WriteValue("Emulator", "XMem", "0");
+                                ini.WriteValue("Emulator", "XMEM", "0");
                                 ini.WriteValue("Emulator", "XMEMBoot", "0");
                                 break;
                         }   
                     }
                     else
                     {
-                        ini.WriteValue("Emulator", "XMem", "0");
+                        ini.WriteValue("Emulator", "XMEM", "0");
                         ini.WriteValue("Emulator", "XMEMBoot", "0");
                     }
 
@@ -396,6 +408,25 @@ namespace EmulatorLauncher
                 }
             }
             catch { }
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = base.RunAndWait(path);
+
+            bezel?.Dispose();
+
+            if (ret == 1)
+            {
+                return 0;
+            }
+
+            return ret;
         }
     }
 }

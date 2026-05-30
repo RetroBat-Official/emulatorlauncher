@@ -35,7 +35,7 @@ namespace EmulatorLauncher
             { new Installer("bizhawk", "bizhawk", "EmuHawk.exe") },
             { new Installer("bstone", "bstone", "bstone.exe") },
             { new Installer("bsyndrome", "bsyndrome", "bs.exe") },
-            { new Installer("capriceforever", "capriceforever", "Caprice64.exe") },
+            { new Installer("capriceforever", new string[] { "capriceforever", "caprice32", "caprice64" }, new string[] {"Caprice.exe", "Caprice64.exe" }) },
             { new Installer("cdogs", new string[] { "cdogs", "cdogs/bin" }, "cdogs-sdl.exe") },
             { new Installer("cemu", "cemu", "Cemu.exe") },
             { new Installer("cgenius", "cgenius", "CGenius.exe") },
@@ -443,29 +443,37 @@ namespace EmulatorLauncher
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "dolphin")
                 {
                     var output = ProcessExtensions.RunWithOutput(exe, "--version");
-                    output = StringExtensions.FormatVersionString(output.ExtractString("Dolphin ", "\r"));
-                    
+                    output = output.ExtractString("Dolphin ", "\r").Trim();
+
                     if (output != null && versionCheck)
                         SimpleLogger.Instance.Info("[INFO] Uncleaned Dolphin version: " + output);
 
-                    string[] parts = output.Split('.');
-                    string majorPart = parts[0];
-                    
-                    Match majorMatch = Regex.Match(majorPart, @"\d+");
-                    int major = majorMatch.Success ? int.Parse(majorMatch.Value) : 0;
+                    string[] parts = output.Replace('-', '.').Split('.');
+                    var resultParts = new List<string>();
 
-                    Match letterMatch = Regex.Match(majorPart, @"([a-zA-Z])$");
-                    int minor = 0;
-                    if (letterMatch.Success)
-                        minor = char.ToLower(letterMatch.Value[0]) - 'a' + 1;
-
-                    string cleaned = $"{major}.{minor}";
-
-                    Version ver = new Version();
-                    if (Version.TryParse(cleaned, out ver))
+                    foreach (var part in parts)
                     {
-                        return ver.ToString();
+                        if (Regex.IsMatch(part, @"^\d+$"))
+                        {
+                            resultParts.Add(part);
+                        }
+                        else
+                        {
+                            var m = Regex.Match(part, @"^(\d+)([a-zA-Z])$");
+                            if (m.Success)
+                            {
+                                int letterVal = char.ToLower(m.Groups[2].Value[0]) - 'a' + 1;
+                                resultParts.Add(m.Groups[1].Value);
+                                resultParts.Add(letterVal.ToString());
+                            }
+                        }
                     }
+
+                    string cleaned = string.Join(".", resultParts.Take(4));
+
+                    Version ver;
+                    if (Version.TryParse(cleaned, out ver))
+                        return ver.ToString();
                 }
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "eden")
                 {

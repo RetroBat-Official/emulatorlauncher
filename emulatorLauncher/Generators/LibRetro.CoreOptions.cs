@@ -3245,9 +3245,9 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "beetle_psx_hw_shared_memory_cards", "beetle_psx_hw_shared_memory_cards", "enabled", "disabled");
 
             // PGXP
-            if (SystemConfig.isOptSet("mednafen_pgxp") && SystemConfig.getOptBoolean("mednafen_pgxp"))
+            if (SystemConfig.isOptSet("mednafen_pgxp") && !string.IsNullOrEmpty(SystemConfig["mednafen_pgxp"]))
             {
-                coreSettings["beetle_psx_hw_pgxp_mode"] = "memory only";
+                coreSettings["beetle_psx_hw_pgxp_mode"] = SystemConfig["mednafen_pgxp"];
                 coreSettings["beetle_psx_hw_pgxp_texture"] = "enabled";
             }
             else
@@ -3780,6 +3780,30 @@ namespace EmulatorLauncher.Libretro
             if (core != "melondsds")
                 return;
 
+            // nand region
+            string nand = "dsi_nand.bin";
+            if (SystemConfig.isOptSet("melondsds_nandregion") && !string.IsNullOrEmpty(SystemConfig["melondsds_nandregion"]))
+            {
+                
+                string region = SystemConfig["melondsds_nandregion"].ToLowerInvariant();
+                string biosPath = AppConfig.GetFullPath("bios");
+                var nandFiles = Directory.GetFiles(biosPath, "dsi_nand*.bin");
+                
+                if (nandFiles.Length > 0)
+                {
+                    foreach (var file in nandFiles)
+                    {
+                        string nandFile = Path.GetFileNameWithoutExtension(file).ToLowerInvariant();
+                        if (nandFile.Contains(region))
+                        {
+                            nand = Path.GetFileName(file);
+                            break;
+                        }
+                    }
+                }
+            }
+            coreSettings["melonds_dsi_nand_path"] = nand;
+
             // Audio
             BindFeature(coreSettings, "melonds_audio_bitdepth", "melondsds_audio_depth", "auto");
             BindFeature(coreSettings, "melonds_audio_interpolation", "melondsds_audio_interpolation", "disabled");
@@ -4062,8 +4086,8 @@ namespace EmulatorLauncher.Libretro
             // If ROM includes the word 'Disc', assume it's a multi disc game, and enable shared nvram if the option isn't set.
             if (Features.IsSupported("opera_nvram_storage"))
             {
-                if (SystemConfig.isOptSet("nvram_storage"))
-                    coreSettings["opera_nvram_storage"] = SystemConfig["nvram_storage"];
+                if (SystemConfig.isOptSet("opera_nvram_storage"))
+                    coreSettings["opera_nvram_storage"] = SystemConfig["opera_nvram_storage"];
                 else if (!string.IsNullOrEmpty(SystemConfig["rom"]) && SystemConfig["rom"].ToLower().Contains("disc"))
                     coreSettings["opera_nvram_storage"] = "shared";
                 else

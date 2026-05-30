@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -502,6 +503,9 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Main", "DisableAllEnhancements", "duckstation_disable_enhancement", "true", "false");
 
                     ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");
+
+                    if (SystemConfig.getOptBoolean("duck_forceraw"))
+                        ini.WriteValue("InputSources", "RawInput", "true");
 
                     // Add rom path to RecursivePaths
                     AddPathToRecursivePaths(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
