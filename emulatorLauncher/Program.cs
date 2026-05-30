@@ -430,6 +430,12 @@ namespace EmulatorLauncher
                 return;
             }
 
+            if (args.Any(a => "-rvzcheevos".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                DolphinGenerator.RvzCheevosIndexer();
+                return;
+            }
+
             if (args.Any(a => "-resetusbcontrollers".Equals(a, StringComparison.InvariantCultureIgnoreCase)))
             {
                 bool elevated = WindowsIdentity.GetCurrent().Owner.IsWellKnown(WellKnownSidType.BuiltinAdministratorsSid);

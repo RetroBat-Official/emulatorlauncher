@@ -2,15 +2,18 @@
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using System.Xml.Linq;
 using System.Xml.Serialization;
-using Newtonsoft.Json;
 
 namespace EmulatorLauncher
 {
@@ -91,7 +94,7 @@ namespace EmulatorLauncher
                 else
                     SimpleLogger.Instance.Info("[WARNING] Wii Nand file not found in : " + sysconf);
             }
-            
+
             _runWiiMenu = SystemConfig.getOptBoolean("dolphin_wiimenu");
 
             SetupGeneralConfig(path, system, emulator, core, rom);
@@ -200,21 +203,21 @@ namespace EmulatorLauncher
                     if (SystemConfig.isOptSet("ratio"))
                     {
                         if (SystemConfig["ratio"] == "4/3")
-	                    {
-		                    ini.WriteValue("Settings", "AspectRatio", "2");
-	                    }
-	                    else if (SystemConfig["ratio"] == "16/9")
-		                    ini.WriteValue("Settings", "AspectRatio", "1");
-	                    else if (SystemConfig["ratio"] == "Stretched")
-		                    ini.WriteValue("Settings", "AspectRatio", "3");
+                        {
+                            ini.WriteValue("Settings", "AspectRatio", "2");
+                        }
+                        else if (SystemConfig["ratio"] == "16/9")
+                            ini.WriteValue("Settings", "AspectRatio", "1");
+                        else if (SystemConfig["ratio"] == "Stretched")
+                            ini.WriteValue("Settings", "AspectRatio", "3");
                     }
                     else
-	                    ini.WriteValue("Settings", "AspectRatio", "0");
-					
+                        ini.WriteValue("Settings", "AspectRatio", "0");
+
                     // widescreen hack but only if enable cheats is not enabled - Default Off
                     if (SystemConfig.isOptSet("widescreen_hack") && SystemConfig.getOptBoolean("widescreen_hack"))
                     {
-	                    ini.WriteValue("Settings", "wideScreenHack", "True");
+                        ini.WriteValue("Settings", "wideScreenHack", "True");
 
                         // Set Stretched only if ratio is not forced to 16/9 
                         if (!SystemConfig.isOptSet("ratio") || SystemConfig["ratio"] != "16/9")
@@ -362,9 +365,9 @@ namespace EmulatorLauncher
 
         private string GetGameCubeLangFromEnvironment()
         {
-            var availableLanguages = new Dictionary<string, string>() 
-            { 
-                {"en", "0" }, { "de", "1" }, { "fr", "2" }, { "es", "3" }, { "it", "4" }, { "nl", "5" } 
+            var availableLanguages = new Dictionary<string, string>()
+            {
+                {"en", "0" }, { "de", "1" }, { "fr", "2" }, { "es", "3" }, { "it", "4" }, { "nl", "5" }
             };
 
             var lang = GetCurrentLanguage();
@@ -424,7 +427,7 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("wii_progscan") && SystemConfig.getOptBoolean("wii_progscan"))
                 progScan = 1;
-            
+
             if (SystemConfig.isOptSet("dolphin_pal60") && SystemConfig.getOptBoolean("dolphin_pal60"))
                 pal60 = 1;
 
@@ -452,7 +455,7 @@ namespace EmulatorLauncher
                     bytes[index2 + i] = toSet[i];
             }
             SimpleLogger.Instance.Info("[INFO] Writing sensor bar position " + barPos.ToString() + " to wii system nand");
-            
+
             // Search IPL.AR pattern and replace with target position
             byte[] ratioPositionPattern = new byte[] { 0x49, 0x50, 0x4C, 0x2E, 0x41, 0x52 };
             int index3 = bytes.IndexOf(ratioPositionPattern);
@@ -503,7 +506,7 @@ namespace EmulatorLauncher
         private void SetupGeneralConfig(string path, string system, string emulator, string core, string rom)
         {
             string iniFile = Path.Combine(path, "User", "Config", "Dolphin.ini");
-            
+
             try
             {
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues))
@@ -524,7 +527,7 @@ namespace EmulatorLauncher
                     string gameName = "";
                     string region = "";
 
-                    if (GetGameInformation(rom, path, out  gameID, out gameName, out region))
+                    if (GetGameInformation(rom, path, out gameID, out gameName, out region))
                         SimpleLogger.Instance.Info("[INFO] Game: " + gameID + ", name: " + gameName + ", region : " + region);
                     else
                         SimpleLogger.Instance.Info("[WARNING] Unable to get GameID for current game");
@@ -795,7 +798,7 @@ namespace EmulatorLauncher
                     dolphinTool = Path.Combine(Program.AppConfig.GetFullPath("dolphin-emu"), "DolphinTool.exe");
                 if (!File.Exists(dolphinTool))
                     return false;
-                
+
                 var output = ProcessExtensions.RunWithOutput(dolphinTool, "header -i " + "\"" + rom + "\"");
 
                 foreach (string line in output.Split('\n'))
@@ -832,7 +835,8 @@ namespace EmulatorLauncher
                                 case 'A':
                                     region = "JAP";
                                     break;
-                            };
+                            }
+                            ;
                         }
 
                         found = true;
@@ -859,7 +863,7 @@ namespace EmulatorLauncher
             ini.WriteValue("General", "ISOPath" + isoPathsCount, romPath);
         }
 
-        
+
         public static void SyncGCSaves(string path)
         {
             if (!Program.SystemConfig.isOptSet("dolphin_sync_saves") || !Program.SystemConfig.getOptBoolean("dolphin_sync_saves"))
@@ -958,17 +962,17 @@ namespace EmulatorLauncher
             }
         }
 
-        private bool CheckGameSettings(string path, string gameID, string system, TriforceGame triforceGame,  out string GameSettingsPath)
+        private bool CheckGameSettings(string path, string gameID, string system, TriforceGame triforceGame, out string GameSettingsPath)
         {
             var ret = false;
-            
+
             GameSettingsPath = null;
 
             if (string.IsNullOrEmpty(gameID))
                 return false;
 
             GameSettingsPath = Path.Combine(path, "User", "GameSettings", gameID + ".ini");
-            
+
             if (!File.Exists(GameSettingsPath) && _crediar && triforceGame != null && triforceGame.GameIDsCrediar != null && triforceGame.GameIDsCrediar.Count > 0)
             {
                 string crediarID = triforceGame.GameIDsCrediar.FirstOrDefault();
@@ -1013,7 +1017,7 @@ namespace EmulatorLauncher
                     ApplyPatches(ini, Path.GetFileNameWithoutExtension(GameSettingsPath));
                 }
             }
-            
+
             return ret;
         }
 
@@ -1091,10 +1095,10 @@ namespace EmulatorLauncher
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
-            
+
             int monitorIndex = SystemConfig["MonitorIndex"].ToInteger();
             var screens = Screen.AllScreens;
-            
+
             if (monitorIndex < 0 || monitorIndex >= screens.Length)
                 monitorIndex = 0;
 
@@ -1122,7 +1126,159 @@ namespace EmulatorLauncher
             bezel?.Dispose();
             return ret;
         }
+
+        #region rvzCheevos
+        public static void RvzCheevosIndexer()
+        {
+            var consoleIds = new Dictionary<string, int>
+            {
+                { "gamecube", 16 },
+                { "wii", 18 }
+            };
+
+            SimpleLogger.Instance.Info("[RVZINDEXER] Starting RvzCheevosIndexer.");
+            if (!Program.SystemConfig.getOptBoolean("retroachievements"))
+            {
+                SimpleLogger.Instance.Info("[RVZINDEXER] Retroachievements disabled.");
+                return;
+            }
+
+            foreach (var system in consoleIds)
+            {
+                bool modified = false;
+                string romPath = Path.Combine(Program.AppConfig.GetFullPath("roms"), system.Key);
+                string gameListFile = Path.Combine(romPath, "gamelist.xml");
+
+                var rvzFiles = Directory.GetFiles(romPath, "*.rvz", SearchOption.AllDirectories);
+
+                if (rvzFiles.Length < 1)
+                    continue;
+
+                var hashLib = LoadHashLibrary(system.Value);
+
+                XDocument doc = File.Exists(gameListFile)
+                ? XDocument.Load(gameListFile)
+                : new XDocument(
+                    new XDeclaration("1.0", null, null),
+                    new XElement("gameList")
+                );
+
+                if (doc.Root == null)
+                    doc.Add(new XElement("gameList"));
+
+                foreach (var rvz in rvzFiles)
+                {
+                    SimpleLogger.Instance.Info("[RVZINDEXER] Getting cheevos info for : " + rvz);
+
+                    string fileName = Path.GetFileName(rvz);
+
+                    var game = doc.Root.Elements("game").FirstOrDefault(g => string.Equals(Path.GetFileName(g.Element("path")?.Value?.TrimStart('.', '/')),fileName,StringComparison.OrdinalIgnoreCase));
+                    if (!string.IsNullOrEmpty(game?.Element("cheevosId")?.Value))
+                    {
+                        SimpleLogger.Instance.Info("[RVZINDEXER] File already has cheevosID : " + rvz);
+                        continue;
+                    }
+
+                    string hash;
+                    if (GetRvzHash(rvz, out hash))
+                    {
+                        if (string.IsNullOrEmpty(hash))
+                        {
+                            SimpleLogger.Instance.Info("[RVZINDEXER] Hash empty for file : " + rvz);
+                            continue;
+                        }
+
+                        if (!hashLib.TryGetValue(hash, out int gameId))
+                        {
+                            SimpleLogger.Instance.Info("[RVZINDEXER] No cheevos match for : " + fileName + " (" + hash + ")");
+                            continue;
+                        }
+
+                        SimpleLogger.Instance.Info("[RVZINDEXER] Match found : " + fileName + " -> ID=" + gameId);
+
+                        if (game == null)
+                        {
+                            game = new XElement("game", new XElement("path", "./" + fileName));
+                            doc.Root.Add(game);
+                        }
+
+                        SetOrCreateElement(game, "cheevosHash", hash);
+                        SetOrCreateElement(game, "cheevosId", gameId.ToString());
+                        modified = true;
+                    }
+                    else
+                    {
+                        SimpleLogger.Instance.Info("[RVZINDEXER] Failed to hash file : " + rvz);
+                        continue;
+                    }
+                }
+
+                if (modified)
+                    doc.Save(gameListFile);
+            }
+        }
+
+        private static void SetOrCreateElement(XElement game, string name, string value)
+        {
+            var el = game.Element(name);
+            if (el == null)
+                game.Add(new XElement(name, value));
+            else
+                el.Value = value;
+        }
+
+        private static bool GetRvzHash(string rvzPath, out string hash)
+        {
+            hash = null;
+            string dolphinTool = Path.Combine(Program.AppConfig.GetFullPath("bios"), "dolphin-emu", "DolphinTool.exe");
+
+            if (!File.Exists(dolphinTool))
+                dolphinTool = Path.Combine(Program.AppConfig.GetFullPath("dolphin-emu"), "DolphinTool.exe");
+            if (!File.Exists(dolphinTool))
+                return false;
+            
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = dolphinTool,
+                    Arguments = $"verify -i \"{rvzPath}\" -a rchash",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                using (var p = Process.Start(psi))
+                {
+                    string output = p.StandardOutput.ReadToEnd().Trim();
+                    p.WaitForExit();
+                    if (output.Length == 32)
+                    {
+                        hash = output.ToUpper();
+                        return true;
+                    }
+                    return false;
+                }
+            }
+            catch { return false; }
+        }
+
+        private static Dictionary<string, int> LoadHashLibrary(int consoleId)
+        {
+            var result = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            using (var client = new WebClient())
+            {
+                string json = client.DownloadString($"https://retroachievements.org/dorequest.php?r=hashlibrary&c={consoleId}");
+                foreach (Match m in Regex.Matches(json, @"""([0-9a-fA-F]{32})""\s*:\s*(\d+)"))
+                {
+                    if (int.TryParse(m.Groups[2].Value, out int id))
+                        result[m.Groups[1].Value.ToUpper()] = id;
+                }
+            }
+            return result;
+        }
     }
+#endregion
 
     public class TriforceGame
     {
