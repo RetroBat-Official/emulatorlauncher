@@ -1133,7 +1133,7 @@ namespace EmulatorLauncher
             var consoleIds = new Dictionary<string, int>
             {
                 { "gamecube", 16 },
-                { "wii", 18 }
+                { "wii", 19 }
             };
 
             SimpleLogger.Instance.Info("[RVZINDEXER] Starting RvzCheevosIndexer.");
