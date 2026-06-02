@@ -76,17 +76,7 @@ namespace EmulatorLauncher
             Sdl3GameController sdl3Controller = null;
             if (_sdl3Controllers.Count > 0)
             {
-                string cPath = controller.DirectInput != null ? controller.DirectInput.DevicePath : controller.DevicePath;
-                
-                if (controller.IsXInputDevice)
-                {
-                    cPath = "xinput#" + controller.XInput.DeviceIndex.ToString();
-                    sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
-                }
-                else
-                {
-                    sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
-                }
+                sdl3Controller = Controller.GetSDL3ControllerMatch(controller, _sdl3Controllers);
             }
 
             string devicename = joy.DeviceName;

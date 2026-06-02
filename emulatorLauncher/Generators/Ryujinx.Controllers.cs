@@ -236,17 +236,7 @@ namespace EmulatorLauncher
             Sdl3GameController sdl3Controller = null;
             if (_sdl3 && _sdl3Controllers.Count > 0)
             {
-                string cPath = c.DirectInput != null ? c.DirectInput.DevicePath : c.DevicePath;
-
-                if (c.IsXInputDevice)
-                {
-                    cPath = "xinput#" + c.XInput.DeviceIndex.ToString();
-                    sdl3Controller = _sdl3Controllers.FirstOrDefault(j => j.Path.ToLowerInvariant() == cPath);
-                }
-                else
-                {
-                    sdl3Controller = _sdl3Controllers.FirstOrDefault(j => j.Path.ToLowerInvariant() == cPath);
-                }
+                sdl3Controller = Controller.GetSDL3ControllerMatch(c, _sdl3Controllers);
             }
 
             bool joyconPair = joy.DeviceName.Contains("Joy-Con") && joy.DeviceName.Contains("L/R");
