@@ -70,7 +70,7 @@ namespace EmulatorLauncher
             string gameName = null;
             
             if (File.Exists(rom))
-                gameName = File.ReadAllText(rom);
+                gameName = FileTools.ReadFirstValidLine(rom);
 
             if (string.IsNullOrEmpty(gameName))
                 autodetect = true;
@@ -83,7 +83,7 @@ namespace EmulatorLauncher
             if (autodetect && string.IsNullOrEmpty(gameName))
                 commandArray.Add("--auto-detect");
 
-            var args = string.Join(" ", commandArray.ToArray()); // .Select(a => a.Contains(" ") ? "\"" + a + "\"" : a)
+            var args = string.Join(" ", commandArray.ToArray());
 
             return new ProcessStartInfo()
             {

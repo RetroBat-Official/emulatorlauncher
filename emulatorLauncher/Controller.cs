@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using EmulatorLauncher.Common.Joysticks;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
-using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Joysticks;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Controls;
 
 namespace EmulatorLauncher
@@ -536,6 +536,29 @@ namespace EmulatorLauncher
             }
             
             return true;
+        }
+
+        public static Sdl3GameController GetSDL3ControllerMatch(Controller ctrl, List<Sdl3GameController> controllers)
+        {
+            Sdl3GameController sdl3C = null;
+            string cPath = ctrl.DirectInput != null ? ctrl.DirectInput.DevicePath : ctrl.DevicePath;
+
+            if (ctrl.IsXInputDevice)
+            {
+                cPath = "xinput#" + ctrl.XInput.DeviceIndex.ToString();
+                sdl3C = controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
+
+                if (sdl3C == null && ctrl.DirectInput != null)
+                    sdl3C = controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == ctrl.DirectInput.DevicePath.ToLowerInvariant());
+            }
+            else
+            {
+                sdl3C = controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
+                if (sdl3C == null && ctrl.DirectInput != null)
+                    sdl3C = controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == ctrl.DirectInput.DevicePath.ToLowerInvariant());
+            }
+
+            return sdl3C;
         }
     }
 

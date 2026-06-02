@@ -278,18 +278,8 @@ namespace EmulatorLauncher
             int sdl3index = -1;
             if (_sdl3Controllers.Count > 0)
             {
-                string cPath = ctrl.DirectInput != null ? ctrl.DirectInput.DevicePath : ctrl.DevicePath;
-                Sdl3GameController sdl3Controller;
-
-                if (ctrl.IsXInputDevice)
-                {
-                    cPath = "xinput#" + ctrl.XInput.DeviceIndex.ToString();
-                    sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
-                }
-                else
-                {
-                    sdl3Controller = _sdl3Controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
-                }
+                Sdl3GameController sdl3Controller = Controller.GetSDL3ControllerMatch(ctrl, _sdl3Controllers);
+                
                 sdl3index = sdl3Controller == null ? -1 : sdl3Controller.Index;
                 SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". SDL3 controller index : " + sdl3index);
             }
