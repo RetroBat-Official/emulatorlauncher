@@ -12,7 +12,7 @@ namespace EmulatorLauncher
         private bool _demulshooter = false;
         private bool _sindenSoft = false;
 
-        private void ConfigureModel2Guns(IniFile ini, byte[] bytes, string parentRom)
+        private void ConfigureModel2Guns(IniFile ini, byte[] bytes, string parentRom, bool noChangeInput = false)
         {
             if (SystemConfig["use_guns"] == "false")
                 return;
@@ -133,6 +133,9 @@ namespace EmulatorLauncher
                     writer.WriteLine("0");
                 }
             }
+
+            if (noChangeInput)
+                return;
 
             if (parentRom != null)
                 SimpleLogger.Instance.Info("[GUNS] Configuring Model2 input file: " + parentRom + ".input");

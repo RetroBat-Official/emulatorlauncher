@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using System.Windows.Shell;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 
@@ -1166,6 +1167,8 @@ namespace EmulatorLauncher
                 if (doc.Root == null)
                     doc.Add(new XElement("gameList"));
 
+                string tempPath = Path.Combine(Program.AppConfig.GetFullPath("saves"), system.Key, "dolphin-emu", "User");
+
                 foreach (var rvz in rvzFiles)
                 {
                     SimpleLogger.Instance.Info("[RVZINDEXER] Getting cheevos info for : " + rvz);
@@ -1180,7 +1183,8 @@ namespace EmulatorLauncher
                     }
 
                     string hash;
-                    if (GetRvzHash(rvz, out hash))
+
+                    if (GetRvzHash(rvz, tempPath, out hash))
                     {
                         if (string.IsNullOrEmpty(hash))
                         {
@@ -1227,7 +1231,7 @@ namespace EmulatorLauncher
                 el.Value = value;
         }
 
-        private static bool GetRvzHash(string rvzPath, out string hash)
+        private static bool GetRvzHash(string rvzPath, string tempPath, out string hash)
         {
             hash = null;
             string dolphinTool = Path.Combine(Program.AppConfig.GetFullPath("bios"), "dolphin-emu", "DolphinTool.exe");
@@ -1239,10 +1243,13 @@ namespace EmulatorLauncher
             
             try
             {
+                if (!Directory.Exists(tempPath))
+                    Directory.CreateDirectory(tempPath);
+
                 var psi = new ProcessStartInfo
                 {
                     FileName = dolphinTool,
-                    Arguments = $"verify -i \"{rvzPath}\" -a rchash",
+                    Arguments = $"verify -u \"{tempPath}\" -i \"{rvzPath}\" -a rchash",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -1251,6 +1258,7 @@ namespace EmulatorLauncher
                 using (var p = Process.Start(psi))
                 {
                     string output = p.StandardOutput.ReadToEnd().Trim();
+                    p.StandardError.ReadToEnd();
                     p.WaitForExit();
                     if (output.Length == 32)
                     {
@@ -1278,7 +1286,7 @@ namespace EmulatorLauncher
             return result;
         }
     }
-#endregion
+    #endregion
 
     public class TriforceGame
     {

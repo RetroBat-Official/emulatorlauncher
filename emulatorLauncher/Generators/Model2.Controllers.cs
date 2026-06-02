@@ -16,6 +16,9 @@ namespace EmulatorLauncher
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
+                if (SystemConfig.getOptBoolean("use_guns") && shooters.Contains(parentRom))
+                    ConfigureModel2Guns(ini, bytes, parentRom, true);
+
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
             }
