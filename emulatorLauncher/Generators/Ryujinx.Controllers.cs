@@ -224,6 +224,7 @@ namespace EmulatorLauncher
 
             string playerType = "ProController";
             string padType = "ryujinx_padtype" + playerIndex.ToString();
+            bool invertButtons = Program.SystemConfig.getOptBoolean("ryujinx_gamepadbuttons") || c.VendorID == USB_VENDOR.NINTENDO;
 
             if (SystemConfig.isOptSet(padType) && !string.IsNullOrEmpty(SystemConfig[padType]))
                 playerType = SystemConfig[padType];
@@ -257,7 +258,7 @@ namespace EmulatorLauncher
                 invert_stick_x = false,
                 invert_stick_y = false,
                 rotate90_cw = false,
-                stick_button = GetInputKeyName(c, InputKey.l3, tech),
+                stick_button = "LeftStick",
             };
 
             //right joycon section
@@ -267,7 +268,7 @@ namespace EmulatorLauncher
                 invert_stick_x = false,
                 invert_stick_y = false,
                 rotate90_cw = false,
-                stick_button = GetInputKeyName(c, InputKey.r3, tech),
+                stick_button = "RightStick",
             };
 
             double deadzone = 0.1;
@@ -336,66 +337,66 @@ namespace EmulatorLauncher
             {
                 newInputConfig["left_joycon"] = new
                 {
-                    button_minus = GetInputKeyName(c, InputKey.select, tech),
+                    button_minus = "Back",
                     button_l = "Unbound",
                     button_zl = "Unbound",
-                    button_sl = joyconPair ? "SingleLeftTrigger0" : GetInputKeyName(c, InputKey.pageup, tech),
-                    button_sr = joyconPair ? "SingleRightTrigger0" : GetInputKeyName(c, InputKey.pagedown, tech),
-                    dpad_up = GetInputKeyName(c, InputKey.up, tech),
-                    dpad_down = GetInputKeyName(c, InputKey.down, tech),
-                    dpad_left = GetInputKeyName(c, InputKey.left, tech),
-                    dpad_right = GetInputKeyName(c, InputKey.right, tech),
+                    button_sl = joyconPair ? "SingleLeftTrigger0" : "LeftShoulder",
+                    button_sr = joyconPair ? "SingleRightTrigger0" : "RightShoulder",
+                    dpad_up = "DpadUp",
+                    dpad_down = "DpadDown",
+                    dpad_left = "DpadLeft",
+                    dpad_right = "DpadRight",
                 };
             }
             else
             {
                 newInputConfig["left_joycon"] = new
                 {
-                    button_minus = GetInputKeyName(c, InputKey.select, tech),
-                    button_l = GetInputKeyName(c, InputKey.pageup, tech),
-                    button_zl = GetInputKeyName(c, InputKey.l2, tech),
+                    button_minus = "Back",
+                    button_l = "LeftShoulder",
+                    button_zl = "LeftTrigger",
                     button_sl = joyconPair ? "SingleLeftTrigger0" : "Unbound",
                     button_sr = joyconPair ? "SingleRightTrigger0" : "Unbound",
-                    dpad_up = GetInputKeyName(c, InputKey.up, tech),
-                    dpad_down = GetInputKeyName(c, InputKey.down, tech),
-                    dpad_left = GetInputKeyName(c, InputKey.left, tech),
-                    dpad_right = GetInputKeyName(c, InputKey.right, tech),
+                    dpad_up = "DpadUp",
+                    dpad_down = "DpadDown",
+                    dpad_left = "DpadLeft",
+                    dpad_right = "DpadRight",
                 };
             }
 
             //right joycon buttons mapping
             Dictionary<string, object> right_joycon = new Dictionary<string, object>();
-            right_joycon["button_plus"] = GetInputKeyName(c, InputKey.start, tech);
+            right_joycon["button_plus"] = "Start";
 
             if (playerType == "JoyconRight")
             {
                 right_joycon["button_r"] = "Unbound";
                 right_joycon["button_zr"] = "Unbound";
-                right_joycon["button_sl"] = joyconPair ? "SingleLeftTrigger1" : GetInputKeyName(c, InputKey.pageup, tech);
-                right_joycon["button_sr"] = joyconPair ? "SingleRightTrigger1" : GetInputKeyName(c, InputKey.pagedown, tech);
+                right_joycon["button_sl"] = joyconPair ? "SingleLeftTrigger1" : "LeftShoulder";
+                right_joycon["button_sr"] = joyconPair ? "SingleRightTrigger1" : "RightShoulder";
             }
             else
             {
-                right_joycon["button_r"] = GetInputKeyName(c, InputKey.pagedown, tech);
-                right_joycon["button_zr"] = GetInputKeyName(c, InputKey.r2, tech);
+                right_joycon["button_r"] = "RightShoulder";
+                right_joycon["button_zr"] = "RightTrigger";
                 right_joycon["button_sl"] = joyconPair ? "SingleLeftTrigger1" : "Unbound";
                 right_joycon["button_sr"] = joyconPair ? "SingleRightTrigger1" : "Unbound";
             }
 
             // Invert button positions for XBOX controllers
-            if (c.IsXInputDevice && Program.SystemConfig.getOptBoolean("ryujinx_gamepadbuttons"))
+            if (invertButtons)
             {
-                right_joycon["button_x"] = GetInputKeyName(c, InputKey.y, tech);
-                right_joycon["button_b"] = GetInputKeyName(c, InputKey.a, tech);
-                right_joycon["button_y"] = GetInputKeyName(c, InputKey.x, tech);
-                right_joycon["button_a"] = GetInputKeyName(c, InputKey.b, tech);
+                right_joycon["button_x"] = "X";
+                right_joycon["button_b"] = "B";
+                right_joycon["button_y"] = "Y";
+                right_joycon["button_a"] = "A";
             }
             else
             {
-                right_joycon["button_x"] = joyconPair ? "A" : GetInputKeyName(c, InputKey.x, tech);
-                right_joycon["button_b"] = joyconPair ? "Y" : GetInputKeyName(c, InputKey.b, tech);
-                right_joycon["button_y"] = joyconPair ? "B" : GetInputKeyName(c, InputKey.y, tech);
-                right_joycon["button_a"] = joyconPair ? "X" : GetInputKeyName(c, InputKey.a, tech);
+                right_joycon["button_x"] = joyconPair ? "A" : "Y";
+                right_joycon["button_b"] = joyconPair ? "Y" : "A";
+                right_joycon["button_y"] = joyconPair ? "B" : "X";
+                right_joycon["button_a"] = joyconPair ? "X" : "B";
             }
 
             newInputConfig["right_joycon"] = JObject.FromObject(right_joycon);
