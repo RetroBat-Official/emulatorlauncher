@@ -408,6 +408,7 @@ namespace EmulatorLauncher.Common.Joysticks
         static Dictionary<string, SdlGameController> _controllersByPath;
         static StringBuilder _joyInfos = new StringBuilder();
 
+        public int EnumerationIndex { get; set; }
         public int Index { get; set; }
         public int InstanceID { get; set; }
         public SdlJoystickGuid Guid { get; set; }
@@ -503,7 +504,7 @@ namespace EmulatorLauncher.Common.Joysticks
                 }
 
                 int num_joysticks;
-                IntPtr joysticksPtr = SDL_GetGamepads(out num_joysticks);
+                IntPtr joysticksPtr = SDL_GetJoysticks(out num_joysticks);
 
                 if (joysticksPtr == IntPtr.Zero || num_joysticks == 0)
                 {
@@ -544,6 +545,7 @@ namespace EmulatorLauncher.Common.Joysticks
 
                             controllers.Add(new Sdl3GameController
                             {
+                                EnumerationIndex = i,
                                 Index = index,
                                 Name = name,
                                 Path = path,
@@ -557,6 +559,7 @@ namespace EmulatorLauncher.Common.Joysticks
                         {
                             controllers.Add(new Sdl3GameController
                             {
+                                EnumerationIndex = i,
                                 Index = index,
                                 Name = name,
                                 Path = path,
