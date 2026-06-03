@@ -342,7 +342,7 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("triplebuffer") && SystemConfig.getOptBoolean("triplebuffer") && SystemConfig["mame_video_driver"] != "gdi")
                 retList.Add("-tb");
 
-            if ((!SystemConfig.isOptSet("vsync") || SystemConfig.getOptBoolean("vsync")) && SystemConfig["mame_video_driver"] != "gdi")
+            if ((SystemConfig.getOptBoolean("vsync")) && SystemConfig["mame_video_driver"] != "gdi")
                 retList.Add(_groovy ? "-syncrefresh" : "-waitvsync");
 
             /// Effects and shaders

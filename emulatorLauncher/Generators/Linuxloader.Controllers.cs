@@ -227,6 +227,12 @@ namespace EmulatorLauncher
             bool panel = false;
             bool panel6 = false;
 
+            if (SystemConfig.isOptSet("ll_steer_deadzone") && !string.IsNullOrEmpty(SystemConfig["ll_steer_deadzone"]))
+            {
+                string steerDdeadzone = SystemConfig["ll_steer_deadzone"];
+                ini.WriteValue("Config", "Steer_DeadZone", steerDdeadzone);
+            }
+
             // Common section
             if (!standardJoy)
             {

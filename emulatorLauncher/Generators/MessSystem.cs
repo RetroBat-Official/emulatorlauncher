@@ -19,6 +19,7 @@ namespace EmulatorLauncher
             { "atom_cart", "atom_rom" },
             { "atom_flop1", "atom_flop" },
             { "bbcmicro_cass", "bbc_cass" },
+            { "bbcmicro_flop1", "bbcb_flop" },
             { "camplynx_cass", "camplynx_cass" },
             { "camplynx_flop1", "camplynx_flop" },
             { "coco_flop1", "coco_flop" },
@@ -97,7 +98,7 @@ namespace EmulatorLauncher
                     new MessRomType("cass", new string[] { "wav", "csw", "uef" }, "*tape\\nchain\\\"\\\"\\n", "2"),
                     new MessRomType("rom1", new string[] { "rom", "bin" }),
                     new MessRomType("flop1", null, "*cat\\n*exec !boot\\n", "3" )
-                }),
+                }) { UseFileNameWithoutExtension = true, LUABoot = true },
 
             new MessSystem("bbcmicro"     ,"bbcm"     , new MessRomType[]
                 {
@@ -122,20 +123,20 @@ namespace EmulatorLauncher
             // Camputers LYNX "mload\\\"\\\"\\n" (MLOAD"gamename")
             new MessSystem("camplynx"     ,"lynx48k"  , new MessRomType[]
                 {
-                    new MessRomType("cass", new string[] { "wav", "tap" })
-                }),
+                    new MessRomType("cass", new string[] { "wav", "tap" } )
+                }) { UseFileNameWithoutExtension = true, LUABoot = true },
 
             new MessSystem("camplynx"     ,"lynx128k"  , new MessRomType[]
                 {
                     new MessRomType("cass", new string[] { "wav", "tap" }),
                     new MessRomType("flop1" )
-                }),
+                }) { UseFileNameWithoutExtension = true, LUABoot = true },
 
             new MessSystem("camplynx"     ,"lynx96k"  , new MessRomType[]
                 {
                     new MessRomType("cass", new string[] { "wav", "tap" }),
                     new MessRomType("flop1" )
-                }),
+                }) { UseFileNameWithoutExtension = true, LUABoot = true },
 
             // Color Computer (default to coco3)
             new MessSystem("coco"         ,"coco3"     , new MessRomType[]
@@ -560,6 +561,7 @@ namespace EmulatorLauncher
         public MessRomType[] RomTypes { get; private set; }
         public bool InGameMouse { get; private set; }
         public bool UseFileNameWithoutExtension { get; private set; }
+        public bool LUABoot { get; private set; }
 
         #region Public Methods
         public static MessSystem GetMessSystem(string system, string core = null)
@@ -790,6 +792,22 @@ namespace EmulatorLauncher
                 }
             }
 
+            else if ((SystemConfig.isOptSet("mess_hashboot") && SystemConfig["mess_hashboot"] == "lua") || !SystemConfig.isOptSet("mess_hashboot") && LUABoot)
+            {
+                string scriptPath = Path.Combine(AppConfig.GetFullPath("bios"), "mame", "autoboot_scripts");
+
+                if (Directory.Exists(scriptPath))
+                {
+                    string scriptFile = Path.Combine(scriptPath, romMedia + ".lua");
+
+                    if (File.Exists(scriptFile))
+                    {
+                        commandArray.Add("-autoboot_script");
+                        commandArray.Add(scriptFile);
+                    }
+                }
+            }
+
             //Specific autostart based on hash file (for now only for MAME standalone)
             else if (File.Exists(hashfile) && SystemConfig.getOptBoolean("mess_hashboot"))
             {
@@ -876,7 +894,7 @@ namespace EmulatorLauncher
                 }
             }
             // Use command between brackets if specified
-            else if (SystemConfig.getOptBoolean("mess_hashboot") && startIndex != -1 && endIndex != -1 && startIndex < endIndex)
+            else if (SystemConfig.isOptSet("mess_hashboot") && SystemConfig["mess_hashboot"] == "brackets" && startIndex != -1 && endIndex != -1 && startIndex < endIndex)
             {
                 string textInsideBrackets = romname.Substring(startIndex + 1, endIndex - startIndex - 1);
 
@@ -941,6 +959,15 @@ namespace EmulatorLauncher
                     }
                 }
             }
+            else
+            {
+                var ini = MameIniFile.FromFile(inipath);
+                {
+                    ini["autoboot_command"] = "";
+                    ini["autoboot_delay"] = "";
+                    ini.Save();
+                }
+            }
 
             // Additional disks if required
             if (SystemConfig.isOptSet("addblankdisk") && !string.IsNullOrEmpty(SystemConfig["addblankdisk"]))
@@ -990,6 +1017,9 @@ namespace EmulatorLauncher
             // Specific cases for some systems
             // Disable softlist for .rpk extension with ti99
             if (system == "ti99" && rom.EndsWith(".rpk"))
+                UseFileNameWithoutExtension = false;
+
+            if (SystemConfig.getOptBoolean("mame_use_fullpath"))
                 UseFileNameWithoutExtension = false;
 
             // Alternate ROM type for systems with mutiple media (ie cassette & floppy) / only if softlist not set
