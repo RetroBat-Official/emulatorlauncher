@@ -22,9 +22,12 @@ namespace EmulatorLauncher
             { "bbcmicro_flop1", "bbcb_flop" },
             { "camplynx_cass", "camplynx_cass" },
             { "camplynx_flop1", "camplynx_flop" },
+            { "cdi_cdrm", "cdi" },
             { "coco_flop1", "coco_flop" },
+            { "crvision_cart", "crvision" },
             { "electron_cass", "electron_cass" },
-            { "electron_flop", "electron_flop" }
+            { "electron_flop", "electron_flop" },
+            { "vg5k_cass", "vg5k" }
         };
 
         static readonly List<string> mame_arcade_systems = new List<string>() { "mame", "model2", "segastv", "zinc" };
@@ -40,14 +43,14 @@ namespace EmulatorLauncher
                     new MessRomType("cart1", new string[] { "bin", "rom" } ),
                     new MessRomType("cass", new string[] { "wav", "csw", "uef", "flac" }, "*TAPE\\nCHAIN\\\"\\\"\\n", "3" ),
                     new MessRomType("flop")
-                }),
+                }) { LUABoot = true },
 
             new MessSystem("electron"     ,"electron" , new MessRomType[]
                 {
                     new MessRomType("cart1", new string[] { "bin", "rom" } ),
                     new MessRomType("cass", new string[] { "wav", "csw", "uef", "flac" }, "*TAPE\\nCHAIN\\\"\\\"\\n", "3" ),
                     new MessRomType("flop")
-                }),
+                }) { LUABoot = true },
 
             // ADAM
             new MessSystem("adam"         ,"adam"     , new MessRomType[]
@@ -200,7 +203,7 @@ namespace EmulatorLauncher
                 {
                     new MessRomType("cass", new string[] { "wav" }),
                     new MessRomType("cart" /* .bin  .rom */)
-                }),
+                }) { LUABoot = true },
 
             // Fujitsu FM-7
             new MessSystem("fm7"          ,"fm7"      , new MessRomType[]
@@ -329,7 +332,7 @@ namespace EmulatorLauncher
             new MessSystem("vg5k"      ,"vg5k"     , new MessRomType[]   // Philips VG 5000
                 {
                     new MessRomType("cass", null, "cload\\n", "3" ),
-                }),
+                }) { LUABoot = true },
 
             new MessSystem("advision"     ,"advision" ,"cart"  ),           // Adventure Vision
             new MessSystem("scv"          ,"scv"      ,"cart"  ),           // Super Cassette Vision
@@ -531,7 +534,7 @@ namespace EmulatorLauncher
                         new MessRomType("cart")
                     }),
 
-            new MessSystem("cdi"          ,"cdimono1" ,"cdrm"  ) { InGameMouse = true },        
+            new MessSystem("cdi"          ,"cdimono1" ,"cdrm"  ) { InGameMouse = true, LUABoot = true },        
             new MessSystem("attache"      ,"attache"  ,"flop1"  ),
             new MessSystem("ampro"        ,"ampro"    ,"flop1"  ),
             new MessSystem("apc"          ,"apc"      ,"flop1"  ),
