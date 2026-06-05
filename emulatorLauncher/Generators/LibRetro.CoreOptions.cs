@@ -1440,7 +1440,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "dolphin_language", "dolphin_language", "1");
             BindBoolFeature(coreSettings, "dolphin_pal60", "dolphin_pal60", "enabled", "disabled");
             BindBoolFeature(coreSettings, "dolphin_cheats_enabled", "dolphin_cheats_enabled", "enabled", "disabled");
-            
+            BindBoolFeature(coreSettings, "dolphin_immediate_xfb", "dolphin_immediatexfb", "enabled", "disabled");
+
             if (SystemConfig.getOptBoolean("dolphin_cheats_enabled"))
                 DolphinSyncCheats(system);
             

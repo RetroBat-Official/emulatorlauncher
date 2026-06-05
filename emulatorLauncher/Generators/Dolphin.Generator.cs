@@ -263,6 +263,7 @@ namespace EmulatorLauncher
                     }
 
                     BindBoolIniFeatureOn(ini, "Hacks", "XFBToTextureEnable", "dolphin_xfbtotexture", "True", "False");
+                    BindBoolIniFeature(ini, "Hacks", "ImmediateXFBEnable", "dolphin_immediatexfb", "True", "False");
 
                     // Store EFB Copies
                     if (Features.IsSupported("EFBCopies"))
