@@ -194,7 +194,7 @@ namespace EmulatorLauncher
                     cIndex = sdl3Controller.EnumerationIndex;
                 else
                 {
-                    var sortedControllers = this.Controllers.OrderBy(i => i.DirectInput.DeviceIndex).ToList();
+                    var sortedControllers = this.Controllers.OrderBy(i => i.DirectInput?.DeviceIndex ?? i.DeviceIndex).ToList();
                     cIndex = sortedControllers.IndexOf(ctrl);
                 }
             }
@@ -414,7 +414,7 @@ namespace EmulatorLauncher
                     {
                         ini.WriteValue("Flying", "Throttle_Accelerate", "KEY_X, " + gcIndex + b5);
                         ini.WriteValue("Flying", "Throttle_Slowdown", "KEY_Z, " + gcIndex + b4);
-                        ini.WriteValue("Flying", "GunTrigger", "KEY_Left Ctrl " + gcIndex + b1);
+                        ini.WriteValue("Flying", "GunTrigger", "KEY_Left Ctrl, " + gcIndex + b1);
                         ini.WriteValue("Flying", "MissileTrigger", "KEY_Left Alt, " + gcIndex + b2);
                         ini.WriteValue("Flying", "ClimaxSwitch", "KEY_Left Shift, " + gcIndex + b6);
                     }
@@ -422,7 +422,7 @@ namespace EmulatorLauncher
                     {
                         ini.WriteValue("Flying", "Throttle_Accelerate", "KEY_X, " + gcIndex + "BUTTON_RIGHTSHOULDER");
                         ini.WriteValue("Flying", "Throttle_Slowdown", "KEY_Z, " + gcIndex + "BUTTON_LEFTSHOULDER");
-                        ini.WriteValue("Flying", "GunTrigger", "KEY_Left Ctrl " + gcIndex + "BUTTON_A");
+                        ini.WriteValue("Flying", "GunTrigger", "KEY_Left Ctrl, " + gcIndex + "BUTTON_A");
                         ini.WriteValue("Flying", "MissileTrigger", "KEY_Left Alt, " + gcIndex + "BUTTON_B");
                         ini.WriteValue("Flying", "ClimaxSwitch", "KEY_Left Shift, " + gcIndex + "BUTTON_Y");
                     }
@@ -444,6 +444,16 @@ namespace EmulatorLauncher
 
             else
             {
+                b1 = "a";
+                b2 = "b";
+                b3 = "x";
+                b4 = "y";
+                card = "guide";
+                b6 = "rightshoulder";
+                b5 = "leftshoulder";
+                b8 = "righttrigger";
+                b7 = "lefttrigger";
+
                 if (SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(SystemConfig["controller_layout"]))
                 {
                     string layout = SystemConfig["controller_layout"];
@@ -539,8 +549,8 @@ namespace EmulatorLauncher
                         ini.WriteValue("Digital", "P1_Down", "KEY_Down, " + GetDinputMapping(gcIndex, dinputController, "dpdown", isXinput) + ", " + GetDinputMapping(gcIndex, dinputController, "lefty", isXinput, 1));
                         ini.WriteValue("Digital", "P1_Left", "KEY_Left, " + GetDinputMapping(gcIndex, dinputController, "dpleft", isXinput) + ", " + GetDinputMapping(gcIndex, dinputController, "leftx", isXinput, -1));
                         ini.WriteValue("Digital", "P1_Right", "KEY_Right, " + GetDinputMapping(gcIndex, dinputController, "dpright", isXinput) + ", " + GetDinputMapping(gcIndex, dinputController, "leftx", isXinput, 1));
-                        ini.WriteValue("Digital", "P1_Button1", "KEY_Left Ctrl, " + GetDinputMapping(gcIndex, dinputController, "lefttrigger", isXinput));
-                        ini.WriteValue("Digital", "P1_Button2", "KEY_Left Alt, " + GetDinputMapping(gcIndex, dinputController, "righttrigger", isXinput));
+                        ini.WriteValue("Digital", "P1_Button1", "KEY_Left Ctrl, " + GetDinputMapping(gcIndex, dinputController, b1, isXinput));
+                        ini.WriteValue("Digital", "P1_Button2", "KEY_Left Alt, " + GetDinputMapping(gcIndex, dinputController, b2, isXinput));
                         ini.WriteValue("Digital", "P1_Button3", "KEY_Space, " + GetDinputMapping(gcIndex, dinputController, b3, isXinput));
                         ini.WriteValue("Digital", "P1_Card1Insert", "KEY_F7, " + GetDinputMapping(gcIndex, dinputController, card, isXinput));
                         ini.WriteValue("Digital", "P2_Up", "KEY_R");
@@ -635,7 +645,7 @@ namespace EmulatorLauncher
                         {
                             ini.WriteValue("Flying", "Throttle_Accelerate", "KEY_X, " + GetDinputMapping(gcIndex, dinputController, b5, isXinput));
                             ini.WriteValue("Flying", "Throttle_Slowdown", "KEY_Z, " + GetDinputMapping(gcIndex, dinputController, b4, isXinput));
-                            ini.WriteValue("Flying", "GunTrigger", "KEY_Left Ctrl " + GetDinputMapping(gcIndex, dinputController, b1, isXinput));
+                            ini.WriteValue("Flying", "GunTrigger", "KEY_Left Ctrl, " + GetDinputMapping(gcIndex, dinputController, b1, isXinput));
                             ini.WriteValue("Flying", "MissileTrigger", "KEY_Left Alt, " + GetDinputMapping(gcIndex, dinputController, b2, isXinput));
                             ini.WriteValue("Flying", "ClimaxSwitch", "KEY_Left Shift, " + GetDinputMapping(gcIndex, dinputController, b6, isXinput));
                         }
@@ -643,7 +653,7 @@ namespace EmulatorLauncher
                         {
                             ini.WriteValue("Flying", "Throttle_Accelerate", "KEY_X, " + GetDinputMapping(gcIndex, dinputController, "rightshoulder", isXinput));
                             ini.WriteValue("Flying", "Throttle_Slowdown", "KEY_Z, " + GetDinputMapping(gcIndex, dinputController, "leftshoulder", isXinput));
-                            ini.WriteValue("Flying", "GunTrigger", "KEY_Left Ctrl " + GetDinputMapping(gcIndex, dinputController, "x", isXinput));
+                            ini.WriteValue("Flying", "GunTrigger", "KEY_Left Ctrl, " + GetDinputMapping(gcIndex, dinputController, "x", isXinput));
                             ini.WriteValue("Flying", "MissileTrigger", "KEY_Left Alt, " + GetDinputMapping(gcIndex, dinputController, "a", isXinput));
                             ini.WriteValue("Flying", "ClimaxSwitch", "KEY_Left Shift, " + GetDinputMapping(gcIndex, dinputController, "b", isXinput));
                         }
@@ -745,6 +755,8 @@ namespace EmulatorLauncher
                     else
                         ret += ", " + index + "AXIS_" + axisIDspecRT + "_POSITIVE_HALF" + ", " + index + "AXIS_" + axisIDspecLT + "_NEGATIVE_HALF";
                 }
+
+                return ret;
             }
 
             if (!c.ButtonMappings.ContainsKey(buttonkey))
@@ -797,8 +809,8 @@ namespace EmulatorLauncher
                 else if (button.StartsWith("a"))
                     axisID = button.Substring(1).ToInteger();
 
-                if (plus == 1) return index + "AXIS_" + axisID + "_NEGATIVE";
-                else return index + "AXIS_" + axisID + "_POSITIVE";
+                if (plus == 1) return index + "AXIS_" + axisID + "_POSITIVE";
+                else return index + "AXIS_" + axisID + "_NEGATIVE";
             }
 
             return "Unassigned";
