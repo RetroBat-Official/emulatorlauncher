@@ -15,14 +15,11 @@ namespace EmulatorLauncher
 
         private void CreateControllerConfiguration(string cfgPath, string gamePath)
         {
-            bool guns = SystemConfig.getOptBoolean("use_guns");
-
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
 
-                if (guns)
-                    ConfigureLindberghGunsAutoOff(cfgPath, "lindbergh");
+                ConfigureLindberghGunsAutoOff(cfgPath, "lindbergh");
                 return;
             }
 
@@ -54,8 +51,7 @@ namespace EmulatorLauncher
                 foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(2))
                     ConfigureInput(ini, controller, samePad);
 
-                if (guns)
-                    ConfigureLindberghGuns(ini, "lindbergh");
+                ConfigureLindberghGuns(ini, "lindbergh");
 
                 ini.Save();
             }
@@ -139,8 +135,31 @@ namespace EmulatorLauncher
             ini.WriteValue("Flying", "Throttle", "");
 
             // Shooting section
-            ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
-            ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
+            if (SystemConfig.isOptSet("ll_gunaxis_invert") && !string.IsNullOrEmpty(SystemConfig["ll_gunaxis_invert"]))
+            {
+                string invertAxis = SystemConfig["ll_gunaxis_invert"].ToLower();
+                if (invertAxis == "x")
+                {
+                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X_INVERTED");
+                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
+                }
+                else if (invertAxis == "y")
+                {
+                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
+                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y_INVERTED");
+                }
+                else if (invertAxis == "both")
+                {
+                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X_INVERTED");
+                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y_INVERTED");
+                }
+            }
+            else
+            {
+                ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
+                ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
+            }
+
             ini.WriteValue("Shooting", "P1_Trigger", "MOUSE_LEFT_BUTTON");
             ini.WriteValue("Shooting", "P1_Reload", "MOUSE_RIGHT_BUTTON");
             ini.WriteValue("Shooting", "P1_GunButton", "MOUSE_MIDDLE_BUTTON");
@@ -183,8 +202,12 @@ namespace EmulatorLauncher
 
                 if (sdl3Controller != null)
                 {
-                    if (sdl3Controller.GuidString != new string('0', 32))
-                        guidString = RemoveGuidCRC(sdl3Controller.GuidString).ToLowerInvariant();
+                    if (!string.IsNullOrEmpty(sdl3Controller.GuidString) && sdl3Controller.GuidString != new string('0', 32))
+                    {
+                        var cleaned = RemoveGuidCRC(sdl3Controller.GuidString);
+                        if (!string.IsNullOrEmpty(cleaned))
+                            guidString = cleaned.ToLowerInvariant();
+                    }
                 }
             }
 
@@ -513,7 +536,7 @@ namespace EmulatorLauncher
                     }
                 }
 
-                SdlToDirectInput dinputController;
+                SdlToDirectInput dinputController = null;
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
                 string dguid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
 
@@ -682,8 +705,31 @@ namespace EmulatorLauncher
             // Shooting section
             if (playerindex == 1)
             {
-                ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
-                ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
+                if (SystemConfig.isOptSet("ll_gunaxis_invert") && !string.IsNullOrEmpty(SystemConfig["ll_gunaxis_invert"]))
+                {
+                    string invertAxis = SystemConfig["ll_gunaxis_invert"].ToLower();
+                    if (invertAxis == "x")
+                    {
+                        ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X_INVERTED");
+                        ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
+                    }
+                    else if (invertAxis == "y")
+                    {
+                        ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
+                        ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y_INVERTED");
+                    }
+                    else if (invertAxis == "both")
+                    {
+                        ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X_INVERTED");
+                        ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y_INVERTED");
+                    }
+                }
+                else
+                {
+                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
+                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
+                }
+
                 ini.WriteValue("Shooting", "P1_Trigger", "MOUSE_LEFT_BUTTON");
                 ini.WriteValue("Shooting", "P1_Reload", "MOUSE_RIGHT_BUTTON");
                 ini.WriteValue("Shooting", "P1_GunButton", "MOUSE_MIDDLE_BUTTON");
@@ -692,7 +738,8 @@ namespace EmulatorLauncher
                 ini.WriteValue("Shooting", "P1_PedalRight", "KEY_Right");
             }
 
-            ini.WriteValue("ControllerGUIDs", player + "GUID", guidString);
+            if (guidString != null)
+                ini.WriteValue("ControllerGUIDs", player + "GUID", guidString);
         }
 
         private string GetDinputMapping(string index, SdlToDirectInput c, string buttonkey, bool isxinput, int plus = 0)
@@ -810,7 +857,8 @@ namespace EmulatorLauncher
                     axisID = button.Substring(1).ToInteger();
 
                 if (plus == 1) return index + "AXIS_" + axisID + "_POSITIVE";
-                else return index + "AXIS_" + axisID + "_NEGATIVE";
+                else if (plus == -1) return index + "AXIS_" + axisID + "_NEGATIVE";
+                else return index + "AXIS_" + axisID;
             }
 
             return "Unassigned";

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows.Documents;
 
 namespace EmulatorLauncher
 {
@@ -20,27 +19,24 @@ namespace EmulatorLauncher
         /// <param name="system"></param>
         private void ConfigureLindberghGunsAutoOff(string cfgPath, string system)
         {
+            SimpleLogger.Instance.Info("[INFO] Configuring guns.");
+
             using (var ini = new IniFile(cfgPath, IniOptions.UseSpaces))
             {
-                // Common section
-                ini.WriteValue("Common", "ExitGame", "KEY_Escape");
-                ini.WriteValue("Common", "P1_Coin", "KEY_5");
-                ini.WriteValue("Common", "P2_Coin", "KEY_6");
-                ini.WriteValue("Common", "P1_Start", "KEY_1");
-                ini.WriteValue("Common", "P2_Start", "KEY_2");
-
-                // Gun section
-                ConfigureLindberghGuns(ini, "lindbergh");
+                ConfigureLindberghGuns(ini, "lindbergh", true);
+                
                 ini.Save();
             }
         }
 
-        private void ConfigureLindberghGuns(IniFile ini, string system)
+        private void ConfigureLindberghGuns(IniFile ini, string system, bool autoconfOff = false)
         {
+            bool configGuns = SystemConfig.getOptBoolean("use_guns");
             bool guninvert = SystemConfig.getOptBoolean("gun_invert");
             bool gunindexrevert = SystemConfig.getOptBoolean("gun_index_revert");
 
-            ConfigureGunButtons(ini);
+            if (configGuns)
+                ConfigureGunButtons(ini, autoconfOff);
 
             var guns = RawLightgun.GetRawLightguns();
 
@@ -69,7 +65,6 @@ namespace EmulatorLauncher
                 {
                     if (guns.Length > 1)
                     {
-                        // Simple inversion: shift by 1 position if possible
                         if (guns.Length >= 3)
                         {
                             gun1 = guns[1];
@@ -90,10 +85,20 @@ namespace EmulatorLauncher
             }
         }
 
-        List<string> buttonsToMap = new List<string> { "ll_gun_reload", "ll_gun_button", "ll_gun_action" };
+        private static readonly List<string> buttonsToMap = new List<string> { "ll_gun_reload", "ll_gun_button", "ll_gun_action" };
 
-        private void ConfigureGunButtons(IniFile ini)
+        private void ConfigureGunButtons(IniFile ini, bool autoconfOff = false)
         {
+            // Common section
+            if (autoconfOff)
+            {
+                ini.WriteValue("Common", "ExitGame", "KEY_Escape");
+                ini.WriteValue("Common", "P1_Coin", "KEY_5");
+                ini.WriteValue("Common", "P2_Coin", "KEY_6");
+                ini.WriteValue("Common", "P1_Start", "KEY_1");
+                ini.WriteValue("Common", "P2_Start", "KEY_2");
+            }
+
             string reloadButton = "MOUSE_RIGHT_BUTTON";
             string gunButton = "MOUSE_MIDDLE_BUTTON";
             string actionButton = "KEY_1";
@@ -118,8 +123,31 @@ namespace EmulatorLauncher
                 }
             }
 
-            ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
-            ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
+            if (SystemConfig.isOptSet("ll_gunaxis_invert") && !string.IsNullOrEmpty(SystemConfig["ll_gunaxis_invert"]))
+            {
+                string invertAxis = SystemConfig["ll_gunaxis_invert"].ToLower();
+                if (invertAxis == "x")
+                {
+                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X_INVERTED");
+                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
+                }
+                else if (invertAxis == "y")
+                {
+                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
+                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y_INVERTED");
+                }
+                else if (invertAxis == "both")
+                {
+                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X_INVERTED");
+                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y_INVERTED");
+                }
+            }
+            else
+            {
+                ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
+                ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
+            }
+
             ini.WriteValue("Shooting", "P1_Trigger", "MOUSE_LEFT_BUTTON");
             ini.WriteValue("Shooting", "P1_Reload", reloadButton);
             ini.WriteValue("Shooting", "P1_GunButton", gunButton);

@@ -464,8 +464,8 @@ namespace EmulatorLauncher
             if (layout == "modern8")
             {
                 buttons.Add(new ButtonLayoutMapping("BUTTON1", "west", "OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1"));
-                buttons.Add(new ButtonLayoutMapping("BUTTON2", "north", "OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2"));
-                buttons.Add(new ButtonLayoutMapping("BUTTON3", "r1", "OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2 OR GUNCODE_" + mouseIndex1 + "_BUTTON3"));
+                buttons.Add(new ButtonLayoutMapping("BUTTON2", "north", "OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON2 OR GUNCODE_" + mouseIndex1 + "_BUTTON2"));
+                buttons.Add(new ButtonLayoutMapping("BUTTON3", "r1", "OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON3"));
                 buttons.Add(new ButtonLayoutMapping("BUTTON4", "south", "OR KEYCODE_LSHIFT"));
                 buttons.Add(new ButtonLayoutMapping("BUTTON5", "east", "OR KEYCODE_Z"));
                 buttons.Add(new ButtonLayoutMapping("BUTTON6", "r2trigger", "OR KEYCODE_X"));
@@ -475,8 +475,8 @@ namespace EmulatorLauncher
             else if (layout == "6alternative")
             {
                 buttons.Add(new ButtonLayoutMapping("BUTTON1", "west", "OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1"));
-                buttons.Add(new ButtonLayoutMapping("BUTTON2", "north", "OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2"));
-                buttons.Add(new ButtonLayoutMapping("BUTTON3", "l1", "OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2 OR GUNCODE_" + mouseIndex1 + "_BUTTON3"));
+                buttons.Add(new ButtonLayoutMapping("BUTTON2", "north", "OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON2 OR GUNCODE_" + mouseIndex1 + "_BUTTON2"));
+                buttons.Add(new ButtonLayoutMapping("BUTTON3", "l1", "OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON3"));
                 buttons.Add(new ButtonLayoutMapping("BUTTON4", "south", "OR KEYCODE_LSHIFT"));
                 buttons.Add(new ButtonLayoutMapping("BUTTON5", "east", "OR KEYCODE_Z"));
                 buttons.Add(new ButtonLayoutMapping("BUTTON6", "r1", "OR KEYCODE_X"));
@@ -486,8 +486,8 @@ namespace EmulatorLauncher
             else
             {
                 buttons.Add(new ButtonLayoutMapping("BUTTON1", "west", "OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1"));
-                buttons.Add(new ButtonLayoutMapping("BUTTON2", "south", "OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2"));
-                buttons.Add(new ButtonLayoutMapping("BUTTON3", "east", "OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2 OR GUNCODE_" + mouseIndex1 + "_BUTTON3"));
+                buttons.Add(new ButtonLayoutMapping("BUTTON2", "south", "OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON2 OR GUNCODE_" + mouseIndex1 + "_BUTTON2"));
+                buttons.Add(new ButtonLayoutMapping("BUTTON3", "east", "OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON3"));
                 buttons.Add(new ButtonLayoutMapping("BUTTON4", "north", "OR KEYCODE_LSHIFT"));
                 buttons.Add(new ButtonLayoutMapping("BUTTON5", "l1", "OR KEYCODE_Z"));
                 buttons.Add(new ButtonLayoutMapping("BUTTON6", "r1", "OR KEYCODE_X"));
@@ -669,8 +669,8 @@ namespace EmulatorLauncher
             if (layout == "modern8")
             {
                 AddPort(input, "P" + i + "_BUTTON1", joy + GetDinputMapping(ctrlr, "x", xinputCtrl) + " OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1");
-                AddPort(input, "P" + i + "_BUTTON2", joy + GetDinputMapping(ctrlr, "y", xinputCtrl) + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2");
-                AddPort(input, "P" + i + "_BUTTON3", joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2 OR GUNCODE_" + mouseIndex1 + "_BUTTON3");
+                AddPort(input, "P" + i + "_BUTTON2", joy + GetDinputMapping(ctrlr, "y", xinputCtrl) + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON2 OR GUNCODE_" + mouseIndex1 + "_BUTTON2");
+                AddPort(input, "P" + i + "_BUTTON3", joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON3");
                 AddPort(input, "P" + i + "_BUTTON4", joy + GetDinputMapping(ctrlr, "a", xinputCtrl) + " OR KEYCODE_LSHIFT");
                 AddPort(input, "P" + i + "_BUTTON5", joy + GetDinputMapping(ctrlr, "b", xinputCtrl) + " OR KEYCODE_Z");
                 AddPort(input, "P" + i + "_BUTTON6", joy + GetDinputMapping(ctrlr, "righttrigger", xinputCtrl) + " OR KEYCODE_X");
@@ -680,8 +680,8 @@ namespace EmulatorLauncher
             else if (layout == "6alternative")
             {
                 AddPort(input, "P" + i + "_BUTTON1", joy + GetDinputMapping(ctrlr, "x", xinputCtrl) + " OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1");
-                AddPort(input, "P" + i + "_BUTTON2", joy + GetDinputMapping(ctrlr, "y", xinputCtrl) + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2");
-                AddPort(input, "P" + i + "_BUTTON3", joy + GetDinputMapping(ctrlr, "leftshoulder", xinputCtrl) + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2 OR GUNCODE_" + mouseIndex1 + "_BUTTON3");
+                AddPort(input, "P" + i + "_BUTTON2", joy + GetDinputMapping(ctrlr, "y", xinputCtrl) + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON2 OR GUNCODE_" + mouseIndex1 + "_BUTTON2");
+                AddPort(input, "P" + i + "_BUTTON3", joy + GetDinputMapping(ctrlr, "leftshoulder", xinputCtrl) + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON3");
                 AddPort(input, "P" + i + "_BUTTON4", joy + GetDinputMapping(ctrlr, "a", xinputCtrl) + " OR KEYCODE_LSHIFT");
                 AddPort(input, "P" + i + "_BUTTON5", joy + GetDinputMapping(ctrlr, "b", xinputCtrl) + " OR KEYCODE_Z");
                 AddPort(input, "P" + i + "_BUTTON6", joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_X");
@@ -691,8 +691,8 @@ namespace EmulatorLauncher
             else
             {
                 AddPort(input, "P" + i + "_BUTTON1", joy + GetDinputMapping(ctrlr, "a", xinputCtrl) + " OR KEYCODE_LCONTROL OR MOUSECODE_" + mouseIndex1 + "_BUTTON1 OR GUNCODE_" + mouseIndex1 + "_BUTTON1");
-                AddPort(input, "P" + i + "_BUTTON2", joy + GetDinputMapping(ctrlr, "b", xinputCtrl) + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON2");
-                AddPort(input, "P" + i + "_BUTTON3", joy + GetDinputMapping(ctrlr, "x", xinputCtrl) + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON2 OR GUNCODE_" + mouseIndex1 + "_BUTTON3");
+                AddPort(input, "P" + i + "_BUTTON2", joy + GetDinputMapping(ctrlr, "b", xinputCtrl) + " OR KEYCODE_LALT OR MOUSECODE_" + mouseIndex1 + "_BUTTON2 OR GUNCODE_" + mouseIndex1 + "_BUTTON2");
+                AddPort(input, "P" + i + "_BUTTON3", joy + GetDinputMapping(ctrlr, "x", xinputCtrl) + " OR KEYCODE_SPACE OR MOUSECODE_" + mouseIndex1 + "_BUTTON3 OR GUNCODE_" + mouseIndex1 + "_BUTTON3");
                 AddPort(input, "P" + i + "_BUTTON4", joy + GetDinputMapping(ctrlr, "y", xinputCtrl) + " OR KEYCODE_LSHIFT");
                 AddPort(input, "P" + i + "_BUTTON5", joy + GetDinputMapping(ctrlr, "leftshoulder", xinputCtrl) + " OR KEYCODE_Z");
                 AddPort(input, "P" + i + "_BUTTON6", joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_X");
@@ -821,8 +821,8 @@ namespace EmulatorLauncher
             if (_multigun)
             {
                 AddPort(input, $"P{i}_BUTTON1", joy + mapping["south"] + $" OR MOUSECODE_{gunIndex}_BUTTON1 OR GUNCODE_{gunIndex}_BUTTON1");
-                AddPort(input, $"P{i}_BUTTON2", joy + mapping["east"] + $" OR MOUSECODE_{gunIndex}_BUTTON3 OR GUNCODE_{gunIndex}_BUTTON2");
-                AddPort(input, $"P{i}_BUTTON3", joy + mapping["west"] + $" OR MOUSECODE_{gunIndex}_BUTTON2 OR GUNCODE_{gunIndex}_BUTTON3");
+                AddPort(input, $"P{i}_BUTTON2", joy + mapping["east"] + $" OR MOUSECODE_{gunIndex}_BUTTON2 OR GUNCODE_{gunIndex}_BUTTON2");
+                AddPort(input, $"P{i}_BUTTON3", joy + mapping["west"] + $" OR MOUSECODE_{gunIndex}_BUTTON3 OR GUNCODE_{gunIndex}_BUTTON3");
             }
             else
             {
@@ -1001,8 +1001,8 @@ namespace EmulatorLauncher
             if (_multigun)
             {
                 AddPort(input, $"P{i}_BUTTON1", joy + GetDinputMapping(ctrlr, "a", xinputCtrl) + " OR MOUSECODE_" + gunIndex + "_BUTTON1 OR GUNCODE_" + gunIndex + "_BUTTON1");
-                AddPort(input, $"P{i}_BUTTON2", joy + GetDinputMapping(ctrlr, "b", xinputCtrl) + " OR MOUSECODE_" + gunIndex + "_BUTTON3 OR GUNCODE_" + gunIndex + "_BUTTON2");
-                AddPort(input, $"P{i}_BUTTON3", joy + GetDinputMapping(ctrlr, "x", xinputCtrl) + " OR MOUSECODE_" + gunIndex + "_BUTTON2 OR GUNCODE_" + gunIndex + "_BUTTON3");
+                AddPort(input, $"P{i}_BUTTON2", joy + GetDinputMapping(ctrlr, "b", xinputCtrl) + " OR MOUSECODE_" + gunIndex + "_BUTTON2 OR GUNCODE_" + gunIndex + "_BUTTON2");
+                AddPort(input, $"P{i}_BUTTON3", joy + GetDinputMapping(ctrlr, "x", xinputCtrl) + " OR MOUSECODE_" + gunIndex + "_BUTTON3 OR GUNCODE_" + gunIndex + "_BUTTON3");
             }
             else
             {

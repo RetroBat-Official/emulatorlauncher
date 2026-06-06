@@ -14,16 +14,16 @@ namespace EmulatorLauncher
     {
         private static void ConfigureControllers(GameProfile userProfile, string rom)
         {
+            SimpleLogger.Instance.Info("[INFO] Check if Gun configuration is required.");
+
+            if (ConfigureTPGuns(userProfile, rom))
+                return;
+
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
             }
-
-            SimpleLogger.Instance.Info("[INFO] Check if Gun configuration is required.");
-
-            if (ConfigureTPGuns(userProfile, rom))
-                return;
 
             SimpleLogger.Instance.Info("[INFO] Gun configuration not required, configuring controller.");
 

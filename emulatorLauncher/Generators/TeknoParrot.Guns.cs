@@ -22,8 +22,7 @@ namespace EmulatorLauncher
 
         private static bool ConfigureTPGuns(GameProfile userProfile, string rom)
         {
-            if (!Program.SystemConfig.getOptBoolean("use_guns"))
-                return false;
+            
 
             // Return if game is definitely not a gun game !
             if (!userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("Gun") || j.ButtonName.Contains("GUN") || j.InputMappingString.ToLowerInvariant().Contains("lightgun")))
@@ -43,6 +42,10 @@ namespace EmulatorLauncher
 
             // Get guns and guncount
             int gunCount = RawLightgun.GetUsableLightGunCount();
+            SimpleLogger.Instance.Info("[GUNS] Found " + gunCount + " usable guns.");
+            if (gunCount < 1)
+                return false;
+
             var guns = RawLightgun.GetRawLightguns();
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
@@ -62,11 +65,6 @@ namespace EmulatorLauncher
             RawInputDevice wiimote2kb = null;
             RawInputDevice wiimote3kb = null;
             RawInputDevice wiimote4kb = null;
-
-            if (gunCount < 1)       // Return if no gun or mouse is connected !
-                return false;
-
-            SimpleLogger.Instance.Info("[GUNS] Found " + gunCount + " usable guns.");
 
             // Gun indexes
             gun1 = orggun1 = SetGun(guns, gunCount, 1);
@@ -108,6 +106,10 @@ namespace EmulatorLauncher
                 else
                     SimpleLogger.Instance.Info("[GUNS] Game not found in DemulShooter compatibility list: " + profileName);
             }
+
+            // Only return here to let demulshooter start if needed
+            if (!Program.SystemConfig.getOptBoolean("use_guns"))
+                return false;
 
             // Get keyboards
             var hidDevices = RawInputDevice.GetRawInputDevices();
