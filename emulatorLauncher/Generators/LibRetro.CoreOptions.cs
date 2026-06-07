@@ -885,6 +885,8 @@ namespace EmulatorLauncher.Libretro
             else
                 coreSettings["bluemsx_msxtype"] = "Auto";
 
+            BindFeature(coreSettings, "bluemsx_cartmapper", "bluemsx_cartmapper", "Auto");
+
             if (SystemConfig.isOptSet("bluemsx_msxtype") && !string.IsNullOrEmpty(SystemConfig["bluemsx_msxtype"]))
                 coreSettings["bluemsx_msxtype"] = SystemConfig["bluemsx_msxtype"];
 
