@@ -592,6 +592,66 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "StartPaused", "false");
                 ini.WriteValue("UI", "PauseOnFocusLoss", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true");
 
+                // sinden border
+                if (_isArcade)
+                {
+                    if (SystemConfig.isOptSet("pcsx2x6_sindenborder") && !string.IsNullOrEmpty(SystemConfig["pcsx2x6_sindenborder"]))
+                    {
+                        string sindenBType = SystemConfig["pcsx2x6_sindenborder"];
+
+                        switch (sindenBType)
+                        {
+                            case "fs_thin":
+                                ini.WriteValue("JVS", "SindenBorderEnabled", "true");
+                                ini.WriteValue("JVS", "SindenBorderMode", "1");
+                                ini.WriteValue("Settings", "SindenBorderThickness", "5");
+                                break;
+                            case "fs_normal":
+                                ini.WriteValue("JVS", "SindenBorderEnabled", "true");
+                                ini.WriteValue("JVS", "SindenBorderMode", "1");
+                                ini.WriteValue("Settings", "SindenBorderThickness", "10");
+                                break;
+                            case "fs_thick":
+                                ini.WriteValue("JVS", "SindenBorderEnabled", "true");
+                                ini.WriteValue("JVS", "SindenBorderMode", "1");
+                                ini.WriteValue("Settings", "SindenBorderThickness", "15");
+                                break;
+                            case "fs_thicker":
+                                ini.WriteValue("JVS", "SindenBorderEnabled", "true");
+                                ini.WriteValue("JVS", "SindenBorderMode", "1");
+                                ini.WriteValue("Settings", "SindenBorderThickness", "20");
+                                break;
+                            case "43_thin":
+                                ini.WriteValue("JVS", "SindenBorderEnabled", "true");
+                                ini.WriteValue("JVS", "SindenBorderMode", "0");
+                                ini.WriteValue("Settings", "SindenBorderThickness", "5");
+                                break;
+                            case "43_normal":
+                                ini.WriteValue("JVS", "SindenBorderEnabled", "true");
+                                ini.WriteValue("JVS", "SindenBorderMode", "0");
+                                ini.WriteValue("Settings", "SindenBorderThickness", "10");
+                                break;
+                            case "43_thick":
+                                ini.WriteValue("JVS", "SindenBorderEnabled", "true");
+                                ini.WriteValue("JVS", "SindenBorderMode", "0");
+                                ini.WriteValue("Settings", "SindenBorderThickness", "15");
+                                break;
+                            case "43_thicker":
+                                ini.WriteValue("JVS", "SindenBorderEnabled", "true");
+                                ini.WriteValue("JVS", "SindenBorderMode", "0");
+                                ini.WriteValue("Settings", "SindenBorderThickness", "20");
+                                break;
+                            case "disabled":
+                                ini.WriteValue("JVS", "SindenBorderEnabled", "false");
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        ini.WriteValue("JVS", "SindenBorderEnabled", "false");
+                    }
+                }
+
                 CreateControllerConfiguration(ini, system);
                 SetupGunQT(ini, path);
 

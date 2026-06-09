@@ -51,9 +51,23 @@ namespace EmulatorLauncher
                 {
                     try
                     {
-                        var sindenProcess = px.GetProcessCommandline().SplitCommandLine().FirstOrDefault();
+                        var sindenProcess = px.MainModule?.FileName;
                         if (!string.IsNullOrEmpty(sindenProcess))
                             SimpleLogger.Instance.Info("[GUNS] Sinden process already running: " + sindenProcess);
+                        else
+                        {
+                            var cmd = px.GetProcessCommandline();
+                            if (cmd != null)
+                            {
+                                var parts = cmd.SplitCommandLine();
+                                var first = parts.FirstOrDefault();
+
+                                if (first != null)
+                                {
+                                    SimpleLogger.Instance.Info("[GUNS] Sinden process already running: " + first);
+                                }
+                            }
+                        }
                     }
                     catch
                     { }
