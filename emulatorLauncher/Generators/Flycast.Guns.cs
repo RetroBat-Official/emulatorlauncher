@@ -19,12 +19,16 @@ namespace EmulatorLauncher
         private static readonly List<string> useXandA = new List<string> { "shootopl", "shootpl", "shootplm", "shootplmp" };
         private static Dictionary<RawLightgun, RawInputDevice> _gunsKbAssociation = new Dictionary<RawLightgun, RawInputDevice>();
 
-        private void ConfigureFlycastGuns(IniFile ini, string mappingPath, string system, Dictionary<string, string> hotkeyMapping)
+        private void ConfigureFlycastGuns(IniFile ini, string mappingPath, string system, Dictionary<string, string> hotkeyMapping = null)
         {
+            SimpleLogger.Instance.Info("[GUNS] Configuring Flycast guns.");
+
+            bool useguns = SystemConfig.getOptBoolean("use_guns") || SystemConfig["flycast_controller1"] == "7" || SystemConfig["flycast_controller2"] == "7";
             bool useOneGun = SystemConfig.getOptBoolean("one_gun");
             bool guninvert = SystemConfig.getOptBoolean("gun_invert");
             bool gunindexrevert = SystemConfig.getOptBoolean("gun_index_revert");
             bool multigun = false;
+            
             if (SystemConfig["flycast_controller1"] == "7" && SystemConfig["flycast_controller2"] == "7")
                 multigun = true;
 
@@ -45,7 +49,7 @@ namespace EmulatorLauncher
             if (SystemConfig.getOptBoolean("use_demulshooter"))
             {
                 _demulshooter = true;
-                SimpleLogger.Instance.Info("[INFO] Configuring DemulShooter");
+                SimpleLogger.Instance.Info("[GUNS] Configuring DemulShooter");
                 var gun1 = guns.Length > 0 ? guns[0] : null;
                 var gun2 = guns.Length > 1 ? guns[1] : null;
                 var gun3 = guns.Length > 2 ? guns[2] : null;
@@ -72,6 +76,11 @@ namespace EmulatorLauncher
                 }
 
                 Demulshooter.StartDemulshooter("flycast", system, _romName, gun1, gun2, gun3, gun4);
+            }
+
+            if (!useguns)
+            {
+                SimpleLogger.Instance.Info("[GUNS] Guns not enabled, skipping configuration.");
                 return;
             }
 
@@ -327,11 +336,14 @@ namespace EmulatorLauncher
                 }
                 
                 int i = 9;
-                foreach (var hk in hotkeyMapping)
+                if (hotkeyMapping != null)
                 {
-                    string toAdd = hk.Value + ":" + hk.Key;
-                    kbini.WriteValue("digital", "bind" + i, toAdd);
-                    i++;
+                    foreach (var hk in hotkeyMapping)
+                    {
+                        string toAdd = hk.Value + ":" + hk.Key;
+                        kbini.WriteValue("digital", "bind" + i, toAdd);
+                        i++;
+                    }
                 }
 
                 kbini.WriteValue("emulator", "dead_zone", "10");
@@ -665,12 +677,15 @@ namespace EmulatorLauncher
                                 ctrlini.WriteValue("digital", "bind1", "97:btn_dpad2_up");      //9
                                 ctrlini.WriteValue("digital", "bind10", "30:btn_start");         //1
 
-                                int i = 11;
-                                foreach (var hk in hotkeyMapping)
+                                if (hotkeyMapping != null)
                                 {
-                                    string toAdd = hk.Value + ":" + hk.Key;
-                                    ctrlini.WriteValue("digital", "bind" + i, toAdd);
-                                    i++;
+                                    int i = 11;
+                                    foreach (var hk in hotkeyMapping)
+                                    {
+                                        string toAdd = hk.Value + ":" + hk.Key;
+                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                        i++;
+                                    }
                                 }
 
                                 ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");  //RIGHT
@@ -739,14 +754,17 @@ namespace EmulatorLauncher
                                     ctrlini.WriteValue("digital", "bind8", "20:btn_x");            //Q
                                 }
 
-                                if (index == 1)
+                                if (hotkeyMapping != null)
                                 {
-                                    int i = 9;
-                                    foreach (var hk in hotkeyMapping)
+                                    if (index == 1)
                                     {
-                                        string toAdd = hk.Value + ":" + hk.Key;
-                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
-                                        i++;
+                                        int i = 9;
+                                        foreach (var hk in hotkeyMapping)
+                                        {
+                                            string toAdd = hk.Value + ":" + hk.Key;
+                                            ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                            i++;
+                                        }
                                     }
                                 }
                             }
@@ -759,13 +777,18 @@ namespace EmulatorLauncher
                                     ctrlini.WriteValue("digital", "bind0", "6:insert_card");        //C
                                     ctrlini.WriteValue("digital", "bind1", "97:btn_dpad2_up");      //9
                                     ctrlini.WriteValue("digital", "bind10", "30:btn_start");         //1
-                                    int i = 11;
-                                    foreach (var hk in hotkeyMapping)
+
+                                    if (hotkeyMapping != null)
                                     {
-                                        string toAdd = hk.Value + ":" + hk.Key;
-                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
-                                        i++;
+                                        int i = 11;
+                                        foreach (var hk in hotkeyMapping)
+                                        {
+                                            string toAdd = hk.Value + ":" + hk.Key;
+                                            ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                            i++;
+                                        }
                                     }
+
                                     ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");  //RIGHT
                                     ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");   //LEFT
                                     ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");   //DOWN
@@ -785,12 +808,16 @@ namespace EmulatorLauncher
                                     ctrlini.WriteValue("digital", "bind5", "35:btn_d");            //6
                                     ctrlini.WriteValue("digital", "bind6", "31:btn_start");        //2
                                     ctrlini.WriteValue("digital", "bind7", "24:btn_dpad1_up");     //U
-                                    int i = 8;
-                                    foreach (var hk in hotkeyMapping)
+
+                                    if (hotkeyMapping != null)
                                     {
-                                        string toAdd = hk.Value + ":" + hk.Key;
-                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
-                                        i++;
+                                        int i = 8;
+                                        foreach (var hk in hotkeyMapping)
+                                        {
+                                            string toAdd = hk.Value + ":" + hk.Key;
+                                            ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                            i++;
+                                        }
                                     }
                                 }
                             }
@@ -811,12 +838,15 @@ namespace EmulatorLauncher
                                 ctrlini.WriteValue("digital", "bind6", "27:btn_b");                    //X
                                 ctrlini.WriteValue("digital", "bind7", "6:btn_c");                     //C
 
-                                int i = 8;
-                                foreach (var hk in hotkeyMapping)
+                                if (hotkeyMapping != null)
                                 {
-                                    string toAdd = hk.Value + ":" + hk.Key;
-                                    ctrlini.WriteValue("digital", "bind" + i, toAdd);
-                                    i++;
+                                    int i = 8;
+                                    foreach (var hk in hotkeyMapping)
+                                    {
+                                        string toAdd = hk.Value + ":" + hk.Key;
+                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                        i++;
+                                    }
                                 }
                             }
                             //wiimotes
@@ -860,12 +890,15 @@ namespace EmulatorLauncher
 
                                 ctrlini.WriteValue("digital", "bind8", "20:btn_x");            //Q
 
-                                int i = 9;
-                                foreach (var hk in hotkeyMapping)
+                                if (hotkeyMapping != null)
                                 {
-                                    string toAdd = hk.Value + ":" + hk.Key;
-                                    ctrlini.WriteValue("digital", "bind" + i, toAdd);
-                                    i++;
+                                    int i = 9;
+                                    foreach (var hk in hotkeyMapping)
+                                    {
+                                        string toAdd = hk.Value + ":" + hk.Key;
+                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                        i++;
+                                    }
                                 }
                             }
                             //non-wiimotes
@@ -881,12 +914,15 @@ namespace EmulatorLauncher
                                     ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
                                     ctrlini.WriteValue("digital", "bind6", "20:btn_b");                    //Q
 
-                                    int i = 7;
-                                    foreach (var hk in hotkeyMapping)
+                                    if (hotkeyMapping != null)
                                     {
-                                        string toAdd = hk.Value + ":" + hk.Key;
-                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
-                                        i++;
+                                        int i = 7;
+                                        foreach (var hk in hotkeyMapping)
+                                        {
+                                            string toAdd = hk.Value + ":" + hk.Key;
+                                            ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                            i++;
+                                        }
                                     }
                                 }
                                 else
@@ -898,13 +934,16 @@ namespace EmulatorLauncher
                                     ctrlini.WriteValue("digital", "bind4", "25:btn_dpad1_down");           //V
                                     ctrlini.WriteValue("digital", "bind5", "24:btn_dpad1_up");             //U
                                     ctrlini.WriteValue("digital", "bind6", "35:btn_a");                    //6
-                                    
-                                    int i = 7;
-                                    foreach (var hk in hotkeyMapping)
+
+                                    if (hotkeyMapping != null)
                                     {
-                                        string toAdd = hk.Value + ":" + hk.Key;
-                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
-                                        i++;
+                                        int i = 7;
+                                        foreach (var hk in hotkeyMapping)
+                                        {
+                                            string toAdd = hk.Value + ":" + hk.Key;
+                                            ctrlini.WriteValue("digital", "bind" + i, toAdd);
+                                            i++;
+                                        }
                                     }
                                 }
                             }

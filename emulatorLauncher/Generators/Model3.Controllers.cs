@@ -189,7 +189,6 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] setting " + tech + " inputdriver in SuperModel.");
 
             // Wheels
-            int wheelNb = 0;
             bool useWheel = SystemConfig.isOptSet("use_wheel") && SystemConfig.getOptBoolean("use_wheel");
             bool deportedShifter = false;
             int shifterID = -1;
@@ -197,33 +196,8 @@ namespace EmulatorLauncher
             if (useWheel)
                 SimpleLogger.Instance.Info("[WHEELS] Wheels enabled.");
 
-            List<Wheel> usableWheels = new List<Wheel>();
+            var usableWheels = Wheel.GetConnectedWheels(this.Controllers);
 
-            foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard))
-            {
-                SimpleLogger.Instance.Info("[WHEELS] Fetching Wheel model.");
-                var drivingWheel = Wheel.GetWheelType(controller.DevicePath.ToUpperInvariant());
-                SimpleLogger.Instance.Info("[WHEELS] Wheel model found : " + drivingWheel.ToString());
-
-                if (drivingWheel != WheelType.Default)
-                {
-                    usableWheels.Add(new Wheel()
-                    {
-                        Name = controller.Name,
-                        VendorID = controller.VendorID.ToString(),
-                        ProductID = controller.ProductID.ToString(),
-                        DevicePath = controller.DevicePath.ToLowerInvariant(),
-                        DinputIndex = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex,
-                        SDLIndex = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex,
-                        XInputIndex = controller.XInput != null ? controller.XInput.DeviceIndex : controller.DeviceIndex,
-                        ControllerIndex = controller.DeviceIndex,
-                        Type = drivingWheel
-                    });
-                }
-            }
-
-            wheelNb = usableWheels.Count;
-            SimpleLogger.Instance.Info("[WHEELS] Found " + wheelNb + " usable wheels.");
             YmlFile ymlFile = null;
             YmlContainer wheelMapping = null;
             Dictionary<string, string> wheelbuttonMap = new Dictionary<string, string>();
@@ -232,7 +206,7 @@ namespace EmulatorLauncher
             {
                 string wheeltype = "default";
 
-                if (wheelNb > 0)
+                if (usableWheels.Count > 0)
                 {
                     usableWheels.Sort((x, y) => x.GetWheelPriority().CompareTo(y.GetWheelPriority()));
 

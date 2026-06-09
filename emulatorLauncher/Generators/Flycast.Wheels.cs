@@ -21,10 +21,9 @@ namespace EmulatorLauncher
 
             bool serviceMenu = SystemConfig.isOptSet("flycast_service_menu") && SystemConfig.getOptBoolean("flycast_service_menu");
             bool racingController = SystemConfig.isOptSet("flycast_racing_controller") && SystemConfig.getOptBoolean("flycast_racing_controller");
-            List<Wheel> usableWheels = new List<Wheel>();
+            
             string wheelTech1 = "sdl";
             string wheelTech2 = "sdl";
-            int wheelNb = 0;
             int wheelIndex1 = -1;
             int wheelIndex2 = -1;
             Wheel wheel1 = null;
@@ -33,32 +32,10 @@ namespace EmulatorLauncher
             string wheeltype2 = "default";
 
             // Retrieve wheels
-            foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard))
-            {
-                var drivingWheel = Wheel.GetWheelType(controller.DevicePath.ToUpperInvariant());
+            var usableWheels = Wheel.GetConnectedWheels(this.Controllers);
 
-                if (drivingWheel != WheelType.Default)
-                    usableWheels.Add(new Wheel()
-                    {
-                        Name = controller.Name,
-                        VendorID = controller.VendorID.ToString(),
-                        ProductID = controller.ProductID.ToString(),
-                        DevicePath = controller.DevicePath.ToLowerInvariant(),
-                        DinputIndex = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex,
-                        SDLIndex = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex,
-                        XInputIndex = controller.XInput != null ? controller.XInput.DeviceIndex : controller.DeviceIndex,
-                        ControllerIndex = controller.DeviceIndex,
-                        Type = drivingWheel
-                    });
-            }
-
-            wheelNb = usableWheels.Count;
-            SimpleLogger.Instance.Info("[WHEELS] Found " + wheelNb + " usable wheels.");
-            if (wheelNb < 1)
+            if (usableWheels.Count < 1)
                 return;
-
-            // Setup first wheel
-            usableWheels.Sort((x, y) => x.GetWheelPriority().CompareTo(y.GetWheelPriority()));
 
             wheel1 = usableWheels[0];
             wheelIndex1 = wheel1.DinputIndex;
@@ -403,7 +380,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("input", "device1.2", "10");
 
             // Setup second wheel
-            if (wheelNb > 1)
+            if (usableWheels.Count > 1)
             {
                 wheel2 = usableWheels[1];
                 wheeltype2 = wheel2.Type.ToString();
