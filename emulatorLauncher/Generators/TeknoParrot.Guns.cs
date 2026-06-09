@@ -22,8 +22,6 @@ namespace EmulatorLauncher
 
         private static bool ConfigureTPGuns(GameProfile userProfile, string rom)
         {
-            
-
             // Return if game is definitely not a gun game !
             if (!userProfile.JoystickButtons.Any(j => j.ButtonName.Contains("Gun") || j.ButtonName.Contains("GUN") || j.InputMappingString.ToLowerInvariant().Contains("lightgun")))
                 return false;

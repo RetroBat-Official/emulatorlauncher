@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
+using static EmulatorLauncher.Common.KeyboardInterceptor;
 
 namespace EmulatorLauncher
 {
@@ -425,14 +427,28 @@ namespace EmulatorLauncher
         {
             FakeBezelFrm bezel = null;
 
-            if (_bezelFileInfo != null)
-                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+            try
+            {
+                if (_bezelFileInfo != null)
+                    bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
 
-            int ret = base.RunAndWait(path);
+                var px = Process.Start(path);
+                Job.Current.AddProcess(px);
 
-            bezel?.Dispose();
+                using (var escHook = new KeyboardInterceptor(px, new KeyTrigger(Keys.Escape)))
+                {
+                    px.WaitForExit();
+                    return px.ExitCode;
+                }
+            }
+            catch { bezel?.Dispose(); }
 
-            return ret;
+            finally
+            {
+                bezel?.Dispose();
+            }
+
+            return -1;
         }
     }
 }
