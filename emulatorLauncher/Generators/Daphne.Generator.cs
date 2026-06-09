@@ -41,7 +41,7 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("smooth") && !SystemConfig.getOptBoolean("smooth"))
                     commandArray.Add("-nolinear_scale");
 
-                if (SystemConfig["ratio"] == "16/9")
+                if (SystemConfig.getOptBoolean("ignore_ratio"))
                     commandArray.Add("-ignore_aspect_ratio");
                 else
                     commandArray.Add("-force_aspect_ratio");
@@ -53,11 +53,24 @@ namespace EmulatorLauncher
                     commandArray.Add(xString);
                 }
 
+                string screenString = "0";
                 if (SystemConfig.isOptSet("MonitorIndex"))
                 {
-                    string screenString = SystemConfig["MonitorIndex"];
+                    screenString = SystemConfig["MonitorIndex"];
                     commandArray.Add("-screen");
                     commandArray.Add(screenString);
+                }
+
+                if (SystemConfig.getOptBoolean("hypseus_stretch"))
+                {
+                    var resolution = ScreenResolution.FromScreenIndex(screenString.ToInteger());
+                    commandArray.Add("-x");
+                    commandArray.Add(resolution.Width.ToString());
+                    commandArray.Add("-y");
+                    commandArray.Add(resolution.Height.ToString());
+
+                    if (!commandArray.Contains("-ignore_aspect_ratio"))
+                        commandArray.Add("-ignore_aspect_ratio");
                 }
 
                 if (SystemConfig.isOptSet("hypseus_renderer") && SystemConfig["hypseus_renderer"] == "vulkan")

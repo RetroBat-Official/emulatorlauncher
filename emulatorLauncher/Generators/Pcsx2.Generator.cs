@@ -24,6 +24,7 @@ namespace EmulatorLauncher
         private bool _isPcsxqt;
         private bool _fullscreen;
         private bool _sindenSoft = false;
+        private bool _isArcade = false;
 
         public override void Cleanup()
         {
@@ -46,7 +47,9 @@ namespace EmulatorLauncher
             string path = AppConfig.GetFullPath(emulator);
             _path = path;
 
-            string exe = new string[] { "pcsx2-qt.exe", "pcsx2-qtx64.exe" }
+            _isArcade = system == "namco2x6" || core == "namco2x6" || Path.GetExtension(rom).ToLower() == ".acgame";
+
+            string exe = new string[] { "pcsx2-qt.exe", "pcsx2-qtx64.exe", "pcsx2-qtx64-avx2.exe", "pcsx2-qtx64-sse4.exe" }
                 .Select(fn => Path.Combine(_path, fn))
                 .Where(file => File.Exists(file))
                 .FirstOrDefault();
@@ -579,6 +582,8 @@ namespace EmulatorLauncher
             var biosList = new string[] { "ps2-0230a-20080220.bin", "ps2-0230e-20080220.bin", "ps2-0250e-20100415.bin", "ps2-0230j-20080220.bin", "ps3_ps2_emu_bios.bin",
                 "SCPH30004R.bin", "scph39001.bin", "SCPH-39004_BIOS_V7_EUR_160.BIN", "SCPH-39001_BIOS_V7_USA_160.BIN", "SCPH-70000_BIOS_V12_JAP_200.BIN" };
 
+            var arcadeBiosList = new string[] { "r27v1602f.8g", "r27v1602f.7d"};
+
             string conf = Path.Combine(_path, "inis", "PCSX2.ini");
 
             using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues))
@@ -587,7 +592,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "StartPaused", "false");
                 ini.WriteValue("UI", "PauseOnFocusLoss", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true");
 
-                CreateControllerConfiguration(ini);
+                CreateControllerConfiguration(ini, system);
                 SetupGunQT(ini, path);
 
                 if (!SystemConfig.isOptSet("pcsx2_emulatedwheel"))
@@ -642,22 +647,52 @@ namespace EmulatorLauncher
                     try { Directory.CreateDirectory(biosPath); }
                     catch { }
 
-                string biosFile = "ps2-0230a-20080220.bin";                     // Default bios
+                string biosFile = _isArcade ? "r27v1602f.8g" : "ps2-0230a-20080220.bin";                     // Default bios
 
                 if (Directory.GetFiles(biosPath).Length == 0)                 // if no bios, do not set
                     biosPath = AppConfig.GetFullPath("bios");
 
-                if (!biosList.Any(b => File.Exists(Path.Combine(biosPath, b))))
-                    throw new ApplicationException("No BIOS found in bios/pcsx2/bios folder.");
-
-                if (!File.Exists(Path.Combine(biosPath, biosFile)))             // if default does not exist, select first one that exists
-                    biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, b)));
-
-                if (SystemConfig.isOptSet("pcsx2_forcebios") && !string.IsNullOrEmpty(SystemConfig["pcsx2_forcebios"]))       // Precise bios to use through feature
+                if (_isArcade)
                 {
-                    string checkBiosFile = Path.Combine(biosPath, SystemConfig["pcsx2_forcebios"]);
-                    if (File.Exists(checkBiosFile))
-                        biosFile = SystemConfig["pcsx2_forcebios"];
+                    if (Path.GetExtension(rom).ToLowerInvariant() == ".acgame")
+                    {
+                        using (var gameAC = IniFile.FromFile(rom))
+                        {
+                            var game = gameAC.GetOrCreateSection("game");
+
+                            string platform = gameAC.GetValue("game", "platform");
+                            if (!string.IsNullOrEmpty(platform) && platform.Contains("246"))
+                                biosFile = "r27v1602f.7d";
+                        }
+                    }
+
+                    if (!arcadeBiosList.Any(b => File.Exists(Path.Combine(biosPath, b))))
+                        throw new ApplicationException("No BIOS found in bios/pcsx2/bios folder.");
+
+                    if (!File.Exists(Path.Combine(biosPath, biosFile)))             // if default does not exist, select first one that exists
+                        biosFile = arcadeBiosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, b)));
+
+                    if (SystemConfig.isOptSet("pcsx2_forcebios") && !string.IsNullOrEmpty(SystemConfig["pcsx2_forcebios"]))
+                    {
+                        string checkBiosFile = Path.Combine(biosPath, SystemConfig["pcsx2_forcebios"]);
+                        if (File.Exists(checkBiosFile))
+                            biosFile = SystemConfig["pcsx2_forcebios"];
+                    }
+                }
+                else
+                {
+                    if (!biosList.Any(b => File.Exists(Path.Combine(biosPath, b))))
+                        throw new ApplicationException("No BIOS found in bios/pcsx2/bios folder.");
+
+                    if (!File.Exists(Path.Combine(biosPath, biosFile)))             // if default does not exist, select first one that exists
+                        biosFile = biosList.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, b)));
+
+                    if (SystemConfig.isOptSet("pcsx2_forcebios") && !string.IsNullOrEmpty(SystemConfig["pcsx2_forcebios"]))       // Precise bios to use through feature
+                    {
+                        string checkBiosFile = Path.Combine(biosPath, SystemConfig["pcsx2_forcebios"]);
+                        if (File.Exists(checkBiosFile))
+                            biosFile = SystemConfig["pcsx2_forcebios"];
+                    }
                 }
 
                 ini.WriteValue("Folders", "Bios", biosPath);
@@ -672,17 +707,28 @@ namespace EmulatorLauncher
                 SetIniPath(ini, "Folders", "Cheats", Path.Combine(cheatsRootPath, "cheats"));
 
                 // Snapshots path
-                string screenShotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "pcsx2");
+                string screenShotsPath = _isArcade ? Path.Combine(AppConfig.GetFullPath("screenshots"), "pcsx2x6") : Path.Combine(AppConfig.GetFullPath("screenshots"), "pcsx2");
                 SetIniPath(ini, "Folders", "Snapshots", screenShotsPath);
 
                 // Memory cards path
-                string memcardsPath = Path.Combine(AppConfig.GetFullPath("saves"), "ps2", "pcsx2", "memcards");
+                string memcardsPath = _isArcade ? Path.Combine(AppConfig.GetFullPath("saves"), "namco2x6", "memcards") : Path.Combine(AppConfig.GetFullPath("saves"), "ps2", "pcsx2", "memcards");
                 SetIniPath(ini, "Folders", "MemoryCards", memcardsPath);
 
-                bool newSaveStates = Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported("pcsx2");
+                bool newSaveStates;
+                if (_isArcade)
+                    newSaveStates = Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported("pcsx2x6");
+                else
+                    newSaveStates = Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported("pcsx2");
 
                 // SaveStates path
-                string savesPath = newSaveStates ?
+                string savesPath;
+
+                if (_isArcade)
+                    savesPath = newSaveStates ?
+                    Program.EsSaveStates.GetSavePath(system, "pcsx2x6", "namco2x6") :
+                    Path.Combine(AppConfig.GetFullPath("saves"), system, "namco2x6", "sstates");
+                else
+                    savesPath = newSaveStates ?
                     Program.EsSaveStates.GetSavePath(system, "pcsx2", "pcsx2") :
                     Path.Combine(AppConfig.GetFullPath("saves"), system, "pcsx2", "sstates");
 
@@ -966,30 +1012,33 @@ namespace EmulatorLauncher
                     ini.Remove("EmuCore/Gamefixes", "BlitInternalFPSHack");
 
                 // Memory cards management
-                ini.WriteValue("MemoryCards", "Slot1_Enable", "true");
-                ini.WriteValue("MemoryCards", "Slot2_Enable", "true");
+                if (!_isArcade)
+                {
+                    ini.WriteValue("MemoryCards", "Slot1_Enable", "true");
+                    ini.WriteValue("MemoryCards", "Slot2_Enable", "true");
 
-                if (SystemConfig.isOptSet("pcsx2_slot1_memory") && SystemConfig["pcsx2_slot1_memory"] == "game")
-                {
-                    ini.WriteValue("MemoryCards", "Slot1_Filename", Path.GetFileNameWithoutExtension(rom) + ".ps2");
-                    ini.WriteValue("MemoryCards", "Slot2_Filename", "Mcd002.ps2");
-                }
-                else if (SystemConfig.isOptSet("pcsx2_slot1_memory") && SystemConfig["pcsx2_slot1_memory"] == "folder")
-                {
-                    string memCardFolder = Path.Combine(memcardsPath, "Mcdf01.ps2");
-                    if (!Directory.Exists(memCardFolder))
-                        try { Directory.CreateDirectory(memCardFolder); } catch { }
-                    string superblock = Path.Combine(memCardFolder, "_pcsx2_superblock");
-                    if (!File.Exists(superblock))
-                        try { File.WriteAllText(superblock, ""); } catch { }
+                    if (SystemConfig.isOptSet("pcsx2_slot1_memory") && SystemConfig["pcsx2_slot1_memory"] == "game")
+                    {
+                        ini.WriteValue("MemoryCards", "Slot1_Filename", Path.GetFileNameWithoutExtension(rom) + ".ps2");
+                        ini.WriteValue("MemoryCards", "Slot2_Filename", "Mcd002.ps2");
+                    }
+                    else if (SystemConfig.isOptSet("pcsx2_slot1_memory") && SystemConfig["pcsx2_slot1_memory"] == "folder")
+                    {
+                        string memCardFolder = Path.Combine(memcardsPath, "Mcdf01.ps2");
+                        if (!Directory.Exists(memCardFolder))
+                            try { Directory.CreateDirectory(memCardFolder); } catch { }
+                        string superblock = Path.Combine(memCardFolder, "_pcsx2_superblock");
+                        if (!File.Exists(superblock))
+                            try { File.WriteAllText(superblock, ""); } catch { }
 
-                    ini.WriteValue("MemoryCards", "Slot1_Filename", "Mcdf01.ps2");
-                    ini.WriteValue("MemoryCards", "Slot2_Filename", "Mcd002.ps2");
-                }
-                else
-                {
-                    ini.WriteValue("MemoryCards", "Slot1_Filename", "Mcd001.ps2");
-                    ini.WriteValue("MemoryCards", "Slot2_Filename", "Mcd002.ps2");
+                        ini.WriteValue("MemoryCards", "Slot1_Filename", "Mcdf01.ps2");
+                        ini.WriteValue("MemoryCards", "Slot2_Filename", "Mcd002.ps2");
+                    }
+                    else
+                    {
+                        ini.WriteValue("MemoryCards", "Slot1_Filename", "Mcd001.ps2");
+                        ini.WriteValue("MemoryCards", "Slot2_Filename", "Mcd002.ps2");
+                    }
                 }
 
                 // Network
@@ -1035,7 +1084,6 @@ namespace EmulatorLauncher
                     if (ethdevice == null || ethdevice == "")
                         ini.WriteValue("DEV9/Eth", "EthDevice", "Auto");
                 }
-
             }
         }
 
