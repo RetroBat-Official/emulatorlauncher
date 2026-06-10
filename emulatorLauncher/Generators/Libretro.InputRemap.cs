@@ -87,6 +87,7 @@ namespace EmulatorLauncher.Libretro
 
             if (core == "mame")
             {
+                bool nooverride = Program.SystemConfig.getOptBoolean("mame_user_cfg");
                 // default
                 string defaultcfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", "default.cfg");
                 string defaultctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", "default.cfg");
@@ -101,9 +102,9 @@ namespace EmulatorLauncher.Libretro
                 string cfgFile;
                 string ctrlFile;
 
-                if (messSystem != null && messSystem.Name != null)
+                if (messSystem != null && messSystem.MachineName != null)
                 {
-                    string messcfgFile = messSystem.Name + ".cfg";
+                    string messcfgFile = messSystem.MachineName + ".cfg";
                     cfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", messcfgFile);
                     ctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", messcfgFile);
                 }
@@ -123,9 +124,9 @@ namespace EmulatorLauncher.Libretro
                     }
                 }
 
-                if (File.Exists(cfgFile))
+                if (File.Exists(cfgFile) && !nooverride)
                     DeleteInputincfgFile(cfgFile, ctrlFile, defaultcfgFile);
-                else if (File.Exists(ctrlFile) && !File.Exists(cfgFile) && !mameAuto)
+                else if (File.Exists(ctrlFile) && !File.Exists(cfgFile) && !mameAuto && !nooverride)
                     try { File.Copy(ctrlFile, cfgFile); } catch { }
             }
 

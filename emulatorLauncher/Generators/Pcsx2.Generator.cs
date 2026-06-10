@@ -59,7 +59,11 @@ namespace EmulatorLauncher
 
             // v1.6 filename
             else if (!File.Exists(exe))
-                exe = Path.Combine(_path, "pcsx2.exe");
+                exe = Path.Combine(path, "pcsx2.exe");
+
+            // Last resort if PCSX2 team changes exename again, look for any exe starting with p and ending with .exe
+            if (!File.Exists(exe))
+                exe = Directory.GetFiles(path, "p*.exe").FirstOrDefault();
 
             if (!File.Exists(exe))
                 return null;
