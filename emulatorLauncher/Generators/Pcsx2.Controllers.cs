@@ -41,7 +41,7 @@ namespace EmulatorLauncher
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }
 
-        private void CreateControllerConfiguration(IniFile pcsx2ini)
+        private void CreateControllerConfiguration(IniFile pcsx2ini, string system)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
@@ -80,7 +80,7 @@ namespace EmulatorLauncher
 
             if (!SystemConfig.isOptSet("pcsx2_multitap"))
             {
-                if (Controllers.Count > 2)
+                if (Controllers.Count > 2 && !_isArcade)
                 {
                     pcsx2ini.WriteValue("Pad", "MultitapPort1", "true");
                     pcsx2ini.WriteValue("Pad", "MultitapPort2", "true");
@@ -153,10 +153,31 @@ namespace EmulatorLauncher
             // Reset hotkeys
             ResetHotkeysToDefault(pcsx2ini);
 
+            // When using special arcade stick
+            if (_isArcade && Program.SystemConfig.isOptSet("keyboard_arcade") && !string.IsNullOrEmpty(Program.SystemConfig["keyboard_arcade"]))
+            {
+                string kbPadType = Program.SystemConfig["keyboard_arcade"];
+
+                if (performKBPadMapping(system, kbPadType, pcsx2ini))
+                {
+                    SimpleLogger.Instance.Info("[INFO] Arcade keyboard mapping applied for type: " + kbPadType);
+                    return;
+                }
+            }
+
+            // Arcade layout
+            string layout = "default";
+            if (_isArcade && SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(SystemConfig["controller_layout"]))
+            {
+                layout = SystemConfig["controller_layout"];
+            }
+
             // Inject controllers
+            int maxpad = _isArcade ? 2 : 8;
+            
             if (Controllers.Any(c => !c.IsKeyboard))
             {
-                foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).Take(8))
+                foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).Take(maxpad))
                 {
                     int padSectionNumber = controller.PlayerIndex;
                     if (padSectionNumber == 1 && revertP1P2)
@@ -169,13 +190,13 @@ namespace EmulatorLauncher
 
                     string padNumber = "Pad" + padSectionNumber.ToString();
 
-                    ConfigureInput(pcsx2ini, controller, padNumber); // ini has one section for each pad (from Pad1 to Pad8), when using multitap pad 2 must be placed as pad5
+                    ConfigureInput(pcsx2ini, controller, padNumber, layout); // ini has one section for each pad (from Pad1 to Pad8), when using multitap pad 2 must be placed as pad5
                 }
             }
 
             else
             {
-                foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(8))
+                foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxpad))
                 {
                     int padSectionNumber = controller.PlayerIndex;
                     if (padSectionNumber == 1 && revertP1P2)
@@ -188,12 +209,12 @@ namespace EmulatorLauncher
 
                     string padNumber = "Pad" + padSectionNumber.ToString();
 
-                    ConfigureInput(pcsx2ini, controller, padNumber); // ini has one section for each pad (from Pad1 to Pad8), when using multitap pad 2 must be placed as pad5
+                    ConfigureInput(pcsx2ini, controller, padNumber, layout); // ini has one section for each pad (from Pad1 to Pad8), when using multitap pad 2 must be placed as pad5
                 }
             }
         }
 
-        private void ConfigureInput(IniFile pcsx2ini, Controller controller, string padNumber)
+        private void ConfigureInput(IniFile pcsx2ini, Controller controller, string padNumber, string layout)
         {
             if (controller == null || controller.Config == null)
                 return;
@@ -201,7 +222,7 @@ namespace EmulatorLauncher
             if (controller.IsKeyboard)
                 ConfigureKeyboard(pcsx2ini, controller.Config, padNumber);
             else
-                ConfigureJoystick(pcsx2ini, controller, controller.PlayerIndex, padNumber);
+                ConfigureJoystick(pcsx2ini, controller, controller.PlayerIndex, padNumber, layout);
         }
 
         /// <summary>
@@ -241,7 +262,12 @@ namespace EmulatorLauncher
             WriteKeyboardMapping(padNumber, "Circle", InputKey.a);
             WriteKeyboardMapping(padNumber, "Cross", InputKey.b);
             WriteKeyboardMapping(padNumber, "Square", InputKey.y);
-            WriteKeyboardMapping(padNumber, "Start", InputKey.start);
+
+            if (_isArcade)
+                pcsx2ini.WriteValue(padNumber, "Start", "Keyboard/1");
+            else
+                WriteKeyboardMapping(padNumber, "Start", InputKey.start);
+
             WriteKeyboardMapping(padNumber, "Select", InputKey.select);
             WriteKeyboardMapping(padNumber, "L1", InputKey.pageup);
             WriteKeyboardMapping(padNumber, "L2", InputKey.l2);
@@ -257,6 +283,19 @@ namespace EmulatorLauncher
             WriteKeyboardMapping(padNumber, "RRight", InputKey.rightanalogright);
             WriteKeyboardMapping(padNumber, "RDown", InputKey.rightanalogdown);
             WriteKeyboardMapping(padNumber, "RLeft", InputKey.rightanalogleft);
+
+            if (_isArcade)
+            {
+                pcsx2ini.WriteValue("JVS", "Coin1", "Keyboard/5");
+                pcsx2ini.WriteValue("JVS", "Coin2", "Keyboard/6");
+
+                if (SystemConfig.isOptSet("pcsx2_servicemode") && !string.IsNullOrEmpty(SystemConfig["pcsx2_servicemode"]))
+                {
+                    pcsx2ini.WriteValue("JVS", "TestMode", "true");
+                    pcsx2ini.WriteValue("JVS", "ToggleTestMode", "Keyboard/9");
+                    pcsx2ini.WriteValue("JVS", "P1_Service", "Keyboard/0");
+                }
+            }
         }
 
         /// <summary>
@@ -266,7 +305,8 @@ namespace EmulatorLauncher
         /// <param name="ctrl"></param>
         /// <param name="playerIndex"></param>
         /// <param name="padNumber"></param>
-        private void ConfigureJoystick(IniFile pcsx2ini, Controller ctrl, int playerIndex, string padNumber)
+        /// <param name="layout"></para
+        private void ConfigureJoystick(IniFile pcsx2ini, Controller ctrl, int playerIndex, string padNumber, string layout)
         {
             if (ctrl == null)
                 return;
@@ -274,6 +314,8 @@ namespace EmulatorLauncher
             InputConfig joy = ctrl.Config;
             if (joy == null)
                 return;
+
+            
 
             int sdl3index = -1;
             if (_sdl3Controllers.Count > 0)
@@ -369,10 +411,32 @@ namespace EmulatorLauncher
                 pcsx2ini.WriteValue(padNumber, "Square", techPadNumber + GetDInputKeyName(dinputController, "x"));
                 pcsx2ini.WriteValue(padNumber, "Select", techPadNumber + GetDInputKeyName(dinputController, "back"));
                 pcsx2ini.WriteValue(padNumber, "Start", techPadNumber + GetDInputKeyName(dinputController, "start"));
-                pcsx2ini.WriteValue(padNumber, "L1", techPadNumber + GetDInputKeyName(dinputController, "leftshoulder"));
-                pcsx2ini.WriteValue(padNumber, "L2", techPadNumber + GetDInputKeyName(dinputController, "lefttrigger", 1, isXinput));
-                pcsx2ini.WriteValue(padNumber, "R1", techPadNumber + GetDInputKeyName(dinputController, "rightshoulder"));
-                pcsx2ini.WriteValue(padNumber, "R2", techPadNumber + GetDInputKeyName(dinputController, "righttrigger", -1, isXinput));
+
+                if (layout == "modern8")
+                {
+                    pcsx2ini.WriteValue(padNumber, "L1", techPadNumber + GetDInputKeyName(dinputController, "rightshoulder"));
+                    pcsx2ini.WriteValue(padNumber, "R1", techPadNumber + GetDInputKeyName(dinputController, "righttrigger", -1, isXinput));
+                    pcsx2ini.WriteValue(padNumber, "L2", techPadNumber + GetDInputKeyName(dinputController, "leftshoulder"));
+                    pcsx2ini.WriteValue(padNumber, "R2", techPadNumber + GetDInputKeyName(dinputController, "lefttrigger", 1, isXinput));
+                }
+                else if (layout == "8alternative")
+                {
+                    pcsx2ini.WriteValue(padNumber, "L1", techPadNumber + GetDInputKeyName(dinputController, "rightshoulder"));
+                    pcsx2ini.WriteValue(padNumber, "R1", techPadNumber + GetDInputKeyName(dinputController, "leftshoulder"));
+                    pcsx2ini.WriteValue(padNumber, "L2", techPadNumber + GetDInputKeyName(dinputController, "lefttrigger", 1, isXinput));
+                    pcsx2ini.WriteValue(padNumber, "R2", techPadNumber + GetDInputKeyName(dinputController, "righttrigger", -1, isXinput));
+                }
+                else
+                {
+                    pcsx2ini.WriteValue(padNumber, "L1", techPadNumber + GetDInputKeyName(dinputController, "leftshoulder"));
+                    pcsx2ini.WriteValue(padNumber, "R1", techPadNumber + GetDInputKeyName(dinputController, "rightshoulder"));
+                    pcsx2ini.WriteValue(padNumber, "L2", techPadNumber + GetDInputKeyName(dinputController, "lefttrigger", 1, isXinput));
+                    pcsx2ini.WriteValue(padNumber, "R2", techPadNumber + GetDInputKeyName(dinputController, "righttrigger", -1, isXinput));
+                }
+
+                if (_isArcade)
+                    pcsx2ini.AppendValue(padNumber, "Start", "Keyboard/1");
+
                 pcsx2ini.WriteValue(padNumber, "L3", techPadNumber + GetDInputKeyName(dinputController, "leftstick"));
                 pcsx2ini.WriteValue(padNumber, "R3", techPadNumber + GetDInputKeyName(dinputController, "rightstick"));
                 pcsx2ini.WriteValue(padNumber, "Analog", techPadNumber + GetDInputKeyName(dinputController, "misc1"));
@@ -471,6 +535,20 @@ namespace EmulatorLauncher
                 // Write Hotkeys for player 1
                 if (playerIndex == 1)
                 {
+                    if (_isArcade)
+                    {
+                        pcsx2ini.WriteValue("JVS", "Coin1", techPadNumber + GetDInputKeyName(dinputController, "back"));
+
+                        if (SystemConfig.isOptSet("pcsx2_servicemode") && !string.IsNullOrEmpty(SystemConfig["pcsx2_servicemode"]))
+                        {
+                            pcsx2ini.WriteValue("JVS", "TestMode", "true");
+                            pcsx2ini.WriteValue("JVS", "ToggleTestMode", techPadNumber + GetDInputKeyName(dinputController, "rightstick"));
+                            pcsx2ini.AppendValue("JVS", "ToggleTestMode", "Keyboard/9");
+                            pcsx2ini.WriteValue("JVS", "P1_Service", techPadNumber + GetDInputKeyName(dinputController, "leftstick"));
+                            pcsx2ini.AppendValue("JVS", "P1_Service", "Keyboard/0");
+                        }
+                    }
+
                     var hotKeyName = GetDInputKeyName(dinputController, "back");
 
                     if (Hotkeys.GetPadHKFromFile("pcsx2", "", out var padHKDic))
@@ -514,6 +592,14 @@ namespace EmulatorLauncher
                         }
                     }
                 }
+
+                else if (playerIndex == 2)
+                {
+                    if (_isArcade)
+                    {
+                        pcsx2ini.WriteValue("JVS", "Coin2", techPadNumber + GetDInputKeyName(dinputController, "back"));
+                    }
+                }
             }
 
             else
@@ -540,10 +626,32 @@ namespace EmulatorLauncher
                 pcsx2ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));
                 pcsx2ini.WriteValue(padNumber, "Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
                 pcsx2ini.WriteValue(padNumber, "Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
-                pcsx2ini.WriteValue(padNumber, "L1", techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
-                pcsx2ini.WriteValue(padNumber, "L2", techPadNumber + GetInputKeyName(ctrl, InputKey.l2, tech));
-                pcsx2ini.WriteValue(padNumber, "R1", techPadNumber + GetInputKeyName(ctrl, InputKey.pagedown, tech));
-                pcsx2ini.WriteValue(padNumber, "R2", techPadNumber + GetInputKeyName(ctrl, InputKey.r2, tech));
+
+                if (layout == "modern8")
+                {
+                    pcsx2ini.WriteValue(padNumber, "L1", techPadNumber + GetInputKeyName(ctrl, InputKey.pagedown, tech));
+                    pcsx2ini.WriteValue(padNumber, "R1", techPadNumber + GetInputKeyName(ctrl, InputKey.r2, tech));
+                    pcsx2ini.WriteValue(padNumber, "L2", techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
+                    pcsx2ini.WriteValue(padNumber, "R2", techPadNumber + GetInputKeyName(ctrl, InputKey.l2, tech));
+                }
+                else if (layout == "8alternative")
+                {
+                    pcsx2ini.WriteValue(padNumber, "L1", techPadNumber + GetInputKeyName(ctrl, InputKey.pagedown, tech));
+                    pcsx2ini.WriteValue(padNumber, "R1", techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
+                    pcsx2ini.WriteValue(padNumber, "L2", techPadNumber + GetInputKeyName(ctrl, InputKey.l2, tech));
+                    pcsx2ini.WriteValue(padNumber, "R2", techPadNumber + GetInputKeyName(ctrl, InputKey.r2, tech));
+                }
+                else
+                {
+                    pcsx2ini.WriteValue(padNumber, "L1", techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
+                    pcsx2ini.WriteValue(padNumber, "R1", techPadNumber + GetInputKeyName(ctrl, InputKey.pagedown, tech));
+                    pcsx2ini.WriteValue(padNumber, "L2", techPadNumber + GetInputKeyName(ctrl, InputKey.l2, tech));
+                    pcsx2ini.WriteValue(padNumber, "R2", techPadNumber + GetInputKeyName(ctrl, InputKey.r2, tech));
+                }
+
+                if (_isArcade)
+                    pcsx2ini.AppendValue(padNumber, "Start", "Keyboard/1"); // Add second mapping
+
                 pcsx2ini.WriteValue(padNumber, "L3", techPadNumber + GetInputKeyName(ctrl, InputKey.l3, tech));
                 pcsx2ini.WriteValue(padNumber, "R3", techPadNumber + GetInputKeyName(ctrl, InputKey.r3, tech));
                 pcsx2ini.WriteValue(padNumber, "Analog", techPadNumber + "Guide");
@@ -648,6 +756,20 @@ namespace EmulatorLauncher
                 // Write Hotkeys for player 1
                 if (playerIndex == 1)
                 {
+                    if (_isArcade)
+                    {
+                        pcsx2ini.WriteValue("JVS", "Coin1", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
+
+                        if (SystemConfig.isOptSet("pcsx2_servicemode") && !string.IsNullOrEmpty(SystemConfig["pcsx2_servicemode"]))
+                        {
+                            pcsx2ini.WriteValue("JVS", "TestMode", "true");
+                            pcsx2ini.WriteValue("JVS", "ToggleTestMode", techPadNumber + GetInputKeyName(ctrl, InputKey.r3, tech));
+                            pcsx2ini.AppendValue("JVS", "ToggleTestMode", "Keyboard/9");
+                            pcsx2ini.WriteValue("JVS", "P1_Service", techPadNumber + GetInputKeyName(ctrl, InputKey.l3, tech));
+                            pcsx2ini.AppendValue("JVS", "P1_Service", "Keyboard/0");
+                        }
+                    }
+
                     var hotKeyName = GetInputKeyName(ctrl, InputKey.hotkey, tech);
                     if (hotKeyName != "None")
                     {
@@ -692,6 +814,14 @@ namespace EmulatorLauncher
                                 pcsx2ini.WriteValue("Hotkeys", hkKey, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
                             }
                         }
+                    }
+                }
+
+                else if (playerIndex == 2)
+                {
+                    if (_isArcade)
+                    {
+                        pcsx2ini.WriteValue("JVS", "Coin2", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
                     }
                 }
             }
@@ -1270,5 +1400,103 @@ namespace EmulatorLauncher
 
             return false;
         }
+
+        private static bool performKBPadMapping(string system, string kbPadType, IniFile ini)
+        {
+            string romName = Path.GetFileNameWithoutExtension(Program.SystemConfig["rom"]);
+            string padMapping = null;
+            string fileName = "pcsx2x6_" + kbPadType + ".yml";
+
+            // Implement keyboard mapping for devices like ipac2, xtank, etc.
+            foreach (var path in mappingPaths)
+            {
+                string result = path
+                    .Replace("{systempath}", "system")
+                    .Replace("{userpath}", "user");
+
+                padMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result, "kbpads", fileName);
+
+                if (File.Exists(padMapping))
+                    break;
+            }
+
+            if (padMapping == null)
+                return false;
+
+            YmlFile ymlFile = YmlFile.Load(padMapping);
+
+            if (ymlFile == null)
+                return false;
+
+            var buttonMap = new Dictionary<string, string>();
+
+            YmlContainer mappingDef = ymlFile.Elements.Where(c => c.Name == "default").FirstOrDefault() as YmlContainer;
+            if (mappingDef != null)
+            {
+                foreach (var buttonEntry in mappingDef.Elements)
+                {
+                    var button = buttonEntry as YmlElement;
+                    if (button != null)
+                    {
+                        buttonMap.Add(button.Name, button.Value);
+                    }
+                }
+            }
+
+            YmlContainer mappingSystem = ymlFile.Elements.Where(c => c.Name == system).FirstOrDefault() as YmlContainer;
+            if (mappingSystem != null)
+            {
+                foreach (var buttonEntry in mappingSystem.Elements)
+                {
+                    var button = buttonEntry as YmlElement;
+                    if (buttonMap.ContainsKey(button.Name))
+                        buttonMap[button.Name] = button.Value;
+                    else
+                        buttonMap.Add(button.Name, button.Value);
+                }
+            }
+
+            YmlContainer mappingGame = ymlFile.Elements.Where(c => c.Name == romName).FirstOrDefault() as YmlContainer;
+            if (mappingGame != null)
+            {
+                foreach (var buttonEntry in mappingGame.Elements)
+                {
+                    var button = buttonEntry as YmlElement;
+                    if (buttonMap.ContainsKey(button.Name))
+                        buttonMap[button.Name] = button.Value;
+                    else
+                        buttonMap.Add(button.Name, button.Value);
+                }
+            }
+
+            if (buttonMap.Count == 0)
+                return false;
+
+            foreach (var button in buttonMap)
+            {
+                var sectionValue = button.Key.Split('_');
+                if (sectionValue.Length < 2)
+                    continue;
+
+                var section = sectionValue[0];
+                var sectionkey = sectionValue[1];
+                string value = "Keyboard/" + button.Value;
+
+                ini.WriteValue(section, sectionkey, value);
+            }
+
+            SimpleLogger.Instance.Info("[INFO] Generated configuration based on " + padMapping + " file.");
+
+            return true;
+        }
+
+        static readonly string[] mappingPaths =
+        {            
+            // User specific
+            "{userpath}\\inputmapping",
+
+            // RetroBat Default
+            "{systempath}\\resources\\inputmapping",
+        };
     }
 }

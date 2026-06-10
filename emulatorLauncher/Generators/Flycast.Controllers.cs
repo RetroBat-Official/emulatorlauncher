@@ -27,9 +27,14 @@ namespace EmulatorLauncher
 
         private void CreateControllerConfiguration(string path, string system, IniFile ini)
         {
+            
+            bool useWheel = SystemConfig.getOptBoolean("use_wheel");
+            string mappingPath = Path.Combine(path, "mappings");
+
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                ConfigureFlycastGuns(ini, mappingPath, system);
                 return;
             }
 
@@ -54,11 +59,6 @@ namespace EmulatorLauncher
                 ini.WriteValue("input", "device" + i + ".2", "10");
             }
             
-            string mappingPath = Path.Combine(path, "mappings");
-
-            bool guns = SystemConfig.getOptBoolean("use_guns") || SystemConfig["flycast_controller1"] == "7" || SystemConfig["flycast_controller2"] == "7";
-            bool useWheel = SystemConfig.getOptBoolean("use_wheel");
-
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
             int nsamepad = 0;
 
@@ -83,8 +83,7 @@ namespace EmulatorLauncher
                 foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
                     ConfigureInput(ini, controller, mappingPath, system, double_pads, nsamepad, hotkeyMapping);
 
-                if (guns)
-                    ConfigureFlycastGuns(ini, mappingPath, system, hotkeyMapping);
+                ConfigureFlycastGuns(ini, mappingPath, system, hotkeyMapping);
             }
         }
 

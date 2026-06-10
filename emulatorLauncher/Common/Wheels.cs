@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using EmulatorLauncher.Common;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace EmulatorLauncher
@@ -12,7 +13,7 @@ namespace EmulatorLauncher
     {
         public Wheel() { }
 
-        public static WheelType GetWheelType(string devicePath)
+        private static WheelType GetWheelType(string devicePath)
         {
             if (!string.IsNullOrEmpty(devicePath))
             {
@@ -143,6 +144,35 @@ namespace EmulatorLauncher
             WheelType.ThrustmasterTSXV,
             WheelType.ThrustmasterTX
         };
+
+        internal static List<Wheel> GetConnectedWheels(List<Controller> controllers)
+        {
+            var usableWheels = new List<Wheel>();
+
+            foreach (var controller in controllers.Where(c => !c.IsKeyboard))
+            {
+                var drivingWheel = GetWheelType(controller.DevicePath.ToUpperInvariant());
+
+                if (drivingWheel != WheelType.Default)
+                    usableWheels.Add(new Wheel()
+                    {
+                        Name = controller.Name,
+                        VendorID = controller.VendorID.ToString(),
+                        ProductID = controller.ProductID.ToString(),
+                        DevicePath = controller.DevicePath.ToLowerInvariant(),
+                        DinputIndex = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex,
+                        SDLIndex = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex,
+                        XInputIndex = controller.XInput != null ? controller.XInput.DeviceIndex : controller.DeviceIndex,
+                        ControllerIndex = controller.DeviceIndex,
+                        Type = drivingWheel
+                    });
+            }
+
+            usableWheels.Sort((x, y) => x.GetWheelPriority().CompareTo(y.GetWheelPriority()));
+
+            SimpleLogger.Instance.Info("[WHEELS] Found " + usableWheels.Count + " usable wheels.");
+            return usableWheels;
+        }
     }
 
     public enum WheelType
@@ -217,113 +247,55 @@ namespace EmulatorLauncher
         Default = 100
     }
 
-    /*public class WheelMappingInfo
+    public class Shifter
     {
-        #region Factory
-        public static Dictionary<string, WheelMappingInfo> InstanceW
+        public Shifter() { }
+
+        public static ShifterType GetShifterType(string devicePath)
         {
-            get
+            if (!string.IsNullOrEmpty(devicePath))
             {
-                if (_instanceW == null)
-                {
-                    _instanceW = SimpleYml<WheelMappingInfo>
-                        .Parse(Encoding.UTF8.GetString(Properties.Resources.wheelmapping))
-                        .ToDictionary(a => a.Wheeltype, a => a);
-                }
+                List<string> knownShiftersVidPid = knownShifterTypes.Keys.ToList();
 
-                return _instanceW;
+                if (knownShiftersVidPid.Any(d => devicePath.Contains(d)))
+                    return knownShifterTypes[knownShiftersVidPid.First(d => devicePath.Contains(d))];
+
+                else
+                    return ShifterType.Default;
             }
+
+            else
+                return ShifterType.Default;
         }
 
-        private static Dictionary<string, WheelMappingInfo> _instanceW;
+        public int DinputIndex { get; set; }
+        public int SDLIndex { get; set; }
+        public int XInputIndex { get; set; }
+        public int ControllerIndex { get; set; }
+        public string Name { get; set; }
+        public string VendorID { get; set; }
+        public string ProductID { get; set; }
+        public string DevicePath { get; set; }
+        public ShifterType Type { get; set; }
+        public Dictionary<string, string> ButtonMapping { get; set; }
 
-        public WheelMappingInfo()
+        public int GetShifterPriority()
         {
-            WheelGuid = Inputsystems = Pcsx2_Type = Forcefeedback = Invertedaxis = PositiveTriggers = Range = Throttle = Brake = Clutch = Steer = Gearup = Geardown = Gear1 = Gear2 = Gear3 = Gear4 = Gear5 = Gear6 = Gear_reverse = DpadUp = DpadDown = DpadLeft = DpadRight = "nul";
+            if (Type == ShifterType.Default)
+                return 100 + (int)Type;
+            else
+                return (int)Type;
         }
-        #endregion
 
-        [YmlName]
-        public string Wheeltype { get; set; }
-        public string WheelGuid { get; set; }
-        public string Inputsystems { get; set; }
-        public string Pcsx2_Type { get; set; }
-        public string Forcefeedback { get; set; }
-        public string Invertedaxis { get; set; }
-        public string PositiveTriggers { get; set; }
-        public string Range { get; set; }
-        public string Throttle { get; set; }
-        public string Brake { get; set; }
-        public string Clutch { get; set; }
-        public string Steer { get; set; }
-        public string Gearup { get; set; }
-        public string Geardown { get; set; }
-        public string Gear1 { get; set; }
-        public string Gear2 { get; set; }
-        public string Gear3 { get; set; }
-        public string Gear4 { get; set; }
-        public string Gear5 { get; set; }
-        public string Gear6 { get; set; }
-        public string Gear_reverse { get; set; }
-        public string DpadUp { get; set; }
-        public string DpadDown { get; set; }
-        public string DpadLeft { get; set; }
-        public string DpadRight { get; set; }
+        private static readonly Dictionary<string, ShifterType> knownShifterTypes = new Dictionary<string, ShifterType>
+        {
+            // Thrustmaster
+            { "VID_044F&PID_XXX", ShifterType.Default }
+        };
     }
 
-    public class WheelSDLMappingInfo
+    public enum ShifterType
     {
-        #region Factory
-        public static Dictionary<string, WheelSDLMappingInfo> InstanceWSDL
-        {
-            get
-            {
-                if (_instanceWSDL == null)
-                {
-                    _instanceWSDL = SimpleYml<WheelSDLMappingInfo>
-                        .Parse(Encoding.UTF8.GetString(Properties.Resources.wheelsdlmapping))
-                        .ToDictionary(a => a.Wheeltype, a => a);
-                }
-
-                return _instanceWSDL;
-            }
-        }
-
-        private static Dictionary<string, WheelSDLMappingInfo> _instanceWSDL;
-
-        public WheelSDLMappingInfo()
-        {
-            WheelGuid  = SDLDeviceName = Pcsx2_Type = Forcefeedback = Invertedaxis = PositiveTriggers = Range = Throttle = Brake = Clutch = Steer = Start = Select = Dpad = Gearup = Geardown = South = East = North = West = L1 = L2 = L3 = R1 = R2 = R3 = "nul";
-        }
-        #endregion
-
-        [YmlName]
-        public string Wheeltype { get; set; }
-        public string WheelGuid { get; set; }
-        public string SDLDeviceName { get; set; }
-        public string Pcsx2_Type { get; set; }
-        public string Forcefeedback { get; set; }
-        public string Invertedaxis { get; set; }
-        public string PositiveTriggers { get; set; }
-        public string Range { get; set; }
-        public string Throttle { get; set; }
-        public string Brake { get; set; }
-        public string Clutch { get; set; }
-        public string Steer { get; set; }
-        public string Start { get; set; }
-        public string Select { get; set; }
-        public string Dpad { get; set; }
-        public string Gearup { get; set; }
-        public string Geardown { get; set; }
-        public string South { get; set; }
-        public string East { get; set; }
-        public string North { get; set; }
-        public string West { get; set; }
-        public string L1 { get; set; }
-        public string L2 { get; set; }
-        public string L3 { get; set; }
-        public string R1 { get; set; }
-        public string R2 { get; set; }
-        public string R3 { get; set; }
-    }*/
+        Default = 100
+    }
 }

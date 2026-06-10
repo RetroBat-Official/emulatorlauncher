@@ -9,6 +9,7 @@ using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Lightguns;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher;
+using System.Collections.Generic;
 
 namespace EmulatorLauncher
 {
@@ -189,7 +190,7 @@ namespace EmulatorLauncher
                     }
 
                     if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
-                        return CreateSindenBorderBezel(customBz);
+                        return CreateSindenBorderBezel(customBz, null, emulator);
                     else
                         customBz.BezelInfos = BezelInfo.FromImage(customBz.PngFile);
 
@@ -205,7 +206,7 @@ namespace EmulatorLauncher
             if (bezel == "none")
             {
                 if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
-                    return CreateSindenBorderBezel(null, resolution);
+                    return CreateSindenBorderBezel(null, resolution, emulator);
 
                 return null;
             }
@@ -214,7 +215,7 @@ namespace EmulatorLauncher
             if (screenRatio < 1.4)
             {
                 if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
-                    return CreateSindenBorderBezel(null, resolution);
+                    return CreateSindenBorderBezel(null, resolution, emulator);
 
                 return null;
             }
@@ -229,7 +230,7 @@ namespace EmulatorLauncher
             if (string.IsNullOrEmpty(overlay_png_file))
             {
                 if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
-                    return CreateSindenBorderBezel(null, resolution);
+                    return CreateSindenBorderBezel(null, resolution, emulator);
 
                 return null;
             }
@@ -262,7 +263,7 @@ namespace EmulatorLauncher
             }
 
             if (Program.SystemConfig.getOptBoolean("use_guns") && RawLightgun.IsSindenLightGunConnected())
-                return CreateSindenBorderBezel(ret);
+                return CreateSindenBorderBezel(ret, null, emulator);
             else if (overlay_info_file == null)
                 ret.BezelInfos = BezelInfo.FromImage(ret.PngFile);
 
@@ -546,8 +547,12 @@ namespace EmulatorLauncher
         /// <param name="input"></param>
         /// <param name="resolution"></param>
         /// <returns></returns>
-        private static BezelFiles CreateSindenBorderBezel(BezelFiles input, ScreenResolution resolution = null)
+        private static BezelFiles CreateSindenBorderBezel(BezelFiles input, ScreenResolution resolution = null, string emulator = null)
         {
+            var excludedEmulators = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "pcsx2x6" };
+            if (emulator != null && excludedEmulators.Contains(emulator))
+                return input;
+
             if (input == null)
                 input = new BezelFiles();
 
@@ -558,7 +563,11 @@ namespace EmulatorLauncher
 
             try
             {
-                var conf = SindenLightgunConfiguration.GetConfiguration(Program.SystemConfig);
+                string sindenPath = null;
+                if (Program.SystemConfig.isOptSet("sindensoftwarepath") && !string.IsNullOrEmpty(Program.SystemConfig["sindensoftwarepath"]))
+                    sindenPath = Path.GetDirectoryName(Program.SystemConfig["sindensoftwarepath"]);
+
+                var conf = SindenLightgunConfiguration.GetConfiguration(Program.SystemConfig, Program.AppConfig.GetFullPath("retrobat"), sindenPath);
 
                 bool showPrimaryBorder = conf.ShowPrimaryBorder;
                 bool showSecondaryBorder = conf.ShowSecondaryBorder;
@@ -657,7 +666,7 @@ namespace EmulatorLauncher
                         input.BezelInfos.right = borderSize;
                 }
             }
-            catch { }
+            catch { SimpleLogger.Instance.Warning("[BezelFiles] Failed to create SindenBorder."); }
 
             return input;
         }

@@ -15,10 +15,8 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[WHEELS] Configuring wheels.");
 
-            List<Wheel> usableWheels = new List<Wheel>();
             string wheelTech1 = "dinput";
             string wheelTech2 = "dinput";
-            int wheelNb = 0;
             int wheelIndex1 = -1;
             int wheelIndex2 = -1;
             Wheel wheel1 = null;
@@ -29,28 +27,9 @@ namespace EmulatorLauncher
             string forceWheelType2 = null;
 
             // Retrieve wheels
-            foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard))
-            {
-                var drivingWheel = Wheel.GetWheelType(controller.DevicePath.ToUpperInvariant());
+            var usableWheels = Wheel.GetConnectedWheels(this.Controllers);
 
-                if (drivingWheel != WheelType.Default)
-                    usableWheels.Add(new Wheel()
-                    {
-                        Name = controller.Name,
-                        VendorID = controller.VendorID.ToString(),
-                        ProductID = controller.ProductID.ToString(),
-                        DevicePath = controller.DevicePath.ToLowerInvariant(),
-                        DinputIndex = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex,
-                        SDLIndex = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex,
-                        XInputIndex = controller.XInput != null ? controller.XInput.DeviceIndex : controller.DeviceIndex,
-                        ControllerIndex = controller.DeviceIndex,
-                        Type = drivingWheel
-                    });
-            }
-
-            wheelNb = usableWheels.Count;
-            SimpleLogger.Instance.Info("[WHEELS] Found " + wheelNb + " usable wheels.");
-            if (wheelNb < 1)
+            if (usableWheels.Count < 1)
                 return;
 
             if (SystemConfig.isOptSet("pcsx2_wheeltype") && !string.IsNullOrEmpty(SystemConfig["pcsx2_wheeltype"]))
@@ -197,7 +176,7 @@ namespace EmulatorLauncher
             pcsx2ini.WriteValue(usbSection1, "Pad_R3", DevicePrefix + GetWheelButton(wheel1buttonMap, "RightStick", wheelTech1));
 
             // Setup second wheel
-            if (wheelNb > 1)
+            if (usableWheels.Count > 1)
             {
                 string usbSection2 = "USB2";
                 if (usbSection1 == "USB2")

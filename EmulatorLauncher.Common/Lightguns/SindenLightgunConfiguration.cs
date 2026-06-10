@@ -119,39 +119,58 @@ namespace EmulatorLauncher.Common.Lightguns
 
         private ConfigFile _conf;
 
-        public static SindenLightgunConfiguration GetConfiguration(ConfigFile conf)
+        public static SindenLightgunConfiguration GetConfiguration(ConfigFile conf, string retrobatPath, string sindenPath)
         {
             try
             {
                 var px = System.Diagnostics.Process.GetProcessesByName("Lightgun").FirstOrDefault();
                 if (px != null)
                 {
-                    var cmd = px.GetProcessCommandline().SplitCommandLine().FirstOrDefault();
-                    if (cmd != null)
+                    var candidates = new List<string>();
+
+                    try
                     {
-                        cmd = cmd.Replace("\"", "") + ".config";
-                        if (File.Exists(cmd))
-                        {
-                            var ret = new SindenLightgunConfiguration(conf);
-                            ret._docPath = cmd;
-                            ret._doc = XDocument.Load(cmd);
-
-                            foreach (var element in ret._doc.Descendants("appSettings").Elements("add"))
-                            {
-                                var key = element.Attribute("key");
-                                var value = element.Attribute("value");
-
-                                if (key != null && value != null)
-                                    ret._values[key.Value] = value.Value;
-                            }
-
-                            return ret;
-                        }
-                        else
-                            SimpleLogger.Instance.Error("[SindenLightgunConfiguration] Lightgun.exe.config not found");
+                        var exePath = px.MainModule?.FileName;
+                        if (!string.IsNullOrEmpty(exePath))
+                            candidates.Add(exePath + ".config");
                     }
-                    else
-                        SimpleLogger.Instance.Error("[SindenLightgunConfiguration] Can't parse command line");
+                    catch { }
+
+                    try
+                    {
+                        var first = px.GetProcessCommandline()?.SplitCommandLine()?.FirstOrDefault();
+                        if (!string.IsNullOrEmpty(first))
+                            candidates.Add(first.Replace("\"", "").Trim() + ".config");
+                    }
+                    catch { }
+
+                    candidates.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Sinden Lightgun", "Lightgun.exe.config"));
+                    candidates.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Sinden Lightgun", "Lightgun.exe.config"));
+                    if (!string.IsNullOrEmpty(retrobatPath))
+                        candidates.Add(Path.Combine(retrobatPath, "system", "tools", "sinden", "Lightgun.exe.config"));
+                    if (!string.IsNullOrEmpty(sindenPath))
+                        candidates.Add(Path.Combine(sindenPath, "Lightgun.exe.config"));
+
+                    var configPath = candidates.FirstOrDefault(File.Exists);
+
+                    if (configPath != null)
+                    {
+                        var ret = new SindenLightgunConfiguration(conf);
+                        ret._docPath = configPath;
+                        ret._doc = XDocument.Load(configPath);
+
+                        foreach (var element in ret._doc.Descendants("appSettings").Elements("add"))
+                        {
+                            var key = element.Attribute("key");
+                            var value = element.Attribute("value");
+                            if (key != null && value != null)
+                                ret._values[key.Value] = value.Value;
+                        }
+
+                        return ret;
+                    }
+
+                    SimpleLogger.Instance.Error("[SindenLightgunConfiguration] Lightgun.exe.config not found");
                 }
                 else
                     SimpleLogger.Instance.Error("[SindenLightgunConfiguration] Lightgun.exe not running");

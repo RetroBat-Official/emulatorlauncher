@@ -471,15 +471,6 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            // Extension used by hypseus .daphne but lr-daphne starts with .zip
-            else if (system == "daphne" || core == "daphne")
-            {
-                string datadir = Path.GetDirectoryName(rom);
-
-                //romName = os.path.splitext(os.path.basename(rom))[0]
-                rom = Path.GetFullPath(datadir + "/roms/" + romName + ".zip");
-            }
-
             // Unzipping part
             // Manage 7z and squashfs for some cores
             if (rom != null && core != null && (Path.GetExtension(rom).ToLower() == ".7z" || Path.GetExtension(rom).ToLower().Contains("squashfs")))

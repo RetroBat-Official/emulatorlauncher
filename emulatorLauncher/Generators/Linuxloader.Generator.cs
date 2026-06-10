@@ -304,6 +304,10 @@ namespace EmulatorLauncher
                     continue;
 
                 string launcherPath = container["launcher_path"]?.Trim('"') ?? "";
+
+                if (string.IsNullOrEmpty(container.Name))
+                    continue;
+
                 result[container.Name] = launcherPath;
             }
 

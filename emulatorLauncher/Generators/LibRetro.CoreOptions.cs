@@ -885,6 +885,8 @@ namespace EmulatorLauncher.Libretro
             else
                 coreSettings["bluemsx_msxtype"] = "Auto";
 
+            BindFeature(coreSettings, "bluemsx_cartmapper", "bluemsx_cartmapper", "Auto");
+
             if (SystemConfig.isOptSet("bluemsx_msxtype") && !string.IsNullOrEmpty(SystemConfig["bluemsx_msxtype"]))
                 coreSettings["bluemsx_msxtype"] = SystemConfig["bluemsx_msxtype"];
 
@@ -1440,7 +1442,8 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "dolphin_language", "dolphin_language", "1");
             BindBoolFeature(coreSettings, "dolphin_pal60", "dolphin_pal60", "enabled", "disabled");
             BindBoolFeature(coreSettings, "dolphin_cheats_enabled", "dolphin_cheats_enabled", "enabled", "disabled");
-            
+            BindBoolFeature(coreSettings, "dolphin_immediate_xfb", "dolphin_immediatexfb", "enabled", "disabled");
+
             if (SystemConfig.getOptBoolean("dolphin_cheats_enabled"))
                 DolphinSyncCheats(system);
             

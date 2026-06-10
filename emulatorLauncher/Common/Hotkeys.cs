@@ -180,7 +180,7 @@ namespace EmulatorLauncher
                                     string dicKey = "input_" + key;
 
                                     var emuhkInfo = emuHotkey.EmulatorHotkeys.FirstOrDefault(h => h.RetroArchHK.Equals(dicKey, StringComparison.OrdinalIgnoreCase));
-                                    if (emuhkInfo != null)
+                                    if (emuhkInfo != null && !padHKDic.ContainsKey(emuhkInfo.EmulatorHK))
                                         padHKDic.Add(emuhkInfo.EmulatorHK, value);
                                 }
                                 

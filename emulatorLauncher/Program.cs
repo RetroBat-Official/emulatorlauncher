@@ -132,6 +132,7 @@ namespace EmulatorLauncher
             { "oricutron", () => new OricutronGenerator() },
             { "pcsx2", () => new Pcsx2Generator() },
             { "pcsx2qt", () => new Pcsx2Generator() },
+            { "pcsx2x6", () => new Pcsx2Generator() },
             { "pcsx2-16", () => new Pcsx2Generator() },
             { "pdark", () => new PDarkGenerator() },
             { "phoenix", () => new PhoenixGenerator() },

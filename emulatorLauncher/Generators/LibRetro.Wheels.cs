@@ -23,37 +23,9 @@ namespace EmulatorLauncher.Libretro
 
             SimpleLogger.Instance.Info("[WHEELS] Wheels enabled, searching for wheels.");
 
-            List<Wheel> usableWheels = new List<Wheel>();
+            var usableWheels = Wheel.GetConnectedWheels(this.Controllers);
 
-            foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard))
-            {
-                var drivingWheel = Wheel.GetWheelType(controller.DevicePath.ToUpperInvariant());
-
-                if (drivingWheel != WheelType.Default)
-                {
-                    SimpleLogger.Instance.Info("[WHEELS] Wheel model found : " + drivingWheel.ToString());
-                    
-                    usableWheels.Add(new Wheel()
-                    {
-                        Name = controller.Name,
-                        VendorID = controller.VendorID.ToString(),
-                        ProductID = controller.ProductID.ToString(),
-                        DevicePath = controller.DevicePath.ToLowerInvariant(),
-                        DinputIndex = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex,
-                        SDLIndex = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex,
-                        XInputIndex = controller.XInput != null ? controller.XInput.DeviceIndex : controller.DeviceIndex,
-                        ControllerIndex = controller.DeviceIndex,
-                        Type = drivingWheel
-                    });
-                }
-            }
-
-            int wheelNb = usableWheels.Count;
-            SimpleLogger.Instance.Info("[WHEELS] Found : " + wheelNb.ToString() + " usable wheels.");
-
-            usableWheels.Sort((x, y) => x.GetWheelPriority().CompareTo(y.GetWheelPriority()));
-
-            if (wheelNb < 1)
+            if (usableWheels.Count < 1)
                 return;
 
             var filteredWheels = new List<Wheel>();

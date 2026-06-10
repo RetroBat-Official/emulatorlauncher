@@ -144,34 +144,12 @@ namespace EmulatorLauncher
             SdlToDirectInput ctrl2 = null;
 
             // Wheels
-            int wheelNb = 0;
             bool useWheel = SystemConfig.isOptSet("use_wheel") && SystemConfig.getOptBoolean("use_wheel");
             bool useShoulders = SystemConfig.getOptBoolean("m2_racingshoulder");
             string wheelGuid = "nul";
-            List<Wheel> usableWheels = new List<Wheel>();
             Wheel wheel = null;
 
-            foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard))
-            {
-                var drivingWheel = Wheel.GetWheelType(controller.DevicePath.ToUpperInvariant());
-
-                if (drivingWheel != WheelType.Default)
-                    usableWheels.Add(new Wheel()
-                    {
-                        Name = controller.Name,
-                        VendorID = controller.VendorID.ToString(),
-                        ProductID = controller.ProductID.ToString(),
-                        DevicePath = controller.DevicePath.ToLowerInvariant(),
-                        DinputIndex = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex,
-                        SDLIndex = controller.SdlController != null ? controller.SdlController.Index : controller.DeviceIndex,
-                        XInputIndex = controller.XInput != null ? controller.XInput.DeviceIndex : controller.DeviceIndex,
-                        ControllerIndex = controller.DeviceIndex,
-                        Type = drivingWheel
-                    });
-            }
-
-            wheelNb = usableWheels.Count;
-            SimpleLogger.Instance.Info("[WHEELS] Found " + wheelNb + " usable wheels.");
+            var usableWheels = Wheel.GetConnectedWheels(this.Controllers);
 
             YmlFile ymlFile = null;
             YmlContainer wheelMapping = null;
@@ -180,7 +158,7 @@ namespace EmulatorLauncher
             {
                 string wheeltype = "default";
 
-                if (wheelNb > 0)
+                if (usableWheels.Count > 0)
                 {
                     usableWheels.Sort((x, y) => x.GetWheelPriority().CompareTo(y.GetWheelPriority()));
 
