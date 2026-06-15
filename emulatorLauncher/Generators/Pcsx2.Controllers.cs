@@ -225,6 +225,8 @@ namespace EmulatorLauncher
             if (keyboard == null)
                 return;
 
+            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start");
+
             Action<string, string, InputKey> WriteKeyboardMapping = (v, w, k) =>
             {
                 var a = keyboard[k];
@@ -253,7 +255,7 @@ namespace EmulatorLauncher
             WriteKeyboardMapping(padNumber, "Square", InputKey.y);
 
             if (_isArcade)
-                pcsx2ini.WriteValue(padNumber, "Start", "Keyboard/1");
+                pcsx2ini.WriteValue(padNumber, "Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
             else
                 WriteKeyboardMapping(padNumber, "Start", InputKey.start);
 
@@ -275,8 +277,8 @@ namespace EmulatorLauncher
 
             if (_isArcade)
             {
-                pcsx2ini.WriteValue("JVS", "Coin1", "Keyboard/5");
-                pcsx2ini.WriteValue("JVS", "Coin2", "Keyboard/6");
+                pcsx2ini.WriteValue("JVS", "Coin1", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
+                pcsx2ini.WriteValue("JVS", "Coin2", azerty ? "Keyboard/Minus" : "Keyboard/6");
 
                 if (SystemConfig.isOptSet("pcsx2_servicemode") && !string.IsNullOrEmpty(SystemConfig["pcsx2_servicemode"]))
                 {
@@ -310,6 +312,8 @@ namespace EmulatorLauncher
 
             int sdl3index = -1;
             var sdl3Controller = ctrl.Sdl3Controller;
+            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start");
+
             if (sdl3Controller != null)
             {
                 sdl3index = sdl3Controller.PlayerSlot;
@@ -425,7 +429,7 @@ namespace EmulatorLauncher
                 }
 
                 if (_isArcade)
-                    pcsx2ini.AppendValue(padNumber, "Start", "Keyboard/1");
+                    pcsx2ini.AppendValue(padNumber, "Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
 
                 pcsx2ini.WriteValue(padNumber, "L3", techPadNumber + GetDInputKeyName(dinputController, "leftstick"));
                 pcsx2ini.WriteValue(padNumber, "R3", techPadNumber + GetDInputKeyName(dinputController, "rightstick"));
@@ -644,7 +648,7 @@ namespace EmulatorLauncher
                 }
 
                 if (_isArcade)
-                    pcsx2ini.AppendValue(padNumber, "Start", "Keyboard/1"); // Add second mapping
+                    pcsx2ini.AppendValue(padNumber, "Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
 
                 pcsx2ini.WriteValue(padNumber, "L3", techPadNumber + GetInputKeyName(ctrl, InputKey.l3, tech));
                 pcsx2ini.WriteValue(padNumber, "R3", techPadNumber + GetInputKeyName(ctrl, InputKey.r3, tech));

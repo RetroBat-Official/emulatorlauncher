@@ -1,11 +1,13 @@
-﻿using System.Linq;
-using System.IO;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
-using ValveKeyValue;
 using EmulatorLauncher.Common.Lightguns;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using ValveKeyValue;
 
 namespace EmulatorLauncher
 {
@@ -38,7 +40,8 @@ namespace EmulatorLauncher
             SdlToDirectInput dinputController = null;
             string techPadNumber = null;
             string tech = "";
-            bool guninvert = SystemConfig.isOptSet("gun_invert") && SystemConfig.getOptBoolean("gun_invert");
+            bool guninvert = SystemConfig.getOptBoolean("gun_invert");
+            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start");
 
             var guns = RawLightgun.GetRawLightguns();
 
@@ -118,7 +121,7 @@ namespace EmulatorLauncher
             if (!_isArcade)
             {
                 if (SystemConfig["pcsx2_gunmapping"] == "keyboard_middle")
-                    pcsx2ini.WriteValue(usbSection, "guncon2_ShootOffscreen", "Keyboard/1");
+                    pcsx2ini.WriteValue(usbSection, "guncon2_ShootOffscreen", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
                 else
                     pcsx2ini.WriteValue(usbSection, "guncon2_ShootOffscreen", guninvert ? "Pointer-0/LeftButton" : "Pointer-0/RightButton");
 
@@ -177,8 +180,8 @@ namespace EmulatorLauncher
                     }
                     else
                     {
-                        pcsx2ini.WriteValue(usbSection, "guncon2_A", "Keyboard/1");
-                        pcsx2ini.WriteValue(usbSection, "guncon2_B", "Keyboard/2");
+                        pcsx2ini.WriteValue(usbSection, "guncon2_A", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
+                        pcsx2ini.WriteValue(usbSection, "guncon2_B", azerty ? "Keyboard/Eacute" : "Keyboard/2");
                     }
 
                     pcsx2ini.WriteValue(usbSection, "guncon2_C", "Keyboard/3");
@@ -196,9 +199,9 @@ namespace EmulatorLauncher
             else
             {
                 pcsx2ini.WriteValue(usbSection, "guncon2_A", guninvert ? "Pointer-0/LeftButton" : "Pointer-0/RightButton");
-                pcsx2ini.WriteValue(usbSection, "guncon2_Start", "Keyboard/1");
-                pcsx2ini.WriteValue(usbSection, "guncon2_Select", "Keyboard/5");
-                pcsx2ini.WriteValue("JVS", "Coin1", "Keyboard/5");
+                pcsx2ini.WriteValue(usbSection, "guncon2_Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
+                pcsx2ini.WriteValue(usbSection, "guncon2_Select", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
+                pcsx2ini.WriteValue("JVS", "Coin1", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
 
                 var testDPadSection = pcsx2ini.GetOrCreateSection("Pad1");
 
