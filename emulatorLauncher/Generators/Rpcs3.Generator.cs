@@ -493,6 +493,17 @@ namespace EmulatorLauncher
                 BindBoolFeature(misc, "Show shader compilation hint", "rpcs3_hidehints", "false", "true");
                 BindBoolFeature(misc, "Show PPU compilation hint", "rpcs3_hidehints", "false", "true");
 
+                // Libraries
+                var libs = core.GetOrCreateContainer("Libraries Control");
+
+                if (SystemConfig.getOptBoolean("rpcs3_libvdec"))
+                {
+                    if (!libs.Elements.OfType<YmlElement>().Any(e => e.Value == "- libvdec.sprx:lle"))
+                        libs.Elements.Add(new YmlElement() { Value = "- libvdec.sprx:lle" });
+                }
+                else
+                    libs.Elements.RemoveAll(e => (e as YmlElement)?.Value?.Contains("libvdec.sprx") == true);
+
                 SetupGuns(path, yml, vulkan);
 
                 // Save to yml file

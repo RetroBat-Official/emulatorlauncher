@@ -16,6 +16,9 @@ namespace EmulatorLauncher
             if (!SystemConfig.getOptBoolean("use_guns"))
                 return;
 
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                UpdateSdlControllersWithHints();
+
             SimpleLogger.Instance.Info("[GUNS] Configuring gun.");
 
             Controller ctrl = null;

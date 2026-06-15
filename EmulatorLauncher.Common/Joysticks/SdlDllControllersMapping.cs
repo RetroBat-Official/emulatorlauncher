@@ -178,7 +178,7 @@ namespace EmulatorLauncher.Common.Joysticks
             {
                 foreach (var hint in hints.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    var keyValue = hints.Split(new char[] { '=' });
+                    var keyValue = hint.Split(new char[] { '=' });
                     if (keyValue.Length == 2)
                         SDL_SetHint(SDL.UTF8_ToNative(keyValue[0].Trim()), SDL.UTF8_ToNative(keyValue[1].Trim()));
                 }

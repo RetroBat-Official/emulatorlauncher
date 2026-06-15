@@ -1,6 +1,7 @@
 ﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
@@ -11,19 +12,16 @@ namespace EmulatorLauncher
 {
     partial class Mupen64Generator
     {
-        private List<Sdl3GameController> _sdl3Controllers = new List<Sdl3GameController>();
-
         /// <summary>
         /// Cf. https://github.com/Rosalie241/RMG/tree/master/Source/RMG-Input/Utilities
         /// </summary>
-        /// <param name="mupen64plus.cfg"></param>
-        /*private void UpdateSdlControllersWithHints()
+        private void UpdateSdlControllersWithHints()
         {
             var hints = new List<string>();
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());
-        }*/
+        }
 
         private void CreateControllerConfiguration(IniFile ini)
         {
@@ -33,15 +31,15 @@ namespace EmulatorLauncher
                 return;
             }
 
+            UpdateSdlControllersWithHints();
+
+            try
+            {
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.Process);
+            }
+            catch { }
+
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for RMG Mupen64");
-
-            // UpdateSdlControllersWithHints();     // No hints found in emulator code
-
-            // Check SDL3 dll Get list of SDL3 controllers
-            bool sdl3 = Controller.CheckSDL3dll();
-
-            if (sdl3 && Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
-                _sdl3Controllers = Sdl3Controllers;
 
             for (int i = 0; i < 4; i++)
             {
@@ -73,16 +71,9 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
-            Sdl3GameController sdl3Controller = null;
-            if (_sdl3Controllers.Count > 0)
-            {
-                sdl3Controller = Controller.GetSDL3ControllerMatch(controller, _sdl3Controllers);
-            }
+            Sdl3GameController sdl3Controller = controller.Sdl3Controller;
 
-            string devicename = joy.DeviceName;
-
-            if (controller.IsXInputDevice)
-                devicename = "XInput Controller";
+            string devicename = (sdl3Controller != null && sdl3Controller.Name != null) ? sdl3Controller.Name : joy.DeviceName;
 
             bool isNintendo = controller.VendorID == USB_VENDOR.NINTENDO;
 
@@ -127,10 +118,8 @@ namespace EmulatorLauncher
             if (serial == "Unknown")
                 serial = "";
 
-            if (controller.IsXInputDevice && sdl3Controller != null)
+            if (controller.IsXInputDevice && sdl3Controller != null && sdl3Controller.Path != null)
                 devPath = sdl3Controller.Path;
-            else if (controller.IsXInputDevice)
-                devPath = "XInput#" + controller.XInput.DeviceIndex.ToString();
             
             ini.WriteValue(iniSection, "DevicePath", devPath);
             ini.WriteValue(iniSection, "DeviceSerial", serial);

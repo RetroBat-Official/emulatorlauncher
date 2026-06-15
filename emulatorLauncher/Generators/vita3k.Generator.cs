@@ -186,11 +186,11 @@ namespace EmulatorLauncher
                 //Start adding modules
                 
                 //libhttp
-                if (SystemConfig.isOptSet("libhttp") && SystemConfig.getOptBoolean("libhttp"))
+                if (SystemConfig.getOptBoolean("libhttp"))
                     lleModules.Elements.Add(new YmlElement() { Value = "- libhttp" });
                 
                 //libscemp4
-                if (SystemConfig.isOptSet("libscemp4") && SystemConfig.getOptBoolean("libscemp4"))
+                if (SystemConfig.getOptBoolean("libscemp4"))
                     lleModules.Elements.Add(new YmlElement() { Value = "- libscemp4" });
 
                 //Add more modules in the future based on user feedback, tests and games requiring specific modules
@@ -205,7 +205,7 @@ namespace EmulatorLauncher
             }
 
             // Custom textures
-            if (SystemConfig.isOptSet("vita_custom_textures") && SystemConfig.getOptBoolean("vita_custom_textures"))
+            if (SystemConfig.getOptBoolean("vita_custom_textures"))
                 yml["import-textures"] = "true";
             else
                 yml["import-textures"] = "false";

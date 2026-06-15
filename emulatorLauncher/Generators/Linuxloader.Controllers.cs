@@ -11,8 +11,6 @@ namespace EmulatorLauncher
 {
     partial class LinuxloaderGenerator : Generator
     {
-        private List<Sdl3GameController> _sdl3Controllers = new List<Sdl3GameController>();
-
         private void CreateControllerConfiguration(string cfgPath, string gamePath)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -23,8 +21,11 @@ namespace EmulatorLauncher
                 return;
             }
 
-            if (Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
-                _sdl3Controllers = Sdl3Controllers;
+            try
+            {
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.Process);
+            }
+            catch { }
 
             string gameCtrlFile = Path.Combine(gamePath, "controls.ini");
             if (File.Exists(gameCtrlFile))
@@ -190,24 +191,15 @@ namespace EmulatorLauncher
 
             string guidString = guid.ToString().ToLowerInvariant();
 
-            Sdl3GameController sdl3Controller = null;
-            if (_sdl3Controllers.Count > 0)
-            {
-                sdl3Controller = Controller.GetSDL3ControllerMatch(ctrl, _sdl3Controllers);
-                
-                if (sdl3Controller == null)
-                {
-                    sdl3Controller = _sdl3Controllers.FirstOrDefault();
-                }
+            Sdl3GameController sdl3Controller = ctrl.Sdl3Controller;
 
-                if (sdl3Controller != null)
+            if (sdl3Controller != null)
+            {
+                if (!string.IsNullOrEmpty(sdl3Controller.GuidString) && sdl3Controller.GuidString != new string('0', 32))
                 {
-                    if (!string.IsNullOrEmpty(sdl3Controller.GuidString) && sdl3Controller.GuidString != new string('0', 32))
-                    {
-                        var cleaned = RemoveGuidCRC(sdl3Controller.GuidString);
-                        if (!string.IsNullOrEmpty(cleaned))
-                            guidString = cleaned.ToLowerInvariant();
-                    }
+                    var cleaned = RemoveGuidCRC(sdl3Controller.GuidString);
+                    if (!string.IsNullOrEmpty(cleaned))
+                        guidString = cleaned.ToLowerInvariant();
                 }
             }
 
