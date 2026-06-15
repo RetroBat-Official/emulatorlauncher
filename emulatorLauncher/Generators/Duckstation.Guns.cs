@@ -1,10 +1,11 @@
-﻿using System.Linq;
-using System.IO;
-using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
-using EmulatorLauncher.Common;
-using System.Configuration;
+using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Lightguns;
+using System;
+using System.Configuration;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -17,11 +18,20 @@ namespace EmulatorLauncher
         {
             bool gun = SystemConfig.getOptBoolean("use_guns");
 
-
             if (!gun)
                 return;
 
-            Controller ctrl1 = null;
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                UpdateSdlControllersWithHints();
+                try
+                {
+                    Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.Process);
+                }
+                catch { }
+            }
+
+                Controller ctrl1 = null;
             Controller ctrl2 = null;
 
             if (Program.Controllers.Count >= 2)

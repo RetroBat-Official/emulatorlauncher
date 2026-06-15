@@ -36,7 +36,7 @@ namespace EmulatorLauncher.Common.Joysticks
             {
                 foreach (var hint in hints.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    var keyValue = hints.Split(new char[] { '=' });
+                    var keyValue = hint.Split(new char[] { '=' });
                     if (keyValue.Length == 2)
                         SDL.SDL_SetHint(keyValue[0].Trim(), keyValue[1].Trim());
                 }
@@ -404,10 +404,6 @@ namespace EmulatorLauncher.Common.Joysticks
         {
         }
 
-        static Dictionary<Guid, SdlGameController> _controllersByGuid;
-        static Dictionary<string, SdlGameController> _controllersByPath;
-        static StringBuilder _joyInfos = new StringBuilder();
-
         public int EnumerationIndex { get; set; }
         public int Index { get; set; }
         public int InstanceID { get; set; }
@@ -417,6 +413,10 @@ namespace EmulatorLauncher.Common.Joysticks
         public string RawPath { get; set; }
         public string Serial { get; set; }
         public bool IsGamepad { get; set; }
+        public ushort VendorId { get; set; }
+        public ushort ProductId { get; set; }
+        public int PlayerSlot { get; set; } = -1;
+        public int GamePadIndex { get; set; } = -1;
 
         private const string SDL3_DLL = "SDL3.dll";
 
@@ -424,13 +424,15 @@ namespace EmulatorLauncher.Common.Joysticks
         public const uint SDL_INIT_JOYSTICK = 0x00000200;
 
         [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
-        private static extern int SDL_InitSubSystem(uint flags);
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool SDL_InitSubSystem(uint flags);
 
         [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern void SDL_QuitSubSystem(uint flags);
 
         [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
-        private static extern SDL_bool SDL_SetHint(string name, string value);
+        [return: MarshalAs(UnmanagedType.I1)]
+        private static extern bool SDL_SetHint(string name, string value);
 
         [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr SDL_GetJoysticks(out int num_joysticks);
@@ -443,6 +445,9 @@ namespace EmulatorLauncher.Common.Joysticks
 
         [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern int SDL_GetGamepadPlayerIndexForID(int instance_id);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SDL_GetGamepadPlayerIndex(IntPtr gamepad);
 
         [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr SDL_GetJoystickPathForID(int instance_id);
@@ -476,7 +481,50 @@ namespace EmulatorLauncher.Common.Joysticks
         private static extern IntPtr SDL_GetGamepadSerial(IntPtr gamepad);
 
         [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool SDL_IsGamepad(int instance_id);
+
+        private static List<Sdl3GameController> _controllers;
+
+        public static List<Sdl3GameController> GetControllers()
+        {
+            if (_controllers == null)
+            {
+                List<Sdl3GameController> list;
+                if (ListJoysticks(out list))
+                    _controllers = list;
+                else
+                    _controllers = new List<Sdl3GameController>();
+
+                AssignPlayerSlots(_controllers);
+
+                SimpleLogger.Instance.Info("[Sdl3GameController] " + _controllers.Count + " SDL3 controller(s) enumerated");
+            }
+
+            return _controllers;
+        }
+
+        private static void AssignPlayerSlots(List<Sdl3GameController> controllers)
+        {
+            var used = new HashSet<int>();
+
+            foreach (var c in controllers.OrderBy(ct => ct.EnumerationIndex))
+            {
+                int slot;
+
+                if (c.Index >= 0 && !used.Contains(c.Index))
+                    slot = c.Index;
+                else
+                {
+                    slot = 0;
+                    while (used.Contains(slot))
+                        slot++;
+                }
+
+                c.PlayerSlot = slot;
+                used.Add(slot);
+            }
+        }
 
         public string GuidString
         {
@@ -493,89 +541,96 @@ namespace EmulatorLauncher.Common.Joysticks
             controllers = new List<Sdl3GameController>();
             try
             {
-                SDL_SetHint("SDL_HINT_JOYSTICK_HIDAPI_WII", "1");
+                SDL_SetHint("SDL_JOYSTICK_HIDAPI_WII", "1");
                 SDL_SetHint("SDL_JOYSTICK_ENHANCED_REPORTS", "0");
                 SDL_SetHint("SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS", "1");
-                //SDL_SetHint("SDL_HINT_JOYSTICK_RAWINPUT", "1");
+                SDL_SetHint("SDL_JOYSTICK_RAWINPUT", "1");
 
-                if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) < 0)
-                {
+                if (!SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER))
                     return false;
-                }
 
                 int num_joysticks;
                 IntPtr joysticksPtr = SDL_GetJoysticks(out num_joysticks);
 
-                if (joysticksPtr == IntPtr.Zero || num_joysticks == 0)
+                if (joysticksPtr != IntPtr.Zero)
                 {
-                    return false;
-                }
-                else
-                {
-                    int[] joystickIDs = new int[num_joysticks];
-                    Marshal.Copy(joysticksPtr, joystickIDs, 0, num_joysticks);
-
-                    for (int i = 0; i < num_joysticks; i++)
+                    if (num_joysticks > 0)
                     {
-                        int instance_id = joystickIDs[i];
+                        int[] joystickIDs = new int[num_joysticks];
+                        Marshal.Copy(joysticksPtr, joystickIDs, 0, num_joysticks);
 
-                        string name = Marshal.PtrToStringAnsi(SDL_GetJoystickNameForID(instance_id)) ?? "Unknown";
-                        string path = Marshal.PtrToStringAnsi(SDL_GetJoystickPathForID(instance_id)) ?? "Unknown";
-
-                        int index = SDL_GetGamepadPlayerIndexForID(instance_id);
-
-                        ushort vendorID = SDL_GetJoystickVendorForID(instance_id);
-                        ushort productID = SDL_GetJoystickProductForID(instance_id);
-                        bool isGamepad = SDL_IsGamepad(instance_id);
-
-                        string serial = "Unknown";
-                        IntPtr pad = SDL_OpenGamepad(instance_id);
-                        if (pad != IntPtr.Zero)
+                        for (int i = 0; i < num_joysticks; i++)
                         {
-                            IntPtr serialPtr = SDL_GetGamepadSerial(pad);
-                            if (serialPtr != IntPtr.Zero)
-                                serial = Marshal.PtrToStringAnsi(serialPtr) ?? "Unknown";
+                            int instance_id = joystickIDs[i];
 
-                            SDL_CloseGamepad(pad);
-                        }
+                            string name = Marshal.PtrToStringAnsi(SDL_GetJoystickNameForID(instance_id)) ?? "Unknown";
+                            string path = Marshal.PtrToStringAnsi(SDL_GetJoystickPathForID(instance_id)) ?? "Unknown";
 
-                        try
-                        {
-                            var guid = SDL_GetJoystickGUIDForID(instance_id);
+                            int index = SDL_GetGamepadPlayerIndexForID(instance_id);
+                            int gamePadIndex = -1;
 
-                            controllers.Add(new Sdl3GameController
+                            ushort vendorID = SDL_GetJoystickVendorForID(instance_id);
+                            ushort productID = SDL_GetJoystickProductForID(instance_id);
+                            bool isGamepad = SDL_IsGamepad(instance_id);
+
+                            string serial = "Unknown";
+                            IntPtr pad = SDL_OpenGamepad(instance_id);
+                            if (pad != IntPtr.Zero)
                             {
-                                EnumerationIndex = i,
-                                Index = index,
-                                Name = name,
-                                Path = path,
-                                InstanceID = instance_id,
-                                Serial = serial,
-                                Guid = guid,
-                                IsGamepad = isGamepad
-                            });
-                        }
-                        catch
-                        {
-                            controllers.Add(new Sdl3GameController
+                                IntPtr serialPtr = SDL_GetGamepadSerial(pad);
+                                if (serialPtr != IntPtr.Zero)
+                                    serial = Marshal.PtrToStringAnsi(serialPtr) ?? "Unknown";
+
+                                int openIndex = SDL_GetGamepadPlayerIndex(pad);
+                                if (openIndex >= 0)
+                                    gamePadIndex = openIndex;
+
+                                SDL_CloseGamepad(pad);
+                            }
+
+                            try
                             {
-                                EnumerationIndex = i,
-                                Index = index,
-                                Name = name,
-                                Path = path,
-                                InstanceID = instance_id,
-                                Serial = serial,
-                                IsGamepad = isGamepad
-                            });
+                                var guid = SDL_GetJoystickGUIDForID(instance_id);
+
+                                controllers.Add(new Sdl3GameController
+                                {
+                                    EnumerationIndex = i,
+                                    Index = index,
+                                    Name = name,
+                                    Path = path,
+                                    InstanceID = instance_id,
+                                    Serial = serial,
+                                    Guid = guid,
+                                    IsGamepad = isGamepad,
+                                    VendorId = vendorID,
+                                    ProductId = productID,
+                                    GamePadIndex = gamePadIndex,
+                                });
+                            }
+                            catch
+                            {
+                                controllers.Add(new Sdl3GameController
+                                {
+                                    EnumerationIndex = i,
+                                    Index = index,
+                                    Name = name,
+                                    Path = path,
+                                    InstanceID = instance_id,
+                                    Serial = serial,
+                                    IsGamepad = isGamepad,
+                                    VendorId = vendorID,
+                                    ProductId = productID,
+                                    GamePadIndex = gamePadIndex,
+                                });
+                            }
                         }
                     }
-
                     SDL_free(joysticksPtr);
                 }
 
                 SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
 
-                return true;
+                return controllers.Count > 0;
             }
             catch
             {

@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace EmulatorLauncher
 {
@@ -156,7 +155,7 @@ namespace EmulatorLauncher
             BindBoolFeature(emulation, "disable_expansion_pak", "gopher64_disable_expansion_pak");
 
             string jsonString = root.ToString(Formatting.Indented);
-            File.WriteAllText(configFile, jsonString);
+            try { File.WriteAllText(configFile, jsonString); } catch { }
         }
 
         private void SetupCheevos(string setupPath, List<string> commandArray)
@@ -183,7 +182,7 @@ namespace EmulatorLauncher
             root["leaderboard"] = SystemConfig.getOptBoolean("retroachievements.leaderboards") ? true : false;
 
             string jsonString = root.ToString(Formatting.Indented);
-            File.WriteAllText(configFile, jsonString);
+            try { File.WriteAllText(configFile, jsonString); } catch { }
 
             if (SystemConfig.getOptBoolean("retroachievements"))
             {

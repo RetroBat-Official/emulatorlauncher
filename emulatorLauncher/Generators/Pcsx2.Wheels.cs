@@ -13,6 +13,9 @@ namespace EmulatorLauncher
             if (!SystemConfig.getOptBoolean("use_wheel"))
                 return;
 
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                UpdateSdlControllersWithHints();
+
             SimpleLogger.Instance.Info("[WHEELS] Configuring wheels.");
 
             string wheelTech1 = "dinput";

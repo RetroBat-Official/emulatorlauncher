@@ -26,21 +26,21 @@ namespace EmulatorLauncher
             var hints = new List<string>();
 
             if (_norawinput)
-                hints.Add("SDL_HINT_JOYSTICK_RAWINPUT = 0");
+                hints.Add("SDL_JOYSTICK_RAWINPUT = 0");
 
             if (ini.GetValue("Controls", "enable_joycon_driver\\default") == "true" || ini.GetValue("Controls", "enable_joycon_driver") != "false")
-                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 0");
+                hints.Add("SDL_JOYSTICK_HIDAPI_JOY_CONS = 0");
             else 
-                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1");
+                hints.Add("SDL_JOYSTICK_HIDAPI_JOY_CONS = 1");
 
             if (Program.SystemConfig.getOptBoolean("ps_controller_enhanced"))
             {
-                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
-                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+                hints.Add("SDL_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+                hints.Add("SDL_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
             }
 
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_SWITCH = 1");
-            hints.Add("SDL_HINT_JOYSTICK_HIDAPI_XBOX = 0");
+            hints.Add("SDL_JOYSTICK_HIDAPI_SWITCH = 1");
+            hints.Add("SDL_JOYSTICK_HIDAPI_XBOX = 0");
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
             Program.Controllers.ForEach(c => c.ResetSdlController());

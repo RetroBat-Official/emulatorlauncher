@@ -538,28 +538,173 @@ namespace EmulatorLauncher
             return true;
         }
 
-        public static Sdl3GameController GetSDL3ControllerMatch(Controller ctrl, List<Sdl3GameController> controllers)
+        #region Sdl3Controller
+        private Sdl3GameController _sdl3Controller;
+        private static bool _sdl3ControllersKnown;
+
+        public Sdl3GameController Sdl3Controller
         {
-            Sdl3GameController sdl3C = null;
-            string cPath = ctrl.DirectInput != null ? ctrl.DirectInput.DevicePath : ctrl.DevicePath;
-
-            if (ctrl.IsXInputDevice)
+            get
             {
-                cPath = "xinput#" + ctrl.XInput.DeviceIndex.ToString();
-                sdl3C = controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
-
-                if (sdl3C == null && ctrl.DirectInput != null)
-                    sdl3C = controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == ctrl.DirectInput.DevicePath.ToLowerInvariant());
+                EnsureSdl3Controllers();
+                return _sdl3Controller;
             }
-            else
-            {
-                sdl3C = controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == cPath);
-                if (sdl3C == null && ctrl.DirectInput != null)
-                    sdl3C = controllers.FirstOrDefault(c => c.Path.ToLowerInvariant() == ctrl.DirectInput.DevicePath.ToLowerInvariant());
-            }
-
-            return sdl3C;
         }
+
+        private static void EnsureSdl3Controllers()
+        {
+            if (_sdl3ControllersKnown)
+                return;
+
+            _sdl3ControllersKnown = true;
+
+            if (!CheckSDL3dll())
+                return;
+
+            var candidates = Sdl3GameController.GetControllers().ToList();
+            if (candidates.Count == 0)
+                return;
+
+            var pads = Program.Controllers.Where(c => !c.IsKeyboard && c.Config != null).ToList();
+
+            // Precompute path variants (raw, shortened, parent, shortened parent) for SDL3 candidates
+            var candidatePaths = candidates.ToDictionary(c => c, c => GetPathVariants(c.Path));
+
+            // Pass 1 : path (authoritative, unique per device)
+            foreach (var ctrl in pads)
+            {
+                var match = FindSdl3ByPath(ctrl, candidates, candidatePaths);
+                if (match != null)
+                {
+                    ctrl._sdl3Controller = match;
+                    candidates.Remove(match);
+                }
+            }
+
+            // Pass 2 : bus + VID/PID + rank pairing for duplicates
+            foreach (var group in pads.Where(c => c._sdl3Controller == null)
+                .GroupBy(c => new { Bus = GetSdlBusType(c.Guid.ToString()), Vid = (ushort)c.VendorID, Pid = (ushort)c.ProductID }))
+            {
+                var unresolved = group.OrderBy(c => c.SdlController != null ? c.SdlController.Index : c.DeviceIndex).ToList();
+                var sdl3Same = candidates
+                    .Where(c => c.VendorId == group.Key.Vid && c.ProductId == group.Key.Pid)
+                    .Where(c => { var bus = GetSdlBusType(c.GuidString); return bus == "0000" || bus == group.Key.Bus; })
+                    .OrderBy(c => c.EnumerationIndex)
+                    .ToList();
+
+                for (int i = 0; i < unresolved.Count && i < sdl3Same.Count; i++)
+                {
+                    unresolved[i]._sdl3Controller = sdl3Same[i];
+                    candidates.Remove(sdl3Same[i]);
+                }
+            }
+
+            // Pass 3 : name (last resort)
+            foreach (var ctrl in pads.Where(c => c._sdl3Controller == null))
+            {
+                var match = candidates.FirstOrDefault(c => string.Equals(c.Name, ctrl.Name, StringComparison.InvariantCultureIgnoreCase));
+                if (match != null)
+                {
+                    ctrl._sdl3Controller = match;
+                    candidates.Remove(match);
+                }
+            }
+
+            // Pass 4 : elimination - exactly one pad and one candidate left
+            var lastPads = pads.Where(c => c._sdl3Controller == null).ToList();
+            if (lastPads.Count == 1 && candidates.Count == 1)
+            {
+                lastPads[0]._sdl3Controller = candidates[0];
+                SimpleLogger.Instance.Info("[Controller] SDL3 match by elimination : " + lastPads[0].ToShortString() + " => " + candidates[0].Path);
+                candidates.Clear();
+            }
+
+            foreach (var ctrl in pads)
+            {
+                if (ctrl._sdl3Controller != null)
+                    SimpleLogger.Instance.Info("[Controller] SDL3 match : " + ctrl.ToShortString() + " => " + ctrl._sdl3Controller.Path);
+                else
+                    SimpleLogger.Instance.Warning("[Controller] No SDL3 match : " + ctrl.ToShortString());
+            }
+        }
+
+        private static string GetSdlBusType(string sdlGuid)
+        {
+            if (string.IsNullOrEmpty(sdlGuid) || sdlGuid.Length < 4)
+                return "0000";
+
+            return sdlGuid.Substring(0, 4).ToLowerInvariant();
+        }
+
+        private static HashSet<string> GetPathVariants(string path)
+        {
+            var ret = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+            if (string.IsNullOrEmpty(path))
+                return ret;
+
+            ret.Add(path);
+
+            // "xinput#0", "Unknown", ... : not device interface paths, nothing to normalize
+            if (path.IndexOf('\\') < 0)
+                return ret;
+
+            try
+            {
+                var shorten = InputDevices.ShortenDevicePath(path);
+                if (!string.IsNullOrEmpty(shorten))
+                    ret.Add(shorten);
+
+                var parent = InputDevices.GetInputDeviceParent(path);
+                if (!string.IsNullOrEmpty(parent))
+                {
+                    ret.Add(parent);
+
+                    var shortenParent = InputDevices.ShortenDevicePath(parent);
+                    if (!string.IsNullOrEmpty(shortenParent))
+                        ret.Add(shortenParent);
+                }
+            }
+            catch { }
+
+            return ret;
+        }
+
+        private static Sdl3GameController FindSdl3ByPath(Controller ctrl, List<Sdl3GameController> candidates, Dictionary<Sdl3GameController, HashSet<string>> candidatePaths)
+        {
+            var ctrlPaths = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+
+            if (ctrl.IsXInputDevice && ctrl.XInput != null)
+                ctrlPaths.Add("xinput#" + ctrl.XInput.DeviceIndex);
+
+            foreach (var v in GetPathVariants(ctrl.DevicePath))
+                ctrlPaths.Add(v);
+
+            if (ctrl.DirectInput != null)
+            {
+                foreach (var v in GetPathVariants(ctrl.DirectInput.DevicePath))
+                    ctrlPaths.Add(v);
+            }
+
+            if (ctrlPaths.Count == 0)
+                return null;
+
+            // Exact raw-path match first...
+            foreach (var c in candidates)
+            {
+                if (ctrlPaths.Contains(c.Path))
+                    return c;
+            }
+
+            // ...then normalized-variant overlap
+            foreach (var c in candidates)
+            {
+                if (candidatePaths[c].Overlaps(ctrlPaths))
+                    return c;
+            }
+
+            return null;
+        }
+        #endregion
     }
 
     static class InputExtensions

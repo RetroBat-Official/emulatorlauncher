@@ -15,26 +15,24 @@ namespace EmulatorLauncher
         private bool _forceSDL = false;
         private bool _multitap = false;
         private bool _dolphinbar = false;
-        private List<Sdl3GameController> _sdl3Controllers = new List<Sdl3GameController>();
 
         /// <summary>
         /// Cf. https://github.com/stenzek/duckstation/blob/master/src/frontend-common/sdl_input_source.cpp
         /// </summary>
-        /// <param name="settings.ini"></param>
-        private void UpdateSdlControllersWithHints(IniFile ini)
+        private void UpdateSdlControllersWithHints()
         {
             var hints = new List<string>
             {
                 "SDL_JOYSTICK_HIDAPI_WII = 1",
-                "SDL_HINT_JOYSTICK_HIDAPI_PS3 = 1",
-                "SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS = 1",
-                "SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS = 1"
+                "SDL_JOYSTICK_HIDAPI_PS3 = 1",
+                "SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS = 1"
             };
+
 
             if (SystemConfig.getOptBoolean("ps_controller_enhanced"))
             {
-                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
-                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+                hints.Add("SDL_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+                hints.Add("SDL_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
             }
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
@@ -51,10 +49,15 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for DuckStation");
 
+            try
+            {
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.Process);
+            } catch { }
+
             if (SystemConfig.isOptSet("input_forceSDL") && SystemConfig.getOptBoolean("input_forceSDL"))
                 _forceSDL = true;
 
-            UpdateSdlControllersWithHints(ini);
+            UpdateSdlControllersWithHints();
 
             // clear existing pad sections of ini file
             for (int i = 1; i < 9; i++)
@@ -88,12 +91,6 @@ namespace EmulatorLauncher
             }
 
             BindBoolIniFeature(ini, "InputSources", "SDLControllerEnhancedMode", "ps_controller_enhanced", "true", "false");
-
-            // Check SDL3 dll Get list of SDL3 controllers
-            bool sdl3 = Controller.CheckSDL3dll();
-
-            if (sdl3 && Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
-                _sdl3Controllers = Sdl3Controllers;
 
             // Check if dolphinbar is connected (if yes we will increase controller index by 4)
             var rawdevices = RawInputDevice.GetRawInputDevices().Where(t => t.Type == RawInputDeviceType.GamePad).ToList();
@@ -216,10 +213,10 @@ namespace EmulatorLauncher
                 return;
 
             int sdl3index = -1;
-            if (_sdl3Controllers.Count > 0)
+            var sdl3Controller = ctrl.Sdl3Controller;
+            if (sdl3Controller != null)
             {
-                Sdl3GameController sdl3Controller = Controller.GetSDL3ControllerMatch(ctrl, _sdl3Controllers);
-                sdl3index = sdl3Controller == null ? -1 : sdl3Controller.Index;
+                sdl3index = sdl3Controller.Index;
                 SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". SDL3 controller index : " + sdl3index);
             }
 

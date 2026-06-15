@@ -13,8 +13,6 @@ namespace EmulatorLauncher
 {
     partial class RyujinxGenerator : Generator
     {
-        private List<Sdl3GameController> _sdl3Controllers = new List<Sdl3GameController>();
-
         /// <summary>
         /// cf. https://github.com/Ryujinx/Ryujinx/blob/master/src/Ryujinx.SDL2.Common/SDL2Driver.cs#L56
         /// </summary>
@@ -25,16 +23,16 @@ namespace EmulatorLauncher
 
             var hints = new List<string>
             {
-                "SDL_HINT_JOYSTICK_RAWINPUT = 0",
-                "SDL_HINT_JOYSTICK_HIDAPI_SWITCH_HOME_LED = 0",
-                "SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS = 1",
-                "SDL_HINT_JOYSTICK_HIDAPI_COMBINE_JOY_CONS = 1"
+                "SDL_JOYSTICK_RAWINPUT = 1",
+                "SDL_JOYSTICK_HIDAPI_SWITCH_HOME_LED = 0",
+                "SDL_JOYSTICK_HIDAPI_JOY_CONS = 1",
+                "SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS = 1"
             };
 
             if (SystemConfig.getOptBoolean("ps_controller_enhanced"))
             {
-                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
-                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+                hints.Add("SDL_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+                hints.Add("SDL_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
             }
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
@@ -51,15 +49,15 @@ namespace EmulatorLauncher
                 return;
             }
 
+            try
+            {
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.Process);
+            }
+            catch { }
+
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Ryujinx");
 
             UpdateSdlControllersWithHints();
-
-            // Check SDL3 dll Get list of SDL3 controllers
-            bool sdl3 = Controller.CheckSDL3dll();
-
-            if (sdl3 && Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
-                _sdl3Controllers = Sdl3Controllers;
 
             //clear existing input_config section to avoid the same controller mapped to different players because of past mapping
             json.input_config = new Newtonsoft.Json.Linq.JArray();
@@ -234,11 +232,7 @@ namespace EmulatorLauncher
             // Define tech (SDL or XInput)
             string tech = c.IsXInputDevice ? "XInput" : "SDL";
 
-            Sdl3GameController sdl3Controller = null;
-            if (_sdl3 && _sdl3Controllers.Count > 0)
-            {
-                sdl3Controller = Controller.GetSDL3ControllerMatch(c, _sdl3Controllers);
-            }
+            Sdl3GameController sdl3Controller = c.Sdl3Controller;
 
             bool joyconPair = joy.DeviceName.Contains("Joy-Con") && joy.DeviceName.Contains("L/R");
 
@@ -421,7 +415,7 @@ namespace EmulatorLauncher
 
             string ryuGuidString = newGuid.ToString();
 
-            if (_sdl3 && c.SdlWrappedTechID == SdlWrappedTechId.RawInput && c.XInput != null && sdl3Controller != null && sdl3Controller.GuidString != null)
+            if (_sdl3 && c.IsXInputDevice && sdl3Controller != null && sdl3Controller.GuidString != null)
                 ryuGuidString = "0000" + SdlJoystickGuidManager.FromSdlGuidString(sdl3Controller.GuidString).ToString().Substring(4);
 
             string overrideGuidPath = Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml");

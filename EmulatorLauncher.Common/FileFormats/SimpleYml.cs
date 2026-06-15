@@ -71,7 +71,7 @@ namespace EmulatorLauncher.Common.FileFormats
                         stack.Push(current);
                 }
 
-                int idx = tmp.IndexOf(":");
+                int idx = tmp.StartsWith("- ") ? -1 : tmp.IndexOf(":");
                 if (idx >= 0)
                 {
                     string name = tmp.Substring(0, idx).Trim();

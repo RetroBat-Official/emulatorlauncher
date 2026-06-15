@@ -18,23 +18,18 @@ namespace EmulatorLauncher
         private bool _multitap = false;
         private bool _dolphinbar = false;
         private int _specialControllerIndex = 1;
-        private List<Sdl3GameController> _sdl3Controllers = new List<Sdl3GameController>();
 
         /// <summary>
         /// Cf. https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Input/SDLInputSource.cpp
         /// </summary>
-        /// <param name="pcsx2ini"></param>
-        private void UpdateSdlControllersWithHints(IniFile pcsx2ini)
+        private void UpdateSdlControllersWithHints()
         {
-            var hints = new List<string>
-            {
-                "SDL_HINT_JOYSTICK_HIDAPI_WII = 1"
-            };
+            var hints = new List<string> { "SDL_JOYSTICK_HIDAPI_WII = 1" };
 
             if (Program.SystemConfig.getOptBoolean("ps_controller_enhanced"))
             {
-                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
-                hints.Add("SDL_HINT_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+                hints.Add("SDL_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+                hints.Add("SDL_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
             }
 
             SdlGameController.ReloadWithHints(string.Join(",", hints));
@@ -54,13 +49,7 @@ namespace EmulatorLauncher
             _forceSDL = Program.SystemConfig.isOptSet("pcsx2_input_driver_force") && Program.SystemConfig.getOptBoolean("pcsx2_input_driver_force");
             _forceDInput = Program.SystemConfig.isOptSet("pcsx2_input_driver_force") && Program.SystemConfig["pcsx2_input_driver_force"] == "dinput";
 
-            UpdateSdlControllersWithHints(pcsx2ini);
-
-            // Check SDL3 dll Get list of SDL3 controllers
-            bool sdl3 = Controller.CheckSDL3dll();
-
-            if (sdl3 && Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
-                _sdl3Controllers = Sdl3Controllers;
+            UpdateSdlControllersWithHints();
 
             // Check if dolphinbar is connected (if yes we will increase controller index by 4)
             var rawdevices = RawInputDevice.GetRawInputDevices().Where(t => t.Type == RawInputDeviceType.GamePad).ToList();
@@ -236,6 +225,8 @@ namespace EmulatorLauncher
             if (keyboard == null)
                 return;
 
+            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start");
+
             Action<string, string, InputKey> WriteKeyboardMapping = (v, w, k) =>
             {
                 var a = keyboard[k];
@@ -264,7 +255,7 @@ namespace EmulatorLauncher
             WriteKeyboardMapping(padNumber, "Square", InputKey.y);
 
             if (_isArcade)
-                pcsx2ini.WriteValue(padNumber, "Start", "Keyboard/1");
+                pcsx2ini.WriteValue(padNumber, "Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
             else
                 WriteKeyboardMapping(padNumber, "Start", InputKey.start);
 
@@ -286,14 +277,18 @@ namespace EmulatorLauncher
 
             if (_isArcade)
             {
-                pcsx2ini.WriteValue("JVS", "Coin1", "Keyboard/5");
-                pcsx2ini.WriteValue("JVS", "Coin2", "Keyboard/6");
+                pcsx2ini.WriteValue("JVS", "Coin1", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
+                pcsx2ini.WriteValue("JVS", "Coin2", azerty ? "Keyboard/Minus" : "Keyboard/6");
 
                 if (SystemConfig.isOptSet("pcsx2_servicemode") && !string.IsNullOrEmpty(SystemConfig["pcsx2_servicemode"]))
                 {
                     pcsx2ini.WriteValue("JVS", "TestMode", "true");
                     pcsx2ini.WriteValue("JVS", "ToggleTestMode", "Keyboard/9");
                     pcsx2ini.WriteValue("JVS", "P1_Service", "Keyboard/0");
+                }
+                else
+                {
+                    pcsx2ini.WriteValue("JVS", "TestMode", "false");
                 }
             }
         }
@@ -315,14 +310,13 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
-            
-
             int sdl3index = -1;
-            if (_sdl3Controllers.Count > 0)
+            var sdl3Controller = ctrl.Sdl3Controller;
+            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start");
+
+            if (sdl3Controller != null)
             {
-                Sdl3GameController sdl3Controller = Controller.GetSDL3ControllerMatch(ctrl, _sdl3Controllers);
-                
-                sdl3index = sdl3Controller == null ? -1 : sdl3Controller.Index;
+                sdl3index = sdl3Controller.PlayerSlot;
                 SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". SDL3 controller index : " + sdl3index);
             }
 
@@ -435,7 +429,7 @@ namespace EmulatorLauncher
                 }
 
                 if (_isArcade)
-                    pcsx2ini.AppendValue(padNumber, "Start", "Keyboard/1");
+                    pcsx2ini.AppendValue(padNumber, "Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
 
                 pcsx2ini.WriteValue(padNumber, "L3", techPadNumber + GetDInputKeyName(dinputController, "leftstick"));
                 pcsx2ini.WriteValue(padNumber, "R3", techPadNumber + GetDInputKeyName(dinputController, "rightstick"));
@@ -547,6 +541,10 @@ namespace EmulatorLauncher
                             pcsx2ini.WriteValue("JVS", "P1_Service", techPadNumber + GetDInputKeyName(dinputController, "leftstick"));
                             pcsx2ini.AppendValue("JVS", "P1_Service", "Keyboard/0");
                         }
+                        else
+                        {
+                            pcsx2ini.WriteValue("JVS", "TestMode", "false");
+                        }
                     }
 
                     var hotKeyName = GetDInputKeyName(dinputController, "back");
@@ -650,7 +648,7 @@ namespace EmulatorLauncher
                 }
 
                 if (_isArcade)
-                    pcsx2ini.AppendValue(padNumber, "Start", "Keyboard/1"); // Add second mapping
+                    pcsx2ini.AppendValue(padNumber, "Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
 
                 pcsx2ini.WriteValue(padNumber, "L3", techPadNumber + GetInputKeyName(ctrl, InputKey.l3, tech));
                 pcsx2ini.WriteValue(padNumber, "R3", techPadNumber + GetInputKeyName(ctrl, InputKey.r3, tech));
@@ -767,6 +765,10 @@ namespace EmulatorLauncher
                             pcsx2ini.AppendValue("JVS", "ToggleTestMode", "Keyboard/9");
                             pcsx2ini.WriteValue("JVS", "P1_Service", techPadNumber + GetInputKeyName(ctrl, InputKey.l3, tech));
                             pcsx2ini.AppendValue("JVS", "P1_Service", "Keyboard/0");
+                        }
+                        else
+                        {
+                            pcsx2ini.WriteValue("JVS", "TestMode", "false");
                         }
                     }
 

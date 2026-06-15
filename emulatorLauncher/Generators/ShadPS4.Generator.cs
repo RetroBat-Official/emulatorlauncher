@@ -1,7 +1,10 @@
 ﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.PadToKeyboard;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,6 +19,7 @@ namespace EmulatorLauncher
         private bool _useLauncher = false;
         private bool _default = false;
         private string _versionselected = null;
+        private bool _showGUI = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -69,7 +73,7 @@ namespace EmulatorLauncher
             bool fullscreen = ShouldRunFullscreen();
 
             //settings
-            SetupConfiguration(path, rom, fullscreen, resolution);
+            SetupConfigurationJSON(path, rom, fullscreen, resolution);
             SetupUI(path);
 
             var commandArray = new List<string>();
@@ -77,7 +81,10 @@ namespace EmulatorLauncher
             if (!_useLauncher)
             {
                 if (SystemConfig.getOptBoolean("shadps4_gui"))
+                {
                     commandArray.Add("-s");
+                    _showGUI = true;
+                }
 
                 if (Path.GetExtension(rom).ToLower() == ".lnk")
                 {
@@ -123,98 +130,89 @@ namespace EmulatorLauncher
             };
         }
 
-        /// <summary>
-        /// Configure emulator features (user/config.toml)
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="rom"></param>
-        private void SetupConfiguration(string path, string rom, bool fullscreen, ScreenResolution resolution)
+        private void SetupConfigurationJSON(string path, string rom, bool fullscreen, ScreenResolution resolution)
         {
             string userFolder = Path.Combine(path, "user");
             if (!Directory.Exists(userFolder))
                 try { Directory.CreateDirectory(userFolder); } catch { }
 
-            string settingsFile = Path.Combine(userFolder, "config.toml");
-            string romPath = Path.GetDirectoryName(rom);
-            if (Path.GetExtension(romPath).ToLower() == ".ps4")
-                romPath = Directory.GetParent(romPath).FullName.Replace("\\", "\\\\");
-            else if (Path.GetExtension(romPath).ToLower() == ".m3u")
-                romPath = romPath.Replace("\\", "\\\\");
+            string configFile = Path.Combine(userFolder, "config.json");
 
-            using (IniFile toml = new IniFile(settingsFile, IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
+            JObject root;
+
+            if (File.Exists(configFile))
             {
-                // General section
-                BindBoolIniFeature(toml, "General", "isPS4Pro", "shadps4_isps4pro", "true", "false");
-                BindBoolIniFeature(toml, "General", "enableDiscordRPC", "discord", "true", "false");
-                BindBoolIniFeatureOn(toml, "Input", "isMotionControlsEnabled", "shadps4_motion", "true", "false");
-
-                if (SystemConfig.isOptSet("shadps4_username") && !string.IsNullOrEmpty(SystemConfig["shadps4_username"]))
-                    toml.WriteValue("General", "userName", "\"" + SystemConfig["shadps4_username"] + "\"");
-
-                //toml.WriteValue("General", "autoUpdate", "false");
-                toml.WriteValue("General", "showSplash", "false");
-
-                // GPU section
-                if (!fullscreen)
-                {
-                    toml.WriteValue("GPU", "screenHeight", resolution == null ? ScreenResolution.CurrentResolution.Height.ToString() : resolution.Height.ToString());
-                    toml.WriteValue("GPU", "screenWidth", resolution == null ? ScreenResolution.CurrentResolution.Width.ToString() : resolution.Width.ToString());
-                }
-                BindBoolIniFeature(toml, "GPU", "allowHDR", "enable_hdr", "true", "false");
-
-                if (fullscreen)
-                    toml.WriteValue("GPU", "Fullscreen", "true");
-                else
-                    toml.WriteValue("GPU", "Fullscreen", "false");
-
-                if (fullscreen && SystemConfig.getOptBoolean("exclusivefs"))
-                    toml.WriteValue("GPU", "FullscreenMode", "\"Fullscreen\"");
-                else if (fullscreen)
-                    toml.WriteValue("GPU", "FullscreenMode", "\"Fullscreen (Borderless)\"");
-                else
-                    toml.WriteValue("GPU", "FullscreenMode", "\"Windowed\"");
-
-                // Settings section
-                string ps4Lang = Getps4LangFromEnvironment();
-                if (SystemConfig.isOptSet("shadps4_lang") && !string.IsNullOrEmpty(SystemConfig["shadps4_lang"]))
-                    ps4Lang = SystemConfig["shadps4_lang"];
-                toml.WriteValue("Settings", "consoleLanguage", ps4Lang);
-
-                // GUI section
-                string currentDirs = toml.GetValue("GUI", "installDirs");
-
-                string escaped = Regex.Replace(romPath, @"(?<!\\)\\(?!\\)", @"\\");
-
-                if (currentDirs == null || currentDirs == "[]")
-                    toml.WriteValue("GUI", "installDirs", "[\"" + escaped + "\"]");
-                else
-                {
-                    currentDirs = currentDirs.Substring(1, currentDirs.Length - 2);
-                    string[] dirs = currentDirs.Split(new char[] { ',' });
-                    List<string> newDirs = dirs.Select(dir => dir.TrimStart()).ToList();
-                    newDirs = newDirs.Where(s => !string.IsNullOrEmpty(s)).ToList();
-
-                    if (newDirs.Count > 0 && !newDirs.Contains("\"" + escaped + "\""))
-                        newDirs.Add("\"" + escaped + "\"");
-                    string finalDirList = string.Join(", ", newDirs);
-                    toml.WriteValue("GUI", "installDirs", "[" + finalDirList + "]");
-                }
-
-                string savePath = AppConfig.GetFullPath("saves");
-                string shadSavePath = Path.Combine(savePath, "ps4", "shadps4");
-                if (!Directory.Exists(shadSavePath))
-                    try { Directory.CreateDirectory(shadSavePath); } catch { }
-                toml.WriteValue("GUI", "saveDataPath", "\"" + shadSavePath.Replace("\\", "/") + "\"");
-
-                string dlcPath = Path.Combine(savePath, "ps4", "DLC");
-                if (!Directory.Exists(dlcPath))
-                    try { Directory.CreateDirectory(dlcPath); } catch { }
-                toml.WriteValue("GUI", "addonInstallDir", "\"" + dlcPath.Replace("\\", "\\\\") + "\"");
-
-                SetupController(toml);
-
-                toml.Save();
+                string jsonText = File.ReadAllText(configFile);
+                root = JObject.Parse(jsonText);
             }
+            else
+            {
+                root = new JObject { };
+            }
+
+            var audio = GetOrCreateObject(root, "Audio");
+            var debug = GetOrCreateObject(root, "Debug");
+            var gpu = GetOrCreateObject(root, "GPU");
+            var general = GetOrCreateObject(root, "General");
+            var input = GetOrCreateObject(root, "Input");
+            var log = GetOrCreateObject(root, "Log");
+            var vulkan = GetOrCreateObject(root, "Vulkan");
+
+            // Roms folder
+            string romPath = Path.GetDirectoryName(rom);
+            if (Path.GetExtension(romPath).ToLowerInvariant() == ".ps4")
+                romPath = Directory.GetParent(romPath).FullName;
+
+            if (!(general["install_dirs"] is JArray installDirs))
+            {
+                installDirs = new JArray();
+                general["install_dirs"] = installDirs;
+            }
+
+            if (!installDirs.Any(d => string.Equals(d["path"]?.ToString(), romPath, StringComparison.OrdinalIgnoreCase)))
+                installDirs.Add(new JObject { ["enabled"] = true, ["path"] = romPath });
+
+            BindBoolFeature(general, "discord_rpc_enabled", "discord");
+            BindBoolFeatureOn(input, "motion_controls_enabled", "shadps4_motion");
+            general["show_splash"] = false;
+
+            // GPU section
+            if (!fullscreen)
+            {
+                gpu["window_height"] = resolution == null ? ScreenResolution.CurrentResolution.Height : resolution.Height;
+                gpu["window_width"] = resolution == null ? ScreenResolution.CurrentResolution.Width : resolution.Width;
+            }
+            BindBoolFeature(gpu, "hdr_allowed", "enable_hdr");
+
+            if (fullscreen)
+                gpu["full_screen"] = true;
+            else
+                gpu["full_screen"] = false;
+
+            if (fullscreen && SystemConfig.getOptBoolean("exclusivefs"))
+                gpu["full_screen_mode"] = "Fullscreen";
+            else if (fullscreen)
+                gpu["full_screen_mode"] = "Fullscreen (Borderless)";
+            else
+                gpu["full_screen_mode"] = "Windowed";
+
+            // Settings section
+            int ps4Lang = Getps4LangFromEnvironment();
+            if (SystemConfig.isOptSet("shadps4_lang") && !string.IsNullOrEmpty(SystemConfig["shadps4_lang"]))
+                try { ps4Lang = SystemConfig["shadps4_lang"].ToInteger(); } catch { }
+            
+            general["console_language"] = ps4Lang;
+
+            string dlcPath = Path.Combine(romPath, "ps4", "DLC");
+            if (!Directory.Exists(dlcPath))
+                try { Directory.CreateDirectory(dlcPath); } catch { }
+            
+            general["addonInstallDir"] = dlcPath;
+
+            //SetupController(input);
+
+            string jsonString = root.ToString(Formatting.Indented);
+            try { File.WriteAllText(configFile, jsonString); } catch { }
         }
 
         private void SetupUI(string path)
@@ -242,7 +240,27 @@ namespace EmulatorLauncher
             }
         }
 
-        private void SetupController(IniFile toml)
+        private void UpdateSdlControllersWithHints()
+        {
+            if (Program.Controllers.Count(c => !c.IsKeyboard) == 0)
+                return;
+
+            var hints = new List<string>
+            {
+                "SDL_JOYSTICK_RAWINPUT = 1",
+            };
+
+            if (SystemConfig.getOptBoolean("ps_controller_enhanced"))
+            {
+                hints.Add("SDL_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
+                hints.Add("SDL_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
+            }
+
+            SdlGameController.ReloadWithHints(string.Join(",", hints));
+            Program.Controllers.ForEach(c => c.ResetSdlController());
+        }
+
+        private void SetupController(JObject input)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
@@ -250,32 +268,27 @@ namespace EmulatorLauncher
                 return;
             }
 
+            UpdateSdlControllersWithHints();
+
             var ctrl = this.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
 
             if (ctrl?.Config == null)
                 return;
 
-            // Check SDL3 dll Get list of SDL3 controllers
-            bool sdl3 = Controller.CheckSDL3dll();
-
-            if (!sdl3)
+            if (ctrl.Sdl3Controller == null || string.IsNullOrEmpty(ctrl.Sdl3Controller.GuidString))
                 return;
 
-            Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers);
+            try
+            {
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.Process);
+            }
+            catch { }
 
-            if (Sdl3Controllers == null || Sdl3Controllers.Count == 0)
-                return;
-
-            Sdl3GameController sdl3Controller = Controller.GetSDL3ControllerMatch(ctrl, Sdl3Controllers);
-
-            if (sdl3Controller == null || string.IsNullOrEmpty(sdl3Controller.GuidString))
-                return;
-
-            toml.WriteValue("Input", "useUnifiedInputConfig", "true");
-            toml.WriteValue("General", "defaultControllerID", "\"" + sdl3Controller.GuidString + "\"");
+            input["use_unified_input_config"] = true;
+            input["default_controller_id"] = ctrl.Sdl3Controller.GuidString;
         }
 
-        private string Getps4LangFromEnvironment()
+        private int Getps4LangFromEnvironment()
         {
             SimpleLogger.Instance.Info("[Generator] Getting Language from RetroBat language.");
 
@@ -303,24 +316,24 @@ namespace EmulatorLauncher
 
             // Special case for some variances
             if (SystemConfig["Language"] == "zh_TW")
-                return "10";
+                return 10;
             else if (SystemConfig["Language"] == "pt_BR")
-                return "17";
+                return 17;
             else if (SystemConfig["Language"] == "en_GB")
-                return "18";
+                return 18;
             else if (SystemConfig["Language"] == "cs_CZ")
-                return "23";
+                return 23;
             else if (SystemConfig["Language"] == "ja_JP")
-                return "0";
+                return 0;
 
             var lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
             {
                 if (availableLanguages.TryGetValue(lang, out int ret))
-                    return ret.ToString();
+                    return ret;
             }
 
-            return 1.ToString();
+            return 1;
         }
 
         private string GetShadPS4Executable(string path)
@@ -429,6 +442,54 @@ namespace EmulatorLauncher
             }
             
             return null;
+        }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_showGUI)
+            {
+                return PadToKey.AddOrUpdateKeyMapping(mapping, "shadPS4", InputKey.hotkey | InputKey.start,
+                    action: () =>
+                    {
+                        var shadProcesses = Process.GetProcesses()
+                        .Where(p => p.ProcessName.StartsWith("shadps4", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                        if (shadProcesses == null)
+                            return;
+
+                        foreach (var p in shadProcesses)
+                        {
+                            try
+                            {
+                                if (!p.HasExited)
+                                {
+                                    p.CloseMainWindow();
+                                    p.WaitForExit(3000);
+                                }
+                            }
+                            catch { }
+
+                            try
+                            {
+                                if (!p.HasExited)
+                                    p.Kill();
+                            }
+                            catch { }
+                        }
+                    });
+            }
+            else
+                return mapping;
+        }
+
+        private static JObject GetOrCreateObject(JObject parent, string key)
+        {
+            if (!(parent[key] is JObject obj))
+            {
+                obj = new JObject();
+                parent[key] = obj;
+            }
+            return obj;
         }
     }
 
