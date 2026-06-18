@@ -5113,6 +5113,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "supermodel")
                 return;
 
+            BindFeature(coreSettings, "supermodel_ppc_frequency", "supermodel_ppc_frequency", "auto");
             BindFeature(coreSettings, "supermodel_resolution", "supermodel_resolution", "native");
             BindBoolFeatureOn(coreSettings, "supermodel_vsync", "supermodel_vsync", "enabled", "disabled");
             BindBoolFeature(coreSettings, "supermodel_wide_screen", "supermodel_wide_screen", "enabled", "disabled");
