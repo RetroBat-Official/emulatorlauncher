@@ -79,7 +79,7 @@ namespace EmulatorLauncher
                 _gameLauncher = result.Launcher;
                 _steamRun = result.SteamRun;
                 _nonSteam = result.NonSteam;
-                _exename = result.ExeName;
+                _exename = result.GameExeFile ? _exename : result.ExeName;
             }
 
             else if (extension == ".game" && File.Exists(rom))
@@ -545,7 +545,7 @@ namespace EmulatorLauncher
 
         private void StartAndWaitForGame(ProcessStartInfo path)
         {
-            int waittime = 30;
+            int waittime = 20;
             if (Program.SystemConfig.isOptSet("steam_wait") && !string.IsNullOrEmpty(Program.SystemConfig["steam_wait"]))
                 waittime = Program.SystemConfig["steam_wait"].ToInteger();
             SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waittime + " seconds for the game to run before returning to Game List");
