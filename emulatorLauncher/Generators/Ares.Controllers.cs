@@ -259,7 +259,37 @@ namespace EmulatorLauncher
             vpad["Pad.Down"] = GetInputKeyName(ctrl, InputKey.down, padId);
             vpad["Pad.Left"] = GetInputKeyName(ctrl, InputKey.left, padId);
             vpad["Pad.Right"] = GetInputKeyName(ctrl, InputKey.right, padId);
-            vpad["Select"] = GetInputKeyName(ctrl, InputKey.select, padId);
+
+            if (SystemConfig.isOptSet("gb_remap_select") && !string.IsNullOrEmpty(SystemConfig["gb_remap_select"]))
+            {
+                string button = SystemConfig["gb_remap_select"];
+                InputKey targetKey = InputKey.select;
+                switch (button)
+                {
+                    case "l":
+                        targetKey = InputKey.pageup;
+                        break;
+                    case "r":
+                        targetKey = InputKey.pagedown;
+                        break;
+                    case "l2":
+                        targetKey = InputKey.l2;
+                        break;
+                    case "r2":
+                        targetKey = InputKey.r2;
+                        break;
+                    case "l3":
+                        targetKey = InputKey.l3;
+                        break;
+                    case "r3":
+                        targetKey = InputKey.r3;
+                        break;
+                }
+                vpad["Select"] = GetInputKeyName(ctrl, targetKey, padId);
+            }
+            else
+                vpad["Select"] = GetInputKeyName(ctrl, InputKey.select, padId);
+            
             vpad["Start"] = GetInputKeyName(ctrl, InputKey.start, padId);
             if (_system == "mastersystem" && SystemConfig.getOptBoolean("rotate_buttons"))
             {

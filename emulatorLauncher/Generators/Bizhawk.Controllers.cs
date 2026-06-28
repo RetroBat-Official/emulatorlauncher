@@ -2066,7 +2066,38 @@ namespace EmulatorLauncher
             else if (system == "gb" || system == "gbc")
             {
                 if (Program.SystemConfig.getOptBoolean("buttonsInvert"))
-                    return gbMapping_invert;
+                    newMapping = gbMapping_invert;
+
+                if (Program.SystemConfig.isOptSet("gb_remap_select") && !string.IsNullOrEmpty(Program.SystemConfig["gb_remap_select"]))
+                {
+                    string button = Program.SystemConfig["gb_remap_select"];
+                    InputKey targetKey = InputKey.select;
+                    switch (button)
+                    {
+                        case "l":
+                            targetKey = InputKey.pageup;
+                            break;
+                        case "r":
+                            targetKey = InputKey.pagedown;
+                            break;
+                        case "l2":
+                            targetKey = InputKey.l2;
+                            break;
+                        case "r2":
+                            targetKey = InputKey.r2;
+                            break;
+                        case "l3":
+                            targetKey = InputKey.l3;
+                            break;
+                        case "r3":
+                            targetKey = InputKey.r3;
+                            break;
+                    }
+                    newMapping.RemoveAll(k => k.Key == InputKey.select);
+                    newMapping[targetKey] = "Select";
+                }
+
+                return newMapping;
             }
 
             else if (system == "gba")
