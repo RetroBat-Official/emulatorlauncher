@@ -188,14 +188,6 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("System", "VideoStandard", "'NTSC'");
 
-                    if (SystemConfig.isOptSet("ymir_renderer") && !string.IsNullOrEmpty(SystemConfig["ymir_renderer"]))
-                    {
-                        string renderer = SystemConfig["ymir_renderer"];
-                        ini.WriteValue("Video", "GraphicsBackend", "'" + renderer + "'");
-                    }
-                    else
-                        ini.WriteValue("Video", "GraphicsBackend", "'Default'");
-
                     ini.Save();
                 }
             }
