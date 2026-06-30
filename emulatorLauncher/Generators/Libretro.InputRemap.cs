@@ -33,6 +33,7 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> systemNES = new List<string>() { "nes", "fds", "famicom" };
         static readonly List<string> systemN64 = new List<string>() { "n64", "n64dd" };
         static readonly List<string> systemFBneo = new List<string>() { "cave", "cps1", "cps2", "cps3", "fbneo", "neogeo" };
+        static readonly List<string> systemGameboy = new List<string>() { "gb", "gb2players", "gbc", "gbc2players", "sgb", "sgb-msu", "sgb-msu1", "gb-msu", "gb-msu1" };
         static readonly List<string> megadrive3ButtonsList = new List<string>() { "2", "257", "1025", "1537", "773" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
 
@@ -200,6 +201,18 @@ namespace EmulatorLauncher.Libretro
                         inputremap["input_player" + i + "_btn_l2"] = "-1";
                         inputremap["input_player" + i + "_btn_r"] = "13";
                         inputremap["input_player" + i + "_btn_r2"] = "-1";
+                    }
+                }
+                #endregion
+
+                #region gameboy
+                if (systemGameboy.Contains(system))
+                {
+                    if (Program.SystemConfig.isOptSet("gb_remap_select") && !string.IsNullOrEmpty(Program.SystemConfig["gb_remap_select"]))
+                    {
+                        string button = Program.SystemConfig["gb_remap_select"];
+                        string buttonKey = "input_player" + i + "_btn_" + button;
+                        inputremap[buttonKey] = "2";
                     }
                 }
                 #endregion

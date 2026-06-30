@@ -144,30 +144,36 @@ namespace EmulatorLauncher
                 if (!File.Exists(file))
                     return null;
 
-                using (XmlReader reader = XmlReader.Create(file))
+                try
                 {
-                    while (reader.Read())
+                    using (XmlReader reader = XmlReader.Create(file))
                     {
-                        if (reader.IsStartElement("rom"))
+                        while (reader.Read())
                         {
-                            string id = reader.GetAttribute("id");
-                            if (id == rom)
+                            if (reader.IsStartElement("rom"))
                             {
-                                string name = reader.GetAttribute("name");
-                                string vert = reader.GetAttribute("vert");
-
-                                var game = new MameGameInfo();
+                                string id = reader.GetAttribute("id");
+                                if (id == rom)
                                 {
-                                    game.RomName = id;
-                                    game.DisplayName = name;
-                                    game.Vertical = vert != null && vert.Equals("true", StringComparison.OrdinalIgnoreCase);
-                                };
+                                    string name = reader.GetAttribute("name");
+                                    string vert = reader.GetAttribute("vert");
 
-                                return game;
+                                    var game = new MameGameInfo();
+                                    {
+                                        game.RomName = id;
+                                        game.DisplayName = name;
+                                        game.Vertical = vert != null && vert.Equals("true", StringComparison.OrdinalIgnoreCase);
+                                    }
+                                    ;
+
+                                    return game;
+                                }
                             }
                         }
                     }
                 }
+                catch (XmlException ex) { SimpleLogger.Instance.Error("[MameGameInfo] Failed to parse arcaderoms.xml: " + ex.Message);  }
+                
                 return null;
             }
 

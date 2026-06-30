@@ -494,6 +494,34 @@ namespace EmulatorLauncher
                     newMapping["a"] = InputKey.a;
                     newMapping["b"] = InputKey.b;
                 }
+                
+                if (Program.SystemConfig.isOptSet("gb_remap_select") && !string.IsNullOrEmpty(Program.SystemConfig["gb_remap_select"]))
+                {
+                    string button = Program.SystemConfig["gb_remap_select"];
+                    InputKey targetKey = InputKey.select;
+                    switch (button)
+                    {
+                        case "l":
+                            targetKey = InputKey.pageup;
+                            break;
+                        case "r":
+                            targetKey = InputKey.pagedown;
+                            break;
+                        case "l2":
+                            targetKey = InputKey.l2;
+                            break;
+                        case "r2":
+                            targetKey = InputKey.r2;
+                            break;
+                        case "l3":
+                            targetKey = InputKey.l3;
+                            break;
+                        case "r3":
+                            targetKey = InputKey.r3;
+                            break;
+                    }
+                    newMapping["select"] = targetKey;
+                }
             }
 
             if (jGenSystem == "game_boy_advance")

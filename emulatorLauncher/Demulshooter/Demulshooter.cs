@@ -217,6 +217,9 @@ namespace EmulatorLauncher
 
                 if (emulator == "teknoparrot")
                 {
+                    if (target == "rpcs3")
+                        commandArray.Add("-pname=rpcs3.exe");
+
                     string romName = Path.GetFileNameWithoutExtension(rom);
                     if (teknoParrotGames.TryGetValue(romName, out var game))
                     {

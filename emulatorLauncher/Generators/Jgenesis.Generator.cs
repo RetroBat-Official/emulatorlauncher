@@ -74,6 +74,7 @@ namespace EmulatorLauncher
                 _saveStatesWatcher = null;
 
             // settings (toml configuration)
+            string settingsFile = Path.Combine(path, "jgenesis-config.toml");
             SetupTomlConfiguration(path, jGenSystem, system, savesSystem, fullscreen);
 
             if (fullscreen)
@@ -97,6 +98,9 @@ namespace EmulatorLauncher
                 commandArray.Add("--load-save-state");
                 commandArray.Add(_saveStateSlot.ToString());
             }
+
+            commandArray.Add("--config");
+            commandArray.Add("\"" + settingsFile + "\"");
 
             string args = string.Join(" ", commandArray);
 
@@ -145,11 +149,13 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("jgen_prescale") && !string.IsNullOrEmpty(SystemConfig["jgen_prescale"]))
                 {
                     ini.WriteValue("common", "auto_prescale", "false");
-                    ini.WriteValue("common", "prescale_factor", SystemConfig["jgen_prescale"].ToIntegerString());
+                    ini.WriteValue("common", "prescale_width", SystemConfig["jgen_prescale"].ToIntegerString());
+                    ini.WriteValue("common", "prescale_height", SystemConfig["jgen_prescale"].ToIntegerString());
                 }
                 else
                 {
-                    ini.WriteValue("common", "prescale_factor", "3");
+                    ini.WriteValue("common", "prescale_width", "3");
+                    ini.WriteValue("common", "prescale_height", "3");
                     ini.WriteValue("common", "auto_prescale", "true");
                 }
 
@@ -178,9 +184,22 @@ namespace EmulatorLauncher
                     ini.WriteValue("common", "preprocess_shader", "\"" + "None" + "\"");
 
                 if (SystemConfig.isOptSet("jgen_scanlines") && !string.IsNullOrEmpty(SystemConfig["jgen_scanlines"]))
-                    ini.WriteValue("common", "scanlines", "\"" + SystemConfig["jgen_scanlines"] + "\"");
+                {
+                    ini.WriteValue("common", "scanlines_enabled", "true");
+                    ini.WriteValue("common", "scanlines_brightness", SystemConfig["jgen_scanlines"]);
+                }
                 else
-                    ini.WriteValue("common", "scanlines", "\"" + "None" + "\"");
+                {
+                    ini.WriteValue("common", "scanlines_enabled", "false");
+                }
+
+                string cheatsPath = Path.Combine(AppConfig.GetFullPath("cheats"), "jgenesis");
+                if (!Directory.Exists(cheatsPath))
+                    try { Directory.CreateDirectory(cheatsPath); } catch { }
+
+                BindBoolIniFeature(ini, "common", "cheats_enabled", "jgen_cheats", "true", "false");
+                ini.WriteValue("common", "cheats_path", "\"Custom\"");
+                ini.WriteValue("common", "cheats_custom_path", "'" + cheatsPath + "'");
 
                 ConfigureGameboy(ini, jGenSystem);
                 ConfigureGameboyAdvance(ini, jGenSystem);

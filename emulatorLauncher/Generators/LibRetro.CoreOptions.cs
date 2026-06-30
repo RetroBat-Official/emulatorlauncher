@@ -3008,7 +3008,6 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["mame2003_skip_disclaimer"] = "enabled";
             coreSettings["mame2003_skip_warnings"] = "enabled";
-            coreSettings["mame2003_mouse_device"] = "mouse";
 
             BindBoolFeature(coreSettings, "mame2003_tate_mode", "mame2003_tate_mode", "enabled", "disabled");
             BindFeature(coreSettings, "mame2003_input_interface", "mame2003_input_interface", "retropad");
@@ -3017,6 +3016,8 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "mame2003_mame_remapping", "mame2003_mame_remapping", "enabled", "disabled");
             BindBoolFeature(coreSettings, "mame2003_display_setup", "mame2003_display_setup", "enabled", "disabled");
             BindFeature(coreSettings, "mame2003_sample_rate", "mame2003_sample_rate", "44100");
+            
+            BindFeature(coreSettings, "mame2003_mouse_device", "mame2003_mouse_device", "mouse");
         }
 
         private void ConfigureMame2003Plus(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -5113,6 +5114,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "supermodel")
                 return;
 
+            BindFeature(coreSettings, "supermodel_ppc_frequency", "supermodel_ppc_frequency", "auto");
             BindFeature(coreSettings, "supermodel_resolution", "supermodel_resolution", "native");
             BindBoolFeatureOn(coreSettings, "supermodel_vsync", "supermodel_vsync", "enabled", "disabled");
             BindBoolFeature(coreSettings, "supermodel_wide_screen", "supermodel_wide_screen", "enabled", "disabled");

@@ -190,7 +190,37 @@ namespace EmulatorLauncher
                     mapping["A"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.b])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.b]));
                     mapping["B"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.a])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.a]));
                 }
-                mapping["Select"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
+
+                if (SystemConfig.isOptSet("gb_remap_select") && !string.IsNullOrEmpty(SystemConfig["gb_remap_select"]))
+                {
+                    string button = SystemConfig["gb_remap_select"];
+                    InputKey targetKey = InputKey.select;
+                    switch (button)
+                    {
+                        case "l":
+                            targetKey = InputKey.pageup;
+                            break;
+                        case "r":
+                            targetKey = InputKey.pagedown;
+                            break;
+                        case "l2":
+                            targetKey = InputKey.l2;
+                            break;
+                        case "r2":
+                            targetKey = InputKey.r2;
+                            break;
+                        case "l3":
+                            targetKey = InputKey.l3;
+                            break;
+                        case "r3":
+                            targetKey = InputKey.r3;
+                            break;
+                    }
+                    mapping["Select"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[targetKey])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[targetKey]));
+                }
+                else
+                    mapping["Select"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.select])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.select]));
+                
                 mapping["Start"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.start])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.start]));
                 mapping["Up"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.up])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.up]));
                 mapping["Down"] = isXInput ? (4096 + index * 256 + 1 + xbuttonNames.IndexOf(inputKeyMapping[InputKey.down])) : (8192 + index * 256 + dibuttonNames.IndexOf(inputKeyMapping[InputKey.down]));

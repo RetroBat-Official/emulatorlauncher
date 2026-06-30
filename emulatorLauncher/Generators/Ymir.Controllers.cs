@@ -273,6 +273,7 @@ namespace EmulatorLauncher
             { "TakeScreenshot", "F8" },
             { "ExitApp", "Ctrl+Q" },
             { "ToggleRewindBuffer", "Ctrl+Backspace" },
+            { "ShowMessageHistory", "F7" },
 
         };
 

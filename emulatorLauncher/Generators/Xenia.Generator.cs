@@ -71,7 +71,7 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
             
-            _canary = exeName == "xenia_canary.exe";
+            _canary = exeName.StartsWith("xenia_canary");
             _edge = exeName == "xenia_edge.exe";
 
             // Create portable file if not exists
@@ -338,6 +338,8 @@ namespace EmulatorLauncher
 
         private void SetupCanary(string path)
         {
+            SetupXConfig(path);
+
             try
             {
                 string iniFile = "xenia-canary.config.toml";
@@ -420,11 +422,6 @@ namespace EmulatorLauncher
                         ini.AppendValue("GPU", "draw_resolution_scale_y", "1");
                     }
 
-                    if (SystemConfig.isOptSet("xenia_internal_display_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_internal_display_resolution"]))
-                        ini.AppendValue("Video", "internal_display_resolution", SystemConfig["xenia_internal_display_resolution"]);
-                    else if (Features.IsSupported("xenia_internal_display_resolution"))
-                        ini.AppendValue("Video", "internal_display_resolution", "8");
-
                     //CPU section
                     if (SystemConfig.isOptSet("break_on_unimplemented_instructions") && SystemConfig.getOptBoolean("break_on_unimplemented_instructions"))
                         ini.AppendValue("CPU", "break_on_unimplemented_instructions", "true");
@@ -464,20 +461,10 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("vsync"))
                         ini.AppendValue("GPU", "vsync", "true");
 
-                    if (SystemConfig.isOptSet("query_occlusion_sample_lower_threshold") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_sample_lower_threshold"]))
-                        ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", SystemConfig["query_occlusion_sample_lower_threshold"]);
-                    else if (Features.IsSupported("query_occlusion_sample_lower_threshold"))
-                        ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", "80");
-
-                    if (SystemConfig.isOptSet("query_occlusion_sample_upper_threshold") && !string.IsNullOrEmpty(SystemConfig["query_occlusion_sample_upper_threshold"]))
-                    {
-                        ini.AppendValue("GPU", "query_occlusion_sample_upper_threshold", SystemConfig["query_occlusion_sample_upper_threshold"]);
-
-                        if (SystemConfig["query_occlusion_sample_upper_threshold"] == "0")
-                            ini.AppendValue("GPU", "query_occlusion_sample_lower_threshold", "0");
-                    }
-                    else if (Features.IsSupported("query_occlusion_sample_upper_threshold"))
-                        ini.AppendValue("GPU", "query_occlusion_sample_upper_threshold", "100");
+                    if (SystemConfig.isOptSet("occlusion_query") && !string.IsNullOrEmpty(SystemConfig["occlusion_query"]))
+                        ini.AppendValue("GPU", "occlusion_query", StringExtensions.QuoteString(SystemConfig["occlusion_query"], true));
+                    else if (Features.IsSupported("occlusion_query"))
+                        ini.AppendValue("GPU", "occlusion_query", "fake".QuoteString(true));
 
                     if (SystemConfig.isOptSet("xenia_clear_memory_page_state") && SystemConfig.getOptBoolean("xenia_clear_memory_page_state"))
                         ini.AppendValue("GPU", "clear_memory_page_state", "true");
@@ -500,25 +487,10 @@ namespace EmulatorLauncher
                         ini.AppendValue("GPU", "async_shader_compilation", "true");
 
                     // Video section
-                    if (SystemConfig.isOptSet("xenia_video_standard") && !string.IsNullOrEmpty(SystemConfig["xenia_video_standard"]))
-                        ini.AppendValue("Video", "video_standard", SystemConfig["xenia_video_standard"]);
-                    else if (Features.IsSupported("xenia_video_standard"))
-                        ini.AppendValue("Video", "video_standard", "1");
-
                     if (SystemConfig.isOptSet("xenia_avpack") && !string.IsNullOrEmpty(SystemConfig["xenia_avpack"]))
                         ini.AppendValue("Video", "avpack", SystemConfig["xenia_avpack"]);
                     else if (Features.IsSupported("xenia_avpack"))
                         ini.AppendValue("Video", "avpack", "8");
-
-                    if (SystemConfig.isOptSet("xenia_widescreen") && !string.IsNullOrEmpty(SystemConfig["xenia_widescreen"]))
-                        ini.AppendValue("Video", "widescreen", SystemConfig["xenia_widescreen"]);
-                    else if (Features.IsSupported("xenia_widescreen"))
-                        ini.AppendValue("Video", "widescreen", "true");
-
-                    if (SystemConfig.isOptSet("xenia_pal50") && SystemConfig.getOptBoolean("xenia_pal50"))
-                        ini.AppendValue("Video", "use_50Hz_mode", "true");
-                    else if (Features.IsSupported("xenia_pal50"))
-                        ini.AppendValue("Video", "use_50Hz_mode", "false");
 
                     // Memory section
                     if (SystemConfig.isOptSet("scribble_heap") && SystemConfig.getOptBoolean("scribble_heap"))
@@ -554,12 +526,6 @@ namespace EmulatorLauncher
                         ini.AppendValue("HID", "hid", StringExtensions.QuoteString(SystemConfig["xenia_hid"], true));
                     else if (Features.IsSupported("xenia_hid"))
                         ini.AppendValue("HID", "hid", "\"sdl\"");
-
-                    // Console language
-                    if (SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
-                        ini.AppendValue("XConfig", "user_language", SystemConfig["xenia_lang"]);
-                    else if (Features.IsSupported("xenia_lang"))
-                        ini.AppendValue("XConfig", "user_language", GetXboxLangFromEnvironment());
 
                     // Profiles
                     for (int i = 1; i < 4; i++)
@@ -671,9 +637,9 @@ namespace EmulatorLauncher
                     }
 
                     if (SystemConfig.isOptSet("xenia_internal_display_resolution") && !string.IsNullOrEmpty(SystemConfig["xenia_internal_display_resolution"]))
-                        ini.AppendValue("Video", "internal_display_resolution", SystemConfig["xenia_internal_display_resolution"]);
+                        ini.AppendValue("Console", "internal_display_resolution", SystemConfig["xenia_internal_display_resolution"]);
                     else if (Features.IsSupported("xenia_internal_display_resolution"))
-                        ini.AppendValue("Video", "internal_display_resolution", "8");
+                        ini.AppendValue("Console", "internal_display_resolution", "8");
 
                     //CPU section
                     if (SystemConfig.isOptSet("break_on_unimplemented_instructions") && SystemConfig.getOptBoolean("break_on_unimplemented_instructions"))
@@ -730,9 +696,9 @@ namespace EmulatorLauncher
 
                     // Video section
                     if (SystemConfig.isOptSet("xenia_video_standard") && !string.IsNullOrEmpty(SystemConfig["xenia_video_standard"]))
-                        ini.AppendValue("Video", "video_standard", SystemConfig["xenia_video_standard"]);
+                        ini.AppendValue("Console", "video_standard", SystemConfig["xenia_video_standard"]);
                     else if (Features.IsSupported("xenia_video_standard"))
-                        ini.AppendValue("Video", "video_standard", "1");
+                        ini.AppendValue("Console", "video_standard", "1");
 
                     if (SystemConfig.isOptSet("xenia_avpack") && !string.IsNullOrEmpty(SystemConfig["xenia_avpack"]))
                         ini.AppendValue("Video", "avpack", SystemConfig["xenia_avpack"]);
@@ -740,14 +706,14 @@ namespace EmulatorLauncher
                         ini.AppendValue("Video", "avpack", "8");
 
                     if (SystemConfig.isOptSet("xenia_widescreen") && !string.IsNullOrEmpty(SystemConfig["xenia_widescreen"]))
-                        ini.AppendValue("Video", "widescreen", SystemConfig["xenia_widescreen"]);
+                        ini.AppendValue("Console", "widescreen", SystemConfig["xenia_widescreen"]);
                     else if (Features.IsSupported("xenia_widescreen"))
-                        ini.AppendValue("Video", "widescreen", "true");
+                        ini.AppendValue("Console", "widescreen", "true");
 
                     if (SystemConfig.isOptSet("xenia_pal50") && SystemConfig.getOptBoolean("xenia_pal50"))
-                        ini.AppendValue("Video", "use_50Hz_mode", "true");
+                        ini.AppendValue("Console", "use_50Hz_mode", "true");
                     else if (Features.IsSupported("xenia_pal50"))
-                        ini.AppendValue("Video", "use_50Hz_mode", "false");
+                        ini.AppendValue("Console", "use_50Hz_mode", "false");
 
                     // Memory section
                     if (SystemConfig.isOptSet("scribble_heap") && SystemConfig.getOptBoolean("scribble_heap"))
@@ -785,10 +751,10 @@ namespace EmulatorLauncher
                         ini.AppendValue("HID", "hid", "\"sdl\"");
 
                     // Console language
-                    if (SystemConfig.isOptSet("xenia_lang_edge") && !string.IsNullOrEmpty(SystemConfig["xenia_lang_edge"]))
-                        ini.AppendValue("XConfig", "user_language", "\"" + SystemConfig["xenia_lang_edge"] + "\"");
-                    else if (Features.IsSupported("xenia_lang_edge"))
-                        ini.AppendValue("XConfig", "user_language", GetXboxLangFromEnvironment());
+                    if (SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
+                        ini.AppendValue("Console", "user_language", SystemConfig["xenia_lang"]);
+                    else if (Features.IsSupported("xenia_lang"))
+                        ini.AppendValue("Console", "user_language", GetXboxLangFromEnvironment());
 
                     // Profiles
                     for (int i = 1; i < 4; i++)
@@ -836,43 +802,18 @@ namespace EmulatorLauncher
                 { "nl", "16" }
             };
 
-            var edgeavailableLanguages = new Dictionary<string, string>()
-            {
-                { "en", "English" },
-                { "jp", "Japanese" },
-                { "ja", "Japanese" },
-                { "de", "German" },
-                { "fr", "French" },
-                { "es", "Spanish" },
-                { "it", "Italian" },
-                { "ko", "Korean" },
-                { "zh", "TChinese" },
-                { "pt", "Portuguese" },
-                { "pl", "Polish" },
-                { "ru", "Russian" },
-                { "sv", "English" },
-                { "tr", "English" },
-                { "nl", "English" }
-            };
-
             // Special case for Taiwanese which is zh_TW
             if (SystemConfig["Language"] == "zh_TW")
-                return _edge ? StringExtensions.QuoteString("TChinese", true) :"17";
+                return "17";
 
             string lang = GetCurrentLanguage();
             if (!string.IsNullOrEmpty(lang))
             {
-                if (_edge)
-                {
-                    if (edgeavailableLanguages.TryGetValue(lang, out string ret))
-                        return StringExtensions.QuoteString(ret, true);
-                }
-                
-                else if (availableLanguages.TryGetValue(lang, out string ret))
+                if (availableLanguages.TryGetValue(lang, out string ret))
                     return ret;
             }
 
-            return _edge ? StringExtensions.QuoteString("English", true) : "1";
+            return "1";
         }
 
         private bool useXeniaManagerConfig(string path, string rom)
@@ -912,6 +853,154 @@ namespace EmulatorLauncher
             _xeniaManagerConfigFile = cfgFile;
             SimpleLogger.Instance.Info("[INFO] Using config file: " + cfgFile);
             return true;
+        }
+
+        private void SetupXConfig(string xeniaPath)
+        {
+            string xconfigPath = Path.Combine(xeniaPath, "xconfig.settings");
+
+            byte[] data;
+            if (File.Exists(xconfigPath))
+            {
+                data = File.ReadAllBytes(xconfigPath);
+                if (data.Length != 0x1A18)
+                    data = CreateDefaultXConfig();
+            }
+            else
+            {
+                string dir = Path.GetDirectoryName(xconfigPath);
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+                data = CreateDefaultXConfig();
+            }
+
+            const int UserBase = 0x08E6;
+            const int SecuredBase = 0x06E6;
+
+            // --- Widescreen ---
+            bool widescreen = !SystemConfig.isOptSet("xenia_widescreen") || SystemConfig.getOptBoolean("xenia_widescreen");
+            uint videoFlags = widescreen ? 0x00010000u : 0x00000000u;
+
+            // --- PAL / PAL50 / NTSC ---
+            uint avRegion;
+            int videoStandard = SystemConfig.isOptSet("xenia_video_standard") ? SystemConfig["xenia_video_standard"].ToInteger() : 1;
+
+            switch (videoStandard)
+            {
+                case 2: // NTSC-J
+                    avRegion = 0x00400200u;
+                    WriteUInt32BE(data, UserBase + 0x164, 0x02D001E0u); // VGA 720x480
+                    break;
+                case 3: // PAL
+                    avRegion = 0x00400400u;
+                    WriteUInt32BE(data, UserBase + 0x164, 0x02D00240u); // VGA 720x576
+                    break;
+                case 4: // PAL50
+                    avRegion = 0x00800300u;
+                    videoFlags |= 0x00000002u;
+                    WriteUInt32BE(data, UserBase + 0x164, 0x02D00240u); // VGA 720x576
+                    break;
+                default: // NTSC (1)
+                    avRegion = 0x00400100u;
+                    WriteUInt32BE(data, UserBase + 0x164, 0x02D001E0u); // VGA 720x480
+                    break;
+            }
+
+            WriteUInt32BE(data, SecuredBase + 0x28, avRegion);
+            WriteUInt32BE(data, UserBase + 0x030, videoFlags);
+
+            // --- Resolution ---
+            uint resolution = GetXConfigResolution();
+            WriteUInt32BE(data, UserBase + 0x15C, resolution); // Composite/HDMI
+            WriteUInt32BE(data, UserBase + 0x160, resolution); // Component
+
+            // --- Langue ---
+            int language = GetXboxLangFromEnvironment().ToInteger();
+            if (SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
+                language = SystemConfig["xenia_lang"].ToInteger();
+
+            WriteUInt32BE(data, UserBase + 0x02C, ((uint)language));
+
+            File.WriteAllBytes(xconfigPath, data);
+        }
+
+        private static void WriteUInt32BE(byte[] data, int offset, uint value)
+        {
+            data[offset] = (byte)(value >> 24);
+            data[offset + 1] = (byte)(value >> 16);
+            data[offset + 2] = (byte)(value >> 8);
+            data[offset + 3] = (byte)(value);
+        }
+
+        private uint GetXConfigResolution()
+        {
+            if (!SystemConfig.isOptSet("xenia_internal_display_resolution"))
+                return 0x050002D0u; // 1280x720 par défaut
+
+            switch (SystemConfig["xenia_internal_display_resolution"].ToInteger())
+            {
+                case 0: return 0x028001E0u; // 640x480
+                case 1: return 0x02800240u; // 640x576
+                case 2: return 0x02D001E0u; // 720x480
+                case 3: return 0x02D00240u; // 720x576
+                case 4: return 0x03200258u; // 800x600
+                case 5: return 0x035001E0u; // 848x480
+                case 6: return 0x04000300u; // 1024x768
+                case 7: return 0x04800360u; // 1152x864
+                case 8: return 0x050002D0u; // 1280x720
+                case 9: return 0x05000300u; // 1280x768
+                case 10: return 0x050003C0u; // 1280x960
+                case 11: return 0x05000400u; // 1280x1024
+                case 12: return 0x05500300u; // 1360x768
+                case 13: return 0x05A00384u; // 1440x900
+                case 14: return 0x0690041Au; // 1680x1050
+                case 15: return 0x0780021Cu; // 1920x540
+                case 16: return 0x07800438u; // 1920x1080
+                default: return 0x050002D0u; // 1280x720 par défaut
+            }
+        }
+
+        private static byte[] CreateDefaultXConfig()
+        {
+            byte[] data = new byte[0x1A18];
+            const int SecuredBase = 0x06E6;
+            const int UserBase = 0x08E6;
+
+            // Secured: AvRegion = NtscM
+            WriteUInt32BE(data, SecuredBase + 0x28, 0x00400100u);
+
+            // User: VideoFlags = RatioNormal
+            WriteUInt32BE(data, UserBase + 0x030, 0u);
+
+            // User: Language = English
+            WriteUInt32BE(data, UserBase + 0x02C, 1u);
+
+            // User: Country = UnitedStates
+            data[UserBase + 0x040] = 103;
+
+            // User: AudioFlags = DolbyDigital | DolbyProLogic
+            WriteUInt32BE(data, UserBase + 0x034, 0x00010001u);
+
+            // User: résolutions par défaut 1280x720
+            WriteUInt32BE(data, UserBase + 0x15C, 0x050002D0u);
+            WriteUInt32BE(data, UserBase + 0x160, 0x050002D0u);
+
+            // User: VGA 720x480
+            WriteUInt32BE(data, UserBase + 0x164, 0x02D001E0u);
+
+            // User: RetailFlags = DashboardInitialized
+            WriteUInt32BE(data, UserBase + 0x038, 0x00000040u);
+
+            // User: PcFlags = XBLAllowed | XBLMembershipCreationAllowed
+            data[UserBase + 0x041] = 0x03;
+
+            // User: PcGame = NoGameRestrictions
+            WriteUInt32BE(data, UserBase + 0x168, 0x000000FFu);
+
+            // User: MusicVolume = 0.7f
+            WriteUInt32BE(data, UserBase + 0x1C1, 0x3F333333u);
+
+            return data;
         }
     }
 

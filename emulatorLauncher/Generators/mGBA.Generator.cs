@@ -166,7 +166,7 @@ namespace EmulatorLauncher
 
                 BindBoolIniFeature(ini, "ports.qt", "lockIntegerScaling", "integerscale", "1", "0");
 
-                ConfigureControllers(ini);
+                ConfigureControllers(ini, system);
 
                 ini.Save();
             }

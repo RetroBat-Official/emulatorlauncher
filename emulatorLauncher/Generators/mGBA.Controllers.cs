@@ -11,7 +11,9 @@ namespace EmulatorLauncher
 {
     partial class MGBAGenerator : Generator
     {
-        private void ConfigureControllers(IniFile ini)
+        static readonly List<string> systemGameboy = new List<string>() { "gb", "gb2players", "gbc", "gbc2players", "sgb", "sgb-msu", "sgb-msu1", "gb-msu", "gb-msu1" };
+        
+        private void ConfigureControllers(IniFile ini, string system)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
@@ -60,7 +62,36 @@ namespace EmulatorLauncher
             WriteKeyConfig(c1, InputKey.pagedown, ini, section, "keyR", "axisRAxis", null, "axisRValue");
 
             WriteKeyConfig(c1, InputKey.start, ini, section, "keyStart", "axisStartAxis", null, "axisStartValue");
-            WriteKeyConfig(c1, InputKey.select, ini, section, "keySelect", "axisSelectAxis", null, "axisSelectValue");
+
+            if (systemGameboy.Contains(system) && SystemConfig.isOptSet("gb_remap_select") && !string.IsNullOrEmpty(SystemConfig["gb_remap_select"]))
+            {
+                string button = SystemConfig["gb_remap_select"];
+                InputKey targetKey = InputKey.select;
+                switch (button)
+                {
+                    case "l":
+                        targetKey = InputKey.pageup;
+                        break;
+                    case "r":
+                        targetKey = InputKey.pagedown;
+                        break;
+                    case "l2":
+                        targetKey = InputKey.l2;
+                        break;
+                    case "r2":
+                        targetKey = InputKey.r2;
+                        break;
+                    case "l3":
+                        targetKey = InputKey.l3;
+                        break;
+                    case "r3":
+                        targetKey = InputKey.r3;
+                        break;
+                }
+                WriteKeyConfig(c1, targetKey, ini, section, "keySelect", "axisSelectAxis", null, "axisSelectValue");
+            }
+            else
+                WriteKeyConfig(c1, InputKey.select, ini, section, "keySelect", "axisSelectAxis", null, "axisSelectValue");
 
             if (invertButtons)
             {
