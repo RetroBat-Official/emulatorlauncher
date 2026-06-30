@@ -18,6 +18,8 @@ namespace EmulatorLauncher
         }
 
         private string _squashfsDev_hdd0Path = null;
+        private bool _noGameOverride = true;
+        private string _path;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -27,6 +29,8 @@ namespace EmulatorLauncher
 
             if (string.IsNullOrEmpty(path) && emulator != "rpcs3")
                 path = AppConfig.GetFullPath("rpcs3");
+
+            _path = path;
 
             string exe = Path.Combine(path, "rpcs3.exe");
             if (!File.Exists(exe))
@@ -133,13 +137,37 @@ namespace EmulatorLauncher
                     commandArray.Add("--fullscreen");
             }
 
+            // config file management
             string configFilePath = Path.Combine(path, "config", "config.yml");
 
-            bool useCustomConfig = SystemConfig.getOptBoolean("rpcs3_custom_config");
-            if (!useCustomConfig)
+            if (SystemConfig.isOptSet("rpcs3_custom_config") && !string.IsNullOrEmpty(SystemConfig["rpcs3_custom_config"]))
             {
-                commandArray.Add("--config");
-                commandArray.Add(StringExtensions.QuoteString(configFilePath));
+                _noGameOverride = SystemConfig["rpcs3_custom_config"] == "strict" || SystemConfig["rpcs3_custom_config"] == "default";
+                bool overrideConfig = SystemConfig["rpcs3_custom_config"] == "strict";
+
+                if (overrideConfig)
+                {
+                    commandArray.Add("--config");
+                    commandArray.Add(StringExtensions.QuoteString(configFilePath));
+                }
+            }
+
+            if (_noGameOverride)
+            {
+                string gameConfigPath = Path.Combine(path, "config", "custom_configs");
+                string targetConfigPath = Path.Combine(path, "config", "custom_configs_backup");
+
+                if (Directory.Exists(targetConfigPath))
+                {
+                    try { Directory.Delete(targetConfigPath, true); }
+                    catch (Exception ex) { SimpleLogger.Instance.Error("[GENERATOR] Error deleting custom_configs_backup: " + ex.Message); }
+                }
+
+                if (!Directory.Exists(targetConfigPath))
+                {
+                    try { Directory.Move(gameConfigPath, targetConfigPath); }
+                    catch { }
+                }
             }
 
             string args = string.Join(" ", commandArray);
@@ -496,6 +524,9 @@ namespace EmulatorLauncher
                 // Libraries
                 var libs = core.GetOrCreateContainer("Libraries Control");
 
+                // Remove "[]" if empty
+                libs.Elements.RemoveAll(e => (e as YmlElement)?.Value?.Trim() == "[]");
+
                 if (SystemConfig.getOptBoolean("rpcs3_libvdec"))
                 {
                     if (!libs.Elements.OfType<YmlElement>().Any(e => e.Value == "- libvdec.sprx:lle"))
@@ -554,6 +585,29 @@ namespace EmulatorLauncher
                     return ret;
             }
             return "English (US)";
+        }
+
+        public override void Cleanup()
+        {
+            base.Cleanup();
+
+            if (_noGameOverride)
+            {
+                string gameConfigPath = Path.Combine(_path, "config", "custom_configs");
+                string targetConfigPath = Path.Combine(_path, "config", "custom_configs_backup");
+
+                if (!Directory.Exists(gameConfigPath) && Directory.Exists(targetConfigPath))
+                {
+                    try { Directory.Move(targetConfigPath, gameConfigPath); }
+                    catch { }
+                }
+
+                if (Directory.Exists(targetConfigPath))
+                {
+                    try { Directory.Delete(targetConfigPath, true); }
+                    catch { }
+                }
+            }
         }
     }
 }
