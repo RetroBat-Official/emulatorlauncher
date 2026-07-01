@@ -176,6 +176,11 @@ namespace EmulatorLauncher
             BindBoolFeatureOn(input, "motion_controls_enabled", "shadps4_motion");
             general["show_splash"] = false;
 
+            string homeDir = Path.Combine(AppConfig.GetFullPath("saves"), "ps4", "shadps4", "home");
+            if (!Directory.Exists(homeDir))
+                try { Directory.CreateDirectory(homeDir); } catch { }
+            general["home_dir"] = homeDir;
+
             // GPU section
             if (!fullscreen)
             {
@@ -352,10 +357,16 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Warning("versions.json not found!");
                 string exeFile = Directory.GetFiles(path, "*", SearchOption.AllDirectories).FirstOrDefault(f => Path.GetFileName(f).Equals("shadPS4.exe", StringComparison.OrdinalIgnoreCase) && (requestedVersion == null || Path.GetDirectoryName(f).Contains(requestedVersion)));
 
+                if (exeFile == null)
+                {
+                    SimpleLogger.Instance.Warning("Specific version not found in launcher path, searching first available executable.");
+                    exeFile = Directory.GetFiles(path, "*", SearchOption.AllDirectories).FirstOrDefault(f => Path.GetFileName(f).Equals("shadPS4.exe", StringComparison.OrdinalIgnoreCase));
+                }
+
                 if (exeFile != null)
                     return exeFile;
                 else
-                    return null;
+                    throw new ApplicationException("Unable to find requested version of shadPS4 executable.");
             }
             else
             {
@@ -419,10 +430,16 @@ namespace EmulatorLauncher
                     {
                         string exeFile = Directory.GetFiles(path, "*", SearchOption.AllDirectories).FirstOrDefault(f => Path.GetFileName(f).Equals("shadPS4.exe", StringComparison.OrdinalIgnoreCase) && (requestedVersion == null || Path.GetDirectoryName(f).Contains(requestedVersion)));
 
+                        if (exeFile == null)
+                        {
+                            SimpleLogger.Instance.Warning("Specific version not found in versions json, searching first available executable.");
+                            exeFile = Directory.GetFiles(path, "*", SearchOption.AllDirectories).FirstOrDefault(f => Path.GetFileName(f).Equals("shadPS4.exe", StringComparison.OrdinalIgnoreCase));
+                        }
+
                         if (exeFile != null)
                             return exeFile;
                         else
-                            return null;
+                            throw new ApplicationException("Unable to find requested version of shadPS4 executable.");
                     }
 
                     else
