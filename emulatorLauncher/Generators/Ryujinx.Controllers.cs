@@ -277,11 +277,37 @@ namespace EmulatorLauncher
             newInputConfig["trigger_threshold"] = 0.5;
 
             //motion - can be enabled in features
-            if (Program.SystemConfig.getOptBoolean("ryujinx_enable_motion") && tech != "XInput")
+            if (Program.SystemConfig.isOptSet("ryujinx_enable_motion") && Program.SystemConfig["ryujinx_enable_motion"] == "GamepadDriver")
             {
                 newInputConfig["motion"] = new
                 {
                     motion_backend = "GamepadDriver",
+                    sensitivity = 100,
+                    gyro_deadzone = 1,
+                    enable_motion = true,
+                };
+            }
+            else if (Program.SystemConfig.isOptSet("ryujinx_enable_motion") && Program.SystemConfig["ryujinx_enable_motion"].StartsWith("CemuHook"))
+            {
+                string dsuServer = "127.0.0.1";
+                int dsuPort = 26760;
+
+                if (Program.SystemConfig.isOptSet("ryujinx_dsu") && !string.IsNullOrEmpty(Program.SystemConfig["ryujinx_dsu"]))
+                {
+                    string[] dsu = Program.SystemConfig["ryujinx_dsu"].Split(':');
+                    dsuServer = dsu[0];
+                    if (dsu.Length > 1)
+                        dsuPort = dsu[1].ToInteger();
+                }
+
+                newInputConfig["motion"] = new
+                {
+                    slot = 0,
+                    alt_slot = 0,
+                    mirror_input = Program.SystemConfig["ryujinx_enable_motion"].EndsWith("mirror") ? true : false,
+                    dsu_server_host = dsuServer,
+                    dsu_server_port = dsuPort,
+                    motion_backend = "CemuHook",
                     sensitivity = 100,
                     gyro_deadzone = 1,
                     enable_motion = true,
