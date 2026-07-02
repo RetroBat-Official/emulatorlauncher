@@ -26,6 +26,7 @@ namespace EmulatorLauncher
 
         private string _systemName;
         private string _exename = null;         // variable used for EL to track the game process
+        private string _exename2 = null;        // variable used for EL to track the second / alternative game process
         private bool _isGameExePath = false;    // true if the target of a link or the the .game file points to an existing executable
         private bool _steamRun = false;         // true when Steam URL is detected, to add -silent argument
         private bool _gameExeFile = false;      // true if the process name was specified in the .gameexe file, to avoid override of the process name
@@ -525,17 +526,29 @@ namespace EmulatorLauncher
 
                 _exename = line;
                 SimpleLogger.Instance.Info("[INFO] Executable name specified in .gameexe file: " + _exename);
+
+                string line2 = FileTools.ReadValidLine(executableFile, 1);
+
+                if (line2 != null)
+                {
+                    if (line2.ToLowerInvariant().EndsWith(".exe"))
+                        line2 = line2.Substring(0, line2.Length - 4);
+
+                    _exename2 = line2;
+                    SimpleLogger.Instance.Info("[INFO] Additional executable name specified in .gameexe file: " + _exename2);
+                }
+                    
                 return true;
             }
         }
 
-        private Process WaitForGameProcess(int waitSeconds)
+        private Process WaitForGameProcess(int waitSeconds, string exeName)
         {
             Thread.Sleep(4000);
 
             for (int i = 0; i < waitSeconds; i++)
             {
-                var list = Process.GetProcessesByName(_exename);
+                var list = Process.GetProcessesByName(exeName);
                 if (list.Length > 0)
                     return list.OrderBy(p => p.StartTime).FirstOrDefault();
                 Thread.Sleep(1000);
@@ -545,7 +558,7 @@ namespace EmulatorLauncher
 
         private void StartAndWaitForGame(ProcessStartInfo path)
         {
-            int waittime = 20;
+            int waittime = 30;
             if (Program.SystemConfig.isOptSet("steam_wait") && !string.IsNullOrEmpty(Program.SystemConfig["steam_wait"]))
                 waittime = Program.SystemConfig["steam_wait"].ToInteger();
             SimpleLogger.Instance.Info("[INFO] Starting process, waiting " + waittime + " seconds for the game to run before returning to Game List");
@@ -553,11 +566,17 @@ namespace EmulatorLauncher
             Process.Start(path);
             SimpleLogger.Instance.Info("Process started : " + _exename);
 
-            Process game = WaitForGameProcess(waittime);
+            Process game = WaitForGameProcess(waittime, _exename);
+
+            if (game == null && _exename2 != null)
+                game = WaitForGameProcess(waittime, _exename2);
 
             if (game == null)
             {
-                SimpleLogger.Instance.Info("Process : " + _exename + " not running.");
+                if (_exename2 != null)
+                    SimpleLogger.Instance.Info("Processes : " + _exename + " and " + _exename2 + " not running.");
+                else
+                    SimpleLogger.Instance.Info("Process : " + _exename + " not running.");
 
                 var gameProcess = FindGameProcessByWindowFocus();
                 if (gameProcess != null)
@@ -575,7 +594,28 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
                 Job.Current.AddProcess(game);
                 game.WaitForExit();
+                MonitorSecondExeAfterExit();
             }
+        }
+
+        private void MonitorSecondExeAfterExit()
+        {
+            if (_exename2 == null)
+                return;
+
+            SimpleLogger.Instance.Info("[INFO] Waiting 10 seconds to check if " + _exename2 + " has started.");
+            Thread.Sleep(10000);
+
+            Process game2 = WaitForGameProcess(10, _exename2);
+            if (game2 != null)
+            {
+                SimpleLogger.Instance.Info("Process : " + _exename2 + " found, waiting to exit");
+                Job.Current.AddProcess(game2);
+                game2.WaitForExit();
+                SimpleLogger.Instance.Info("[INFO] Process " + _exename2 + " has exited.");
+            }
+            else
+                SimpleLogger.Instance.Info("[INFO] Process " + _exename2 + " did not start, nothing to monitor.");
         }
 
         #region LinkFiles
