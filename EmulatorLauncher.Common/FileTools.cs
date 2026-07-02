@@ -12,6 +12,10 @@ namespace EmulatorLauncher.Common
 {
     public static class FileTools
     {
+        /// <summary>
+        /// Read the first valid line from a file, ignoring empty lines and comments (lines starting with #)
+        /// </summary>
+        /// <param name="file"></param>
         public static string ReadFirstValidLine(string file)
         {
             try
@@ -28,6 +32,39 @@ namespace EmulatorLauncher.Common
                     if (t.StartsWith("#"))
                         continue;
                     return t;
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[FILETOOLS] Error reading file " + file + " : " + ex.Message);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Read the x-th valid line from a file, ignoring empty lines and comments (lines starting with #)
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="index"></param>
+        public static string ReadValidLine(string file, int index)
+        {
+            try
+            {
+                var lines = File.ReadAllLines(file);
+                if (lines == null || lines.Length == 0)
+                    return null;
+
+                int count = 0;
+                foreach (var l in lines)
+                {
+                    if (string.IsNullOrWhiteSpace(l))
+                        continue;
+                    var t = l.Trim();
+                    if (t.StartsWith("#"))
+                        continue;
+                    if (count == index)
+                        return t;
+                    count++;
                 }
             }
             catch (Exception ex)
