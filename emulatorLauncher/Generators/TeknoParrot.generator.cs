@@ -24,8 +24,11 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private bool _triforce = false;
         private bool _namco2x6 = false;
+        private static bool _namco2x6_play = false;
+        private static bool _namco2x6_pcsx2x6 = false;
         private bool _namco3xx = false;
         private bool _chihiro = false;
+        
 
         static readonly Dictionary<string, string> executables = new Dictionary<string, string>()
         {
@@ -180,6 +183,16 @@ namespace EmulatorLauncher
 
             if (core == "triforce")
                 _triforce = true;
+            else if (core == "pcsx2x6")
+            {
+                _namco2x6 = true;
+                _namco2x6_pcsx2x6 = true;
+            }
+            else if (core == "play")
+            {
+                _namco2x6 = true;
+                _namco2x6_play = true;
+            }
             else if (core == "namco2x6")
                 _namco2x6 = true;
             else if (core == "namco3xx")
@@ -191,6 +204,7 @@ namespace EmulatorLauncher
                 rom = this.TryUnZipGameIfNeeded(system, rom);
 
             bool fullscreen = ShouldRunFullscreen();
+
             string gameName = Path.GetFileNameWithoutExtension(rom);
             SimpleLogger.Instance.Info("[INFO] Game name : " + gameName);
 
@@ -541,8 +555,10 @@ namespace EmulatorLauncher
             // Controls
             ConfigureControllers(userProfile, rom);
 
-            if (_namco2x6)
+            if (_namco2x6_play)
                 ConfigurePlay(userProfile);
+            if (_namco2x6_pcsx2x6)
+                ConfigurePcsx2x6(userProfile, path, fullscreen);
             if (_namco3xx)
                 ConfigureRpcs3(userProfile, path);
 
@@ -692,6 +708,39 @@ namespace EmulatorLauncher
                 resolution.FieldValue = "480p";
         }
 
+        private static void ConfigurePcsx2x6(GameProfile userProfile, string emuPath, bool fullscreen)
+        {
+            var graphicsBackend = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Graphics Backend");
+            if (graphicsBackend != null && Program.SystemConfig.isOptSet("tp_pcsx2x6_gpuapi") && !string.IsNullOrEmpty(Program.SystemConfig["tp_pcsx2x6_gpuapi"]))
+                graphicsBackend.FieldValue = Program.SystemConfig["tp_pcsx2x6_gpuapi"];
+            else if (graphicsBackend != null)
+                graphicsBackend.FieldValue = "Automatic";
+
+            var resolution = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Resolution");
+            if (resolution != null && Program.SystemConfig.isOptSet("tp_pcsx2x6_resolution") && !string.IsNullOrEmpty(Program.SystemConfig["tp_pcsx2x6_resolution"]))
+                resolution.FieldValue = Program.SystemConfig["tp_pcsx2x6_resolution"];
+            else if (resolution != null)
+                resolution.FieldValue = "Native";
+
+            var avx2 = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "UseAVX2");
+            if (avx2 != null && Program.SystemConfig.isOptSet("tp_pcsx2x6_disableavx2") && !Program.SystemConfig.getOptBoolean("tp_pcsx2x6_disableavx2"))
+                avx2.FieldValue = "0";
+            else if (avx2 != null)
+                avx2.FieldValue = "1";
+
+            string pcsx2Config = Path.Combine(emuPath, "pcsx2x6", "Teknoparrot", "inis", "PCSX2.ini");
+            if (File.Exists(pcsx2Config))
+            {
+                using (var ini = IniFile.FromFile(pcsx2Config, IniOptions.UseSpaces))
+                {
+                    ini.WriteValue("UI", "ConfirmShutdown", "false");
+                    ini.WriteValue("UI", "RenderToSeparateWindow", "false");
+                    ini.WriteValue("UI", "SetupWizardIncomplete", "false");
+                    ini.WriteValue("UI", "StartFullscreen", fullscreen ? "true" : "false");
+                }
+            }
+        }
+
         private static void ConfigureRpcs3(GameProfile userProfile, string emuPath)
         {
             var graphicsBackend = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Graphics Backend");
@@ -836,7 +885,13 @@ namespace EmulatorLauncher
                 {
                     var profile = JoystickHelper.DeSerializeGameProfile(Path.Combine(path, "GameProfiles", gameName + ".xml"), false);
                     if (profile != null)
+                    {
+                        if (profile.EmulatorType != null && profile.EmulatorType.Equals("pcsx2x6", StringComparison.InvariantCultureIgnoreCase))
+                            _namco2x6_pcsx2x6 = true;
+                        else if (profile.EmulatorType != null && profile.EmulatorType.Equals("play", StringComparison.InvariantCultureIgnoreCase))
+                            _namco2x6_play = true;
                         return profile;
+                    }
                 }
             }
 
@@ -1365,6 +1420,19 @@ namespace EmulatorLauncher
 
             if (_namco3xx)
                 KillProcessTree("rpcs3");
+
+            if (_namco2x6_pcsx2x6)
+            {
+                var matches = Process.GetProcesses()
+                .Where(p => p.ProcessName.StartsWith("pcsx2", StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+
+                foreach (var p in matches)
+                    KillProcessAndChildren(p.Id);
+            }
+
+            if (_namco2x6_play)
+                KillProcessTree("Play");
 
             if (_chihiro)
                 KillProcessTree("cxbxr-ldr");

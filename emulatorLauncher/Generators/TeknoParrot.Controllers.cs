@@ -114,6 +114,9 @@ namespace EmulatorLauncher
                         if (inputAPI.FieldOptions.Any(f => f == "RawInput"))
                             inputAPI.FieldValue = "RawInput";
                         break;
+                    case "MergedInput":
+                        inputAPI.FieldValue = "MergedInput";
+                        break;
                 }
             }
             
