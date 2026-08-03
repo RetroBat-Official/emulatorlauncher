@@ -598,7 +598,7 @@ namespace EmulatorLauncher
                 retList.Add("-multimouse");
 
             if (!SystemConfig.isOptSet("GameFocus") || !SystemConfig.getOptBoolean("Gamefocus"))
-                        retList.Add("-ui_active");
+                retList.Add("-ui_active");
 
             return retList;
         }

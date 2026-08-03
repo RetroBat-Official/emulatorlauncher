@@ -47,7 +47,7 @@ namespace EmulatorLauncher
             var commandArray = new List<string>
             {
                 "-n",
-                "-nb"
+                //"-nb"
             };
 
             if (fullscreen)
@@ -79,7 +79,7 @@ namespace EmulatorLauncher
 
             try
             {
-                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
+                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     Uri relRoot = new Uri(_path, UriKind.Absolute);
 
@@ -110,6 +110,8 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("Display", "ogl_shader", "None");
                     */
+
+                    ini.WriteValue("GUI", "pause_on_focus", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "0" : "1");
 
                     BindBoolIniFeatureOn(ini, "General", "LimitSpeed", "raine_throttle", "1", "0");
                     BindIniFeatureSlider(ini, "General", "frame_skip", "raine_frame_skip", "0");
