@@ -173,8 +173,13 @@ namespace EmulatorLauncher
                     if (File.Exists(model2WheelMapping))
                     {
                         ymlFile = YmlFile.Load(model2WheelMapping);
+                        string searchGameType = wheeltype + "_" + parentRom;
+                        wheelMapping = ymlFile.Elements.Where(c => c.Name == searchGameType).FirstOrDefault() as YmlContainer;
 
-                        wheelMapping = ymlFile.Elements.Where(c => c.Name == wheeltype).FirstOrDefault() as YmlContainer;
+                        if (wheelMapping == null)
+                            wheelMapping = ymlFile.Elements.Where(c => c.Name == wheeltype).FirstOrDefault() as YmlContainer;
+                        else
+                            SimpleLogger.Instance.Info("[WHEELS] Specific game wheel mapping found.");
 
                         if (wheelMapping == null)
                         {
@@ -187,8 +192,8 @@ namespace EmulatorLauncher
                             else
                                 SimpleLogger.Instance.Info("[WHEELS] Using default wheel mapping in yml file.");
                         }
-
-                        SimpleLogger.Instance.Info("[WHEELS] Retrieving wheel mapping from yml file.");
+                        else
+                            SimpleLogger.Instance.Info("[WHEELS] Wheel mapping found.");
 
                         foreach (var mapEntry in wheelMapping.Elements)
                         {
@@ -1702,6 +1707,19 @@ namespace EmulatorLauncher
                             int buttonID = value.ToInteger();
                             bytes[startingbyte] = (byte)buttonID;
                             bytes[startingbyte + 1] = Convert.ToByte(joyIndex + 16);
+                            bytes[startingbyte + 2] = 0x00;
+                            bytes[startingbyte + 3] = 0xFF;
+                        }
+                        catch { }
+                    }
+                    else if (value.ToLowerInvariant().StartsWith("axisnoinv"))
+                    {
+                        try
+                        {
+                            value = value.Substring(9);
+                            int buttonID = value.ToInteger();
+                            bytes[startingbyte] = (byte)buttonID;
+                            bytes[startingbyte + 1] = Convert.ToByte(joyIndex);
                             bytes[startingbyte + 2] = 0x00;
                             bytes[startingbyte + 3] = 0xFF;
                         }

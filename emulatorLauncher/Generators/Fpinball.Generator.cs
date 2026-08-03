@@ -243,10 +243,10 @@ namespace EmulatorLauncher
 
             using (var ini = new IniFile(dmddevice, IniOptions.KeepEmptyLines | IniOptions.UseSpaces | IniOptions.KeepEmptyValues))
             {
-                BindBoolIniFeatureOn(ini, "virtualdmd", "fpinball_virtualdmd", "enabled", "true", "false");
-                BindBoolIniFeature(ini, "zedmd", "fpinball_zedmd", "enabled", "true", "false");
-                BindBoolIniFeature(ini, "pixelcade", "fpinball_pixelcade", "enabled", "true", "false");
-                BindBoolIniFeature(ini, "pin2dmd", "fpinball_pin2dmd", "enabled", "true", "false");
+                BindBoolIniFeatureOn(ini, "virtualdmd", "enabled", "fpinball_virtualdmd", "true", "false");
+                BindBoolIniFeature(ini, "zedmd", "enabled", "fpinball_zedmd", "true", "false");
+                BindBoolIniFeature(ini, "pixelcade", "enabled", "fpinball_pixelcade", "true", "false");
+                BindBoolIniFeature(ini, "pin2dmd", "enabled", "fpinball_pin2dmd", "true", "false");
 
                 ini.Save();
             }

@@ -271,7 +271,7 @@ namespace EmulatorLauncher
 
                     // Game options
                     BindBoolIniFeatureOn(ini, "Game", "hud", "cgenius_hud", "true", "false");
-                    BindBoolIniFeature(ini, "Game", "showfps", "cgenius_fps", "true", "false");
+                    BindBoolIniFeature(ini, "Game", "showfps", "cgenius_showfps", "true", "false");
 
                     ConfigureCGeniusControls(ini);
                 }

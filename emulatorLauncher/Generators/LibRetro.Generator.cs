@@ -1403,11 +1403,7 @@ namespace EmulatorLauncher.Libretro
             // Audio
             // xaudio only works if dx9 is installed on the system
 
-            string systemFolder = Environment.SystemDirectory;
-            string d3d9Path = Path.Combine(systemFolder, "d3d9.dll");
-            string defaultaudioDriver = "xaudio";
-            if (!File.Exists(d3d9Path))
-                defaultaudioDriver = "wasapi";
+            string defaultaudioDriver = HasXAudio27() ? "xaudio" : "wasapi";
 
             BindFeature(retroarchConfig, "audio_driver", "audio_driver", defaultaudioDriver);
             BindFeature(retroarchConfig, "audio_resampler", "audio_resampler", "sinc");
@@ -2227,6 +2223,34 @@ namespace EmulatorLauncher.Libretro
             }
 
             return false;
+        }
+
+        private static bool HasXAudio27()
+        {
+            const string marker = "XAudio2_7.dll";
+
+            try
+            {
+                string windir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+
+                // Processus 32 bits sur Windows 64 bits : System32 est redirigé vers
+                // SysWOW64, Sysnative donne accès au vrai dossier 64 bits.
+                string sys32 = (!Environment.Is64BitProcess && Environment.Is64BitOperatingSystem)
+                    ? Path.Combine(windir, "Sysnative")
+                    : Path.Combine(windir, "System32");
+
+                if (!File.Exists(Path.Combine(sys32, marker)))
+                    return false;
+
+                if (Environment.Is64BitOperatingSystem && !File.Exists(Path.Combine(windir, "SysWOW64", marker)))
+                    return false;
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
         #endregion
 
