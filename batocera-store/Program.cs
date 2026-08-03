@@ -232,15 +232,27 @@ namespace batocera_store
                     }
                 }
 
-                foreach (var file in installed.InstalledFiles.Files.ToArray().Reverse())
+                foreach (var file in installed.InstalledFiles.Files.OrderByDescending(f => f.Count(c => c == '/' || c == '\\')))
                 {
                     string fullPath = Path.Combine(root, file);
 
-                    if (Directory.Exists(fullPath))
+                    if (!Directory.Exists(fullPath))
+                        continue;
+
+                    // Never delete a symlink / junction : the link itself would be removed
+                    // while its target stays untouched (roms folder redirection)
+                    if ((new DirectoryInfo(fullPath).Attributes & FileAttributes.ReparsePoint) != 0)
                     {
-                        try { Directory.Delete(fullPath); }
-                        catch { }
+                        SimpleLogger.Instance.Info("[Uninstall] Skipping reparse point : " + fullPath);
+                        continue;
                     }
+
+                    try
+                    {
+                        if (!Directory.EnumerateFileSystemEntries(fullPath).Any())
+                            Directory.Delete(fullPath);
+                    }
+                    catch (Exception ex) { SimpleLogger.Instance.Warning("[Uninstall] " + fullPath + " : " + ex.Message); }
                 }
 
                 if (package != null)
