@@ -88,10 +88,15 @@ namespace EmulatorLauncher
                         ini.WriteValue("Screen Setup", "Polymer", "1");
                         ini.WriteValue("Screen Setup", "ScreenBPP", "32");
                     }
+                    else if (SystemConfig.isOptSet("eduke_video") && SystemConfig["eduke_video"] == "polymost")
+                    {
+                        ini.WriteValue("Screen Setup", "Polymer", "0");
+                        ini.WriteValue("Screen Setup", "ScreenBPP", "32");
+                    }
                     else
                     {
                         ini.WriteValue("Screen Setup", "Polymer", "0");
-                        BindIniFeature(ini, "Screen Setup", "ScreenBPP", "eduke_video", "32");
+                        ini.WriteValue("Screen Setup", "ScreenBPP", "8");
                     }
 
                     if (!SystemConfig.isOptSet("eduke_resolution") && resolution != null)

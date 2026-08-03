@@ -62,9 +62,9 @@ namespace EmulatorLauncher
 
             using (var ini = new IniFile(conf, IniOptions.KeepEmptyValues))
             {
-                ini.WriteValue("UI", "check_for_updates_on_start\\default", "false");
-                ini.WriteValue("UI", "check_for_updates_on_start", "false");
-                ini.WriteValue("UI", "firstStart\\default", "true");
+                //ini.WriteValue("UI", "check_for_updates_on_start\\default", "false");
+                //ini.WriteValue("UI", "check_for_updates_on_start", "false");
+                ini.WriteValue("UI", "firstStart\\default", "false");
                 ini.WriteValue("UI", "firstStart", "false");
 
                 // Set up paths
@@ -150,8 +150,8 @@ namespace EmulatorLauncher
 
                 ini.WriteValue("WebService", "enable_telemetry\\default", "true");
                 ini.WriteValue("WebService", "enable_telemetry", "false");
-                ini.WriteValue("WebService", "enable_auto_update_check\\default", "false");
-                ini.WriteValue("WebService", "enable_auto_update_check", "false");
+                //ini.WriteValue("WebService", "enable_auto_update_check\\default", "false");
+                //ini.WriteValue("WebService", "enable_auto_update_check", "false");
                 ini.WriteValue("UI", "confirmStop\\default", "false");
                 ini.WriteValue("UI", "confirmStop", "2");
 

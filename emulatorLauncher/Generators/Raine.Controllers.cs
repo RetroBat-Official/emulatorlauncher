@@ -185,6 +185,13 @@ namespace EmulatorLauncher
             string iniSection = "emulator_key_config_sdl2";
             var iniValues = ini.EnumerateValues(iniSection);
 
+            ini.Remove(iniSection, "Return_to_GUI");
+
+            ini.WriteValue(iniSection, "Reset_game", "66");        // F9
+            ini.WriteValue(iniSection, "Reset_game_kmod", "0");
+            ini.WriteValue(iniSection, "Stop_emulation", "69");        // F10
+            ini.WriteValue(iniSection, "Stop_emulation_kmod", "0");
+
             if (Hotkeys.GetHotKeysFromFile("raine", "", out Dictionary<string, HotkeyResult> hotkeys))
             {
                 foreach (var hk in hotkeys)

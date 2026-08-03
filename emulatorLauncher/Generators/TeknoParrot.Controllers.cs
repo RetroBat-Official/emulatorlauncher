@@ -136,8 +136,15 @@ namespace EmulatorLauncher
 
             if (tpMappingyml != null && File.Exists(tpMappingyml))
             {
+                string layout = "";
+                if (Program.SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))
+                    layout = Program.SystemConfig["controller_layout"];
+
                 YmlFile ymlFile = YmlFile.Load(tpMappingyml);
                 string padGameName = tpGameName + "_pad";
+                if (!string.IsNullOrEmpty(layout))
+                    padGameName = tpGameName + "_" + layout;
+
                 game = ymlFile.Elements.Where(g => g.Name == padGameName).FirstOrDefault() as YmlContainer;
                 
                 if (game == null)

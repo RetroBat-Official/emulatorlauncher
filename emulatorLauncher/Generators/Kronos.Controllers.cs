@@ -173,7 +173,7 @@ namespace EmulatorLauncher
 
             ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Type", cType);
 
-            if (SystemConfig.isOptSet("yaba_leftstick") && SystemConfig.getOptBoolean("yaba_leftstick"))
+            if (SystemConfig.isOptSet("kronos_leftstick") && SystemConfig.getOptBoolean("kronos_leftstick"))
             {
                 ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\0", GetInputKeyName(ctrl, InputKey.leftanalogup, index));
                 ini.WriteValue("1.0", "Input\\Port\\" + port + "\\Id\\" + controllerId + "\\Controller\\" + cType + "\\Key\\1", GetInputKeyName(ctrl, InputKey.leftanalogright, index));
