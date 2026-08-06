@@ -14,6 +14,11 @@ namespace EmulatorLauncher
     {
         private static void ConfigureControllers(GameProfile userProfile, string rom)
         {
+            SimpleLogger.Instance.Info("[INFO] Check if Wheel configuration is required.");
+
+            if (ConfigureTPWheels(userProfile, rom))
+                return;
+
             SimpleLogger.Instance.Info("[INFO] Check if Gun configuration is required.");
 
             if (ConfigureTPGuns(userProfile, rom))
