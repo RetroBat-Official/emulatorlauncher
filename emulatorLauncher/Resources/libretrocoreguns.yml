@@ -284,3 +284,14 @@ swanstation:
   start: nul
   start_changereload: nul
   select: nul
+ymir:
+  reload: 2
+  aux_a: nul
+  aux_b: nul
+  aux_c: nul
+  aux_a_changereload: nul
+  aux_b_changereload: nul
+  aux_c_changereload: nul
+  start: 3
+  start_changereload: nul
+  select: nul

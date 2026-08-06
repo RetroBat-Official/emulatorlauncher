@@ -294,7 +294,8 @@ namespace EmulatorLauncher.Libretro
                 { "x64sdl", "VICE SDL" },
                 { "xrick", "xrick" },
                 { "yabasanshiro", "YabaSanshiro" },
-                { "yabause", "Yabause" }
+                { "yabause", "Yabause" },
+                { "ymir", "Emir" },
             };
 
             if (coreNames.TryGetValue(core, out string ret))
@@ -473,6 +474,7 @@ namespace EmulatorLauncher.Libretro
             Configurex1(retroarchConfig, coreSettings, system, core);
             ConfigureYabause(retroarchConfig, coreSettings, system, core);
             ConfigureYabasanshiro(retroarchConfig, coreSettings, system, core);
+            ConfigureYmir(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -5518,6 +5520,40 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["input_libretro_device_p" + i] = "1";
                 }
             }
+        }
+
+        private void ConfigureYmir(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "ymir")
+                return;
+
+            BindFeature(coreSettings, "ymir_region", "ymir_region", "auto");
+            BindFeature(coreSettings, "ymir_cartridge", "ymir_cartridge", "auto");
+            BindBoolFeature(coreSettings, "ymir_sh2_cache", "ymir_sh2_cache", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "ymir_deinterlace", "ymir_deinterlace", "enabled", "disabled");
+
+            // Controls
+            if (SystemConfig.isOptSet("ymir_controller") && !string.IsNullOrEmpty(SystemConfig["ymir_controller"]))
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["ymir_controller"];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 9; i++)
+                {
+                    retroarchConfig["input_libretro_device_p" + i] = "1";
+                }
+            }
+
+            // guns
+            string guntype = "4";
+            if (SystemConfig.isOptSet("ymir_guntype") && !string.IsNullOrEmpty(SystemConfig["ymir_guntype"]))
+                guntype = SystemConfig["ymir_guntype"];
+
+            SetupLightGuns(retroarchConfig, guntype, core);
         }
         #endregion
     }
