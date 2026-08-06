@@ -198,7 +198,7 @@ namespace EmulatorLauncher
                 /// -crosshairpath
                 /// -swpath
 
-                commandArray.AddRange(GetCommonMame64Arguments(rom, hbmame, system, resolution));
+                commandArray.AddRange(GetCommonMame64Arguments(rom, hbmame, system, system, resolution));
 
                 // Unknown system, try to run with rom name only
                 commandArray.Add(Path.GetFileNameWithoutExtension(rom));
@@ -207,8 +207,12 @@ namespace EmulatorLauncher
             }
             else
             {
+                string messSystem = system;
+                if (messMode != null && !string.IsNullOrEmpty(messMode.MachineName))
+                    messSystem = messMode.MachineName;
+
                 var commandArray = messMode.GetMameCommandLineArguments(system, rom, true);
-                commandArray.AddRange(GetCommonMame64Arguments(rom, hbmame, system, resolution));
+                commandArray.AddRange(GetCommonMame64Arguments(rom, hbmame, system, messSystem, resolution));
 
                 args = commandArray.JoinArguments();
             }
@@ -222,7 +226,7 @@ namespace EmulatorLauncher
             };
         }
 
-        private List<string> GetCommonMame64Arguments(string rom, bool hbmame, string system, ScreenResolution resolution = null)
+        private List<string> GetCommonMame64Arguments(string rom, bool hbmame, string system, string messSystem, ScreenResolution resolution = null)
         {
             var retList = new List<string>();
 
@@ -584,7 +588,7 @@ namespace EmulatorLauncher
             
             else if (!SystemConfig.isOptSet("mame_ctrlr_profile") || SystemConfig["mame_ctrlr_profile"] == "retrobat_auto")
             {
-                if (ConfigureMameControllers(ctrlrPath, hbmame, rom, system))
+                if (ConfigureMameControllers(ctrlrPath, hbmame, rom, system, messSystem))
                 {
                     retList.Add("-ctrlr");
                     retList.Add("retrobat_auto");

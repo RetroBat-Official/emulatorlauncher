@@ -7,12 +7,15 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using ValveKeyValue;
 
 namespace EmulatorLauncher
 {
     partial class Pcsx2Generator : Generator
     {
+        static readonly Regex _vidPid = new Regex(@"VID_[0-9A-F]{4}&PID_[0-9A-F]{4}", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         private void SetupGunQT(IniFile pcsx2ini, string path)
         {
             if (!SystemConfig.getOptBoolean("use_guns"))
@@ -114,12 +117,11 @@ namespace EmulatorLauncher
             else
                 techPadNumber = "Keyboard/";
 
-            // Configure gun for player 1 if option is set in es_features
-            pcsx2ini.WriteValue(usbSection, "Type", "guncon2");
-            pcsx2ini.WriteValue(usbSection, "guncon2_Trigger", guninvert ? "Pointer-0/RightButton" : "Pointer-0/LeftButton");
-
             if (!_isArcade)
             {
+                pcsx2ini.WriteValue(usbSection, "Type", "guncon2");
+                pcsx2ini.WriteValue(usbSection, "guncon2_Trigger", guninvert ? "Pointer-0/RightButton" : "Pointer-0/LeftButton");
+
                 if (SystemConfig["pcsx2_gunmapping"] == "keyboard_middle")
                     pcsx2ini.WriteValue(usbSection, "guncon2_ShootOffscreen", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
                 else
@@ -198,30 +200,95 @@ namespace EmulatorLauncher
             }
             else
             {
-                pcsx2ini.WriteValue(usbSection, "guncon2_A", guninvert ? "Pointer-0/LeftButton" : "Pointer-0/RightButton");
-                pcsx2ini.WriteValue(usbSection, "guncon2_Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
-                pcsx2ini.WriteValue(usbSection, "guncon2_Select", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
-                pcsx2ini.WriteValue("JVS", "Coin1", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
+                
+                bool multigun = guns.Length > 1 && !SystemConfig.getOptBoolean("one_gun");
+                pcsx2ini.WriteValue("InputSources", "RawInput", multigun ? "true" : "false");
 
-                var testDPadSection = pcsx2ini.GetOrCreateSection("Pad1");
-
-                if (testDPadSection != null)
+                if (multigun)
                 {
-                    var testDPad = pcsx2ini.GetValue("Pad1", "Up");
-                    if (testDPad != null && !testDPad.ToLowerInvariant().Contains("keyboard"))
+                    pcsx2ini.ClearSection("RawInput");
+                    int i = 0;
+                    foreach (var gun in guns.Take(2))
                     {
-                        pcsx2ini.AppendValue("Pad1", "Up", "Keyboard/Up");
-                        pcsx2ini.AppendValue("Pad1", "Down", "Keyboard/Down");
-                        pcsx2ini.AppendValue("Pad1", "Left", "Keyboard/Left");
-                        pcsx2ini.AppendValue("Pad1", "Right", "Keyboard/Right");
+                        string gunpath = gun.DevicePath ?? "";
+                        var m = _vidPid.Match(gunpath);
+                        string gunid = m.Success ? m.Value.ToUpperInvariant() : gunpath;
+
+                        pcsx2ini.WriteValue("RawInput", "Pointer" + i + "Device", gunid);
+
+                        i++;
+                    }
+
+                    pcsx2ini.WriteValue("JVS", "Coin1", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
+                    pcsx2ini.WriteValue("JVS", "Coin2", azerty ? "Keyboard/Minus" : "Keyboard/6");
+
+                    pcsx2ini.WriteValue("USB1", "Type", "guncon2");
+                    pcsx2ini.WriteValue("USB1", "guncon2_Trigger", guninvert ? "RawMouse-0/RightButton" : "RawMouse-0/LeftButton");
+                    pcsx2ini.WriteValue("USB1", "guncon2_A", guninvert ? "RawMouse-0/LeftButton" : "RawMouse-0/RightButton");
+                    pcsx2ini.WriteValue("USB1", "guncon2_Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
+                    pcsx2ini.WriteValue("USB1", "guncon2_Select", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
+                    pcsx2ini.WriteValue("USB1", "guncon2_Pointer", "Pointer-0");
+
+                    pcsx2ini.WriteValue("USB2", "Type", "guncon2");
+                    pcsx2ini.WriteValue("USB2", "guncon2_Trigger", guninvert ? "RawMouse-1/RightButton" : "RawMouse-1/LeftButton");
+                    pcsx2ini.WriteValue("USB2", "guncon2_A", guninvert ? "RawMouse-1/LeftButton" : "RawMouse-1/RightButton");
+                    pcsx2ini.WriteValue("USB2", "guncon2_Start", azerty ? "Keyboard/Eacute" : "Keyboard/2");
+                    pcsx2ini.WriteValue("USB2", "guncon2_Select", azerty ? "Keyboard/Minus" : "Keyboard/6");
+                    pcsx2ini.WriteValue("USB2", "guncon2_Pointer", "Pointer-1");
+
+
+                    var testDPadSection = pcsx2ini.GetOrCreateSection("Pad1");
+
+                    if (testDPadSection != null)
+                    {
+                        var testDPad = pcsx2ini.GetValue("Pad1", "Up");
+                        if (testDPad != null && !testDPad.ToLowerInvariant().Contains("keyboard"))
+                        {
+                            pcsx2ini.AppendValue("Pad1", "Up", "Keyboard/Up");
+                            pcsx2ini.AppendValue("Pad1", "Down", "Keyboard/Down");
+                            pcsx2ini.AppendValue("Pad1", "Left", "Keyboard/Left");
+                            pcsx2ini.AppendValue("Pad1", "Right", "Keyboard/Right");
+                        }
+                    }
+                    else
+                    {
+                        pcsx2ini.WriteValue("Pad1", "Up", "Keyboard/Up");
+                        pcsx2ini.WriteValue("Pad1", "Down", "Keyboard/Down");
+                        pcsx2ini.WriteValue("Pad1", "Left", "Keyboard/Left");
+                        pcsx2ini.WriteValue("Pad1", "Right", "Keyboard/Right");
                     }
                 }
+
                 else
                 {
-                    pcsx2ini.WriteValue("Pad1", "Up", "Keyboard/Up");
-                    pcsx2ini.WriteValue("Pad1", "Down", "Keyboard/Down");
-                    pcsx2ini.WriteValue("Pad1", "Left", "Keyboard/Left");
-                    pcsx2ini.WriteValue("Pad1", "Right", "Keyboard/Right");
+                    pcsx2ini.WriteValue(usbSection, "Type", "guncon2");
+                    pcsx2ini.WriteValue(usbSection, "guncon2_Trigger", guninvert ? "Pointer-0/RightButton" : "Pointer-0/LeftButton");
+
+                    pcsx2ini.WriteValue(usbSection, "guncon2_A", guninvert ? "Pointer-0/LeftButton" : "Pointer-0/RightButton");
+                    pcsx2ini.WriteValue(usbSection, "guncon2_Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
+                    pcsx2ini.WriteValue(usbSection, "guncon2_Select", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
+                    pcsx2ini.WriteValue("JVS", "Coin1", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
+
+                    var testDPadSection = pcsx2ini.GetOrCreateSection("Pad1");
+
+                    if (testDPadSection != null)
+                    {
+                        var testDPad = pcsx2ini.GetValue("Pad1", "Up");
+                        if (testDPad != null && !testDPad.ToLowerInvariant().Contains("keyboard"))
+                        {
+                            pcsx2ini.AppendValue("Pad1", "Up", "Keyboard/Up");
+                            pcsx2ini.AppendValue("Pad1", "Down", "Keyboard/Down");
+                            pcsx2ini.AppendValue("Pad1", "Left", "Keyboard/Left");
+                            pcsx2ini.AppendValue("Pad1", "Right", "Keyboard/Right");
+                        }
+                    }
+                    else
+                    {
+                        pcsx2ini.WriteValue("Pad1", "Up", "Keyboard/Up");
+                        pcsx2ini.WriteValue("Pad1", "Down", "Keyboard/Down");
+                        pcsx2ini.WriteValue("Pad1", "Left", "Keyboard/Left");
+                        pcsx2ini.WriteValue("Pad1", "Right", "Keyboard/Right");
+                    }
                 }
             }
 
