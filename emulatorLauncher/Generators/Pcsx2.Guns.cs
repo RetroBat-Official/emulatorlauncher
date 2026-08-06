@@ -227,12 +227,14 @@ namespace EmulatorLauncher
                     pcsx2ini.WriteValue("USB1", "guncon2_A", guninvert ? "RawMouse-0/LeftButton" : "RawMouse-0/RightButton");
                     pcsx2ini.WriteValue("USB1", "guncon2_Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
                     pcsx2ini.WriteValue("USB1", "guncon2_Select", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
+                    pcsx2ini.WriteValue("USB1", "guncon2_Pointer", "Pointer-0");
 
                     pcsx2ini.WriteValue("USB2", "Type", "guncon2");
                     pcsx2ini.WriteValue("USB2", "guncon2_Trigger", guninvert ? "RawMouse-1/RightButton" : "RawMouse-1/LeftButton");
                     pcsx2ini.WriteValue("USB2", "guncon2_A", guninvert ? "RawMouse-1/LeftButton" : "RawMouse-1/RightButton");
                     pcsx2ini.WriteValue("USB2", "guncon2_Start", azerty ? "Keyboard/Eacute" : "Keyboard/2");
                     pcsx2ini.WriteValue("USB2", "guncon2_Select", azerty ? "Keyboard/Minus" : "Keyboard/6");
+                    pcsx2ini.WriteValue("USB2", "guncon2_Pointer", "Pointer-1");
 
 
                     var testDPadSection = pcsx2ini.GetOrCreateSection("Pad1");

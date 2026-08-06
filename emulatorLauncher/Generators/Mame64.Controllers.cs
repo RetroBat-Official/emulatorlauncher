@@ -31,7 +31,10 @@ namespace EmulatorLauncher
                 { "loopy", "casloopy"},
                 { "crvision", "crvision"},
                 { "gamecom", "gamecom"},
-                { "supracan", "supracan"}
+                { "supracan", "supracan"},
+                { "fmtowns", "fmtowns"},
+                { "fmtownsux", "fmtownsux"},
+                { "fmtmarty", "fmtmarty"}
             };
 
         private void UpdateSdlControllersWithHints()
@@ -45,7 +48,7 @@ namespace EmulatorLauncher
             Program.Controllers.ForEach(c => c.ResetSdlController());
         }
 
-        private bool ConfigureMameControllers(string path, bool hbmame, string rom, string messSystem)
+        private bool ConfigureMameControllers(string path, bool hbmame, string rom, string esSystem, string messSystem)
         {
             if (Program.SystemConfig["disableautocontrollers"] == "1")
             {
