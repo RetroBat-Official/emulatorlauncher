@@ -5399,7 +5399,7 @@ namespace EmulatorLauncher.Libretro
 
             BindBoolFeature(coreSettings, "virtualjaguar_usefastblitter", "usefastblitter", "enabled", "disabled");
             BindBoolFeature(coreSettings, "virtualjaguar_bios", "bios_vj", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "virtualjaguar_doom_res_hack", "doom_res_hack", "enabled", "disabled");
+            //BindBoolFeature(coreSettings, "virtualjaguar_doom_res_hack", "doom_res_hack", "enabled", "disabled");
             BindBoolFeature(coreSettings, "virtualjaguar_pal", "vj_pal", "enabled", "disabled");
 
             // Controls use core options for pro controller
