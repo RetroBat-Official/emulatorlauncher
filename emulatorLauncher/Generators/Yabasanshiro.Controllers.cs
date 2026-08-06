@@ -53,7 +53,10 @@ namespace EmulatorLauncher
                 ini.WriteValue("0.9.11", port2Type, "0");
             }
 
-            ini.WriteValue("0.9.11", "Input\\PerCore", "3");
+            if (Controllers.Any(c => !c.IsKeyboard))
+                ini.WriteValue("0.9.11", "Input\\PerCore", "3");
+            else
+                ini.WriteValue("0.9.11", "Input\\PerCore", "100");
 
             // Configure hotkeys
             ResetHotkeysToDefault(ini);
