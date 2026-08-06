@@ -178,6 +178,16 @@ namespace EmulatorLauncher
                 if (key.StartsWith("0300"))
                     ini.Remove(joyConfigSection, key);
             }
+
+            // Write coin & start for keyboard
+            ini.WriteValue(iniSection, "Def_P1_Start", "30");
+            ini.WriteValue(iniSection, "Def_P2_Start", "31");
+            ini.WriteValue(iniSection, "Def_P3_Start", "32");
+            ini.WriteValue(iniSection, "Def_P4_Start", "33");
+            ini.WriteValue(iniSection, "Def_Coin_A", "34");
+            ini.WriteValue(iniSection, "Def_Coin_B", "35");
+            ini.WriteValue(iniSection, "Def_Coin_C", "36");
+            ini.WriteValue(iniSection, "Def_Coin_D", "37");
         }
 
         private void SetKeyboardHotKeys(IniFile ini)

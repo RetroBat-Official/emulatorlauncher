@@ -140,7 +140,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("0.9.11", "General\\UseSh2Cache", "true");
                     ini.WriteValue("0.9.11", "Advanced\\SH2Interpreter", "3");
                     ini.WriteValue("0.9.11", "Cartridge\\Type", "6");
-                    BindIniFeature(ini, "0.9.11", "Video\\VideoCore", "yaba_videocore", "1");
+                    BindIniFeature(ini, "0.9.11", "Video\\VideoCore", "yaba_videocore", "4");
                     
                     if (hleBios)
                         ini.WriteValue("0.9.11", "General\\EnableEmulatedBios", "true");
