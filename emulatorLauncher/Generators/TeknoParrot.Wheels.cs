@@ -13,7 +13,6 @@ namespace EmulatorLauncher
 {
     partial class TeknoParrotGenerator : Generator
     {
-        // Alias de fonctions vers les TAGs canoniques de teknoparrot_wheels.yml
         // Function alias → canonical TAG matching keys in teknoparrot_wheels.yml
         // Rule: one physical DirectInput button = one canonical key in the YML
         // Aliases here are all the alternative names a game can use for that physical button
@@ -87,9 +86,12 @@ namespace EmulatorLauncher
             if (ymlFile == null || ymlFile.Elements == null)
                 return;
 
-            Action<YmlContainer> processGameContainer = (gameContainer) =>
+            foreach (var rootEntry in ymlFile.Elements)
             {
-                if (gameContainer == null) return;
+                var gameContainer = rootEntry as YmlContainer;
+                if (gameContainer == null)
+                    continue;
+
                 string gameName = gameContainer.Name.ToLowerInvariant();
                 if (!gameButtonMappings.ContainsKey(gameName))
                     gameButtonMappings[gameName] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -99,36 +101,8 @@ namespace EmulatorLauncher
                 {
                     var mappingEl = mappingEntry as YmlElement;
                     if (mappingEl != null && mappingEl.Value != null)
-                    {
-                        string val = mappingEl.Value.Trim('"', '\'', ' ');
-                        mappings[mappingEl.Name] = val;
-                    }
+                        mappings[mappingEl.Name] = mappingEl.Value.Trim('"', '\'', ' ');
                 }
-            };
-
-            var gameMappingsContainer = ymlFile.Elements.FirstOrDefault(g => g.Name == "GameGearMappings" || g.Name == "GameButtonMappings") as YmlContainer;
-            if (gameMappingsContainer != null)
-            {
-                foreach (var gameEntry in gameMappingsContainer.Elements)
-                {
-                    var gameContainer = gameEntry as YmlContainer;
-                    if (gameContainer != null)
-                        processGameContainer(gameContainer);
-                }
-            }
-
-            foreach (var rootEntry in ymlFile.Elements)
-            {
-                var gameContainer = rootEntry as YmlContainer;
-                if (gameContainer == null) continue;
-                string name = gameContainer.Name;
-
-                if (name.Equals("GameGearMappings", StringComparison.OrdinalIgnoreCase) ||
-                    name.Equals("GameButtonMappings", StringComparison.OrdinalIgnoreCase) ||
-                    name.Equals("default", StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                processGameContainer(gameContainer);
             }
         }
 
@@ -176,13 +150,13 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[WHEELS] Found " + usableWheels.Count + " usable wheel(s).");
 
-            string tpGameName = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
-            if (userProfile != null && !string.IsNullOrEmpty(userProfile.FileName))
+            if (userProfile == null || string.IsNullOrEmpty(userProfile.FileName))
             {
-                string profName = Path.GetFileNameWithoutExtension(userProfile.FileName).ToLowerInvariant();
-                if (!string.IsNullOrEmpty(profName))
-                    tpGameName = profName;
+                SimpleLogger.Instance.Warning("[WHEELS] No user profile, cannot resolve game mapping.");
+                return false;
             }
+
+            string tpGameName = Path.GetFileNameWithoutExtension(userProfile.FileName).ToLowerInvariant();
 
             var inputAPI = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Input API");
             if (inputAPI != null && inputAPI.FieldOptions != null && inputAPI.FieldOptions.Any(f => f == "DirectInput"))
@@ -231,37 +205,18 @@ namespace EmulatorLauncher
             // Read game-specific button mappings from teknoparrot_wheel_mapping.yml
             var gameButtonMappings = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
 
-            // 1. User specific mapping
-            if (Program.AppConfig.isOptSet("userpath") && !string.IsNullOrEmpty(Program.AppConfig["userpath"]))
-            {
-                string userWheelMapping = Path.Combine(Program.AppConfig.GetFullPath("userpath"), "inputmapping", "teknoparrot_wheel_mapping.yml");
-                if (File.Exists(userWheelMapping))
-                {
-                    YmlFile userYml = YmlFile.Load(userWheelMapping);
-                    LoadGameButtonMappingsFromYml(userYml, gameButtonMappings);
-                }
-            }
+            string wheelMappingyml = Controller.GetSystemYmlMappingFile("teknoparrot", "", "teknoparrot", wheelMappingPaths);
 
-            // 2. System default mapping
-            string sysWheelMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "teknoparrot_wheel_mapping.yml");
-            if (File.Exists(sysWheelMapping))
+            if (wheelMappingyml != null && File.Exists(wheelMappingyml))
             {
-                YmlFile sysYml = YmlFile.Load(sysWheelMapping);
-                LoadGameButtonMappingsFromYml(sysYml, gameButtonMappings);
+                SimpleLogger.Instance.Info("[WHEELS] Using game mapping file: " + wheelMappingyml);
+                LoadGameButtonMappingsFromYml(YmlFile.Load(wheelMappingyml), gameButtonMappings);
             }
-
-            // 3. Fallback to teknoparrot_wheels.yml (for backwards compatibility)
-            LoadGameButtonMappingsFromYml(wheelYmlFile, gameButtonMappings);
+            else
+                SimpleLogger.Instance.Warning("[WHEELS] File teknoparrot_wheel_mapping.yml does not exist.");
 
             SimpleLogger.Instance.Info("[WHEELS] Loaded " + gameButtonMappings.Count + " game-specific button mappings.");
 
-            // Resolve actual game key for lookup (fallback to ROM name if needed)
-            if (!gameButtonMappings.ContainsKey(tpGameName))
-            {
-                string romGameName = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
-                if (gameButtonMappings.ContainsKey(romGameName))
-                    tpGameName = romGameName;
-            }
             SimpleLogger.Instance.Info("[WHEELS] Using game mapping key: " + tpGameName);
 
             var dinputCodes = new Dictionary<string, string>();
@@ -296,7 +251,6 @@ namespace EmulatorLauncher
             }
 
             Guid diGuid = c1.DirectInput.InstanceGuid;
-            int diDeviceIndex = c1.DirectInput.DeviceIndex;
 
             Guid gearstickGuid = diGuid;
             if (gearstickDeviceId >= 0)
@@ -310,7 +264,6 @@ namespace EmulatorLauncher
             }
 
             // Build dictionary of generic action keys -> target TeknoParrot InputMapping[]
-            // Dictionnaire des actions génériques -> InputMapping[] TeknoParrot cibles
             var buttonToInputMappings = new Dictionary<string, InputMapping[]>
             {
                 { "GearUp", new[] { InputMapping.Wmmt5GearChangeUp, InputMapping.SrcGearChangeUp, InputMapping.FnfGearChangeUp, InputMapping.IDZGearChangeUp, InputMapping.P1ButtonRight, InputMapping.P1Button2, InputMapping.P1ButtonUp } },
@@ -351,26 +304,19 @@ namespace EmulatorLauncher
             };
 
             // Steer/Gas/Brake/AnalogY axis slot overrides: default Analog0/Analog2/Analog4, configurable per game via SteerMapping/GasMapping/BrakeMapping/AnalogYMapping in YML
-            // Slots d'axes configurables par jeu depuis le YML (SteerMapping/GasMapping/BrakeMapping/AnalogYMapping)
             InputMapping steerMappingSlot = InputMapping.Analog0;
             InputMapping gasMappingSlot = InputMapping.Analog2;
             InputMapping brakeMappingSlot = InputMapping.Analog4;
             InputMapping? analogYMappingSlot = null; // Optional: only injected if game declares AnalogYMapping
-            // Optionnel: injecté uniquement si le jeu déclare AnalogYMapping
-
 
             // Track role keys overridden by Syntax 2 entries (tag: InputMappingEnum), used by Pass 1/2
-            // Clés de rôles overridées par la Syntax 2 (tag: InputMappingEnum), utilisées par les Passes 1/2
             var gameSpecificKeys = new HashSet<string>();
 
             // Direct slot mappings from Syntax 1: InputMapping → DInput codeKey (role)
             // Syntax 1 (e.g. "P1Button1: boost") means: "apply the DInput code of 'Boost' directly to the P1Button1 XML slot"
-            // Mappings directs de la Syntax 1 : InputMapping → codeKey DInput (rôle)
-            // Syntax 1 (ex: "P1Button1: boost") signifie : "appliquer le code DInput de 'Boost' directement sur le slot XML P1Button1"
             var gameDirectSlotMappings = new Dictionary<InputMapping, string>();
 
             // Apply game-specific button mappings if available for this game
-            // Applique les overrides de boutons et d'axes spécifiques au jeu depuis le YML
             if (gameButtonMappings.ContainsKey(tpGameName))
             {
                 var gameMappings = gameButtonMappings[tpGameName];
@@ -382,7 +328,6 @@ namespace EmulatorLauncher
 
                     // Syntax 1: InputMappingEnum: tag (e.g. P1ButtonStart: boost, Analog0: steer)
                     // Meaning: "apply the physical DInput code of the role 'tag' to this specific InputMapping slot"
-                    // Sens : "appliquer le code DInput physique du rôle 'tag' sur ce slot InputMapping spécifique"
                     if (Enum.TryParse(k, out InputMapping targetInputFromKey))
                     {
                         if (v.Equals("steer", StringComparison.OrdinalIgnoreCase) || v.Equals("steermapping", StringComparison.OrdinalIgnoreCase))
@@ -396,14 +341,12 @@ namespace EmulatorLauncher
                         else if (wheelAliasToRole.TryGetValue(v, out string targetRoleFromVal))
                         {
                             // Store: this XML slot will receive the DInput code of 'targetRoleFromVal' directly
-                            // Stocke : ce slot XML recevra directement le code DInput de 'targetRoleFromVal'
                             gameDirectSlotMappings[targetInputFromKey] = targetRoleFromVal;
                             SimpleLogger.Instance.Info("[WHEELS] Game-specific mapping: " + targetInputFromKey + " -> " + targetRoleFromVal);
                         }
                     }
                     // Syntax 2: tag: InputMappingEnum (e.g. Boost: P1ButtonStart, SteerMapping: Analog0)
                     // Meaning: "the role 'tag' now targets this InputMapping instead of the default"
-                    // Sens : "le rôle 'tag' cible désormais ce InputMapping à la place du défaut"
                     else
                     {
                         if (k.Equals("SteerMapping", StringComparison.OrdinalIgnoreCase) && Enum.TryParse(v, out InputMapping customSteer))
@@ -418,7 +361,6 @@ namespace EmulatorLauncher
                         {
                             string resolvedRoleKey = wheelAliasToRole.ContainsKey(k) ? wheelAliasToRole[k] : k;
                             // REPLACE (not concat) so the game-specific override is exclusive
-                            // REMPLACE (pas concat) pour que l'override jeu soit exclusif
                             buttonToInputMappings[resolvedRoleKey] = new[] { customMappingFromVal };
                             gameSpecificKeys.Add(resolvedRoleKey);
                             SimpleLogger.Instance.Info("[WHEELS] Game-specific mapping (override): " + resolvedRoleKey + " -> " + customMappingFromVal);
@@ -479,7 +421,6 @@ namespace EmulatorLauncher
             };
 
             // Pass 1: Apply generic defaults first (skip game-specific overridden keys)
-            // Passe 1 : Applique les defaults génériques (ignore les clés overridées par le jeu)
             foreach (var btnEntry in buttonToInputMappings)
             {
                 if (!gameSpecificKeys.Contains(btnEntry.Key))
@@ -487,7 +428,6 @@ namespace EmulatorLauncher
             }
 
             // Pass 2: Apply game-specific overrides LAST so they always win over defaults
-            // Passe 2 : Applique les overrides du jeu EN DERNIER pour garantir leur priorité
             foreach (var key in gameSpecificKeys)
             {
                 if (buttonToInputMappings.ContainsKey(key))
@@ -496,8 +436,6 @@ namespace EmulatorLauncher
 
             // Pass 3: Apply direct slot mappings from Syntax 1 (e.g. "P1Button1: boost")
             // Applies the DInput code of the named role directly to the exact XML slot, LAST to guarantee priority.
-            // Passe 3 : Applique les mappings directs de la Syntax 1 (ex: "P1Button1: boost")
-            // Applique le code DInput du rôle nommé directement sur le slot XML exact, EN DERNIER pour garantir la priorité.
             foreach (var directEntry in gameDirectSlotMappings)
             {
                 InputMapping targetSlot = directEntry.Key;
@@ -566,7 +504,6 @@ namespace EmulatorLauncher
             }
 
             // Gas - slot configurable via GasMapping in YML (default: Analog2)
-            // Gaz - slot configurable via GasMapping dans le YML (défaut: Analog2)
             if (dinputCodes.ContainsKey("Gas"))
             {
                 string code = dinputCodes["Gas"].ToUpperInvariant();
@@ -576,7 +513,6 @@ namespace EmulatorLauncher
             }
 
             // Brake - slot configurable via BrakeMapping in YML (default: Analog4)
-            // Frein - slot configurable via BrakeMapping dans le YML (défaut: Analog4)
             if (dinputCodes.ContainsKey("Brake"))
             {
                 string code = dinputCodes["Brake"].ToUpperInvariant();
@@ -586,7 +522,6 @@ namespace EmulatorLauncher
             }
 
             // AnalogY - optional secondary axis (e.g. clutch pedal), only injected if game declares AnalogYMapping in YML
-            // Axe Y secondaire (ex: pédale d'embrayage), injecté uniquement si le jeu déclare AnalogYMapping
             if (analogYMappingSlot.HasValue && dinputCodes.ContainsKey("AnalogY"))
             {
                 string code = dinputCodes["AnalogY"].ToUpperInvariant();
@@ -701,5 +636,14 @@ namespace EmulatorLauncher
             xmlPlace.BindNameDi = GetDrivingBindName(code);
             xmlPlace.BindName = xmlPlace.BindNameDi;
         }
+
+        static readonly string[] wheelMappingPaths =
+        {
+            // User specific
+            "{userpath}\\inputmapping\\teknoparrot_wheel_mapping.yml",
+
+            // RetroBat Default
+            "{systempath}\\resources\\inputmapping\\teknoparrot_wheel_mapping.yml",
+        };
     }
 }
