@@ -158,6 +158,72 @@ namespace EmulatorLauncher
 
             string tpGameName = Path.GetFileNameWithoutExtension(userProfile.FileName).ToLowerInvariant();
 
+            // Handle BattleGear4Tuned Shift Mode
+            if (tpGameName == "battlegear4tuned")
+            {
+                string bg4tShiftMode = Program.SystemConfig.isOptSet("bg4t_shiftmode") ? Program.SystemConfig["bg4t_shiftmode"] : "paddles";
+                
+                if (!string.IsNullOrEmpty(bg4tShiftMode) && bg4tShiftMode != "paddles")
+                {
+                    // Sequential mode
+                    if (bg4tShiftMode == "sequential")
+                    {
+                        tpGameName = "battlegear4tuned_sequential";
+                        SimpleLogger.Instance.Info("[WHEELS] Using BattleGear4Tuned Sequential mapping");
+                    }
+                    // Pro Mode Sequential
+                    else if (bg4tShiftMode == "prosequential")
+                    {
+                        tpGameName = "battlegear4tuned_prosequential";
+                        // Enable Professional Edition
+                        var proModeEnable = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Professional Edition Enable");
+                        if (proModeEnable != null)
+                        {
+                            proModeEnable.FieldValue = "1";
+                            SimpleLogger.Instance.Info("[WHEELS] BattleGear4Tuned Pro Mode enabled");
+                        }
+                        // Disable Hold Gear for Pro Sequential mode (auto-neutral)
+                        var proModeHoldGear = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Professional Edition Hold Gear");
+                        if (proModeHoldGear != null)
+                        {
+                            proModeHoldGear.FieldValue = "0";
+                            SimpleLogger.Instance.Info("[WHEELS] BattleGear4Tuned Pro Mode Hold Gear disabled (sequential mode)");
+                        }
+                        SimpleLogger.Instance.Info("[WHEELS] Using BattleGear4Tuned Pro Sequential mapping");
+                    }
+                    // H-pattern mode (Pro Mode)
+                    else if (bg4tShiftMode == "hpattern")
+                    {
+                        tpGameName = "battlegear4tuned_hpattern";
+                        // Enable Professional Edition
+                        var proModeEnable = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Professional Edition Enable");
+                        if (proModeEnable != null)
+                        {
+                            proModeEnable.FieldValue = "1";
+                            SimpleLogger.Instance.Info("[WHEELS] BattleGear4Tuned Pro Mode enabled");
+                        }
+                        // Enable Hold Gear for H-pattern mode
+                        var proModeHoldGear = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Professional Edition Hold Gear");
+                        if (proModeHoldGear != null)
+                        {
+                            proModeHoldGear.FieldValue = "1";
+                            SimpleLogger.Instance.Info("[WHEELS] BattleGear4Tuned Pro Mode Hold Gear enabled (H-pattern mode)");
+                        }
+                        SimpleLogger.Instance.Info("[WHEELS] Using BattleGear4Tuned H-pattern mapping");
+                    }
+                }
+                else
+                {
+                    // Ensure Pro Mode is disabled for default paddle mode
+                    var proModeEnable = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Professional Edition Enable");
+                    if (proModeEnable != null)
+                    {
+                        proModeEnable.FieldValue = "0";
+                        SimpleLogger.Instance.Info("[WHEELS] BattleGear4Tuned Pro Mode disabled (paddle mode)");
+                    }
+                }
+            }
+
             var inputAPI = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Input API");
             if (inputAPI != null && inputAPI.FieldOptions != null && inputAPI.FieldOptions.Any(f => f == "DirectInput"))
                 inputAPI.FieldValue = "DirectInput";
@@ -216,6 +282,24 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Warning("[WHEELS] File teknoparrot_wheel_mapping.yml does not exist.");
 
             SimpleLogger.Instance.Info("[WHEELS] Loaded " + gameButtonMappings.Count + " game-specific button mappings.");
+
+            // Handle Custom Profile for any game
+            string customProfile = Program.SystemConfig.isOptSet("custom_profile") ? Program.SystemConfig["custom_profile"] : "default";
+            if (!string.IsNullOrEmpty(customProfile) && customProfile != "default")
+            {
+                string customGameName = tpGameName + "_" + customProfile;
+                
+                // Check if custom profile exists in the game mappings
+                if (gameButtonMappings.ContainsKey(customGameName))
+                {
+                    tpGameName = customGameName;
+                    SimpleLogger.Instance.Info("[WHEELS] Using custom profile: " + customGameName);
+                }
+                else
+                {
+                    SimpleLogger.Instance.Info("[WHEELS] Custom profile " + customGameName + " not found, using default: " + tpGameName);
+                }
+            }
 
             SimpleLogger.Instance.Info("[WHEELS] Using game mapping key: " + tpGameName);
 
@@ -308,6 +392,10 @@ namespace EmulatorLauncher
             InputMapping gasMappingSlot = InputMapping.Analog2;
             InputMapping brakeMappingSlot = InputMapping.Analog4;
             InputMapping? analogYMappingSlot = null; // Optional: only injected if game declares AnalogYMapping
+            InputMapping? clutchMappingSlot = null; // Optional: only injected if game declares ClutchMapping
+            
+            // Track which axis slots have direct mappings to skip default processing
+            var directMappedAxisSlots = new HashSet<InputMapping>();
 
             // Track role keys overridden by Syntax 2 entries (tag: InputMappingEnum), used by Pass 1/2
             var gameSpecificKeys = new HashSet<string>();
@@ -338,10 +426,15 @@ namespace EmulatorLauncher
                             brakeMappingSlot = targetInputFromKey;
                         else if (v.Equals("analogy", StringComparison.OrdinalIgnoreCase) || v.Equals("analogymapping", StringComparison.OrdinalIgnoreCase))
                             analogYMappingSlot = targetInputFromKey;
+                        else if (v.Equals("clutch", StringComparison.OrdinalIgnoreCase) || v.Equals("clutchmapping", StringComparison.OrdinalIgnoreCase))
+                            clutchMappingSlot = targetInputFromKey;
                         else if (wheelAliasToRole.TryGetValue(v, out string targetRoleFromVal))
                         {
                             // Store: this XML slot will receive the DInput code of 'targetRoleFromVal' directly
                             gameDirectSlotMappings[targetInputFromKey] = targetRoleFromVal;
+                            // Track if this is an axis slot to skip default processing
+                            if (targetInputFromKey.ToString().StartsWith("Analog"))
+                                directMappedAxisSlots.Add(targetInputFromKey);
                             SimpleLogger.Instance.Info("[WHEELS] Game-specific mapping: " + targetInputFromKey + " -> " + targetRoleFromVal);
                         }
                     }
@@ -357,6 +450,8 @@ namespace EmulatorLauncher
                             brakeMappingSlot = customBrake;
                         else if (k.Equals("AnalogYMapping", StringComparison.OrdinalIgnoreCase) && Enum.TryParse(v, out InputMapping customAnalogY))
                             analogYMappingSlot = customAnalogY;
+                        else if (k.Equals("ClutchMapping", StringComparison.OrdinalIgnoreCase) && Enum.TryParse(v, out InputMapping customClutch))
+                            clutchMappingSlot = customClutch;
                         else if (Enum.TryParse(v, out InputMapping customMappingFromVal))
                         {
                             string resolvedRoleKey = wheelAliasToRole.ContainsKey(k) ? wheelAliasToRole[k] : k;
@@ -434,7 +529,7 @@ namespace EmulatorLauncher
                     mapButtonMulti(key, buttonToInputMappings[key]);
             }
 
-            // Pass 3: Apply direct slot mappings from Syntax 1 (e.g. "P1Button1: boost")
+            // Pass 3: Apply direct slot mappings from Syntax 1 (e.g. "P1Button1: boost", "Analog6: gas")
             // Applies the DInput code of the named role directly to the exact XML slot, LAST to guarantee priority.
             foreach (var directEntry in gameDirectSlotMappings)
             {
@@ -448,6 +543,16 @@ namespace EmulatorLauncher
                 var xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == targetSlot && !j.HideWithDirectInput);
                 if (xmlPlace == null)
                     continue;
+
+                // Handle axis codes for direct slot mappings
+                if (code.StartsWith("XAXIS") || code.StartsWith("YAXIS") || code.StartsWith("ZAXIS") || 
+                    code.StartsWith("RZAXIS") || code.StartsWith("RXAXIS") || code.StartsWith("RYAXIS") ||
+                    code.StartsWith("SLIDER"))
+                {
+                    CreateAxisButton(xmlPlace, diGuid, code, targetSlot);
+                    SimpleLogger.Instance.Info("[WHEELS] Direct axis slot mapping: " + targetSlot + " -> " + code + " (role: " + roleKey + ")");
+                    continue;
+                }
 
                 var diButton = new JoystickButton
                 {
@@ -475,8 +580,8 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[WHEELS] Direct slot mapping: " + targetSlot + " -> " + xmlPlace.BindNameDi + " (role: " + roleKey + ")");
             }
 
-            // Map axes (steering, gas, brake)
-            if (dinputCodes.ContainsKey("SteerLeft") && dinputCodes.ContainsKey("SteerRight"))
+            // Map axes (steering, gas, brake) - skip if directly mapped via game-specific mappings
+            if (!directMappedAxisSlots.Contains(steerMappingSlot) && dinputCodes.ContainsKey("SteerLeft") && dinputCodes.ContainsKey("SteerRight"))
             {
                 var xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == steerMappingSlot && !j.HideWithDirectInput);
                 if (xmlPlace != null)
@@ -500,11 +605,12 @@ namespace EmulatorLauncher
                     };
                     xmlPlace.BindNameDi = "Driving " + axisCode.Replace("_NEG", "").Replace("_POS", "");
                     xmlPlace.BindName = xmlPlace.BindNameDi;
+                    SimpleLogger.Instance.Info("[WHEELS] Bound Steering to " + xmlPlace.BindNameDi + " (slot " + steerMappingSlot + ")");
                 }
             }
 
-            // Gas - slot configurable via GasMapping in YML (default: Analog2)
-            if (dinputCodes.ContainsKey("Gas"))
+            // Gas - slot configurable via GasMapping in YML (default: Analog2) - skip if directly mapped
+            if (!directMappedAxisSlots.Contains(gasMappingSlot) && dinputCodes.ContainsKey("Gas"))
             {
                 string code = dinputCodes["Gas"].ToUpperInvariant();
                 var xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == gasMappingSlot && !j.HideWithDirectInput);
@@ -512,8 +618,8 @@ namespace EmulatorLauncher
                     CreateAxisButton(xmlPlace, diGuid, code, gasMappingSlot);
             }
 
-            // Brake - slot configurable via BrakeMapping in YML (default: Analog4)
-            if (dinputCodes.ContainsKey("Brake"))
+            // Brake - slot configurable via BrakeMapping in YML (default: Analog4) - skip if directly mapped
+            if (!directMappedAxisSlots.Contains(brakeMappingSlot) && dinputCodes.ContainsKey("Brake"))
             {
                 string code = dinputCodes["Brake"].ToUpperInvariant();
                 var xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == brakeMappingSlot && !j.HideWithDirectInput);
@@ -530,6 +636,18 @@ namespace EmulatorLauncher
                 {
                     CreateAxisButton(xmlPlace, diGuid, code, analogYMappingSlot.Value);
                     SimpleLogger.Instance.Info("[WHEELS] Bound AnalogY (" + code + ") to slot " + analogYMappingSlot.Value);
+                }
+            }
+
+            // Clutch - optional clutch axis, only injected if game declares ClutchMapping in YML
+            if (clutchMappingSlot.HasValue && dinputCodes.ContainsKey("AnalogY"))
+            {
+                string code = dinputCodes["AnalogY"].ToUpperInvariant();
+                var xmlPlace = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == clutchMappingSlot.Value && !j.HideWithDirectInput);
+                if (xmlPlace != null)
+                {
+                    CreateAxisButton(xmlPlace, diGuid, code, clutchMappingSlot.Value);
+                    SimpleLogger.Instance.Info("[WHEELS] Bound Clutch (" + code + ") to slot " + clutchMappingSlot.Value);
                 }
             }
 
