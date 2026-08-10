@@ -405,6 +405,18 @@ namespace EmulatorLauncher
             var gameDirectSlotMappings = new Dictionary<InputMapping, string>();
 
             // Apply game-specific button mappings if available for this game
+            bool gearConverterEnabled = false;
+            bool noGearStick = Program.SystemConfig.getOptBoolean("wheel_nogearstick");
+            
+            // Only enable converter if there IS a gear stick (not nogearstick) and not for BattleGear4Tuned
+            if (!noGearStick && !tpGameName.StartsWith("battlegear4tuned"))
+            {
+                string gearConverter = Program.SystemConfig.isOptSet("gearupdown_to_gear34") ? Program.SystemConfig["gearupdown_to_gear34"] : "disabled";
+                gearConverterEnabled = (!string.IsNullOrEmpty(gearConverter) && gearConverter == "enabled");
+                if (gearConverterEnabled)
+                    SimpleLogger.Instance.Info("[WHEELS] GearUp/GearDown to Gear3/Gear4 converter enabled");
+            }
+
             if (gameButtonMappings.ContainsKey(tpGameName))
             {
                 var gameMappings = gameButtonMappings[tpGameName];
@@ -413,6 +425,18 @@ namespace EmulatorLauncher
                     string k = gm.Key;
                     string v = gm.Value != null ? gm.Value.Trim('"', '\'', ' ') : null;
                     if (string.IsNullOrEmpty(v)) continue;
+
+                    // Apply GearUp/GearDown to Gear3/Gear4 conversion if enabled
+                    if (gearConverterEnabled)
+                    {
+                        if (v.Equals("gearup", StringComparison.OrdinalIgnoreCase))
+                            v = "gear4";
+                        else if (v.Equals("geardown", StringComparison.OrdinalIgnoreCase))
+                            v = "gear3";
+                        // Skip original gear3/gear4 mappings when converter is enabled
+                        else if (v.Equals("gear3", StringComparison.OrdinalIgnoreCase) || v.Equals("gear4", StringComparison.OrdinalIgnoreCase))
+                            continue;
+                    }
 
                     // Syntax 1: InputMappingEnum: tag (e.g. P1ButtonStart: boost, Analog0: steer)
                     // Meaning: "apply the physical DInput code of the role 'tag' to this specific InputMapping slot"
