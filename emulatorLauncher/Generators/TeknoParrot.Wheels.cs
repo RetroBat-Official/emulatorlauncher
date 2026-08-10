@@ -539,18 +539,101 @@ namespace EmulatorLauncher
                 }
             };
 
+            // Check if game has explicit mappings for gear slots to skip automatic defaults
+            // Also check for explicit null/disabled values
+            HashSet<string> disabledSlots = new HashSet<string>();
+            bool hasExplicitGear3 = gameSpecificKeys.Contains("Wmmt5GearChange3") || 
+                                   gameSpecificKeys.Contains("SrcGearChange3") ||
+                                   gameSpecificKeys.Contains("FnfGearChange3") ||
+                                   gameSpecificKeys.Contains("IDZGearChange3");
+            bool hasExplicitGear4 = gameSpecificKeys.Contains("Wmmt5GearChange4") || 
+                                   gameSpecificKeys.Contains("SrcGearChange4") ||
+                                   gameSpecificKeys.Contains("FnfGearChange4") ||
+                                   gameSpecificKeys.Contains("IDZGearChange4");
+            
+            // Check for explicit null/disabled values in game-specific mappings
+            if (gameButtonMappings.ContainsKey(tpGameName))
+            {
+                var gameMappings = gameButtonMappings[tpGameName];
+                foreach (var gm in gameMappings)
+                {
+                    string v = gm.Value != null ? gm.Value.Trim('"', '\'', ' ') : null;
+                    if (v != null && (v.Equals("null", StringComparison.OrdinalIgnoreCase) || 
+                                     v.Equals("disabled", StringComparison.OrdinalIgnoreCase) ||
+                                     v.Equals("none", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        disabledSlots.Add(gm.Key);
+                    }
+                }
+            }
+
             // Pass 1: Apply generic defaults first (skip game-specific overridden keys)
             foreach (var btnEntry in buttonToInputMappings)
             {
                 if (!gameSpecificKeys.Contains(btnEntry.Key))
+                {
+                    // Skip any slots that are explicitly disabled in YAML
+                    bool skipMapping = false;
+                    foreach (var slot in btnEntry.Value)
+                    {
+                        string slotName = slot.ToString();
+                        if (disabledSlots.Contains(slotName))
+                        {
+                            skipMapping = true;
+                            break;
+                        }
+                    }
+                    if (skipMapping) continue;
+                    
+                    // Skip Gear3/Gear4 default mappings when converter is enabled OR when explicit YAML mappings exist
+                    if (gearConverterEnabled || hasExplicitGear3 || hasExplicitGear4)
+                    {
+                        bool skipGearMapping = false;
+                        foreach (var slot in btnEntry.Value)
+                        {
+                            if (slot == InputMapping.Wmmt5GearChange3 || slot == InputMapping.Wmmt5GearChange4 ||
+                                slot == InputMapping.SrcGearChange3 || slot == InputMapping.SrcGearChange4 ||
+                                slot == InputMapping.FnfGearChange3 || slot == InputMapping.FnfGearChange4 ||
+                                slot == InputMapping.IDZGearChange3 || slot == InputMapping.IDZGearChange4)
+                            {
+                                skipGearMapping = true;
+                                break;
+                            }
+                        }
+                        if (skipGearMapping) continue;
+                    }
                     mapButtonMulti(btnEntry.Key, btnEntry.Value);
+                }
             }
 
             // Pass 2: Apply game-specific overrides LAST so they always win over defaults
             foreach (var key in gameSpecificKeys)
             {
                 if (buttonToInputMappings.ContainsKey(key))
+                {
+                    // Skip any game-specific slots that are explicitly disabled in YAML
+                    if (disabledSlots.Contains(key))
+                        continue;
+                    
+                    // Skip Gear3/Gear4 game-specific mappings when converter is enabled
+                    if (gearConverterEnabled)
+                    {
+                        bool skipMapping = false;
+                        foreach (var slot in buttonToInputMappings[key])
+                        {
+                            if (slot == InputMapping.Wmmt5GearChange3 || slot == InputMapping.Wmmt5GearChange4 ||
+                                slot == InputMapping.SrcGearChange3 || slot == InputMapping.SrcGearChange4 ||
+                                slot == InputMapping.FnfGearChange3 || slot == InputMapping.FnfGearChange4 ||
+                                slot == InputMapping.IDZGearChange3 || slot == InputMapping.IDZGearChange4)
+                            {
+                                skipMapping = true;
+                                break;
+                            }
+                        }
+                        if (skipMapping) continue;
+                    }
                     mapButtonMulti(key, buttonToInputMappings[key]);
+                }
             }
 
             // Pass 3: Apply direct slot mappings from Syntax 1 (e.g. "P1Button1: boost", "Analog6: gas")
