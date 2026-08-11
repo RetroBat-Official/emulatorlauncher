@@ -52,7 +52,7 @@ namespace EmulatorLauncher
             if (!_isArcade && Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
             {
                 string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
-                string emulatorPath = Path.Combine(path, "data");
+                string emulatorPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "reicast", "states");
 
                 _saveStatesWatcher = new FlycastSaveStatesMonitor(rom, emulatorPath, localPath, Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "savestateicon.png"));
                 _saveStatesWatcher.PrepareEmulatorRepository();
