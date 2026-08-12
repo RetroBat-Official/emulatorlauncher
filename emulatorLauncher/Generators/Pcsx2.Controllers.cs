@@ -327,6 +327,7 @@ namespace EmulatorLauncher
                 sdl3index += 4;
 
             //Define tech (SDL or XInput or DInput)
+            SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". SDL driver class: " + ctrl.SdlWrappedTechID + ", hardware button order: " + UsesHardwareButtonOrder(ctrl));
             SdlToDirectInput dinputController = null;
             bool isXinput = ctrl.IsXInputDevice;
             
@@ -1275,6 +1276,7 @@ namespace EmulatorLauncher
             Int64 pid;
 
             bool isNintendo = c.VendorID == USB_VENDOR.NINTENDO;
+            bool hwOrder = UsesHardwareButtonOrder(c);
 
             key = key.GetRevertedAxis(out bool revertAxis);
 
@@ -1306,13 +1308,13 @@ namespace EmulatorLauncher
                                 return tech == "XInput" ? "A" : "FaceNorth";
                             else
                                 return tech == "XInput" ? "X" : "FaceWest"; ;
-                        case 4: return tech == "XInput" ? "LeftShoulder" : "Back";
-                        case 5: return tech == "SDL" ? "Guide" : "RightShoulder";
-                        case 6: return tech == "XInput" ? "Back" : "Start";
-                        case 7: return tech == "XInput" ? "Start" : "LeftStick";
-                        case 8: return tech == "XInput" ? "LeftStick" : "RightStick";
-                        case 9: return tech == "XInput" ? "RightStick" : "LeftShoulder";
-                        case 10: return tech == "XInput" ? "Guide" : "RightShoulder";
+                        case 4: return hwOrder ? "LeftShoulder" : "Back";
+                        case 5: return hwOrder ? "RightShoulder" : "Guide";
+                        case 6: return hwOrder ? "Back" : "Start";
+                        case 7: return hwOrder ? "Start" : "LeftStick";
+                        case 8: return hwOrder ? "LeftStick" : "RightStick";
+                        case 9: return hwOrder ? "RightStick" : "LeftShoulder";
+                        case 10: return hwOrder ? "Guide" : "RightShoulder";
                         case 11: return "DPadUp";
                         case 12: return "DPadDown";
                         case 13: return "DPadLeft";
@@ -1840,6 +1842,18 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] Generated configuration based on " + padMapping + " file.");
 
             return true;
+        }
+
+        private static bool UsesHardwareButtonOrder(Controller c)
+        {
+            switch (c.SdlWrappedTechID)
+            {
+                case SdlWrappedTechId.RawInput:
+                case SdlWrappedTechId.XInput:
+                    return true;
+                default:
+                    return c.IsXInputDevice;
+            }
         }
 
         static readonly string[] mappingPaths =
