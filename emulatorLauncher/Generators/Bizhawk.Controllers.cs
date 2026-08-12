@@ -88,7 +88,11 @@ namespace EmulatorLauncher
 
             json["InputHotkeyOverrideOptions"] = "0";
 
-            int maxPad = inputPortNb[core];
+            if (!inputPortNb.TryGetValue(core ?? string.Empty, out int maxPad))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] Unknown or missing BizHawk core '" + core + "', defaulting to 1 input port.");
+                maxPad = 1;
+            }
 
             // Specifics
             if (system == "gamegear")
