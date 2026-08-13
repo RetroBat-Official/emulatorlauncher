@@ -276,8 +276,9 @@ namespace EmulatorLauncher.Libretro
                             File.Copy(f, target, true);
                             File.Copy(backupFile, f, true);
                             File.Delete(backupFile);
+                            SimpleLogger.Instance.Info("[INFO] Session cfg saved to " + target + ", original restored.");
                         }
-                        catch { }
+                        catch { SimpleLogger.Instance.Warning("[WARNING] Failed to restore cfg file : " + f); }
                     }
                 }
             }
