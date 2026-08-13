@@ -17,6 +17,7 @@ namespace EmulatorLauncher
         private bool _forceDInput = false;
         private bool _multitap = false;
         private bool _dolphinbar = false;
+        private bool _dolphinbarChecked = false;
         private int _specialControllerIndex = 1;
 
         /// <summary>
@@ -52,13 +53,7 @@ namespace EmulatorLauncher
             UpdateSdlControllersWithHints();
 
             // Check if dolphinbar is connected (if yes we will increase controller index by 4)
-            var rawdevices = RawInputDevice.GetRawInputDevices().Where(t => t.Type == RawInputDeviceType.GamePad).ToList();
-            if (rawdevices.Any(d => d.DevicePath.Contains("VID_057E&PID_0306")))
-            {
-                if (rawdevices[0].DevicePath.Contains("VID_057E&PID_0306") && rawdevices.Where(d => d.DevicePath.Contains("VID_057E&PID_0306")).Count() > 1)
-                    _dolphinbar = true;
-                SimpleLogger.Instance.Info("[INFO] DolphinBar in GamePad mode detected, changing controller index.");
-            }
+            EnsureDolphinBarDetection();
 
             // clear existing pad sections of ini file
             for (int i = 1; i < 9; i++)
@@ -327,7 +322,7 @@ namespace EmulatorLauncher
                 sdl3index += 4;
 
             //Define tech (SDL or XInput or DInput)
-            SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". SDL driver class: " + ctrl.SdlWrappedTechID + ", hardware button order: " + UsesHardwareButtonOrder(ctrl));
+            SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". SDL driver class: " + ctrl.SdlWrappedTechID + ", hardware button order: " + ctrl.UsesHardwareButtonOrder);
             SdlToDirectInput dinputController = null;
             bool isXinput = ctrl.IsXInputDevice;
             
@@ -1276,7 +1271,7 @@ namespace EmulatorLauncher
             Int64 pid;
 
             bool isNintendo = c.VendorID == USB_VENDOR.NINTENDO;
-            bool hwOrder = UsesHardwareButtonOrder(c);
+            bool hwOrder = c.UsesHardwareButtonOrder;
 
             key = key.GetRevertedAxis(out bool revertAxis);
 
@@ -1671,19 +1666,20 @@ namespace EmulatorLauncher
 
             var guitarModel = Guitar.GetGuitarType(c.DevicePath.ToUpperInvariant());
 
-            if (guitarModel != GuitarType.Default)
-                usableGuitar = new Guitar()
-                {
-                    Name = c.Name,
-                    VendorID = c.VendorID.ToString(),
-                    ProductID = c.ProductID.ToString(),
-                    DevicePath = c.DevicePath.ToLowerInvariant(),
-                    DinputIndex = c.DirectInput != null ? c.DirectInput.DeviceIndex : c.DeviceIndex,
-                    SDLIndex = c.SdlController != null ? c.SdlController.Index : c.DeviceIndex,
-                    XInputIndex = c.XInput != null ? c.XInput.DeviceIndex : c.DeviceIndex,
-                    ControllerIndex = c.DeviceIndex,
-                    Type = guitarModel
-                };
+            if (guitarModel == GuitarType.Default)
+                return false;
+
+            usableGuitar = new Guitar()
+            {
+                Name = c.Name,
+                VendorID = c.VendorID.ToString(),
+                ProductID = c.ProductID.ToString(),
+                DevicePath = c.DevicePath.ToLowerInvariant(),
+                DinputIndex = c.DirectInput != null ? c.DirectInput.DeviceIndex : c.DeviceIndex,
+                XInputIndex = c.XInput != null ? c.XInput.DeviceIndex : c.DeviceIndex,
+                ControllerIndex = c.DeviceIndex,
+                Type = guitarModel
+            };
 
             string guitarFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "guitars", "pcsx2_guitars.yml");
 
@@ -1705,13 +1701,9 @@ namespace EmulatorLauncher
                     .OfType<YmlContainer>()
                     .ToDictionary(e => e.Name.ToLowerInvariant(), e => e);
 
-            string cGuid = c.Guid.ToString().ToLowerInvariant();
-
             if (ymlDict.TryGetValue(guitarModel.ToString().ToLowerInvariant(), out var guitarMapping))
             {
                 SimpleLogger.Instance.Info("[GUITAR] Found guitar mapping for controller " + c.Guid + " : " + guitarModel.ToString());
-
-                string iniSection = "Pad" + c.PlayerIndex;
 
                 if (guitarMapping == null || guitarMapping.Elements.Count == 0)
                     return false;
@@ -1753,6 +1745,24 @@ namespace EmulatorLauncher
             }
 
             return false;
+        }
+
+        private void EnsureDolphinBarDetection()
+        {
+            if (_dolphinbarChecked)
+                return;
+
+            _dolphinbarChecked = true;
+
+            var rawdevices = RawInputDevice.GetRawInputDevices().Where(t => t.Type == RawInputDeviceType.GamePad).ToList();
+
+            if (rawdevices.Any(d => d.DevicePath.Contains("VID_057E&PID_0306")))
+            {
+                if (rawdevices[0].DevicePath.Contains("VID_057E&PID_0306") && rawdevices.Count(d => d.DevicePath.Contains("VID_057E&PID_0306")) > 1)
+                    _dolphinbar = true;
+
+                SimpleLogger.Instance.Info("[INFO] DolphinBar in GamePad mode detected, changing controller index.");
+            }
         }
 
         private static bool performKBPadMapping(string system, string kbPadType, IniFile ini)
@@ -1842,18 +1852,6 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] Generated configuration based on " + padMapping + " file.");
 
             return true;
-        }
-
-        private static bool UsesHardwareButtonOrder(Controller c)
-        {
-            switch (c.SdlWrappedTechID)
-            {
-                case SdlWrappedTechId.RawInput:
-                case SdlWrappedTechId.XInput:
-                    return true;
-                default:
-                    return c.IsXInputDevice;
-            }
         }
 
         static readonly string[] mappingPaths =
