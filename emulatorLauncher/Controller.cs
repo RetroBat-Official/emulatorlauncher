@@ -143,6 +143,21 @@ namespace EmulatorLauncher
             }
         }
 
+        public bool UsesHardwareButtonOrder
+        {
+            get
+            {
+                switch (SdlWrappedTechID)
+                {
+                    case SdlWrappedTechId.RawInput:
+                    case SdlWrappedTechId.XInput:
+                        return true;
+                    default:
+                        return IsXInputDevice;
+                }
+            }
+        }
+
         private static bool _xInputDevicesKnown;
 
         private static void EnsureXInputControllers()

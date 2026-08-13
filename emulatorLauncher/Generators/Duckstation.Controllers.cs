@@ -420,6 +420,7 @@ namespace EmulatorLauncher
         private static string GetInputKeyName(Controller c, InputKey key, string tech)
         {
             Int64 pid;
+            bool hwOrder = c.UsesHardwareButtonOrder;
 
             key = key.GetRevertedAxis(out bool revertAxis);
 
@@ -447,13 +448,13 @@ namespace EmulatorLauncher
                         case 1: return "B";
                         case 2: return "Y";
                         case 3: return "X";
-                        case 4: return tech == "XInput" ? "LeftShoulder" : "Back";
-                        case 5: return tech == "SDL" ? "Guide" : "RightShoulder";
-                        case 6: return tech == "XInput" ? "Back" : "Start";
-                        case 7: return tech == "XInput" ? "Start" : "LeftStick";
-                        case 8: return tech == "XInput" ? "LeftStick" : "RightStick";
-                        case 9: return tech == "XInput" ? "RightStick" : "LeftShoulder";
-                        case 10: return tech == "XInput" ? "Guide" : "RightShoulder";
+                        case 4: return hwOrder ? "LeftShoulder" : "Back";
+                        case 5: return hwOrder ? "RightShoulder" : "Guide";
+                        case 6: return hwOrder ? "Back" : "Start";
+                        case 7: return hwOrder ? "Start" : "LeftStick";
+                        case 8: return hwOrder ? "LeftStick" : "RightStick";
+                        case 9: return hwOrder ? "RightStick" : "LeftShoulder";
+                        case 10: return hwOrder ? "Guide" : "RightShoulder";
                         case 11: return "DPadUp";
                         case 12: return "DPadDown";
                         case 13: return "DPadLeft";
