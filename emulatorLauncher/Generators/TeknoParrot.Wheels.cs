@@ -411,8 +411,7 @@ namespace EmulatorLauncher
             // Only enable converter if there IS a gear stick (not nogearstick) and not for BattleGear4Tuned
             if (!noGearStick && !tpGameName.StartsWith("battlegear4tuned"))
             {
-                string gearConverter = Program.SystemConfig.isOptSet("gearupdown_to_gear34") ? Program.SystemConfig["gearupdown_to_gear34"] : "disabled";
-                gearConverterEnabled = (!string.IsNullOrEmpty(gearConverter) && gearConverter == "enabled");
+                gearConverterEnabled = Program.SystemConfig.getOptBoolean("gearupdown_to_gear34");
                 if (gearConverterEnabled)
                     SimpleLogger.Instance.Info("[WHEELS] GearUp/GearDown to Gear3/Gear4 converter enabled");
             }
