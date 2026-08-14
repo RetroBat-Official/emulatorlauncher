@@ -108,12 +108,15 @@ namespace EmulatorLauncher
             {
                 wheelIndex1 = SystemConfig["pcsx2_wheel1_index"].ToInteger();
                 sdlIndex1 = wheelIndex1;
+                SimpleLogger.Instance.Info("[WHEELS] Wheel 1 index forced by user to : " + wheelIndex1);
             }
 
-            if (wheel1buttonMap.ContainsKey("driver") && wheel1buttonMap["driver"].Contains("sdl"))
+            wheelTech1 = GetWheelTech(wheel1buttonMap);
+
+            if (wheelTech1 == "sdl")
             {
-                wheelTech1 = "sdl";
                 pcsx2ini.WriteValue("InputSources", "SDL", "true");
+                pcsx2ini.WriteValue("InputSources", "SDLRawInput", "true");
             }
 
             pcsx2ini.WriteValue(usbSection1, "Type", "Pad");
@@ -202,12 +205,15 @@ namespace EmulatorLauncher
                 {
                     wheelIndex2 = SystemConfig["pcsx2_wheel2_index"].ToInteger();
                     sdlIndex2 = wheelIndex2;
+                    SimpleLogger.Instance.Info("[WHEELS] Wheel 2 index forced by user to : " + wheelIndex2);
                 }
 
-                if (wheel2buttonMap.ContainsKey("driver") && wheel2buttonMap["driver"].Contains("sdl"))
+                wheelTech2 = GetWheelTech(wheel2buttonMap);
+
+                if (wheelTech2 == "sdl")
                 {
-                    wheelTech2 = "sdl";
                     pcsx2ini.WriteValue("InputSources", "SDL", "true");
+                    pcsx2ini.WriteValue("InputSources", "SDLRawInput", "true");
                 }
 
                 string DevicePrefix2 = "DInput-" + wheelIndex2 + "/";
@@ -277,6 +283,19 @@ namespace EmulatorLauncher
                 sdlIndex += 4;
 
             return sdlIndex;
+        }
+
+        private string GetWheelTech(Dictionary<string, string> buttonMap)
+        {
+            // The driver declared in the yml file is authoritative
+            if (buttonMap.ContainsKey("driver") && !string.IsNullOrEmpty(buttonMap["driver"]))
+                return buttonMap["driver"].Contains("sdl") ? "sdl" : "dinput";
+
+            // No driver declared in the yml file : fallback to the emulator feature
+            if (SystemConfig.isOptSet("pcsx2_input_driver_force") && !string.IsNullOrEmpty(SystemConfig["pcsx2_input_driver_force"]))
+                return SystemConfig["pcsx2_input_driver_force"] == "dinput" ? "dinput" : "sdl";
+
+            return "dinput";
         }
 
         private string GetWheelFFDevice(Dictionary<string, string> buttonMap, string wheelTech, int dinputIndex, int sdlIndex)
