@@ -89,46 +89,82 @@ namespace EmulatorLauncher.Libretro
             if (core == "mame")
             {
                 bool nooverride = Program.SystemConfig.getOptBoolean("mame_user_cfg");
+                
                 // default
                 string defaultcfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", "default.cfg");
                 string defaultctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", "default.cfg");
+
+                // default.cfg carries the UI ports (hotkeys) : always managed by RetroBat, even under mame_user_cfg
                 if (File.Exists(defaultcfgFile))
                     DeleteDefaultInputincfgFile(defaultcfgFile, defaultctrlFile);
-                else if (File.Exists(defaultctrlFile) && !File.Exists(defaultcfgFile) && !mameAuto)
+                else if (File.Exists(defaultctrlFile) && !mameAuto)
                     try { File.Copy(defaultctrlFile, defaultcfgFile); } catch { }
+                else
+                    SimpleLogger.Instance.Info("[INFO] No default.cfg to write.");
 
-                messSystem = MessSystem.GetMessSystem(system);
+                messSystem = MessSystem.GetMessSystem(system, Program.SystemConfig["subcore"]);
 
                 // Per system/game
-                string cfgFile;
-                string ctrlFile;
+                string cfgName = GetMameCfgName(messSystem, romName);
+                string cfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", cfgName + ".cfg");
+                string ctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", cfgName + ".cfg");
 
-                if (messSystem != null && messSystem.MachineName != null)
+                if (!File.Exists(ctrlFile))
                 {
-                    string messcfgFile = messSystem.MachineName + ".cfg";
-                    cfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", messcfgFile);
-                    ctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", messcfgFile);
-                }
-
-                else
-                {
-                    cfgFile = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfg", romName + ".cfg");
-                    ctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", romName + ".cfg");
-                    if (!File.Exists(ctrlFile))
+                    string cfgDir = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame");
+                    if (Directory.Exists(cfgDir))
                     {
-                        string cfgDir = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame");
-                        if (Directory.Exists(cfgDir))
-                        {
-                            string[] cfgFiles = Directory.GetFiles(cfgDir, "*.cfg", SearchOption.TopDirectoryOnly);
-                            ctrlFile = cfgFiles.Where(c => romName.StartsWith(Path.GetFileNameWithoutExtension(c))).OrderByDescending(c => Path.GetFileNameWithoutExtension(c).Length).FirstOrDefault();
-                        }
+                        string[] cfgFiles = Directory.GetFiles(cfgDir, "*.cfg", SearchOption.TopDirectoryOnly);
+                        ctrlFile = cfgFiles.Where(c => cfgName.StartsWith(Path.GetFileNameWithoutExtension(c))).OrderByDescending(c => Path.GetFileNameWithoutExtension(c).Length).FirstOrDefault();
                     }
                 }
 
-                if (File.Exists(cfgFile) && !nooverride)
+                SimpleLogger.Instance.Info("[INFO] MAME cfg file : " + cfgFile);
+                SimpleLogger.Instance.Info("[INFO] MAME reference ctrl file : " + (ctrlFile ?? "none"));
+
+                // Promote the last session's cfg as the user cfg, once, when the user opted in
+                bool hasUserInput = HasInputPorts(cfgFile);
+
+                if (nooverride && !hasUserInput)
+                {
+                    string promote = Path.Combine(Program.AppConfig.GetFullPath("saves"), "mame", "cfgbackup", Path.GetFileName(cfgFile));
+                    if (File.Exists(promote))
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Promoting last session cfg to user cfg : " + promote);
+                        try { File.Copy(promote, cfgFile, true); } catch { }
+                    }
+                }
+
+                bool hasCtrl = ctrlFile != null && File.Exists(ctrlFile);
+
+                if (!hasUserInput && !hasCtrl)
+                    SimpleLogger.Instance.Info("[INFO] Nothing to inject and no user input ports, skipping MAME cfg handling.");
+                else if (!File.Exists(cfgFile) && hasCtrl && !mameAuto && !nooverride)
+                {
+                    // Create a minimal cfg with the correct machine name, then inject through the same path
+                    // as an existing file : UI ports must go to default.cfg, not to the game cfg
+                    try
+                    {
+                        new XDocument(
+                        new XDeclaration("1.0", "utf-8", null),
+                        new XElement("mameconfig",
+                        new XAttribute("version", "10"),
+                        new XElement("system", new XAttribute("name", cfgName))))
+                        .Save(cfgFile);
+                    }
+                    catch { }
+
                     DeleteInputincfgFile(cfgFile, ctrlFile, defaultcfgFile);
-                else if (File.Exists(ctrlFile) && !File.Exists(cfgFile) && !mameAuto && !nooverride)
-                    try { File.Copy(ctrlFile, cfgFile); } catch { }
+                }
+                else if (File.Exists(cfgFile) && !nooverride && !mameAuto)
+                    DeleteInputincfgFile(cfgFile, ctrlFile, defaultcfgFile);
+                else if (nooverride && hasCtrl && File.Exists(cfgFile))
+                {
+                    SimpleLogger.Instance.Info("[INFO] User cfg preserved, injecting UI ports only into default.cfg.");
+                    DeleteInputincfgFile(cfgFile, ctrlFile, defaultcfgFile, true);
+                }
+                else
+                    SimpleLogger.Instance.Info("[INFO] MAME cfg left untouched (user cfg or MAME auto profiles).");
             }
 
             bool remapFromFile = SetupCoreGameRemaps(system, core, romName, inputremap, coreSettings, mameAuto, messSystem);
@@ -861,7 +897,6 @@ namespace EmulatorLauncher.Libretro
             if (game == null)
                 return false;
 
-            var gameName = game.Name;
             var buttonMap = new Dictionary<string, string>();
 
             foreach (var buttonEntry in game.Elements)
@@ -939,16 +974,19 @@ namespace EmulatorLauncher.Libretro
             catch { }
         }
 
-        private static void DeleteInputincfgFile(string cfgFile, string ctrlFile, string defaultcfgFile = null)
+        private static void DeleteInputincfgFile(string cfgFile, string ctrlFile, string defaultcfgFile = null, bool uiPortsOnly = false)
         {
             // Backup cfgfile
             string backup = cfgFile + ".backup";
-            try
+            if (!uiPortsOnly)
             {
-                File.Copy(cfgFile, backup, true);
-                _cfgFilesToRestore.Add(cfgFile);
+                try
+                {
+                    File.Copy(cfgFile, backup, true);
+                    _cfgFilesToRestore.Add(cfgFile);
+                }
+                catch { }
             }
-            catch { }
 
             string controLayout = "";
             if (Program.SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))
@@ -964,7 +1002,7 @@ namespace EmulatorLauncher.Libretro
                 // Keep only DIPSWITCH ports from the existing input
                 XElement inputElement = gameSystemElement?.Element("input");
 
-                if (inputElement != null)
+                if (inputElement != null && !uiPortsOnly)
                 {
                     inputElement.Elements()
                         .Where(p => (string)p.Attribute("type") != "DIPSWITCH")
@@ -1007,10 +1045,15 @@ namespace EmulatorLauncher.Libretro
                         var uiPorts = allPorts.Where(p => (string)p.Attribute("type") != null && ((string)p.Attribute("type")).StartsWith("UI"));
                         var nonUIPorts = allPorts.Where(p => (string)p.Attribute("type") != null && !((string)p.Attribute("type")).StartsWith("UI"));
 
-                        if (nonUIPorts.Any())
+                        if (nonUIPorts.Any() && !uiPortsOnly)
                         {
-                            XElement newInput = new XElement("input", nonUIPorts);
-                            gameSystemElement.Add(newInput);
+                            XElement newInput = inputElement;
+                            if (newInput == null)
+                            {
+                                newInput = new XElement("input");
+                                gameSystemElement.Add(newInput);
+                            }
+                            newInput.Add(nonUIPorts);
 
                             if (keyboards.Any())
                             {
@@ -1024,15 +1067,14 @@ namespace EmulatorLauncher.Libretro
                             XDocument defaultdoc = XDocument.Load(defaultcfgFile);
                             XElement defaultSystemElement = defaultdoc.Root?.Element("system");
 
-                            bool menuPort = uiPorts.Any(p => (string)p.Attribute("type") == "UI_MENU");
-
                             if (defaultSystemElement != null)
                             {
                                 XElement defaultInput = defaultSystemElement?.Descendants("input").FirstOrDefault();
 
                                 if (defaultInput != null)
                                 {
-                                    defaultInput.Elements("port").Where(p => (string)p.Attribute("type") == "UI_MENU").Remove();
+                                    var incomingTypes = uiPorts.Select(p => (string)p.Attribute("type")).ToList();
+                                    defaultInput.Elements("port").Where(p => incomingTypes.Contains((string)p.Attribute("type"))).Remove();
                                     defaultInput.Add(uiPorts);
                                 }
                                 else
@@ -1053,8 +1095,8 @@ namespace EmulatorLauncher.Libretro
                         }
                     }
                 }
-
-                doc.Save(cfgFile);
+                if (!uiPortsOnly)
+                    doc.Save(cfgFile);
             }
             catch { }
         }
@@ -1092,7 +1134,6 @@ namespace EmulatorLauncher.Libretro
                         allPorts = ctrlinputElement.Elements("port").ToList();
 
                         var uiPorts = allPorts.Where(p => (string)p.Attribute("type") != null && ((string)p.Attribute("type")).StartsWith("UI"));
-                        var nonUIPorts = allPorts.Where(p => (string)p.Attribute("type") != null && !((string)p.Attribute("type")).StartsWith("UI"));
 
                         if (uiPorts.Any())
                         {
@@ -1105,6 +1146,31 @@ namespace EmulatorLauncher.Libretro
                 doc.Save(cfgFile);
             }
             catch { }
+        }
+
+        private static bool HasInputPorts(string cfgFile)
+        {
+            if (!File.Exists(cfgFile))
+                return false;
+
+            try
+            {
+                return XDocument.Load(cfgFile).Root?
+                    .Element("system")?.Element("input")?
+                    .Elements("port").Any() == true;
+            }
+            catch { return false; }
+        }
+
+        private static string GetMameCfgName(MessSystem messSystem, string romName)
+        {
+            if (Program.SystemConfig.isOptSet("altmodel") && !string.IsNullOrEmpty(Program.SystemConfig["altmodel"]))
+                return Program.SystemConfig["altmodel"];
+
+            if (messSystem == null || string.IsNullOrEmpty(messSystem.MachineName) || messSystem.MachineName == "%romname%")
+                return romName;
+
+            return messSystem.MachineName;
         }
 
         static string[] mappingPaths =

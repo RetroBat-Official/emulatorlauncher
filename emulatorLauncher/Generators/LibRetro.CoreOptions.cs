@@ -2787,6 +2787,15 @@ namespace EmulatorLauncher.Libretro
             string softLists = "enabled";
 
             MessSystem messSystem = MessSystem.GetMessSystem(system, SystemConfig["subcore"]);
+
+            // Crash recovery : a previous session may have been killed before Cleanup() restored the cfg files
+            string mameCfgPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg");
+            FileTools.EnsureDirectoryExists(mameCfgPath);
+            RestoreOrphanedMameCfg(Path.Combine(mameCfgPath, "default.cfg"));
+
+            string orphanName = GetMameCfgName(messSystem, Path.GetFileNameWithoutExtension(SystemConfig["rom"]));
+            RestoreOrphanedMameCfg(Path.Combine(mameCfgPath, orphanName + ".cfg"));
+
             if (messSystem != null)
             {
                 CleanupMameMessConfigFiles(messSystem);
@@ -2839,8 +2848,28 @@ namespace EmulatorLauncher.Libretro
                 UpdateOrCreateMameConfigFiles(Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg", romName + ".cfg"), romName);
         }
 
+        private void RestoreOrphanedMameCfg(string cfgFile)
+        {
+            string orphan = cfgFile + ".backup";
+            if (!File.Exists(orphan))
+                return;
+
+            SimpleLogger.Instance.Warning("[WARNING] Orphaned MAME cfg backup found, restoring : " + orphan);
+
+            try
+            {
+                File.Copy(orphan, cfgFile, true);
+                File.Delete(orphan);
+            }
+            catch { SimpleLogger.Instance.Warning("[WARNING] Failed to restore orphaned cfg backup."); }
+        }
+
         private void UpdateOrCreateMameConfigFiles(string cfgFile, string romName)
         {
+            // Do not create an empty cfg file just to exist : it pollutes saves\mame\cfg
+            if (!File.Exists(cfgFile) && !SystemConfig.getOptBoolean("mame_remove_crosshair"))
+                return;
+            
             if (!File.Exists(cfgFile))
             {
                 try
@@ -2886,6 +2915,7 @@ namespace EmulatorLauncher.Libretro
 
                     if (SystemConfig.getOptBoolean("mame_remove_crosshair") && system != null)
                     {
+                        system?.Element("crosshairs")?.Remove();
                         system.Add(
                             new XElement("crosshairs",
                                 new XElement("crosshair",
@@ -2909,10 +2939,12 @@ namespace EmulatorLauncher.Libretro
 
         private void CleanupMameMessConfigFiles(MessSystem messSystem)
         {
+            string cfgName = GetMameCfgName(messSystem, Path.GetFileNameWithoutExtension(SystemConfig["rom"]));
+
             try
             {
                 // Remove image_directories node in cfg file
-                string cfgPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg", messSystem.MachineName + ".cfg");
+                string cfgPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "cfg", cfgName + ".cfg");
                 if (File.Exists(cfgPath))
                 {
                     XDocument xml = XDocument.Load(cfgPath);

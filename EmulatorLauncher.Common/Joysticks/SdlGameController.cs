@@ -447,6 +447,9 @@ namespace EmulatorLauncher.Common.Joysticks
         private static extern int SDL_GetGamepadPlayerIndexForID(int instance_id);
 
         [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int SDL_GetJoystickPlayerIndexForID(int instance_id);
+
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
         private static extern int SDL_GetGamepadPlayerIndex(IntPtr gamepad);
 
         [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]

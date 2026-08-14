@@ -780,6 +780,7 @@ namespace EmulatorLauncher
 
                     if (SystemConfig.getOptBoolean("mame_remove_crosshair") && system != null)
                     {
+                        system.Element("crosshairs")?.Remove();
                         system.Add(
                             new XElement("crosshairs",
                                 new XElement("crosshair",
