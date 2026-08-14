@@ -149,8 +149,18 @@ namespace EmulatorLauncher
             pcsx2ini.WriteValue(usbSection1, "Pad_Circle", DevicePrefix + GetWheelButton(wheel1buttonMap, "East"));
             pcsx2ini.WriteValue(usbSection1, "Pad_Square", DevicePrefix + GetWheelButton(wheel1buttonMap, "West"));
             pcsx2ini.WriteValue(usbSection1, "Pad_Triangle", DevicePrefix + GetWheelButton(wheel1buttonMap, "North"));
-            pcsx2ini.WriteValue(usbSection1, "Pad_L1", DevicePrefix + GetWheelButton(wheel1buttonMap, "LeftShoulder"));
-            pcsx2ini.WriteValue(usbSection1, "Pad_R1", DevicePrefix + GetWheelButton(wheel1buttonMap, "RightShoulder"));
+
+            if (SystemConfig.getOptBoolean("gearupdown_to_gear34") && wheel1buttonMap.ContainsKey("Gear3") && wheel1buttonMap.ContainsKey("Gear4"))
+            {
+                pcsx2ini.WriteValue(usbSection1, "Pad_L1", DevicePrefix + GetWheelButton(wheel1buttonMap, "Gear3"));
+                pcsx2ini.WriteValue(usbSection1, "Pad_R1", DevicePrefix + GetWheelButton(wheel1buttonMap, "Gear4"));
+            }
+            else
+            {
+                pcsx2ini.WriteValue(usbSection1, "Pad_L1", DevicePrefix + GetWheelButton(wheel1buttonMap, "LeftShoulder"));
+                pcsx2ini.WriteValue(usbSection1, "Pad_R1", DevicePrefix + GetWheelButton(wheel1buttonMap, "RightShoulder"));
+            }
+
             pcsx2ini.WriteValue(usbSection1, "Pad_L2", DevicePrefix + GetWheelButton(wheel1buttonMap, "LeftTrigger"));
             pcsx2ini.WriteValue(usbSection1, "Pad_R2", DevicePrefix + GetWheelButton(wheel1buttonMap, "RightTrigger"));
             pcsx2ini.WriteValue(usbSection1, "Pad_L3", DevicePrefix + GetWheelButton(wheel1buttonMap, "LeftStick"));
@@ -191,7 +201,6 @@ namespace EmulatorLauncher
 
                 foreach (var mapEntry in wheel2Mapping.Elements)
                 {
-
                     if (mapEntry is YmlElement button)
                     {
                         if (button.Value == null || button.Value == "nul")
@@ -246,8 +255,18 @@ namespace EmulatorLauncher
                 pcsx2ini.WriteValue(usbSection2, "Pad_Circle", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "East"));
                 pcsx2ini.WriteValue(usbSection2, "Pad_Square", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "West"));
                 pcsx2ini.WriteValue(usbSection2, "Pad_Triangle", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "North"));
-                pcsx2ini.WriteValue(usbSection2, "Pad_L1", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "LeftShoulder"));
-                pcsx2ini.WriteValue(usbSection2, "Pad_R1", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "RightShoulder"));
+
+                if (SystemConfig.getOptBoolean("gearupdown_to_gear34") && wheel2buttonMap.ContainsKey("Gear3") && wheel2buttonMap.ContainsKey("Gear4"))
+                {
+                    pcsx2ini.WriteValue(usbSection2, "Pad_L1", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "Gear3"));
+                    pcsx2ini.WriteValue(usbSection2, "Pad_R1", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "Gear4"));
+                }
+                else
+                {
+                    pcsx2ini.WriteValue(usbSection2, "Pad_L1", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "LeftShoulder"));
+                    pcsx2ini.WriteValue(usbSection2, "Pad_R1", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "RightShoulder"));
+                }
+
                 pcsx2ini.WriteValue(usbSection2, "Pad_L2", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "LeftTrigger"));
                 pcsx2ini.WriteValue(usbSection2, "Pad_R2", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "RightTrigger"));
                 pcsx2ini.WriteValue(usbSection2, "Pad_L3", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "LeftStick"));
