@@ -426,7 +426,6 @@ namespace EmulatorLauncher
                     }),
     
             new MessSystem("einstein"     ,"einstein"      , "flop1"  ), // Tatung Einstein TC-01
-            new MessSystem("pmd85"        ,"pmd85"         , "cass"  ), // Tesla PMD 85
             new MessSystem("laser200"     ,"laser200"      , "dump" ), // VTech Laser 200
             new MessSystem("mpu2000"      ,"vc4000"        , "cart"  ),  // Acetronic MPU 2000
             new MessSystem("mpt05"        ,"vc4000"        , "cart"  ),  // ITMC MPT-05

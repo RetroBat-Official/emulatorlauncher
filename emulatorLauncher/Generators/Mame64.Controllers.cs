@@ -162,9 +162,6 @@ namespace EmulatorLauncher
                     var match = this.Controllers.FirstOrDefault(c =>
                         c.DirectInput?.InstanceGuid == di.InstanceGuid);
 
-                    if (di.isXinput)
-                        continue;
-
                     if (match != null)
                         mameControllers.Add(match);
                     else if (di.HasAvailableInputs || diDeviceTypes.Contains(di.Type.ToLowerInvariant()) || diDeviceSubTypes.Contains(di.Subtype))
@@ -228,6 +225,67 @@ namespace EmulatorLauncher
                 }
                 var mapping = hbmame ? hbxInputMapping : xInputMapping;
 
+                // Resolve the JOYCODE slot for each controller.
+                // When we can pin with mapdevice, JOYCODE_n == player n. Otherwise fall back to the
+                // reconstructed MAME enumeration position.
+                var targetIndex = new Dictionary<Controller, int>();
+                var pinIds = new Dictionary<Controller, string>();
+
+                for (int index = 0; index < mameControllers.Count; index++)
+                {
+                    var c = mameControllers[index];
+                    if (c == null)
+                        continue;
+
+                    pinIds[c] = GetMameDeviceId(c, driver);
+                    targetIndex[c] = index + 1;
+                }
+
+                // mapdevice remaps by SWAPPING slots, so every controller we emit a JOYCODE for must be
+                // pinned and all targets must be distinct. Devices MAME sees but we never reference may
+                // stay unpinned - they get shuffled, which is fine.
+                bool canPin = pinIds.Count > 0
+                    && pinIds.Values.All(id => !string.IsNullOrEmpty(id))
+                    && pinIds.Values.Distinct().Count() == pinIds.Count;
+
+                if (canPin)
+                {
+                    foreach (var c in targetIndex.Keys.ToList())
+                        targetIndex[c] = c.PlayerIndex;
+                }
+
+                // Apply the force-index override, then re-validate: duplicate targets would break the swap
+                foreach (var c in targetIndex.Keys.ToList())
+                {
+                    int forced;
+                    string opt = SystemConfig[$"mame_p{c.PlayerIndex}_forceindex"];
+                    if (!string.IsNullOrEmpty(opt) && int.TryParse(opt, out forced) && forced >= 1)
+                        targetIndex[c] = forced;
+                }
+
+                if (canPin && targetIndex.Values.Distinct().Count() != targetIndex.Count)
+                {
+                    SimpleLogger.Instance.Info("[INFO] MAME: duplicate controller indexes after force-index, not pinning.");
+                    canPin = false;
+
+                    // legacy behaviour: enumeration position, force-index on top, duplicates allowed
+                    for (int index = 0; index < mameControllers.Count; index++)
+                    {
+                        var c = mameControllers[index];
+                        if (c == null)
+                            continue;
+
+                        int forced;
+                        string opt = SystemConfig[$"mame_p{c.PlayerIndex}_forceindex"];
+                        targetIndex[c] = (!string.IsNullOrEmpty(opt) && int.TryParse(opt, out forced) && forced >= 1)
+                            ? forced
+                            : index + 1;
+                    }
+                }
+
+                if (!canPin && pinIds.Count > 0)
+                    SimpleLogger.Instance.Info("[INFO] MAME: cannot pin controllers with mapdevice, using enumeration order.");
+
                 // Generate controller mapping
                 for (int index = 0; index < mameControllers.Count; index++)
                 {
@@ -237,24 +295,19 @@ namespace EmulatorLauncher
                         continue;
 
                     int i = controller.PlayerIndex;
-                    int cIndex = index + 1;
+                    int cIndex = targetIndex[controller];
                     string joy = "JOYCODE_" + cIndex + "_";
-                    bool isXinput = controller.IsXInputDevice && driver != "dinput";
+                    bool isXinput = controller.IsXInputDevice && driver != "dinput" && driver != "sdljoy";
                     bool xinputCtrl = controller.IsXInputDevice;
                     string guid = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
                     SdlToDirectInput ctrlr = null;
 
-                    if (driver == "xinput")
+                    if (canPin)
                     {
-                        int xIndex = cIndex;
-                        joy = "JOYCODE_" + xIndex + "_";
-                        input.Add(new XElement("mapdevice", new XAttribute("device", "XInput Player " + xIndex), new XAttribute("controller", "JOYCODE_" + xIndex)));
+                        input.Add(new XElement("mapdevice",
+                        new XAttribute("device", pinIds[controller]),
+                        new XAttribute("controller", "JOYCODE_" + cIndex)));
                     }
-
-                    // Override index through option
-                    string forcedIndex = SystemConfig[$"mame_p{controller.PlayerIndex}_forceindex"];
-                    if (!string.IsNullOrEmpty(forcedIndex))
-                        joy = $"JOYCODE_{forcedIndex}_";
 
                     // Get dinput mapping information
                     if (!isXinput && gamecontrollerDB != null)
@@ -763,6 +816,20 @@ namespace EmulatorLauncher
                         continue;
                     if (_messcfgInput && button.Type == "OTHER")
                         continue;
+                    if (button.Type.StartsWith("P"))
+                    {
+                        int searchindex = 1;
+
+                        while (searchindex < button.Type.Length && char.IsDigit(button.Type[searchindex]))
+                            searchindex++;
+
+                        int number;
+
+                        if (searchindex > 1 &&
+                            int.TryParse(button.Type.Substring(1, searchindex - 1), out number) &&
+                            number != i)
+                            continue;
+                    }
                     if (button.Type.StartsWith("START"))
                         ignoreStartx = true;
                     if (button.Type.StartsWith("COIN"))
@@ -947,6 +1014,20 @@ namespace EmulatorLauncher
                         continue;
                     if (_messcfgInput && button.Type == "OTHER")
                         continue;
+                    if (button.Type.StartsWith("P"))
+                    {
+                        int searchindex = 1;
+
+                        while (searchindex < button.Type.Length && char.IsDigit(button.Type[searchindex]))
+                            searchindex++;
+                        
+                        int number;
+
+                        if (searchindex > 1 &&
+                            int.TryParse(button.Type.Substring(1, searchindex - 1), out number) &&
+                            number != i)
+                            continue;
+                    }
                     if (button.Type.StartsWith("START"))
                         ignoreStartx = true;
                     if (button.Type.StartsWith("COIN"))
@@ -1599,6 +1680,29 @@ namespace EmulatorLauncher
             }
 
             return ret;
+        }
+
+        private static string GetMameDeviceId(Controller c, string driver)
+        {
+            if (c == null)
+                return null;
+
+            if (driver == "sdljoy")
+                return c.Guid.ToString().ToLowerInvariant();
+
+            // winhybrid pulls XInput-capable pads out of its DirectInput pass and re-adds them via
+            // the XInput helper, where name == id == "XInput Player N", N = XUSER slot + 1.
+            // NOTE: the XUSER slot is NOT the joystick index - MAME skips empty slots when adding
+            // devices, so slot 2 with slot 0 empty becomes joystick #2 named "XInput Player 3".
+            // The plain dinput module has no XInput filter, so everything is a DirectInput device.
+            if (c.IsXInputDevice && driver != "dinput")
+                return c.XInput != null ? "XInput Player " + (c.XInput.DeviceIndex + 1) : null;
+
+            // dinput_api_helper::make_id() => "<name> product_<guid> instance_<guid>".
+            // mapdevice matching is case-insensitive substring, so "D" format matches verbatim.
+            return c.DirectInput != null
+                ? "instance_" + c.DirectInput.InstanceGuid.ToString("D")
+                : null;
         }
 
         private void ConfigureLightguns(XElement guninput, string index1, string index2, string index3, string index4, int gunNb, bool hbmame = false)
