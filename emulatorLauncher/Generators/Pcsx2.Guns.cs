@@ -301,7 +301,7 @@ namespace EmulatorLauncher
 
             string crosshairFile = Path.Combine(crosshairPath, "crosshair.png");
             if (SystemConfig.isOptSet("pcsx2_crosshairpath") && !string.IsNullOrEmpty(SystemConfig["pcsx2_crosshairpath"]))
-                crosshairFile = SystemConfig["pcsx2_crosshairpath"];
+                crosshairFile = SystemConfig["pcsx2_crosshairpath"].Replace('/', Path.DirectorySeparatorChar);
 
             if (!File.Exists(crosshairFile))
                 SimpleLogger.Instance.Info("[GUNS] No crosshair file found in " + crosshairFile);

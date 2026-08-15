@@ -528,6 +528,8 @@ namespace EmulatorLauncher
 
                         if (SystemConfig.isOptSet("pcsx2_servicemode") && !string.IsNullOrEmpty(SystemConfig["pcsx2_servicemode"]))
                         {
+                            pcsx2ini.Remove("JVS", "ToggleTestMode");
+                            pcsx2ini.Remove("JVS", "P1_Service");
                             pcsx2ini.WriteValue("JVS", "TestMode", "true");
                             pcsx2ini.WriteValue("JVS", "ToggleTestMode", techPadNumber + GetDInputKeyName(dinputController, "rightstick"));
                             pcsx2ini.AppendValue("JVS", "ToggleTestMode", azerty ? "Keyboard/Ccedilla" : "Keyboard/9");
@@ -600,6 +602,7 @@ namespace EmulatorLauncher
                         pcsx2ini.WriteValue("JVS", "SixButton_HeavyPunch_P1", techPadNumber + GetDInputKeyName(dinputController, "leftshoulder", 0, isXinput));
                         pcsx2ini.WriteValue("JVS", "SixButton_HeavyKick_P1", techPadNumber + GetDInputKeyName(dinputController, "rightshoulder", 0, isXinput));
 
+                        pcsx2ini.Remove("JVS", "P1_Start");
                         pcsx2ini.WriteValue("JVS", "P1_Start", techPadNumber + GetDInputKeyName(dinputController, "start", 0, isXinput));
                         pcsx2ini.AppendValue("JVS", "P1_Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
 
@@ -694,6 +697,7 @@ namespace EmulatorLauncher
                 {
                     if (_isArcade)
                     {
+                        pcsx2ini.Remove("JVS", "P2_Start");
                         pcsx2ini.WriteValue("JVS", "P2_Start", techPadNumber + GetDInputKeyName(dinputController, "start", 0, isXinput));
                         pcsx2ini.AppendValue("JVS", "P2_Start", azerty ? "Keyboard/Eacute" : "Keyboard/2");
                         pcsx2ini.WriteValue("JVS", "Coin2", techPadNumber + GetDInputKeyName(dinputController, "back"));
@@ -928,6 +932,8 @@ namespace EmulatorLauncher
 
                         if (SystemConfig.isOptSet("pcsx2_servicemode") && !string.IsNullOrEmpty(SystemConfig["pcsx2_servicemode"]))
                         {
+                            pcsx2ini.Remove("JVS", "ToggleTestMode");
+                            pcsx2ini.Remove("JVS", "P1_Service");
                             pcsx2ini.WriteValue("JVS", "TestMode", "true");
                             pcsx2ini.WriteValue("JVS", "ToggleTestMode", techPadNumber + GetInputKeyName(ctrl, InputKey.r3, tech));
                             pcsx2ini.AppendValue("JVS", "ToggleTestMode", azerty ? "Keyboard/Ccedilla" : "Keyboard/9");
@@ -1000,6 +1006,7 @@ namespace EmulatorLauncher
                         pcsx2ini.WriteValue("JVS", "SixButton_HeavyPunch_P1", techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
                         pcsx2ini.WriteValue("JVS", "SixButton_HeavyKick_P1", techPadNumber + GetInputKeyName(ctrl, InputKey.pagedown, tech));
 
+                        pcsx2ini.Remove("JVS", "P1_Start");
                         pcsx2ini.WriteValue("JVS", "P1_Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
                         pcsx2ini.AppendValue("JVS", "P1_Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
 
@@ -1097,6 +1104,7 @@ namespace EmulatorLauncher
                 {
                     if (_isArcade)
                     {
+                        pcsx2ini.Remove("JVS", "P2_Start");
                         pcsx2ini.WriteValue("JVS", "P2_Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
                         pcsx2ini.AppendValue("JVS", "P2_Start", azerty ? "Keyboard/Eacute" : "Keyboard/2");
                         pcsx2ini.WriteValue("JVS", "Coin2", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
