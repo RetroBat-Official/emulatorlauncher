@@ -37,10 +37,10 @@ namespace EmulatorLauncher
             if (usableWheels.Count < 1)
                 return;
 
-            string pcsx2WheelMapping = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "pcsx2_wheels.yml");
+            string pcsx2WheelMapping = _isArcade ? Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "pcsx2x6_wheels.yml") : Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "pcsx2_wheels.yml");
             if (!File.Exists(pcsx2WheelMapping))
             {
-                SimpleLogger.Instance.Info("[WHEELS] Mapping file for PCSX2 does not exist.");
+                SimpleLogger.Instance.Info("[WHEELS] Mapping file " + pcsx2WheelMapping + " does not exist.");
                 return;
             }
 
@@ -168,40 +168,31 @@ namespace EmulatorLauncher
 
             if (_isArcade)
             {
-                pcsx2ini.WriteValue("JVS", "Coin1", DevicePrefix + GetWheelButton(wheel1buttonMap, "Select"));
                 pcsx2ini.WriteValue("JVS", "TestMode", "false");
 
-                pcsx2ini.WriteValue("JVS", "P1_Up", DevicePrefix + GetWheelButton(wheel1buttonMap, "Up"));
-                pcsx2ini.WriteValue("JVS", "P1_Right", DevicePrefix + GetWheelButton(wheel1buttonMap, "Right"));
-                pcsx2ini.WriteValue("JVS", "P1_Down", DevicePrefix + GetWheelButton(wheel1buttonMap, "Down"));
-                pcsx2ini.WriteValue("JVS", "P1_Left", DevicePrefix + GetWheelButton(wheel1buttonMap, "Left"));
-
-                pcsx2ini.WriteValue("JVS", "P1_Start", DevicePrefix + GetWheelButton(wheel1buttonMap, "Start"));
-
-                pcsx2ini.WriteValue("JVS", "Gas", DevicePrefix + GetWheelButton(wheel1buttonMap, "Throttle"));
-                pcsx2ini.WriteValue("JVS", "Brake", DevicePrefix + GetWheelButton(wheel1buttonMap, "Brake"));
-                pcsx2ini.WriteValue("JVS", "SteerRight", DevicePrefix + GetWheelButton(wheel1buttonMap, "SteerRight"));
-                pcsx2ini.WriteValue("JVS", "SteerLeft", DevicePrefix + GetWheelButton(wheel1buttonMap, "SteerLeft"));
-
-                pcsx2ini.WriteValue("JVS", "Racing_View_P1", DevicePrefix + GetWheelButton(wheel1buttonMap, "North"));
-                pcsx2ini.WriteValue("JVS", "BG3_View_P1", DevicePrefix + GetWheelButton(wheel1buttonMap, "North"));
-                pcsx2ini.WriteValue("JVS", "BG3_Sidebrake_P1", DevicePrefix + GetWheelButton(wheel1buttonMap, "West"));
-                pcsx2ini.WriteValue("JVS", "BG3_Hazard_P1", DevicePrefix + GetWheelButton(wheel1buttonMap, "East"));
-
-                if (SystemConfig.getOptBoolean("gearupdown_to_gear34") && wheel1buttonMap.ContainsKey("Gear3") && wheel1buttonMap.ContainsKey("Gear4"))
+                foreach (var entry in wheel1buttonMap)
                 {
-                    pcsx2ini.WriteValue("JVS", "Racing_ShiftDown_P1", DevicePrefix + GetWheelButton(wheel1buttonMap, "Gear3"));
-                    pcsx2ini.WriteValue("JVS", "Racing_ShiftUp_P1", DevicePrefix + GetWheelButton(wheel1buttonMap, "Gear4"));
-                    pcsx2ini.WriteValue("JVS", "BG3_ShiftDown_P1", DevicePrefix + GetWheelButton(wheel1buttonMap, "Gear3"));
-                    pcsx2ini.WriteValue("JVS", "BG3_ShiftUp_P1", DevicePrefix + GetWheelButton(wheel1buttonMap, "Gear4"));
+                    if (entry.Key == "wheeltype" || entry.Key == "driver" || entry.Key == "name" || entry.Key == "FFDevice" || entry.Key == "Gear3" || entry.Key == "Gear4")
+                        continue;
+
+                    if (SystemConfig.getOptBoolean("gearupdown_to_gear34") && wheel1buttonMap.ContainsKey("Gear3") && wheel1buttonMap.ContainsKey("Gear4"))
+                    {
+                        if (entry.Key == "Racing_ShiftDown_P1" || entry.Key == "BG3_ShiftDown_P1")
+                        {
+                            pcsx2ini.WriteValue("JVS", entry.Key, DevicePrefix + GetWheelButton(wheel1buttonMap, "Gear3"));
+                            continue;
+                        }
+                        if (entry.Key == "Racing_ShiftUp_P1" || entry.Key == "BG3_ShiftUp_P1")
+                        {
+                            pcsx2ini.WriteValue("JVS", entry.Key, DevicePrefix + GetWheelButton(wheel1buttonMap, "Gear4"));
+                            continue;
+                        }
+                    }
+
+                    pcsx2ini.WriteValue("JVS", entry.Key, DevicePrefix + entry.Value);
                 }
-                else
-                {
-                    pcsx2ini.WriteValue("JVS", "Racing_ShiftDown_P1", DevicePrefix + GetWheelButton(wheel1buttonMap, "LeftShoulder"));
-                    pcsx2ini.WriteValue("JVS", "Racing_ShiftUp_P1", DevicePrefix + GetWheelButton(wheel1buttonMap, "RightShoulder"));
-                    pcsx2ini.WriteValue("JVS", "BG3_ShiftDown_P1", DevicePrefix + GetWheelButton(wheel1buttonMap, "LeftShoulder"));
-                    pcsx2ini.WriteValue("JVS", "BG3_ShiftUp_P1", DevicePrefix + GetWheelButton(wheel1buttonMap, "RightShoulder"));
-                }
+
+                return;
             }
 
             // Setup second wheel
