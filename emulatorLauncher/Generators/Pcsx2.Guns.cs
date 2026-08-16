@@ -53,7 +53,7 @@ namespace EmulatorLauncher
                 Guns.StartSindenSoftware();
                 _sindenSoft = true;
 
-                if (!SystemConfig.isOptSet("pcsx2x6_sindenborder"))
+                if (_isArcade && !SystemConfig.isOptSet("pcsx2x6_sindenborder"))
                 {
                     pcsx2ini.WriteValue("JVS", "SindenBorderEnabled", "true");
                     pcsx2ini.WriteValue("JVS", "SindenBorderMode", "0");

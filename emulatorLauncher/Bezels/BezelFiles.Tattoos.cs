@@ -279,7 +279,7 @@ namespace EmulatorLauncher
             }
             else if (system == "gamecube" || system == "gc")
             {
-                if (emulator == "dolphin" && Program.SystemConfig.getOptBoolean("gamecubepad0"))
+                if (emulator == "dolphin" && Program.SystemConfig.isOptSet("gamecubepad0") && (Program.SystemConfig["gamecubepad0"] == "13" || Program.SystemConfig["gamecubepad0"] == "12"))
                     ret = "unknown";
                 else if (Program.SystemConfig.isOptSet("gamecube_buttons"))
                 {
