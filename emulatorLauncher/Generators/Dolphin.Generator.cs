@@ -308,7 +308,7 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Hacks", "EFBAccessEnable", "EFBAccessEnable", "False", "True");
                     BindBoolIniFeatureOn(ini, "Hacks", "EFBScaledCopy", "EFBScaledCopy", "True", "False");
                     BindBoolIniFeature(ini, "Hacks", "EFBEmulateFormatChanges", "EFBEmulateFormatChanges", "True", "False");
-                    BindIniFeature(ini, "Enhancements", "MaxAnisotropy", "anisotropic_filtering", "0");
+                    BindIniFeature(ini, "Enhancements", "MaxAnisotropy", "anisotropic_filtering", "-1");
                     BindBoolIniFeature(ini, "Settings", "SSAA", "ssaa", "True", "False");
                     BindBoolIniFeature(ini, "Settings", "Crop", "dolphin_crop", "True", "False");
                     BindBoolIniFeature(ini, "Enhancements", "HDROutput", "enable_hdr", "True", "False");
@@ -719,7 +719,7 @@ namespace EmulatorLauncher
                     else if (_runWiiMenu)
                         ini.WriteValue("Core", "DefaultISO", rom);
                     else
-                        ini.WriteValue("Core", "defaultISO", "\"\"");
+                        ini.WriteValue("Core", "DefaultISO", "\"\"");
 
                     // GBA settings
                     string gbaBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), "gba_bios.bin");

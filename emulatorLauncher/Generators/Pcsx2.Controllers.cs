@@ -366,7 +366,7 @@ namespace EmulatorLauncher
             BindIniFeatureSlider(pcsx2ini, padNumber, "LargeMotorScale", "pcsx2_rumble_strength", "1", 2);
             BindIniFeatureSlider(pcsx2ini, padNumber, "SmallMotorScale", "pcsx2_rumble_strength", "1", 2);
             BindIniFeatureSlider(pcsx2ini, padNumber, "ButtonDeadzone", "pcsx2_trigger_deadzone", "0", 2);
-            BindIniFeatureSlider(pcsx2ini, padNumber, "PressureModifier", "pcsx2_pressure_modifier", "0", 2);
+            BindIniFeatureSlider(pcsx2ini, padNumber, "PressureModifier", "pcsx2_pressure_modifier", "0.5", 2);
 
             //Get SDL controller index
             string techPadNumber = "SDL-" + sdl3index + "/";

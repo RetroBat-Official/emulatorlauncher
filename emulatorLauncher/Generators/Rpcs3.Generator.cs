@@ -195,7 +195,7 @@ namespace EmulatorLauncher
                 List<string> commandArrayfirmware = new List<string>
                 {
                     "--installfw",
-                    biosPs3
+                    StringExtensions.QuoteString(biosPs3)
                 };
                     
                 string argsfirmware = string.Join(" ", commandArrayfirmware);
@@ -276,7 +276,7 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("Meta", "useRichPresence", "false");
 
-                    if (SystemConfig.isOptSet("rpcs3_guns") && SystemConfig.getOptBoolean("rpcs3_guns"))
+                    if (SystemConfig.isOptSet("rpcs3_guns") && SystemConfig["rpcs3_guns"] != "none")
                         ini.WriteValue("GSFrame", "lockMouseInFullscreen", "false");
                     else
                         ini.WriteValue("GSFrame", "lockMouseInFullscreen", "true");
@@ -378,6 +378,10 @@ namespace EmulatorLauncher
                         io["Camera ID"] = "Default";
                 }
 
+                BindFeature(io, "Buzz emulated controller", "rpcs3_buzz", "Null");
+                BindFeature(io, "Turntable emulated controller", "rpcs3_turntable", "Null");
+                BindFeature(io, "GHLtar emulated controller", "rpcs3_ghltar", "Null");
+
                 // Handle Core part of yml file
                 YmlContainer core = yml.GetOrCreateContainer("Core");
                 BindFeature(core, "PPU Decoder", "ppudecoder", "Recompiler (LLVM)");
@@ -387,10 +391,11 @@ namespace EmulatorLauncher
                 BindBoolFeature(core, "SPU loop detection", "spuloopdetect", "true", "false");
                 BindFeature(core, "SPU Block Size", "spublocksize", "Safe");
                 BindBoolFeature(core, "Accurate RSX reservation access", "accuratersx", "true", "false");
-                BindFeature(core, "RSX FIFO Fetch Accuracy", "rpcs3_rsxfifoaccuracy", "Fast");
+                BindFeature(core, "RSX FIFO Fetch Accuracy", "rpcs3_rsxfifoaccuracy", "Atomic");
                 BindBoolFeature(core, "PPU Accurate Vector NaN Values", "vectornan", "true", "false");
-                BindFeature(core, "SPU XFloat Accuracy", "rpcs3_xfloat", "Accurate");
+                BindFeature(core, "SPU XFloat Accuracy", "rpcs3_xfloat", "Approximate");
                 BindFeature(core, "Sleep Timers Accuracy", "rpcs3_sleeptimersaccuracy", "Usleep Only");
+                BindFeature(core, "Thread Scheduler Mode", "rpcs3_threadscheduler", "Operating System");
 
                 // Handle Video part of yml file
                 YmlContainer video = yml.GetOrCreateContainer("Video");
@@ -400,7 +405,7 @@ namespace EmulatorLauncher
                 BindFeature(video, "Aspect ratio", "rpcs3_ratio", "16:9");
                 BindFeature(video, "Frame limit", "framelimit", "Auto");
                 BindBoolFeatureOn(video, "MSAA", "msaa", "Auto", "Disabled");
-                BindFeature(video, "Shader Mode", "shadermode", "Async Recompiler (multi-threaded)");
+                BindFeature(video, "Shader Mode", "shadermode", "Async Recompiler with Shader Interpreter");
                 BindBoolFeature(video, "Write Color Buffers", "writecolorbuffers", "true", "false");
                 BindBoolFeature(video, "Write Depth Buffer", "writedepthbuffers", "true", "false");
                 BindBoolFeature(video, "Read Color Buffers", "readcolorbuffers", "true", "false");
@@ -432,6 +437,12 @@ namespace EmulatorLauncher
                 else
                     video["Vblank Rate"] = "60";
 
+                BindFeatureSlider(video, "FidelityFX CAS Sharpening Intensity", "rpcs3_fsr_sharpening", "50");
+                BindBoolFeature(video, "Handle RSX Memory Tiling", "rpcs3_tiled_memory", "true", "false");
+                BindBoolFeature(video, "Emulate Special Depth Comparison", "rpcs3_depth_compare", "true", "false");
+                BindFeature(video, "Framebuffer Aliasing Heuristic Bias", "rpcs3_fb_aliasing", "Auto");
+                BindBoolFeature(video, "Vblank NTSC Fixup", "rpcs3_vblank_ntsc", "true", "false");
+
                 // ZCULL Accuracy
                 if (SystemConfig.isOptSet("zcull_accuracy") && (SystemConfig["zcull_accuracy"] == "Approximate"))
                 {
@@ -457,6 +468,8 @@ namespace EmulatorLauncher
                     vulkan["Exclusive Fullscreen Mode"] = "Enable";
 
                 BindFeature(vulkan, "Exclusive Fullscreen Mode", "rpcs3_fullscreen_mode", "Automatic");
+                BindFeature(vulkan, "Asynchronous Queue Scheduler", "rpcs3_vk_scheduler", "Safe");
+                BindBoolFeatureOn(vulkan, "Use Re-BAR for GPU uploads", "rpcs3_rebar", "true", "false");
 
                 // Handle Performance Overlay part of yml file
                 YmlContainer performance = video.GetOrCreateContainer("Performance Overlay");
@@ -486,29 +499,32 @@ namespace EmulatorLauncher
                 BindBoolFeatureOn(audio, "Enable Buffering", "audio_buffering", "true", "false");
                 if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "low"))
                 {
-                    audio["Enable time stretching"] = "true";
+                    audio["Enable Time Stretching"] = "true";
                     audio["Time Stretching Threshold"] = "25";
                 }
                 else if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "medium"))
                 {
-                    audio["Enable time stretching"] = "true";
+                    audio["Enable Time Stretching"] = "true";
                     audio["Time Stretching Threshold"] = "50";
                 }
                 else if (SystemConfig.isOptSet("time_stretching") && (SystemConfig["time_stretching"] == "high"))
                 {
-                    audio["Enable time stretching"] = "true";
+                    audio["Enable Time Stretching"] = "true";
                     audio["Time Stretching Threshold"] = "75";
                 }
                 else if (Features.IsSupported("time_stretching"))
                 {
-                    audio["Enable time stretching"] = "false";
+                    audio["Enable Time Stretching"] = "false";
                     audio["Time Stretching Threshold"] = "75";
                 }
+
+                BindFeature(audio, "Audio Channel Layout", "rpcs3_audio_layout", "Automatic");
 
                 // Handle System part of yml file
                 YmlContainer system_region = yml.GetOrCreateContainer("System");
                 BindFeature(system_region, "License Area", "ps3_region", "SCEE");
                 BindFeature(system_region, "Language", "ps3_language", GetDefaultPS3Language());
+                BindFeature(system_region, "Enter button assignment", "rpcs3_enterbutton", GetDefaultEnterButton());
 
                 // Handle Miscellaneous part of yml file
                 YmlContainer misc = yml.GetOrCreateContainer("Miscellaneous");
@@ -608,6 +624,17 @@ namespace EmulatorLauncher
                     catch { }
                 }
             }
+        }
+
+        private string GetDefaultEnterButton()
+        {
+            if (SystemConfig.isOptSet("ps3_region") && !string.IsNullOrEmpty(SystemConfig["ps3_region"]))
+            {
+                string region = SystemConfig["ps3_region"];
+                if (region == "SCEJ" || region == "SCEK" || region == "SCH" || region == "SCEH")
+                    return "Enter with circle";
+            }
+            return "Enter with cross";
         }
     }
 }

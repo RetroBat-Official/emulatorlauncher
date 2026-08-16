@@ -874,9 +874,9 @@ namespace EmulatorLauncher
                 BindIniFeature(ini, "EmuCore/GS", "Renderer", "renderer", "-1");
                 BindIniFeature(ini, "EmuCore/GS", "deinterlace_mode", "interlace", "0");
 
-                if (SystemConfig.isOptSet("deinterlace_mode") && !string.IsNullOrEmpty(SystemConfig["deinterlace_mode"]) && SystemConfig["deinterlace_mode"] != "1")
+                if (SystemConfig.isOptSet("interlace") && !string.IsNullOrEmpty(SystemConfig["interlace"]) && SystemConfig["interlace"] != "1")
                     ini.WriteValue("EmuCore/GS", "disable_interlace_offset", "true");
-                else if (Features.IsSupported("deinterlace_mode"))
+                else if (Features.IsSupported("interlace"))
                     ini.WriteValue("EmuCore/GS", "disable_interlace_offset", "false");
 
                 if (SystemConfig.isOptSet("disable_interlace_offset") && !string.IsNullOrEmpty(SystemConfig["disable_interlace_offset"]))
@@ -887,6 +887,7 @@ namespace EmulatorLauncher
                 BindBoolIniFeatureOn(ini, "EmuCore/GS", "pcrtc_antiblur", "pcrtc_antiblur", "true", "false");
                 BindIniFeature(ini, "EmuCore/GS", "upscale_multiplier", "internalresolution", "1");
                 BindBoolIniFeatureOn(ini, "EmuCore/GS", "hw_mipmap", "mipmap", "true", "false");
+                BindBoolIniFeatureOn(ini, "EmuCore/GS", "mipmap", "mipmap", "true", "false");
                 BindIniFeature(ini, "EmuCore/GS", "filter", "texture_filtering", "2");
                 BindIniFeature(ini, "EmuCore/GS", "TriFilter", "trilinear_filtering", "-1");
                 BindIniFeature(ini, "EmuCore/GS", "MaxAnisotropy", "anisotropic_filtering", "0");
@@ -913,9 +914,11 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "EmuCore/GS", "UserHacks_Disable_Safe_Features", "UserHacks_Disable_Safe_Features", "true", "false");
                 BindIniFeature(ini, "EmuCore/GS", "UserHacks_HalfPixelOffset", "UserHacks_HalfPixelOffset", "0");
                 BindIniFeature(ini, "EmuCore/GS", "UserHacks_round_sprite_offset", "UserHacks_round_sprite_offset", "0");
+                BindIniFeature(ini, "EmuCore/GS", "UserHacks_native_scaling", "UserHacks_native_scaling", "0");
                 BindBoolIniFeature(ini, "EmuCore/GS", "UserHacks_align_sprite_X", "UserHacks_align_sprite_X", "true", "false");
                 BindBoolIniFeature(ini, "EmuCore/GS", "UserHacks_merge_pp_sprite", "UserHacks_merge_pp_sprite", "true", "false");
-                BindBoolIniFeature(ini, "EmuCore/GS", "UserHacks_forceEvenSpritePosition", "UserHacks_forceEvenSpritePosition", "true", "false");
+                BindBoolIniFeature(ini, "EmuCore/GS", "UserHacks_ForceEvenSpritePosition", "UserHacks_forceEvenSpritePosition", "true", "false");
+                BindIniFeature(ini, "EmuCore/GS", "UserHacks_BilinearHack", "UserHacks_BilinearHack", "0");
 
                 if (SystemConfig.isOptSet("TextureOffsets") && !string.IsNullOrEmpty(SystemConfig["TextureOffsets"]))
                 {
@@ -962,9 +965,6 @@ namespace EmulatorLauncher
                     ini.WriteValue("EmuCore/GS", "LoadTextureReplacements", "false");
                     ini.WriteValue("EmuCore/GS", "PrecacheTextureReplacements", "false");
                 }
-
-                // OSD information
-                //BindBoolIniFeature(ini, "EmuCore/GS", "OsdShowMessages", "Notifications", "true", "false");
 
                 if (SystemConfig.isOptSet("DrawFramerate") && SystemConfig.getOptBoolean("DrawFramerate"))
                 {
