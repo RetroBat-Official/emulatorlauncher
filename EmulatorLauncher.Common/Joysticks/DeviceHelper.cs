@@ -16,6 +16,28 @@ namespace EmulatorLauncher.Common.Joysticks
         private static extern int CM_Get_DevNode_Registry_Property(uint dnDevInst, uint ulProperty,
             out uint pulRegDataType, byte[] buffer, ref uint pullLength, uint ulFlags);
 
+        [DllImport("cfgmgr32.dll")]
+        private static extern int CM_Get_Parent(out uint pdnDevInst, uint dnDevInst, uint ulFlags);
+
+        [DllImport("cfgmgr32.dll", CharSet = CharSet.Unicode)]
+        private static extern int CM_Get_DevNode_PropertyW(uint dnDevInst, ref DEVPROPKEY PropertyKey,
+            out uint PropertyType, byte[] PropertyBuffer, ref uint PropertyBufferSize, uint ulFlags);
+
+        private const uint CR_BUFFER_SMALL = 0x1A;
+        private const uint DEVPROP_TYPE_STRING = 0x12;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct DEVPROPKEY
+        {
+            public Guid fmtid;
+            public uint pid;
+        }
+
+        private static DEVPROPKEY DEVPKEY_Device_BusReportedDeviceDesc = new DEVPROPKEY
+        {
+            fmtid = new Guid(0x540b947e, 0x8b40, 0x45bc, 0xa8, 0xa2, 0x6a, 0x0b, 0x89, 0x4c, 0xbd, 0xa2),
+            pid = 4
+        };
         private const uint CM_LOCATE_DEVNODE_NORMAL = 0;
         private const uint CR_SUCCESS = 0;
 
@@ -84,6 +106,42 @@ namespace EmulatorLauncher.Common.Joysticks
             byte[] buffer = new byte[size];
             int ret = CM_Get_DevNode_Registry_Property(devInst, property, out _, buffer, ref size, 0);
             if (ret != CR_SUCCESS)
+                return "";
+
+            return Encoding.Unicode.GetString(buffer).TrimEnd('\0');
+        }
+
+        public static string GetParentBusReportedDeviceDesc(string deviceId)
+        {
+            if (string.IsNullOrEmpty(deviceId))
+                return "";
+
+            int ret = CM_Locate_DevNode(out uint devInst, deviceId, CM_LOCATE_DEVNODE_NORMAL);
+            if (ret != CR_SUCCESS)
+            {
+                SimpleLogger.Instance.Info($"[DEVICE] CM_Locate_DevNode failed for '{deviceId}' with code {ret}");
+                return "";
+            }
+
+            ret = CM_Get_Parent(out uint parentInst, devInst, 0);
+            if (ret != CR_SUCCESS)
+            {
+                SimpleLogger.Instance.Info($"[DEVICE] CM_Get_Parent failed for '{deviceId}' with code {ret}");
+                return "";
+            }
+
+            uint size = 0;
+            ret = CM_Get_DevNode_PropertyW(parentInst, ref DEVPKEY_Device_BusReportedDeviceDesc,
+                out _, null, ref size, 0);
+
+            if (ret != CR_BUFFER_SMALL || size == 0)
+                return "";
+
+            byte[] buffer = new byte[size];
+            ret = CM_Get_DevNode_PropertyW(parentInst, ref DEVPKEY_Device_BusReportedDeviceDesc,
+                out uint propType, buffer, ref size, 0);
+
+            if (ret != CR_SUCCESS || propType != DEVPROP_TYPE_STRING)
                 return "";
 
             return Encoding.Unicode.GetString(buffer).TrimEnd('\0');

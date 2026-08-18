@@ -73,8 +73,11 @@ namespace EmulatorLauncher
             if (fullscreen)
                 commandArray.Add("-f");
 
-            commandArray.Add("-d");
-            commandArray.Add("\"" + rom + "\"");
+            if (!startBios)
+            {
+                commandArray.Add("-d");
+                commandArray.Add("\"" + rom + "\"");
+            }
 
             string args = string.Join(" ", commandArray);
 
@@ -97,6 +100,18 @@ namespace EmulatorLauncher
                     string backupRamPath = Path.Combine(AppConfig.GetFullPath("saves"), "saturn", "ymir", "state", "bup-int.bin");
                     ini.WriteValue("System", "InternalBackupRAMImagePath", "'" + backupRamPath + "'");
                     ini.WriteValue("System.IPL", "Override", "true");
+                    
+                    BindBoolIniFeature(ini, "System", "EmulateSH2Cache", "ymir_sh2cache", "true", "false");
+                    BindIniFeatureSlider(ini, "System", "SH2ClockFactor", "ymir_sh2clock", "100");
+                    BindBoolIniFeatureOn(ini, "System", "AutoDetectRegion", "ymir_autoregion", "true", "false");
+                    if (SystemConfig.isOptSet("ymir_region") && !string.IsNullOrEmpty(SystemConfig["ymir_region"]))
+                    {
+                        // Ordre de préférence : la région choisie d'abord, les autres derrière dans l'ordre par défaut
+                        var regions = new List<string> { "NorthAmerica", "Japan", "EuropePAL", "AsiaNTSC" };
+                        regions.Remove(SystemConfig["ymir_region"]);
+                        regions.Insert(0, SystemConfig["ymir_region"]);
+                        ini.WriteValue("System", "PreferredRegionOrder", "[ '" + string.Join("', '", regions) + "' ]");
+                    }
 
                     string saturnBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), "saturn_bios.bin");
 
@@ -106,6 +121,8 @@ namespace EmulatorLauncher
                     }
 
                     ini.WriteValue("System.IPL", "Path", "'" + saturnBiosPath + "'");
+                    BindTomlString(ini, "System.IPL", "Variant", "ymir_ipl_variant", "Saturn");
+
                     BindBoolIniFeatureOn(ini, "System", "InternalBackupRAMPerGame", "saturn_pergame_backup", "true", "false");
 
                     // Paths override
@@ -134,6 +151,10 @@ namespace EmulatorLauncher
                     ini.WriteValue("General.PathOverrides", "Screenshots", "'" + screenshotPath + "'");
 
                     ini.WriteValue("General", "CheckForUpdates", "false");
+                    ini.WriteValue("General", "RememberLastLoadedDisc", "false");
+                    BindBoolIniFeature(ini, "General", "PreloadDiscImagesToRAM", "ymir_preload_disc", "true", "false");
+                    BindBoolIniFeature(ini, "General", "EnableRewindBuffer", "ymir_rewind", "true", "false");
+                    BindIniFeatureSlider(ini, "General", "RewindCompressionLevel", "ymir_rewind_compression", "12");
 
                     // Create onboarded file
                     string updatesPath = Path.Combine(statePath, "updates");
@@ -148,7 +169,7 @@ namespace EmulatorLauncher
                     // Video
                     if (SystemConfig.isOptSet("ymir_ratio") && !string.IsNullOrEmpty(SystemConfig["ymir_ratio"]))
                     {
-                        string ratio = SystemConfig["ymir_video"];
+                        string ratio = SystemConfig["ymir_ratio"];
 
                         switch (ratio)
                         {
@@ -175,6 +196,15 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Video", "ForceIntegerScaling", "integerscale", "true", "false");
                     BindBoolIniFeature(ini, "Video.Enhancements", "Deinterlace", "saturn_deinterlace", "true", "false");
                     BindBoolIniFeature(ini, "Video.Enhancements", "TransparentMeshes", "saturn_meshmode", "true", "false");
+                    BindTomlString(ini, "Video", "Rotation", "ymir_rotation", "Normal");
+                    BindBoolIniFeatureOn(ini, "Video", "ReduceLatency", "ymir_reduce_latency", "true", "false");
+                    BindBoolIniFeatureOn(ini, "Video.SoftwareRenderer", "ThreadedVDP1", "ymir_threaded_vdp1", "true", "false");
+                    BindBoolIniFeatureOn(ini, "Video.SoftwareRenderer", "ThreadedVDP2", "ymir_threaded_vdp2", "true", "false");
+                    BindBoolIniFeatureOn(ini, "Video.SoftwareRenderer", "ThreadedDeinterlacer", "ymir_threaded_deint", "true", "false");
+
+                    // Audio
+                    BindTomlString(ini, "Audio", "InterpolationMode", "ymir_interpolation", "Linear");
+                    BindBoolIniFeature(ini, "Audio", "ThreadedSCSP", "ymir_threaded_scsp", "true", "false");
 
                     // Resolution
                     ini.WriteValue("Video.FullScreenMode", "Borderless", "true");
@@ -187,6 +217,38 @@ namespace EmulatorLauncher
                         ini.WriteValue("System", "VideoStandard", "'" + SystemConfig["ymir_videoformat"] + "'");
                     else
                         ini.WriteValue("System", "VideoStandard", "'NTSC'");
+
+                    // --- CD Block ---
+                    BindIniFeatureSlider(ini, "CDBlock", "ReadSpeed", "ymir_cd_readspeed", "2");
+                    BindBoolIniFeature(ini, "CDBlock", "UseLLE", "ymir_cd_lle", "true", "false");
+
+                    // Cartridges
+                    if (Features.IsSupported("ymir_cartridge"))
+                    {
+                        string cartType = "None";
+                        string cartSection = null;
+                        string cartCapacity = null;
+
+                        switch (SystemConfig["ymir_cartridge"])
+                        {
+                            case "dram_8": cartType = "DRAM"; cartSection = "Cartridge.DRAM"; cartCapacity = "8Mbit"; break;
+                            case "dram_32": cartType = "DRAM"; cartSection = "Cartridge.DRAM"; cartCapacity = "32Mbit"; break;
+                            case "dram_48": cartType = "DRAM"; cartSection = "Cartridge.DRAM"; cartCapacity = "48Mbit"; break;
+                            case "bram_4": cartType = "BackupRAM"; cartSection = "Cartridge.BackupRAM"; cartCapacity = "4Mbit"; break;
+                            case "bram_8": cartType = "BackupRAM"; cartSection = "Cartridge.BackupRAM"; cartCapacity = "8Mbit"; break;
+                            case "bram_16": cartType = "BackupRAM"; cartSection = "Cartridge.BackupRAM"; cartCapacity = "16Mbit"; break;
+                            case "bram_32": cartType = "BackupRAM"; cartSection = "Cartridge.BackupRAM"; cartCapacity = "32Mbit"; break;
+                        }
+                        
+                        ini.WriteValue("Cartridge", "Type", "'" + cartType + "'");
+
+                        if (cartSection != null)
+                            ini.WriteValue(cartSection, "Capacity", "'" + cartCapacity + "'");
+                    }
+                    
+                    // OSD
+                    BindBoolIniFeature(ini, "GUI", "ShowFrameRateOSD", "ymir_fps_osd", "true", "false");
+                    BindTomlString(ini, "GUI", "FrameRateOSDPosition", "ymir_fps_osd_position", "TopRight");
 
                     ini.Save();
                 }
@@ -209,6 +271,18 @@ namespace EmulatorLauncher
                 return 0;
 
             return ret;
+        }
+
+        private void BindTomlString(IniFile ini, string section, string key, string feature, string defaultValue)
+        {
+            if (!Features.IsSupported(feature))
+                return;
+
+            string value = defaultValue;
+            if (SystemConfig.isOptSet(feature) && !string.IsNullOrEmpty(SystemConfig[feature]))
+                value = SystemConfig[feature];
+
+            ini.WriteValue(section, key, "'" + value + "'");
         }
     }
 }

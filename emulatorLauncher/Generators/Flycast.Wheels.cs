@@ -21,7 +21,9 @@ namespace EmulatorLauncher
 
             bool serviceMenu = SystemConfig.isOptSet("flycast_service_menu") && SystemConfig.getOptBoolean("flycast_service_menu");
             bool racingController = SystemConfig.isOptSet("flycast_racing_controller") && SystemConfig.getOptBoolean("flycast_racing_controller");
-            
+            bool racingControllerP1 = racingController || SystemConfig["flycast_controller1"] == "15";
+            bool racingControllerP2 = racingController || SystemConfig["flycast_controller2"] == "15";
+
             string wheelTech1 = "sdl";
             string wheelTech2 = "sdl";
             int wheelIndex1 = -1;
@@ -38,13 +40,13 @@ namespace EmulatorLauncher
                 return;
 
             wheel1 = usableWheels[0];
-            wheelIndex1 = wheel1.DinputIndex;
+            wheelIndex1 = wheel1.SDLIndex;
 
             var c1 = this.Controllers.FirstOrDefault(c => c.DeviceIndex == wheel1.ControllerIndex);
 
             wheeltype1 = wheel1.Type.ToString();
             SimpleLogger.Instance.Info("[WHEELS] Wheel 1, wheeltype identified : " + wheeltype1);
-            wheelIndex1 = wheel1.DinputIndex;
+            wheelIndex1 = wheel1.SDLIndex;
             SimpleLogger.Instance.Info("[WHEELS] Wheel 1 directinput index : " + wheelIndex1);
 
             // Get mapping from yml file in retrobat\system\resources\inputmapping\wheels and retrieve mapping
@@ -356,10 +358,24 @@ namespace EmulatorLauncher
                 for (int i = 0; i < digitalBinds.Count; i++)
                     ctrlini.WriteValue("digital", "bind" + i, digitalBinds[i]);
 
+                var triggerCodes = new List<string>();
+                foreach (var b in analogBinds)
+                {
+                    if (!b.EndsWith(":btn_trigger_left") && !b.EndsWith(":btn_trigger_right")
+                     && !b.EndsWith(":btn_trigger2_left") && !b.EndsWith(":btn_trigger2_right"))
+                        continue;
+                    string code = b.Split(':')[0];                       // ex. "2+" ou "3-"
+                    bool reverse = code.EndsWith("-");
+                    code = code.TrimEnd('+', '-');
+                    triggerCodes.Add(code + (reverse ? "~" : ""));
+                }
+                if (triggerCodes.Count > 0)
+                    ctrlini.WriteValue("emulator", "triggers", string.Join(",", triggerCodes));
+
                 ctrlini.WriteValue("emulator", "dead_zone", "1");
-                ctrlini.WriteValue("emulator", "mapping_name", "Default");
+                ctrlini.WriteValue("emulator", "mapping_name", deviceName);
                 ctrlini.WriteValue("emulator", "rumble_power", "100");
-                ctrlini.WriteValue("emulator", "version", "3");
+                ctrlini.WriteValue("emulator", "version", "4");
 
                 ctrlini.Save();
             }
@@ -368,10 +384,7 @@ namespace EmulatorLauncher
             // Write information in ini file
             ini.WriteValue("input", "maple_sdl_joystick_" + wheelIndex1, "0");
 
-            if (racingController == false && SystemConfig["flycast_controller1"] == "15")
-                racingController = true;
-
-            ini.WriteValue("input", "device1", racingController ? "15" : "0");
+            ini.WriteValue("input", "device1", racingControllerP1 ? "15" : "0");
             ini.WriteValue("input", "device1.1", "1");
 
             if (SystemConfig.isOptSet("flycast_extension1") && !string.IsNullOrEmpty(SystemConfig["flycast_extension1"]))
@@ -385,7 +398,7 @@ namespace EmulatorLauncher
                 wheel2 = usableWheels[1];
                 wheeltype2 = wheel2.Type.ToString();
                 SimpleLogger.Instance.Info("[WHEELS] Wheel 2, wheeltype identified : " + wheeltype2);
-                wheelIndex2 = wheel2.DinputIndex;
+                wheelIndex2 = wheel2.SDLIndex;
                 SimpleLogger.Instance.Info("[WHEELS] Wheel 2 directinput index : " + wheelIndex2);
 
                 // Get mapping from yml file in retrobat\system\resources\inputmapping\wheels and retrieve mapping
@@ -697,22 +710,32 @@ namespace EmulatorLauncher
                     for (int i = 0; i < digitalBinds.Count; i++)
                         ctrlini.WriteValue("digital", "bind" + i, digitalBinds[i]);
 
+                    var triggerCodes = new List<string>();
+                    foreach (var b in analogBinds)
+                    {
+                        if (!b.EndsWith(":btn_trigger_left") && !b.EndsWith(":btn_trigger_right")
+                         && !b.EndsWith(":btn_trigger2_left") && !b.EndsWith(":btn_trigger2_right"))
+                            continue;
+                        string code = b.Split(':')[0];                       // ex. "2+" ou "3-"
+                        bool reverse = code.EndsWith("-");
+                        code = code.TrimEnd('+', '-');
+                        triggerCodes.Add(code + (reverse ? "~" : ""));
+                    }
+                    if (triggerCodes.Count > 0)
+                        ctrlini.WriteValue("emulator", "triggers", string.Join(",", triggerCodes));
+
                     ctrlini.WriteValue("emulator", "dead_zone", "1");
-                    ctrlini.WriteValue("emulator", "mapping_name", "Default");
+                    ctrlini.WriteValue("emulator", "mapping_name", deviceName2);
                     ctrlini.WriteValue("emulator", "rumble_power", "100");
-                    ctrlini.WriteValue("emulator", "version", "3");
+                    ctrlini.WriteValue("emulator", "version", "4");
 
                     ctrlini.Save();
                 }
 
                 BypassC2Cfg:
-                if (racingController == false && SystemConfig["flycast_controller2"] == "15")
-                    racingController = true;
-                else if (racingController == false && SystemConfig["flycast_controller2"] != "15")
-                    racingController = false;
 
                 ini.WriteValue("input", "maple_sdl_joystick_" + wheelIndex2, "1");
-                ini.WriteValue("input", "device2", racingController ? "15" : "0");
+                ini.WriteValue("input", "device2", racingControllerP2 ? "15" : "0");
                 ini.WriteValue("input", "device2.1", "1");
 
                 if (SystemConfig.isOptSet("flycast_extension2") && !string.IsNullOrEmpty(SystemConfig["flycast_extension2"]))

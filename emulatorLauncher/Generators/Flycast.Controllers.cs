@@ -76,7 +76,10 @@ namespace EmulatorLauncher
             }
 
             if (useWheel)
+            {
                 ConfigureFlycastWheels(ini, mappingPath, hotkeyMapping);
+                ConfigureKBHotkeys(ini, mappingPath, system, hotkeyMapping);
+            }
 
             else
             {
@@ -233,7 +236,7 @@ namespace EmulatorLauncher
                 ctrlini.WriteValue("emulator", "dead_zone", "10");
                 ctrlini.WriteValue("emulator", "mapping_name", "Keyboard");
                 ctrlini.WriteValue("emulator", "rumble_power", "100");
-                ctrlini.WriteValue("emulator", "version", "3");
+                ctrlini.WriteValue("emulator", "version", "4");
 
                 ctrlini.Save();
             }
@@ -323,7 +326,7 @@ namespace EmulatorLauncher
                 ctrlini.WriteValue("emulator", "mapping_name", "Keyboard");
                 ctrlini.WriteValue("emulator", "rumble_power", "100");
                 ctrlini.WriteValue("emulator", "saturation", "100");
-                ctrlini.WriteValue("emulator", "version", "3");
+                ctrlini.WriteValue("emulator", "version", "4");
 
                 ctrlini.Save();
             }
@@ -613,6 +616,11 @@ namespace EmulatorLauncher
                         analogBinds.Add(GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_z");
                         analogBinds.Add(GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_c");
                     }
+                    else if (!analogTriggers && useR1L1)
+                    {
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.l2, tech) + ":btn_z");
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r2, tech) + ":btn_c");
+                    }
 
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.b, tech) + ":btn_b");
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.a, tech) + ":btn_a");
@@ -645,12 +653,14 @@ namespace EmulatorLauncher
                     digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_d");
                 }
 
+                digitalBinds.RemoveAll(b => b.StartsWith("-1"));
+                analogBinds.RemoveAll(b => b.StartsWith("-1"));
                 for (int i = 0; i < analogBinds.Count; i++)
                     ctrlini.WriteValue("analog", "bind" + i, analogBinds[i]);
 
                 string hotkeyValue = GetInputKeyName(ctrl, InputKey.hotkey, tech);
 
-                if (!string.IsNullOrEmpty(hotkeyValue))
+                if (!string.IsNullOrEmpty(hotkeyValue) && hotkeyValue != "-1")
                 {
                     int i = 0;
                     foreach (var hk in padHKMapping)
@@ -719,6 +729,11 @@ namespace EmulatorLauncher
                         case 4:
                         case 5:
                             return pid.ToString() + "+";
+                        default:
+                            if ((!revertAxis && input.Value > 0) || (revertAxis && input.Value < 0))
+                                return pid.ToString() + "+";
+                            else
+                                return pid.ToString() + "-";
                     }
                 }
 
@@ -1049,5 +1064,13 @@ namespace EmulatorLauncher
             { "btn_jump_state", "61" },
             { "btn_screenshot", "65" }
         };
+
+        private static string ToFlycastRawId(string devicePath)
+        {
+            string id = devicePath.StartsWith(@"\\?\HID#", StringComparison.OrdinalIgnoreCase)
+                ? devicePath.Substring(@"\\?\HID#".Length)
+                : devicePath;
+            return id.Replace('=', '_').Replace('[', '_').Replace(']', '_');
+        }
     }
 }
