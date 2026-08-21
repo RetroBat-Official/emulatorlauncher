@@ -174,7 +174,9 @@ namespace EmulatorLauncher
 
             pcsx2ini.WriteValue(usbSection1, "Pad_SteeringLeft", DevicePrefix + GetWheelButton(wheel1buttonMap, "SteerLeft"));
             pcsx2ini.WriteValue(usbSection1, "Pad_SteeringRight", DevicePrefix + GetWheelButton(wheel1buttonMap, "SteerRight"));
-            
+            pcsx2ini.WriteValue(usbSection1, "Pad_Throttle", DevicePrefix + GetWheelButton(wheel1buttonMap, "Throttle"));
+            pcsx2ini.WriteValue(usbSection1, "Pad_Brake", DevicePrefix + GetWheelButton(wheel1buttonMap, "Brake"));
+
             if (padSubtype1 == "3")
             {
                 // GT Force
