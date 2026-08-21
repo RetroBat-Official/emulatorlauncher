@@ -305,6 +305,8 @@ namespace EmulatorLauncher
 
                 pcsx2ini.WriteValue(usbSection2, "Pad_SteeringLeft", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "SteerLeft"));
                 pcsx2ini.WriteValue(usbSection2, "Pad_SteeringRight", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "SteerRight"));
+                pcsx2ini.WriteValue(usbSection2, "Pad_Throttle", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "Throttle"));
+                pcsx2ini.WriteValue(usbSection2, "Pad_Brake", DevicePrefix2 + GetWheelButton(wheel2buttonMap, "Brake"));
 
                 if (padSubtype1 == "3")
                 {
