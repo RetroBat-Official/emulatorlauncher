@@ -99,8 +99,6 @@ namespace EmulatorLauncher
 
             string techPadNumber1 = null;
             string techPadNumber2 = null;
-            string tech1 = "";
-            string tech2 = "";
             bool gamepad1 = false;
             bool gamepad2 = false;
             bool guninvert = SystemConfig.isOptSet("gun_invert") && SystemConfig.getOptBoolean("gun_invert");
@@ -110,13 +108,11 @@ namespace EmulatorLauncher
                 if (!ctrl1.IsKeyboard && ctrl1.IsXInputDevice && !_forceSDL)
                 {
                     techPadNumber1 = "XInput-" + ctrl1.XInput.DeviceIndex + "/";
-                    tech1 = "XInput";
                     gamepad1 = true;
                 }
                 else if (!ctrl1.IsKeyboard)
                 {
                     techPadNumber1 = "SDL-" + (ctrl1.SdlController == null ? ctrl1.DeviceIndex : ctrl1.SdlController.Index) + "/";
-                    tech1 = "SDL";
                     gamepad1 = true;
                 }
                 else
@@ -128,13 +124,11 @@ namespace EmulatorLauncher
                 if (!ctrl2.IsKeyboard && ctrl2.IsXInputDevice && !_forceSDL)
                 {
                     techPadNumber2 = "XInput-" + ctrl2.XInput.DeviceIndex + "/";
-                    tech2 = "XInput";
                     gamepad2 = true;
                 }
                 else if (!ctrl2.IsKeyboard)
                 {
                     techPadNumber2 = "SDL-" + (ctrl2.SdlController == null ? ctrl2.DeviceIndex : ctrl2.SdlController.Index) + "/";
-                    tech2 = "SDL";
                     gamepad2 = true;
                 }
                 else
@@ -174,10 +168,10 @@ namespace EmulatorLauncher
             {
                 if (gamepad1)
                 {
-                    ini.WriteValue(padNumber1, "A", techPadNumber1 + GetInputKeyName(ctrl1, InputKey.a, tech1));
-                    ini.WriteValue(padNumber1, "B", techPadNumber1 + GetInputKeyName(ctrl1, InputKey.b, tech1));
-                    ini.WriteValue(padNumber1, "Start", techPadNumber1 + GetInputKeyName(ctrl1, InputKey.start, tech1));
-                    ini.WriteValue(padNumber1, "Back", techPadNumber1 + GetInputKeyName(ctrl1, InputKey.select, tech1));
+                    ini.WriteValue(padNumber1, "A", techPadNumber1 + GetInputKeyName(ctrl1, InputKey.a));
+                    ini.WriteValue(padNumber1, "B", techPadNumber1 + GetInputKeyName(ctrl1, InputKey.b));
+                    ini.WriteValue(padNumber1, "Start", techPadNumber1 + GetInputKeyName(ctrl1, InputKey.start));
+                    ini.WriteValue(padNumber1, "Back", techPadNumber1 + GetInputKeyName(ctrl1, InputKey.select));
                     ini.WriteValue(padNumber1, "ShootOffscreen", guninvert ? pointer1 + "/LeftButton" : pointer1 + "/RightButton");
                 }
                 else
@@ -286,10 +280,10 @@ namespace EmulatorLauncher
                 {
                     if (gamepad2)
                     {
-                        ini.WriteValue(padNumber2, "A", techPadNumber2 + GetInputKeyName(ctrl2, InputKey.a, tech2));
-                        ini.WriteValue(padNumber2, "B", techPadNumber2 + GetInputKeyName(ctrl2, InputKey.b, tech2));
-                        ini.WriteValue(padNumber2, "Start", techPadNumber2 + GetInputKeyName(ctrl2, InputKey.start, tech2));
-                        ini.WriteValue(padNumber2, "Back", techPadNumber2 + GetInputKeyName(ctrl2, InputKey.select, tech2));
+                        ini.WriteValue(padNumber2, "A", techPadNumber2 + GetInputKeyName(ctrl2, InputKey.a));
+                        ini.WriteValue(padNumber2, "B", techPadNumber2 + GetInputKeyName(ctrl2, InputKey.b));
+                        ini.WriteValue(padNumber2, "Start", techPadNumber2 + GetInputKeyName(ctrl2, InputKey.start));
+                        ini.WriteValue(padNumber2, "Back", techPadNumber2 + GetInputKeyName(ctrl2, InputKey.select));
                         ini.WriteValue(padNumber2, "ShootOffscreen", guninvert ? pointer2 + "/LeftButton" : pointer2 + "/RightButton");
                     }
                     else
