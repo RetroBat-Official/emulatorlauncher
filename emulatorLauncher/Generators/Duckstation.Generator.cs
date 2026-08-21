@@ -18,6 +18,7 @@ namespace EmulatorLauncher
         private SaveStatesWatcher _saveStatesWatcher;
         private Version _duckstationVersion;
         private bool _internalBezel = true;
+        private bool _useReshade = true;
         private bool _cleanupbezel = false;
         private string _path;
         private KeyValuePair<string, string>[] _stage1;
@@ -77,8 +78,8 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("duckstation_internalBezel") && !SystemConfig.getOptBoolean("duckstation_internalBezel"))
                 _internalBezel = false;
-            
-            if (fullscreen)
+
+            if (fullscreen && _internalBezel)
             {
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             }
@@ -90,19 +91,26 @@ namespace EmulatorLauncher
                     case "OpenGL":
                         ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path);
                         if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                        {
                             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                            _useReshade = false;
+                        }
                         break;
                     case "Vulkan":
                     case "Software":
                         ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path);
                         ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
                         _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                        _useReshade = false;
                         break;
                     case "D3D11":
                     case "D3D12":
                         ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
                         if (!ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                        {
                             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                            _useReshade = false;
+                        }
                         break;
                 }
             }
@@ -275,7 +283,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Cheevos", "Notifications", "true");
                         ini.WriteValue("Cheevos", "LeaderboardNotifications", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "true" : "false");
                         ini.WriteValue("Cheevos", "SoundEffects", "true");
-                        ini.WriteValue("Cheevos", "Overlays", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "true" : "false");
+                        ini.WriteValue("Cheevos", "ChallengeIndicatorMode", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "PersistentIcon" : "Disabled");
 
                         // Inject credentials
                         if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
@@ -420,6 +428,8 @@ namespace EmulatorLauncher
                         ini.WriteValue("Display", "ShowCPU", "false");
                         ini.WriteValue("Display", "ShowGPU", "false");
                     }
+                    BindIniFeature(ini, "Display", "Rotation", "duck_rotation", "Normal");
+                    BindIniFeature(ini, "Display", "Scaling", "duck_displayscaling", "BilinearSmooth");
 
                     // Internal shaders
                     _stage1 = ini.EnumerateValues("PostProcessing/Stage1");
@@ -617,7 +627,7 @@ namespace EmulatorLauncher
         {
             FakeBezelFrm bezel = null;
 
-            if (_bezelFileInfo != null && !_internalBezel)
+            if (_bezelFileInfo != null && !_internalBezel && !_useReshade)
                 bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
 
             int ret = base.RunAndWait(path);

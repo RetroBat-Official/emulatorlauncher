@@ -187,6 +187,7 @@ namespace EmulatorLauncher
                 else
                 {
                     ini.WriteValue("window", "fullscreen", "no");
+                    ini.WriteValue("window", "maximized", "no");
                     if (resolution == null)
                     {
                         var res = ScreenResolution.CurrentResolution;
@@ -307,6 +308,11 @@ namespace EmulatorLauncher
                 BindIniFeatureSlider(ini, "config", "pvr.MaxThreads", "flycast_threads", "3");
                 BindBoolIniFeature(ini, "config", "rend.CustomTextures", "flycast_custom_textures", "yes", "no");
                 BindIniFeature(ini, "config", "rend.Resolution", "flycast_resolution", "480");
+                BindIniFeature(ini, "config", "rend.TextureUpscale2", "flycast_texture_upscale", "1");
+                BindIniFeature(ini, "config", "rend.MaxFilteredTextureSize", "flycast_max_filtered_texture_size", "256");
+                BindBoolIniFeatureOn(ini, "config", "rend.UseMipmaps", "flycast_mipmaps", "yes", "no");
+                BindBoolIniFeature(ini, "config", "rend.EmulateFramebuffer", "flycast_emulate_framebuffer", "yes", "no");
+                //BindBoolIniFeatureOn(ini, "config", "rend.FramePacing", "flycast_framepacing", "yes", "no");
 
                 // audio
                 BindIniFeature(ini, "audio", "backend", "flycast_audio", "auto");

@@ -261,7 +261,7 @@ namespace EmulatorLauncher
                 ctrlini.WriteValue("emulator", "dead_zone", "10");
                 ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
                 ctrlini.WriteValue("emulator", "rumble_power", "100");
-                ctrlini.WriteValue("emulator", "version", "3");
+                ctrlini.WriteValue("emulator", "version", "4");
                 ctrlini.Save();
             }
 
@@ -310,6 +310,18 @@ namespace EmulatorLauncher
                             kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
                         }
                     }
+                    else
+                    {
+                        kbini.WriteValue("digital", "bind0", "30:btn_start");
+                        kbini.WriteValue("digital", "bind1", "34:btn_d");
+                        kbini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
+                        kbini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
+                        kbini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
+                        kbini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
+                        kbini.WriteValue("digital", "bind6", "224:btn_b");
+                        kbini.WriteValue("digital", "bind7", "225:btn_a");
+                        kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
+                    }
                 }
                 else if (guns[0].Type == RawLighGunType.Mouse && SystemConfig.isOptSet("WiimoteMode") && SystemConfig["WiimoteMode"] == "wiimotegun")
                 {
@@ -350,7 +362,7 @@ namespace EmulatorLauncher
                 kbini.WriteValue("emulator", "dead_zone", "10");
                 kbini.WriteValue("emulator", "mapping_name", "Keyboard");
                 kbini.WriteValue("emulator", "rumble_power", "100");
-                kbini.WriteValue("emulator", "version", "3");
+                kbini.WriteValue("emulator", "version", "4");
                 kbini.Save();
             }
 
@@ -434,8 +446,8 @@ namespace EmulatorLauncher
 
                     ini.WriteValue("input", "RawInput", "yes");
 
-                    ini.WriteValue("input", "maple_raw_mouse_" + lightgun1.DevicePath.Substring(8), "0");
-                    ini.WriteValue("input", "maple_raw_mouse_" + lightgun2.DevicePath.Substring(8), "1");
+                    ini.WriteValue("input", "maple_raw_mouse_" + ToFlycastRawId(lightgun1.DevicePath), "0");
+                    ini.WriteValue("input", "maple_raw_mouse_" + ToFlycastRawId(lightgun2.DevicePath), "1");
 
                     if (!SystemConfig.isOptSet("flycast_controller1"))
                         ini.WriteValue("input", "device1", "7");
@@ -459,6 +471,11 @@ namespace EmulatorLauncher
 
                             using (var ctrlini = new IniFile(mouseMapping, IniOptions.UseSpaces))
                             {
+                                ctrlini.ClearSection("digital");
+                                ctrlini.ClearSection("analog");
+                                ctrlini.ClearSection("combo");
+                                ctrlini.ClearSection("emulator");
+
                                 if (_isArcade)
                                 {
                                     if (useFileMapping)
@@ -584,7 +601,7 @@ namespace EmulatorLauncher
                                 ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
                                 ctrlini.WriteValue("emulator", "rumble_power", "100");
                                 ctrlini.WriteValue("emulator", "saturation", "100");
-                                ctrlini.WriteValue("emulator", "version", "3");
+                                ctrlini.WriteValue("emulator", "version", "4");
                             }
                         }
                         catch { SimpleLogger.Instance.Warning($"[WARN] Failed to configure mouse {mouse.Key.DevicePath}"); }
@@ -624,14 +641,15 @@ namespace EmulatorLauncher
                                 if (_isArcade)
                                     kbMapping = Path.Combine(mappingPath, "RAW_" + value + " [" + vidpid + "]_arcade" + ".cfg");
 
-                                if (devicePath.StartsWith(@"\\?\HID#", StringComparison.OrdinalIgnoreCase))
-                                    ini.WriteValue("input", "maple_raw_keyboard_" + kb.DevicePath.Substring(@"\\?\HID#".Length), index.ToString());
-                                else
-                                    ini.WriteValue("input", "maple_raw_keyboard_" + kb.DevicePath, index.ToString());
+                                ini.WriteValue("input", "maple_raw_keyboard_" + ToFlycastRawId(kb.DevicePath), index.ToString());
 
                                 using (var ctrlini = new IniFile(kbMapping, IniOptions.UseSpaces))
                                 {
                                     ctrlini.ClearSection("digital");
+                                    ctrlini.ClearSection("analog");
+                                    ctrlini.ClearSection("combo");
+                                    ctrlini.ClearSection("emulator");
+
                                     string vidPid = GetVIDPID(devicePath);
 
                                     if (_isArcade)
@@ -686,8 +704,9 @@ namespace EmulatorLauncher
                                                 ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
                                                 ctrlini.WriteValue("digital", "bind6", "224:btn_b");
                                                 ctrlini.WriteValue("digital", "bind7", "225:btn_a");
-                                                ctrlini.WriteValue("digital", "bind8", "20:btn_x");            //Q
                                             }
+
+                                            ctrlini.WriteValue("digital", "bind8", "20:btn_x");            //Q
 
                                             if (hotkeyMapping != null)
                                             {
@@ -808,10 +827,10 @@ namespace EmulatorLauncher
                                             ctrlini.WriteValue("digital", "bind11", "25:btn_dpad1_down1");           //V
                                             ctrlini.WriteValue("digital", "bind12", "24:btn_dpad1_up1");             //U
                                             ctrlini.WriteValue("digital", "bind13", "35:btn_a1");                    //6
-                                            ctrlini.WriteValue("digital", "bind14", "35:btn_a2");                    //7
-                                            ctrlini.WriteValue("digital", "bind15", "35:btn_a3");                    //8
-                                            ctrlini.WriteValue("digital", "bind16", "31:btn_start2");                //3
-                                            ctrlini.WriteValue("digital", "bind17", "31:btn_start3");                //4
+                                            ctrlini.WriteValue("digital", "bind14", "36:btn_a2");                    //7
+                                            ctrlini.WriteValue("digital", "bind15", "37:btn_a3");                    //8
+                                            ctrlini.WriteValue("digital", "bind16", "32:btn_start2");                //3
+                                            ctrlini.WriteValue("digital", "bind17", "33:btn_start3");                //4
                                             ctrlini.WriteValue("digital", "bind18", "13:btn_dpad1_left2");           //J
                                             ctrlini.WriteValue("digital", "bind19", "14:btn_dpad1_down2");           //K
                                             ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
@@ -840,10 +859,10 @@ namespace EmulatorLauncher
                                     }
 
                                     ctrlini.WriteValue("emulator", "dead_zone", "10");
-                                    ctrlini.WriteValue("emulator", "mapping_name", "Mouse");
+                                    ctrlini.WriteValue("emulator", "mapping_name", "Keyboard");
                                     ctrlini.WriteValue("emulator", "rumble_power", "100");
                                     ctrlini.WriteValue("emulator", "saturation", "100");
-                                    ctrlini.WriteValue("emulator", "version", "3");
+                                    ctrlini.WriteValue("emulator", "version", "4");
                                 }
                             }
                         }
@@ -855,6 +874,9 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("flycast_crosshair") && SystemConfig.getOptBoolean("flycast_crosshair"))
             {
+                ini.WriteValue("config", "rend.CrossHairColor3", "0");
+                ini.WriteValue("config", "rend.CrossHairColor4", "0");
+
                 if (multigun)
                 {
                     ini.WriteValue("config", "rend.CrossHairColor1", "-1073675782");

@@ -118,7 +118,7 @@ namespace EmulatorLauncher
 
             if (!File.Exists(settingsFile))
             {
-                string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "jgenesis", "jgenesis-config-template.toml");
+                string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "jgenesis", "jgenesis-config.toml");
                 if (!File.Exists(templateFile))
                     return;
 
@@ -143,6 +143,11 @@ namespace EmulatorLauncher
                     ini.WriteValue("common", "pause_emulator", "\"Never\"");
                 else
                     ini.WriteValue("common", "pause_emulator", "\"EmulatorLosesFocus\"");
+
+                if (SystemConfig.isOptSet("jgen_anti_dither_shader") && !string.IsNullOrEmpty(SystemConfig["jgen_anti_dither_shader"]))
+                    ini.WriteValue("common", "anti_dither_shader", "\"" + SystemConfig["jgen_anti_dither_shader"] + "\"");
+                else
+                    ini.WriteValue("common", "anti_dither_shader", "\"" + "None" + "\"");
 
                 BindBoolIniFeatureOn(ini, "common", "audio_sync", "jgen_async", "true", "false");
 

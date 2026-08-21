@@ -325,8 +325,8 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". SDL driver class: " + ctrl.SdlWrappedTechID + ", hardware button order: " + ctrl.UsesHardwareButtonOrder);
             SdlToDirectInput dinputController = null;
             bool isXinput = ctrl.IsXInputDevice;
-            
-            string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
+
+            string tech = (ctrl.IsXInputDevice && !_forceSDL) ? "XInput" : "SDL";
 
             if (_forceDInput)
             {
@@ -334,7 +334,7 @@ namespace EmulatorLauncher
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
                 if (!File.Exists(gamecontrollerDB))
                 {
-                    SimpleLogger.Instance.Info("[WHEELS] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
+                    SimpleLogger.Instance.Info("[CONTROLS] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
                     gamecontrollerDB = null;
                 }
                 string guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
@@ -343,7 +343,7 @@ namespace EmulatorLauncher
                 try { dinputController = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid); }
                 catch { }
 
-                if (dinputController.ButtonMappings == null)
+                if (dinputController == null || dinputController.ButtonMappings == null)
                 {
                     SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". No button mapping in gamescontrollerDB file for : " + guid);
                     dinputController = null;
@@ -352,7 +352,7 @@ namespace EmulatorLauncher
 
             // Fallback
             if (dinputController == null)
-                tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
+                tech = (ctrl.IsXInputDevice && !_forceSDL) ? "XInput" : "SDL";
 
             //Start writing in ini file
             pcsx2ini.ClearSection(padNumber);
@@ -371,13 +371,13 @@ namespace EmulatorLauncher
             //Get SDL controller index
             string techPadNumber = "SDL-" + sdl3index + "/";
             if (ctrl.IsXInputDevice && !_forceSDL)
-                techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
+                techPadNumber = "XInput-" + (ctrl.XInput != null ? ctrl.XInput.DeviceIndex : ctrl.DeviceIndex) + "/";
 
             bool stickasDpad = SystemConfig.getOptBoolean("pcsx2_stick_dpad");
 
             if (tech == "DInput")
             {
-                techPadNumber = "DInput-" + ctrl.DirectInput.DeviceIndex + "/";
+                techPadNumber = "DInput-" + (ctrl.DirectInput != null ? ctrl.DirectInput.DeviceIndex : ctrl.DeviceIndex) + "/";
 
                 //Write button mapping
                 if (stickasDpad)
@@ -1293,7 +1293,7 @@ namespace EmulatorLauncher
                     {
                         case 0: 
                             if (isNintendo)
-                                return tech == "XInput" ? "A" : "FaceEast";
+                                return tech == "XInput" ? "B" : "FaceEast";
                             else
                                 return tech == "XInput" ? "A" : "FaceSouth";
                         case 1:
@@ -1303,12 +1303,12 @@ namespace EmulatorLauncher
                                 return tech == "XInput" ? "B" : "FaceEast";
                         case 2:
                             if (isNintendo)
-                                return tech == "XInput" ? "A" : "FaceWest";
+                                return tech == "XInput" ? "X" : "FaceWest";
                             else
                                 return tech == "XInput" ? "Y" : "FaceNorth";
                         case 3:
                             if (isNintendo)
-                                return tech == "XInput" ? "A" : "FaceNorth";
+                                return tech == "XInput" ? "Y" : "FaceNorth";
                             else
                                 return tech == "XInput" ? "X" : "FaceWest"; ;
                         case 4: return hwOrder ? "LeftShoulder" : "Back";

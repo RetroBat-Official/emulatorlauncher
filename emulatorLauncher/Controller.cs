@@ -83,8 +83,20 @@ namespace EmulatorLauncher
                         if (!string.IsNullOrEmpty(DevicePath))
                             _sdlController = SdlGameController.GetGameControllerByPath(DevicePath);
 
+                        // GUID fallback: two identical pads share the same SDL GUID, so the lookup
+                        // would hand the very same SdlGameController to every one of them - and
+                        // therefore the same joypad index. Better to return null and let callers
+                        // fall back on DeviceIndex explicitly.
                         if (_sdlController == null)
-                            _sdlController = SdlGameController.GetGameController(Guid.ToGuid());
+                        {
+                            bool guidIsAmbiguous = Program.Controllers != null
+                                && Program.Controllers.Count(c => c != this && !c.IsKeyboard && c.Guid.ToGuid() == this.Guid.ToGuid()) > 0;
+
+                            if (guidIsAmbiguous)
+                                SimpleLogger.Instance.Warning("[Controller] Player " + PlayerIndex + " : path lookup failed and GUID is shared by several pads - no SDL match.");
+                            else
+                                _sdlController = SdlGameController.GetGameController(Guid.ToGuid());
+                        }
                     }
                 }
 
@@ -571,14 +583,14 @@ namespace EmulatorLauncher
             if (_sdl3ControllersKnown)
                 return;
 
-            _sdl3ControllersKnown = true;
-
             if (!CheckSDL3dll())
                 return;
 
             var candidates = Sdl3GameController.GetControllers().ToList();
             if (candidates.Count == 0)
                 return;
+
+            _sdl3ControllersKnown = true;
 
             var pads = Program.Controllers.Where(c => !c.IsKeyboard && c.Config != null).ToList();
 

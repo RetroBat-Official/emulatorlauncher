@@ -70,6 +70,8 @@ namespace EmulatorLauncher.Libretro
 
             // Core override Management
             core = DetectBestCore(system, emulator, core, subCore, rom);
+            string subSystem = SubSystem.GetSubSystem(core, system);
+            SystemConfig["subsystem_id"] = subSystem ?? "";
 
             // Cleanup Core override file
             // Before core override as some cores use the 'Main' core for filenames
@@ -101,7 +103,6 @@ namespace EmulatorLauncher.Libretro
             string patchArg = patchArgs.Count > 0 ? string.Join(" ", patchArgs) : null;
 
             // Fbneo subsystem management
-            string subSystem = SubSystem.GetSubSystem(core, system);
             if (!string.IsNullOrEmpty(subSystem))
             {
                 commandArray.Add("--subsystem");
@@ -113,7 +114,7 @@ namespace EmulatorLauncher.Libretro
                 rom = newRom;
 
             // Netplay mode
-            AddNetplayArguments(commandArray);
+            AddNetplayArguments(commandArray, core);
 
             // RetroArch since 1.7.8 requires the shaders to be passed as command line argument
             if (GetVideoShader(emulator, core, rom, out string videoShader))
@@ -153,7 +154,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             string retroarch = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe");
-            if (emulator != "angle" && SystemConfig["netplay"] == "true" && (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator"))
+            if (emulator != "angle" && !coreNoNetplay.Contains(core) && SystemConfig["netplay"] == "true" && (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator"))
                 retroarch = GetNetPlayPatchedRetroarch();
 
             string finalArgs;
@@ -617,7 +618,7 @@ namespace EmulatorLauncher.Libretro
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
             {
                 string videoDriver = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"))["video_driver"];
-                bool isOpenGL = (emulator != "angle") && (videoDriver == "gl") && (!coreNoGL.Contains(core));
+                bool isOpenGL = (emulator != "angle") && (!coreNoGL.Contains(core)) && (videoDriver == "gl" || coreGLCompat.Contains(core));
                 bool dx12 = videoDriver == "d3d12";
 
                 string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
@@ -759,10 +760,16 @@ namespace EmulatorLauncher.Libretro
             return false;
         }
 
-        private void AddNetplayArguments(List<string> commandArray)
+        private void AddNetplayArguments(List<string> commandArray, string core)
         {
             if (string.IsNullOrEmpty(SystemConfig["netplaymode"]))
                 return;
+
+            if (coreNoRunahead.Contains(core))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] Core '" + core + "' does not support netplay (savestate level < deterministic)");
+                return;
+            }
 
             // Netplay mode
             if (SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator")
@@ -1072,7 +1079,7 @@ namespace EmulatorLauncher.Libretro
             else
                 retroarchConfig["sort_savefiles_enable"] = "false";
             retroarchConfig["sort_savefiles_by_content_enable"] = "false";
-
+            retroarchConfig["core_info_savestate_bypass"] = "false";
             BindBoolFeature(retroarchConfig, "game_specific_options", "game_specific_options", "true", "false");
             BindBoolFeature(retroarchConfig, "auto_overrides_enable", "game_specific_options", "true", "false");
             BindFeatureSlider(retroarchConfig, "fastforward_ratio", "fastforward_ratio", "0.000000");
@@ -1312,7 +1319,7 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["savestate_max_keep"] = "0";
             }
 
-            _stateFileManager = LibRetroStateFileManager.FromSaveStateFile(SystemConfig["state_file"]);
+            _stateFileManager = coreNoSavestate.Contains(core) ? null : LibRetroStateFileManager.FromSaveStateFile(SystemConfig["state_file"]);
             if (_stateFileManager != null)
             {
                 retroarchConfig["savestate_auto_load"] = "true";
@@ -1395,7 +1402,7 @@ namespace EmulatorLauncher.Libretro
 
             // Rewind
             if (!SystemConfig.isOptSet("rewind"))
-                retroarchConfig["rewind_enable"] = systemNoRewind.Contains(system) ? "false" : "true"; // AUTO
+                retroarchConfig["rewind_enable"] = coreNoRewind.Contains(core) ? "false" : "true"; // AUTO
             else if (SystemConfig.getOptBoolean("rewind"))
                 retroarchConfig["rewind_enable"] = "true";
             else
@@ -1509,9 +1516,9 @@ namespace EmulatorLauncher.Libretro
 
             // Core, services & bezel configs
             ConfigureRetroachievements(retroarchConfig);
-            ConfigureNetPlay(retroarchConfig);
+            ConfigureNetPlay(retroarchConfig, core);
             ConfigureAIService(retroarchConfig);
-            ConfigureRunahead(system, core, retroarchConfig);
+            ConfigureLatencyAndSavestates(core, SystemConfig["subsystem_id"], retroarchConfig);
             ConfigureCoreOptions(retroarchConfig, system, core);
 
             // Video driver
@@ -1545,34 +1552,63 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
         }
 
-        private void ConfigureRunahead(string system, string core, ConfigFile retroarchConfig)
+        private void ConfigureLatencyAndSavestates(string core, string subSystem, ConfigFile retroarchConfig)
         {
-            if (coreNoPreemptiveFrames.Contains(core) && SystemConfig.isOptSet("preemptive_frames") && SystemConfig.getOptBoolean("preemptive_frames"))
-                SimpleLogger.Instance.Info("[INFO] Core might not be compatible with preemptive frames");
+            bool canSavestate = !coreNoSavestate.Contains(core);
+            bool canRewind = !coreNoRewind.Contains(core);
+            bool canRunahead = !coreNoRunahead.Contains(core);
+            bool canSecondInst = canRunahead
+                                 && !coreNoSecondInstance.Contains(core)
+                                 && string.IsNullOrEmpty(subSystem);   // runahead.c:690-693 -> load_content_info->special
 
-            if (systemNoRunahead.Contains(system) && SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToIntegerString().ToInteger() > 0)
-                SimpleLogger.Instance.Info("[INFO] System not compatible with run-ahead");
+            // ---- Savestates (min level: BASIC) ----
+            if (!canSavestate)
+            {
+                SimpleLogger.Instance.Info("[INFO] Core '" + core + "' has no savestate support - disabling savestate features");
+                retroarchConfig["savestate_auto_load"] = "false";
+                retroarchConfig["savestate_auto_save"] = "false";
+                retroarchConfig["savestate_auto_index"] = "false";
+                retroarchConfig["savestate_thumbnail_enable"] = "false";
+            }
 
-            if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToIntegerString().ToInteger() > 0 && SystemConfig.isOptSet("preemptive_frames") && SystemConfig.getOptBoolean("preemptive_frames"))
+            // ---- Rewind (min level: SERIALIZED) ----
+            if (!canRewind)
+            {
+                if (SystemConfig.isOptSet("rewind") && SystemConfig.getOptBoolean("rewind"))
+                    SimpleLogger.Instance.Info("[INFO] Core '" + core + "' does not support rewind");
+                retroarchConfig["rewind_enable"] = "false";
+            }
+
+            // ---- Run-ahead & preemptive frames (min level: DETERMINISTIC) ----
+            bool wantRunahead = SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToIntegerString().ToInteger() > 0;
+            bool wantPreempt = SystemConfig.isOptSet("preemptive_frames") && SystemConfig.getOptBoolean("preemptive_frames");
+
+            if (!canRunahead && (wantRunahead || wantPreempt))
+            {
+                SimpleLogger.Instance.Info("[INFO] Core '" + core + "' does not support run-ahead nor preemptive frames (savestate level < deterministic)");
+                wantRunahead = false;
+                wantPreempt = false;
+            }
+
+            if (wantRunahead && wantPreempt)
             {
                 retroarchConfig["run_ahead_enabled"] = "false";
                 retroarchConfig["run_ahead_frames"] = SystemConfig["runahead"].ToIntegerString();
                 retroarchConfig["run_ahead_secondary_instance"] = "false";
                 retroarchConfig["preemptive_frames_enable"] = "true";
             }
-
-            else if (SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToIntegerString().ToInteger() > 0 && !systemNoRunahead.Contains(system))
+            else if (wantRunahead)
             {
+                bool useSecond = SystemConfig.getOptBoolean("secondinstance") && canSecondInst;
+
+                if (SystemConfig.getOptBoolean("secondinstance") && !canSecondInst)
+                    SimpleLogger.Instance.Info("[INFO] Second instance not available for '" + core + "' - falling back to single instance run-ahead");
+
                 retroarchConfig["run_ahead_enabled"] = "true";
                 retroarchConfig["run_ahead_frames"] = SystemConfig["runahead"].ToIntegerString();
                 retroarchConfig["preemptive_frames_enable"] = "false";
-
-                if (SystemConfig.isOptSet("secondinstance") && SystemConfig.getOptBoolean("secondinstance"))
-                    retroarchConfig["run_ahead_secondary_instance"] = "true";
-                else
-                    retroarchConfig["run_ahead_secondary_instance"] = "false";
+                retroarchConfig["run_ahead_secondary_instance"] = useSecond ? "true" : "false";
             }
-
             else
             {
                 retroarchConfig["run_ahead_enabled"] = "false";
@@ -1587,15 +1623,17 @@ namespace EmulatorLauncher.Libretro
             if (!Features.IsSupported("video_driver"))
                 return;
 
-            // Default to gl, as it's the safest if nothing is set
-            retroarchConfig["video_driver"] = _video_driver = "gl";
-
             // Return if driver was forced in core settings
             if (_coreVideoDriverForce)
             {
                 _video_driver = retroarchConfig["video_driver"];
                 return;
             }
+
+            // Default to d3d11: widest hardware coverage on Windows (feature level 10_0),
+            // no dependency on the vendor OpenGL ICD. RetroArch forces the right driver
+            // for HW-rendered cores anyway (video_driver.c: video_driver_find_driver).
+            retroarchConfig["video_driver"] = _video_driver = "d3d11";
 
             // general, assigned selected core
             if (SystemConfig.isOptSet("video_driver"))
@@ -1604,11 +1642,14 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["video_driver"] = SystemConfig["video_driver"];
             }
 
-            if (core.StartsWith("mupen64") && SystemConfig["RDP_Plugin"] == "parallel")
+            if (core.StartsWith("mupen64"))
             {
-                _video_driver = "vulkan";
-                retroarchConfig["video_driver"] = "vulkan";
-                return;
+                if (SystemConfig["RDP_Plugin"] == "parallel")
+                {
+                    _video_driver = "vulkan";
+                    retroarchConfig["video_driver"] = "vulkan";
+                    return;
+                }
             }
             if (core == "pcsx2" && retroarchConfig["video_driver"] == "gl")
             {
@@ -1624,14 +1665,13 @@ namespace EmulatorLauncher.Libretro
             }
 
             // Set default video driver per core
-            if (!SystemConfig.isOptSet("video_driver") && _video_driver == "gl")
+            if (!SystemConfig.isOptSet("video_driver"))
             {
                 if (defaultVideoDriver.ContainsKey(core))
                 {
                     _video_driver = defaultVideoDriver[core];
                     retroarchConfig["video_driver"] = defaultVideoDriver[core];
                 }
-
                 else
                 {
                     string definedShaders = SystemConfig.isOptSet("shader") ? SystemConfig["shader"] : "";
@@ -1769,8 +1809,16 @@ namespace EmulatorLauncher.Libretro
         ///  Netplay management : netplaymode client -netplayport " + std::to_string(options.port) + " -netplayip
         /// </summary>
         /// <param name="retroarchConfig"></param>
-        private void ConfigureNetPlay(ConfigFile retroarchConfig)
+        private void ConfigureNetPlay(ConfigFile retroarchConfig, string core)
         {
+            BindBoolFeature(retroarchConfig, "content_show_netplay", "netplay", "true", "false");
+
+            if (coreNoRunahead.Contains(core))
+            {
+                retroarchConfig["netplay_mode"] = "false";
+                return;
+            }
+
             retroarchConfig["netplay_mode"] = "false";
 
             if (SystemConfig["netplay"] == "true" && !string.IsNullOrEmpty(SystemConfig["netplaymode"]))
@@ -1851,8 +1899,6 @@ namespace EmulatorLauncher.Libretro
                 else
                     retroarchConfig["netplay_custom_mitm_server"] = "";
             }
-
-            BindBoolFeature(retroarchConfig, "content_show_netplay", "netplay", "true", "false");
         }
 
         private void ConfigureRetroachievements(ConfigFile retroarchConfig)
@@ -2016,9 +2062,45 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             bool animatedBezel = SystemConfig["bezel"] == "animated";
+            string animatedBezelPath = null;
+
+            if (animatedBezel)
+            {
+                animatedBezelPath = Path.Combine(AppConfig.GetFullPath("decorations"), "animated", "systems", systemName, systemName + ".cfg");
+
+                if (!File.Exists(animatedBezelPath))
+                {
+                    animatedBezelPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "decorations", "animated", "systems", systemName, systemName + ".cfg");
+
+                    if (!File.Exists(animatedBezelPath))
+                    {
+                        animatedBezel = false;
+                        animatedBezelPath = null;
+                    }
+                }
+            }
+
             var bezelInfo = BezelFiles.GetBezelFiles(systemName, rom, resolution, "libretro");
-            if (bezelInfo == null && !animatedBezel)
+
+            if (bezelInfo == null)
+            {
+                if (!animatedBezel)
+                    return;
+
+                // Animated overlay is available but there is no .info file to derive a viewport
+                // from: display it full screen and leave the game geometry untouched.
+                retroarchConfig["input_overlay_enable"] = "true";
+                retroarchConfig["input_overlay"] = animatedBezelPath;
+                retroarchConfig["input_overlay_hide_in_menu"] = "true";
+                retroarchConfig["input_overlay_opacity"] = "1.000000";
+                retroarchConfig["input_overlay_scale_landscape"] = "1.0";
+                retroarchConfig["input_overlay_scale_portrait"] = "1.0";
+                retroarchConfig["input_overlay_show_mouse_cursor"] =
+                    (retroarchConfig["video_fullscreen"] != "true" || SystemConfig.getOptBoolean("ShowCursor")) ? "true" : "false";
+
+                SimpleLogger.Instance.Info("[INFO] Animated bezel used without a matching static bezel : viewport left untouched.");
                 return;
+            }
 
             string overlay_png_file = bezelInfo.PngFile;
 
@@ -2090,20 +2172,6 @@ namespace EmulatorLauncher.Libretro
 
                 if (!SystemConfig.isOptSet("ratio"))
                     retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString(); // overwritten from the beginning of this file
-            }
-
-            string animatedBezelPath = null;
-
-            if (animatedBezel)
-            {
-                animatedBezelPath = Path.Combine(AppConfig.GetFullPath("decorations"), "animated", "systems", systemName, systemName + ".cfg");
-
-                if (!File.Exists(animatedBezelPath))
-                {
-                    animatedBezelPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "decorations", "animated", "systems", systemName, systemName + ".cfg");
-                    if (!File.Exists(animatedBezelPath))
-                        animatedBezel = false;
-                }
             }
 
             string overlay_cfg_file = Path.Combine(RetroarchPath, "custom-overlay.cfg");
@@ -2184,12 +2252,15 @@ namespace EmulatorLauncher.Libretro
             else
                 retroarchConfig["input_overlay_show_mouse_cursor"] = "false";
 
-            StringBuilder fd = new StringBuilder();
-            fd.AppendLine("overlays = 1");
-            fd.AppendLine("overlay0_overlay = \"" + overlay_png_file + "\"");
-            fd.AppendLine("overlay0_full_screen = true");
-            fd.AppendLine("overlay0_descs = 0");
-            File.WriteAllText(overlay_cfg_file, fd.ToString());
+            if (!animatedBezel)
+            {
+                StringBuilder fd = new StringBuilder();
+                fd.AppendLine("overlays = 1");
+                fd.AppendLine("overlay0_overlay = \"" + overlay_png_file + "\"");
+                fd.AppendLine("overlay0_full_screen = true");
+                fd.AppendLine("overlay0_descs = 0");
+                File.WriteAllText(overlay_cfg_file, fd.ToString());
+            }
 
             if (retroarchConfig["aspect_ratio_index"] == ratioIndexes.IndexOf("custom").ToString())
                 _bias = false;
@@ -2375,22 +2446,42 @@ namespace EmulatorLauncher.Libretro
         #endregion
 
         // List and dictionaries
-        static List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", "6/5", "7/9", "8/3",
-                "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom", "full" };
-        static List<string> systemNoRewind = new List<string>() { "doom3", "dice", "nds", "3ds", "sega32x", "wii", "gamecube", "triforce", "gc", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn", "supermodel", "mame", "hbmame", "fbneo", "dos", "scummvm", "psp" };
-        static List<string> systemNoRunahead = new List<string>() { "dice", "nds", "3ds", "sega32x", "wii", "gamecube", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn" };
-        static List<string> coreNoPreemptiveFrames = new List<string>() { "2048", "4do", "81", "atari800", "bluemsx", "bsnes", "bsnes-jg", "bsnes_hd_beta", "cannonball", "cap32", "citra", "craft", "crocods", "desmume", "desmume2015", "dice", "dolphin", "dosbox_pure", "easyrpg", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "flycast", "frodo", "gw", "handy", "hatari", "hatarib", "imageviewer", "kronos", "lutro", "mame2000", "mame2003", "mame2003_plus", "mame2003_midway", "mame2010", "mame2014", "mame2016", "mednafen_psx_hw", "mednafen_snes", "mupen64plus_next", "nekop2", "nestopia", "np2kai", "nxengine", "o2em", "opera", "parallel_n64", "pcsx2", "ppsspp", "prboom", "prosystem", "puae", "px68k", "race", "retro8", "sameduck", "same_cdi", "scummvm", "swanstation", "theodore", "tic80", "tyrquake", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "vecx", "virtualjaguar" };
-        static List<string> capsimgCore = new List<string>() { "hatari", "hatarib", "puae" };
-        static List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
-        static List<string> coreNoGL = new List<string>() { "citra", "kronos", "mednafen_psx", "mednafen_psx_hw", "pcsx2", "swanstation" };
-        static List<string> CoreSaveSort = new List<string>() { "dolphin" };
-        static List<string> CoreNoZip = new List<string>() { "mednafen_pce", "mednafen_pce_fast", "mednafen_psx_hw", "mednafen_psx", "mednafen_saturn", "swanstation", "pcsx_rearmed", "pcsx2" };
-        static Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "fuse", "513" } };
-        static Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
-        static Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>()
+        static readonly List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", 
+            "6/5", "7/9", "8/3", "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom", "full" };
+        static readonly List<string> capsimgCore = new List<string>() { "hatari", "hatarib", "puae" };
+        static readonly List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
+        static List<string> coreNoGL = new List<string>() { "azahar", "citra", "dolphin", "flycast", "kronos", "mednafen_psx_hw", "melonds", "melondsds", "mupen64plus_next", 
+            "pcsx2", "supermodel", "swanstation", "vecx" };
+        
+        // Level DISABLED - no savestate support at all
+        static List<string> coreNoSavestate = new List<string>() { "arduous", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "dice", "dinothawr", "doukutsu_rs", "easyrpg", "freej2me", "frodo", "gw", "lowresnx", "mame2010", "mame2014", "mame2016", "nxengine", "openlara", "pd777", "pocketcdg", "retro8", "same_cdi", "scummvm", "superbroswar", "tyrquake", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero" };
+
+        // Level < SERIALIZED - no rewind (core_info.c:3092)
+        static List<string> coreNoRewind = new List<string>() { "arduous", "azahar", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "citra", "dice", "dinothawr", "dolphin", "doukutsu_rs", "easyrpg", "ecwolf", "freej2me", "frodo", "gw", "kronos", "lowresnx", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", "mame2010", "mame2014", "mame2016", "nxengine", "o2em", "openlara", "opera", "pcsx2", "pd777", "pocketcdg", "prboom", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", "swanstation", "tic80", "tyrquake", "uzem", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "yabasanshiro" };
+
+        // Level < DETERMINISTIC - no run-ahead, no preemptive frames, no netplay (core_info.c:3098-3107)
+        static List<string> coreNoRunahead = new List<string>() { "81", "arduous", "azahar", "b2", "bennugd", "bluemsx", "boom3", "boom3_xp", "bsnes", "bsnes-jg", "bsnes_hd_beta", "cannonball", "cap32", "citra", "crocods", "desmume", "desmume2015", "dice", "dinothawr", "dolphin", "dosbox_pure", "doukutsu_rs", "easyrpg", "ecwolf", "ep128emu_core", "fake08", "fbalpha", "fbalpha2012", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "fbalpha2012_neogeo", "flycast", "freej2me", "frodo", "gw", "handy", "hatari", "hatarib", "holani", "kronos", "lowresnx", "lutro", "m2000", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", "mame2010", "mame2014", "mame2016", "mednafen_snes", "melondsds", "mupen64plus_next", "nekop2", "noods", "np2kai", "nxengine", "o2em", "openlara", "opera", "parallel_n64", "pcsx2", "pd777", "pocketcdg", "ppsspp", "prboom", "prosystem", "puae", "race", "reminiscence", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", "supermodel", "swanstation", "theodore", "tic80", "tyrquake", "uzem", "vecx", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "virtualjaguar", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "yabasanshiro" };
+
+        // Netplay shares the same requirement as run-ahead (core_info.c:3098-3107)
+        static List<string> coreNoNetplay { get { return coreNoRunahead; } }
+
+        // Hardware-rendered cores: a duplicated instance cannot get a second GPU context
+        static List<string> coreNoSecondInstance = new List<string>() { "mednafen_psx_hw", "melonds", "vircon32" };
+        
+        // Cores requesting RETRO_HW_CONTEXT_OPENGL (compat profile):
+        // RetroArch forces the 'gl' driver for these (video_driver.c:3143), so glsl shaders apply.
+        static List<string> coreGLCompat = new List<string>() { "boom3", "boom3_xp", "desmume", "openlara", "parallel_n64", "ppsspp", "vircon32", "yabasanshiro" };
+        
+        static readonly List<string> CoreSaveSort = new List<string>() { "dolphin" };
+        static readonly List<string> CoreNoZip = new List<string>() { "mednafen_pce", "mednafen_pce_fast", "mednafen_psx_hw", "mednafen_psx", "mednafen_saturn", "swanstation", 
+            "pcsx_rearmed", "pcsx2" };
+        static readonly Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "fuse", "513" } };
+        static readonly Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
+        static readonly Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>()
         {
             { "flycast", "vulkan" },
             { "melondsds", "glcore" },
+            { "mupen64plus_next", "glcore" },
             { "pcsx2", "glcore" },
             { "supermodel", "vulkan" }
         };

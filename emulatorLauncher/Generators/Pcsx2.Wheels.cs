@@ -136,6 +136,35 @@ namespace EmulatorLauncher
             if (wheelTech1 == "sdl")
                 DevicePrefix = "SDL-" + sdlIndex1 + "/";
 
+            if (_isArcade)
+            {
+                pcsx2ini.WriteValue("JVS", "TestMode", "false");
+
+                foreach (var entry in wheel1buttonMap)
+                {
+                    if (entry.Key == "wheeltype" || entry.Key == "driver" || entry.Key == "name" || entry.Key == "FFDevice" || entry.Key == "Gear3" || entry.Key == "Gear4")
+                        continue;
+
+                    if (SystemConfig.getOptBoolean("gearupdown_to_gear34") && wheel1buttonMap.ContainsKey("Gear3") && wheel1buttonMap.ContainsKey("Gear4"))
+                    {
+                        if (entry.Key == "Racing_ShiftDown_P1" || entry.Key == "BG3_ShiftDown_P1")
+                        {
+                            pcsx2ini.WriteValue("JVS", entry.Key, DevicePrefix + GetWheelButton(wheel1buttonMap, "Gear3"));
+                            continue;
+                        }
+                        if (entry.Key == "Racing_ShiftUp_P1" || entry.Key == "BG3_ShiftUp_P1")
+                        {
+                            pcsx2ini.WriteValue("JVS", entry.Key, DevicePrefix + GetWheelButton(wheel1buttonMap, "Gear4"));
+                            continue;
+                        }
+                    }
+
+                    pcsx2ini.WriteValue("JVS", entry.Key, DevicePrefix + entry.Value);
+                }
+
+                return;
+            }
+
             BindIniFeatureSlider(pcsx2ini, usbSection1, "Pad_SteeringSmoothing", "pcsx2_steering_smoothing", "0");
             BindIniFeatureSlider(pcsx2ini, usbSection1, "Pad_SteeringDeadzone", "pcsx2_steering_deadzone", "0");
             BindIniFeature(pcsx2ini, usbSection1, "Pad_SteeringCurveExponent", "pcsx2_steering_damping", "Off");
@@ -145,6 +174,7 @@ namespace EmulatorLauncher
 
             pcsx2ini.WriteValue(usbSection1, "Pad_SteeringLeft", DevicePrefix + GetWheelButton(wheel1buttonMap, "SteerLeft"));
             pcsx2ini.WriteValue(usbSection1, "Pad_SteeringRight", DevicePrefix + GetWheelButton(wheel1buttonMap, "SteerRight"));
+            
             if (padSubtype1 == "3")
             {
                 // GT Force
@@ -187,35 +217,6 @@ namespace EmulatorLauncher
                     pcsx2ini.WriteValue(usbSection1, "Pad_L3", DevicePrefix + GetWheelButton(wheel1buttonMap, "LeftStick"));
                     pcsx2ini.WriteValue(usbSection1, "Pad_R3", DevicePrefix + GetWheelButton(wheel1buttonMap, "RightStick"));
                 }
-            }
-
-            if (_isArcade)
-            {
-                pcsx2ini.WriteValue("JVS", "TestMode", "false");
-
-                foreach (var entry in wheel1buttonMap)
-                {
-                    if (entry.Key == "wheeltype" || entry.Key == "driver" || entry.Key == "name" || entry.Key == "FFDevice" || entry.Key == "Gear3" || entry.Key == "Gear4")
-                        continue;
-
-                    if (SystemConfig.getOptBoolean("gearupdown_to_gear34") && wheel1buttonMap.ContainsKey("Gear3") && wheel1buttonMap.ContainsKey("Gear4"))
-                    {
-                        if (entry.Key == "Racing_ShiftDown_P1" || entry.Key == "BG3_ShiftDown_P1")
-                        {
-                            pcsx2ini.WriteValue("JVS", entry.Key, DevicePrefix + GetWheelButton(wheel1buttonMap, "Gear3"));
-                            continue;
-                        }
-                        if (entry.Key == "Racing_ShiftUp_P1" || entry.Key == "BG3_ShiftUp_P1")
-                        {
-                            pcsx2ini.WriteValue("JVS", entry.Key, DevicePrefix + GetWheelButton(wheel1buttonMap, "Gear4"));
-                            continue;
-                        }
-                    }
-
-                    pcsx2ini.WriteValue("JVS", entry.Key, DevicePrefix + entry.Value);
-                }
-
-                return;
             }
 
             // Setup second wheel

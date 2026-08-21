@@ -2,6 +2,7 @@
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,7 +10,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Xml.Linq;
+using TeknoParrotUi.Common;
 using static EmulatorLauncher.Mame64Generator;
 using static EmulatorLauncher.PadToKeyboard.SendKey;
 
@@ -1445,6 +1449,17 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "dolphin_pal60", "dolphin_pal60", "enabled", "disabled");
             BindBoolFeature(coreSettings, "dolphin_cheats_enabled", "dolphin_cheats_enabled", "enabled", "disabled");
             BindBoolFeature(coreSettings, "dolphin_immediate_xfb", "dolphin_immediatexfb", "enabled", "disabled");
+            BindFeature(coreSettings, "dolphin_cpu_clock_rate", "dolphin_cpu_clock_rate", "1.00");
+            BindBoolFeature(coreSettings, "dolphin_fast_disc_speed", "dolphin_fast_disc_speed", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_main_accurate_cpu_cache", "dolphin_main_accurate_cpu_cache", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_bbox_enabled", "dolphin_bbox_enabled", "enabled", "disabled");
+            BindFeature(coreSettings, "dolphin_dsp_hle", "dolphin_dsp_hle", "enabled");
+            BindFeature(coreSettings, "dolphin_texture_cache_accuracy", "dolphin_texture_cache_accuracy", "128");
+            BindFeature(coreSettings, "dolphin_enhance_output_resampling", "dolphin_enhance_output_resampling", "0");
+            BindBoolFeature(coreSettings, "dolphin_pixel_lighting", "dolphin_pixel_lighting", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_mipmap_detection", "dolphin_mipmap_detection", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "dolphin_disable_copy_filter", "dolphin_disable_copy_filter", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "dolphin_force_true_color", "dolphin_force_true_color", "enabled", "disabled");
 
             if (SystemConfig.getOptBoolean("dolphin_cheats_enabled"))
                 DolphinSyncCheats(system);
@@ -1465,19 +1480,24 @@ namespace EmulatorLauncher.Libretro
             // wii
             if (system == "wii")
             {
-                if (_isWidescreen || !SystemConfig.isOptSet("ratio"))
-                    coreSettings["dolphin_widescreen"] = "enabled";
+                if (SystemConfig.isOptSet("dolphin_widescreen"))
+                    coreSettings["dolphin_widescreen"] = SystemConfig.getOptBoolean("dolphin_widescreen") ? "enabled" : "disabled";
                 else
-                    coreSettings["dolphin_widescreen"] = "disabled";
+                    coreSettings["dolphin_widescreen"] = (_isWidescreen || !SystemConfig.isOptSet("ratio")) ? "enabled" : "disabled";
 
                 BindBoolFeature(coreSettings, "dolphin_progressive_scan", "dolphin_progressive_scan", "enabled", "disabled");
+                BindBoolFeature(coreSettings, "dolphin_disc_based_games_boot_to_wii_menu", "dolphin_disc_based_games_boot_to_wii_menu", "enabled", "disabled");
+
                 BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "0");
                 BindBoolFeature(coreSettings, "dolphin_wiimote_continuous_scanning", "dolphin_nowiimotescan", "disabled", "enabled");
                 BindBoolFeature(coreSettings, "dolphin_bluetooth_passthrough", "dolphin_bt_pass", "enabled", "disabled");
-                BindBoolFeatureOn(coreSettings, "dolphin_widescreen", "dolphin_widescreen", "disabled", "enabled");
                 BindFeature(coreSettings, "dolphin_ir_modifier", "dolphin_ir_modifier", "None");
                 BindFeature(coreSettings, "dolphin_swing_modifier", "dolphin_swing_modifier", "Disabled");
                 BindFeature(coreSettings, "dolphin_ir_mode", "dolphin_ir_mode", "1");
+                BindFeature(coreSettings, "dolphin_ir_offset", "dolphin_ir_offset", "0");
+                BindFeature(coreSettings, "dolphin_ir_deadzone", "dolphin_ir_deadzone", "0");
+                BindFeature(coreSettings, "dolphin_swing_angle", "dolphin_swing_angle", "90");
+                BindBoolFeature(coreSettings, "dolphin_alt_gc_ports_on_wii", "dolphin_alt_gc_ports_on_wii", "enabled", "disabled");
             }
 
             // Triforce
@@ -2042,8 +2062,22 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "fceumm_sndquality", "fceumm_sndquality", "Low");
             BindFeature(coreSettings, "fceumm_overclocking", "fceumm_overclocking", "disabled");
             BindBoolFeature(coreSettings, "fceumm_nospritelimit", "fceumm_nospritelimit", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "fceumm_game_genie", "fceumm_game_genie", "enabled", "disabled");
+            BindFeature(coreSettings, "fceumm_ramstate", "fceumm_ramstate", "fill $ff");
+            BindBoolFeatureOn(coreSettings, "fceumm_hdpacks", "fceumm_hdpacks", "enabled", "disabled");
+
+            BindBoolFeature(coreSettings, "fceumm_sndlowpass", "fceumm_sndlowpass", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "fceumm_removetrianglenoise", "fceumm_removetrianglenoise", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "fceumm_reducedmcpopping", "fceumm_reducedmcpopping", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "fceumm_swapduty", "fceumm_swapduty", "enabled", "disabled");
+            BindFeature(coreSettings, "fceumm_sndrate_hint", "fceumm_sndrate_hint", "Auto");
+
+            BindFeature(coreSettings, "fceumm_turbo_delay", "fceumm_turbo_delay", "3");
             BindBoolFeature(coreSettings, "fceumm_show_crosshair", "fceumm_show_crosshair", "enabled", "disabled");
             BindFeature(coreSettings, "fceumm_zapper_mode", "gun_input", "clightgun");
+            BindFeature(coreSettings, "fceumm_zapper_tolerance", "fceumm_zapper_tolerance", "6");
+            BindBoolFeature(coreSettings, "fceumm_zapper_trigger", "fceumm_zapper_trigger", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "fceumm_zapper_sensor", "fceumm_zapper_sensor", "enabled", "disabled");
 
             // MULTI-TAP for 4 players
             if (SystemConfig.isOptSet("fceumm_multitap") && SystemConfig.getOptBoolean("fceumm_multitap"))
@@ -2148,7 +2182,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             SetupLightGuns(retroarchConfig, "4", core);
-
+            
             // Disable "enter" for player 2 in case of guns and 1 joystick connected (as this generate a conflict on ENTER key between player 2 and gun action)
             if (Program.Controllers.Count > 1 && Program.Controllers[1].IsKeyboard && (SystemConfig.getOptBoolean("use_guns") || SystemConfig["flycast_controller1"] == "4") && SystemConfig["flycast_controller2"] != "4")
             {
@@ -3606,59 +3640,79 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            coreSettings["mupen64plus-rsp-plugin"] = "hle";
             coreSettings["mupen64plus-EnableLODEmulation"] = "True";
             coreSettings["mupen64plus-EnableCopyAuxToRDRAM"] = "True";
-            //coreSettings["mupen64plus-EnableHWLighting"] = "True";
-            coreSettings["mupen64plus-txHiresFullAlphaChannel"] = "True";
             coreSettings["mupen64plus-GLideN64IniBehaviour"] = "early";
             coreSettings["mupen64plus-parallel-rdp-native-tex-rect"] = "True";
             coreSettings["mupen64plus-parallel-rdp-synchronous"] = "True";
+            coreSettings["mupen64plus-alt-map"] = "False";
 
-            BindFeature(coreSettings, "mupen64plus-cpucore", "mupen64plus-cpucore", "pure_interpreter"); // CPU core
-            BindBoolFeature(coreSettings, "mupen64plus-rdp-plugin", "RDP_Plugin", "parallel", "gliden64"); // Plugin selection
+            string rdpPlugin = "gliden64";
+
+            if (Features.IsSupported("RDP_Plugin") && SystemConfig.isOptSet("RDP_Plugin") && !string.IsNullOrEmpty(SystemConfig["RDP_Plugin"]))
+            {
+                switch (SystemConfig["RDP_Plugin"])
+                {
+                    case "1":
+                    case "true":
+                    case "parallel":
+                        rdpPlugin = "parallel";
+                        break;
+                    case "angrylion":
+                        rdpPlugin = "angrylion";
+                        break;
+                    default:
+                        rdpPlugin = "gliden64";
+                        break;
+                }
+            }
+
+            coreSettings["mupen64plus-rdp-plugin"] = rdpPlugin;
+
+            // RSP : LLE for ParaLLEl-RDP, HLE for GLideN64 and Angrylion
+            coreSettings["mupen64plus-rsp-plugin"] = (rdpPlugin == "parallel") ? "parallel" : "hle";
+
+            BindFeature(coreSettings, "mupen64plus-cpucore", "mupen64plus-cpucore", "pure_interpreter");
             BindBoolFeature(coreSettings, "mupen64plus-Framerate", "mupen64plus_framerate", "Fullspeed", "Original");
-
-            // Set RSP plugin: HLE for Glide, LLE for Parallel
-            if (SystemConfig.isOptSet("RDP_Plugin") && SystemConfig.getOptBoolean("RDP_Plugin"))
-                coreSettings["mupen64plus-rsp-plugin"] = "parallel";
-            else
-                coreSettings["mupen64plus-rsp-plugin"] = "hle";
+            
+            BindFeature(coreSettings, "mupen64plus-CountPerOp", "mupen64plus-CountPerOp", "0");
+            BindFeature(coreSettings, "mupen64plus-virefresh", "mupen64plus-virefresh", "Auto");
+            BindFeature(coreSettings, "mupen64plus-IgnoreTLBExceptions", "mupen64plus-IgnoreTLBExceptions", "False");
 
             // Overscan (Glide)
-            if (SystemConfig.isOptSet("mupen_CropOverscan") && !string.IsNullOrEmpty(SystemConfig["mupen_CropOverscan"]))
+            bool cropEnabled = SystemConfig.isOptSet("mupen_CropOverscan")
+                            && !string.IsNullOrEmpty(SystemConfig["mupen_CropOverscan"])
+                            && SystemConfig["mupen_CropOverscan"] != "none";
+
+            coreSettings["mupen64plus-EnableOverscan"] = cropEnabled ? "Enabled" : "Disabled";
+
+            if (cropEnabled)
             {
-                if (SystemConfig["mupen_CropOverscan"] == "none")
+                string crop = SystemConfig["mupen_CropOverscan"];
+                var cropDict = new Dictionary<string, string>()
                 {
-                    coreSettings["mupen64plus-OverscanBottom"] = "0";
-                    coreSettings["mupen64plus-OverscanLeft"] = "0";
-                    coreSettings["mupen64plus-OverscanRight"] = "0";
-                    coreSettings["mupen64plus-OverscanTop"] = "0";
-                }
-                else
+                    { "t" , "0" },
+                    { "b" , "0" },
+                    { "l" , "0" },
+                    { "r" , "0" }
+                };
+
+                foreach (var part in crop.Split('_'))
                 {
-                    string crop = SystemConfig["mupen_CropOverscan"];
-                    var cropDict = new Dictionary<string, string>()
-                        {
-                            { "t" , "0" },
-                            { "b" , "0" },
-                            { "l" , "0" },
-                            { "r" , "0" }
-                        };
+                    if (part.Length < 2)
+                        continue;
 
-                    foreach (var part in crop.Split('_'))
-                    {
-                        string key = part.Substring(0, 1);
-                        string value = part.Substring(1);
+                    string key = part.Substring(0, 1);
+                    string value = part.Substring(1);
 
+                    if (cropDict.ContainsKey(key))
                         cropDict[key] = value;
-                    }
-
-                    coreSettings["mupen64plus-OverscanBottom"] = cropDict["b"];
-                    coreSettings["mupen64plus-OverscanLeft"] = cropDict["l"];
-                    coreSettings["mupen64plus-OverscanRight"] = cropDict["r"];
-                    coreSettings["mupen64plus-OverscanTop"] = cropDict["t"];
                 }
+
+                coreSettings["mupen64plus-OverscanBottom"] = cropDict["b"];
+                coreSettings["mupen64plus-OverscanLeft"] = cropDict["l"];
+                coreSettings["mupen64plus-OverscanRight"] = cropDict["r"];
+                coreSettings["mupen64plus-OverscanTop"] = cropDict["t"];
             }
             else
             {
@@ -3694,46 +3748,61 @@ namespace EmulatorLauncher.Libretro
             }
 
             // Hi Res textures methods
-            if (SystemConfig.isOptSet("TexturesPack"))
+            string texturePack = SystemConfig.isOptSet("TexturesPack") ? SystemConfig["TexturesPack"] : "disabled";
+
+            switch (texturePack)
             {
-                if (SystemConfig["TexturesPack"] == "legacy")
-                {
+                case "legacy":
                     coreSettings["mupen64plus-EnableTextureCache"] = "True";
                     coreSettings["mupen64plus-txHiresEnable"] = "True";
                     coreSettings["mupen64plus-txCacheCompression"] = "True";
                     coreSettings["mupen64plus-txHiresFullAlphaChannel"] = "False";
                     coreSettings["mupen64plus-EnableEnhancedTextureStorage"] = "False";
                     coreSettings["mupen64plus-EnableEnhancedHighResStorage"] = "False";
-                }
-                else if (SystemConfig["TexturesPack"] == "cache")
-                {
+                    break;
+
+                case "cache":
                     coreSettings["mupen64plus-EnableTextureCache"] = "True";
                     coreSettings["mupen64plus-txHiresEnable"] = "True";
                     coreSettings["mupen64plus-txCacheCompression"] = "True";
                     coreSettings["mupen64plus-txHiresFullAlphaChannel"] = "True";
                     coreSettings["mupen64plus-EnableEnhancedTextureStorage"] = "True";
                     coreSettings["mupen64plus-EnableEnhancedHighResStorage"] = "True";
-                }
-            }
-            else
-            {
-                coreSettings["mupen64plus-EnableTextureCache"] = "False";
-                coreSettings["mupen64plus-txHiresEnable"] = "False";
-                coreSettings["mupen64plus-txCacheCompression"] = "False";
-                coreSettings["mupen64plus-txHiresFullAlphaChannel"] = "False";
-                coreSettings["mupen64plus-EnableEnhancedTextureStorage"] = "False";
-                coreSettings["mupen64plus-EnableEnhancedHighResStorage"] = "False";
+                    break;
+
+                default:    // "disabled" or AUTO
+                    coreSettings["mupen64plus-EnableTextureCache"] = "False";
+                    coreSettings["mupen64plus-txHiresEnable"] = "False";
+                    coreSettings["mupen64plus-txCacheCompression"] = "False";
+                    coreSettings["mupen64plus-txHiresFullAlphaChannel"] = "False";
+                    coreSettings["mupen64plus-EnableEnhancedTextureStorage"] = "False";
+                    coreSettings["mupen64plus-EnableEnhancedHighResStorage"] = "False";
+                    break;
             }
 
             // Widescreen (Glide)
-            if (SystemConfig.isOptSet("mupen_Widescreen") && SystemConfig.getOptBoolean("mupen_Widescreen"))
+            string widescreen = SystemConfig.isOptSet("mupen_Widescreen") ? SystemConfig["mupen_Widescreen"] : string.Empty;
+
+            switch (widescreen)
             {
-                coreSettings["mupen64plus-aspect"] = "16:9 adjusted";
-                retroarchConfig["aspect_ratio_index"] = "1";
-                SystemConfig["bezel"] = "none";
+                case "1":
+                case "true":
+                case "adjusted":
+                    coreSettings["mupen64plus-aspect"] = "16:9 adjusted";
+                    retroarchConfig["aspect_ratio_index"] = "1";
+                    SystemConfig["bezel"] = "none";
+                    break;
+
+                case "stretched":
+                    coreSettings["mupen64plus-aspect"] = "16:9";
+                    retroarchConfig["aspect_ratio_index"] = "1";
+                    SystemConfig["bezel"] = "none";
+                    break;
+
+                default:                // "", "0", "none"
+                    coreSettings["mupen64plus-aspect"] = "4:3";
+                    break;
             }
-            else
-                coreSettings["mupen64plus-aspect"] = "4:3";
 
             // Player packs
             BindFeature(coreSettings, "mupen64plus-pak1", "mupen64plus-pak1", "memory");
@@ -3750,6 +3819,11 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mupen64plus-txFilterMode", "Texture_filter", "None");
             BindBoolFeature(coreSettings, "mupen64plus-EnableTexCoordBounds", "mupen64plus-EnableTexCoordBounds", "True", "False");
             BindFeature(coreSettings, "mupen64plus-EnableNativeResTexrects", "mupen64plus-EnableNativeResTexrects", "Disabled");
+            BindFeature(coreSettings, "mupen64plus-EnableNativeResFactor", "mupen64plus-EnableNativeResFactor", "0");
+            BindFeature(coreSettings, "mupen64plus-EnableN64DepthCompare", "mupen64plus-EnableN64DepthCompare", "False");
+            BindFeature(coreSettings, "mupen64plus-CorrectTexrectCoords", "mupen64plus-CorrectTexrectCoords", "Off");
+            BindFeature(coreSettings, "mupen64plus-FXAA", "mupen64plus-FXAA", "0");
+            BindFeature(coreSettings, "mupen64plus-RDRAMImageDitheringMode", "mupen64plus-RDRAMImageDitheringMode", "False");
 
             // Parallel
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-deinterlace-method", "mupen64plus-parallel-rdp-deinterlace-method", "Bob");
@@ -3759,11 +3833,20 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "mupen64plus-parallel-rdp-gamma-dither", "mupen64plus-parallel-rdp-gamma-dither", "True", "False");
             BindBoolFeature(coreSettings, "mupen64plus-parallel-rdp-native-texture-lod", "mupen64plus-parallel-rdp-native-texture-lod", "True", "False");
             BindFeatureSlider(coreSettings, "mupen64plus-parallel-rdp-overscan", "mupen64plus-parallel-rdp-overscan", "0");
-            BindFeature(coreSettings, "mupen64plus-parallel-rdp-super-sampled-read-back", "mupen64plus-parallel-rdp-super-sampled-read-back", "False");
-            BindFeature(coreSettings, "mupen64plus-parallel-rdp-super-sampled-read-back-dither", "mupen64plus-parallel-rdp-super-sampled-read-back-dither", "False");
+            BindBoolFeature(coreSettings, "mupen64plus-parallel-rdp-super-sampled-read-back", "mupen64plus-parallel-rdp-super-sampled-read-back", "True", "False");
+            BindBoolFeatureOn(coreSettings, "mupen64plus-parallel-rdp-super-sampled-read-back-dither", "mupen64plus-parallel-rdp-super-sampled-read-back-dither", "True", "False");
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-upscaling", "mupen64plus-parallel-rdp-upscaling", "1x");
             BindBoolFeatureOn(coreSettings, "mupen64plus-parallel-rdp-vi-aa", "mupen64plus-parallel-rdp-vi-aa", "True", "False");
             BindBoolFeatureOn(coreSettings, "mupen64plus-parallel-rdp-vi-bilinear", "mupen64plus-parallel-rdp-vi-bilinear", "True", "False");
+
+            // Angrylion
+            BindFeature(coreSettings, "mupen64plus-angrylion-vioverlay", "mupen64plus-angrylion-vioverlay", "Filtered");
+            BindFeature(coreSettings, "mupen64plus-angrylion-sync", "mupen64plus-angrylion-sync", "Low");
+            BindBoolFeature(coreSettings, "mupen64plus-angrylion-overscan", "mupen64plus-angrylion-overscan", "enabled", "disabled");
+
+            // Controls
+            BindFeatureSlider(coreSettings, "mupen64plus-astick-deadzone", "mupen64plus_stick_deadzone", "15");
+            BindFeatureSlider(coreSettings, "mupen64plus-astick-sensitivity", "mupen64plus_stick_sensitivity", "100");
         }
 
         private void ConfigureMelonDS(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

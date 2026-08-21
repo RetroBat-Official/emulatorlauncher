@@ -4,6 +4,7 @@ using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Lightguns;
 using System;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 
@@ -237,10 +238,14 @@ namespace EmulatorLauncher
 
             string crosshairSize = "0.500000";
             if (SystemConfig.isOptSet("duck_crosshair") && !string.IsNullOrEmpty(SystemConfig["duck_crosshair"]))
-                crosshairSize = SystemConfig["duck_crosshair"].Substring(0, SystemConfig["duck_crosshair"].Length - 4);
+            {
+                if (float.TryParse(SystemConfig["duck_crosshair"], NumberStyles.Float, CultureInfo.InvariantCulture, out float scale))
+                    crosshairSize = scale.ToString("0.000000", CultureInfo.InvariantCulture);
+            }
             ini.WriteValue(padNumber1, "CrosshairScale", crosshairSize);
-            
-            ini.WriteValue(padNumber1, "XScale", "0.930000");    // Adjust Xscale for mouse calibration
+            BindIniFeature(ini, padNumber1, "CrosshairColor", "duck_crosshair_color2", "#00ff00");
+
+            BindIniFeatureSlider(ini, padNumber1, "XScale", "duck_gun_xscale", "0.930000", 6);
 
             // Crosshair
             ini.Remove(padNumber1, "CrosshairImagePath");
@@ -345,10 +350,14 @@ namespace EmulatorLauncher
 
                 string crosshairSize2 = "0.500000";
                 if (SystemConfig.isOptSet("duck_crosshair") && !string.IsNullOrEmpty(SystemConfig["duck_crosshair"]))
-                    crosshairSize2 = SystemConfig["duck_crosshair"].Substring(0, SystemConfig["duck_crosshair"].Length - 4);
+                {
+                    if (float.TryParse(SystemConfig["duck_crosshair"], NumberStyles.Float, CultureInfo.InvariantCulture, out float scale))
+                        crosshairSize2 = scale.ToString("0.000000", CultureInfo.InvariantCulture);
+                }
                 ini.WriteValue(padNumber2, "CrosshairScale", crosshairSize2);
 
-                ini.WriteValue(padNumber2, "XScale", "0.930000");    // Adjust Xscale for mouse calibration
+                BindIniFeatureSlider(ini, padNumber2, "XScale", "duck_gun_xscale", "0.930000", 6);
+                BindIniFeature(ini, padNumber2, "CrosshairColor", "duck_crosshair_color2", "#00ff00");
 
                 // Crosshair
                 ini.Remove(padNumber2, "CrosshairImagePath");

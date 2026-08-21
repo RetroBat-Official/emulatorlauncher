@@ -67,7 +67,7 @@ namespace EmulatorLauncher
         {
             var screen = Screen.PrimaryScreen;
 
-            if (monitorIndex > 0 && monitorIndex < Screen.AllScreens.Length)
+            if (monitorIndex >= 0 && monitorIndex < Screen.AllScreens.Length)
                 screen = Screen.AllScreens[monitorIndex];
 
             int resX = (resolution == null ? screen.Bounds.Width : resolution.Width);

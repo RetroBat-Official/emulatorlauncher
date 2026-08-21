@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -26,6 +27,7 @@ namespace EmulatorLauncher
         }
 
         private SaveStatesWatcher _saveStatesWatcher;
+        private static bool? _dolphinBarPresent;
 
         public override void Cleanup()
         {
@@ -602,7 +604,9 @@ namespace EmulatorLauncher
                     bool realWiimoteAsEmulated = (system == "wii" && Program.SystemConfig.isOptSet("emulatedwiimotes") && Program.SystemConfig["emulatedwiimotes"] != "0" && Program.SystemConfig["emulatedwiimotes"] != "1");
 
                     // wiimote scanning
-                    if (emulatedWiiMote || system == "gamecube" || _triforce || SystemConfig.getOptBoolean("dolphin_nowiimotescan"))
+                    if (SystemConfig.isOptSet("dolphin_nowiimotescan") && !SystemConfig.getOptBoolean("dolphin_nowiimotescan"))
+                        ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
+                    else if (emulatedWiiMote || system == "gamecube" || _triforce || SystemConfig.getOptBoolean("dolphin_nowiimotescan") || IsDolphinBarPresent())
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "False");
                     else
                         ini.WriteValue("Core", "WiimoteContinuousScanning", "True");
@@ -1111,7 +1115,15 @@ namespace EmulatorLauncher
 
             if (process != null)
             {
-                ScreenTools.MoveWindow(process, monitorIndex);
+                // Dolphin is launched with -b, so its main window is never shown
+                // (MainWindow.cpp:238). The only visible top-level window is the render
+                // widget, which stays windowed until the core reaches Running and only
+                // then goes fullscreen (MainWindow.cpp:422). Move it while it is still
+                // windowed: Dolphin then saves that geometry to QT.ini, so the placement
+                // sticks on subsequent launches.
+                ScreenTools.MoveWindow(process, IsDolphinRenderWindow, monitorIndex);
+
+                ScreenTools.LogProcessWindows(process);
 
                 process.WaitForInputIdle();
 
@@ -1127,6 +1139,17 @@ namespace EmulatorLauncher
 
             bezel?.Dispose();
             return ret;
+        }
+
+        private static bool IsDolphinRenderWindow(IntPtr hWnd)
+        {
+            // All Qt top-level windows share the same Win32 class (Qt651QWindowIcon),
+            // so the class name cannot tell them apart. Filter on geometry instead.
+            var rect = User32.GetWindowRect(hWnd);
+            int w = rect.right - rect.left;
+            int h = rect.bottom - rect.top;
+
+            return w > 100 && h > 100;
         }
 
         #region rvzCheevos
@@ -1286,8 +1309,51 @@ namespace EmulatorLauncher
             }
             return result;
         }
+        #endregion
+
+        private static bool IsDolphinBarPresent()
+        {
+            if (_dolphinBarPresent.HasValue)
+                return _dolphinBarPresent.Value;
+
+            _dolphinBarPresent = false;
+
+            try
+            {
+                // Mayflash confirmed every DolphinBar revision advertises this
+                // descriptor with a VID:PID of 057e:0306 (see Dolphin IOWin.cpp).
+                const string mayflashDesc = "Mayflash Wiimote PC Adapter";
+
+                using (var searcher = new ManagementObjectSearcher(@"root\CIMV2",
+                    @"SELECT PNPDeviceID FROM Win32_PnPEntity WHERE Present = True " +
+                    @"AND PNPClass = 'HIDClass' AND PNPDeviceID LIKE '%VID_057E&PID_0306%'"))
+                {
+                    foreach (ManagementObject device in searcher.Get())
+                    {
+                        string pnpId = device["PNPDeviceID"] as string;
+                        if (string.IsNullOrEmpty(pnpId))
+                            continue;
+
+                        string desc = DeviceHelper.GetParentBusReportedDeviceDesc(pnpId);
+                        SimpleLogger.Instance.Info("[DolphinBar] " + pnpId + " -> desc=" + desc);
+
+                        if (mayflashDesc.Equals(desc, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            SimpleLogger.Instance.Info("[INFO] Mayflash DolphinBar detected, disabling wiimote continuous scanning.");
+                            _dolphinBarPresent = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[WARNING] DolphinBar detection failed: " + ex.Message);
+            }
+
+            return _dolphinBarPresent.Value;
+        }
     }
-    #endregion
 
     public class TriforceGame
     {

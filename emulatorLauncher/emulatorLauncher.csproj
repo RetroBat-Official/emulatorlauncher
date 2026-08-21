@@ -248,6 +248,7 @@
     <Compile Include="Generators\Daphne.Controllers.cs">
       <DependentUpon>Daphne.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\DecompLauncher.Generator.cs" />
     <Compile Include="Generators\Demul.Generator.cs" />
     <Compile Include="Generators\Demul.Controllers.cs">
       <DependentUpon>Demul.Generator.cs</DependentUpon>

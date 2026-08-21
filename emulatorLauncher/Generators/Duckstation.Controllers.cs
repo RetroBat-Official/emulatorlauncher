@@ -229,9 +229,6 @@ namespace EmulatorLauncher
             // If controller is nintendo, A/B and X/Y are reversed
             bool nintendo = (ctrl.VendorID == USB_VENDOR.NINTENDO);
 
-            //Define tech (SDL or XInput)
-            string tech = ctrl.IsXInputDevice ? "XInput" : "SDL";
-
             string controllerType = "AnalogController";
             string controllerPlayerNr = "duck_controller" + playerIndex;
             if (SystemConfig.isOptSet(controllerPlayerNr) && !string.IsNullOrEmpty(SystemConfig[controllerPlayerNr]))
@@ -244,10 +241,10 @@ namespace EmulatorLauncher
             //Get SDL controller index
             string techPadNumber = "SDL-" + sdl3index + "/";
             if (ctrl.IsXInputDevice && !_forceSDL)
-                techPadNumber = "XInput-" + ctrl.XInput.DeviceIndex + "/";
+                techPadNumber = "XInput-" + (ctrl.XInput != null ? ctrl.XInput.DeviceIndex : ctrl.DeviceIndex) + "/";
 
             //Write button mapping
-            ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up, tech));
+            ini.WriteValue(padNumber, "Up", techPadNumber + GetInputKeyName(ctrl, InputKey.up));
 
             if (controllerType == "PlayStationMouse")
                 ini.WriteValue(padNumber, "Pointer", "Pointer-0");
@@ -255,37 +252,37 @@ namespace EmulatorLauncher
             if (controllerType == "PlayStationMouse")
                 ini.WriteValue(padNumber, "Right", "Pointer-0/RightButton");                                        // Right when mouse is selected
             else
-                ini.WriteValue(padNumber, "Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right, tech));
+                ini.WriteValue(padNumber, "Right", techPadNumber + GetInputKeyName(ctrl, InputKey.right));
 
-            ini.WriteValue(padNumber, "Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down, tech));
+            ini.WriteValue(padNumber, "Down", techPadNumber + GetInputKeyName(ctrl, InputKey.down));
 
             if (controllerType == "PlayStationMouse")
                 ini.WriteValue(padNumber, "Left", "Pointer-0/LeftButton");                                          // Left when mouse is selected
             else
-                ini.WriteValue(padNumber, "Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left, tech));
+                ini.WriteValue(padNumber, "Left", techPadNumber + GetInputKeyName(ctrl, InputKey.left));
 
-            ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
-            ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
-            ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.a, tech));
-            ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.x, tech));
+            ini.WriteValue(padNumber, "Triangle", techPadNumber + GetInputKeyName(ctrl, InputKey.y));
+            ini.WriteValue(padNumber, "Circle", techPadNumber + GetInputKeyName(ctrl, InputKey.b));
+            ini.WriteValue(padNumber, "Cross", techPadNumber + GetInputKeyName(ctrl, InputKey.a));
+            ini.WriteValue(padNumber, "Square", techPadNumber + GetInputKeyName(ctrl, InputKey.x));
 
-            ini.WriteValue(padNumber, "Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
-            ini.WriteValue(padNumber, "Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start, tech));
-            ini.WriteValue(padNumber, "L1", techPadNumber + GetInputKeyName(ctrl, InputKey.pageup, tech));
-            ini.WriteValue(padNumber, "L2", techPadNumber + GetInputKeyName(ctrl, InputKey.l2, tech));
-            ini.WriteValue(padNumber, "R1", techPadNumber + GetInputKeyName(ctrl, InputKey.pagedown, tech));
-            ini.WriteValue(padNumber, "R2", techPadNumber + GetInputKeyName(ctrl, InputKey.r2, tech));
-            ini.WriteValue(padNumber, "L3", techPadNumber + GetInputKeyName(ctrl, InputKey.l3, tech));
-            ini.WriteValue(padNumber, "R3", techPadNumber + GetInputKeyName(ctrl, InputKey.r3, tech));
+            ini.WriteValue(padNumber, "Select", techPadNumber + GetInputKeyName(ctrl, InputKey.select));
+            ini.WriteValue(padNumber, "Start", techPadNumber + GetInputKeyName(ctrl, InputKey.start));
+            ini.WriteValue(padNumber, "L1", techPadNumber + GetInputKeyName(ctrl, InputKey.pageup));
+            ini.WriteValue(padNumber, "L2", techPadNumber + GetInputKeyName(ctrl, InputKey.l2));
+            ini.WriteValue(padNumber, "R1", techPadNumber + GetInputKeyName(ctrl, InputKey.pagedown));
+            ini.WriteValue(padNumber, "R2", techPadNumber + GetInputKeyName(ctrl, InputKey.r2));
+            ini.WriteValue(padNumber, "L3", techPadNumber + GetInputKeyName(ctrl, InputKey.l3));
+            ini.WriteValue(padNumber, "R3", techPadNumber + GetInputKeyName(ctrl, InputKey.r3));
             ini.WriteValue(padNumber, "Analog", techPadNumber + "Guide");
-            ini.WriteValue(padNumber, "LUp", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogup, tech));
-            ini.WriteValue(padNumber, "LRight", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogright, tech));
-            ini.WriteValue(padNumber, "LDown", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogdown, tech));
-            ini.WriteValue(padNumber, "LLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogleft, tech));
-            ini.WriteValue(padNumber, "RUp", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogup, tech));
-            ini.WriteValue(padNumber, "RRight", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogright, tech));
-            ini.WriteValue(padNumber, "RDown", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogdown, tech));
-            ini.WriteValue(padNumber, "RLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogleft, tech));
+            ini.WriteValue(padNumber, "LUp", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogup));
+            ini.WriteValue(padNumber, "LRight", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogright));
+            ini.WriteValue(padNumber, "LDown", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogdown));
+            ini.WriteValue(padNumber, "LLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogleft));
+            ini.WriteValue(padNumber, "RUp", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogup));
+            ini.WriteValue(padNumber, "RRight", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogright));
+            ini.WriteValue(padNumber, "RDown", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogdown));
+            ini.WriteValue(padNumber, "RLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogleft));
 
             // Rumble only for analog controllers
             if (controllerType == "AnalogController")
@@ -318,14 +315,19 @@ namespace EmulatorLauncher
             {
                 ini.Remove(padNumber, "L2");
                 ini.Remove(padNumber, "R2");
-                ini.WriteValue(padNumber, "LUp", techPadNumber + GetInputKeyName(ctrl, InputKey.r2, tech));
-                ini.WriteValue(padNumber, "LDown", techPadNumber + GetInputKeyName(ctrl, InputKey.l2, tech));
+                ini.WriteValue(padNumber, "LUp", techPadNumber + GetInputKeyName(ctrl, InputKey.r2));
+                ini.WriteValue(padNumber, "LDown", techPadNumber + GetInputKeyName(ctrl, InputKey.l2));
             }
+
+            BindIniFeatureSlider(ini, padNumber, "AnalogSensitivity", "duck_analog_sensitivity", "1.330000", 6);
+            BindIniFeatureSlider(ini, padNumber, "ButtonDeadzone", "duck_button_deadzone", "0.250000", 6);
+            BindIniFeature(ini, padNumber, "InvertLeftStick", "duck_invert_left", "0");
+            BindIniFeature(ini, padNumber, "InvertRightStick", "duck_invert_right", "0");
 
             // Write Hotkeys for player 1
             if (playerIndex == 1)
             {
-                var hotKeyName = GetInputKeyName(ctrl, InputKey.hotkey, tech);
+                var hotKeyName = GetInputKeyName(ctrl, InputKey.hotkey);
 
                 if (hotKeyName != "None")
                 {
@@ -347,7 +349,7 @@ namespace EmulatorLauncher
                             if (key == "FastForward" && SystemConfig.getOptBoolean("fastforward_toggle"))
                                 key = "ToggleFastForward";
 
-                            var inputKeyName = GetInputKeyName(ctrl, newValue, tech);
+                            var inputKeyName = GetInputKeyName(ctrl, newValue);
 
                             ini.WriteValue("Hotkeys", key, techPadNumber + hotKeyName + " & " + techPadNumber + inputKeyName);
                         }
@@ -358,7 +360,7 @@ namespace EmulatorLauncher
                         foreach (var hotkey in hotkeys)
                         {
                             string hkKey = hotkey.Value.Key;
-                            var inputKeyName = GetInputKeyName(ctrl, hotkey.Key, tech);
+                            var inputKeyName = GetInputKeyName(ctrl, hotkey.Key);
                             if (string.IsNullOrEmpty(inputKeyName) || inputKeyName == "None")
                                 continue;
 
@@ -408,16 +410,16 @@ namespace EmulatorLauncher
             { InputKey.r3, new KeyValuePair<string, string>("Screenshot", "Keyboard/F8") },
             { InputKey.up, new KeyValuePair<string, string>("SelectNextSaveStateSlot", "Keyboard/F7") },
             { InputKey.down, new KeyValuePair<string, string>("SelectPreviousSaveStateSlot", "Keyboard/F6") },
-            { InputKey.pagedown, new KeyValuePair<string, string>("ChangeDisc", "F11") },
+            { InputKey.pagedown, new KeyValuePair<string, string>("ChangeDisc", "Keyboard/F11") },
             { InputKey.l2, new KeyValuePair<string, string>("SwitchToPreviousDisc", "Keyboard/F9") },
-            { InputKey.r2, new KeyValuePair<string, string>("SwitchToNextDisc", "F10") },
+            { InputKey.r2, new KeyValuePair<string, string>("SwitchToNextDisc", "Keyboard/F10") },
             { InputKey.left, new KeyValuePair<string, string>("Rewind", "Keyboard/Backspace") },
-            { InputKey.right, new KeyValuePair<string, string>("FastForward", "L") },
+            { InputKey.right, new KeyValuePair<string, string>("FastForward", "Keyboard/L") },
             { InputKey.start, new KeyValuePair<string, string>("PowerOff", "Keyboard/Escape") }
         };
 
 
-        private static string GetInputKeyName(Controller c, InputKey key, string tech)
+        private static string GetInputKeyName(Controller c, InputKey key)
         {
             Int64 pid;
             bool hwOrder = c.UsesHardwareButtonOrder;

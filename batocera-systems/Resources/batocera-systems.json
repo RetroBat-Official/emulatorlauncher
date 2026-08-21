@@ -1345,6 +1345,20 @@
     ]
   },
 
+  "namco2x6": {
+    "name": "Namco2x6",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/pcsx2/bios/r27v1602f.7d"
+      },
+      {
+        "md5": "",
+        "file": "bios/pcsx2/bios/r27v1602f.8g"
+      }
+    ]
+  },
+
   "naomi": {
     "name": "Naomi",
     "biosFiles": [

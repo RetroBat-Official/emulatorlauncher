@@ -39,6 +39,7 @@ namespace EmulatorLauncher
                 ini.ClearSection("Input.Port" + i + ".ControlPad.Binds");
                 ini.ClearSection("Input.Port" + i + ".AnalogPad.Binds");
                 ini.ClearSection("Input.Port" + i);
+                ini.WriteValue("Input.Port" + i, "PeripheralType", "'None'");
             }
             
             // Inject controllers                
@@ -99,7 +100,8 @@ namespace EmulatorLauncher
 
             ini.WriteValue(inputSection, "PeripheralType", peripheral);
 
-            int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
+            int index = GetYmirGamepadIndex(ctrl);
+            SimpleLogger.Instance.Info("[YMIR] Player " + playerindex + " -> Ymir gamepad index @" + index + " (SDL3 instance " + (ctrl.Sdl3Controller != null ? ctrl.Sdl3Controller.InstanceID.ToString() : "n/a") + ")");
 
             // Check if controller has a specific mapping
             string guid = (ctrl.Guid.ToString()).ToLowerInvariant();
@@ -253,13 +255,13 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("ymir_deadzone") && !string.IsNullOrEmpty(SystemConfig["ymir_deadzone"]))
                 deadzone = SystemConfig["ymir_deadzone"];
 
-            string triggerDeadzone = "0.15";
-            if (SystemConfig.isOptSet("ymir_trigger_deadzone") && !string.IsNullOrEmpty(SystemConfig["ymir_trigger_deadzone"]))
-                triggerDeadzone = SystemConfig["ymir_trigger_deadzone"];
+            string analogSensitivity = "0.2";
+            if (SystemConfig.isOptSet("ymir_analog_sensitivity") && !string.IsNullOrEmpty(SystemConfig["ymir_analog_sensitivity"]))
+                analogSensitivity = SystemConfig["ymir_analog_sensitivity"];
 
-            ini.WriteValue("Input.Gamepad", "AnalogToDigitalSensitivity", deadzone);
-            ini.WriteValue("Input.Gamepad", "LSDeadzone", triggerDeadzone);
-            ini.WriteValue("Input.Gamepad", "RSDeadzone", triggerDeadzone);
+            ini.WriteValue("Input.Gamepad", "AnalogToDigitalSensitivity", analogSensitivity);
+            ini.WriteValue("Input.Gamepad", "LSDeadzone", deadzone);
+            ini.WriteValue("Input.Gamepad", "RSDeadzone", deadzone);
         }
 
         private Dictionary<string, string> hotkeys = new Dictionary<string, string>()
@@ -290,6 +292,35 @@ namespace EmulatorLauncher
 
             foreach (var hk in stateKeys)
                 ini.WriteValue("Hotkeys.SaveStates", hk.Key, "[ '" + hk.Value + "' ]");
+        }
+
+        /// <summary>
+        /// Ymir does not use SDL index nor SDL_GetGamepadPlayerIndex (bug SDL3 raw input under Windows).
+        /// It attributes its own indexes based on SDL_EVENT_GAMEPAD_ADDED, only counting the IsGamepad controllers, and sorting them by EnumerationIndex.
+        /// Cf. app.cpp:1288 (PlayerIndexMap::AssignPlayerIndex) and app.cpp:1576 (SDL_EVENT_GAMEPAD_ADDED).
+        /// Trying to reproduce this here with RetroBat
+        /// </summary>
+        private static int GetYmirGamepadIndex(Controller ctrl)
+        {
+            int fallback = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
+
+            var sdl3 = ctrl.Sdl3Controller;
+            if (sdl3 == null)
+                return fallback;
+
+            var gamepads = Sdl3GameController.GetControllers()
+                .Where(c => c.IsGamepad)
+                .OrderBy(c => c.EnumerationIndex)
+                .ToList();
+
+            int rank = gamepads.FindIndex(c => c.InstanceID == sdl3.InstanceID);
+            if (rank < 0)
+            {
+                SimpleLogger.Instance.Warning("[YMIR] Controller not found in SDL3 gamepad list, falling back to index " + fallback);
+                return fallback;
+            }
+
+            return rank;
         }
     }
 }

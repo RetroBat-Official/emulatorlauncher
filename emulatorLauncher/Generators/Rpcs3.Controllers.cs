@@ -319,6 +319,14 @@ namespace EmulatorLauncher
                 int index = ctrl.XInput.DeviceIndex + 1;
                 player["Device"] = "\"" + "XInput Pad #" + index + "\"";
             }
+            else if (tech == "SDL" && ctrl.IsXInputDevice)
+            {
+                // With RAWINPUT off, SDL names XInput devices "XInput Controller #<userid+1>"
+                // (SDL_xinputjoystick.c:70). RPCS3 then appends its own homonym counter
+                // (sdl_pad_handler.cpp:412); since the names are already unique, it is always 1.
+                int userid = ctrl.XInput != null ? ctrl.XInput.DeviceIndex : nsamepad - 1;
+                player["Device"] = "XInput Controller " + (userid + 1);
+            }
             else
                 player["Device"] = devicename + " " + nsamepad;
 

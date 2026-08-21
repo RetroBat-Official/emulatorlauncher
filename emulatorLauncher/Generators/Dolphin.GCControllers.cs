@@ -86,7 +86,7 @@ namespace EmulatorLauncher
                         deviceName = pad.Name != null ? pad.Name : "";
 
                         if (tech == "DInput")
-                            deviceName = pad.DirectInput.Name != null ? pad.DirectInput.Name : "";
+                            deviceName = pad.DirectInput != null && pad.DirectInput.Name != null ? pad.DirectInput.Name : "";
 
                         string newNamePath = Path.Combine(Program.AppConfig.GetFullPath("tools"), "controllerinfo.yml");
                         if (File.Exists(newNamePath))
@@ -120,7 +120,7 @@ namespace EmulatorLauncher
                         if (!File.Exists(gamecontrollerDB))
                         {
                             SimpleLogger.Instance.Info("[CONTROLLERS] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
-                            return;
+                            continue;
                         }
                         else
                             SimpleLogger.Instance.Info("[CONTROLLERS] Player " + pad.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + searchGuid);
@@ -130,7 +130,7 @@ namespace EmulatorLauncher
                         if (sdlCtrl == null)
                         {
                             SimpleLogger.Instance.Info("[CONTROLLERS] Player " + pad.PlayerIndex + ". No controller found in gamecontrollerdb.txt file for guid : " + searchGuid);
-                            return;
+                            continue;
                         }
                         else
                             SimpleLogger.Instance.Info("[CONTROLLERS] Player " + pad.PlayerIndex + ": " + searchGuid + " found in gamecontrollerDB file.");
@@ -138,7 +138,7 @@ namespace EmulatorLauncher
                         if (sdlCtrl.ButtonMappings == null)
                         {
                             SimpleLogger.Instance.Info("[CONTROLLERS] No mapping found for the controller." + searchGuid);
-                            return;
+                            continue;
                         }
                     }
 

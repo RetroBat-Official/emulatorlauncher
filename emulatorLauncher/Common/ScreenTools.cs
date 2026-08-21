@@ -22,6 +22,36 @@ namespace EmulatorLauncher
             public int Bottom;
         }
 
+        public static void MoveHandleToScreen(IntPtr handle, int targetMonitorIndex)
+        {
+            if (handle == IntPtr.Zero)
+                return;
+
+            Screen[] screens = Screen.AllScreens;
+            if (targetMonitorIndex < 0 || targetMonitorIndex >= screens.Length)
+            {
+                SimpleLogger.Instance.Warning($"[SCREENMOVER] Target monitor index {targetMonitorIndex} is out of range. Available screens: {screens.Length}");
+                return;
+            }
+
+            Screen targetScreen = screens[targetMonitorIndex];
+            Screen currentScreen = Screen.FromHandle(handle);
+
+            SimpleLogger.Instance.Info($"[SCREENMOVER] Window is currently on: {currentScreen.DeviceName}");
+            SimpleLogger.Instance.Info($"[SCREENMOVER] Target screen is: {targetScreen.DeviceName}");
+
+            if (currentScreen.DeviceName.Equals(targetScreen.DeviceName))
+            {
+                SimpleLogger.Instance.Info("[SCREENMOVER] Window is already on the correct screen. No action taken.");
+                return;
+            }
+
+            SimpleLogger.Instance.Info("[SCREENMOVER] Window is on the wrong screen. Moving...");
+
+            Rectangle b = targetScreen.Bounds;
+            User32.SetWindowPos(handle, new IntPtr(-1), b.Left, b.Top, b.Width, b.Height, SWP.SHOWWINDOW);
+        }
+
         public static void MoveWindow(Process process, int targetMonitorIndex = 0, int maxRetries = 20, int retryDelayMs = 2000)
         {
             SimpleLogger.Instance.Info($"[SCREENMOVER] Starting process of moving {process.ProcessName} to monitor {targetMonitorIndex}");
@@ -105,6 +135,44 @@ namespace EmulatorLauncher
             catch (Exception ex)
             {
                 SimpleLogger.Instance.Error($"[SCREENMOVER] Exception occurred: {ex}");
+            }
+        }
+
+        public static bool MoveWindow(Process process, Predicate<IntPtr> selector, int targetMonitorIndex, int maxRetries = 40, int retryDelayMs = 250)
+        {
+            if (process == null)
+                return false;
+
+            for (int i = 0; i < maxRetries; i++)
+            {
+                if (process.HasExited)
+                    return false;
+
+                IntPtr handle = User32.FindHwnds(process.Id, selector, true).FirstOrDefault();
+                if (handle != IntPtr.Zero)
+                {
+                    MoveHandleToScreen(handle, targetMonitorIndex);
+                    return true;
+                }
+
+                Thread.Sleep(retryDelayMs);
+            }
+
+            SimpleLogger.Instance.Warning("[SCREENMOVER] No matching window found within timeout.");
+            return false;
+        }
+
+        public static void LogProcessWindows(Process process)
+        {
+            if (process == null)
+                return;
+
+            foreach (var h in User32.FindHwnds(process.Id, null, true))
+            {
+                var rect = User32.GetWindowRect(h);
+                SimpleLogger.Instance.Info($"[SCREENMOVER] hwnd={h} class='{User32.GetClassName(h)}' " +
+                    $"rect=({rect.left},{rect.top})-({rect.right},{rect.bottom}) " +
+                    $"screen={Screen.FromHandle(h).DeviceName}");
             }
         }
 
