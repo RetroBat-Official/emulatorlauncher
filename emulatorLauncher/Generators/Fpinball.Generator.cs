@@ -38,70 +38,103 @@ namespace EmulatorLauncher
                 return;
             }
 
-            if (Controllers != null)
+            if (Controllers == null)
+                return;
+
+            var controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1 && c.Config != null && c.Config.Type != "keyboard");
+            if (controller == null)
             {
-                var controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1 && c.Config != null && c.Config.Type != "keyboard");
-                if (controller != null)
+                SimpleLogger.Instance.Info("[INFO] No pad found for player 1, Future Pinball pad configuration skipped.");
+                return;
+            }
+
+            var directInput = controller.DirectInput;
+            if (directInput == null || string.IsNullOrEmpty(directInput.Name))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] No DirectInput information for player 1 pad, Future Pinball pad configuration skipped.");
+                return;
+            }
+
+            // Future Pinball stores the joypad name truncated to 47 characters
+            string fpinballName = directInput.Name.Length > 47 ? directInput.Name.Substring(0, 47) : directInput.Name;
+
+            using (var software = Registry.CurrentUser.OpenSubKey("Software", true))
+            {
+                if (software == null)
                 {
-                    var directInput = controller.DirectInput;
-                    if (directInput != null)
+                    SimpleLogger.Instance.Warning("[WARNING] Unable to open HKCU\\Software, Future Pinball pad configuration skipped.");
+                    return;
+                }
+
+                using (var joyPads = software.CreateSubKey("Future Pinball\\GamePlayer\\JoyPads"))
+                {
+                    if (joyPads == null)
                     {
-                        string fpinballName = directInput.Name.Length > 47 ? directInput.Name.Substring(0, 47) : directInput.Name;
+                        SimpleLogger.Instance.Warning("[WARNING] Unable to create HKCU\\Software\\Future Pinball\\GamePlayer\\JoyPads.");
+                        return;
+                    }
 
-                        RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
-                        if (regKeyc != null)
-                            regKeyc = regKeyc.CreateSubKey("Future Pinball").CreateSubKey("GamePlayer").CreateSubKey("JoyPads");
+                    // Previously configured pads are stored as SUBKEYS (one per pad name), not as values
+                    foreach (var subKeyName in joyPads.GetSubKeyNames())
+                    {
+                        try { joyPads.DeleteSubKeyTree(subKeyName); }
+                        catch (Exception ex) { SimpleLogger.Instance.Warning("[WARNING] Unable to delete stale pad key '" + subKeyName + "' : " + ex.Message); }
+                    }
 
-                        if (regKeyc != null)
+                    // Legacy cleanup : remove any leftover value written directly under JoyPads
+                    foreach (var valueName in joyPads.GetValueNames())
+                    {
+                        try { joyPads.DeleteValue(valueName); }
+                        catch { }
+                    }
+
+                    using (var pad = joyPads.CreateSubKey(fpinballName))
+                    {
+                        if (pad == null)
                         {
-                            foreach (var name in regKeyc.GetValueNames())
-                                regKeyc.DeleteValue(name);
-
-                            regKeyc = regKeyc.CreateSubKey(fpinballName);
-                            if (regKeyc != null)
-                            {
-                                regKeyc.SetValue("JoypadSupport", 1);
-
-                                regKeyc.SetValue("JoypadDigitalPlunger", JoystickValue(InputKey.a, controller));
-                                regKeyc.SetValue("JoypadToggleHud", JoystickValue(InputKey.y, controller));
-                                regKeyc.SetValue("JoypadNextCamera", JoystickValue(InputKey.b, controller));
-                                regKeyc.SetValue("JoypadExit", JoystickValue(InputKey.r3, controller));
-
-                                regKeyc.SetValue("JoypadLeftFlipper", JoystickValue(InputKey.pageup, controller));
-                                regKeyc.SetValue("JoypadRightFlipper", JoystickValue(InputKey.pagedown, controller));
-
-                                regKeyc.SetValue("JoypadStartGame", JoystickValue(InputKey.start, controller));
-                                regKeyc.SetValue("JoypadInsertCoin", JoystickValue(InputKey.select, controller));
-
-                                regKeyc.SetValue("JoypadPause", JoystickValue(InputKey.x, controller));
-                                regKeyc.SetValue("JoypadBackbox", JoystickValue(InputKey.l3, controller));
-
-                                regKeyc.SetValue("JoypadSpecial1", -1);
-                                regKeyc.SetValue("JoypadSpecial2", -1);
-                                regKeyc.SetValue("JoypadInsertCoin2", -1);
-                                regKeyc.SetValue("JoypadInsertCoin3", -1);
-                                regKeyc.SetValue("JoypadLeft2ndFlipper", -1);
-                                regKeyc.SetValue("JoypadRight2ndFlipper", -1);
-                                regKeyc.SetValue("JoypadTest", -1);
-                                regKeyc.SetValue("JoypadVolumeUp", -1);
-                                regKeyc.SetValue("JoypadVolumeDown", -1);
-                                regKeyc.SetValue("JoypadMusicUp", -1);
-                                regKeyc.SetValue("JoypadMusicDown", -1);
-                                regKeyc.SetValue("JoypadService", -1);
-                                regKeyc.SetValue("JoypadPinballRoller", -1);
-                                regKeyc.SetValue("JoypadPlungerAxis", -1);
-                                regKeyc.SetValue("JoypadNudgeAxisX", -1);
-                                regKeyc.SetValue("JoypadNudgeAxisY", -1);
-                                regKeyc.SetValue("JoypadPinballRollerAxisX", -1);
-                                regKeyc.SetValue("JoypadPinballRollerAxisY", -1);
-
-
-                                regKeyc.Close();
-                            }
+                            SimpleLogger.Instance.Warning("[WARNING] Unable to create registry key for pad '" + fpinballName + "'.");
+                            return;
                         }
+
+                        pad.SetValue("JoypadSupport", 1);
+
+                        pad.SetValue("JoypadDigitalPlunger", JoystickValue(InputKey.a, controller));
+                        pad.SetValue("JoypadToggleHud", JoystickValue(InputKey.y, controller));
+                        pad.SetValue("JoypadNextCamera", JoystickValue(InputKey.b, controller));
+                        pad.SetValue("JoypadExit", JoystickValue(InputKey.r3, controller));
+
+                        pad.SetValue("JoypadLeftFlipper", JoystickValue(InputKey.pageup, controller));
+                        pad.SetValue("JoypadRightFlipper", JoystickValue(InputKey.pagedown, controller));
+
+                        pad.SetValue("JoypadStartGame", JoystickValue(InputKey.start, controller));
+                        pad.SetValue("JoypadInsertCoin", JoystickValue(InputKey.select, controller));
+
+                        pad.SetValue("JoypadPause", JoystickValue(InputKey.x, controller));
+                        pad.SetValue("JoypadBackbox", JoystickValue(InputKey.l3, controller));
+
+                        pad.SetValue("JoypadSpecial1", -1);
+                        pad.SetValue("JoypadSpecial2", -1);
+                        pad.SetValue("JoypadInsertCoin2", -1);
+                        pad.SetValue("JoypadInsertCoin3", -1);
+                        pad.SetValue("JoypadLeft2ndFlipper", -1);
+                        pad.SetValue("JoypadRight2ndFlipper", -1);
+                        pad.SetValue("JoypadTest", -1);
+                        pad.SetValue("JoypadVolumeUp", -1);
+                        pad.SetValue("JoypadVolumeDown", -1);
+                        pad.SetValue("JoypadMusicUp", -1);
+                        pad.SetValue("JoypadMusicDown", -1);
+                        pad.SetValue("JoypadService", -1);
+                        pad.SetValue("JoypadPinballRoller", -1);
+                        pad.SetValue("JoypadPlungerAxis", -1);
+                        pad.SetValue("JoypadNudgeAxisX", -1);
+                        pad.SetValue("JoypadNudgeAxisY", -1);
+                        pad.SetValue("JoypadPinballRollerAxisX", -1);
+                        pad.SetValue("JoypadPinballRollerAxisY", -1);
                     }
                 }
             }
+
+            SimpleLogger.Instance.Info("[INFO] Future Pinball pad configured : " + fpinballName);
         }
 
         string _bam;
@@ -158,21 +191,29 @@ namespace EmulatorLauncher
 
             // Check If COM components are well registered. If not : run elevated to register them.
             bool runAs = false;
-            var key = Registry.ClassesRoot.OpenSubKey("TypeLib\\{FB22A459-4AD0-4CB3-B959-15158F7139F5}\\1.0\\0\\win32", false);
-            if (key != null)
+            using (var key = Registry.ClassesRoot.OpenSubKey("TypeLib\\{FB22A459-4AD0-4CB3-B959-15158F7139F5}\\1.0\\0\\win32", false))
             {
-                object registeredPath = key.GetValue(null);
-                if (registeredPath == null)
+                if (key == null)
+                {
+                    SimpleLogger.Instance.Info("[INFO] Future Pinball COM components are not registered, running elevated.");
                     runAs = true;
+                }
+                else
+                {
+                    string rp = key.GetValue(null) as string;
 
-                var rp = registeredPath.ToString();
-                if (rp != exe)
-                    runAs = true;
-
-                key.Close();
+                    if (string.IsNullOrEmpty(rp))
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Future Pinball TypeLib path is empty, running elevated.");
+                        runAs = true;
+                    }
+                    else if (!rp.Equals(exe, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Future Pinball TypeLib is registered to '" + rp + "' instead of '" + exe + "', running elevated.");
+                        runAs = true;
+                    }
+                }
             }
-            else
-                runAs = true;
 
             if (runAs)
                 ret.Verb = "runas";
@@ -275,17 +316,19 @@ namespace EmulatorLauncher
                 Process.Start(path);
 
                 int tickCount = Environment.TickCount;
-                string fileNameWithoutExtension = "Future Pinball";
+                const string fpProcessName = "Future Pinball";
 
-                process = Process.GetProcessesByName(fileNameWithoutExtension).FirstOrDefault<Process>();
-                while (process == null && (Environment.TickCount - tickCount < 1000))
+                process = Process.GetProcessesByName(fpProcessName).FirstOrDefault();
+                while (process == null && (Environment.TickCount - tickCount < 10000))
                 {
-                    process = Process.GetProcessesByName(fileNameWithoutExtension).FirstOrDefault<Process>();
-                    if (process == null)
-                        Thread.Sleep(10);
-                    else
-                        Job.Current.AddProcess(process);
+                    Thread.Sleep(50);
+                    process = Process.GetProcessesByName(fpProcessName).FirstOrDefault();
                 }
+                
+                if (process != null)
+                    Job.Current.AddProcess(process);
+                else
+                    SimpleLogger.Instance.Warning("[WARNING] Future Pinball process was not found after launching BAM.");
             }
             else
             {
@@ -327,9 +370,16 @@ namespace EmulatorLauncher
         {
             bool fullscreen = ShouldRunFullscreen();
 
-            RegistryKey regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
-            if (regKeyc != null)
-                regKeyc = regKeyc.CreateSubKey("Future Pinball").CreateSubKey("GamePlayer");
+            RegistryKey regKeyc = null;
+
+            using (var software = Registry.CurrentUser.OpenSubKey("Software", true))
+            {
+                if (software != null)
+                    regKeyc = software.CreateSubKey("Future Pinball\\GamePlayer");
+            }
+
+            if (regKeyc == null)
+                SimpleLogger.Instance.Warning("[WARNING] Unable to create HKCU\\Software\\Future Pinball\\GamePlayer, video options will not be applied.");
 
             if (regKeyc != null)
             {
@@ -382,10 +432,20 @@ namespace EmulatorLauncher
                     regKeyc.SetValue("BitsPerPixel", Screen.PrimaryScreen.BitsPerPixel);
                 }
 
+                // Monitor ID
+                string monitorId = Screen.PrimaryScreen != null ? Screen.PrimaryScreen.DeviceName : "\\\\.\\DISPLAY1";
                 if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
-                    regKeyc.SetValue("PlayfieldMonitorID", "\\\\.\\DISPLAY" + SystemConfig["MonitorIndex"]);
-                else
-                    regKeyc.SetValue("PlayfieldMonitorID", "\\\\.\\DISPLAY1");
+                {
+                    int monitorIndex = SystemConfig["MonitorIndex"].ToInteger();
+                    var screens = Screen.AllScreens;
+
+                    if (monitorIndex >= 0 && monitorIndex < screens.Length)
+                        monitorId = screens[monitorIndex].DeviceName;
+                    else
+                        SimpleLogger.Instance.Warning("[WARNING] MonitorIndex " + monitorIndex + " is out of range (" + screens.Length + " screen(s) detected), falling back to primary screen.");
+                }
+                SimpleLogger.Instance.Info("[INFO] Future Pinball playfield monitor : " + monitorId);
+                regKeyc.SetValue("PlayfieldMonitorID", monitorId);
 
                 if (SystemConfig.isOptSet("DefaultCamera") && !string.IsNullOrEmpty(SystemConfig["DefaultCamera"]))
                     regKeyc.SetValue("DefaultCamera", SystemConfig["DefaultCamera"].ToInteger());
@@ -479,14 +539,16 @@ namespace EmulatorLauncher
                 regKeyc.Close();
             }
 
-            regKeyc = Registry.CurrentUser.OpenSubKey(@"Software", true);
-            if (regKeyc != null)
-                regKeyc = regKeyc.CreateSubKey("Future Pinball").CreateSubKey("Editor");
-
-            if (regKeyc != null)
+            using (var software = Registry.CurrentUser.OpenSubKey("Software", true))
             {
-                regKeyc.SetValue("LoadImagesIntoEditor", 0);
-                regKeyc.Close();
+                if (software == null)
+                    return;
+
+                using (var editor = software.CreateSubKey("Future Pinball\\Editor"))
+                {
+                    if (editor != null)
+                        editor.SetValue("LoadImagesIntoEditor", 0);
+                }
             }
         }
 
@@ -495,20 +557,23 @@ namespace EmulatorLauncher
             if (rom == null)
                 return null;
 
-            if (Misc.IsWindowsEightOrTen && !Misc.IsDeveloperModeEnabled)
-            {
-                var controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1 && c.Config != null && c.Config.Type != "keyboard");
-                if (controller != null)
-                {
-                    LoadingForm frm = new LoadingForm
-                    {
-                        WarningText = Properties.Resources.FPinballDeveloperMode
-                    };
-                    frm.Show();
-                }
-            }
+            if (!Misc.IsWindowsEightOrTen || Misc.IsDeveloperModeEnabled)
+                return null;
 
-            return null;
+            if (Controllers == null)
+                return null;
+
+            var controller = Controllers.FirstOrDefault(c => c.PlayerIndex == 1 && c.Config != null && c.Config.Type != "keyboard");
+            if (controller == null)
+                return null;
+
+            LoadingForm frm = new LoadingForm
+            {
+                WarningText = Properties.Resources.FPinballDeveloperMode
+            };
+            frm.Show();
+
+            return frm;
         }
 
     }
