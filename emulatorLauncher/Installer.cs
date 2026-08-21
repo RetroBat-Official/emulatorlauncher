@@ -805,12 +805,20 @@ namespace EmulatorLauncher
                 if (serverVersion == null)
                     return false;
 
+                string serverVersionString = serverVersion.Version;
+                if (serverVersionString.IndexOf('.') < 0)
+                    serverVersionString += ".0";
+
                 Version local = new Version();
                 Version server = new Version();
-                if (Version.TryParse(GetInstalledVersion(), out local) && Version.TryParse(serverVersion.Version, out server))
+                if (Version.TryParse(GetInstalledVersion(), out local) && Version.TryParse(serverVersionString, out server))
                 {
+                    SimpleLogger.Instance.Info("[Startup] Local emulator version: " + local.ToString());
+                    SimpleLogger.Instance.Info("[Startup] Server emulator version: " + server.ToString());
+                    
                     if (local < server)
                     {
+                        SimpleLogger.Instance.Info("[Startup] Emulator update available, proposing update.");
                         ServerFileName = serverVersion.Path;
                         ServerVersion = server.ToString();
                         return true;
@@ -982,7 +990,12 @@ namespace EmulatorLauncher
 
         public bool CanInstall()
         {
-            return WebTools.UrlExists(PackageUrl);
+            if (WebTools.UrlExists(PackageUrl))
+            {
+                SimpleLogger.Instance.Info("[Startup] Emulator can be installed or updated.");
+                return true;
+            }
+            return false;
         }
 
         public static string GetTempPath()

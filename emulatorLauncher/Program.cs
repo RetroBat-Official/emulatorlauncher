@@ -71,6 +71,7 @@ namespace EmulatorLauncher
             { "corsixth", () => new CorsixTHGenerator() },
             { "cxbx", () => new CxbxGenerator() },
             { "daphne", () => new DaphneGenerator() },
+            { "decomp", () => new DecompLauncherGenerator() },
             { "demul", () => new DemulGenerator() },
             { "demul-old", () => new DemulGenerator() },
             { "desmume", () => new DesmumeGenerator() },
@@ -598,6 +599,9 @@ namespace EmulatorLauncher
                 return;
             }
 
+            if (Path.GetExtension(SystemConfig["rom"]) == ".decomp")
+                SystemConfig["emulator"] = "decomp";
+
             if (string.IsNullOrEmpty(SystemConfig["emulator"]))
                 SystemConfig["emulator"] = SystemDefaults.GetDefaultEmulator(SystemConfig["system"]);
 
@@ -695,13 +699,26 @@ namespace EmulatorLauncher
 
                 if (!updatesEnabled)
                     SimpleLogger.Instance.Info("[Startup] Updates not enabled, not looking for updates.");
+                else
+                    SimpleLogger.Instance.Info("[Startup] Updates enabled.");
 
-                if ((!installer.IsInstalled() || (updatesEnabled && installer.HasUpdateAvailable())) && installer.CanInstall())
+                if (!installer.IsInstalled() && installer.CanInstall())
                 {
-                    SimpleLogger.Instance.Info("[Startup] Emulator update found : proposing to update.");
+                    SimpleLogger.Instance.Info("[Startup] Emulator is not installed : proposing installation.");
+
                     using (InstallerFrm frm = new InstallerFrm(installer, true))
+                    {
                         if (frm.ShowDialog() != DialogResult.OK)
                             return;
+                    }
+                }
+                else if (updatesEnabled && installer.HasUpdateAvailable() && installer.CanInstall())
+                {
+                    using (InstallerFrm frm = new InstallerFrm(installer, true))
+                    {
+                        if (frm.ShowDialog() != DialogResult.OK)
+                            return;
+                    }
                 }
             }
 
