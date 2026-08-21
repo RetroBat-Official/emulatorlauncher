@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using static EmulatorLauncher.Common.SDL;
 
 namespace EmulatorLauncher.Common.Joysticks
@@ -488,6 +489,7 @@ namespace EmulatorLauncher.Common.Joysticks
         private static extern bool SDL_IsGamepad(int instance_id);
 
         private static List<Sdl3GameController> _controllers;
+        private static bool _standardHints = false;
 
         public static List<Sdl3GameController> GetControllers()
         {
@@ -544,13 +546,37 @@ namespace EmulatorLauncher.Common.Joysticks
             controllers = new List<Sdl3GameController>();
             try
             {
-                SDL_SetHint("SDL_JOYSTICK_HIDAPI_WII", "1");
-                SDL_SetHint("SDL_JOYSTICK_ENHANCED_REPORTS", "0");
-                SDL_SetHint("SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS", "1");
-                SDL_SetHint("SDL_JOYSTICK_RAWINPUT", "1");
+                if (_standardHints)
+                {
+                    SDL_SetHint("SDL_JOYSTICK_HIDAPI", "0");
+                    SDL_SetHint("SDL_JOYSTICK_RAWINPUT", "0");
+                    SDL_SetHint("SDL_JOYSTICK_ENHANCED_REPORTS", "0");
+                    SDL_SetHint("SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS", "1");
+                }
+                else
+                {
+                    SDL_SetHint("SDL_JOYSTICK_HIDAPI", "1");
+                    SDL_SetHint("SDL_JOYSTICK_RAWINPUT", "1");
+                    SDL_SetHint("SDL_JOYSTICK_ENHANCED_REPORTS", "0");
+                    SDL_SetHint("SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS", "1");
+                }
 
                 if (!SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER))
                     return false;
+
+                // Windows enumerates joysticks asynchronously after init: RawInput and
+                // especially Bluetooth HIDAPI devices arrive as device-added events.
+                // Querying immediately can return an empty or partial list.
+                for (int attempt = 0; attempt < 20; attempt++)
+                {
+                    SDL_PumpEvents();
+
+                    SDL_GetJoysticks(out int probe);
+                    if (probe > 0)
+                        break;
+
+                    Thread.Sleep(50);
+                }
 
                 int num_joysticks;
                 IntPtr joysticksPtr = SDL_GetJoysticks(out num_joysticks);
@@ -639,6 +665,23 @@ namespace EmulatorLauncher.Common.Joysticks
             {
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Controls whether RetroBat's own joystick hints are applied when enumerating.
+        /// Emulators that use plain SDL3 defaults (e.g. JGenesis) need this off, otherwise
+        /// their device list — and therefore their gamepad indices — will not match ours.
+        /// Must be called before any SDL3 controller is resolved.
+        /// </summary>
+        public static void SetEnumerationHints(bool useRetroBatHints)
+        {
+            if (_controllers != null)
+            {
+                SimpleLogger.Instance.Warning("[Sdl3GameController] Enumeration hints changed after controllers were enumerated - ignored.");
+                return;
+            }
+
+            _standardHints = useRetroBatHints;
         }
     }
 }

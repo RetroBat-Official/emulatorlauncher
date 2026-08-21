@@ -2,6 +2,7 @@
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,7 +10,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Xml.Linq;
+using TeknoParrotUi.Common;
 using static EmulatorLauncher.Mame64Generator;
 using static EmulatorLauncher.PadToKeyboard.SendKey;
 
@@ -1445,6 +1449,17 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "dolphin_pal60", "dolphin_pal60", "enabled", "disabled");
             BindBoolFeature(coreSettings, "dolphin_cheats_enabled", "dolphin_cheats_enabled", "enabled", "disabled");
             BindBoolFeature(coreSettings, "dolphin_immediate_xfb", "dolphin_immediatexfb", "enabled", "disabled");
+            BindFeature(coreSettings, "dolphin_cpu_clock_rate", "dolphin_cpu_clock_rate", "1.00");
+            BindBoolFeature(coreSettings, "dolphin_fast_disc_speed", "dolphin_fast_disc_speed", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_main_accurate_cpu_cache", "dolphin_main_accurate_cpu_cache", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_bbox_enabled", "dolphin_bbox_enabled", "enabled", "disabled");
+            BindFeature(coreSettings, "dolphin_dsp_hle", "dolphin_dsp_hle", "enabled");
+            BindFeature(coreSettings, "dolphin_texture_cache_accuracy", "dolphin_texture_cache_accuracy", "128");
+            BindFeature(coreSettings, "dolphin_enhance_output_resampling", "dolphin_enhance_output_resampling", "0");
+            BindBoolFeature(coreSettings, "dolphin_pixel_lighting", "dolphin_pixel_lighting", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "dolphin_mipmap_detection", "dolphin_mipmap_detection", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "dolphin_disable_copy_filter", "dolphin_disable_copy_filter", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "dolphin_force_true_color", "dolphin_force_true_color", "enabled", "disabled");
 
             if (SystemConfig.getOptBoolean("dolphin_cheats_enabled"))
                 DolphinSyncCheats(system);
@@ -1465,19 +1480,24 @@ namespace EmulatorLauncher.Libretro
             // wii
             if (system == "wii")
             {
-                if (_isWidescreen || !SystemConfig.isOptSet("ratio"))
-                    coreSettings["dolphin_widescreen"] = "enabled";
+                if (SystemConfig.isOptSet("dolphin_widescreen"))
+                    coreSettings["dolphin_widescreen"] = SystemConfig.getOptBoolean("dolphin_widescreen") ? "enabled" : "disabled";
                 else
-                    coreSettings["dolphin_widescreen"] = "disabled";
+                    coreSettings["dolphin_widescreen"] = (_isWidescreen || !SystemConfig.isOptSet("ratio")) ? "enabled" : "disabled";
 
                 BindBoolFeature(coreSettings, "dolphin_progressive_scan", "dolphin_progressive_scan", "enabled", "disabled");
+                BindBoolFeature(coreSettings, "dolphin_disc_based_games_boot_to_wii_menu", "dolphin_disc_based_games_boot_to_wii_menu", "enabled", "disabled");
+
                 BindFeature(coreSettings, "dolphin_sensor_bar_position", "dolphin_sensor_bar_position", "0");
                 BindBoolFeature(coreSettings, "dolphin_wiimote_continuous_scanning", "dolphin_nowiimotescan", "disabled", "enabled");
                 BindBoolFeature(coreSettings, "dolphin_bluetooth_passthrough", "dolphin_bt_pass", "enabled", "disabled");
-                BindBoolFeatureOn(coreSettings, "dolphin_widescreen", "dolphin_widescreen", "disabled", "enabled");
                 BindFeature(coreSettings, "dolphin_ir_modifier", "dolphin_ir_modifier", "None");
                 BindFeature(coreSettings, "dolphin_swing_modifier", "dolphin_swing_modifier", "Disabled");
                 BindFeature(coreSettings, "dolphin_ir_mode", "dolphin_ir_mode", "1");
+                BindFeature(coreSettings, "dolphin_ir_offset", "dolphin_ir_offset", "0");
+                BindFeature(coreSettings, "dolphin_ir_deadzone", "dolphin_ir_deadzone", "0");
+                BindFeature(coreSettings, "dolphin_swing_angle", "dolphin_swing_angle", "90");
+                BindBoolFeature(coreSettings, "dolphin_alt_gc_ports_on_wii", "dolphin_alt_gc_ports_on_wii", "enabled", "disabled");
             }
 
             // Triforce
@@ -2042,8 +2062,22 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "fceumm_sndquality", "fceumm_sndquality", "Low");
             BindFeature(coreSettings, "fceumm_overclocking", "fceumm_overclocking", "disabled");
             BindBoolFeature(coreSettings, "fceumm_nospritelimit", "fceumm_nospritelimit", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "fceumm_game_genie", "fceumm_game_genie", "enabled", "disabled");
+            BindFeature(coreSettings, "fceumm_ramstate", "fceumm_ramstate", "fill $ff");
+            BindBoolFeatureOn(coreSettings, "fceumm_hdpacks", "fceumm_hdpacks", "enabled", "disabled");
+
+            BindBoolFeature(coreSettings, "fceumm_sndlowpass", "fceumm_sndlowpass", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "fceumm_removetrianglenoise", "fceumm_removetrianglenoise", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "fceumm_reducedmcpopping", "fceumm_reducedmcpopping", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "fceumm_swapduty", "fceumm_swapduty", "enabled", "disabled");
+            BindFeature(coreSettings, "fceumm_sndrate_hint", "fceumm_sndrate_hint", "Auto");
+
+            BindFeature(coreSettings, "fceumm_turbo_delay", "fceumm_turbo_delay", "3");
             BindBoolFeature(coreSettings, "fceumm_show_crosshair", "fceumm_show_crosshair", "enabled", "disabled");
             BindFeature(coreSettings, "fceumm_zapper_mode", "gun_input", "clightgun");
+            BindFeature(coreSettings, "fceumm_zapper_tolerance", "fceumm_zapper_tolerance", "6");
+            BindBoolFeature(coreSettings, "fceumm_zapper_trigger", "fceumm_zapper_trigger", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "fceumm_zapper_sensor", "fceumm_zapper_sensor", "enabled", "disabled");
 
             // MULTI-TAP for 4 players
             if (SystemConfig.isOptSet("fceumm_multitap") && SystemConfig.getOptBoolean("fceumm_multitap"))
@@ -2148,7 +2182,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             SetupLightGuns(retroarchConfig, "4", core);
-
+            
             // Disable "enter" for player 2 in case of guns and 1 joystick connected (as this generate a conflict on ENTER key between player 2 and gun action)
             if (Program.Controllers.Count > 1 && Program.Controllers[1].IsKeyboard && (SystemConfig.getOptBoolean("use_guns") || SystemConfig["flycast_controller1"] == "4") && SystemConfig["flycast_controller2"] != "4")
             {

@@ -23,6 +23,8 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for JGenesis");
 
+            Sdl3GameController.SetEnumerationHints(true);
+
             if (jgenSystem == "sega_cd" || jgenSystem == "sega_32x")
                 jgenSystem = "genesis";
 
@@ -58,7 +60,16 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
-            int index = ctrl.SdlController != null ? ctrl.SdlController.Index : ctrl.DeviceIndex;
+            int index = ctrl.DeviceIndex;
+
+            var sdl3 = ctrl.Sdl3Controller;
+            if (sdl3 != null)
+                index = sdl3.EnumerationIndex;
+            else if (ctrl.SdlController != null)
+                index = ctrl.SdlController.Index;
+
+            SimpleLogger.Instance.Info("[INFO] Player " + playerIndex + " : gamepad_idx = " + index);
+
             bool isXInput = ctrl.IsXInputDevice;
             bool revertButtons = SystemConfig.isOptSet("jgen_revertbuttons") && SystemConfig.getOptBoolean("jgen_revertbuttons");
             string guid = ctrl.Guid.ToString();

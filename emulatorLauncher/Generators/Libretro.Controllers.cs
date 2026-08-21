@@ -596,19 +596,14 @@ namespace EmulatorLauncher.Libretro
            
             bool forceArcadeIndex = false;
 
-            if (Program.SystemConfig.getOptBoolean("arcade_stick"))
+            string forceIndexKey = "p" + controller.PlayerIndex + "_joypad_index";
+            if (Program.SystemConfig.isOptSet(forceIndexKey) && !string.IsNullOrEmpty(Program.SystemConfig[forceIndexKey]))
             {
-                int pIndex = controller.PlayerIndex;
-                string forcePIndex = "p" + pIndex.ToString() + "_stick_index";
-
-                if (Program.SystemConfig.isOptSet(forcePIndex) && !string.IsNullOrEmpty(Program.SystemConfig[forcePIndex]))
+                if (int.TryParse(Program.SystemConfig[forceIndexKey], out int forcedIndex))
                 {
-                    if (int.TryParse(Program.SystemConfig[forcePIndex], out int stickIndex))
-                    {
-                        index = stickIndex;
-                        forceArcadeIndex = true;
-                        SimpleLogger.Instance.Info("[INFO] Force arcade stick index for player " + pIndex + " to: " + index);
-                    }
+                    index = forcedIndex;
+                    forceArcadeIndex = true;
+                    SimpleLogger.Instance.Info("[INFO] Forced joypad index for player " + controller.PlayerIndex + " : " + index);
                 }
             }
 

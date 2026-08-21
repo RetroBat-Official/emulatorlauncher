@@ -46,8 +46,7 @@ namespace EmulatorLauncher
 
             wheeltype1 = wheel1.Type.ToString();
             SimpleLogger.Instance.Info("[WHEELS] Wheel 1, wheeltype identified : " + wheeltype1);
-            wheelIndex1 = wheel1.SDLIndex;
-            SimpleLogger.Instance.Info("[WHEELS] Wheel 1 directinput index : " + wheelIndex1);
+            SimpleLogger.Instance.Info("[WHEELS] Wheel 1 index : " + wheelIndex1);
 
             // Get mapping from yml file in retrobat\system\resources\inputmapping\wheels and retrieve mapping
             YmlFile ymlFile = null;
@@ -145,8 +144,8 @@ namespace EmulatorLauncher
                         switch (layout)
                         {
                             case "triggers_ax":
-                                BuildMapping(analogBinds, wheel1buttonMap, "Throttle", racingController ? "btn_trigger2_right" : "btn_trigger_right");
-                                BuildMapping(analogBinds, wheel1buttonMap, "Brake", racingController ? "btn_trigger2_left" : "btn_trigger_left");
+                                BuildMapping(analogBinds, wheel1buttonMap, "Throttle", "btn_trigger_right");
+                                BuildMapping(analogBinds, wheel1buttonMap, "Brake", "btn_trigger_left");
                                 BuildMapping(digitalBinds, wheel1buttonMap, "GearDown", "btn_x");
                                 BuildMapping(digitalBinds, wheel1buttonMap, "GearUp", "btn_a");
                                 BuildMapping(digitalBinds, wheel1buttonMap, "East", "btn_b");
@@ -154,8 +153,8 @@ namespace EmulatorLauncher
                                 break;
 
                             case "triggers_manual":
-                                BuildMapping(analogBinds, wheel1buttonMap, "Throttle", racingController ? "btn_trigger2_right" : "btn_trigger_right");
-                                BuildMapping(analogBinds, wheel1buttonMap, "Brake", racingController ? "btn_trigger2_left" : "btn_trigger_left");
+                                BuildMapping(analogBinds, wheel1buttonMap, "Throttle", "btn_trigger_right");
+                                BuildMapping(analogBinds, wheel1buttonMap, "Brake", "btn_trigger_left");
                                 if (SystemConfig.getOptBoolean("wheel_nogearstick"))
                                 {
                                     BuildMapping(digitalBinds, wheel1buttonMap, "StickGear4", "btn_b");
@@ -193,8 +192,8 @@ namespace EmulatorLauncher
 
                     else
                     {
-                        BuildMapping(analogBinds, wheel1buttonMap, "Throttle", racingController ? "btn_trigger2_right" : "btn_trigger_right");
-                        BuildMapping(analogBinds, wheel1buttonMap, "Brake", racingController ? "btn_trigger2_left" : "btn_trigger_left");
+                        BuildMapping(analogBinds, wheel1buttonMap, "Throttle", "btn_trigger_right");
+                        BuildMapping(analogBinds, wheel1buttonMap, "Brake", "btn_trigger_left");
                         BuildMapping(digitalBinds, wheel1buttonMap, "East", "btn_b");
                         BuildMapping(digitalBinds, wheel1buttonMap, "South", "btn_a");
                         BuildMapping(digitalBinds, wheel1buttonMap, "West", "btn_x");
@@ -209,8 +208,10 @@ namespace EmulatorLauncher
                 {
                     BuildMapping(analogBinds, wheel1buttonMap, "SteerLeft", "btn_analog_left");
                     BuildMapping(analogBinds, wheel1buttonMap, "SteerRight", "btn_analog_right");
-                    BuildMapping(analogBinds, wheel1buttonMap, "Throttle", racingController ? "btn_trigger2_right" : "btn_trigger_right");
-                    BuildMapping(analogBinds, wheel1buttonMap, "Brake", racingController ? "btn_trigger2_left" : "btn_trigger_left");
+                    BuildMapping(analogBinds, wheel1buttonMap, "Throttle", "btn_trigger_right");
+                    BuildMapping(analogBinds, wheel1buttonMap, "Brake", "btn_trigger_left");
+                    if (_romName.StartsWith("f355") || _romName == "sgdrvsim")
+                        BuildMapping(analogBinds, wheel1buttonMap, "Clutch", "btn_trigger2_right");
                     BuildMapping(digitalBinds, wheel1buttonMap, "Left", "btn_dpad1_left");
                     BuildMapping(digitalBinds, wheel1buttonMap, "Right", "btn_dpad1_right");
 
@@ -498,8 +499,8 @@ namespace EmulatorLauncher
                             switch (layout)
                             {
                                 case "triggers_ax":
-                                    BuildMapping(analogBinds, wheel2buttonMap, "Throttle", racingController ? "btn_trigger2_right" : "btn_trigger_right");
-                                    BuildMapping(analogBinds, wheel2buttonMap, "Brake", racingController ? "btn_trigger2_left" : "btn_trigger_left");
+                                    BuildMapping(analogBinds, wheel2buttonMap, "Throttle", "btn_trigger_right");
+                                    BuildMapping(analogBinds, wheel2buttonMap, "Brake", "btn_trigger_left");
                                     BuildMapping(digitalBinds, wheel2buttonMap, "GearDown", "btn_x");
                                     BuildMapping(digitalBinds, wheel2buttonMap, "GearUp", "btn_a");
                                     BuildMapping(digitalBinds, wheel2buttonMap, "East", "btn_b");
@@ -507,8 +508,8 @@ namespace EmulatorLauncher
                                     break;
 
                                 case "triggers_manual":
-                                    BuildMapping(analogBinds, wheel2buttonMap, "Throttle", racingController ? "btn_trigger2_right" : "btn_trigger_right");
-                                    BuildMapping(analogBinds, wheel2buttonMap, "Brake", racingController ? "btn_trigger2_left" : "btn_trigger_left");
+                                    BuildMapping(analogBinds, wheel2buttonMap, "Throttle", "btn_trigger_right");
+                                    BuildMapping(analogBinds, wheel2buttonMap, "Brake", "btn_trigger_left");
                                     if (SystemConfig.getOptBoolean("wheel_nogearstick"))
                                     {
                                         BuildMapping(digitalBinds, wheel2buttonMap, "StickGear4", "btn_b");
@@ -546,8 +547,8 @@ namespace EmulatorLauncher
 
                         else
                         {
-                            BuildMapping(analogBinds, wheel2buttonMap, "Throttle", racingController ? "btn_trigger2_right" : "btn_trigger_right");
-                            BuildMapping(analogBinds, wheel2buttonMap, "Brake", racingController ? "btn_trigger2_left" : "btn_trigger_left");
+                            BuildMapping(analogBinds, wheel2buttonMap, "Throttle", "btn_trigger_right");
+                            BuildMapping(analogBinds, wheel2buttonMap, "Brake", "btn_trigger_left");
                             BuildMapping(digitalBinds, wheel2buttonMap, "East", "btn_b");
                             BuildMapping(digitalBinds, wheel2buttonMap, "South", "btn_a");
                             BuildMapping(digitalBinds, wheel2buttonMap, "West", "btn_x");
@@ -561,8 +562,10 @@ namespace EmulatorLauncher
                     {
                         BuildMapping(analogBinds, wheel2buttonMap, "SteerLeft", "btn_analog_left");
                         BuildMapping(analogBinds, wheel2buttonMap, "SteerRight", "btn_analog_right");
-                        BuildMapping(analogBinds, wheel2buttonMap, "Throttle", racingController ? "btn_trigger2_right" : "btn_trigger_right");
-                        BuildMapping(analogBinds, wheel2buttonMap, "Brake", racingController ? "btn_trigger2_left" : "btn_trigger_left");
+                        BuildMapping(analogBinds, wheel2buttonMap, "Throttle", "btn_trigger_right");
+                        BuildMapping(analogBinds, wheel2buttonMap, "Brake", "btn_trigger_left");
+                        if (_romName.StartsWith("f355") || _romName == "sgdrvsim")
+                            BuildMapping(analogBinds, wheel2buttonMap, "Clutch", "btn_trigger2_right");
                         BuildMapping(digitalBinds, wheel2buttonMap, "Left", "btn_dpad1_left");
                         BuildMapping(digitalBinds, wheel2buttonMap, "Right", "btn_dpad1_right");
 

@@ -310,6 +310,18 @@ namespace EmulatorLauncher
                             kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
                         }
                     }
+                    else
+                    {
+                        kbini.WriteValue("digital", "bind0", "30:btn_start");
+                        kbini.WriteValue("digital", "bind1", "34:btn_d");
+                        kbini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
+                        kbini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
+                        kbini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
+                        kbini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
+                        kbini.WriteValue("digital", "bind6", "224:btn_b");
+                        kbini.WriteValue("digital", "bind7", "225:btn_a");
+                        kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
+                    }
                 }
                 else if (guns[0].Type == RawLighGunType.Mouse && SystemConfig.isOptSet("WiimoteMode") && SystemConfig["WiimoteMode"] == "wiimotegun")
                 {
@@ -459,6 +471,11 @@ namespace EmulatorLauncher
 
                             using (var ctrlini = new IniFile(mouseMapping, IniOptions.UseSpaces))
                             {
+                                ctrlini.ClearSection("digital");
+                                ctrlini.ClearSection("analog");
+                                ctrlini.ClearSection("combo");
+                                ctrlini.ClearSection("emulator");
+
                                 if (_isArcade)
                                 {
                                     if (useFileMapping)
@@ -629,6 +646,10 @@ namespace EmulatorLauncher
                                 using (var ctrlini = new IniFile(kbMapping, IniOptions.UseSpaces))
                                 {
                                     ctrlini.ClearSection("digital");
+                                    ctrlini.ClearSection("analog");
+                                    ctrlini.ClearSection("combo");
+                                    ctrlini.ClearSection("emulator");
+
                                     string vidPid = GetVIDPID(devicePath);
 
                                     if (_isArcade)
