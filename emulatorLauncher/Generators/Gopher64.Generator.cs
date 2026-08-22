@@ -69,7 +69,7 @@ namespace EmulatorLauncher
 
             var commandArray = new List<string>();
             SetupConfiguration(setupPath, fullscreen);
-            SetupCheevos(setupPath, commandArray);
+            SetupCheevos(setupPath);
 
             if (fullscreen)
                 commandArray.Add("--fullscreen");
@@ -99,7 +99,7 @@ namespace EmulatorLauncher
             string configFile = Path.Combine(setupPath, "config.json");
 
             JObject root;
-            
+
             if (File.Exists(configFile))
             {
                 string jsonText = File.ReadAllText(configFile);
@@ -142,7 +142,10 @@ namespace EmulatorLauncher
 
             BindBoolFeature(video, "integer_scaling", "integerscale");
             BindBoolFeature(video, "widescreen", "gopher64_widescreen");
-            
+            BindBoolFeature(video, "ssaa", "gopher64_ssaa");
+            BindBoolFeature(video, "crt", "gopher64_crt");
+            BindBoolFeatureOn(video, "vsync", "gopher64_vsync");
+
             if (SystemConfig.isOptSet("gopher64_resolution") && !string.IsNullOrEmpty(SystemConfig["gopher64_resolution"]))
             {
                 string res = SystemConfig["gopher64_resolution"].ToIntegerString();
@@ -153,12 +156,17 @@ namespace EmulatorLauncher
 
             // Emulation
             BindBoolFeature(emulation, "disable_expansion_pak", "gopher64_disable_expansion_pak");
+            BindBoolFeature(emulation, "overclock", "gopher64_overclock");
+            BindBoolFeature(emulation, "rewind", "rewind");
+
+            // Input (VRU - non disponible sur macOS d'après le wiki gopher64, mais OK sous Windows)
+            BindBoolFeature(input, "emulate_vru", "gopher64_vru");
 
             string jsonString = root.ToString(Formatting.Indented);
             try { File.WriteAllText(configFile, jsonString); } catch { }
         }
 
-        private void SetupCheevos(string setupPath, List<string> commandArray)
+        private void SetupCheevos(string setupPath)
         {
             string configFile = Path.Combine(setupPath, "retroachievements.json");
 
@@ -166,8 +174,12 @@ namespace EmulatorLauncher
 
             if (File.Exists(configFile))
             {
-                string jsonText = File.ReadAllText(configFile);
-                root = JObject.Parse(jsonText);
+                try
+                {
+                    string jsonText = File.ReadAllText(configFile);
+                    root = JObject.Parse(jsonText);
+                }
+                catch { root = new JObject(); }
             }
             else
             {
@@ -180,32 +192,18 @@ namespace EmulatorLauncher
             root["hardcore"] = SystemConfig.getOptBoolean("retroachievements.hardcore") ? true : false;
             root["challenge"] = SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? true : false;
             root["leaderboard"] = SystemConfig.getOptBoolean("retroachievements.leaderboards") ? true : false;
+            root["rich_presence"] = SystemConfig.getOptBoolean("retroachievements.richpresence") ? true : false;
 
             string jsonString = root.ToString(Formatting.Indented);
             try { File.WriteAllText(configFile, jsonString); } catch { }
 
-            if (SystemConfig.getOptBoolean("retroachievements"))
+            /*if (SystemConfig.getOptBoolean("retroachievements"))
             {
                 commandArray.Add("--ra-username");
                 commandArray.Add(SystemConfig["retroachievements.username"]);
                 commandArray.Add("--ra-password");
                 commandArray.Add(SystemConfig["retroachievements.password"]);
-
-                if (SystemConfig.getOptBoolean("retroachievements.hardcore"))
-                {
-                    commandArray.Add("--ra-hardcore");
-                }
-
-                if (SystemConfig.getOptBoolean("retroachievements.challenge_indicators"))
-                {
-                    commandArray.Add("--ra-challenge");
-                }
-
-                if (SystemConfig.getOptBoolean("retroachievements.leaderboards"))
-                {
-                    commandArray.Add("--ra-leaderboard");
-                }
-            }
+            }*/
         }
 
         public override int RunAndWait(ProcessStartInfo path)

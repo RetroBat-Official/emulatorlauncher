@@ -673,7 +673,7 @@ namespace EmulatorLauncher.Common.Joysticks
         /// their device list — and therefore their gamepad indices — will not match ours.
         /// Must be called before any SDL3 controller is resolved.
         /// </summary>
-        public static void SetEnumerationHints(bool useRetroBatHints)
+        public static void SetEnumerationHints(bool useRetroBatHints = true)
         {
             if (_controllers != null)
             {
@@ -681,7 +681,7 @@ namespace EmulatorLauncher.Common.Joysticks
                 return;
             }
 
-            _standardHints = useRetroBatHints;
+            _standardHints = !useRetroBatHints;
         }
     }
 }
