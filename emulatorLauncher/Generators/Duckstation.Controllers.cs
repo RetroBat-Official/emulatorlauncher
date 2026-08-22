@@ -274,6 +274,7 @@ namespace EmulatorLauncher
             ini.WriteValue(padNumber, "R2", techPadNumber + GetInputKeyName(ctrl, InputKey.r2));
             ini.WriteValue(padNumber, "L3", techPadNumber + GetInputKeyName(ctrl, InputKey.l3));
             ini.WriteValue(padNumber, "R3", techPadNumber + GetInputKeyName(ctrl, InputKey.r3));
+            
             ini.WriteValue(padNumber, "Analog", techPadNumber + "Guide");
             ini.WriteValue(padNumber, "LUp", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogup));
             ini.WriteValue(padNumber, "LRight", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogright));
@@ -290,6 +291,19 @@ namespace EmulatorLauncher
                 ini.WriteValue(padNumber, "LargeMotor", techPadNumber + "LargeMotor");
                 ini.WriteValue(padNumber, "SmallMotor", techPadNumber + "SmallMotor");
                 ini.WriteValue(padNumber, "VibrationBias", "8");
+            }
+
+            // NegCon
+            if (controllerType == "NeGcon")
+            {
+                ini.WriteValue(padNumber, "A", techPadNumber + GetInputKeyName(ctrl, InputKey.b));
+                ini.WriteValue(padNumber, "B", techPadNumber + GetInputKeyName(ctrl, InputKey.y));
+                ini.WriteValue(padNumber, "I", techPadNumber + GetInputKeyName(ctrl, InputKey.r2));
+                ini.WriteValue(padNumber, "II", techPadNumber + GetInputKeyName(ctrl, InputKey.l2));
+                ini.WriteValue(padNumber, "L", techPadNumber + GetInputKeyName(ctrl, InputKey.pageup));
+                ini.WriteValue(padNumber, "R", techPadNumber + GetInputKeyName(ctrl, InputKey.pagedown));
+                ini.WriteValue(padNumber, "SteeringLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogleft));
+                ini.WriteValue(padNumber, "SteeringRight", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogright));
             }
 
             // Analog stick configuration for analog controllers
@@ -311,12 +325,20 @@ namespace EmulatorLauncher
                     ini.WriteValue(padNumber, "AnalogDeadzone", "0.150000");
             }
 
-            if (SystemConfig.getOptBoolean("psx_triggerswap"))
+            if (SystemConfig.isOptSet("psx_triggerswap") && !string.IsNullOrEmpty(SystemConfig["psx_triggerswap"]))
             {
                 ini.Remove(padNumber, "L2");
                 ini.Remove(padNumber, "R2");
-                ini.WriteValue(padNumber, "LUp", techPadNumber + GetInputKeyName(ctrl, InputKey.r2));
-                ini.WriteValue(padNumber, "LDown", techPadNumber + GetInputKeyName(ctrl, InputKey.l2));
+                if (SystemConfig["psx_triggerswap"] == "left")
+                {
+                    ini.WriteValue(padNumber, "LUp", techPadNumber + GetInputKeyName(ctrl, InputKey.r2));
+                    ini.WriteValue(padNumber, "LDown", techPadNumber + GetInputKeyName(ctrl, InputKey.l2));
+                }
+                else if (SystemConfig["psx_triggerswap"] == "right")
+                {
+                    ini.WriteValue(padNumber, "RUp", techPadNumber + GetInputKeyName(ctrl, InputKey.r2));
+                    ini.WriteValue(padNumber, "RDown", techPadNumber + GetInputKeyName(ctrl, InputKey.l2));
+                }
             }
 
             BindIniFeatureSlider(ini, padNumber, "AnalogSensitivity", "duck_analog_sensitivity", "1.330000", 6);
