@@ -22,34 +22,128 @@ namespace EmulatorLauncher
             public int Bottom;
         }
 
-        public static void MoveHandleToScreen(IntPtr handle, int targetMonitorIndex)
+        public static bool MoveHandleToScreen(IntPtr handle, int targetMonitorIndex)
         {
             if (handle == IntPtr.Zero)
-                return;
+                return false;
 
             Screen[] screens = Screen.AllScreens;
             if (targetMonitorIndex < 0 || targetMonitorIndex >= screens.Length)
             {
                 SimpleLogger.Instance.Warning($"[SCREENMOVER] Target monitor index {targetMonitorIndex} is out of range. Available screens: {screens.Length}");
-                return;
+                return false;
             }
 
             Screen targetScreen = screens[targetMonitorIndex];
             Screen currentScreen = Screen.FromHandle(handle);
 
-            SimpleLogger.Instance.Info($"[SCREENMOVER] Window is currently on: {currentScreen.DeviceName}");
-            SimpleLogger.Instance.Info($"[SCREENMOVER] Target screen is: {targetScreen.DeviceName}");
-
             if (currentScreen.DeviceName.Equals(targetScreen.DeviceName))
-            {
-                SimpleLogger.Instance.Info("[SCREENMOVER] Window is already on the correct screen. No action taken.");
-                return;
-            }
+                return true;
 
-            SimpleLogger.Instance.Info("[SCREENMOVER] Window is on the wrong screen. Moving...");
+            SimpleLogger.Instance.Info($"[SCREENMOVER] Moving window from {currentScreen.DeviceName} to {targetScreen.DeviceName}");
 
             Rectangle b = targetScreen.Bounds;
-            User32.SetWindowPos(handle, new IntPtr(-1), b.Left, b.Top, b.Width, b.Height, SWP.SHOWWINDOW);
+
+            User32.SetWindowPos(handle, IntPtr.Zero, b.Left, b.Top, b.Width, b.Height, SWP.NOZORDER | SWP.SHOWWINDOW);
+
+            return Screen.FromHandle(handle).DeviceName.Equals(targetScreen.DeviceName);
+        }
+
+        private const int WS_CAPTION = 0x00C00000;
+
+        /// <summary>
+        /// True when the emulator is fullscreen
+        /// </summary>
+        private static bool IsFullscreenOnItsScreen(IntPtr hWnd)
+        {
+            if (hWnd == IntPtr.Zero)
+                return false;
+
+            int style = User32.GetWindowLong(hWnd, GWL.STYLE);
+            if ((style & WS_CAPTION) == WS_CAPTION)
+                return false;
+
+            var rect = User32.GetWindowRect(hWnd);
+            var bounds = Screen.FromHandle(hWnd).Bounds;
+
+            return (rect.right - rect.left) >= bounds.Width && (rect.bottom - rect.top) >= bounds.Height;
+        }
+
+        /// <summary>
+        /// Index in Screen.AllScreens of the screen where the window is actually located.
+        /// </summary>
+        public static int GetScreenIndex(IntPtr handle, int fallbackIndex)
+        {
+            if (handle == IntPtr.Zero)
+                return fallbackIndex;
+
+            string deviceName = Screen.FromHandle(handle).DeviceName;
+            int index = Array.FindIndex(Screen.AllScreens, s => s.DeviceName == deviceName);
+            return index < 0 ? fallbackIndex : index;
+        }
+
+        /// <summary>
+        /// Wait for the emulator to be ready to move the window
+        /// </summary>
+        public static IntPtr MoveWindowWhenReady(Process process, Predicate<IntPtr> selector, int targetMonitorIndex,
+            bool waitFullscreen, int timeoutMs = 30000, int pollMs = 250, int holdMs = 3000)
+        {
+            if (process == null)
+                return IntPtr.Zero;
+
+            Screen[] screens = Screen.AllScreens;
+            if (targetMonitorIndex < 0 || targetMonitorIndex >= screens.Length)
+                return IntPtr.Zero;
+
+            Screen target = screens[targetMonitorIndex];
+            IntPtr handle = IntPtr.Zero;
+            var sw = Stopwatch.StartNew();
+
+            // Phase 1 : Wait for the window to exist and be stable.
+            while (sw.ElapsedMilliseconds < timeoutMs)
+            {
+                if (process.HasExited)
+                    return IntPtr.Zero;
+
+                handle = User32.FindHwnds(process.Id, selector, true).FirstOrDefault();
+
+                if (handle != IntPtr.Zero && (!waitFullscreen || IsFullscreenOnItsScreen(handle)))
+                    break;
+
+                handle = IntPtr.Zero;
+                Thread.Sleep(pollMs);
+            }
+
+            if (handle == IntPtr.Zero)
+            {
+                SimpleLogger.Instance.Warning($"[SCREENMOVER] No ready window found after {sw.ElapsedMilliseconds} ms, leaving placement untouched.");
+                return IntPtr.Zero;
+            }
+
+            SimpleLogger.Instance.Info($"[SCREENMOVER] Window ready after {sw.ElapsedMilliseconds} ms on {Screen.FromHandle(handle).DeviceName}, target is {target.DeviceName}");
+
+            // Phase 2 + 3 : move, then re-apply if the emulator takes control again.
+            var hold = Stopwatch.StartNew();
+            int corrections = 0;
+
+            while (hold.ElapsedMilliseconds < holdMs)
+            {
+                if (process.HasExited)
+                    return handle;
+
+                if (!Screen.FromHandle(handle).DeviceName.Equals(target.DeviceName))
+                {
+                    MoveHandleToScreen(handle, targetMonitorIndex);
+                    corrections++;
+                }
+
+                Thread.Sleep(pollMs);
+            }
+
+            bool ok = Screen.FromHandle(handle).DeviceName.Equals(target.DeviceName);
+            SimpleLogger.Instance.Info($"[SCREENMOVER] Placement {(ok ? "confirmed" : "FAILED")} on {Screen.FromHandle(handle).DeviceName} ({corrections} correction(s))");
+
+            return handle;
         }
 
         public static void MoveWindow(Process process, int targetMonitorIndex = 0, int maxRetries = 20, int retryDelayMs = 2000)
