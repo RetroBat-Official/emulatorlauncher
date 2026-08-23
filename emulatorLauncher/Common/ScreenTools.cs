@@ -82,24 +82,14 @@ namespace EmulatorLauncher
             return index < 0 ? fallbackIndex : index;
         }
 
-        /// <summary>
-        /// Wait for the emulator to be ready to move the window
-        /// </summary>
-        public static IntPtr MoveWindowWhenReady(Process process, Predicate<IntPtr> selector, int targetMonitorIndex,
-            bool waitFullscreen, int timeoutMs = 30000, int pollMs = 250, int holdMs = 3000)
+        public static IntPtr WaitForReadyWindow(Process process, Predicate<IntPtr> selector, bool waitFullscreen, int timeoutMs = 30000, int pollMs = 250)
         {
             if (process == null)
                 return IntPtr.Zero;
 
-            Screen[] screens = Screen.AllScreens;
-            if (targetMonitorIndex < 0 || targetMonitorIndex >= screens.Length)
-                return IntPtr.Zero;
-
-            Screen target = screens[targetMonitorIndex];
             IntPtr handle = IntPtr.Zero;
             var sw = Stopwatch.StartNew();
 
-            // Phase 1 : Wait for the window to exist and be stable.
             while (sw.ElapsedMilliseconds < timeoutMs)
             {
                 if (process.HasExited)
@@ -108,28 +98,37 @@ namespace EmulatorLauncher
                 handle = User32.FindHwnds(process.Id, selector, true).FirstOrDefault();
 
                 if (handle != IntPtr.Zero && (!waitFullscreen || IsFullscreenOnItsScreen(handle)))
-                    break;
+                {
+                    SimpleLogger.Instance.Info($"[SCREENMOVER] Window ready after {sw.ElapsedMilliseconds} ms on {Screen.FromHandle(handle).DeviceName}");
+                    return handle;
+                }
 
                 handle = IntPtr.Zero;
                 Thread.Sleep(pollMs);
             }
 
-            if (handle == IntPtr.Zero)
-            {
-                SimpleLogger.Instance.Warning($"[SCREENMOVER] No ready window found after {sw.ElapsedMilliseconds} ms, leaving placement untouched.");
-                return IntPtr.Zero;
-            }
+            SimpleLogger.Instance.Warning($"[SCREENMOVER] No ready window found after {sw.ElapsedMilliseconds} ms.");
+            return IntPtr.Zero;
+        }
 
-            SimpleLogger.Instance.Info($"[SCREENMOVER] Window ready after {sw.ElapsedMilliseconds} ms on {Screen.FromHandle(handle).DeviceName}, target is {target.DeviceName}");
+        public static bool HoldWindowOnScreen(Process process, IntPtr handle, int targetMonitorIndex,
+            int holdMs = 3000, int pollMs = 250)
+        {
+            if (process == null || handle == IntPtr.Zero)
+                return false;
 
-            // Phase 2 + 3 : move, then re-apply if the emulator takes control again.
+            Screen[] screens = Screen.AllScreens;
+            if (targetMonitorIndex < 0 || targetMonitorIndex >= screens.Length)
+                return false;
+
+            Screen target = screens[targetMonitorIndex];
             var hold = Stopwatch.StartNew();
             int corrections = 0;
 
             while (hold.ElapsedMilliseconds < holdMs)
             {
                 if (process.HasExited)
-                    return handle;
+                    return false;
 
                 if (!Screen.FromHandle(handle).DeviceName.Equals(target.DeviceName))
                 {
@@ -143,7 +142,7 @@ namespace EmulatorLauncher
             bool ok = Screen.FromHandle(handle).DeviceName.Equals(target.DeviceName);
             SimpleLogger.Instance.Info($"[SCREENMOVER] Placement {(ok ? "confirmed" : "FAILED")} on {Screen.FromHandle(handle).DeviceName} ({corrections} correction(s))");
 
-            return handle;
+            return ok;
         }
 
         public static void MoveWindow(Process process, int targetMonitorIndex = 0, int maxRetries = 20, int retryDelayMs = 2000)

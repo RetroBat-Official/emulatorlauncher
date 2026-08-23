@@ -88,6 +88,12 @@ namespace EmulatorLauncher
 
             if ((system == "gamecube" && SystemConfig["ratio"] == "") || SystemConfig["ratio"] == "4/3")
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            
+            if (SystemConfig.getOptBoolean("dolphin_gui") && _bezelFileInfo != null)
+            {
+                SimpleLogger.Instance.Info("[BEZEL] Decorations disabled : dolphin_gui is enabled.");
+                _bezelFileInfo = null;
+            }
 
             _resolution = resolution;
 
@@ -1134,6 +1140,7 @@ namespace EmulatorLauncher
             bool guiMode = SystemConfig.getOptBoolean("dolphin_gui");
 
             bool manageScreen = monitorIndex >= 0 && !guiMode;
+            bool needWindow = manageScreen || (_bezelFileInfo != null && !guiMode);
 
             var process = Process.Start(path);
             Job.Current.AddProcess(process);
@@ -1141,17 +1148,21 @@ namespace EmulatorLauncher
             if (process != null)
             {
                 IntPtr hWnd = IntPtr.Zero;
-                
-                if (manageScreen)
-                    hWnd = ScreenTools.MoveWindowWhenReady(process, IsDolphinRenderWindow, monitorIndex, _fullscreen);
+
+                if (needWindow)
+                    hWnd = ScreenTools.WaitForReadyWindow(process, IsDolphinRenderWindow, _fullscreen);
                 else
                     process.WaitForInputIdle(5000);
 
+                if (manageScreen && hWnd != IntPtr.Zero)
+                    ScreenTools.HoldWindowOnScreen(process, hWnd, monitorIndex);
+
                 ScreenTools.LogProcessWindows(process);
-                
+
                 if (_bezelFileInfo != null)
                 {
-                    int bezelIndex = manageScreen ? ScreenTools.GetScreenIndex(hWnd, monitorIndex) : -1;
+                    int bezelIndex = ScreenTools.GetScreenIndex(hWnd, manageScreen ? monitorIndex : -1);
+                    SimpleLogger.Instance.Info($"[BEZEL] Decorations will be shown on screen index {bezelIndex}");
                     bezel = _bezelFileInfo.ShowFakeBezel(_resolution, false, bezelIndex);
                 }
 
