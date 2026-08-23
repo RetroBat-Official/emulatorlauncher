@@ -274,6 +274,13 @@ namespace EmulatorLauncher
             {
                 pcsx2ini.WriteValue("JVS", "Coin1", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
                 pcsx2ini.WriteValue("JVS", "Coin2", azerty ? "Keyboard/Minus" : "Keyboard/6");
+                pcsx2ini.WriteValue("JVS", "P1_Up", "Keyboard/Up");
+                pcsx2ini.WriteValue("JVS", "P1_Right", "Keyboard/Right");
+                pcsx2ini.WriteValue("JVS", "P1_Down", "Keyboard/Down");
+                pcsx2ini.WriteValue("JVS", "P1_Left", "Keyboard/Left");
+                pcsx2ini.AppendValue("JVS", "P1_Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
+                pcsx2ini.AppendValue("JVS", "P2_Start", azerty ? "Keyboard/Eacute" : "Keyboard/2");
+                pcsx2ini.AppendValue("JVS", "P1_Button1", "Keyboard/Return");
 
                 if (SystemConfig.isOptSet("pcsx2_servicemode") && !string.IsNullOrEmpty(SystemConfig["pcsx2_servicemode"]))
                 {

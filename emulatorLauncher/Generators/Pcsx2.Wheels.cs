@@ -18,6 +18,7 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[WHEELS] Configuring wheels.");
 
+            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start");
             string wheelTech1 = "dinput";
             string wheelTech2 = "dinput";
             int wheelIndex1 = -1;
@@ -138,7 +139,17 @@ namespace EmulatorLauncher
 
             if (_isArcade)
             {
-                pcsx2ini.WriteValue("JVS", "TestMode", "false");
+                pcsx2ini.Remove("JVS", "ToggleTestMode");
+                pcsx2ini.Remove("JVS", "P1_Service");
+                pcsx2ini.Remove("JVS", "P1_Up");
+                pcsx2ini.Remove("JVS", "P1_Right");
+                pcsx2ini.Remove("JVS", "P1_Down");
+                pcsx2ini.Remove("JVS", "P1_Left");
+                pcsx2ini.Remove("JVS", "Coin1");
+                pcsx2ini.Remove("JVS", "Coin2");
+                pcsx2ini.Remove("JVS", "P1_Start");
+                pcsx2ini.Remove("JVS", "P2_Start");
+                pcsx2ini.Remove("JVS", "P1_Button1");
 
                 foreach (var entry in wheel1buttonMap)
                 {
@@ -160,6 +171,26 @@ namespace EmulatorLauncher
                     }
 
                     pcsx2ini.WriteValue("JVS", entry.Key, DevicePrefix + entry.Value);
+                }
+
+                if (SystemConfig.isOptSet("pcsx2_servicemode") && !string.IsNullOrEmpty(SystemConfig["pcsx2_servicemode"]))
+                {
+                    pcsx2ini.WriteValue("JVS", "TestMode", "true");
+                    pcsx2ini.AppendValue("JVS", "ToggleTestMode", azerty ? "Keyboard/Ccedilla" : "Keyboard/9");
+                    pcsx2ini.AppendValue("JVS", "P1_Service", azerty ? "Keyboard/Agrave" : "Keyboard/0");
+                    pcsx2ini.AppendValue("JVS", "P1_Up", "Keyboard/Up");
+                    pcsx2ini.AppendValue("JVS", "P1_Right", "Keyboard/Right");
+                    pcsx2ini.AppendValue("JVS", "P1_Down", "Keyboard/Down");
+                    pcsx2ini.AppendValue("JVS", "P1_Left", "Keyboard/Left");
+                    pcsx2ini.AppendValue("JVS", "P1_Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
+                    pcsx2ini.AppendValue("JVS", "P2_Start", azerty ? "Keyboard/Eacute" : "Keyboard/2");
+                    pcsx2ini.AppendValue("JVS", "P1_Button1", "Keyboard/Return");
+                    pcsx2ini.AppendValue("JVS", "Coin1", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
+                    pcsx2ini.AppendValue("JVS", "Coin2", azerty ? "Keyboard/Minus" : "Keyboard/6");
+                }
+                else
+                {
+                    pcsx2ini.WriteValue("JVS", "TestMode", "false");
                 }
 
                 return;
