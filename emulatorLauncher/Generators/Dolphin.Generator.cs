@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Management;
 using System.Net;
+using System.Security.AccessControl;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Windows.Shell;
@@ -50,6 +51,7 @@ namespace EmulatorLauncher
         private bool _runWiiMenu = false;
         private bool _sindenSoft = false;
         private bool _crediar = false;
+        private bool _fullscreen = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -519,12 +521,19 @@ namespace EmulatorLauncher
                     {
                         _windowRect = emulationStationBounds;
                         _bezelFileInfo = null;
+                        _fullscreen = false;
                         ini.WriteValue("Display", "Fullscreen", "False");
                     }
                     else if (ShouldRunFullscreen())
+                    {
                         ini.WriteValue("Display", "Fullscreen", "True");
+                        _fullscreen = true;
+                    }
                     else
+                    {
                         ini.WriteValue("Display", "Fullscreen", "False");
+                        _fullscreen = false;
+                    }
 
                     // Get gameID and game Name and log it
                     string gameID = "";
@@ -1098,39 +1107,59 @@ namespace EmulatorLauncher
             catch { SimpleLogger.Instance.Error($"[ERROR] Failed to load patch file : {gameID}"); }
         }
 
+        private int GetTargetMonitorIndex()
+        {
+            if (!SystemConfig.isOptSet("MonitorIndex") || string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+                return -1;
+
+            int index;
+            if (!int.TryParse(SystemConfig["MonitorIndex"], out index))
+                return -1;
+
+            if (index < 0 || index >= Screen.AllScreens.Length)
+            {
+                SimpleLogger.Instance.Warning($"[SCREENMOVER] MonitorIndex {index} out of range ({Screen.AllScreens.Length} screen(s) detected), ignoring.");
+                return -1;
+            }
+
+            return index;
+        }
+
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
-
-            int monitorIndex = SystemConfig["MonitorIndex"].ToInteger();
-            var screens = Screen.AllScreens;
-
-            if (monitorIndex < 0 || monitorIndex >= screens.Length)
-                monitorIndex = 0;
-
             int ret = 0;
+
+            int monitorIndex = GetTargetMonitorIndex();
+            bool guiMode = SystemConfig.getOptBoolean("dolphin_gui");
+
+            bool manageScreen = monitorIndex >= 0 && !guiMode;
 
             var process = Process.Start(path);
             Job.Current.AddProcess(process);
 
             if (process != null)
             {
-                // Dolphin is launched with -b, so its main window is never shown
-                // (MainWindow.cpp:238). The only visible top-level window is the render
-                // widget, which stays windowed until the core reaches Running and only
-                // then goes fullscreen (MainWindow.cpp:422). Move it while it is still
-                // windowed: Dolphin then saves that geometry to QT.ini, so the placement
-                // sticks on subsequent launches.
-                ScreenTools.MoveWindow(process, IsDolphinRenderWindow, monitorIndex);
+                IntPtr hWnd = IntPtr.Zero;
+                
+                if (manageScreen)
+                    hWnd = ScreenTools.MoveWindowWhenReady(process, IsDolphinRenderWindow, monitorIndex, _fullscreen);
+                else
+                    process.WaitForInputIdle(5000);
 
                 ScreenTools.LogProcessWindows(process);
-
-                process.WaitForInputIdle();
-
+                
                 if (_bezelFileInfo != null)
-                    bezel = _bezelFileInfo.ShowFakeBezel(_resolution, false, monitorIndex);
+                {
+                    int bezelIndex = manageScreen ? ScreenTools.GetScreenIndex(hWnd, monitorIndex) : -1;
+                    bezel = _bezelFileInfo.ShowFakeBezel(_resolution, false, bezelIndex);
+                }
 
-                User32.SetForegroundWindow(process.MainWindowHandle);
+                if (hWnd == IntPtr.Zero)
+                    hWnd = process.MainWindowHandle;
+
+                if (hWnd != IntPtr.Zero)
+                    User32.SetForegroundWindow(hWnd);
 
                 process.WaitForExit();
                 try { ret = process.ExitCode; }
