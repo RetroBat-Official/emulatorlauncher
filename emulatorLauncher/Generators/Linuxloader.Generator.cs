@@ -47,6 +47,8 @@ namespace EmulatorLauncher
                         FileName = exe,
                         WorkingDirectory = path,
                         Arguments = "--create controls",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
                     };
 
                     using (var process = new Process())
@@ -70,6 +72,8 @@ namespace EmulatorLauncher
                         FileName = exe,
                         WorkingDirectory = path,
                         Arguments = "--create config",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
                     };
 
                     using (var process = new Process())
@@ -111,19 +115,18 @@ namespace EmulatorLauncher
                 commandArray.Add("\"" + configFile + "\"");
             }
 
-            if (File.Exists(controlsFile) && !Program.SystemConfig.getOptBoolean("disableautocontrollers"))
+            string customControls = SystemConfig.isOptSet("ll_controlconfig") ? SystemConfig["ll_controlconfig"] : null;
+
+            if (!string.IsNullOrEmpty(customControls) && File.Exists(customControls))
             {
                 commandArray.Add("-o");
-                commandArray.Add("\"" + controlsFile + "\"");
+                commandArray.Add("\"" + customControls + "\"");
             }
-            else if (SystemConfig.isOptSet("ll_controlconfig") && !string.IsNullOrEmpty(SystemConfig["ll_controlconfig"]))
+            else if (File.Exists(controlsFile) && !Program.SystemConfig.getOptBoolean("disableautocontrollers"))
             {
-                string customControls = SystemConfig["ll_controlconfig"];
-                if (File.Exists(customControls))
-                {
-                    commandArray.Add("-o");
-                    commandArray.Add("\"" + customControls + "\"");
-                }
+
+                commandArray.Add("-o");
+                commandArray.Add("\"" + controlsFile + "\"");
             }
 
             string controllerDBFile = Path.Combine(path, "gamecontrollerdb.txt");
@@ -201,6 +204,14 @@ namespace EmulatorLauncher
 
                     BindBoolIniFeatureOn(ini, "Display", "KEEP_ASPECT_RATIO", "ll_keepratio", "true", "false");
                     BindBoolIniFeatureOn(ini, "Display", "HIDE_CURSOR", "ll_hide_cursor", "true", "false");
+                    BindBoolIniFeatureOn(ini, "Display", "FPS_LIMITER_ENABLED", "ll_fpsLimiter", "true", "false");
+                    BindBoolIniFeatureOn(ini, "Display", "BOOST_RENDER_RES", "ll_boostrender", "true", "false");
+                    BindBoolIniFeature(ini, "Display", "FPS_OVERLAY_ENABLED", "ll_showfps", "true", "false");
+                    
+                    if (SystemConfig.isOptSet("ll_cpufreq") && !string.IsNullOrEmpty(SystemConfig["ll_cpufreq"]))
+                        ini.WriteValue("GameSpecific", "CPU_FREQ_GHZ", SystemConfig["ll_cpufreq"]);
+                    else
+                        ini.WriteValue("GameSpecific", "CPU_FREQ_GHZ", "0.0");
 
                     if (SystemConfig.getOptBoolean("ll_sindenborder"))
                     {
@@ -233,17 +244,24 @@ namespace EmulatorLauncher
 
                     // crosshairs
                     string cross1Path = Path.Combine(_path, "cross", "cross1.png");
-                    if (SystemConfig.isOptSet("ll_crosshair1") && !string.IsNullOrEmpty(SystemConfig["ll_crosshair1"]))
-                        cross1Path = SystemConfig["ll_crosshair1"];                        
-
                     if (!File.Exists(cross1Path))
                     {
                         string templateCross1 = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "crosshairs", "cross1.png");
                         if (File.Exists(templateCross1))
-                            try { File.Copy(templateCross1, cross1Path); } catch { }
+                        {
+                            try
+                            {
+                                Directory.CreateDirectory(Path.GetDirectoryName(cross1Path));
+                                File.Copy(templateCross1, cross1Path);
+                            }
+                            catch { SimpleLogger.Instance.Warning("[GUNS] Unable to provision default crosshair."); }
+                        }
                     }
 
-                    if (SystemConfig.getOptBoolean("ll_crosshair"))
+                    if (SystemConfig.isOptSet("ll_crosshair1") && !string.IsNullOrEmpty(SystemConfig["ll_crosshair1"]) && File.Exists(SystemConfig["ll_crosshair1"]))
+                        cross1Path = SystemConfig["ll_crosshair1"];
+
+                    if (SystemConfig.getOptBoolean("ll_crosshair") && File.Exists(cross1Path))
                         ini.WriteValue("CrossHairs", "P1_CROSSHAIR_PATH", "\"" + cross1Path + "\"");
                     else
                         ini.WriteValue("CrossHairs", "P1_CROSSHAIR_PATH", "\"\"");

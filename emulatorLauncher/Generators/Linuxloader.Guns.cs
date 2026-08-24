@@ -12,23 +12,6 @@ namespace EmulatorLauncher
     {
         private bool _demulshooter = false;
 
-        /// <summary>
-        /// If controller autoconfig is off but use_guns is on.
-        /// </summary>
-        /// <param name="cfgPath"></param>
-        /// <param name="system"></param>
-        private void ConfigureLindberghGunsAutoOff(string cfgPath, string system)
-        {
-            SimpleLogger.Instance.Info("[INFO] Configuring guns.");
-
-            using (var ini = new IniFile(cfgPath, IniOptions.UseSpaces))
-            {
-                ConfigureLindberghGuns(ini, "lindbergh", true);
-                
-                ini.Save();
-            }
-        }
-
         private void ConfigureLindberghGuns(IniFile ini, string system, bool autoconfOff = false)
         {
             bool configGuns = SystemConfig.getOptBoolean("use_guns");
