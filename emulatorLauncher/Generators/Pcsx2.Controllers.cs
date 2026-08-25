@@ -45,6 +45,9 @@ namespace EmulatorLauncher
                 return;
             }
 
+            pcsx2ini.ClearSection("USB1");
+            pcsx2ini.ClearSection("USB2");
+
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for PCSX2");
 
             _forceSDL = Program.SystemConfig.isOptSet("pcsx2_input_driver_force") && Program.SystemConfig.getOptBoolean("pcsx2_input_driver_force");

@@ -23,7 +23,7 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for JGenesis");
 
-            Sdl3GameController.SetEnumerationHints(true);
+            Sdl3GameController.SetEnumerationHints(Sdl3GameController.Sdl3HintProfile.Legacy);
 
             if (jgenSystem == "sega_cd" || jgenSystem == "sega_32x")
                 jgenSystem = "genesis";

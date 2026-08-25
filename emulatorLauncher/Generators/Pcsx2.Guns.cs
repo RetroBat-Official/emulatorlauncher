@@ -19,7 +19,9 @@ namespace EmulatorLauncher
         private void SetupGunQT(IniFile pcsx2ini, string path)
         {
             if (!SystemConfig.getOptBoolean("use_guns"))
+            {
                 return;
+            }
 
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 UpdateSdlControllersWithHints();
