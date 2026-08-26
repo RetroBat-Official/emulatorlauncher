@@ -53,7 +53,7 @@ namespace es_update
 [RetroBat]
 
 ; At startup RetroBat will detect or not the language used in Windows to set automatically the same language in the frontend and RetroArch emulator.
-LanguageDetection=1
+LanguageDetection=0
 
 ; At startup RetroBat will reset the default config files options of emulationstation and retrobat.ini.
 ; Use at your own risk.	
