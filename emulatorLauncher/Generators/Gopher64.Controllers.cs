@@ -61,10 +61,6 @@ namespace EmulatorLauncher
             { "Stickup", 82 },    // Up arrow    (SDL_SCANCODE_UP)
         };
 
-        // N64 actions corresponding to a "single-throw" trigger (no opposite pair,
-        // unlike Stickleft/right or CLeft/right). Used only for the
-        // "pure DirectInput controller" path (dinput=true, JoystickAxis): see ParseN64MappingValue /
-        // BuildRawJoystickItem, to calculate a correct "initial_state" (resting position).
         private static readonly HashSet<string> _triggerAxisActions = new HashSet<string> { "Z", "R", "L" };
 
         private void ConfigureControls(JObject input, JObject profiles)
@@ -75,7 +71,7 @@ namespace EmulatorLauncher
                 return;
             }
 
-            Sdl3GameController.SetEnumerationHints(false);
+            Sdl3GameController.SetEnumerationHints(Sdl3GameController.Sdl3HintProfile.Sdl3Default);
 
             // Cleanup all
             profiles.Property("RetroBat1")?.Remove();

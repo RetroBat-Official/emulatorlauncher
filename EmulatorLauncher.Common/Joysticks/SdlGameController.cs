@@ -490,6 +490,7 @@ namespace EmulatorLauncher.Common.Joysticks
 
         private static List<Sdl3GameController> _controllers;
         private static bool _standardHints = false;
+        private static Sdl3HintProfile _hintProfile = Sdl3HintProfile.RetroBat;
 
         public static List<Sdl3GameController> GetControllers()
         {
@@ -546,19 +547,25 @@ namespace EmulatorLauncher.Common.Joysticks
             controllers = new List<Sdl3GameController>();
             try
             {
-                if (_standardHints)
+                switch (_hintProfile)
                 {
-                    SDL_SetHint("SDL_JOYSTICK_HIDAPI", "0");
-                    SDL_SetHint("SDL_JOYSTICK_RAWINPUT", "0");
-                    SDL_SetHint("SDL_JOYSTICK_ENHANCED_REPORTS", "0");
-                    SDL_SetHint("SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS", "1");
-                }
-                else
-                {
-                    SDL_SetHint("SDL_JOYSTICK_HIDAPI", "1");
-                    SDL_SetHint("SDL_JOYSTICK_RAWINPUT", "1");
-                    SDL_SetHint("SDL_JOYSTICK_ENHANCED_REPORTS", "0");
-                    SDL_SetHint("SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS", "1");
+                    case Sdl3HintProfile.Sdl3Default:
+                        // (HIDAPI=1, RAWINPUT=0, ENHANCED_REPORTS=1, COMBINE_JOY_CONS=1),
+                        break;
+
+                    case Sdl3HintProfile.Legacy:
+                        SDL_SetHint("SDL_JOYSTICK_HIDAPI", "0");
+                        SDL_SetHint("SDL_JOYSTICK_RAWINPUT", "0");
+                        SDL_SetHint("SDL_JOYSTICK_ENHANCED_REPORTS", "0");
+                        SDL_SetHint("SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS", "1");
+                        break;
+
+                    default:
+                        SDL_SetHint("SDL_JOYSTICK_HIDAPI", "1");
+                        SDL_SetHint("SDL_JOYSTICK_RAWINPUT", "1");
+                        SDL_SetHint("SDL_JOYSTICK_ENHANCED_REPORTS", "0");
+                        SDL_SetHint("SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS", "1");
+                        break;
                 }
 
                 if (!SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER))
@@ -673,15 +680,21 @@ namespace EmulatorLauncher.Common.Joysticks
         /// their device list — and therefore their gamepad indices — will not match ours.
         /// Must be called before any SDL3 controller is resolved.
         /// </summary>
-        public static void SetEnumerationHints(bool useRetroBatHints = true)
+        public static void SetEnumerationHints(Sdl3HintProfile profile)
         {
             if (_controllers != null)
             {
                 SimpleLogger.Instance.Warning("[Sdl3GameController] Enumeration hints changed after controllers were enumerated - ignored.");
                 return;
             }
+            _hintProfile = profile;
+        }
 
-            _standardHints = !useRetroBatHints;
+        public enum Sdl3HintProfile
+        {
+            RetroBat,   // HIDAPI=1, RAWINPUT=1  (Default RetroBat for sdl3)
+            Legacy,     // HIDAPI=0, RAWINPUT=0  (JGenesis)
+            Sdl3Default // native SDL3 (shadPS4, and any "bare" SDL3 emulator)
         }
     }
 }

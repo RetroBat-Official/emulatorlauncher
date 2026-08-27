@@ -46,6 +46,7 @@ namespace EmulatorLauncher
             { "2ship", () => new Ship2Generator() },
             { "3dsen", () => new Nes3dGenerator() },
             { "altirra", () => new AltirraGenerator() },
+            { "amiberry", () => new AmiberryGenerator() },
             { "amigaforever", () => new AmigaForeverGenerator() },
             { "angle", () => new LibRetroGenerator() },
             { "apple2", () => new AppleWinGenerator() },

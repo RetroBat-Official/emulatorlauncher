@@ -422,12 +422,12 @@ namespace EmulatorLauncher
             newInputConfig["right_joycon"] = JObject.FromObject(right_joycon);
 
             string guid = c.Guid.ToString();
-            if (SystemConfig.isOptSet("ryujinx_sdlguid") && SystemConfig.getOptBoolean("ryujinx_sdlguid"))
+            if (SystemConfig.getOptBoolean("ryujinx_sdlguid") && c.SdlController != null && c.SdlController.Guid != null)
                 guid = c.SdlController.Guid.ToString();
 
-            if (guid == null)
+            if (string.IsNullOrEmpty(guid) || guid.Length != 32)
             {
-                SimpleLogger.Instance.Error("[ERROR] Controller " + c.DevicePath + " unable to get GUID.");
+                SimpleLogger.Instance.Error("[ERROR] Controller " + c.DevicePath + " : invalid SDL GUID (" + (guid ?? "null") + ").");
                 return;
             }
 

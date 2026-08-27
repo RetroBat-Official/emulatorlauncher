@@ -82,9 +82,11 @@ namespace EmulatorLauncher
             {
                 if (SystemConfig.getOptBoolean("shadps4_gui"))
                 {
-                    commandArray.Add("-s");
                     _showGUI = true;
                 }
+
+                if (SystemConfig.getOptBoolean("shadps4_configglobal"))
+                    commandArray.Add("--config-global");
 
                 if (Path.GetExtension(rom).ToLower() == ".lnk")
                 {
@@ -118,6 +120,12 @@ namespace EmulatorLauncher
 
                 if (SystemConfig.getOptBoolean("shadps4_gui"))
                     commandArray.Add("-s");
+
+                if (SystemConfig.getOptBoolean("shadps4_configglobal"))
+                {
+                    commandArray.Add("--");
+                    commandArray.Add("--config-global");
+                }
             }
 
             string args = string.Join(" ", commandArray);
@@ -208,11 +216,11 @@ namespace EmulatorLauncher
             
             general["console_language"] = ps4Lang;
 
-            string dlcPath = Path.Combine(romPath, "ps4", "DLC");
+            string dlcPath = Path.Combine(AppConfig.GetFullPath("roms"), "ps4", "DLC");
             if (!Directory.Exists(dlcPath))
                 try { Directory.CreateDirectory(dlcPath); } catch { }
             
-            general["addonInstallDir"] = dlcPath;
+            general["addon_install_dir"] = dlcPath;
 
             //SetupController(input);
 
@@ -233,36 +241,19 @@ namespace EmulatorLauncher
                 string escaped = Regex.Replace(versionPath, @"(?<!\\)\\(?!\\)", @"\\");
                 ini.WriteValue("version_manager", "versionPath", escaped);
 
-                string selectedVersion = ini.GetValue("version_manager", "selectedVersion");
+                string selectedVersion = ini.GetValue("version_manager", "versionSelected");
 
                 if (string.IsNullOrEmpty(selectedVersion) && _versionselected != null)
                     ini.WriteValue("version_manager", "versionSelected", _versionselected);
 
                 ini.WriteValue("general_settings", "checkForUpdates", "false");
                 ini.WriteValue("general_settings", "showChangeLog", "false");
+                ini.WriteValue("version_manager", "checkOnStartup", "false");
+                ini.WriteValue("general_settings", "checkCompatibilityAtStartup", "false");
+                ini.WriteValue("version_manager", "showChangeLog", "false");
 
                 ini.Save();
             }
-        }
-
-        private void UpdateSdlControllersWithHints()
-        {
-            if (Program.Controllers.Count(c => !c.IsKeyboard) == 0)
-                return;
-
-            var hints = new List<string>
-            {
-                "SDL_JOYSTICK_RAWINPUT = 1",
-            };
-
-            if (SystemConfig.getOptBoolean("ps_controller_enhanced"))
-            {
-                hints.Add("SDL_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
-                hints.Add("SDL_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
-            }
-
-            SdlGameController.ReloadWithHints(string.Join(",", hints));
-            Program.Controllers.ForEach(c => c.ResetSdlController());
         }
 
         private void SetupController(JObject input)
@@ -273,8 +264,6 @@ namespace EmulatorLauncher
                 return;
             }
 
-            UpdateSdlControllersWithHints();
-
             var ctrl = this.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
 
             if (ctrl?.Config == null)
@@ -282,12 +271,6 @@ namespace EmulatorLauncher
 
             if (ctrl.Sdl3Controller == null || string.IsNullOrEmpty(ctrl.Sdl3Controller.GuidString))
                 return;
-
-            try
-            {
-                Environment.SetEnvironmentVariable("SDL_JOYSTICK_RAWINPUT", "1", EnvironmentVariableTarget.Process);
-            }
-            catch { }
 
             input["use_unified_input_config"] = true;
             input["default_controller_id"] = ctrl.Sdl3Controller.GuidString;
@@ -421,7 +404,7 @@ namespace EmulatorLauncher
                     if (target == null)
                     {
                         target = parsed
-                            .Where(x => x.Version != null)
+                            .Where(x => x.Version != null && x.Entry.type == 0)
                             .OrderByDescending(x => x.Version)
                             .FirstOrDefault();
                     }
