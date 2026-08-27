@@ -312,15 +312,15 @@ namespace EmulatorLauncher
             string savesPath = Path.Combine(PathHelper.ResolvePath(AppConfig.GetFullPath("saves")), system, "amiberry");
             _amiberryStatesPath = savesPath;
             _amiberryThumbnailsPath = Path.Combine(PathHelper.ResolvePath(AppConfig.GetFullPath("screenshots")), "amiberry");
-            TryCreateDirectory(_amiberryThumbnailsPath);
+            FileTools.TryCreateDirectory(_amiberryThumbnailsPath);
 
             var overrides = new Dictionary<string, string>();
 
             _amiberryRomsPath = Path.Combine(path, "ROMs");
-            TryCreateDirectory(_amiberryRomsPath);
+            FileTools.TryCreateDirectory(_amiberryRomsPath);
             overrides["rom_path"] = _amiberryRomsPath;
 
-            TryCreateDirectory(savesPath);
+            FileTools.TryCreateDirectory(savesPath);
             if (Directory.Exists(savesPath))
             {
                 overrides["savestate_dir"] = savesPath;
@@ -345,9 +345,9 @@ namespace EmulatorLauncher
             overrides["default_quit_key"] = "";
 
             foreach (var dir in new[] { overrides["config_path"], overrides["controllers_path"], overrides["whdboot_path"] })
-                TryCreateDirectory(dir);
+                FileTools.TryCreateDirectory(dir);
 
-            TryCreateDirectory(settingsDir);
+            FileTools.TryCreateDirectory(settingsDir);
             MergeConfLines(confFile, overrides);
         }
 
@@ -389,14 +389,6 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Warning("[Amiberry] Could not update amiberry.conf: " + ex.Message);
             }
-        }
-
-        private static void TryCreateDirectory(string dir)
-        {
-            if (string.IsNullOrEmpty(dir) || Directory.Exists(dir))
-                return;
-            try { Directory.CreateDirectory(dir); }
-            catch { }
         }
 
         /// <summary>
@@ -471,7 +463,7 @@ namespace EmulatorLauncher
 
         private void WriteUaeConfig(string file, string system, string rom)
         {
-            TryCreateDirectory(Path.GetDirectoryName(file));
+            FileTools.TryCreateDirectory(Path.GetDirectoryName(file));
 
             // The .uae format is an ordered flat list, and order matters
             var cfg = new List<string>();
@@ -660,7 +652,7 @@ namespace EmulatorLauncher
             if (source == null)
                 return null;
 
-            TryCreateDirectory(_amiberryRomsPath);
+            FileTools.TryCreateDirectory(_amiberryRomsPath);
             string dest = Path.Combine(_amiberryRomsPath, candidates[0]);
 
             try
