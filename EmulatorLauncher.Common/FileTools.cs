@@ -1,12 +1,13 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
-using System.IO.Compression;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace EmulatorLauncher.Common
 {
@@ -523,6 +524,76 @@ namespace EmulatorLauncher.Common
             x = x.Replace(":", " -");
             var invalidChars = Path.GetInvalidFileNameChars();
             return new string(x.Where(c => !invalidChars.Contains(c)).ToArray());
+        }
+
+        private const uint FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
+    }
+
+    public static class PathHelper
+    {
+        private const uint FILE_FLAG_BACKUP_SEMANTICS = 0x02000000;
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr CreateFile(
+            string lpFileName,
+            uint dwDesiredAccess,
+            uint dwShareMode,
+            IntPtr lpSecurityAttributes,
+            uint dwCreationDisposition,
+            uint dwFlagsAndAttributes,
+            IntPtr hTemplateFile);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern uint GetFinalPathNameByHandle(
+            IntPtr hFile,
+            [Out] char[] lpszFilePath,
+            uint cchFilePath,
+            uint dwFlags);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool CloseHandle(IntPtr hObject);
+
+        private static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
+
+        public static string ResolvePath(string path)
+        {
+            IntPtr handle = CreateFile(
+                path,
+                0, // no access required
+                0x00000001 | 0x00000002 | 0x00000004, // read/write/delete sharing
+                IntPtr.Zero,
+                3, // OPEN_EXISTING
+                FILE_FLAG_BACKUP_SEMANTICS,
+                IntPtr.Zero);
+
+            if (handle == INVALID_HANDLE_VALUE)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            try
+            {
+                char[] buffer = new char[4096];
+
+                uint length = GetFinalPathNameByHandle(
+                    handle,
+                    buffer,
+                    (uint)buffer.Length,
+                    0);
+
+                if (length == 0)
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
+
+                string result = new string(buffer, 0, (int)length);
+
+                // Remove Windows extended path prefix
+                if (result.StartsWith(@"\\?\"))
+                    result = result.Substring(4);
+
+                return result;
+            }
+            finally
+            {
+                CloseHandle(handle);
+            }
         }
     }
 }

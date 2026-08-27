@@ -193,6 +193,16 @@
     <Compile Include="Generators\Altirra.Controllers.cs">
       <DependentUpon>Altirra.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Amiberry.Generator.cs" />
+    <Compile Include="Generators\Amiberry.Controllers.cs">
+      <DependentUpon>Amiberry.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Amiberry.Guns.cs">
+      <DependentUpon>Amiberry.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Amiberry.SaveStatesMonitor.cs">
+      <DependentUpon>Amiberry.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\AmigaForever.Generator.cs" />
     <Compile Include="Generators\AppleWin.Generator.cs" />
     <Compile Include="Generators\ArcadeFlashWeb.Generator.cs" />
