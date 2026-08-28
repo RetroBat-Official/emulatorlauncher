@@ -201,7 +201,7 @@ namespace EmulatorLauncher
         private void WriteHotkeyFile(Controller controller)
         {
             string controllersPath = Path.Combine(_emulatorPath, "Controllers");
-            TryCreateDirectory(controllersPath);
+            FileTools.TryCreateDirectory(controllersPath);
 
             int hotkey = GetButtonOption("amiberry_hotkey_button", SDL_GAMEPAD_BUTTON_INVALID);
             int menu = GetButtonOption("amiberry_menu_button", SDL_GAMEPAD_BUTTON_RIGHT_STICK);

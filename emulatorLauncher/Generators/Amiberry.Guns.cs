@@ -111,14 +111,5 @@ namespace EmulatorLauncher
             if (trojan)
                 Set("joyport" + port + "submode", SUBMODE_TROJAN);
         }
-
-        /// <summary>
-        /// Called from RunAndWait once the emulator has exited.
-        /// </summary>
-        private void CleanupGuns()
-        {
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
-        }
     }
 }
