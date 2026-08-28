@@ -22,18 +22,21 @@ namespace EmulatorLauncher.Common
 
             foreach (var mo in moc)
             {
-                try
+                using (mo)
                 {
-                    var processId = Convert.ToInt32(mo["ProcessID"]);
-                    if (processId > 0)
+                    try
                     {
-                        ret.Add(processId);
+                        var processId = Convert.ToInt32(mo["ProcessID"]);
+                        if (processId > 0)
+                        {
+                            ret.Add(processId);
 
-                        foreach (var child in GetChildrenProcessIds(processId))
-                            ret.Add(child);
+                            foreach (var child in GetChildrenProcessIds(processId))
+                                ret.Add(child);
+                        }
                     }
+                    catch { }
                 }
-                catch { }
             }
 
             return ret.ToArray();
