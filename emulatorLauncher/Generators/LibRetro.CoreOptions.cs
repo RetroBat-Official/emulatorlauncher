@@ -40,6 +40,7 @@ namespace EmulatorLauncher.Libretro
                 { "a5200", "a5200" },
                 { "advanced_tests", "Advanced Test" },
                 { "amiarcadia", "AmiArcadia" },
+                { "amiberry", "Amiberry" },
                 { "anarch", "anarch" },
                 { "ardens", "Ardens" },
                 { "arduous", "arduous" },
@@ -361,6 +362,7 @@ namespace EmulatorLauncher.Libretro
             Configure81(retroarchConfig, coreSettings, system, core);
             Configurea5200(retroarchConfig, coreSettings, system, core);
             ConfigureamiArcadia(retroarchConfig, coreSettings, system, core);
+            Configureamiberry(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureAzahar(retroarchConfig, coreSettings, system, core);
             ConfigureB2(retroarchConfig, coreSettings, system, core);
@@ -659,6 +661,277 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "amiarcadia_demultiplex", "amiarcadia_demultiplex", "enabled", "disabled");
             BindFeature(coreSettings, "amiarcadia_machine", "amiarcadia_machine", system == "arcadia" ? "Arcadia" : "Interton");
             BindFeature(coreSettings, "amiarcadia_region", "amiarcadia_region", "PAL");
+        }
+
+        private void Configureamiberry(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "amiberry")
+                return;
+
+            // System
+            string defaultModel = "A500";
+            switch (system)
+            {
+                case "amiga1200": defaultModel = "A1200"; break;
+                case "amiga4000": defaultModel = "A4040"; break;
+                case "amigacd32": defaultModel = "CD32"; break;
+                case "amigacdtv": defaultModel = "CDTV"; break;
+                case "amiga600": defaultModel = "A600"; break;
+            }
+
+            BindFeature(coreSettings, "amiberry_model", "amiberry_model", defaultModel);
+            BindFeature(coreSettings, "amiberry_cpu_model", "amiberry_cpu_model", "auto");
+
+            // Kickstart
+            string selectedModel = SystemConfig.isOptSet("amiberry_model") && !string.IsNullOrEmpty(SystemConfig["amiberry_model"]) ? SystemConfig["amiberry_model"] : defaultModel;
+
+            ConfigureAmiberryKickstart(coreSettings, selectedModel);
+            ConfigureCDSystemsExtRoms(selectedModel);
+
+            BindFeature(coreSettings, "amiberry_chipset", "amiberry_chipset", "auto");
+            BindFeature(coreSettings, "amiberry_chipset_aga", "amiberry_chipset_aga", "auto");
+
+            BindFeature(coreSettings, "amiberry_video_standard", "amiberry_video_standard", "auto");
+            BindFeature(coreSettings, "amiberry_floppy_speed", "amiberry_floppy_speed", "100");
+
+            // Video
+            BindFeature(coreSettings, "amiberry_crop_overscan", "amiberry_crop_overscan", "disabled");
+            BindFeature(coreSettings, "amiberry_internal_vsync", "amiberry_internal_vsync", "disabled");
+            BindBoolFeature(coreSettings, "amiberry_statusline", "amiberry_statusline", "enabled", "disabled");
+            BindFeature(coreSettings, "amiberry_statusline_size", "amiberry_statusline_size", "1x");
+
+            // Audio
+            BindFeature(coreSettings, "amiberry_audio_rate", "amiberry_audio_rate", "auto");
+            BindFeature(coreSettings, "amiberry_audio_interpolation", "amiberry_audio_interpolation", "auto");
+            BindFeature(coreSettings, "amiberry_sound_filter", "amiberry_sound_filter", "off");
+            BindFeature(coreSettings, "amiberry_stereo_separation", "amiberry_stereo_separation", "7");
+            BindFeature(coreSettings, "amiberry_midi_output", "amiberry_midi_output", "disabled");
+
+            // Controls
+            if (system == "amigacd32")
+            {
+                coreSettings["amiberry_port0_device"] = "joystick";
+                coreSettings["amiberry_port1_device"] = "joystick";
+            }
+            else
+            {
+                BindFeature(coreSettings, "amiberry_port0_device", "amiberry_port0_device", "mouse");
+                BindFeature(coreSettings, "amiberry_port1_device", "amiberry_port1_device", "joystick");
+            }
+
+            BindBoolFeature(coreSettings, "amiberry_swap_ports", "amiberry_swap_ports", "enabled", "disabled");
+            BindFeature(coreSettings, "amiberry_joyport_order", "amiberry_joyport_order", "auto");
+            BindBoolFeature(coreSettings, "amiberry_analog", "amiberry_analog", "enabled", "disabled");
+            BindFeatureSlider(coreSettings, "amiberry_joy_deadzone", "amiberry_joy_deadzone", "33");
+            BindFeatureSlider(coreSettings, "amiberry_analog_sensitivity", "amiberry_analog_sensitivity", "18");
+            BindFeature(coreSettings, "amiberry_joy_as_mouse", "amiberry_joy_as_mouse", "disabled");
+
+            string defaultDevice = system == "amigacd32" ? "513" : "769";
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "amiberry_controller1", defaultDevice);
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "amiberry_controller2", defaultDevice);
+
+            BindBoolFeature(coreSettings, "amiberry_input_log", "amiberry_input_log", "enabled", "disabled");
+        }
+
+        private static readonly Dictionary<string, string[]> _amiberryKickstarts = new Dictionary<string, string[]>(StringComparer.InvariantCultureIgnoreCase)
+        {
+            { "A500OG", new[] { "kick33180.A500", "kick33180.A500.rom", "amiga-os-120.rom", "kick12.rom",
+                "Kickstart v1.2 rev 33.180 (1986)(Commodore)(A500-A2000)[!].rom" } },
+
+            { "A500", new[] { "kick34005.A500", "kick34005.A500.rom", "amiga-os-130.rom", "kick13.rom", "kick.rom",
+                "Kickstart v1.3 rev 34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[!].rom" } },
+
+            { "A500+", new[] { "kick37175.A500", "kick37175.A500.rom", "amiga-os-204.rom", "kick20.rom", "kick204.rom",
+                "Kickstart v2.04 rev 37.175 (1991)(Commodore)(A500+)[!].rom" } },
+
+            { "A600", new[] { "kick40063.A600", "kick40063.A600.rom", "amiga-os-310-a600.rom", "kick205.rom", "kick31.rom",
+                "Kickstart v3.1 rev 40.63 (1993)(Commodore)(A500-A600-A2000)[!].rom" } },
+
+            { "A1200", new[] { "kick40068.A1200", "kick40068.A1200.rom", "amiga-os-310-a1200.rom", "kick31.rom", "kick.rom",
+                "Kickstart v3.1 rev 40.68 (1993)(Commodore)(A1200)[!].rom" } },
+
+            { "A4000", new[] { "kick40068.A4000", "kick40068.A4000.rom", "amiga-os-310-a4000.rom", "kick31.rom", "kick.rom",
+                "Kickstart v3.1 rev 40.68 (1993)(Commodore)(A4000).rom" } },
+
+            { "CD32", new[] { "kick40060.CD32", "kick40060.CD32.rom", "cd32.rom", "amiga-os-310-cd32.rom",
+                "Kickstart v3.1 rev 40.60 (1993)(Commodore)(CD32).rom" } },
+
+            { "CDTV", new[] { "kick34005.A500", "kick34005.A500.rom", "cdtv.rom", "amiga-os-130.rom", "kick13.rom",
+                "Kickstart v1.3 rev 34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[!].rom" } },
+        };
+
+        private static readonly Dictionary<string, string[]> _amiberryKickstartsExt = new Dictionary<string, string[]>(StringComparer.InvariantCultureIgnoreCase)
+        {
+            { "CD32", new[] { "cd32ext.rom", "amiga-ext-310-cd32.rom", "CD32 Extended.ROM" } },
+
+            { "CDTV", new[] { "cdtvext.rom", "CDTV Extended.ROM" } },
+        };
+
+        private static string AmiberryModelFamily(string model)
+        {
+            if (string.IsNullOrEmpty(model))
+                return "A500";
+            if (model.Equals("A500OG", StringComparison.InvariantCultureIgnoreCase)) return "A500OG";
+            if (model.StartsWith("A1200", StringComparison.InvariantCultureIgnoreCase)) return "A1200";
+            if (model.StartsWith("A500+", StringComparison.InvariantCultureIgnoreCase)) return "A500+";
+            if (model.StartsWith("A500", StringComparison.InvariantCultureIgnoreCase)) return "A500";
+            if (model.StartsWith("A600", StringComparison.InvariantCultureIgnoreCase)) return "A600";
+            if (model.StartsWith("A40", StringComparison.InvariantCultureIgnoreCase)) return "A4000";
+            if (model.StartsWith("CD32", StringComparison.InvariantCultureIgnoreCase)) return "CD32";
+            if (model.StartsWith("CDTV", StringComparison.InvariantCultureIgnoreCase)) return "CDTV";
+            return model;
+        }
+
+        private void ConfigureAmiberryKickstart(ConfigFile coreSettings, string model)
+        {
+            if (SystemConfig.isOptSet("amiberry_kickstart") && !string.IsNullOrEmpty(SystemConfig["amiberry_kickstart"]) && SystemConfig["amiberry_kickstart"] != "auto")
+            {
+                coreSettings["amiberry_kickstart"] = SystemConfig["amiberry_kickstart"];
+                return;
+            }
+
+            coreSettings["amiberry_kickstart"] = "auto";
+
+            string rom = SystemConfig["rom"];
+            if (!string.IsNullOrEmpty(rom))
+            {
+                string ext = Path.GetExtension(rom).ToLowerInvariant();
+                if (ext == ".lha" || ext == ".lzh" || ext == ".rp9")
+                    return;
+            }
+
+            string[] candidates;
+            if (!_amiberryKickstarts.TryGetValue(AmiberryModelFamily(model), out candidates))
+                return;
+
+            string biosPath = AppConfig.GetFullPath("bios");
+            
+            if (string.IsNullOrEmpty(biosPath))
+                return;
+
+            string targetBiosPath = Path.Combine(biosPath, "amiberry");
+            FileTools.TryCreateDirectory(targetBiosPath);
+
+            foreach (var candidate in candidates)
+            {
+                string targetBiosToUse = Path.Combine(targetBiosPath, candidate);
+                string sourceBiosToCopy = Path.Combine(biosPath, candidate);
+                if (!File.Exists(targetBiosToUse) && !File.Exists(sourceBiosToCopy))
+                    continue;
+
+                if (!File.Exists(targetBiosToUse) && File.Exists(sourceBiosToCopy))
+                {
+                    try
+                    {
+                        File.Copy(sourceBiosToCopy, targetBiosToUse, true);
+                        SimpleLogger.Instance.Info("[Amiberry] Copied Kickstart for " + model + ": " + candidate);
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Instance.Error("[Amiberry] Failed to copy Kickstart for " + model + ": " + candidate + " - " + ex.Message);
+                        continue;
+                    }
+                }
+
+                if (File.Exists(targetBiosToUse))
+                {
+                    SimpleLogger.Instance.Info("[Amiberry] Kickstart for " + model + ": " + targetBiosToUse);
+                    return;
+                }
+            }
+
+            SimpleLogger.Instance.Warning("[Amiberry] No Kickstart found for " + model + ". Expected one of: " + string.Join(", ", candidates) + " in \\bios.");
+        }
+
+        private void ConfigureCDSystemsExtRoms(string model)
+        {
+            if (model != "CD32" && model != "CDTV")
+                return;
+
+            string[] candidates;
+            if (!_amiberryKickstartsExt.TryGetValue(AmiberryModelFamily(model), out candidates))
+                return;
+
+            string biosPath = AppConfig.GetFullPath("bios");
+
+            if (string.IsNullOrEmpty(biosPath))
+                return;
+
+            string targetBiosPath = Path.Combine(biosPath, "amiberry");
+            FileTools.TryCreateDirectory(targetBiosPath);
+
+            foreach (var candidate in candidates)
+            {
+                string targetBiosToUse = Path.Combine(targetBiosPath, candidate);
+                string sourceBiosToCopy = Path.Combine(biosPath, candidate);
+                if (!File.Exists(targetBiosToUse) && !File.Exists(sourceBiosToCopy))
+                    continue;
+
+                if (!File.Exists(targetBiosToUse) && File.Exists(sourceBiosToCopy))
+                {
+                    try
+                    {
+                        File.Copy(sourceBiosToCopy, targetBiosToUse, true);
+                        SimpleLogger.Instance.Info("[Amiberry] Copied Kickstart for " + model + ": " + candidate);
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Instance.Error("[Amiberry] Failed to copy Kickstart for " + model + ": " + candidate + " - " + ex.Message);
+                        continue;
+                    }
+                }
+
+                if (File.Exists(targetBiosToUse))
+                {
+                    SimpleLogger.Instance.Info("[Amiberry] Kickstart for " + model + ": " + targetBiosToUse);
+                    return;
+                }
+            }
+
+            if (model == "CD32")
+            {
+                string retroBios = Path.Combine(AppConfig.GetFullPath("bios"), "kick40060.CD32.ext");
+                string retroTargetBios = Path.Combine(targetBiosPath, "cd32ext.rom");
+
+                if (!File.Exists(retroTargetBios) && File.Exists(retroBios))
+                {
+                    try
+                    {
+                        File.Copy(retroBios, retroTargetBios, true);
+                        SimpleLogger.Instance.Info("[Amiberry] Copied Kickstart ext for " + model + ": " + "kick40060.CD32.ext");
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Instance.Error("[Amiberry] Failed to copy Kickstart Ext for " + model + ": " + "kick40060.CD32.ext" + " - " + ex.Message);
+                    }
+                }
+
+                if (File.Exists(retroTargetBios))
+                    return;
+            }
+            else if (model == "CDTV")
+            {
+                string retroBios = Path.Combine(AppConfig.GetFullPath("bios"), "kick34005.CDTV");
+                string retroTargetBios = Path.Combine(targetBiosPath, "cdtvext.rom");
+
+                if (!File.Exists(retroTargetBios) && File.Exists(retroBios))
+                {
+                    try
+                    {
+                        File.Copy(retroBios, retroTargetBios, true);
+                        SimpleLogger.Instance.Info("[Amiberry] Copied Kickstart ext for " + model + ": " + "kick34005.CDTV");
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Instance.Error("[Amiberry] Failed to copy Kickstart Ext for " + model + ": " + "kick34005.CDTV" + " - " + ex.Message);
+                    }
+                }
+
+                if (File.Exists(retroTargetBios))
+                    return;
+            }
+
+            SimpleLogger.Instance.Warning("[Amiberry] No Kickstart Ext found for " + model + ". Expected one of: " + string.Join(", ", candidates) + " in \\bios\\amiberry.");
         }
 
         private void ConfigureAtari800(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

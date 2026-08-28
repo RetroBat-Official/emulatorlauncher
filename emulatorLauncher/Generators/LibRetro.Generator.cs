@@ -1223,6 +1223,14 @@ namespace EmulatorLauncher.Libretro
                 else if (retroarchConfig["system_directory"] != @":\system" && !Directory.Exists(retroarchConfig["system_directory"]))
                     retroarchConfig["system_directory"] = @":\system";
 
+                if (coreSystemSubfolder.Contains(core))
+                {
+                    string coreSubfolder = Path.Combine(AppConfig.GetFullPath("bios"), core);
+                    FileTools.TryCreateDirectory(coreSubfolder);
+                    if (Directory.Exists(coreSubfolder))
+                        retroarchConfig["system_directory"] = coreSubfolder;
+                }
+
                 if (SystemConfig.isOptSet("bios_overrides") && !string.IsNullOrEmpty(SystemConfig["bios_overrides"]))
                 {
                     string biosOverridePath = SystemConfig["bios_overrides"];
@@ -2449,7 +2457,11 @@ namespace EmulatorLauncher.Libretro
         // List and dictionaries
         static readonly List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", 
             "6/5", "7/9", "8/3", "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom", "full" };
-        static readonly List<string> capsimgCore = new List<string>() { "hatari", "hatarib", "puae" };
+        
+        // Hardware-rendered cores: a duplicated instance cannot get a second GPU context
+        static List<string> coreSystemSubfolder = new List<string>() { "amiberry" };
+
+        static readonly List<string> capsimgCore = new List<string>() { "amiberry", "hatari", "hatarib", "puae" };
         static readonly List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
         static List<string> coreNoGL = new List<string>() { "azahar", "citra", "dolphin", "flycast", "kronos", "mednafen_psx_hw", "melonds", "melondsds", "mupen64plus_next", 
             "pcsx2", "supermodel", "swanstation", "vecx" };
