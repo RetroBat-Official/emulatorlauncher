@@ -1,12 +1,12 @@
-﻿using System;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
 {
@@ -874,18 +874,23 @@ namespace EmulatorLauncher
 
             bezel?.Dispose();
 
-            CleanupGuns();
+            return ret;
+        }
 
+        public override void Cleanup()
+        {
             if (_saveStatesWatcher != null)
             {
-                // Order matters: rescue first (it may create a new slot), prune second.
                 _saveStatesWatcher.RescueDefaultSlot();
                 _saveStatesWatcher.PruneOrphanThumbnails();
                 _saveStatesWatcher.Dispose();
                 _saveStatesWatcher = null;
             }
 
-            return ret;
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
+
+            base.Cleanup();
         }
     }
 }
