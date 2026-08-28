@@ -2055,6 +2055,7 @@ namespace EmulatorLauncher.Libretro
         {
             retroarchConfig["input_overlay_hide_in_menu"] = "false";
             retroarchConfig["input_overlay_enable"] = "false";
+            retroarchConfig["input_overlay_behind_menu"] = "true";
             retroarchConfig["video_message_pos_x"] = "0.05";
             retroarchConfig["video_message_pos_y"] = "0.05";
 
