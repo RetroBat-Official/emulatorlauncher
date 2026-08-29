@@ -94,6 +94,11 @@ namespace EmulatorLauncher.PadToKeyboard
 
         private HashSet<PadToKeyInput> _pressedKeys = new HashSet<PadToKeyInput>();
 
+        private IntPtr _lastForegroundHwnd = IntPtr.Zero;
+        private string _lastForegroundProcess = null;
+        private bool _lastForegroundIsDesktop = false;
+        private IntPtr _lastForegroundMainWnd = IntPtr.Zero;
+
         public JoystickListener(Controller[] inputList, PadToKey mapping)
         {
             bool joy2Key = Process.GetProcessesByName("JoyToKey").Length > 0;
@@ -215,57 +220,57 @@ namespace EmulatorLauncher.PadToKeyboard
                         switch (evt.type)
                         {
                             case SDL.SDL_EventType.SDL_JOYAXISMOTION:
-                                {                                   
-                                     const int DEADZONE = 500;
-                                     int initialValue = 0;
+                                {
+                                    const int DEADZONE = 500;
+                                    int initialValue = 0;
 
-                                     int normValue = 0;
+                                    int normValue = 0;
 
-                                     if (Math.Abs(evt.jaxis.axisValue - initialValue) > DEADZONE)
-                                     {
-                                         if (evt.jaxis.axisValue - initialValue > 0)
-                                             normValue = 1;
-                                         else
-                                             normValue = -1;
-                                     }
+                                    if (Math.Abs(evt.jaxis.axisValue - initialValue) > DEADZONE)
+                                    {
+                                        if (evt.jaxis.axisValue - initialValue > 0)
+                                            normValue = 1;
+                                        else
+                                            normValue = -1;
+                                    }
 
-                                     var joy = joysticks[evt.jaxis.which];
-                                     if (joy != null)
-                                     {
-                                         var axis = joy.GetInput("axis", evt.jaxis.axis);
-                                         if (axis != null)
-                                         {
-                                             var axisName = axis.Name;
-                                             var revertedAxis = RevertedAxis(axisName);
-                                             int value = evt.jaxis.axisValue;
+                                    var joy = joysticks[evt.jaxis.which];
+                                    if (joy != null)
+                                    {
+                                        var axis = joy.GetInput("axis", evt.jaxis.axis);
+                                        if (axis != null)
+                                        {
+                                            var axisName = axis.Name;
+                                            var revertedAxis = RevertedAxis(axisName);
+                                            int value = evt.jaxis.axisValue;
 
-                                             if (value != 0 && (Math.Abs(value) / value) == -axis.Value)
-                                             {
-                                                 if (revertedAxis != axisName)
-                                                 {
-                                                     axisName = revertedAxis;
-                                                     revertedAxis = axis.Name;
-                                                     value = -value;
-                                                 }
-                                                 else
-                                                 {
-                                                     normValue = 0;
-                                                     value = 0;
-                                                 }
-                                             }
+                                            if (value != 0 && (Math.Abs(value) / value) == -axis.Value)
+                                            {
+                                                if (revertedAxis != axisName)
+                                                {
+                                                    axisName = revertedAxis;
+                                                    revertedAxis = axis.Name;
+                                                    value = -value;
+                                                }
+                                                else
+                                                {
+                                                    normValue = 0;
+                                                    value = 0;
+                                                }
+                                            }
 
-                                             if (normValue != 0)
-                                             {
-                                                 joy.State.Remove(revertedAxis);
-                                                 joy.State.Add(axisName, value, true);
-                                             }
-                                             else
-                                             {
-                                                 joy.State.Remove(revertedAxis);
-                                                 joy.State.Remove(axisName);
-                                             }
-                                         }
-                                     }
+                                            if (normValue != 0)
+                                            {
+                                                joy.State.Remove(revertedAxis);
+                                                joy.State.Add(axisName, value, true);
+                                            }
+                                            else
+                                            {
+                                                joy.State.Remove(revertedAxis);
+                                                joy.State.Remove(axisName);
+                                            }
+                                        }
+                                    }
                                 }
                                 break;
 
@@ -274,7 +279,7 @@ namespace EmulatorLauncher.PadToKeyboard
                                 {
                                     var joy = joysticks[evt.jbutton.which];
                                     if (joy != null)
-                                    {                                        
+                                    {
                                         foreach (var conf in joy.GetButtons(evt.jbutton.button))
                                         {
                                             if (evt.jbutton.state == SDL.SDL_PRESSED)
@@ -291,7 +296,7 @@ namespace EmulatorLauncher.PadToKeyboard
                                     var joy = joysticks[evt.jhat.which];
                                     if (joy != null)
                                     {
-                                        var up = joy.GetInput("hat", evt.jhat.hat, (int) SDL.SDL_HAT_UP);
+                                        var up = joy.GetInput("hat", evt.jhat.hat, (int)SDL.SDL_HAT_UP);
                                         if (up != null)
                                         {
                                             if ((evt.jhat.hatValue & SDL.SDL_HAT_UP) == SDL.SDL_HAT_UP)
@@ -349,8 +354,8 @@ namespace EmulatorLauncher.PadToKeyboard
                                 continue;
 
                             ProcessJoystickState(joy.Controller, joy.State, joy.OldState);
-                            
-                            joy.OldState = joy.State.Clone();                            
+
+                            joy.OldState = joy.State.Clone();
                         }
 
                         Thread.Sleep(1);
@@ -359,7 +364,7 @@ namespace EmulatorLauncher.PadToKeyboard
                 catch { }
             }
 
-            foreach(var joy in joysticks)
+            foreach (var joy in joysticks)
                 joy.Close();
 
             SimpleLogger.Instance.Info("[PadToKey] Exit listening");
@@ -434,12 +439,12 @@ namespace EmulatorLauncher.PadToKeyboard
 
                 return;
             }
-            
+
             if (input.Type == PadToKeyType.Mouse && (input.Code == "X" || input.Code == "Y"))
             {
                 if (!newState.HasFlag(input.Name) && !newState.HasFlag(RevertedAxis(input.Name)))
                 {
-                   // Debug.WriteLine("STOP MOUSE MOVE " + input.Code);
+                    // Debug.WriteLine("STOP MOUSE MOVE " + input.Code);
 
                     // Stop 
                     if (input.Code == "X")
@@ -461,7 +466,7 @@ namespace EmulatorLauncher.PadToKeyboard
                     else
                         _mouseMove.Y = newState.GetMouseInputValue(input.Name);
 
-                   // Debug.WriteLine("Mouse @ " + _mouseMove.ToString());
+                    // Debug.WriteLine("Mouse @ " + _mouseMove.ToString());
 
                     if (_mouseMove.IsEmpty)
                     {
@@ -481,7 +486,7 @@ namespace EmulatorLauncher.PadToKeyboard
                     else
                         _mouseMove.Y = newState.GetMouseInputValue(RevertedAxis(input.Name));
 
-                  //  Debug.WriteLine("Mouse @ " + _mouseMove.ToString());
+                    //  Debug.WriteLine("Mouse @ " + _mouseMove.ToString());
 
                     if (_mouseMove.IsEmpty)
                     {
@@ -575,8 +580,8 @@ namespace EmulatorLauncher.PadToKeyboard
         {
             JoystickListener t = (JoystickListener)state;
 
-            int x = (int) EaseMouse((double) t._mouseMove.X);;
-            int y = (int) EaseMouse((double) t._mouseMove.Y);;
+            int x = (int)EaseMouse((double)t._mouseMove.X); ;
+            int y = (int)EaseMouse((double)t._mouseMove.Y); ;
             SendKey.MoveMouseBy(x, y);
         }
 
@@ -613,7 +618,7 @@ namespace EmulatorLauncher.PadToKeyboard
                 if (input.ScanCodes.Length != 0)
                 {
                     foreach (uint sc in input.ScanCodes)
-                    {                        
+                    {
                         if (processName == null)
                             SimpleLogger.Instance.Info("[SendKey] [" + controller.ToShortString() + "] Press '" + ((LinuxScanCode)sc).ToString() + "' to <unknown process>");
                         else
@@ -646,8 +651,7 @@ namespace EmulatorLauncher.PadToKeyboard
                 {
                     try
                     {
-                        var proc = Process.GetProcessById(pid);
-                        if (proc != null)
+                        using (var proc = Process.GetProcessById(processId))
                             proc.Kill();
                     }
                     catch { }
@@ -657,10 +661,18 @@ namespace EmulatorLauncher.PadToKeyboard
 
         string GetActiveProcessFileName(out bool isDesktop, out IntPtr hMainWnd)
         {
+            IntPtr hwnd = User32.GetForegroundWindow();
+
+            if (hwnd == _lastForegroundHwnd && _lastForegroundProcess != null)
+            {
+                isDesktop = _lastForegroundIsDesktop;
+                hMainWnd = _lastForegroundMainWnd;
+                return _lastForegroundProcess;
+            }
+
             isDesktop = false;
             hMainWnd = IntPtr.Zero;
 
-            IntPtr hwnd = User32.GetForegroundWindow();
             if (hwnd != User32.GetDesktopWindow())
                 hMainWnd = hwnd;
 
@@ -669,41 +681,53 @@ namespace EmulatorLauncher.PadToKeyboard
 
             try
             {
-                Process p = Process.GetProcessById((int)pid);
-
-                if (_mapping.ForceApplyToProcess != null)
+                using (Process p = Process.GetProcessById((int)pid))
                 {
-                    var pf = Process.GetProcessesByName(_mapping.ForceApplyToProcess).FirstOrDefault();
-                    if (pf != null)
-                        p = pf;
+                    Process target = p;
+                    Process forced = null;
+
+                    try
+                    {
+                        if (_mapping.ForceApplyToProcess != null)
+                        {
+                            forced = Process.GetProcessesByName(_mapping.ForceApplyToProcess).FirstOrDefault();
+                            if (forced != null)
+                                target = forced;
+                        }
+
+                        if (target.MainWindowHandle != IntPtr.Zero && target.MainWindowHandle != User32.GetDesktopWindow())
+                            hMainWnd = target.MainWindowHandle;
+
+                        string fn;
+                        try { fn = Path.GetFileNameWithoutExtension(target.MainModule.FileName).ToLower(); }
+                        catch { fn = target.ProcessName.ToLower(); }
+
+                        if (fn == "explorer")
+                        {
+                            int style = User32.GetWindowLong(hwnd, GWL.STYLE);
+                            if (style == -1778384896)
+                                isDesktop = true;
+                        }
+
+                        _lastForegroundHwnd = hwnd;
+                        _lastForegroundProcess = fn;
+                        _lastForegroundIsDesktop = isDesktop;
+                        _lastForegroundMainWnd = hMainWnd;
+
+                        return fn;
+                    }
+                    finally
+                    {
+                        forced?.Dispose();
+                    }
                 }
-
-                if (p != null && p.MainWindowHandle != IntPtr.Zero && p.MainWindowHandle != User32.GetDesktopWindow())
-                    hMainWnd = p.MainWindowHandle;
-
-                string fn = null;
-
-                try
-                {
-                    fn = Path.GetFileNameWithoutExtension(p.MainModule.FileName).ToLower();
-                }
-                catch
-                {
-                    fn = p.ProcessName.ToLower();
-                }
-
-                if (fn == "explorer")
-                {
-                    int style = User32.GetWindowLong(hwnd, GWL.STYLE);
-                    if (style == -1778384896)
-                        isDesktop = true;
-                }
-
-                return fn;
             }
-            catch { }
-
-            return null;
+            catch
+            {
+                isDesktop = _lastForegroundIsDesktop;
+                hMainWnd = _lastForegroundMainWnd;
+                return _lastForegroundProcess;
+            }
         }
     }
 }

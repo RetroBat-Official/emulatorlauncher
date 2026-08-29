@@ -686,6 +686,7 @@ namespace EmulatorLauncher
                     ctrlini.WriteValue("digital", "bind" + i, digitalBinds[i]);
 
                 BindIniFeatureSlider(ctrlini, "emulator", "dead_zone", "flycast_deadzone", "10");
+                BindIniFeatureSlider(ctrlini, "emulator", "saturation", "flycast_saturation", "100");
                 ctrlini.WriteValue("emulator", "mapping_name", deviceName);
                 BindIniFeatureSlider(ctrlini, "emulator", "rumble_power", "flycast_rumble", "100");
                 ctrlini.WriteValue("emulator", "version", "4");
