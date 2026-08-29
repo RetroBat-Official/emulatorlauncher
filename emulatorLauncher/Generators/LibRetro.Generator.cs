@@ -1264,6 +1264,9 @@ namespace EmulatorLauncher.Libretro
             if (core == "mame")
                 savePath = Path.Combine(AppConfig.GetFullPath("saves"));
 
+            else if (core == "amiberry")
+                savePath = Path.Combine(AppConfig.GetFullPath("saves"), system, "LR-amiberry");
+
             FileTools.TryCreateDirectory(savePath);
             retroarchConfig["savefile_directory"] = savePath;
             retroarchConfig["savefiles_in_content_dir"] = "false";
