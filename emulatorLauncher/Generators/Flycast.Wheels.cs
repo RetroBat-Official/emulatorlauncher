@@ -400,6 +400,13 @@ namespace EmulatorLauncher
             else
                 ini.WriteValue("input", "device1.2", "10");
 
+            // when using Racing Controller - there's only one slot, so in case purupuru extension is chosen, set it in slot 1
+            if (SystemConfig.isOptSet("flycast_controller1") && racingControllerP1 && SystemConfig["flycast_extension1"] == "3")
+            {
+                ini.WriteValue("input", "device1.1", "3");
+                ini.WriteValue("input", "device2.1", "1");
+            }
+
             // Setup second wheel
             if (usableWheels.Count > 1)
             {

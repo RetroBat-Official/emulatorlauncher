@@ -376,6 +376,15 @@ namespace EmulatorLauncher
             else
                 ini.WriteValue("input", "device" + playerIndex + ".2", "10");
 
+            // when using Racing Controller - there's only one slot, so in case purupuru extension is chosen, set it in slot 1
+            if (SystemConfig.isOptSet("flycast_controller" + playerIndex) && SystemConfig["flycast_controller" + playerIndex] == "15" && SystemConfig["flycast_extension1"] == "3")
+            {
+                if (playerIndex == 1)
+                    ini.WriteValue("input", "device" + playerIndex + ".1", "3");
+                else if (playerIndex == 2)
+                    ini.WriteValue("input", "device" + playerIndex + ".1", "1");
+            }
+
             SimpleLogger.Instance.Info("[INPUT] Assigning " + ctrl.Name + " with index " + index + " to player " + playerIndex);
             ini.WriteValue("input", "maple_sdl_joystick_" + index, (playerIndex - 1).ToString());
 
