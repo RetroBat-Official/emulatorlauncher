@@ -97,6 +97,7 @@ namespace EmulatorLauncher.Common
 
         DEVMODE originalMode = new DEVMODE();
         bool changed = false;
+        public bool HasChanged { get { return changed; } }
 
         private ScreenResolution(int width, int height, int bitCount, int frequency, bool interlaced)
         {
@@ -115,8 +116,11 @@ namespace EmulatorLauncher.Common
         public void Apply()
         {
             var cur = CurrentResolution;
-            if (cur.Width == Width && cur.Height == Height && cur.BitsPerPel == BitsPerPel && cur.DisplayFrequency == DisplayFrequency)
+            if (cur.Width == Width && cur.Height == Height && cur.BitsPerPel == BitsPerPel && cur.DisplayFrequency == DisplayFrequency && cur.Interlaced == Interlaced)
+            {
+                SimpleLogger.Instance.Info("[ScreenResolution] Requested mode is already active (" + Width + "x" + Height + "x" + BitsPerPel + " " + DisplayFrequency + "Hz" + (Interlaced ? " Interlaced" : "") + ") - skipping display mode change.");
                 return;
+            }
 
             originalMode.dmSize = (short)Marshal.SizeOf(originalMode);
 

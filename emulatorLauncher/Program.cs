@@ -768,6 +768,18 @@ namespace EmulatorLauncher
                         if (screenResolution != null && generator.DependsOnDesktopResolution)
                             screenResolution.Apply();
 
+                        // A change in display mode temporarily makes the HDMI audio endpoint (TV / amplifier) disappear.
+                        // On some configurations, the endpoint is simply not ready at launch. In both cases,
+                        // starting the emulator too early leaves it without sound.
+                        bool modeChanged = (screenResolution != null && screenResolution.HasChanged);
+                        int audioTimeout = modeChanged ? 5000 : 1500;
+                        int audioWaited;
+
+                        if (!EmulatorLauncher.Common.Audio.AudioTools.WaitForRenderEndpoint(audioTimeout, out audioWaited))
+                            SimpleLogger.Instance.Warning("[Audio] No active render endpoint" + (modeChanged ? " after display mode change" : "") + " - emulator may start without sound.");
+                        else if (audioWaited > 0)
+                            SimpleLogger.Instance.Info("[Audio] Render endpoint became available after " + audioWaited + "ms.");
+
                         if (!Program.SystemConfig.isOptSet("use_guns") || !Program.SystemConfig.getOptBoolean("use_guns"))
                             Cursor.Position = new System.Drawing.Point(Screen.PrimaryScreen.Bounds.Right, Screen.PrimaryScreen.Bounds.Bottom / 2);
 

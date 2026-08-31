@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -60,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="APIHook.cs" />
+    <Compile Include="AudioTools.cs" />
     <Compile Include="Compression\IArchive.cs" />
     <Compile Include="Compression\IArchiveEntry.cs" />
     <Compile Include="Compression\MountFile.cs" />
