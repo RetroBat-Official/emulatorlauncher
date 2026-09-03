@@ -593,6 +593,9 @@
     </Compile>
     <Compile Include="Generators\Tsugaru.Generator.cs" />
     <Compile Include="Generators\Uae.Generator.cs" />
+    <Compile Include="Generators\Uae.Controllers.cs">
+      <DependentUpon>Uae.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\vita3k.Generator.cs" />
     <Compile Include="Generators\VPinball.Generator.cs" />
     <Compile Include="Generators\VPinball.Controllers.cs">
