@@ -89,81 +89,88 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] using rompath: " + romPath);
 
-            ScreenRes sr = ScreenRes.Load(Path.GetDirectoryName(rom));
-            if (sr != null && !SystemConfig.getOptBoolean("noscreenres"))
+            
+            if (!SystemConfig.getOptBoolean("noscreenres"))
             {
-                if (SystemConfig.isOptSet("ScreenResX") && ! string.IsNullOrEmpty(SystemConfig["ScreenResX"]))
-                    sr.ScreenResX = SystemConfig["ScreenResX"].ToInteger();
-                else
-                    sr.ScreenResX = resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width;
+                ScreenRes sr = ScreenRes.Load(Path.GetDirectoryName(rom));
 
-                if (SystemConfig.isOptSet("ScreenResY") && !string.IsNullOrEmpty(SystemConfig["ScreenResY"]))
-                    sr.ScreenResY = SystemConfig["ScreenResY"].ToInteger();
-                else
-                    sr.ScreenResY = resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height;
+                if (sr != null)
+                {
+                    if (SystemConfig.isOptSet("ScreenResX") && !string.IsNullOrEmpty(SystemConfig["ScreenResX"]))
+                        sr.ScreenResX = SystemConfig["ScreenResX"].ToInteger();
+                    else
+                        sr.ScreenResX = resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width;
 
-                if (SystemConfig.isOptSet("Screen2ResX") && !string.IsNullOrEmpty(SystemConfig["Screen2ResX"]) && SystemConfig.isOptSet("Screen2ResY") && !string.IsNullOrEmpty(SystemConfig["Screen2ResY"]))
-                {
-                    sr.Screen2ResX = SystemConfig["Screen2ResX"].ToInteger();
-                    sr.Screen2ResY = SystemConfig["Screen2ResY"].ToInteger();
-                }
-                else
-                {
-                    Screen secondary = Screen.AllScreens.FirstOrDefault(s => !s.Primary);
-                    if (secondary != null)
+                    if (SystemConfig.isOptSet("ScreenResY") && !string.IsNullOrEmpty(SystemConfig["ScreenResY"]))
+                        sr.ScreenResY = SystemConfig["ScreenResY"].ToInteger();
+                    else
+                        sr.ScreenResY = resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height;
+
+                    if (SystemConfig.isOptSet("Screen2ResX") && !string.IsNullOrEmpty(SystemConfig["Screen2ResX"]) && SystemConfig.isOptSet("Screen2ResY") && !string.IsNullOrEmpty(SystemConfig["Screen2ResY"]))
                     {
-                        sr.Screen2ResX = secondary.Bounds.Width;
-                        sr.Screen2ResY = secondary.Bounds.Height;
+                        sr.Screen2ResX = SystemConfig["Screen2ResX"].ToInteger();
+                        sr.Screen2ResY = SystemConfig["Screen2ResY"].ToInteger();
                     }
+                    else
+                    {
+                        Screen secondary = Screen.AllScreens.FirstOrDefault(s => !s.Primary);
+                        if (secondary != null)
+                        {
+                            sr.Screen2ResX = secondary.Bounds.Width;
+                            sr.Screen2ResY = secondary.Bounds.Height;
+                        }
+                    }
+
+                    if (SystemConfig.isOptSet("Monitor") && !string.IsNullOrEmpty(SystemConfig["Monitor"]))
+                        sr.Monitor = SystemConfig["Monitor"].ToInteger();
+                    else
+                        sr.Monitor = Screen.AllScreens.Length == 1 ? 1 : 2;
+
+                    if (SystemConfig.isOptSet("Screen2posX") && !string.IsNullOrEmpty(SystemConfig["Screen2posX"]) && SystemConfig.isOptSet("Screen2posY") && !string.IsNullOrEmpty(SystemConfig["Screen2posY"]))
+                    {
+                        sr.Screen2posX = SystemConfig["Screen2posX"].ToInteger();
+                        sr.Screen2posY = SystemConfig["Screen2posY"].ToInteger();
+                    }
+
+                    if (SystemConfig.isOptSet("DmdResX") && !string.IsNullOrEmpty(SystemConfig["DmdResX"]) && SystemConfig.isOptSet("DmdResY") && !string.IsNullOrEmpty(SystemConfig["DmdResY"]))
+                    {
+                        sr.DmdResX = SystemConfig["DmdResX"].ToInteger();
+                        sr.DmdResY = SystemConfig["DmdResY"].ToInteger();
+                    }
+
+                    if (SystemConfig.isOptSet("DmdposX") && !string.IsNullOrEmpty(SystemConfig["DmdposX"]) && SystemConfig.isOptSet("DmdposY") && !string.IsNullOrEmpty(SystemConfig["DmdposY"]))
+                    {
+                        sr.DmdPosX = SystemConfig["DmdposX"].ToInteger();
+                        sr.DmdPosY = SystemConfig["DmdposY"].ToInteger();
+                    }
+
+                    if (SystemConfig.isOptSet("FlipLedDisplay") && SystemConfig.getOptBoolean("FlipLedDisplay"))
+                        sr.DmdFlipY = 1;
+                    else
+                        sr.DmdFlipY = 0;
+
+                    if (SystemConfig.isOptSet("Screen2posXStart") && !string.IsNullOrEmpty(SystemConfig["Screen2posXStart"]) && SystemConfig.isOptSet("Screen2posYStart") && !string.IsNullOrEmpty(SystemConfig["Screen2posYStart"]))
+                    {
+                        sr.Screen2posXStart = SystemConfig["Screen2posXStart"].ToInteger();
+                        sr.Screen2posYStart = SystemConfig["Screen2posYStart"].ToInteger();
+                    }
+
+                    if (SystemConfig.isOptSet("Screen2ResXStart") && !string.IsNullOrEmpty(SystemConfig["Screen2ResXStart"]) && SystemConfig.isOptSet("Screen2ResYStart") && !string.IsNullOrEmpty(SystemConfig["Screen2ResYStart"]))
+                    {
+                        sr.Screen2ResXStart = SystemConfig["Screen2ResXStart"].ToInteger();
+                        sr.Screen2ResYStart = SystemConfig["Screen2ResYStart"].ToInteger();
+                    }
+
+                    if (SystemConfig.isOptSet("FramePath") && !string.IsNullOrEmpty(SystemConfig["FramePath"]))
+                        sr.FramePath = SystemConfig["FramePath"].Replace('/', '\\');
+                    else
+                        sr.FramePath = "#";
+
+                    sr.Save();
                 }
-
-                if (SystemConfig.isOptSet("Monitor") && !string.IsNullOrEmpty(SystemConfig["Monitor"]))
-                    sr.Monitor = SystemConfig["Monitor"].ToInteger();
-                else
-                    sr.Monitor = Screen.AllScreens.Length == 1 ? 1 : 2;
-
-                if (SystemConfig.isOptSet("Screen2posX") && !string.IsNullOrEmpty(SystemConfig["Screen2posX"]) && SystemConfig.isOptSet("Screen2posY") && !string.IsNullOrEmpty(SystemConfig["Screen2posY"]))
-                {
-                    sr.Screen2posX = SystemConfig["Screen2posX"].ToInteger();
-                    sr.Screen2posY = SystemConfig["Screen2posY"].ToInteger();
-                }
-
-                if (SystemConfig.isOptSet("DmdResX") && !string.IsNullOrEmpty(SystemConfig["DmdResX"]) && SystemConfig.isOptSet("DmdResY") && !string.IsNullOrEmpty(SystemConfig["DmdResY"]))
-                {
-                    sr.DmdResX = SystemConfig["DmdResX"].ToInteger();
-                    sr.DmdResY = SystemConfig["DmdResY"].ToInteger();
-                }
-
-                if (SystemConfig.isOptSet("DmdposX") && !string.IsNullOrEmpty(SystemConfig["DmdposX"]) && SystemConfig.isOptSet("DmdposY") && !string.IsNullOrEmpty(SystemConfig["DmdposY"]))
-                {
-                    sr.DmdPosX = SystemConfig["DmdposX"].ToInteger();
-                    sr.DmdPosY = SystemConfig["DmdposY"].ToInteger();
-                }
-
-                if (SystemConfig.isOptSet("FlipLedDisplay") && SystemConfig.getOptBoolean("FlipLedDisplay"))
-                    sr.DmdFlipY = 1;
-                else
-                    sr.DmdFlipY = 0;
-
-                if (SystemConfig.isOptSet("Screen2posXStart") && !string.IsNullOrEmpty(SystemConfig["Screen2posXStart"]) && SystemConfig.isOptSet("Screen2posYStart") && !string.IsNullOrEmpty(SystemConfig["Screen2posYStart"]))
-                {
-                    sr.Screen2posXStart = SystemConfig["Screen2posXStart"].ToInteger();
-                    sr.Screen2posYStart = SystemConfig["Screen2posYStart"].ToInteger();
-                }
-
-                if (SystemConfig.isOptSet("Screen2ResXStart") && !string.IsNullOrEmpty(SystemConfig["Screen2ResXStart"]) && SystemConfig.isOptSet("Screen2ResYStart") && !string.IsNullOrEmpty(SystemConfig["Screen2ResYStart"]))
-                {
-                    sr.Screen2ResXStart = SystemConfig["Screen2ResXStart"].ToInteger();
-                    sr.Screen2ResYStart = SystemConfig["Screen2ResYStart"].ToInteger();
-                }
-
-                if (SystemConfig.isOptSet("FramePath") && !string.IsNullOrEmpty(SystemConfig["FramePath"]))
-                    sr.FramePath = SystemConfig["FramePath"].Replace('/', '\\');
-                else
-                    sr.FramePath = "#";
-
-                sr.Save();
             }
+            else
+                SimpleLogger.Instance.Info("[Generator] noscreenres set - ScreenRes.txt left untouched.");
 
             SetupOptions(path, romPath, resolution);
             SetupB2STableSettings(path);
