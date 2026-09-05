@@ -812,7 +812,6 @@ namespace EmulatorLauncher
                 foreach (var f in _filesToRestore)
                 {
                     string backupFile = f + ".backup";
-
                     if (File.Exists(backupFile))
                     {
                         try
@@ -822,17 +821,45 @@ namespace EmulatorLauncher
                                 try { Directory.CreateDirectory(cfgBackupPath); } catch { }
                             string filename = Path.GetFileName(f);
                             string target = Path.Combine(cfgBackupPath, filename);
-
+                            // Complete archive of the file as written by MAME during the session, for future reference
                             File.Copy(f, target, true);
-                            File.Copy(backupFile, f, true);
+                            // Only restore the <input> from before launch: everything else
+                            // (video, mixer, crosshairs, etc. written by MAME during the session) is preserved
+                            RestoreInputFromBackup(f, backupFile);
                             File.Delete(backupFile);
                         }
                         catch { }
                     }
                 }
             }
-
             base.Cleanup();
+        }
+
+        private void RestoreInputFromBackup(string liveFile, string backupFile)
+        {
+            try
+            {
+                var liveDoc = XDocument.Load(liveFile);
+                var backupDoc = XDocument.Load(backupFile);
+                var liveSystem = liveDoc.Root?.Element("system");
+                var backupSystem = backupDoc.Root?.Element("system");
+                if (liveSystem == null || backupSystem == null)
+                {
+                    // Structure inattendue : on retombe sur l'ancien comportement (restore complet)
+                    File.Copy(backupFile, liveFile, true);
+                    return;
+                }
+                var backupInput = backupSystem.Element("input");
+                liveSystem.Element("input")?.Remove();
+                if (backupInput != null)
+                    liveSystem.Add(new XElement(backupInput));
+                liveDoc.Save(liveFile);
+            }
+            catch
+            {
+                // Filet de sécurité : ne jamais laisser le fichier à moitié écrit
+                try { File.Copy(backupFile, liveFile, true); } catch { }
+            }
         }
 
         class GroovyMameProfile
