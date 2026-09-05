@@ -1634,6 +1634,9 @@ namespace EmulatorLauncher.Libretro
             if (!Features.IsSupported("video_driver"))
                 return;
 
+            if (SystemConfig["ratio"] == "custom")
+                retroarchConfig["video_viewport_bias_y"] = "0.000000";
+
             // Return if driver was forced in core settings
             if (_coreVideoDriverForce)
             {
@@ -1698,9 +1701,6 @@ namespace EmulatorLauncher.Libretro
                     }
                 }
             }
-
-            if (SystemConfig["ratio"] == "custom")
-                retroarchConfig["video_viewport_bias_y"] = "0.000000";
         }
 
         private void ConfigureGPUIndex(ConfigFile retroarchConfig)

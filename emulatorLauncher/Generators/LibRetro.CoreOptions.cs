@@ -2633,6 +2633,39 @@ namespace EmulatorLauncher.Libretro
             if (core != "gearsystem")
                 return;
 
+            if (SystemConfig.getOptBoolean("gearsystem_system"))
+            {
+                switch (system)
+                {
+                    case "mastersystem":
+                    case "sms":
+                    case "ms":
+                        coreSettings["gearsystem_system"] = "Master System / Mark III";
+                        break;
+                    case "gamegear":
+                    case "gg":
+                        coreSettings["gearsystem_system"] = "Game Gear";
+                        break;
+                    case "sg1000":
+                    case "sg-1000":
+                        coreSettings["gearsystem_system"] = "SG-1000 / Multivision";
+                        break;
+                    default:
+                        coreSettings["gearsystem_system"] = "Auto";
+                        break;
+                }
+            }
+            else
+                coreSettings["gearsystem_system"] = "Auto";
+
+            BindFeature(coreSettings, "gearsystem_region", "gearsystem_region", "Auto");
+            BindFeature(coreSettings, "gearsystem_timing", "gearsystem_timing", "Auto");
+            BindFeature(coreSettings, "gearsystem_aspect_ratio", "gearsystem_aspect_ratio", "1:1 PAR");
+            BindFeature(coreSettings, "gearsystem_hide_left_bar", "gearsystem_hide_left_bar", "No");
+            BindBoolFeature(coreSettings, "gearsystem_bios_gg", "gearsystem_bios_gg", "Enabled", "Disabled");
+            BindBoolFeature(coreSettings, "gearsystem_bios_sms", "gearsystem_bios_sms", "Enabled", "Disabled");
+            BindBoolFeature(coreSettings, "gearsystem_ym2413", "gearsystem_ym2413", "Disabled", "Auto");
+
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "gearsystem_controller", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "gearsystem_controller", "1");
@@ -3016,34 +3049,92 @@ namespace EmulatorLauncher.Libretro
             }
         }
 
+        private static string GetFirstPS2Bios(string biosFolder)
+        {
+            if (!Directory.Exists(biosFolder))
+                return null;
+
+            const long MIN_BIOS_SIZE = 4 * 1024 * 1024;
+            const long MAX_BIOS_SIZE = 8 * 1024 * 1024;
+
+            var candidates = new DirectoryInfo(biosFolder)
+                .GetFiles()
+                .Where(f => f.Length >= MIN_BIOS_SIZE && f.Length <= MAX_BIOS_SIZE)
+                .OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(f => f.Name)
+                .ToList();
+
+            if (candidates.Count == 0)
+                return null;
+
+            string legacyDefault = candidates.FirstOrDefault(n => n.Equals("ps2-0230a-20080220.bin", StringComparison.OrdinalIgnoreCase));
+
+            return legacyDefault ?? candidates[0];
+        }
+
         private void ConfigureLRPS2(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "pcsx2")
                 return;
 
             // BIOS
-            string pcsx2Bios = "ps2-0230a-20080220.bin";
+            string biosRoot = retroarchConfig["system_directory"];
+            if (string.IsNullOrEmpty(biosRoot))
+                biosRoot = AppConfig.GetFullPath("bios");
+
+            string ps2BiosFolder = Path.Combine(biosRoot, "pcsx2", "bios");
 
             if (SystemConfig.isOptSet("lrps2_bios") && !string.IsNullOrEmpty(SystemConfig["lrps2_bios"]))
-                pcsx2Bios = SystemConfig["lrps2_bios"];
+            {
+                string pcsx2Bios = SystemConfig["lrps2_bios"];
 
-            if (!File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "pcsx2", "bios", pcsx2Bios)))
-                throw new ApplicationException("BIOS file " + pcsx2Bios + " does not exist in 'bios/pcsx2/bios' folder.");
+                if (!File.Exists(Path.Combine(ps2BiosFolder, pcsx2Bios)))
+                    throw new ApplicationException("BIOS file " + pcsx2Bios + " does not exist in '" + ps2BiosFolder + "'.");
 
-            coreSettings["pcsx2_bios"] = pcsx2Bios;
+                coreSettings["pcsx2_bios"] = pcsx2Bios;
+            }
+            else
+            {
+                string autoBios = GetFirstPS2Bios(ps2BiosFolder);
 
-            BindBoolFeatureOn(coreSettings, "pcsx2_shared_memory_cards", "pcsx2_shared_memory_cards", "enabled", "disabled");
+                if (autoBios == null)
+                    throw new ApplicationException("No valid PS2 BIOS file found in '" + ps2BiosFolder + "'.");
+
+                coreSettings["pcsx2_bios"] = autoBios;
+            }
+
+            // SYSTEM
+            BindBoolFeatureOn(coreSettings, "pcsx2_shared_memory_cards", "lrps2_shared_memory_cards", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "pcsx2_fastboot", "lrps2_fastboot", "enabled", "disabled");
             BindBoolFeature(coreSettings, "pcsx2_fastcdvd", "lrps2_fastcdvd", "enabled", "disabled");
             BindBoolFeature(coreSettings, "pcsx2_enable_cheats", "lrps2_enable_cheats", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_hint_language_unlock", "lrps2_hint_language_unlock", "enabled", "disabled");
+
+            // RENDERER
             BindFeature(coreSettings, "pcsx2_renderer", "lrps2_renderer", "Auto");
 
-            if (SystemConfig["lrps2_renderer"] == "paraLLEl-GS")
+            switch (SystemConfig["lrps2_renderer"])
             {
-                retroarchConfig["video_driver"] = "vulkan";
-                _coreVideoDriverForce = true;
+                case "paraLLEl-GS":
+                case "Vulkan":
+                    retroarchConfig["video_driver"] = "vulkan";
+                    _coreVideoDriverForce = true;
+                    break;
+                case "D3D11":
+                    retroarchConfig["video_driver"] = "d3d11";
+                    _coreVideoDriverForce = true;
+                    break;
+                case "D3D12":
+                    retroarchConfig["video_driver"] = "d3d12";
+                    _coreVideoDriverForce = true;
+                    break;
+                case "OpenGL":
+                    retroarchConfig["video_driver"] = "glcore";
+                    _coreVideoDriverForce = true;
+                    break;
             }
 
+            // VIDEO
             BindFeatureSlider(coreSettings, "pcsx2_upscale_multiplier", "lrps2_upscale_multiplier", "1x Native (PS2)");
             BindFeature(coreSettings, "pcsx2_deinterlace_mode", "lrps2_deinterlace_mode", "Automatic");
             BindBoolFeatureOn(coreSettings, "pcsx2_nointerlacing_hint", "lrps2_nointerlacing_hint", "enabled", "disabled");
@@ -3053,28 +3144,85 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "pcsx2_dithering", "lrps2_dithering", "Unscaled");
             BindFeature(coreSettings, "pcsx2_blending_accuracy", "lrps2_blending_accuracy", "Basic");
             BindFeature(coreSettings, "pcsx2_widescreen_hint", "lrps2_widescreen_hint", "disabled");
+            BindFeature(coreSettings, "pcsx2_hw_download_mode", "lrps2_hw_download_mode", "Accurate");
             BindBoolFeatureOn(coreSettings, "pcsx2_pcrtc_antiblur", "lrps2_pcrtc_antiblur", "enabled", "disabled");
-            BindBoolFeatureOn(coreSettings, "pcsx2_game_enhancements_hint", "lrps2_game_enhancements_hint", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_pgs_disable_mipmaps", "lrps2_pgs_disable_mipmaps", "enabled", "disabled");
+
+            // EMULATION
+            BindBoolFeature(coreSettings, "pcsx2_game_enhancements_hint", "lrps2_game_enhancements_hint", "enabled", "disabled");
             BindFeature(coreSettings, "pcsx2_uncapped_framerate_hint", "lrps2_uncapped_framerate_hint", "disabled");
+            BindFeature(coreSettings, "pcsx2_ee_cycle_rate", "lrps2_ee_cycle_rate", "100% (Normal Speed)");
+            BindFeature(coreSettings, "pcsx2_ee_cycle_skip", "lrps2_ee_cycle_skip", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_mtvu", "lrps2_mtvu", "enabled", "disabled");
 
             // Parallel options
             BindFeature(coreSettings, "pcsx2_pgs_ssaa", "lrps2_pgs_ssaa", "Native");
-            BindBoolFeature(coreSettings, "pcsx2_pgs_high_res_scanout", "lrps2_pgs_high_res_scanout", "enabled", "disabled");
+            BindFeature(coreSettings, "pcsx2_pgs_high_res_scanout", "lrps2_pgs_high_res_scanout", "disabled");
 
-            if (SystemConfig.getOptBoolean("lrps2_pgs_high_res_scanout") && SystemConfig.isOptSet("lrps2_pgs_ssaa") && !SystemConfig["lrps2_pgs_ssaa"].Contains("can high-res"))
-                coreSettings["pcsx2_pgs_high_res_scanout"] = "disabled";
+            if (SystemConfig.isOptSet("lrps2_pgs_high_res_scanout") && SystemConfig["lrps2_pgs_high_res_scanout"] != "disabled")
+            {
+                string ssaa = SystemConfig.isOptSet("lrps2_pgs_ssaa") ? SystemConfig["lrps2_pgs_ssaa"] : "Native";
+
+                if (!ssaa.Contains("can high-res"))
+                    coreSettings["pcsx2_pgs_high_res_scanout"] = "disabled";
+                else if (SystemConfig["lrps2_pgs_high_res_scanout"].StartsWith("enabled (4x") && !ssaa.Contains("can high-res 4x"))
+                    coreSettings["pcsx2_pgs_high_res_scanout"] = "enabled";
+            }
+
+            // MANUAL HACKS
+            BindBoolFeature(coreSettings, "pcsx2_enable_hw_hacks", "lrps2_enable_hw_hacks", "enabled", "disabled");
+            BindFeature(coreSettings, "pcsx2_half_pixel_offset", "lrps2_half_pixel_offset", "disabled");
+            BindFeature(coreSettings, "pcsx2_round_sprite", "lrps2_round_sprite", "disabled");
+            BindFeature(coreSettings, "pcsx2_native_scaling", "lrps2_native_scaling", "disabled");
+            BindFeature(coreSettings, "pcsx2_texture_inside_rt", "lrps2_texture_inside_rt", "disabled");
+            BindFeature(coreSettings, "pcsx2_auto_flush", "lrps2_auto_flush", "disabled");
+            BindFeature(coreSettings, "pcsx2_gpu_target_clut", "lrps2_gpu_target_clut", "disabled");
+            BindFeature(coreSettings, "pcsx2_software_clut_render", "lrps2_software_clut_render", "disabled");
+            BindFeatureSlider(coreSettings, "pcsx2_cpu_sprite_size", "lrps2_cpu_sprite_size", "0");
+            BindFeature(coreSettings, "pcsx2_cpu_sprite_level", "lrps2_cpu_sprite_level", "Sprites Only");
+            BindBoolFeature(coreSettings, "pcsx2_align_sprite", "lrps2_align_sprite", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_merge_sprite", "lrps2_merge_sprite", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_force_sprite_position", "lrps2_force_sprite_position", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_unscaled_palette_draw", "lrps2_unscaled_palette_draw", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_gpu_palette_conversion", "lrps2_gpu_palette_conversion", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_preload_frame_data", "lrps2_preload_frame_data", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_disable_depth_conversion", "lrps2_disable_depth_conversion", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_framebuffer_conversion", "lrps2_framebuffer_conversion", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "pcsx2_disable_partial_invalidation", "lrps2_disable_partial_invalidation", "enabled", "disabled");
 
             // CONTROLS
-            if (SystemConfig.isOptSet("lrps2_axis_scale") && !string.IsNullOrEmpty(SystemConfig["lrps2_axis_scale"]))
+            if (Features.IsSupported("lrps2_axis_scale"))
             {
-                string sensitivity = SystemConfig["lrps2_axis_scale"].ToIntegerString();
-                coreSettings["pcsx2_axis_scale1"] = sensitivity + "%";
-                coreSettings["pcsx2_axis_scale2"] = sensitivity + "%";
+                string sensitivity = SystemConfig.isOptSet("lrps2_axis_scale") && !string.IsNullOrEmpty(SystemConfig["lrps2_axis_scale"])
+                    ? SystemConfig["lrps2_axis_scale"].ToIntegerString() + "%"
+                    : "133%";   // core default
+
+                coreSettings["pcsx2_axis_scale1"] = sensitivity;
+                coreSettings["pcsx2_axis_scale2"] = sensitivity;
             }
-            else
+
+            if (Features.IsSupported("lrps2_axis_deadzone"))
             {
-                coreSettings["pcsx2_axis_scale1"] = "133%";
-                coreSettings["pcsx2_axis_scale2"] = "133%";
+                string deadzone = SystemConfig.isOptSet("lrps2_axis_deadzone") && !string.IsNullOrEmpty(SystemConfig["lrps2_axis_deadzone"])
+                    ? SystemConfig["lrps2_axis_deadzone"].ToIntegerString() + "%"
+                    : "15%";    // core default
+
+                coreSettings["pcsx2_axis_deadzone1"] = deadzone;
+                coreSettings["pcsx2_axis_deadzone2"] = deadzone;
+            }
+
+            if (Features.IsSupported("lrps2_analog_mode"))
+            {
+                string analog = SystemConfig.getOptBoolean("lrps2_analog_mode") ? "enabled" : "disabled";
+                coreSettings["pcsx2_analog_mode1"] = analog;
+                coreSettings["pcsx2_analog_mode2"] = analog;
+            }
+
+            if (Features.IsSupported("lrps2_rumble"))
+            {
+                string rumble = (SystemConfig.isOptSet("lrps2_rumble") && !SystemConfig.getOptBoolean("lrps2_rumble")) ? "disabled" : "100%";
+                coreSettings["pcsx2_enable_rumble1"] = rumble;
+                coreSettings["pcsx2_enable_rumble2"] = rumble;
             }
         }
 
