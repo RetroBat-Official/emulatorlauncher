@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using EmulatorLauncher.Common.Lightguns;
 
 namespace EmulatorLauncher
 {
@@ -97,7 +98,29 @@ namespace EmulatorLauncher
 
             bool fullscreen = ShouldRunFullscreen();
 
-            // Bezels
+            // Bezels : Lindbergh games are mostly 16:9
+            // AUTO ==> no decoration.
+            string llBezel = SystemConfig.isOptSet("bezel") ? SystemConfig["bezel"] : null;
+            bool bezelSelected = !string.IsNullOrEmpty(llBezel)
+                && !llBezel.Equals("auto", StringComparison.InvariantCultureIgnoreCase)
+                && !llBezel.Equals("none", StringComparison.InvariantCultureIgnoreCase);
+
+            if (!bezelSelected)
+            {
+                // "forceNoBezel" rather than bezel="none" : linuxloader has its own Sinden border
+                SystemConfig["forceNoBezel"] = "1";
+
+                if (SystemConfig.getOptBoolean("use_guns")
+                    && !SystemConfig.isOptSet("ll_sindenborder")
+                    && RawLightgun.IsSindenLightGunConnected())
+                {
+                    SystemConfig["ll_sindenborder"] = "true";
+                    SimpleLogger.Instance.Info("[GUNS] Sinden detected : enabling linuxloader native white border.");
+                }
+
+                SimpleLogger.Instance.Info("[GENERATOR] No decoration selected : bezels disabled for linuxloader.");
+            }
+
             if (fullscreen)
             {
                 if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, emulator))
