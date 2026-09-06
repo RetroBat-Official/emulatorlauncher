@@ -202,7 +202,7 @@ namespace EmulatorLauncher
                     ini.AppendValue("sdl", "fullscreen", fullscreen ? "true" : "false");
                     BindIniFeature(ini, "sdl", "output", "dbs_output", "opengl");
                     BindIniFeature(ini, "sdl", "texture_renderer", "dbs_texture_renderer", "auto");
-                    BindIniFeature(ini, "sdl", "display", "MonitorIndex", "0");
+                    ini.AppendValue("sdl", "display", Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike).ToString());
                     ini.AppendValue("sdl", "fullresolution", "desktop");
                     BindIniFeature(ini, "sdl", "host_rate", "dbs_host_rate", "auto");
                     BindIniFeature(ini, "sdl", "vsync", "dbs_vsync", "auto");

@@ -1119,19 +1119,11 @@ namespace EmulatorLauncher.Libretro
             // Resolution & monitor
             bool forcefs = SystemConfig.getOptBoolean("forcefullscreen");
             bool exclusivefs = SystemConfig.getOptBoolean("exclusivefs");
-            int test = Screen.AllScreens.Length;
             if (Features.IsSupported("MonitorIndex"))
             {
-                if (SystemConfig.isOptSet("MonitorIndex"))
-                {
-                    int monitorId;
-                    if (int.TryParse(SystemConfig["MonitorIndex"], out monitorId) && monitorId <= Screen.AllScreens.Length)
-                        retroarchConfig["video_monitor_index"] = (monitorId).ToString();
-                }
-                else
-                {
-                    retroarchConfig["video_monitor_index"] = "0";
-                }
+                // RetroArch : 0 = auto, 1..N = 1-based on the order of EnumDisplayMonitors
+                int raIndex = Displays.IndexOf(Program.TargetScreen, MonitorOrder.EnumDisplayMonitors);
+                retroarchConfig["video_monitor_index"] = raIndex < 0 ? "0" : (raIndex + 1).ToString();
             }
 
             if (resolution == null)
@@ -1213,7 +1205,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             if (resolution == null && retroarchConfig["video_monitor_index"] != "0")
-                resolution = ScreenResolution.FromScreenIndex(retroarchConfig["video_monitor_index"].ToInteger() - 1);
+                resolution = ScreenResolution.FromScreen(Program.TargetScreen);
 
             // Folders
             if (!string.IsNullOrEmpty(AppConfig["bios"]))

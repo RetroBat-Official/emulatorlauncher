@@ -62,13 +62,11 @@ namespace EmulatorLauncher
         /// </summary>
         /// <param name="resolution"></param>
         /// <param name="useFakeBackground"></param>
-        /// <param name="monitorIndex"></param>
-        public FakeBezelFrm ShowFakeBezel(ScreenResolution resolution, bool useFakeBackground = false, int monitorIndex = -1)
+        /// <param name="screen">Ecran cible. null = l'ecran du jeu (Program.TargetScreen).</param>
+        public FakeBezelFrm ShowFakeBezel(ScreenResolution resolution, bool useFakeBackground = false, Screen screen = null)
         {
-            var screen = Screen.PrimaryScreen;
-
-            if (monitorIndex >= 0 && monitorIndex < Screen.AllScreens.Length)
-                screen = Screen.AllScreens[monitorIndex];
+            if (screen == null)
+                screen = Program.TargetScreen;
 
             int resX = (resolution == null ? screen.Bounds.Width : resolution.Width);
             int resY = (resolution == null ? screen.Bounds.Height : resolution.Height);
@@ -163,8 +161,9 @@ namespace EmulatorLauncher
             if (systemName == null || rom == null)
                 return null;
 
-            int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
-            int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
+            var screen = Program.TargetScreen;
+            int resX = (resolution == null ? screen.Bounds.Width : resolution.Width);
+            int resY = (resolution == null ? screen.Bounds.Height : resolution.Height);
 
             string overlayUser = Program.AppConfig.GetFullPath("decorations");
 

@@ -30,28 +30,47 @@ namespace EmulatorLauncher.Common
             catch { }
         }
 
+        private string _deviceName;   // "\\.\DISPLAY2", null = ecran courant
+
         public static ScreenResolution CurrentResolution
         {
-            get
-            {
-                DEVMODE mode = new DEVMODE();
-                EnumDisplaySettings(null, ENUM_CURRENT_SETTINGS, ref mode);
-                return new ScreenResolution(mode.dmPelsWidth, mode.dmPelsHeight, mode.dmBitsPerPel, mode.dmDisplayFrequency, (mode.dmDisplayFlags & 2) == 2);
-            }
+            get { return GetCurrentResolution(null); }
         }
 
-        public static ScreenResolution FromScreenIndex(int index)
+        public static ScreenResolution GetCurrentResolution(string deviceName)
         {
-            Screen screen = Screen.AllScreens.Skip(index).FirstOrDefault();
-            if (screen == null)
-                return CurrentResolution;
+            DEVMODE mode = new DEVMODE();
+            mode.dmSize = (short)Marshal.SizeOf(typeof(DEVMODE));
 
-            return FromSize(screen.Bounds.Width, screen.Bounds.Height);
+            if (!EnumDisplaySettings(deviceName, ENUM_CURRENT_SETTINGS, ref mode))
+                return null;
+
+            var ret = new ScreenResolution(mode.dmPelsWidth, mode.dmPelsHeight, mode.dmBitsPerPel,
+                mode.dmDisplayFrequency, (mode.dmDisplayFlags & 2) == 2);
+
+            ret._deviceName = deviceName;
+            return ret;
         }
 
         public static ScreenResolution FromSize(int width, int height)
         {
             return new ScreenResolution(width, height, 32, 60, false);
+        }
+
+        public static ScreenResolution FromScreen(Screen screen)
+        {
+            if (screen == null)
+                return CurrentResolution;
+
+            var ret = FromSize(screen.Bounds.Width, screen.Bounds.Height);
+            ret._deviceName = screen.DeviceName;
+            return ret;
+        }
+
+        /// <summary>Obsolete : l'index depend de l'ordre d'enumeration. Utiliser FromScreen.</summary>
+        public static ScreenResolution FromScreenIndex(int index)
+        {
+            return FromScreen(Displays.FromIndex(index, MonitorOrder.EnumDisplayMonitors));
         }
 
         public static ScreenResolution Parse(string gameResolution)
@@ -110,46 +129,61 @@ namespace EmulatorLauncher.Common
             Interlaced = interlaced;
         }
 
-        /// <summary>
-        /// Changing the settings
-        /// </summary>
+        /// <summary>Ecran cible. A definir avant Apply().</summary>
+        public void SetTargetScreen(Screen screen)
+        {
+            _deviceName = screen == null ? null : screen.DeviceName;
+        }
+
         public void Apply()
         {
-            var cur = CurrentResolution;
-            if (cur.Width == Width && cur.Height == Height && cur.BitsPerPel == BitsPerPel && cur.DisplayFrequency == DisplayFrequency && cur.Interlaced == Interlaced)
+            var cur = GetCurrentResolution(_deviceName);
+            if (cur != null &&
+                cur.Width == Width && cur.Height == Height &&
+                cur.BitsPerPel == BitsPerPel && cur.DisplayFrequency == DisplayFrequency &&
+                cur.Interlaced == Interlaced)
+                return;
+
+            originalMode = new DEVMODE();
+            originalMode.dmSize = (short)Marshal.SizeOf(typeof(DEVMODE));
+
+            if (!EnumDisplaySettings(_deviceName, ENUM_CURRENT_SETTINGS, ref originalMode))
             {
-                SimpleLogger.Instance.Info("[ScreenResolution] Requested mode is already active (" + Width + "x" + Height + "x" + BitsPerPel + " " + DisplayFrequency + "Hz" + (Interlaced ? " Interlaced" : "") + ") - skipping display mode change.");
+                SimpleLogger.Instance.Warning("[ScreenResolution] EnumDisplaySettings failed for " +
+                    (_deviceName ?? "current display"));
                 return;
             }
 
-            originalMode.dmSize = (short)Marshal.SizeOf(originalMode);
-
-            // Retrieving current settings
-            // to edit them
-            EnumDisplaySettings(null, ENUM_CURRENT_SETTINGS, ref originalMode);
-
-            // Making a copy of the current settings
-            // to allow reseting to the original mode
             DEVMODE newMode = originalMode;
-
-            // Changing the settings
             newMode.dmPelsWidth = Width;
             newMode.dmPelsHeight = Height;
             newMode.dmBitsPerPel = BitsPerPel;
             newMode.dmDisplayFrequency = DisplayFrequency;
             newMode.dmDisplayFlags = Interlaced ? 2 : 0;
 
-            SimpleLogger.Instance.Info("[ScreenResolution] Setting resolution to " + newMode.dmPelsWidth + "x" + newMode.dmPelsHeight + "x" + newMode.dmBitsPerPel + " " + newMode.dmDisplayFrequency + "Hz" + (newMode.dmDisplayFlags == 2 ? " (Interlaced)" : ""));
-            
-            changed = ChangeDisplaySettings(ref newMode, 0) == DISP_CHANGE_SUCCESSFUL;
+            SimpleLogger.Instance.Info("[ScreenResolution] Setting " + (_deviceName ?? "current display") +
+                " to " + Width + "x" + Height + "x" + BitsPerPel + " " + DisplayFrequency + "Hz" +
+                (Interlaced ? " (Interlaced)" : ""));
+
+            var result = ChangeDisplaySettingsEx(_deviceName, ref newMode, IntPtr.Zero,
+                ChangeDisplaySettingsFlags.CDS_UPDATEREGISTRY, IntPtr.Zero);
+
+            changed = result == DISP_CHANGE.Successful;
+
+            if (!changed)
+                SimpleLogger.Instance.Warning("[ScreenResolution] ChangeDisplaySettingsEx failed : " + result);
         }
 
         public void Dispose()
         {
             if (changed)
             {
-                SimpleLogger.Instance.Info("[ScreenResolution] Restoring resolution to " + originalMode.dmPelsWidth + "x" + originalMode.dmPelsHeight + "x" + originalMode.dmBitsPerPel + " " + originalMode.dmDisplayFrequency + "Hz");
-                ChangeDisplaySettings(ref originalMode, 0);
+                SimpleLogger.Instance.Info("[ScreenResolution] Restoring " + (_deviceName ?? "current display") +
+                    " to " + originalMode.dmPelsWidth + "x" + originalMode.dmPelsHeight + "x" +
+                    originalMode.dmBitsPerPel + " " + originalMode.dmDisplayFrequency + "Hz");
+
+                ChangeDisplaySettingsEx(_deviceName, ref originalMode, IntPtr.Zero,
+                    ChangeDisplaySettingsFlags.CDS_UPDATEREGISTRY, IntPtr.Zero);
             }
 
             changed = false;

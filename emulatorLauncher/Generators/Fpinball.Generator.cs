@@ -369,6 +369,7 @@ namespace EmulatorLauncher
         private void SetupOptions(ScreenResolution resolution)
         {
             bool fullscreen = ShouldRunFullscreen();
+            var targetScreen = Program.TargetScreen;
 
             RegistryKey regKeyc = null;
 
@@ -390,7 +391,7 @@ namespace EmulatorLauncher
 
                 if (SystemConfig.isOptSet("arcademode") && SystemConfig.getOptBoolean("arcademode"))
                 {
-                    if (Screen.PrimaryScreen.Bounds.Height > Screen.PrimaryScreen.Bounds.Width)
+                    if (targetScreen.Bounds.Height > targetScreen.Bounds.Width)
                         regKeyc.SetValue("RotateDegrees", 0); // Already rotated by system
                     else
                         regKeyc.SetValue("RotateDegrees", 3);
@@ -427,26 +428,17 @@ namespace EmulatorLauncher
                 }
                 else
                 {
-                    regKeyc.SetValue("Height", Screen.PrimaryScreen.Bounds.Height);
-                    regKeyc.SetValue("Width", Screen.PrimaryScreen.Bounds.Width);
-                    regKeyc.SetValue("BitsPerPixel", Screen.PrimaryScreen.BitsPerPixel);
+                    regKeyc.SetValue("Height", targetScreen.Bounds.Height);
+                    regKeyc.SetValue("Width", targetScreen.Bounds.Width);
+                    regKeyc.SetValue("BitsPerPixel", targetScreen.BitsPerPixel);
                 }
 
                 // Monitor ID
-                string monitorId = Screen.PrimaryScreen != null ? Screen.PrimaryScreen.DeviceName : "\\\\.\\DISPLAY1";
-                if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
-                {
-                    int monitorIndex = SystemConfig["MonitorIndex"].ToInteger();
-                    var screens = Screen.AllScreens;
-
-                    if (monitorIndex >= 0 && monitorIndex < screens.Length)
-                        monitorId = screens[monitorIndex].DeviceName;
-                    else
-                        SimpleLogger.Instance.Warning("[WARNING] MonitorIndex " + monitorIndex + " is out of range (" + screens.Length + " screen(s) detected), falling back to primary screen.");
-                }
+                string monitorId = targetScreen.DeviceName;
                 SimpleLogger.Instance.Info("[INFO] Future Pinball playfield monitor : " + monitorId);
                 regKeyc.SetValue("PlayfieldMonitorID", monitorId);
 
+                // Camera
                 if (SystemConfig.isOptSet("DefaultCamera") && !string.IsNullOrEmpty(SystemConfig["DefaultCamera"]))
                     regKeyc.SetValue("DefaultCamera", SystemConfig["DefaultCamera"].ToInteger());
                 else

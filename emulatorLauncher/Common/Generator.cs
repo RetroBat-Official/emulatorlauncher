@@ -27,6 +27,7 @@ namespace EmulatorLauncher
         protected EsFeatures Features { get { return Program.Features; } }
         protected ConfigFile AppConfig { get { return Program.AppConfig; } }
         protected ConfigFile SystemConfig { get { return Program.SystemConfig; } }
+        protected System.Windows.Forms.Screen TargetScreen { get { return Program.TargetScreen; } }
         protected List<Controller> Controllers { get { return Program.Controllers; } }
         
         #region Custom game unzip
@@ -586,6 +587,22 @@ namespace EmulatorLauncher
             return isWindowed && bounds.Width > 0 && bounds.Height > 0;
         }
         #endregion
+
+        /// <summary>
+        /// Enable moving the emulator window to the target screen after launch.
+        /// </summary>
+        protected virtual bool UseGenericScreenPlacement { get { return false; } }
+
+        protected void ApplyScreenPlacement(Process process)
+        {
+            if (!UseGenericScreenPlacement)
+                return;
+
+            if (!SystemConfig.isOptSet("MonitorIndex") || string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+                return;
+
+            ScreenTools.MoveWindow(process, Program.TargetScreen);
+        }
 
         public static bool ShouldRunFullscreen()
         {

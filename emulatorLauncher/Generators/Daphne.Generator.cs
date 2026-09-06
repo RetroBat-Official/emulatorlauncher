@@ -53,17 +53,16 @@ namespace EmulatorLauncher
                     commandArray.Add(xString);
                 }
 
-                string screenString = "0";
                 if (SystemConfig.isOptSet("MonitorIndex"))
                 {
-                    screenString = SystemConfig["MonitorIndex"];
+                    // Hypseus uses SDL : -screen expects a 0-based SDL index.
                     commandArray.Add("-screen");
-                    commandArray.Add(screenString);
+                    commandArray.Add(Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike).ToString());
                 }
 
                 if (SystemConfig.getOptBoolean("hypseus_stretch"))
                 {
-                    var resolution = ScreenResolution.FromScreenIndex(screenString.ToInteger());
+                    var resolution = ScreenResolution.FromScreen(Program.TargetScreen);
                     commandArray.Add("-x");
                     commandArray.Add(resolution.Width.ToString());
                     commandArray.Add("-y");

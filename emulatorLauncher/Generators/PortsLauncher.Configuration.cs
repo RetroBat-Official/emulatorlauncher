@@ -960,7 +960,7 @@ namespace EmulatorLauncher
             {
                 var displayConf = DynamicJson.Load(displaySettingsFile);
 
-                BindFeature(displayConf, "display_id", "MonitorIndex", "0");
+                displayConf["display_id"] = Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike).ToString();
                 if (_fullscreen && _exclusivefs)
                     displayConf["display_mode"] = "1";
                 else if (_fullscreen)
@@ -1868,12 +1868,7 @@ namespace EmulatorLauncher
             settings["ControllerRumblePlayer2"] = rumble;
 
 
-            if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
-            {
-                settings["DisplayIndex"] = (SystemConfig["MonitorIndex"].ToInteger() - 1).ToString();
-            }
-            else
-                settings["DisplayIndex"] = "0";
+            settings["DisplayIndex"] = Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike).ToString();
 
             BindFeature(settings, "RenderMethod", "sonic3_renderer", "opengl-full");
             BindFeature(settings, "FrameSync", "sonic3_vsync", "1");

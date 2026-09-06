@@ -1113,22 +1113,13 @@ namespace EmulatorLauncher
             catch { SimpleLogger.Instance.Error($"[ERROR] Failed to load patch file : {gameID}"); }
         }
 
-        private int GetTargetMonitorIndex()
+        private Screen GetTargetScreen()
         {
+            // Pas de MonitorIndex defini : on ne gere pas le placement d'ecran.
             if (!SystemConfig.isOptSet("MonitorIndex") || string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
-                return -1;
+                return null;
 
-            int index;
-            if (!int.TryParse(SystemConfig["MonitorIndex"], out index))
-                return -1;
-
-            if (index < 0 || index >= Screen.AllScreens.Length)
-            {
-                SimpleLogger.Instance.Warning($"[SCREENMOVER] MonitorIndex {index} out of range ({Screen.AllScreens.Length} screen(s) detected), ignoring.");
-                return -1;
-            }
-
-            return index;
+            return Program.TargetScreen;
         }
 
         public override int RunAndWait(ProcessStartInfo path)
@@ -1136,10 +1127,10 @@ namespace EmulatorLauncher
             FakeBezelFrm bezel = null;
             int ret = 0;
 
-            int monitorIndex = GetTargetMonitorIndex();
+            Screen targetScreen = GetTargetScreen();
             bool guiMode = SystemConfig.getOptBoolean("dolphin_gui");
 
-            bool manageScreen = monitorIndex >= 0 && !guiMode;
+            bool manageScreen = targetScreen != null && !guiMode;
             bool needWindow = manageScreen || (_bezelFileInfo != null && !guiMode);
 
             var process = Process.Start(path);
@@ -1155,15 +1146,15 @@ namespace EmulatorLauncher
                     process.WaitForInputIdle(5000);
 
                 if (manageScreen && hWnd != IntPtr.Zero)
-                    ScreenTools.HoldWindowOnScreen(process, hWnd, monitorIndex);
+                    ScreenTools.HoldWindowOnScreen(process, hWnd, targetScreen);
 
                 ScreenTools.LogProcessWindows(process);
 
                 if (_bezelFileInfo != null)
                 {
-                    int bezelIndex = ScreenTools.GetScreenIndex(hWnd, manageScreen ? monitorIndex : -1);
-                    SimpleLogger.Instance.Info($"[BEZEL] Decorations will be shown on screen index {bezelIndex}");
-                    bezel = _bezelFileInfo.ShowFakeBezel(_resolution, false, bezelIndex);
+                    Screen bezelScreen = ScreenTools.GetScreen(hWnd, manageScreen ? targetScreen : Program.TargetScreen);
+                    SimpleLogger.Instance.Info($"[BEZEL] Decorations will be shown on {bezelScreen.DeviceName}");
+                    bezel = _bezelFileInfo.ShowFakeBezel(_resolution, false, bezelScreen);
                 }
 
                 if (hWnd == IntPtr.Zero)
