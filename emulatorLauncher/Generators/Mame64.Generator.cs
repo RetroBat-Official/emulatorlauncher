@@ -329,13 +329,12 @@ namespace EmulatorLauncher
                 else
                     retList.Add("-ka");
             }
-            
+
             // Monitor index
             if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
             {
-                string mameMonitor = "\\" + "\\" + ".\\" + "DISPLAY" + SystemConfig["MonitorIndex"];
                 retList.Add("-screen");
-                retList.Add(mameMonitor);
+                retList.Add(Program.TargetScreen.DeviceName);
             }
 
             // Screen rotation

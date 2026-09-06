@@ -285,13 +285,11 @@ namespace EmulatorLauncher
 
                     if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
                     {
-                        int index = SystemConfig["MonitorIndex"].ToInteger();
-
-                        if (index != -1)
-                        {
-                            index = index - 1;
+                        // gs_frame.cpp : index 0-based in QGuiApplication::screens(),
+                        // Qt order = primary first, same as SDL order.
+                        int index = Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike);
+                        if (index >= 0)
                             ini.WriteValue("GSFrame", "screen", index.ToString());
-                        }
                     }
 
                     ini.WriteValue("Shortcuts", "game_window_pause_play", "P");

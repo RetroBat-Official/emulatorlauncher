@@ -164,7 +164,7 @@ namespace EmulatorLauncher
             BindMednafenFeature(cfg, "mednafen_scaler", mednafenCore + ".special", "none");
             BindMednafenFeature(cfg, "mednafen_apu", "sound.driver", "default");
             BindMednafenFeature(cfg, "mednafen_interlace", "video.deinterlacer", "weave");
-            BindMednafenFeature(cfg, "MonitorIndex", "video.fs.display", "-1");
+            cfg["video.fs.display"] = SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]) ? Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike).ToString(): "-1";
             BindMednafenBoolFeatureOn(cfg, "mednafen_vsync", "video.glvsync", "1", "0");
             BindMednafenBoolFeature(cfg, "autosave", "autosave", "1", "0");
             BindMednafenBoolFeature(cfg, "mednafen_cheats", "cheats", "1", "0");

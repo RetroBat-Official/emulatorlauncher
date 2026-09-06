@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -103,7 +104,7 @@ namespace EmulatorLauncher
                     SetStellaSetting(db, "tv.scanlines", "stella_scanlines", "Off");
                     SetStellaSetting(db, "video", "stella_renderer", "direct3d");
                     SetStellaBoolSetting(db, "vsync", "stella_vsync", "1", "0", "1");
-                    SetStellaSetting(db, "display", "stella_monitor", "0");
+                    ForceStellaSetting(db, "display", Math.Max(0, Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike)).ToString(CultureInfo.InvariantCulture));
                     SetStellaSetting(db, "audio.preset", "stella_audio_quality", "3");
                     SetStellaBoolSetting(db, "audio.stereo", "stella_force_stereo", "1", "0", "0");
                     SetStellaBoolSetting(db, "threads", "stella_multithread", "1", "0", "0");

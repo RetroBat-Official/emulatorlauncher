@@ -11,6 +11,13 @@ using System.Windows.Forms;
 
 namespace EmulatorLauncher
 {
+    /// <summary>
+    /// Manipulation de fenetres et placement sur ecran.
+    ///
+    /// Aucune methode publique ne prend d'index : un index n'a pas de sens sans son ordre
+    /// d'enumeration (SDL ou EnumDisplayMonitors). La conversion se fait en amont, via
+    /// Program.TargetScreen ou Displays.FromIndex(), et on ne transporte que des Screen.
+    /// </summary>
     internal class ScreenTools
     {
         [StructLayout(LayoutKind.Sequential)]
@@ -22,19 +29,11 @@ namespace EmulatorLauncher
             public int Bottom;
         }
 
-        public static bool MoveHandleToScreen(IntPtr handle, int targetMonitorIndex)
+        public static bool MoveHandleToScreen(IntPtr handle, Screen targetScreen)
         {
-            if (handle == IntPtr.Zero)
+            if (handle == IntPtr.Zero || targetScreen == null)
                 return false;
 
-            Screen[] screens = Screen.AllScreens;
-            if (targetMonitorIndex < 0 || targetMonitorIndex >= screens.Length)
-            {
-                SimpleLogger.Instance.Warning($"[SCREENMOVER] Target monitor index {targetMonitorIndex} is out of range. Available screens: {screens.Length}");
-                return false;
-            }
-
-            Screen targetScreen = screens[targetMonitorIndex];
             Screen currentScreen = Screen.FromHandle(handle);
 
             if (currentScreen.DeviceName.Equals(targetScreen.DeviceName))
@@ -70,16 +69,14 @@ namespace EmulatorLauncher
         }
 
         /// <summary>
-        /// Index in Screen.AllScreens of the screen where the window is actually located.
+        /// Screen where the window is actually located, or the fallback when unknown.
         /// </summary>
-        public static int GetScreenIndex(IntPtr handle, int fallbackIndex)
+        public static Screen GetScreen(IntPtr handle, Screen fallback)
         {
             if (handle == IntPtr.Zero)
-                return fallbackIndex;
+                return fallback;
 
-            string deviceName = Screen.FromHandle(handle).DeviceName;
-            int index = Array.FindIndex(Screen.AllScreens, s => s.DeviceName == deviceName);
-            return index < 0 ? fallbackIndex : index;
+            return Screen.FromHandle(handle) ?? fallback;
         }
 
         public static IntPtr WaitForReadyWindow(Process process, Predicate<IntPtr> selector, bool waitFullscreen, int timeoutMs = 30000, int pollMs = 250)
@@ -111,17 +108,12 @@ namespace EmulatorLauncher
             return IntPtr.Zero;
         }
 
-        public static bool HoldWindowOnScreen(Process process, IntPtr handle, int targetMonitorIndex,
+        public static bool HoldWindowOnScreen(Process process, IntPtr handle, Screen target,
             int holdMs = 3000, int pollMs = 250)
         {
-            if (process == null || handle == IntPtr.Zero)
+            if (process == null || handle == IntPtr.Zero || target == null)
                 return false;
 
-            Screen[] screens = Screen.AllScreens;
-            if (targetMonitorIndex < 0 || targetMonitorIndex >= screens.Length)
-                return false;
-
-            Screen target = screens[targetMonitorIndex];
             var hold = Stopwatch.StartNew();
             int corrections = 0;
 
@@ -132,7 +124,7 @@ namespace EmulatorLauncher
 
                 if (!Screen.FromHandle(handle).DeviceName.Equals(target.DeviceName))
                 {
-                    MoveHandleToScreen(handle, targetMonitorIndex);
+                    MoveHandleToScreen(handle, target);
                     corrections++;
                 }
 
@@ -145,15 +137,18 @@ namespace EmulatorLauncher
             return ok;
         }
 
-        public static void MoveWindow(Process process, int targetMonitorIndex = 0, int maxRetries = 20, int retryDelayMs = 2000)
+        public static void MoveWindow(Process process, Screen targetScreen = null, int maxRetries = 20, int retryDelayMs = 2000)
         {
-            SimpleLogger.Instance.Info($"[SCREENMOVER] Starting process of moving {process.ProcessName} to monitor {targetMonitorIndex}");
+            if (process == null)
+                return;
+
+            if (targetScreen == null)
+                targetScreen = Program.TargetScreen;
+
+            SimpleLogger.Instance.Info($"[SCREENMOVER] Starting process of moving {process.ProcessName} to {targetScreen.DeviceName}");
 
             try
             {
-                if (process == null)
-                    return;
-
                 Thread.Sleep(200);
                 IntPtr handle = IntPtr.Zero;
 
@@ -191,16 +186,6 @@ namespace EmulatorLauncher
                     return;
                 }
 
-                
-
-                Screen[] screens = Screen.AllScreens;
-                if (targetMonitorIndex < 0 || targetMonitorIndex >= screens.Length)
-                {
-                    SimpleLogger.Instance.Warning($"[SCREENMOVER] Target monitor index {targetMonitorIndex} is out of range. Available screens: {screens.Length}");
-                    return;
-                }
-
-                Screen targetScreen = screens[targetMonitorIndex];
                 Screen currentScreen = Screen.FromHandle(handle);
 
                 SimpleLogger.Instance.Info($"[SCREENMOVER] Window is currently on: {currentScreen.DeviceName} (Primary: {currentScreen.Primary})");
@@ -231,9 +216,9 @@ namespace EmulatorLauncher
             }
         }
 
-        public static bool MoveWindow(Process process, Predicate<IntPtr> selector, int targetMonitorIndex, int maxRetries = 40, int retryDelayMs = 250)
+        public static bool MoveWindow(Process process, Predicate<IntPtr> selector, Screen targetScreen, int maxRetries = 40, int retryDelayMs = 250)
         {
-            if (process == null)
+            if (process == null || targetScreen == null)
                 return false;
 
             for (int i = 0; i < maxRetries; i++)
@@ -244,7 +229,7 @@ namespace EmulatorLauncher
                 IntPtr handle = User32.FindHwnds(process.Id, selector, true).FirstOrDefault();
                 if (handle != IntPtr.Zero)
                 {
-                    MoveHandleToScreen(handle, targetMonitorIndex);
+                    MoveHandleToScreen(handle, targetScreen);
                     return true;
                 }
 

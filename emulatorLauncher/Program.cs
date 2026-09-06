@@ -208,6 +208,39 @@ namespace EmulatorLauncher
         public static ConfigFile AppConfig { get; private set; }
         public static string LocalPath { get; private set; }
         public static ConfigFile SystemConfig { get; private set; }
+        
+        /// <summary>
+        /// Target screen of the game. Priority order:
+        ///   1. the MonitorIndex feature (0-based index, SDL order)
+        ///   2. the screen on which EmulationStation is running (-monitor)
+        ///   3. the primary Windows screen (default, most compatible)
+        /// </summary>
+        public static Screen TargetScreen
+        {
+            get
+            {
+                if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+                {
+                    int n;
+                    if (int.TryParse(SystemConfig["MonitorIndex"], out n) && n >= 0)
+                    {
+                        var s = Displays.FromIndex(n, MonitorOrder.SdlLike);
+                        if (s != null)
+                            return s;
+
+                        SimpleLogger.Instance.Warning("[Displays] MonitorIndex " + n +
+                            " out of range (" + Screen.AllScreens.Length + " screen(s)), falling back.");
+                    }
+                }
+
+                var es = Displays.FromDeviceName(EsScreenDeviceName);
+                if (es != null)
+                    return es;
+
+                return Screen.PrimaryScreen;
+            }
+        }
+        public static string EsScreenDeviceName { get; private set; }
         public static List<Controller> Controllers { get; private set; }
         public static EsFeatures Features { get; private set; }
         public static Game CurrentGame { get; private set; }
@@ -383,12 +416,38 @@ namespace EmulatorLauncher
             AppConfig.ImportOverrides(ConfigFile.FromArguments(args));
 
             SimpleLogger.Instance.Info("[Startup] Loading ES settings.");
+
+            // "-monitor N" (EmulationStation, FileData.cpp) is an SDL index.
+            // We extract the value and then remove it from the arguments before any import, so it can no longer override a user choice.
+            var cmdLine = ConfigFile.FromArguments(args);
+            if (cmdLine.isOptSet("monitor"))
+            {
+                int esMonitor;
+                if (int.TryParse(cmdLine["monitor"], out esMonitor))
+                {
+                    var esScreen = Displays.FromIndex(esMonitor, MonitorOrder.SdlLike);
+                    if (esScreen != null)
+                    {
+                        EsScreenDeviceName = esScreen.DeviceName;
+                        SimpleLogger.Instance.Info("[Displays] EmulationStation runs on sdlIndex=" +
+                            esMonitor + " -> " + EsScreenDeviceName);
+                    }
+                    else
+                        SimpleLogger.Instance.Warning("[Displays] -monitor " + esMonitor +
+                            " is out of range, ignored.");
+                }
+
+                // ConfigFile n'expose pas de Remove() : affecter une valeur vide supprime
+                // l'entree (indexeur, ConfigFile.cs:237-238, Options == null ici).
+                cmdLine["monitor"] = null;
+            }
+
             SystemConfig = ConfigFile.LoadEmulationStationSettings(Path.Combine(Program.AppConfig.GetFullPath("home"), "es_settings.cfg"));
-            SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
+            SystemConfig.ImportOverrides(cmdLine);
             SystemConfig.ImportOverrides(SystemConfig.LoadAll("global"));
             SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"]));
-            SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileName(SystemConfig["rom"]).Replace("=","").Replace("#","") + "\"]"));
-            SystemConfig.ImportOverrides(ConfigFile.FromArguments(args));
+            SystemConfig.ImportOverrides(SystemConfig.LoadAll(SystemConfig["system"] + "[\"" + Path.GetFileName(SystemConfig["rom"]).Replace("=", "").Replace("#", "") + "\"]"));
+            SystemConfig.ImportOverrides(cmdLine);
 
             // Log Retrobat version && emulatorlauncher version
             string rbVersionPath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "version.info");
@@ -627,15 +686,7 @@ namespace EmulatorLauncher
             catch { SimpleLogger.Instance.Error("[Startup] Error while getting local version"); }
 
             // log screens
-            var allScreens = Screen.AllScreens;
-            if (allScreens != null && allScreens.Length > 0)
-            {
-                for (int i = 0; i < allScreens.Length; i++)
-                {
-                    var s = allScreens[i];
-                    SimpleLogger.Instance.Info($"[Generator] Screen[{i}]: L={s.Bounds.Left} T={s.Bounds.Top} W={s.Bounds.Width} H={s.Bounds.Height} Primary={s.Primary}");
-                }
-            }
+            Displays.LogAll();
 
             // Game info
             if (SystemConfig.isOptSet("gameinfo") && File.Exists(SystemConfig.GetFullPath("gameinfo")))
@@ -744,6 +795,9 @@ namespace EmulatorLauncher
 
                 using (var screenResolution = ScreenResolution.Parse(SystemConfig["videomode"]))
                 {
+                    if (screenResolution != null)
+                        screenResolution.SetTargetScreen(Program.TargetScreen);
+
                     ProcessStartInfo path = null;
 
                     try

@@ -1166,15 +1166,11 @@ namespace EmulatorLauncher
         public override int RunAndWait(ProcessStartInfo path)
         {
             int ret = 0;
-            int monitorIndex = SystemConfig["MonitorIndex"].ToInteger();
-
-            var screens = Screen.AllScreens;
-            if (monitorIndex < 0 || monitorIndex >= screens.Length)
-                monitorIndex = Array.FindIndex(screens, s => s.Primary);
+            Screen targetScreen = Program.TargetScreen;
 
             if (_bezelFileInfo != null)
             {
-                var bezel = _bezelFileInfo.ShowFakeBezel(_resolution, true, monitorIndex);
+                var bezel = _bezelFileInfo.ShowFakeBezel(_resolution, true, targetScreen);
                 if (bezel != null)
                 {
                     RECT rc = bezel.ViewPort;
@@ -1182,7 +1178,7 @@ namespace EmulatorLauncher
                     //if (rc.bottom - rc.top == (_resolution ?? ScreenResolution.CurrentResolution).Height)
                     //    rc.bottom--;
 
-                    var process = StartProcessAndMoveItsWindowTo(path, rc, monitorIndex);
+                    var process = StartProcessAndMoveItsWindowTo(path, rc, targetScreen);
                     if (process != null)
                     {
                         Job.Current.AddProcess(process);
@@ -1200,9 +1196,9 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (monitorIndex >= 0)
+            if (targetScreen != null)
             {
-                var process = StartProcessAndMoveItsWindowTo(path, Screen.AllScreens[monitorIndex].Bounds, monitorIndex);
+                var process = StartProcessAndMoveItsWindowTo(path, targetScreen.Bounds, targetScreen);
                 if (process != null)
                 {
                     Job.Current.AddProcess(process);
@@ -1218,12 +1214,11 @@ namespace EmulatorLauncher
             return base.RunAndWait(path);
         }
 
-        private Process StartProcessAndMoveItsWindowTo(ProcessStartInfo path, RECT rc, int monitorIndex)
+        private Process StartProcessAndMoveItsWindowTo(ProcessStartInfo path, RECT rc, Screen screen)
         {
             var process = Process.Start(path);
 
-            var screen = Screen.AllScreens[monitorIndex];
-            if (screen.Primary)
+            if (screen == null || screen.Primary)
                 return process;
 
             int retryCount = 0;

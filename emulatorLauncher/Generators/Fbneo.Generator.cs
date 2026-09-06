@@ -142,27 +142,16 @@ namespace EmulatorLauncher
                 else
                     cfg["nVidSelect"] = "3";
 
-                // Monitor indexes
-                if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
-                {
-                    string emuMonitor = "\\\\" + ".\\" + "DISPLAY" + SystemConfig["MonitorIndex"];
-                    cfg["HorScreen"] = emuMonitor;
-                }
-                else
-                    cfg["HorScreen"] = "\\\\" + ".\\" + "DISPLAY1";
+                // Monitor indexes : FBNeo expects a Windows adapter name, not an index.
+                cfg["HorScreen"] = Program.TargetScreen.DeviceName;
 
                 if (SystemConfig.isOptSet("VerticalMonitorIndex") && !string.IsNullOrEmpty(SystemConfig["VerticalMonitorIndex"]))
                 {
-                    string emuMonitorV = "\\\\" + ".\\" + "DISPLAY" + SystemConfig["VerticalMonitorIndex"];
-                    cfg["VerScreen"] = emuMonitorV;
-                }
-                else if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
-                {
-                    string emuMonitorV = "\\\\" + ".\\" + "DISPLAY" + SystemConfig["MonitorIndex"];
-                    cfg["VerScreen"] = emuMonitorV;
+                    var vScreen = Displays.FromIndex(SystemConfig["VerticalMonitorIndex"].ToInteger(), MonitorOrder.SdlLike);
+                    cfg["VerScreen"] = (vScreen ?? Program.TargetScreen).DeviceName;
                 }
                 else
-                    cfg["VerScreen"] = "\\\\" + ".\\" + "DISPLAY1";
+                    cfg["VerScreen"] = Program.TargetScreen.DeviceName;
 
                 // Scanlines
                 if (SystemConfig.isOptSet("fbneo_scanlines") && SystemConfig["fbneo_scanlines"] != "0")
