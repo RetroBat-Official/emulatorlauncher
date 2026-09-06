@@ -599,7 +599,7 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "DSP", "Backend", "dolphin_audiobackend", "Cubeb");
 
                     // Video backend - Default
-                    BindIniFeature(ini, "Core", "GFXBackend", "dolphin_gfxbackend", _triforce ? "OGL" : "Vulkan");
+                    BindIniFeature(ini, "Core", "GFXBackend", "dolphin_gfxbackend", "D3D");
 
                     // Cheats - default false
                     if (!_crediar)
