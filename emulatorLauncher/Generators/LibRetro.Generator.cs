@@ -1650,10 +1650,12 @@ namespace EmulatorLauncher.Libretro
             retroarchConfig["video_driver"] = _video_driver = "d3d11";
 
             // general, assigned selected core
-            if (SystemConfig.isOptSet("video_driver"))
+            if (SystemConfig.isOptSet("video_driver") && !string.IsNullOrEmpty(SystemConfig["video_driver"]))
             {
                 _video_driver = SystemConfig["video_driver"];
                 retroarchConfig["video_driver"] = SystemConfig["video_driver"];
+                SimpleLogger.Instance.Info("[VIDEO] User-defined video driver: " + _video_driver);
+                return;
             }
 
             if (core.StartsWith("mupen64"))
@@ -2495,7 +2497,7 @@ namespace EmulatorLauncher.Libretro
         static readonly Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
         static readonly Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>()
         {
-            { "flycast", "vulkan" },
+            { "dolphin", "glcore" },
             { "melondsds", "glcore" },
             { "mupen64plus_next", "glcore" },
             { "pcsx2", "glcore" },

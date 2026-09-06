@@ -244,9 +244,14 @@ namespace EmulatorLauncher
                         ini.WriteValue("config", "pvr.rend", "3");
                         ini.WriteValue("config", "rend.PerStripSorting", "yes");
                     }
-                    else
+                    else if (SystemConfig["flycast_video"] == "vulkan")
                     {
                         ini.WriteValue("config", "pvr.rend", "5");
+                        ini.WriteValue("config", "rend.PerStripSorting", "yes");
+                    }
+                    else
+                    {
+                        ini.WriteValue("config", "pvr.rend", "6");
                         ini.WriteValue("config", "rend.PerStripSorting", "yes");
                     }
                 }

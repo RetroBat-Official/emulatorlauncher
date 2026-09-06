@@ -10,10 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Windows.Controls;
-using System.Windows.Forms;
 using System.Xml.Linq;
-using TeknoParrotUi.Common;
 using static EmulatorLauncher.Mame64Generator;
 using static EmulatorLauncher.PadToKeyboard.SendKey;
 
@@ -4324,14 +4321,13 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             // nand region
-            string nand = "dsi_nand.bin";
-            if (SystemConfig.isOptSet("melondsds_nandregion") && !string.IsNullOrEmpty(SystemConfig["melondsds_nandregion"]))
+            string nand = "/auto";
+            if (SystemConfig.isOptSet("melondsds_nandregion") && !string.IsNullOrEmpty(SystemConfig["melondsds_nandregion"]) && !SystemConfig["melondsds_nandregion"].Equals("AUTO", StringComparison.OrdinalIgnoreCase))
             {
-                
                 string region = SystemConfig["melondsds_nandregion"].ToLowerInvariant();
                 string biosPath = AppConfig.GetFullPath("bios");
                 var nandFiles = Directory.GetFiles(biosPath, "dsi_nand*.bin");
-                
+
                 if (nandFiles.Length > 0)
                 {
                     foreach (var file in nandFiles)
@@ -4369,13 +4365,16 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "melonds_screen_layout1", "melondsds_screen_layout1", "top-bottom");
             BindFeature(coreSettings, "melonds_screen_layout2", "melondsds_screen_layout2", "right-left");
 
+            BindFeatureSlider(coreSettings, "melonds_secondary_screen_scale", "melondsds_secondary_screen_scale", "100");
+            BindFeature(coreSettings, "melonds_secondary_screen_filtering", "melondsds_secondary_screen_filtering", "nearest");
+
             // Firmware
             BindFeature(coreSettings, "melonds_firmware_language", "melondsds_language", "auto");
             BindFeature(coreSettings, "melonds_console_mode", "melondsds_console", "ds");
             BindBoolFeature(coreSettings, "melonds_boot_mode", "melondsds_boot", "native", "direct");
 
             if (SystemConfig["melondsds_console"] == "dsi")
-                coreSettings["melonds_firmware_nds_path"] = "dsi_firmware.bin";
+                coreSettings["melonds_firmware_dsi_path"] = "dsi_firmware.bin";
             else
                 coreSettings["melonds_firmware_nds_path"] = "firmware.bin";
 
@@ -4395,6 +4394,12 @@ namespace EmulatorLauncher.Libretro
             // Microphone
             BindFeature(coreSettings, "melonds_mic_input", "melonds_mic_input", "blow");
             BindFeature(coreSettings, "melonds_mic_input_active", "melonds_mic_input_active", "hold");
+
+            // Controls
+            BindFeature(coreSettings, "melonds_joystick_cursor_deadzone", "melondsds_joystick_deadzone", "5");
+            BindFeature(coreSettings, "melonds_joystick_cursor_maxspeed", "melondsds_joystick_maxspeed", "3");
+            BindFeature(coreSettings, "melonds_joystick_cursor_response", "melondsds_joystick_response", "200");
+            BindFeature(coreSettings, "melonds_joystick_cursor_speedup", "melondsds_joystick_speedup", "200");
         }
 
         private void ConfiguremGBA(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
