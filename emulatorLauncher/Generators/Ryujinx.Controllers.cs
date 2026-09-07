@@ -64,16 +64,23 @@ namespace EmulatorLauncher
 
             //create new input_config section
             List<object> input_configs = new List<object>();
+            List<object> player_input_assignments = new List<object>();
 
             int maxPad = 8;
             if (SystemConfig.isOptSet("ryujinx_maxcontrollers") && !string.IsNullOrEmpty(SystemConfig["ryujinx_maxcontrollers"]))
                 maxPad = SystemConfig["ryujinx_maxcontrollers"].ToInteger();
 
             //loop controllers
+            
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
-                ConfigureInput(json, controller, input_configs);
+                ConfigureInput(json, controller, input_configs, player_input_assignments);
 
             json.input_config = JArray.FromObject(input_configs);
+            json.player_input_assignments = JArray.FromObject(player_input_assignments);
+
+
+            //json["player_input_assignments"] = new JArray();
+            json["allow_duplicate_device_assignment"] = false;
         }
 
         /// <summary>
@@ -82,7 +89,7 @@ namespace EmulatorLauncher
         /// <param name="json"></param>
         /// <param name="c"></param>
         /// <param name="input_configs"></param>
-        private void ConfigureInput(dynamic json, Controller c, List<object> input_configs)
+        private void ConfigureInput(dynamic json, Controller c, List<object> input_configs, List<object> player_input_assignments)
         {
             if (c == null || c.Config == null)
                 return;
@@ -90,7 +97,7 @@ namespace EmulatorLauncher
             if (c.IsKeyboard)
                 ConfigureKeyboard(json, c.Config, input_configs);
             else
-                ConfigureJoystick(json, c, c.PlayerIndex, input_configs);
+                ConfigureJoystick(json, c, c.PlayerIndex, input_configs, player_input_assignments);
         }
 
         /// <summary>
@@ -200,6 +207,7 @@ namespace EmulatorLauncher
             newInputConfig["id"] = "0";
             newInputConfig["controller_type"] = playerType;
             newInputConfig["player_index"] = handheld ? "Handheld" : "Player1";
+            newInputConfig["enable_dynamic_gamepad_swap"] = false;
 
             input_configs.Add(Newtonsoft.Json.Linq.JObject.FromObject(newInputConfig));
         }
@@ -211,7 +219,8 @@ namespace EmulatorLauncher
         /// <param name="c"></param>
         /// <param name="playerIndex"></param>
         /// <param name="input_configs"></param>
-        private void ConfigureJoystick(dynamic json, Controller c, int playerIndex, List<object> input_configs)
+        /// <param name="player_input_assignments"></param>
+        private void ConfigureJoystick(dynamic json, Controller c, int playerIndex, List<object> input_configs, List<object> player_input_assignments)
         {
             if (c == null)
                 return;
@@ -244,6 +253,7 @@ namespace EmulatorLauncher
 
             //Build input_config section
             var newInputConfig = new Dictionary<string, object>();
+            //var newInputAssignment = new Dictionary<string, object>();
 
             //left joycon section
             newInputConfig["left_joycon_stick"] = new
@@ -331,6 +341,7 @@ namespace EmulatorLauncher
                     strong_rumble = 1,
                     weak_rumble = 1,
                     enable_rumble = true,
+                    use_hdrumble = false,
                 };
             }
             else
@@ -340,6 +351,7 @@ namespace EmulatorLauncher
                     strong_rumble = 1,
                     weak_rumble = 1,
                     enable_rumble = false,
+                    use_hdrumble = false,
                 };
             }
 
@@ -453,7 +465,12 @@ namespace EmulatorLauncher
                 ryuGuidString = overrideGuid;
             }
 
-            string joyName = joyconPair ? "* Nintendo Switch Joy-Con (L/R) (" + index + ")" : null;
+            string padName = c.Name != null ? c.Name : null;
+            if (c.Sdl3Controller != null && c.Sdl3Controller.Name != null)
+                padName = c.Sdl3Controller.Name;
+            if (padName != null)
+                padName = padName + " (" + index + ")";
+            string joyName = joyconPair ? "* Nintendo Switch Joy-Con (L/R) (" + index + ")" : padName?? null;
 
             newInputConfig["version"] = 1;
             newInputConfig["backend"] = _sdl3 ? "GamepadSDL3" : "GamepadSDL2";
@@ -461,9 +478,27 @@ namespace EmulatorLauncher
             newInputConfig["controller_type"] = playerType;
             newInputConfig["name"] = joyName;
             newInputConfig["player_index"] = handheld ? "Handheld" : "Player" + playerIndex;
+            newInputConfig["enable_dynamic_gamepad_swap"] = false;
+
+            /* Player Assignment section
+            newInputAssignment["player_index"] = handheld ? "Handheld" : "Player" + playerIndex;
+            newInputAssignment["enable_dynamic_input_swap"] = false;
+            if (!joyconPair)
+            {
+                newInputAssignment["devices"] = new[]
+                {
+                    new
+                    {
+                        type = "Controller",
+                        id = (index + "-" + ryuGuidString).ToString(),
+                        profile_name = (string)null
+                    }
+                };
+            }*/
 
             //add section to file
             input_configs.Add(Newtonsoft.Json.Linq.JObject.FromObject(newInputConfig));
+            //player_input_assignments.Add(Newtonsoft.Json.Linq.JObject.FromObject(newInputAssignment));
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + c.DevicePath + " to player : " + c.PlayerIndex.ToString());
         }
