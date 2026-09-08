@@ -47,7 +47,7 @@ namespace EmulatorLauncher.Common.Joysticks
 
                 try
                 {
-                    var pt = InputDevices.GetInputDeviceParent(PNPDeviceID);
+                    var pt = InputDevices.StripHidCollectionSuffix(InputDevices.GetInputDeviceParent(PNPDeviceID));
                     if (pt.StartsWith("USB"))
                     {
                         var mo = GetDeviceFromName(pt);

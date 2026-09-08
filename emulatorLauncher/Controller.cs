@@ -29,6 +29,25 @@ namespace EmulatorLauncher
 
         public bool IsKeyboard { get { return "Keyboard".Equals(Name, StringComparison.InvariantCultureIgnoreCase); } }
 
+        /// <summary>
+        /// True when another player is bound to the very same device path. This happens with arcade
+        /// boards exposing one joystick per HID collection (Xin-Mo / Xinmotek dual encoders,
+        /// DragonRise and "Twin USB" 2-players boards, ...): every lookup made with that path
+        /// returns the same device, so it cannot be used to resolve a joystick index.
+        /// The SDL mapping stays usable, only the index resolution has to fall back on DeviceIndex.
+        /// </summary>
+        public bool HasAmbiguousDevicePath
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(DevicePath) || Program.Controllers == null)
+                    return false;
+
+                return Program.Controllers.Any(c => c != this && !c.IsKeyboard
+                    && string.Equals(c.DevicePath, this.DevicePath, StringComparison.InvariantCultureIgnoreCase));
+            }
+        }
+
         public SdlToDirectInput dinputCtrl = null;
 
         public SdlJoystickGuid GetSdlGuid(SdlVersion version = SdlVersion.SDL2_0_X, bool noRemoveDriver = false)
