@@ -22,10 +22,14 @@ namespace EmulatorLauncher
 
             if (Path.GetExtension(rom).ToLower() == ".uae")
             {
+                string systemRomPath = Path.Combine(AppConfig.GetFullPath("roms"), system).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
                 return new ProcessStartInfo()
                 {
                     FileName = exe,
-                    Arguments = "\"" + rom + "\"",
+                    Arguments = "\"" + rom + "\""
+                              + " -s \"win32.hardfile_path=" + systemRomPath + "\""
+                              + " -s \"win32.cd_path=" + systemRomPath + "\"",
                     WorkingDirectory = path,
                 };
             }
