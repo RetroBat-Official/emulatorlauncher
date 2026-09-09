@@ -489,17 +489,21 @@ namespace EmulatorLauncher
                         switch (core)
                         {
                             case "melondsds":
-                                if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "left-right" || Program.SystemConfig["melondsds_screen_layout"] == "right-left"))
+                                if (Program.SystemConfig.isOptSet("melondsds_screen_layout1") && (Program.SystemConfig["melondsds_screen_layout1"] == "left-right" || Program.SystemConfig["melondsds_screen_layout1"] == "right-left"))
                                     return "nds_side_by_side";
-                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && Program.SystemConfig["melondsds_screen_layout"] == "hybrid-top")
+                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout1") && Program.SystemConfig["melondsds_screen_layout1"] == "hybrid-top")
                                     return "nds_lr_hybrid";
-                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && Program.SystemConfig["melondsds_screen_layout"] == "hybrid-bottom")
+                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout1") && Program.SystemConfig["melondsds_screen_layout1"] == "hybrid-bottom")
                                     return "nds_lr_hybrid_bottom";
-                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && Program.SystemConfig["melondsds_screen_layout"] == "flipped-hybrid-top")
+                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout1") && Program.SystemConfig["melondsds_screen_layout1"].StartsWith("largescreen"))
+                                    return "nds_lr_largescreen";
+                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout1") && Program.SystemConfig["melondsds_screen_layout1"] == "flipped-hybrid-top")
                                     return "nds_lr_flipped_hybrid";
-                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && Program.SystemConfig["melondsds_screen_layout"] == "flipped-hybrid-bottom")
+                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout1") && Program.SystemConfig["melondsds_screen_layout1"] == "flipped-hybrid-bottom")
                                     return "nds_lr_flipped_hybrid_bottom";
-                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout") && (Program.SystemConfig["melondsds_screen_layout"] == "top" || Program.SystemConfig["melondsds_screen_layout"] == "bottom"))
+                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout1") && Program.SystemConfig["melondsds_screen_layout1"].StartsWith("flipped-largescreen"))
+                                    return "nds_lr_flipped_largescreen";
+                                else if (Program.SystemConfig.isOptSet("melondsds_screen_layout1") && (Program.SystemConfig["melondsds_screen_layout1"] == "top" || Program.SystemConfig["melondsds_screen_layout1"] == "bottom"))
                                     return "nds_single_screen";
                                 break;
                             case "desmume":
