@@ -1620,10 +1620,10 @@ namespace EmulatorLauncher.Libretro
                 string jsonText = File.ReadAllText(patchFile);
                 List<GamePatches> games = JsonConvert.DeserializeObject<List<GamePatches>>(jsonText);
 
-                var game = games.FirstOrDefault(g => g.GameId.Equals(gameID, StringComparison.OrdinalIgnoreCase));
+                var game = games.FirstOrDefault(g => g.GameId.Split(',').Any(id => id.Trim().Equals(gameID, StringComparison.OrdinalIgnoreCase)));
                 if (game == null)
                 {
-                    game = games.FirstOrDefault(g => g.GameIdCrediar.Equals(gameID, StringComparison.OrdinalIgnoreCase));
+                    game = games.FirstOrDefault(g => g.GameIdCrediar.Split(',').Any(id => id.Trim().Equals(gameID, StringComparison.OrdinalIgnoreCase)));
                 }
 
                 if (game == null)
@@ -1657,7 +1657,7 @@ namespace EmulatorLauncher.Libretro
                     }
 
                     // Disable patch if not enabled in features
-                    if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    if ((SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName)) || !SystemConfig.isOptSet(featureName))
                     {
                         ini.Remove(enableSection, patch.PatchName);
                         SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} has been disabled for game {gameID}");
