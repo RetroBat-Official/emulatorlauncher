@@ -12,7 +12,6 @@ namespace EmulatorLauncher
     partial class LinuxloaderGenerator : Generator
     {
         private readonly Dictionary<int, string> _padGuids = new Dictionary<int, string>();
-        private bool _guidResolutionFailed = false;
 
         private void CreateControllerConfiguration(string cfgPath, string gamePath)
         {
@@ -35,7 +34,7 @@ namespace EmulatorLauncher
                 {
                     AddFileForRestoration(gameCtrlFile);
                     try { File.Delete(gameCtrlFile); }
-                     catch { }
+                    catch { }
                 }
             }
             else
@@ -55,11 +54,8 @@ namespace EmulatorLauncher
                     for (int p = 1; p <= 4; p++)
                         ini.Remove("ControllerGUIDs", "P" + p + "_GUID");
 
-                    if (!_guidResolutionFailed)
-                    {
-                        foreach (var kv in _padGuids)
-                            ini.WriteValue("ControllerGUIDs", "P" + kv.Key + "_GUID", kv.Value);
-                    }
+                    foreach (var kv in _padGuids)
+                        ini.WriteValue("ControllerGUIDs", "P" + kv.Key + "_GUID", kv.Value);
                 }
 
                 ConfigureLindberghGuns(ini, "lindbergh", !autoConfig);
@@ -219,7 +215,7 @@ namespace EmulatorLauncher
                     cIndex = sdl3Controller.EnumerationIndex;
                 else
                 {
-                    var sortedControllers = this.Controllers.OrderBy(i => i.DirectInput?.DeviceIndex ?? i.DeviceIndex).ToList();
+                    var sortedControllers = this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.DirectInput?.DeviceIndex ?? i.DeviceIndex).ToList();
                     cIndex = sortedControllers.IndexOf(ctrl);
                 }
             }
@@ -256,6 +252,21 @@ namespace EmulatorLauncher
             {
                 string steerDdeadzone = SystemConfig["ll_steer_deadzone"];
                 ini.WriteValue("Config", "Steer_DeadZone", steerDdeadzone);
+            }
+
+            if (SystemConfig.isOptSet("ll_gasbrake_deadzone") && !string.IsNullOrEmpty(SystemConfig["ll_gasbrake_deadzone"]))
+            {
+                string gasBrakeDeadzone = SystemConfig["ll_gasbrake_deadzone"];
+                ini.WriteValue("Config", "Gas_DeadZone", gasBrakeDeadzone);
+                ini.WriteValue("Config", "Brake_DeadZone", gasBrakeDeadzone);
+            }
+
+            if (SystemConfig.isOptSet("ll_flying_deadzone") && !string.IsNullOrEmpty(SystemConfig["ll_flying_deadzone"]))
+            {
+                string flyingDeadzone = SystemConfig["ll_flying_deadzone"];
+                ini.WriteValue("Config", "FLYING_X_DeadZone", flyingDeadzone);
+                ini.WriteValue("Config", "FLYING_Y_DeadZone", flyingDeadzone);
+                ini.WriteValue("Config", "Throttle_DeadZone", flyingDeadzone);
             }
 
             // Common section
@@ -540,7 +551,7 @@ namespace EmulatorLauncher
 
                 SdlToDirectInput dinputController = null;
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-                string dguid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
+                string dguid = guid.ToString().Substring(0, 24) + "00000000";
                 bool dinputOk = false;
 
                 if (File.Exists(gamecontrollerDB))
@@ -744,12 +755,9 @@ namespace EmulatorLauncher
             }
 
             if (sdl3Controller != null && !string.IsNullOrEmpty(guidString))
-                _padGuids[playerindex] = guidString;
+                _padGuids[cIndex + 1] = guidString;
             else
-            {
-                _guidResolutionFailed = true;
-                SimpleLogger.Instance.Warning("[CONTROLS] No SDL3 GUID for P" + playerindex + " - GUID pinning disabled for this session.");
-            }
+                SimpleLogger.Instance.Warning("[CONTROLS] No SDL3 GUID for P" + playerindex + " - GUID pinning unavailable for this pad, other players are unaffected.");
         }
 
         private string GetDinputMapping(string index, SdlToDirectInput c, string buttonkey, bool isxinput, int plus = 0)
