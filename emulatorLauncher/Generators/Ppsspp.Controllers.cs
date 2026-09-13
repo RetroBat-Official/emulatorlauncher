@@ -12,6 +12,19 @@ namespace EmulatorLauncher
 {
     partial class PpssppGenerator
     {
+        private enum PpssppPadType
+        {
+            XInput,             // DEVICE_ID_XINPUT_0 + slot, handled by Windows/XinputDevice.cpp
+            HidPlayStation,     // DEVICE_ID_PAD_0, handled by Windows/Hid/HidInputDevice.cpp
+            HidSwitch,          // DEVICE_ID_PAD_0, same layer, digital triggers
+            DirectInput         // DEVICE_ID_PAD_0 + index, handled by Windows/DinputDevice.cpp
+        }
+
+        private const int PPSSPP_DEVICE_ID_KEYBOARD = 1;
+        private const int PPSSPP_DEVICE_ID_PAD_0 = 10;
+        private const int PPSSPP_DEVICE_ID_XINPUT_0 = 20;
+        private const int PPSSPP_MAX_PADS = 4;
+
         private void CreateControllerConfiguration(string memPath)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -29,197 +42,218 @@ namespace EmulatorLauncher
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
                     ini.ClearSection("ControlMapping");
-                    ConfigureKeyboardHotkeys(ini);
-                    var controller = Program.Controllers.Where(c => c.PlayerIndex == 1).FirstOrDefault();
-                    GenerateControllerConfig(ini, controller);
+
+                    // PPSSPP accepts several comma separated bindings per entry, so every binding is
+                    // collected here first. Each pad then contributes its own device id and its own
+                    // keycodes, instead of one hardcoded set being reused for all of them.
+                    var mappings = new Dictionary<string, List<string>>();
+
+                    var keyboard = Program.Controllers.FirstOrDefault(c => c.IsKeyboard && c.Config != null);
+                    if (keyboard != null)
+                        AddKeyboardMappings(mappings, keyboard.Config);
+
+                    AddKeyboardHotkeys(mappings);
+
+                    var usedDeviceIds = new List<int>();
+
+                    var pads = Program.Controllers
+                        .Where(c => !c.IsKeyboard && c.Config != null)
+                        .OrderBy(c => c.PlayerIndex)
+                        .Take(PPSSPP_MAX_PADS);
+
+                    foreach (var pad in pads)
+                        AddPadMappings(mappings, pad, usedDeviceIds);
+
+                    foreach (var mapping in mappings)
+                        ini.WriteValue("ControlMapping", mapping.Key, string.Join(",", mapping.Value.ToArray()));
                 }
             }
             catch { }
         }
 
-        private void GenerateControllerConfig(IniFile ini, Controller controller)
+        private static void AddMapping(Dictionary<string, List<string>> mappings, string pspButton, string binding)
         {
-            if (controller == null)
+            if (string.IsNullOrEmpty(binding))
                 return;
 
-            int index = controller.DeviceIndex;
-            if (SystemConfig.isOptSet("ppsspp_forceindex") && !string.IsNullOrEmpty(SystemConfig["ppsspp_forceindex"]))
-                index = SystemConfig["ppsspp_forceindex"].ToInteger();
-
-            string controllerID = (20 + index).ToString() + "-";
-            bool xInput = true;
-
-            if (!controller.IsXInputDevice)
+            List<string> bindings;
+            if (!mappings.TryGetValue(pspButton, out bindings))
             {
-                controllerID = (10 + index).ToString() + "-";
-                xInput = false;
+                bindings = new List<string>();
+                mappings[pspButton] = bindings;
             }
 
-            bool custoHK = Hotkeys.GetPadHKFromFile("ppsspp", "", out var padHKDic);
-
-            if (controller.IsKeyboard)
-            {
-                ConfigureKeyboard(ini, controller.Config);
-                return;
-            }
-
-            else if (xInput)
-            {
-                string controlUp = "20-19,21-19,22-19,23-19";
-                string controlDown = "20-20,21-20,22-20,23-20";
-                string controlLeft = "20-21,21-21,22-21,23-21";
-                string controlRight = "20-22,21-22,22-22,23-22";
-                string controlCircle = "20-97,21-97,22-97,23-97";
-                string controlCross = "20-96,21-96,22-96,23-96";
-                string controlSquare = "20-99,21-99,22-99,23-99";
-                string controlTriangle = "20-100,21-100,22-100,23-100";
-                string controlStart = "20-108,21-108,22-108,23-108";
-                string controlSelect = "20-109,21-109,22-109,23-109";
-                string controlL = "20-102,21-102,22-102,23-102";
-                string controlR = "20-103,21-103,22-103,23-103";
-                string AnUp = "20-4002,21-4002,22-4002,23-4002";
-                string AnDown = "20-4003,21-4003,22-4003,23-4003";
-                string AnLeft = "20-4001,21-4001,22-4001,23-4001";
-                string AnRight = "20-4000,21-4000,22-4000,23-4000";
-                //string thumbLeft = "20-106,21-106,22-106,23-106";
-                //string thumbRight = "20-107,21-107,22-107,23-107";
-
-                ini.WriteValue("ControlMapping", "Up", controlUp);
-                ini.WriteValue("ControlMapping", "Down", controlDown);
-                ini.WriteValue("ControlMapping", "Left", controlLeft);
-                ini.WriteValue("ControlMapping", "Right", controlRight);
-                ini.WriteValue("ControlMapping", "Circle", controlCircle);
-                ini.WriteValue("ControlMapping", "Cross", controlCross);
-                ini.WriteValue("ControlMapping", "Square", controlSquare);
-                ini.WriteValue("ControlMapping", "Triangle", controlTriangle);
-                ini.WriteValue("ControlMapping", "Start", controlStart);
-                ini.WriteValue("ControlMapping", "Select", controlSelect);
-                ini.WriteValue("ControlMapping", "L", controlL);
-                ini.WriteValue("ControlMapping", "R", controlR);
-                ini.WriteValue("ControlMapping", "An.Up", AnUp);
-                ini.WriteValue("ControlMapping", "An.Down", AnDown);
-                ini.WriteValue("ControlMapping", "An.Left", AnLeft);
-                ini.WriteValue("ControlMapping", "An.Right", AnRight);
-
-                // Shortcuts(hotkeys)
-                if (custoHK && padHKDic.Count > 0)
-                {
-                    foreach (var hotkey in padHKDic)
-                    {
-                        if (!xinputMapping.ContainsKey(hotkey.Value))
-                            continue;
-
-                        string finalValue = "";
-                        for (int i = 20; i <= 23; i++)
-                        {
-                            if (i == 20)
-                                finalValue += i.ToString() + "-109:" + i.ToString() + "-" + xinputMapping[hotkey.Value];
-                            else
-                                finalValue += "," + i.ToString() + "-109:" + i.ToString() + "-" + xinputMapping[hotkey.Value];
-                        }
-                        ini.WriteValue("ControlMapping", hotkey.Key, finalValue);
-                    }
-                }
-                else
-                {
-                    ini.WriteValue("ControlMapping", "Exit App", "1-111,20-109:20-108,21-109:21-108,22-109:22-108,23-109:23-108");      // SELECT + START
-                    ini.WriteValue("ControlMapping", "Rewind", "1-67,20-109:20-21,21-109:21-21,22-109:22-21,23-109:23-21");             // SELECT + LEFT
-                    ini.WriteValue("ControlMapping", "Fast-forward", "1-40,20-109:20-22,21-109:21-22,22-109:22-22,23-109:23-22");       // SELECT + RIGHT
-                    ini.WriteValue("ControlMapping", "Load State", "1-134,20-109:20-100,21-109:21-100,22-109:22-100,23-109:23-100");    // SELECT + NORTH
-                    ini.WriteValue("ControlMapping", "Save State", "1-132,20-109:20-99,21-109:21-99,22-109:22-99,23-109:23-99");        // SELECT + WEST                                                                                                                  //ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139,20-109:20-97,21-109:21-97,22-109:22-97,23-109:23-97"); // SELECT + EAST
-                    ini.WriteValue("ControlMapping", "Pause", "1-131,20-109:20-96,21-109:21-96,22-109:22-96,23-109:23-96");             // SELECT + SOUTH
-                    ini.WriteValue("ControlMapping", "Screenshot", "1-138,20-109:20-107,21-109:21-107,22-109:22-107,23-109:23-107");    // SELECT + R3
-                    ini.WriteValue("ControlMapping", "Pause (no menu)", "1-34,20-109:20-106,21-109:21-106,22-109:22-106,23-109:23-106");    // SELECT + L3
-                    ini.WriteValue("ControlMapping", "Previous Slot", "1-136,20-109:20-19,21-109:21-19,22-109:22-19,23-109:23-19"); // SELECT + UP
-                    ini.WriteValue("ControlMapping", "Next Slot", "1-137,20-109:20-20,21-109:21-20,22-109:22-20,23-109:23-20");     // SELECT + DOWN
-                }
-            }
-
-            // SDL seems fixed for controllers ...
-            else
-            {
-                ini.WriteValue("ControlMapping", "Up", controllerID + "19");
-                ini.WriteValue("ControlMapping", "Down", controllerID + "20");
-                ini.WriteValue("ControlMapping", "Left", controllerID + "21");
-                ini.WriteValue("ControlMapping", "Right", controllerID + "22");
-                ini.WriteValue("ControlMapping", "Circle", controllerID + "190");
-                ini.WriteValue("ControlMapping", "Cross", controllerID + "189");
-                ini.WriteValue("ControlMapping", "Square", controllerID + "191");
-                ini.WriteValue("ControlMapping", "Triangle", controllerID + "188");
-                ini.WriteValue("ControlMapping", "Start", controllerID + "197");
-                ini.WriteValue("ControlMapping", "Select", controllerID + "196");
-                ini.WriteValue("ControlMapping", "L", controllerID + "194");
-                ini.WriteValue("ControlMapping", "R", controllerID + "195");
-                ini.WriteValue("ControlMapping", "An.Up", controllerID + GetInputKeyName(controller, InputKey.leftanalogup));
-                ini.WriteValue("ControlMapping", "An.Down", controllerID + GetInputKeyName(controller, InputKey.leftanalogdown));
-                ini.WriteValue("ControlMapping", "An.Left", controllerID + GetInputKeyName(controller, InputKey.leftanalogleft));
-                ini.WriteValue("ControlMapping", "An.Right", controllerID + GetInputKeyName(controller, InputKey.leftanalogright));
-
-                // Shortcuts(hotkeys)
-                string hotkeyPadValue = controllerID + "196" + ":";
-
-                if (custoHK && padHKDic.Count > 0)
-                {
-                    foreach (var hotkey in padHKDic)
-                    {
-                        bool axisTrigger = false;
-
-                        if (controller.Config.Input.Any(i => i.Name == InputKey.l2))
-                        {
-                            var l2 = controller.Config.Input.Where(i => i.Name == InputKey.l2).FirstOrDefault();
-                            if (l2.Type == "axis")
-                                axisTrigger = true;
-                        }
-
-                        if (sdlMapping.ContainsKey(hotkey.Value))
-                        {
-                            string newValue = sdlMapping[hotkey.Value];
-                            if (axisTrigger)
-                            {
-                                if (hotkey.Value == "l2")
-                                    newValue = "4034";
-                                else if (hotkey.Value == "r2")
-                                    newValue = "4036";
-                            }
-
-                            string finalValue = hotkeyPadValue + controllerID + newValue;
-                            
-                            ini.WriteValue("ControlMapping", hotkey.Key, finalValue);
-                        }
-                        else
-                            continue;
-                    }
-                }
-                else
-                {
-                    ini.WriteValue("ControlMapping", "Exit App", "1-111," + controllerID + "196" + ":" + controllerID + "197");
-                    ini.WriteValue("ControlMapping", "Rewind", "1-67," + controllerID + "196" + ":" + controllerID + "21");
-                    ini.WriteValue("ControlMapping", "Fast-forward", "1-40," + controllerID + "196" + ":" + controllerID + "22");
-                    ini.WriteValue("ControlMapping", "Load State", "1-134," + controllerID + "196" + ":" + controllerID + "188");
-                    ini.WriteValue("ControlMapping", "Save State", "1-132," + controllerID + "196" + ":" + controllerID + "191");
-                    ini.WriteValue("ControlMapping", "Pause", "1-131," + controllerID + "196" + ":" + controllerID + "189");
-                    //ini.WriteValue("ControlMapping", "Pause (no menu)", "1-139," + controllerID + "196" + ":" + controllerID + "190");         // SELECT + EAST
-                    ini.WriteValue("ControlMapping", "Screenshot", "1-138," + controllerID + "196" + ":" + controllerID + "107");
-                    ini.WriteValue("ControlMapping", "Pause (no menu)", "1-34," + controllerID + "196" + ":" + controllerID + "106");
-                    ini.WriteValue("ControlMapping", "Previous Slot", "1-136," + controllerID + "196" + ":" + controllerID + "20");
-                    ini.WriteValue("ControlMapping", "Next Slot", "1-137," + controllerID + "196" + ":" + controllerID + "19");
-                }
-            }
-            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
+            if (!bindings.Contains(binding))
+                bindings.Add(binding);
         }
 
-        private void ConfigureKeyboard(IniFile ini, InputConfig keyboard)
+        private void AddPadMappings(Dictionary<string, List<string>> mappings, Controller controller, List<int> usedDeviceIds)
+        {
+            PpssppPadType padType;
+            int deviceId = GetPpssppDeviceId(controller, out padType);
+
+            if (deviceId < 0)
+            {
+                SimpleLogger.Instance.Warning("[WARNING] Cannot resolve a PPSSPP device index for " + controller.DevicePath + ", controller skipped.");
+                return;
+            }
+
+            // Manual override, kept as an escape hatch. It only applies to player 1.
+            if (controller.PlayerIndex == 1 && SystemConfig.isOptSet("ppsspp_forceindex") && !string.IsNullOrEmpty(SystemConfig["ppsspp_forceindex"]))
+            {
+                int baseId = (padType == PpssppPadType.XInput) ? PPSSPP_DEVICE_ID_XINPUT_0 : PPSSPP_DEVICE_ID_PAD_0;
+                deviceId = baseId + SystemConfig["ppsspp_forceindex"].ToInteger();
+            }
+
+            // A HID pad and the first DirectInput pad both report as DEVICE_ID_PAD_0 in PPSSPP and
+            // cannot be told apart in controls.ini. The lowest player index keeps the slot.
+            if (usedDeviceIds.Contains(deviceId))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] PPSSPP device id " + deviceId + " is already assigned, player " + controller.PlayerIndex + " skipped.");
+                return;
+            }
+
+            usedDeviceIds.Add(deviceId);
+
+            SimpleLogger.Instance.Info("[INFO] Player " + controller.PlayerIndex + " : " + controller.DevicePath + " -> PPSSPP device " + deviceId + " (" + padType + ")");
+
+            string prefix = deviceId.ToString() + "-";
+
+            foreach (var entry in pspMapping)
+            {
+                string code = GetPadKeyCode(controller, padType, entry.Value);
+                if (string.IsNullOrEmpty(code))
+                    continue;
+
+                AddMapping(mappings, entry.Key, prefix + code);
+            }
+
+            AddPadHotkeys(mappings, controller, padType, prefix);
+        }
+
+        private void AddPadHotkeys(Dictionary<string, List<string>> mappings, Controller controller, PpssppPadType padType, string prefix)
+        {
+            // Every combo is built on SELECT. Without it there is no safe modifier to use.
+            string selectCode = GetPadKeyCode(controller, padType, InputKey.select);
+            if (string.IsNullOrEmpty(selectCode))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] No SELECT button found for player " + controller.PlayerIndex + ", pad hotkeys skipped.");
+                return;
+            }
+
+            string modifier = prefix + selectCode + ":";
+
+            var hotkeys = new Dictionary<string, InputKey>();
+
+            Dictionary<string, string> padHKDic;
+            if (Hotkeys.GetPadHKFromFile("ppsspp", "", out padHKDic) && padHKDic.Count > 0)
+            {
+                foreach (var hotkey in padHKDic)
+                {
+                    InputKey key;
+                    if (hotkeyInputNames.TryGetValue(hotkey.Value, out key))
+                        hotkeys[hotkey.Key] = key;
+                }
+            }
+            else
+                hotkeys = defaultPadHotkeys;
+
+            foreach (var hotkey in hotkeys)
+            {
+                string code = GetPadKeyCode(controller, padType, hotkey.Value);
+                if (string.IsNullOrEmpty(code))
+                    continue;
+
+                AddMapping(mappings, hotkey.Key, modifier + prefix + code);
+            }
+        }
+
+        /// <summary>
+        /// Resolves the device id PPSSPP will use for this controller on Windows.
+        /// Returns -1 when it cannot be determined.
+        /// </summary>
+        private static int GetPpssppDeviceId(Controller controller, out PpssppPadType padType)
+        {
+            padType = PpssppPadType.DirectInput;
+
+            // XInput pads are polled by XinputDevice on their own slot, this one is exact.
+            if (controller.IsXInputDevice && controller.XInput != null)
+            {
+                padType = PpssppPadType.XInput;
+                return PPSSPP_DEVICE_ID_XINPUT_0 + controller.XInput.DeviceIndex;
+            }
+
+            int vendorId = (int)controller.VendorID;
+            int productId = (int)controller.ProductID;
+
+            // Pads handled by the native HID layer always land on DEVICE_ID_PAD_0 : HidInputDevice
+            // keeps pad_ at 0 and only ever opens one controller.
+            if (IsHidSupportedDevice(vendorId, productId))
+            {
+                padType = (vendorId == NINTENDO_VENDOR_ID) ? PpssppPadType.HidSwitch : PpssppPadType.HidPlayStation;
+                return PPSSPP_DEVICE_ID_PAD_0;
+            }
+
+            // Everything else goes through DirectInput. PPSSPP numbers those pads by their rank in
+            // the DirectInput enumeration, after removing XInput pads and HID handled pads, so the
+            // EmulationStation player index cannot be used here.
+            var directInput = controller.DirectInput;
+            if (directInput == null)
+                return -1;
+
+            var dinputPads = DirectInputInfo.Controllers
+                .Where(d => !d.IsXInput && !IsHidSupportedDevice(d.VendorId, d.ProductId))
+                .OrderBy(d => d.DeviceIndex)
+                .ToList();
+
+            int rank = dinputPads.FindIndex(d => d.InstanceGuid == directInput.InstanceGuid);
+            if (rank < 0)
+                return -1;
+
+            return PPSSPP_DEVICE_ID_PAD_0 + rank;
+        }
+
+        /// <summary>
+        /// Returns the PPSSPP keycode this controller emits for the given input, or null when the
+        /// input is not available on that controller.
+        /// </summary>
+        private static string GetPadKeyCode(Controller controller, PpssppPadType padType, InputKey key)
+        {
+            string code;
+
+            switch (padType)
+            {
+                case PpssppPadType.XInput:
+                    return xinputKeyCodes.TryGetValue(key, out code) ? code : null;
+
+                case PpssppPadType.HidSwitch:
+                    // Switch Pro reports its triggers as digital buttons, PlayStation pads as analog axes.
+                    if (key == InputKey.l2)
+                        return "104";
+                    if (key == InputKey.r2)
+                        return "105";
+                    return hidKeyCodes.TryGetValue(key, out code) ? code : null;
+
+                case PpssppPadType.HidPlayStation:
+                    return hidKeyCodes.TryGetValue(key, out code) ? code : null;
+
+                default:
+                    // DirectInput exposes raw button indexes, so read them from es_input.cfg instead
+                    // of assuming a layout. NKCODE_BUTTON_1 is 188 and buttons are contiguous.
+                    return GetInputKeyName(controller, key);
+            }
+        }
+
+        private void AddKeyboardMappings(Dictionary<string, List<string>> mappings, InputConfig keyboard)
         {
             if (keyboard == null)
                 return;
 
-            string deviceID = "1-";
+            string prefix = PPSSPP_DEVICE_ID_KEYBOARD.ToString() + "-";
 
             foreach (var input in pspMapping)
             {
-                InputKey key = input.Value;
-                var a = keyboard[key];
-
+                var a = keyboard[input.Value];
                 if (a == null)
                     continue;
 
@@ -240,41 +274,37 @@ namespace EmulatorLauncher
 
                 SDL.SDL_Keycode code = (SDL.SDL_Keycode)id;
 
-                if (input_config_key_map.ContainsKey(code))
-                {
-                    var nkCode = input_config_key_map[code];
-                    ini.WriteValue("ControlMapping", input.Key, deviceID + (int)nkCode);
-                }
+                NKCODE nkCode;
+                if (input_config_key_map.TryGetValue(code, out nkCode))
+                    AddMapping(mappings, input.Key, prefix + (int)nkCode);
             }
         }
-        
-        private void ConfigureKeyboardHotkeys(IniFile ini)
-        {
-            string deviceID = "1-";
 
-            if (Hotkeys.GetHotKeysFromFile("ppsspp", "", out Dictionary<string, HotkeyResult> hotkeys))
+        private void AddKeyboardHotkeys(Dictionary<string, List<string>> mappings)
+        {
+            string prefix = PPSSPP_DEVICE_ID_KEYBOARD.ToString() + "-";
+
+            Dictionary<string, HotkeyResult> hotkeys;
+            if (Hotkeys.GetHotKeysFromFile("ppsspp", "", out hotkeys))
             {
                 foreach (var hotkey in hotkeys)
-                {
-                    ini.WriteValue("ControlMapping", hotkey.Value.EmulatorKey, deviceID + hotkey.Value.EmulatorValue);
-                }
+                    AddMapping(mappings, hotkey.Value.EmulatorKey, prefix + hotkey.Value.EmulatorValue);
+
+                return;
             }
 
-            else
-            {
-                ini.WriteValue("ControlMapping", "Rewind", deviceID + "67");            //Backspace
-                ini.WriteValue("ControlMapping", "Fast-forward", deviceID + "40");      //L
-                ini.WriteValue("ControlMapping", "Load State", deviceID + "134");       //F4
-                ini.WriteValue("ControlMapping", "Save State", deviceID + "132");       //F2
-                ini.WriteValue("ControlMapping", "Pause", deviceID + "131");            //F1
-                ini.WriteValue("ControlMapping", "Pause (no menu)", deviceID + "44");   //P
-                ini.WriteValue("ControlMapping", "Screenshot", deviceID + "138");       //F8
-                ini.WriteValue("ControlMapping", "Previous Slot", deviceID + "136");    //F6
-                ini.WriteValue("ControlMapping", "Next Slot", deviceID + "137");        //F7
-                ini.WriteValue("ControlMapping", "Frame Advance", deviceID + "39");     //K
-                ini.WriteValue("ControlMapping", "Toggle Fullscreen", deviceID + "34"); //F
-                ini.WriteValue("ControlMapping", "Exit App", deviceID + "111");         //Escape
-            }
+            AddMapping(mappings, "Rewind", prefix + "67");              // Backspace
+            AddMapping(mappings, "Fast-forward", prefix + "40");        // L
+            AddMapping(mappings, "Load State", prefix + "134");         // F4
+            AddMapping(mappings, "Save State", prefix + "132");         // F2
+            AddMapping(mappings, "Pause", prefix + "131");              // F1
+            AddMapping(mappings, "Pause (no menu)", prefix + "44");     // P
+            AddMapping(mappings, "Screenshot", prefix + "138");         // F8
+            AddMapping(mappings, "Previous Slot", prefix + "136");      // F6
+            AddMapping(mappings, "Next Slot", prefix + "137");          // F7
+            AddMapping(mappings, "Frame Advance", prefix + "39");       // K
+            AddMapping(mappings, "Toggle Fullscreen", prefix + "34");   // F
+            AddMapping(mappings, "Exit App", prefix + "111");           // Escape
         }
 
         /*private static int GetInputCode(string key, SdlToDirectInput ctrl, int direction = -1)
@@ -388,48 +418,122 @@ namespace EmulatorLauncher
                     }
                 }
             }
-            return "0";
+            return null;
         }
 
-        static readonly Dictionary<string, string> xinputMapping = new Dictionary<string, string>
+        private const int NINTENDO_VENDOR_ID = 0x057E;
+
+        // Mirrors g_psInfos in Windows/Hid/HidInputDevice.cpp (PPSSPP 1.20.4).
+        // These pads are handled by the native HID layer AND removed from the DirectInput
+        // enumeration, so they must be excluded when computing DirectInput ranks.
+        // Keep in sync when upgrading PPSSPP.
+        static readonly List<KeyValuePair<int, int>> hidSupportedDevices = new List<KeyValuePair<int, int>>()
         {
-            { "up", "19" },
-            { "down", "20" },
-            { "left", "21" },
-            { "right", "22" },
-            { "b", "97" },
-            { "a", "96" },
-            { "y", "99" },
-            { "x", "100" },
-            { "start", "108" },
-            { "select", "109" },
-            { "pageup", "102" },
-            { "pagedown", "103" },
-            { "l3", "106" },
-            { "r3", "107" },
-            { "l2", "4034" },
-            { "r2", "4036" }
+            new KeyValuePair<int, int>(0x054C, 0x05C4),     // DualShock 4 v1
+            new KeyValuePair<int, int>(0x054C, 0x09CC),     // DualShock 4 v2
+            new KeyValuePair<int, int>(0x054C, 0x0CE6),     // DualSense
+            new KeyValuePair<int, int>(0x054C, 0x0DF2),     // DualSense Edge
+            new KeyValuePair<int, int>(0x054C, 0x0CDA),     // PlayStation Classic
+            new KeyValuePair<int, int>(0x057E, 0x2009),     // Switch Pro
         };
 
-        static readonly Dictionary<string, string> sdlMapping = new Dictionary<string, string>
+        private static bool IsHidSupportedDevice(int vendorId, int productId)
         {
-            { "up", "19" },
-            { "down", "20" },
-            { "left", "21" },
-            { "right", "22" },
-            { "b", "190" },
-            { "a", "189" },
-            { "y", "191" },
-            { "x", "188" },
-            { "start", "197" },
-            { "select", "196" },
-            { "pageup", "194" },
-            { "pagedown", "195" },
-            { "l3", "106" },
-            { "r3", "107" },
-            { "l2", "104" },
-            { "r2", "105" }
+            foreach (var device in hidSupportedDevices)
+            {
+                if (device.Key == vendorId && device.Value == productId)
+                    return true;
+            }
+            return false;
+        }
+
+        // Windows/XinputDevice.cpp : standard Android style keycodes.
+        static readonly Dictionary<InputKey, string> xinputKeyCodes = new Dictionary<InputKey, string>
+        {
+            { InputKey.up,              "19"   },      // NKCODE_DPAD_UP
+            { InputKey.down,            "20"   },      // NKCODE_DPAD_DOWN
+            { InputKey.left,            "21"   },      // NKCODE_DPAD_LEFT
+            { InputKey.right,           "22"   },      // NKCODE_DPAD_RIGHT
+            { InputKey.a,               "96"   },      // NKCODE_BUTTON_A, south
+            { InputKey.b,               "97"   },      // NKCODE_BUTTON_B, east
+            { InputKey.y,               "99"   },      // NKCODE_BUTTON_X, west
+            { InputKey.x,               "100"  },      // NKCODE_BUTTON_Y, north
+            { InputKey.pageup,          "102"  },      // NKCODE_BUTTON_L1
+            { InputKey.pagedown,        "103"  },      // NKCODE_BUTTON_R1
+            { InputKey.l3,              "106"  },      // NKCODE_BUTTON_THUMBL
+            { InputKey.r3,              "107"  },      // NKCODE_BUTTON_THUMBR
+            { InputKey.start,           "108"  },      // NKCODE_BUTTON_START
+            { InputKey.select,          "109"  },      // NKCODE_BUTTON_SELECT
+            { InputKey.l2,              "4034" },      // JOYSTICK_AXIS_LTRIGGER, positive
+            { InputKey.r2,              "4036" },      // JOYSTICK_AXIS_RTRIGGER, positive
+            { InputKey.joystick1up,     "4002" },      // JOYSTICK_AXIS_Y, positive is up on XInput
+            { InputKey.joystick1down,   "4003" },
+            { InputKey.joystick1left,   "4001" },
+            { InputKey.joystick1right,  "4000" },
         };
+
+        // Windows/Hid/DualShock.cpp and Windows/Hid/SwitchPro.cpp produce the same keycodes for
+        // every button mapped here, only the triggers differ (handled in GetPadKeyCode).
+        static readonly Dictionary<InputKey, string> hidKeyCodes = new Dictionary<InputKey, string>
+        {
+            { InputKey.up,              "19"   },      // NKCODE_DPAD_UP
+            { InputKey.down,            "20"   },      // NKCODE_DPAD_DOWN
+            { InputKey.left,            "21"   },      // NKCODE_DPAD_LEFT
+            { InputKey.right,           "22"   },      // NKCODE_DPAD_RIGHT
+            { InputKey.x,               "188"  },      // NKCODE_BUTTON_1, north
+            { InputKey.a,               "189"  },      // NKCODE_BUTTON_2, south
+            { InputKey.b,               "190"  },      // NKCODE_BUTTON_3, east
+            { InputKey.y,               "191"  },      // NKCODE_BUTTON_4, west
+            { InputKey.pageup,          "194"  },      // NKCODE_BUTTON_7
+            { InputKey.pagedown,        "195"  },      // NKCODE_BUTTON_8
+            { InputKey.select,          "196"  },      // NKCODE_BUTTON_9
+            { InputKey.start,           "197"  },      // NKCODE_BUTTON_10
+            { InputKey.l3,              "106"  },      // NKCODE_BUTTON_THUMBL
+            { InputKey.r3,              "107"  },      // NKCODE_BUTTON_THUMBR
+            { InputKey.l2,              "4034" },      // JOYSTICK_AXIS_LTRIGGER, positive
+            { InputKey.r2,              "4036" },      // JOYSTICK_AXIS_RTRIGGER, positive
+            { InputKey.joystick1up,     "4003" },      // JOYSTICK_AXIS_Y, negative is up on HID
+            { InputKey.joystick1down,   "4002" },
+            { InputKey.joystick1left,   "4001" },
+            { InputKey.joystick1right,  "4000" },
+        };
+
+        // Default pad hotkeys, all combined with SELECT.
+        static readonly Dictionary<string, InputKey> defaultPadHotkeys = new Dictionary<string, InputKey>
+        {
+            { "Exit App",           InputKey.start   },
+            { "Rewind",             InputKey.left    },
+            { "Fast-forward",       InputKey.right   },
+            { "Load State",         InputKey.x       },
+            { "Save State",         InputKey.y       },
+            { "Pause",              InputKey.a       },
+            { "Screenshot",         InputKey.r3      },
+            { "Pause (no menu)",    InputKey.l3      },
+            { "Previous Slot",      InputKey.down    },
+            { "Next Slot",          InputKey.up      },
+        };
+
+        // Names used in the pad hotkey file.
+        static readonly Dictionary<string, InputKey> hotkeyInputNames = new Dictionary<string, InputKey>
+        {
+            { "up",         InputKey.up       },
+            { "down",       InputKey.down     },
+            { "left",       InputKey.left     },
+            { "right",      InputKey.right    },
+            { "a",          InputKey.a        },
+            { "b",          InputKey.b        },
+            { "x",          InputKey.x        },
+            { "y",          InputKey.y        },
+            { "start",      InputKey.start    },
+            { "select",     InputKey.select   },
+            { "pageup",     InputKey.pageup   },
+            { "pagedown",   InputKey.pagedown },
+            { "l2",         InputKey.l2       },
+            { "r2",         InputKey.r2       },
+            { "l3",         InputKey.l3       },
+            { "r3",         InputKey.r3       },
+        };
+
 
         static readonly Dictionary<string, InputKey> pspMapping = new Dictionary<string, InputKey>
         {

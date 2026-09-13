@@ -172,14 +172,15 @@ namespace EmulatorLauncher
                     if (SystemConfig.isOptSet("ppsspp_backend") && !string.IsNullOrEmpty(SystemConfig["ppsspp_backend"]))
                         ini.WriteValue("Graphics", "GraphicsBackend", SystemConfig["ppsspp_backend"]);
                     else
-                        ini.WriteValue("Graphics", "GraphicsBackend", "0 (OPENGL)");
+                        ini.WriteValue("Graphics", "GraphicsBackend", "3 (VULKAN)");
 
                     if (SystemConfig.isOptSet("ppsspp_msaa") && !string.IsNullOrEmpty(SystemConfig["ppsspp_msaa"]))
                         ini.WriteValue("Graphics", "MultiSampleLevel", SystemConfig["ppsspp_msaa"]);
                     else
                         ini.WriteValue("Graphics", "MultiSampleLevel", "0");
 
-                    BindBoolIniFeatureOn(ini, "Graphics", "VSync", "ppsspp_vsync", "True", "False");
+                    ini.Remove("Graphics", "VSync");
+                    BindBoolIniFeatureOn(ini, "Graphics", "VerticalSync", "ppsspp_vsync", "True", "False");
 
                     ini.WriteValue("Graphics", "AutoFrameSkip", "False");
                     if (SystemConfig.isOptSet("ppsspp_frame_skipping") && !string.IsNullOrEmpty(SystemConfig["ppsspp_frame_skipping"]))
@@ -200,19 +201,37 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("Graphics", "AutoFrameSkip", "False");
 
-                    if (SystemConfig.isOptSet("ppsspp_textureenhancement") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement"]) && SystemConfig["ppsspp_textureenhancement"].Contains("Tex") && SystemConfig["ppsspp_backend"].ToLowerInvariant().Contains("vulkan"))
+                    // Texture upscaling : values starting with 'Tex' are hardware texture shaders, which are Vulkan-only.
+                    // Numeric values are the software scalers (TexScalingType).
+                    string texEnhancement = SystemConfig.isOptSet("ppsspp_textureenhancement") ? SystemConfig["ppsspp_textureenhancement"] : string.Empty;
+                    bool hardwareTexShader = texEnhancement.StartsWith("Tex");
+                    bool backendForced = SystemConfig.isOptSet("ppsspp_backend") && !string.IsNullOrEmpty(SystemConfig["ppsspp_backend"]);
+                    bool vulkanBackend = backendForced && SystemConfig["ppsspp_backend"].ToLowerInvariant().Contains("vulkan");
+
+                    // Backend left on default : switch to Vulkan so the selected hardware shader actually runs.
+                    if (hardwareTexShader && !backendForced)
                     {
-                        ini.WriteValue("Graphics", "TexHardwareScaling", "True");
-                        ini.WriteValue("Graphics", "TextureShader", SystemConfig["ppsspp_textureenhancement"]);
+                        ini.WriteValue("Graphics", "GraphicsBackend", "3 (VULKAN)");
+                        vulkanBackend = true;
                     }
-                    else if (SystemConfig.isOptSet("ppsspp_textureenhancement") && !string.IsNullOrEmpty(SystemConfig["ppsspp_textureenhancement"]))
+
+                    if (hardwareTexShader && vulkanBackend)
                     {
-                        ini.WriteValue("Graphics", "TexScalingType", SystemConfig["ppsspp_textureenhancement"]);
+                        ini.WriteValue("Graphics", "TexScalingType", "0");
+                        ini.WriteValue("Graphics", "TexHardwareScaling", "True");
+                        ini.WriteValue("Graphics", "TextureShader", texEnhancement);
+                    }
+                    else if (!hardwareTexShader && !string.IsNullOrEmpty(texEnhancement))
+                    {
+                        ini.WriteValue("Graphics", "TexScalingType", texEnhancement);
                         ini.WriteValue("Graphics", "TexHardwareScaling", "False");
                         ini.WriteValue("Graphics", "TextureShader", "Off");
                     }
                     else
                     {
+                        if (hardwareTexShader)
+                            SimpleLogger.Instance.Warning("[WARNING] Hardware texture shader '" + texEnhancement + "' requires the Vulkan backend, ignoring it.");
+
                         ini.WriteValue("Graphics", "TexScalingType", "0");
                         ini.WriteValue("Graphics", "TexHardwareScaling", "False");
                         ini.WriteValue("Graphics", "TextureShader", "Off");
@@ -235,12 +254,14 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("Graphics", "TextureFiltering", "1");
 
-                    if (SystemConfig.isOptSet("Integer_Scaling") && SystemConfig.getOptBoolean("Integer_Scaling"))
+                    // Integer scaling only toggles the scale mode : the aspect ratio belongs to 'ppsspp_ratio' above.
+                    // Stretching and integer scaling are mutually exclusive, stretch wins.
+                    bool stretchDisplay = SystemConfig.isOptSet("ppsspp_ratio") && SystemConfig["ppsspp_ratio"] == "stretch";
+
+                    if (SystemConfig.getOptBoolean("Integer_Scaling") && !stretchDisplay)
                     {
                         ini.WriteValue("DisplayLayout.Landscape", "DisplayIntegerScale", "True");
-                        ini.WriteValue("DisplayLayout.Landscape", "DisplayAspectRatio", "1.000000");
                         ini.WriteValue("DisplayLayout.Portrait", "DisplayIntegerScale", "True");
-                        ini.WriteValue("DisplayLayout.Portrait", "DisplayAspectRatio", "1.000000");
                     }
                     else
                     {
@@ -257,11 +278,13 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue("Control", "UseMouse", "False");
 
-                    // Audio
-                    if (SystemConfig.isOptSet("ppsspp_audiobackend") && !string.IsNullOrEmpty(SystemConfig["ppsspp_audiobackend"]))
-                        ini.WriteValue("Sound", "AudioBackend", SystemConfig["ppsspp_audiobackend"]);
-                    else
-                        ini.WriteValue("Sound", "AudioBackend", "0");
+                    // Windows input backends, PPSSPP 1.20.4 and later (ignored by older builds).
+                    // All of them are enabled by default, which is the most compatible setup.
+                    // Turning one off is an escape hatch when a pad is reported twice, or when
+                    // the HID layer grabs a pad that should be handled by DirectInput instead.
+                    BindBoolIniFeatureOn(ini, "Control", "AllowXInput", "ppsspp_xinput", "True", "False");
+                    BindBoolIniFeatureOn(ini, "Control", "AllowDInput", "ppsspp_dinput", "True", "False");
+                    BindBoolIniFeatureOn(ini, "Control", "AllowHIDInput", "ppsspp_hidinput", "True", "False");
 
                     // System Param
                     if (SystemConfig.isOptSet("ppsspp_confirmbutton") && SystemConfig.getOptBoolean("ppsspp_confirmbutton"))
