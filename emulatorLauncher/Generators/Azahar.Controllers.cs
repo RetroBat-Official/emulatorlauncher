@@ -28,21 +28,25 @@ namespace EmulatorLauncher
             var c1 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
 
             if (c1.IsKeyboard)
+            {
                 ConfigureKeyboard(c1, ini);
+                ConfigureShortcuts(ini);
+            }
             else
-                ConfigureJoystick(c1, ini);
-
-            ConfigureShortcuts(ini);
+            {
+                string azaharGuid = ConfigureJoystick(c1, ini);
+                ConfigureShortcuts(ini, c1, azaharGuid);
+            }
         }
 
-        private void ConfigureJoystick(Controller controller, IniFile ini)
+        private string ConfigureJoystick(Controller controller, IniFile ini)
         {
             if (controller == null)
-                return;
+                return null;
 
             var cfg = controller.Config;
             if (cfg == null)
-                return;
+                return null;
 
             var guid = controller.GetSdlGuid(_sdlVersion, true);
             var azaharGuid = guid.ToString().ToLowerInvariant();
@@ -205,9 +209,11 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", "profiles\\size", "1");
 
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex.ToString());
+
+            return azaharGuid;
         }
 
-        private string FromInput(Controller controller, Input input, string guid)
+        private string FromInput(Controller controller, Input input, string guid, bool shortcut = false)
         {
             if (input == null)
                 return null;
@@ -215,10 +221,21 @@ namespace EmulatorLauncher
             string value = "";
 
             if (input.Type == "button")
-                value = "button:" + input.Id + ",engine:sdl,guid:" + guid + ",port:0";
-            
+            {
+                if (shortcut)
+                    value = "button:" + input.Id + ",down:1" + ",engine:sdl,guid:" + guid + ",port:0";
+                else
+                    value = "button:" + input.Id + ",engine:sdl,guid:" + guid + ",port:0";
+            }
+
             else if (input.Type == "hat")
-                value = "direction:" + input.Name.ToString() + ",engine:sdl,guid:" + guid + ",hat:0,port:0";
+            {
+                if (shortcut)
+                    value = "direction:" + input.Name.ToString() + ",down:1" + ",engine:sdl,guid:" + guid + ",hat:0,port:0";
+                else
+                    value = "direction:" + input.Name.ToString() + ",engine:sdl,guid:" + guid + ",hat:0,port:0";
+            }
+
             else if (input.Type == "axis")
                 value = "axis:" + input.Id + ",direction:+,engine:sdl,guid:" + guid + ",port:0,threshold:0.5";
 
@@ -355,7 +372,7 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", "profiles\\size", "1");
         }
 
-        private void ConfigureShortcuts(IniFile ini)
+        private void ConfigureShortcuts(IniFile ini, Controller controller = null, string azaharGuid = null)
         {
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\KeySeq\\default", "false");
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\KeySeq", "F8");
@@ -379,6 +396,40 @@ namespace EmulatorLauncher
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Restart%20Emulation\\KeySeq", "Ctrl+F6");
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Rotate%20Screens%20Upright\\KeySeq\\default", "false");
             ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Rotate%20Screens%20Upright\\KeySeq", "Ctrl+F8");
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+                return;
+
+            // Controller shortcuts
+            string hotkeyValue = null;
+
+            if (controller != null && controller.Config != null && !string.IsNullOrEmpty(azaharGuid))
+            {
+                var hotkeyInput = controller.Config[InputKey.hotkey] ?? controller.Config[InputKey.select];
+                if (hotkeyInput != null)
+                    hotkeyValue = "api:controller," + FromInput(controller, hotkeyInput, azaharGuid, true);
+            }
+
+            foreach (var shortcut in ControllerShortcuts)
+            {
+                string key = "Shortcuts\\Main%20Window\\" + shortcut.Key + "\\controller_keyseq";
+                string buttonValue = null;
+
+                if (!string.IsNullOrEmpty(hotkeyValue))
+                    buttonValue = "api:controller," + FromInput(controller, controller.Config[shortcut.Value], azaharGuid, true);
+
+                if (!string.IsNullOrEmpty(buttonValue))
+                {
+                    ini.WriteValue("UI", key + "\\default", "false");
+                    ini.WriteValue("UI", key, "\"" + hotkeyValue + "||" + buttonValue + "\"");
+                }
+                else
+                {
+                    // Reset to upstream default, otherwise a previously written combo persists
+                    ini.WriteValue("UI", key + "\\default", "true");
+                    ini.WriteValue("UI", key, "");
+                }
+            }
         }
 
         static InputKeyMapping Mapping = new InputKeyMapping()
@@ -401,6 +452,20 @@ namespace EmulatorLauncher
         {
             { InputKey.l2,               "button_zl" },
             { InputKey.r2,               "button_zr" },
+        };
+
+        // Controller shortcuts: each entry is combined with the "hotkey" button.
+        // Azahar evaluates the two bindings as an AND combo (both held at once), see
+        // ControllerHotkeyMonitor::checkAllButtons in src/citra_qt/hotkey_monitor.cpp
+        static readonly Dictionary<string, InputKey> ControllerShortcuts = new Dictionary<string, InputKey>()
+        {
+            { "Exit%20Azahar",                  InputKey.start },
+            { "Quick%20Save",                   InputKey.y },
+            { "Quick%20Load",                   InputKey.x },
+            { "Capture%20Screenshot",           InputKey.r3 },
+            { "Continue\\Pause%20Emulation",    InputKey.a },
+            { "Swap%20Screens",                 InputKey.pageup },
+            { "Toggle%20Screen%20Layout",       InputKey.pagedown }
         };
     }
 }
