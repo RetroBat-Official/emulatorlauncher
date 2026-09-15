@@ -140,6 +140,7 @@ namespace EmulatorLauncher
             { new Installer("theforceengine", "theforceengine", "TheForceEngine.exe") },
             { new Installer("triforce", new string[] { "dolphin-triforce"}, new string[] { "dolphinWX.exe", "dolphin.exe" }) },
             { new Installer("tsugaru", "tsugaru", "tsugaru_cui.exe") },
+            { new Installer("uzdoom", "uzdoom", "uzdoom.exe") },
             { new Installer("vita3k", "vita3k", "Vita3K.exe") },
             { new Installer("vkquake", "vkquake", "vkQuake.exe") },
             { new Installer("vkquake2", "vkquake2", "quake2.exe") },
@@ -547,27 +548,6 @@ namespace EmulatorLauncher
                         return date;
                     }
                 }
-                else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "jzintv")
-                {
-                    var output = ProcessExtensions.RunWithOutput(exe, "-l");
-                    Match versionMatch = Regex.Match(output, @"jzIntv v(\d+\.\d+)");
-                    Match svnMatch = Regex.Match(output, @"SVN Revision (\d+)");
-
-                    if (versionMatch.Success && svnMatch.Success)
-                    {
-                        string versionjz = versionMatch.Groups[1].Value;
-                        string svn = svnMatch.Groups[1].Value;
-                        string combined = $"{versionjz}.{svn}";
-                        var finalversionjz = StringExtensions.FormatVersionString(combined);
-
-                        Version ver = new Version();
-                        if (Version.TryParse(finalversionjz, out ver))
-                        {
-                            return ver.ToString();
-                        }
-                    }
-
-                }
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "flycast")
                 {
                     var output = versionInfo.FileVersion.Substring(1);
@@ -640,6 +620,45 @@ namespace EmulatorLauncher
                         return ver.ToString();
                     }
                 }
+                else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "jzintv")
+                {
+                    var output = ProcessExtensions.RunWithOutput(exe, "-l");
+                    Match versionMatch = Regex.Match(output, @"jzIntv v(\d+\.\d+)");
+                    Match svnMatch = Regex.Match(output, @"SVN Revision (\d+)");
+
+                    if (versionMatch.Success && svnMatch.Success)
+                    {
+                        string versionjz = versionMatch.Groups[1].Value;
+                        string svn = svnMatch.Groups[1].Value;
+                        string combined = $"{versionjz}.{svn}";
+                        var finalversionjz = StringExtensions.FormatVersionString(combined);
+
+                        Version ver = new Version();
+                        if (Version.TryParse(finalversionjz, out ver))
+                        {
+                            return ver.ToString();
+                        }
+                    }
+
+                }
+                else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "linuxloader")
+                {
+                    var output = ProcessExtensions.RunWithOutput(exe, "--version");
+
+                    // Expected first line: "linuxloader v3.0.11"
+                    Match llMatch = Regex.Match(output ?? string.Empty, @"linuxloader\s+v(\d+(?:\.\d+)+)", RegexOptions.IgnoreCase);
+                    if (llMatch.Success)
+                    {
+                        var llVersion = StringExtensions.FormatVersionString(llMatch.Groups[1].Value);
+
+                        Version ver = new Version();
+                        if (Version.TryParse(llVersion, out ver))
+                            return ver.ToString();
+                    }
+
+                    // Fallback: fake version number based on last write time (keeps current behavior if parsing fails)
+                    return File.GetLastWriteTime(exe).ToUniversalTime().ToString("0.yy.MM.dd");
+                }
                 else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "rmg")
                 {
                     var output = ProcessExtensions.RunWithOutput(exe, "-v");
@@ -651,15 +670,6 @@ namespace EmulatorLauncher
                         return ver.ToString();
                     }
                 }
-                /*else if (Path.GetFileNameWithoutExtension(exe).ToLower() == "play")
-                {
-                    var output = versionInfo.ProductVersion.Substring(0, 7);
-                    output = StringExtensions.FormatVersionString(output);
-
-                    Version ver = new Version();
-                    if (Version.TryParse(output, out ver))
-                        return ver.ToString();
-                }*/
                 else
                 {
                     // Fake version number based on last write time

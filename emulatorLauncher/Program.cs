@@ -179,6 +179,7 @@ namespace EmulatorLauncher
             { "theforceengine", () => new ForceEngineGenerator() },
             { "triforce", () => new DolphinGenerator() },
             { "tsugaru", () => new TsugaruGenerator() },
+            { "uzdoom", () => new GZDoomGenerator() },
             { "vita3k", () => new Vita3kGenerator() },
             { "vkquake", () => new vkQuakeGenerator() },
             { "vkquake2", () => new vkQuake2Generator() },

@@ -56,8 +56,11 @@ namespace EmulatorLauncher
                     {
                         process.StartInfo = linuxloaderCreateControls;
                         process.Start();
-                        process.WaitForExit(5000);
+                        process.WaitForExit(8000);
                     }
+
+                    if (!File.Exists(controlsFile))
+                        SimpleLogger.Instance.Warning("[WARNING] controls.ini was not generated in time, only the keys RetroBat writes explicitly will be present.");
                 }
                 catch { SimpleLogger.Instance.Error("[ERROR] Unable to create controls.ini file."); }
             }
@@ -81,8 +84,11 @@ namespace EmulatorLauncher
                     {
                         process.StartInfo = linuxloaderCreateConfig;
                         process.Start();
-                        process.WaitForExit(5000);
+                        process.WaitForExit(8000);
                     }
+
+                    if (!File.Exists(configFile))
+                        SimpleLogger.Instance.Warning("[WARNING] linuxloader.ini was not generated in time, only the keys RetroBat writes explicitly will be present.");
                 }
                 catch { SimpleLogger.Instance.Error("[ERROR] Unable to create linuxloader.ini file."); }
             }
@@ -228,6 +234,8 @@ namespace EmulatorLauncher
                     BindBoolIniFeatureOn(ini, "Display", "KEEP_ASPECT_RATIO", "ll_keepratio", "true", "false");
                     BindBoolIniFeatureOn(ini, "Display", "HIDE_CURSOR", "ll_hide_cursor", "true", "false");
                     BindBoolIniFeatureOn(ini, "Display", "FPS_LIMITER_ENABLED", "ll_fpsLimiter", "true", "false");
+                    if (SystemConfig.isOptSet("ll_fpstarget") && !string.IsNullOrEmpty(SystemConfig["ll_fpstarget"]))
+                        ini.WriteValue("Display", "FPS_TARGET", SystemConfig["ll_fpstarget"]);
                     BindBoolIniFeatureOn(ini, "Display", "BOOST_RENDER_RES", "ll_boostrender", "true", "false");
                     BindBoolIniFeature(ini, "Display", "FPS_OVERLAY_ENABLED", "ll_showfps", "true", "false");
                     
@@ -264,6 +272,12 @@ namespace EmulatorLauncher
                         ini.WriteValue("CrossHairs", "GSEVO_CROSSHAIR_ALWAYS_ON", "false");
                         ini.WriteValue("CrossHairs", "GSEVO_CROSSHAIR_ALWAYS_OFF", "true");
                     }
+                    // P2 crosshair : no default template is assumed for P2 (unlike cross1.png for P1),
+                    // only written when the user explicitly provides one via ll_crosshair2
+                    if (SystemConfig.getOptBoolean("ll_crosshair") && SystemConfig.isOptSet("ll_crosshair2") && !string.IsNullOrEmpty(SystemConfig["ll_crosshair2"]) && File.Exists(SystemConfig["ll_crosshair2"]))
+                        ini.WriteValue("CrossHairs", "P2_CROSSHAIR_PATH", "\"" + SystemConfig["ll_crosshair2"] + "\"");
+                    else
+                        ini.WriteValue("CrossHairs", "P2_CROSSHAIR_PATH", "\"\"");
 
                     // crosshairs
                     string cross1Path = Path.Combine(_path, "cross", "cross1.png");

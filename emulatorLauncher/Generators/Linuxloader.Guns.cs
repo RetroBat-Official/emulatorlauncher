@@ -106,6 +106,14 @@ namespace EmulatorLauncher
                 }
             }
 
+            // Optional auto-centering of the gun aiming axis (useful when using a gamepad instead of a lightgun)
+            if (SystemConfig.isOptSet("ll_gun_centering") && !string.IsNullOrEmpty(SystemConfig["ll_gun_centering"]))
+            {
+                string centering = SystemConfig.getOptBoolean("ll_gun_centering") ? "1" : "0";
+                ini.WriteValue("Config", "GunX_Centering", centering);
+                ini.WriteValue("Config", "GunY_Centering", centering);
+            }
+
             if (SystemConfig.isOptSet("ll_gunaxis_invert") && !string.IsNullOrEmpty(SystemConfig["ll_gunaxis_invert"]))
             {
                 string invertAxis = SystemConfig["ll_gunaxis_invert"].ToLower();
