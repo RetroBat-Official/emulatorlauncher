@@ -61,6 +61,8 @@ namespace EmulatorLauncher
             ini.WriteValue("Controls", "profile", "0");
             ini.WriteValue("Controls", "profiles\\1\\name\\default", "true");
             ini.WriteValue("Controls", "profiles\\1\\name", "default");
+            ini.WriteValue("Controls", "profiles\\1\\input_maptype\\default", "false");
+            ini.WriteValue("Controls", "profiles\\1\\input_maptype", "0");
 
             string profile = "profiles\\1\\";
 
@@ -223,21 +225,21 @@ namespace EmulatorLauncher
             if (input.Type == "button")
             {
                 if (shortcut)
-                    value = "button:" + input.Id + ",down:1" + ",engine:sdl,guid:" + guid + ",port:0";
+                    value = "button:" + input.Id + ",down:1" + ",engine:sdl,guid:" + guid + ",maptype:all,port:0";
                 else
-                    value = "button:" + input.Id + ",engine:sdl,guid:" + guid + ",port:0";
+                    value = "button:" + input.Id + ",engine:sdl,guid:" + guid + ",maptype:all,port:0";
             }
 
             else if (input.Type == "hat")
             {
                 if (shortcut)
-                    value = "direction:" + input.Name.ToString() + ",down:1" + ",engine:sdl,guid:" + guid + ",hat:0,port:0";
+                    value = "direction:" + input.Name.ToString() + ",down:1" + ",engine:sdl,guid:" + guid + ",maptype:all,hat:0,port:0";
                 else
-                    value = "direction:" + input.Name.ToString() + ",engine:sdl,guid:" + guid + ",hat:0,port:0";
+                    value = "direction:" + input.Name.ToString() + ",engine:sdl,guid:" + guid + ",maptype:all,hat:0,port:0";
             }
 
             else if (input.Type == "axis")
-                value = "axis:" + input.Id + ",direction:+,engine:sdl,guid:" + guid + ",port:0,threshold:0.5";
+                value = "axis:" + input.Id + ",direction:+,engine:sdl,guid:" + guid + ",maptype:all,port:0,threshold:0.5";
 
             return value;
         }
@@ -264,6 +266,11 @@ namespace EmulatorLauncher
 
             else
             {
+                // Log why the stick could not be mapped: this leaves the stick unusable in Azahar
+                SimpleLogger.Instance.Warning("[WARNING] " + stickName + " not mapped - left axis: "
+                    + (leftVal == null ? "missing" : leftVal.Type + " id " + leftVal.Id)
+                    + ", up axis: " + (topVal == null ? "missing" : topVal.Type + " id " + topVal.Id));
+
                 ini.WriteValue("Controls", name + "\\default", "false");
                 ini.WriteValue("Controls", name, "[empty]");
             }
