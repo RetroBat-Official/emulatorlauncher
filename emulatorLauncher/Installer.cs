@@ -140,6 +140,7 @@ namespace EmulatorLauncher
             { new Installer("theforceengine", "theforceengine", "TheForceEngine.exe") },
             { new Installer("triforce", new string[] { "dolphin-triforce"}, new string[] { "dolphinWX.exe", "dolphin.exe" }) },
             { new Installer("tsugaru", "tsugaru", "tsugaru_cui.exe") },
+            { new Installer("uzdoom", "uzdoom", "uzdoom.exe") },
             { new Installer("vita3k", "vita3k", "Vita3K.exe") },
             { new Installer("vkquake", "vkquake", "vkQuake.exe") },
             { new Installer("vkquake2", "vkquake2", "quake2.exe") },
