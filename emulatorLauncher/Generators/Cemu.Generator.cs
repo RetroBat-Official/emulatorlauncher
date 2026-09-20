@@ -145,26 +145,26 @@ namespace EmulatorLauncher
         /// Taiwanese = 11
         /// </summary>
         /// <returns></returns>
-        private string GetDefaultWiiULanguage()
+        public static string GetDefaultWiiULanguage()
         {
-            Dictionary<string, string> availableLanguages = new Dictionary<string, string>() 
-            { 
+            Dictionary<string, string> availableLanguages = new Dictionary<string, string>()
+            {
                 { "jp", "0" },
                 { "ja", "0" },
-                { "en", "1" },                 
-                { "fr", "2" }, 
-                { "de", "3" }, 
-                { "it", "4" }, 
-                { "es", "5" }, 
-                { "zh", "6" }, 
-                { "ko", "7" }, 
-                { "nl", "8" }, 
-                { "pt", "9" }, 
+                { "en", "1" },
+                { "fr", "2" },
+                { "de", "3" },
+                { "it", "4" },
+                { "es", "5" },
+                { "zh", "6" },
+                { "ko", "7" },
+                { "nl", "8" },
+                { "pt", "9" },
                 { "ru", "10" },
             };
 
             // Special case for Taiwanese which is zh_TW
-            if (SystemConfig["Language"] == "zh_TW")
+            if (Program.SystemConfig["Language"] == "zh_TW")
                 return "11";
 
             string lang = GetCurrentLanguage();
