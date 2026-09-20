@@ -39,6 +39,7 @@ namespace EmulatorLauncher.Libretro
                 { "amiarcadia", "AmiArcadia" },
                 { "amiberry", "Amiberry" },
                 { "anarch", "anarch" },
+                { "applewin", "AppleWin" },
                 { "ardens", "Ardens" },
                 { "arduous", "arduous" },
                 { "atari800", "Atari800" },
@@ -361,6 +362,7 @@ namespace EmulatorLauncher.Libretro
             Configurea5200(retroarchConfig, coreSettings, system, core);
             ConfigureamiArcadia(retroarchConfig, coreSettings, system, core);
             Configureamiberry(retroarchConfig, coreSettings, system, core);
+            ConfigureApplewin(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureAzahar(retroarchConfig, coreSettings, system, core);
             ConfigureB2(retroarchConfig, coreSettings, system, core);
@@ -730,6 +732,38 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "amiberry_controller2", defaultDevice);
 
             BindBoolFeature(coreSettings, "amiberry_input_log", "amiberry_input_log", "enabled", "disabled");
+        }
+
+        private void ConfigureApplewin(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "applewin")
+                return;
+
+            // System
+            BindFeature(coreSettings, "applewin_machine", "applewin_machine", "Apple //e (enhanced)");
+            BindFeature(coreSettings, "applewin_video_refresh_rate", "applewin_video_refresh_rate", "60Hz");
+
+            // Expansion slots
+            BindFeature(coreSettings, "applewin_slot3", "applewin_slot3", "Empty");
+            BindFeature(coreSettings, "applewin_slot4", "applewin_slot4", "Mockingboard C");
+            BindFeature(coreSettings, "applewin_slot5", "applewin_slot5", "Empty");
+            BindFeature(coreSettings, "applewin_slot7", "applewin_slot7", "Hard Disk Controller");
+
+            // Video
+            BindFeature(coreSettings, "applewin_video_mode", "applewin_video_mode", "Color (RGB Card/Monitor)");
+            BindFeature(coreSettings, "applewin_video_style", "applewin_video_style", "Half Scanlines");
+
+            // Disk control
+            BindFeature(coreSettings, "applewin_disk_control_drive", "applewin_disk_control_drive", "Drive 1");
+            BindFeature(coreSettings, "applewin_playlist_start", "applewin_playlist_start", "First");
+            BindBoolFeature(coreSettings, "applewin_floppy_multidrive", "applewin_floppy_multidrive", "enabled", "disabled");
+
+            // Input
+            BindFeature(coreSettings, "applewin_keyboard_type", "applewin_keyboard_type", "ASCII");
+            BindFeatureSlider(coreSettings, "applewin_mouse_speed", "applewin_mouse_speed", "1.00", 2);
+
+            // Game port device, player 1 only : the core exposes no device list for port 2,
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "applewin_controller1", "1");
         }
 
         private static readonly Dictionary<string, string[]> _amiberryKickstarts = new Dictionary<string, string[]>(StringComparer.InvariantCultureIgnoreCase)
