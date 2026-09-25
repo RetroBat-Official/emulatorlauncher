@@ -764,7 +764,7 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("ghostship_fps") && !string.IsNullOrEmpty(SystemConfig["ghostship_fps"]))
             {
-                int ghostshipFPS = SystemConfig["ghostship_fps"].ToInteger();
+                int ghostshipFPS = SystemConfig["starship_fps"].ToIntegerString().ToInteger();
                 settings["InterpolationFPS"] = ghostshipFPS;
                 settings["MatchRefreshRate"] = 0;
             }
@@ -2287,7 +2287,7 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("starship_fps") && !string.IsNullOrEmpty(SystemConfig["starship_fps"]))
             {
-                int starshipFPS = SystemConfig["starship_fps"].ToInteger();
+                int starshipFPS = SystemConfig["starship_fps"].ToIntegerString().ToInteger();
                 cvars["gInterpolationFPS"] = starshipFPS;
                 cvars["gMatchRefreshRate"] = 0;
             }

@@ -108,7 +108,7 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "DeviceType", "4");
 
             // DevicePath
-            string devPath = controller.DevicePath.Replace("hid", "HID").Replace("vid", "VID").Replace("pid", "PID");
+            string devPath = InputDevices.StripHidCollectionSuffix(controller.DevicePath).Replace("hid", "HID").Replace("vid", "VID").Replace("pid", "PID");
             string serial = "";
 
             if (sdl3Controller != null && !controller.IsXInputDevice)

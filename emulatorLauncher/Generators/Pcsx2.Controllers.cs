@@ -47,6 +47,7 @@ namespace EmulatorLauncher
 
             pcsx2ini.ClearSection("USB1");
             pcsx2ini.ClearSection("USB2");
+            pcsx2ini.ClearSection("JVS");
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for PCSX2");
 

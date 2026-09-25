@@ -237,7 +237,7 @@ namespace EmulatorLauncher
                     crosshairSize = scale.ToString("0.000000", CultureInfo.InvariantCulture);
             }
             ini.WriteValue(padNumber1, "CrosshairScale", crosshairSize);
-            BindIniFeature(ini, padNumber1, "CrosshairColor", "duck_crosshair_color2", "#00ff00");
+            BindIniFeature(ini, padNumber1, "CrosshairColor", "duck_crosshair_color1", "#00ff00");
 
             BindIniFeatureSlider(ini, padNumber1, "XScale", "duck_gun_xscale", "0.930000", 6);
 

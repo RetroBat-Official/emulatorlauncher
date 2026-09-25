@@ -30,6 +30,7 @@ namespace EmulatorLauncher
         private string _exe;
         private string _gamePath;
         private bool _remapexit = false;
+        private bool _exclusiveFullscreen = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -52,6 +53,10 @@ namespace EmulatorLauncher
             var versionInfo = FileVersionInfo.GetVersionInfo(exe);
             string versionString = versionInfo.FileMajorPart + "." + versionInfo.FileMinorPart + "." + versionInfo.FileBuildPart + "." + versionInfo.FilePrivatePart;
             Version.TryParse(versionString, out _version);
+
+            _exclusiveFullscreen = _version >= new Version(10, 8, 0, 0) && resolution != null && SystemConfig.getOptBoolean("vp_exclusivefullscreen");
+            if (_exclusiveFullscreen)
+                DependsOnDesktopResolution = false;
 
             rom = this.TryUnZipGameIfNeeded(system, rom, true, false);
             if (Directory.Exists(rom))
@@ -293,7 +298,16 @@ namespace EmulatorLauncher
                 // Resolution and fullscreen
                 ini.WriteValue("Player", "Width", bounds.Width.ToString());
                 ini.WriteValue("Player", "Height", bounds.Height.ToString());
-                ini.WriteValue("Player", "FullScreen", "0"); // resolution == null ? "0" : "1" -> Let desktop resolution handle
+
+                if (_exclusiveFullscreen)
+                {
+                    // VPX switches to the selected video mode itself, desktop resolution is left untouched
+                    ini.WriteValue("Player", "FullScreen", "1");
+                    ini.WriteValue("Player", "RefreshRate", resolution.DisplayFrequency.ToString());
+                }
+                else
+                    ini.WriteValue("Player", "FullScreen", "0");
+
                 ini.WriteValue("Player", "Display", monitorIndex.ToString());
 
                 // Vertical sync
