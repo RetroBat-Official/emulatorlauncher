@@ -1186,8 +1186,7 @@ namespace EmulatorLauncher
                         while (!process.WaitForExit(50))
                             Application.DoEvents();
 
-                        try { ret = process.ExitCode; }
-                        catch { }
+                        ret = ReportExitCode(process, path);
                     }
 
                     bezel?.Dispose();
@@ -1204,8 +1203,7 @@ namespace EmulatorLauncher
                     Job.Current.AddProcess(process);
                     process.WaitForExit();
 
-                    try { ret = process.ExitCode; }
-                    catch { }
+                    ret = ReportExitCode(process, path);
                 }
 
                 return ret;
@@ -1216,7 +1214,9 @@ namespace EmulatorLauncher
 
         private Process StartProcessAndMoveItsWindowTo(ProcessStartInfo path, RECT rc, Screen screen)
         {
-            var process = Process.Start(path);
+            var process = StartEmulator(path);
+            if (process == null)
+                return null;
 
             if (screen == null || screen.Primary)
                 return process;

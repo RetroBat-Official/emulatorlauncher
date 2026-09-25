@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Compression;
 using EmulatorLauncher.Common.FileFormats;
 
 namespace EmulatorLauncher
@@ -17,6 +20,32 @@ namespace EmulatorLauncher
             string exe = Path.Combine(path, "no$gba.exe");
             if (!File.Exists(exe))
                 return null;
+
+            // NO$GBA cannot read archives : extract the game to the temporary uncompressed folder
+            if (Zip.IsCompressedFile(rom))
+            {
+                string[] romExtensions = new string[] { ".gba", ".gb", ".gbc", ".nds", ".srl" };
+
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, true, false);
+                if (!Directory.Exists(uncompressedRomPath))
+                {
+                    SetCustomError("Unable to extract the archive.");
+                    return null;
+                }
+
+                string uncompressedRom = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories)
+                    .OrderBy(file => Array.IndexOf(romExtensions, Path.GetExtension(file).ToLowerInvariant()))
+                    .FirstOrDefault(file => romExtensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
+
+                if (string.IsNullOrEmpty(uncompressedRom))
+                {
+                    SetCustomError("No rom file found in the archive.");
+                    return null;
+                }
+
+                rom = uncompressedRom;
+                ValidateUncompressedGame();
+            }
 
             bool fullscreen = ShouldRunFullscreen();
 

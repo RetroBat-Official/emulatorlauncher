@@ -197,7 +197,8 @@ namespace EmulatorLauncher.Libretro
         {
             int ret = base.RunAndWait(path);
             bool generic = false;
-            if (ret == 1 && File.Exists(LogFile))
+
+            if (RawExitCode == 1 && File.Exists(LogFile))
             {
                 var line = File.ReadAllLines(LogFile).FirstOrDefault(s => s != null && s.StartsWith("[libretro ERROR]"));
                 if (string.IsNullOrEmpty(line))

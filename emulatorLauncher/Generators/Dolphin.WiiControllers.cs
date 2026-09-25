@@ -415,16 +415,36 @@ namespace EmulatorLauncher
             GenerateControllerConfig_wii(path, wiiMapping, wiiReverseAxes, extraOptions, extraMapping);
         }
 
+        /// <summary>
+        /// Get the number of Wiimote slots to enable in Dolphin.
+        /// When the feature is not set (AUTO), all 4 slots are managed as before.
+        /// </summary>
+        private static int GetWiimoteCount()
+        {
+            if (Program.SystemConfig.isOptSet("wii_nbwiimotes") && !string.IsNullOrEmpty(Program.SystemConfig["wii_nbwiimotes"]))
+            {
+                int nb = Program.SystemConfig["wii_nbwiimotes"].ToInteger();
+
+                if (nb > 0 && nb < 5)
+                    return nb;
+            }
+
+            return 4;
+        }
+
         private static void GenerateControllerConfig_realwiimotes(string path)
         {
             string iniFile = Path.Combine(path, "User", "Config", "WiimoteNew.ini");
+            int maxWiimotes = GetWiimoteCount();
 
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
                 for (int i = 1; i < 5; i++)
                 {
                     ini.ClearSection("Wiimote" + i.ToString());
-                    ini.WriteValue("Wiimote" + i.ToString(), "Source", "2");
+
+                    // Slots above the requested amount are disabled, so that games do not detect extra players
+                    ini.WriteValue("Wiimote" + i.ToString(), "Source", i <= maxWiimotes ? "2" : "0");
                 }
 
                 // Balance board
@@ -443,6 +463,8 @@ namespace EmulatorLauncher
         {
             string iniFile = Path.Combine(path, "User", "Config", "WiimoteNew.ini");
 
+            int maxWiimotes = GetWiimoteCount();
+
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
                 for (int i = 1; i < 5; i++)
@@ -451,6 +473,13 @@ namespace EmulatorLauncher
                     string btDevice = (i - 1).ToString();
 
                     ini.ClearSection(section);
+
+                    if (i > maxWiimotes)
+                    {
+                        ini.WriteValue(section, "Source", "0");
+                        continue;
+                    }
+
                     ini.WriteValue(section, "Source", "1");
                     ini.WriteValue(section, "Device", "Bluetooth/" + btDevice + "/Wii Remote");
 
@@ -497,9 +526,12 @@ namespace EmulatorLauncher
             Dictionary<string, string> specialHK = null;
             SdlToDirectInput sdlCtrl = null;
 
+            int maxWiimotes = GetWiimoteCount();
+            List<int> configuredWiimotes = new List<int>();
+
             using (IniFile ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
-                foreach (var pad in Program.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
+                foreach (var pad in Program.Controllers.OrderBy(i => i.PlayerIndex).Take(maxWiimotes))
                 {
                     bool xinputAsSdl = false;
                     bool isNintendo = pad.VendorID == USB_VENDOR.NINTENDO;
@@ -509,6 +541,8 @@ namespace EmulatorLauncher
 
                     if (pad.Config == null)
                         continue;
+
+                    configuredWiimotes.Add(pad.PlayerIndex);
 
                     string guid = pad.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant();
                     var prod = pad.ProductID;
@@ -1002,6 +1036,17 @@ namespace EmulatorLauncher
                         ini.WriteValue(gcpad, "IR/Relative Input", "True");
 
                     SimpleLogger.Instance.Info("[INFO] Assigned controller " + pad.DevicePath + " to player : " + pad.PlayerIndex.ToString());
+                }
+
+                // Disable all the Wiimote slots that have not been configured, so that games do not detect extra players
+                // This is also required because WiimoteNew.ini is persistent : a slot left over from a previous session would stay active
+                for (int i = 1; i < 5; i++)
+                {
+                    if (configuredWiimotes.Contains(i))
+                        continue;
+
+                    ini.ClearSection("Wiimote" + i.ToString());
+                    ini.WriteValue("Wiimote" + i.ToString(), "Source", "0");
                 }
 
                 ini.Save();
