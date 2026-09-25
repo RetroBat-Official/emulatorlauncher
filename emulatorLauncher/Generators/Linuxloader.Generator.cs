@@ -302,6 +302,13 @@ namespace EmulatorLauncher
                         ini.WriteValue("CrossHairs", "P1_CROSSHAIR_PATH", "\"" + cross1Path + "\"");
                     else
                         ini.WriteValue("CrossHairs", "P1_CROSSHAIR_PATH", "\"\"");
+
+                    // Game fixes
+                    BindBoolIniFeature(ini, "Graphics", "HUMMER_FLICKER_FIX", "ll_hummer_flicker_fix", "true", "false");
+                    BindIniFeature(ini, "GameSpecific", "PRIMEVAL_HUNT_SCREEN_MODE", "ll_primeval_hunt_screen_mode", "2");
+                    BindBoolIniFeatureOn(ini, "GameSpecific", "PRIMEVAL_HUNT_USE_ZINK", "ll_primeval_hunt_use_zink", "true", "false");
+                    BindBoolIniFeature(ini, "GameSpecific", "SKIP_OUTRUN_CABINET_CHECK", "ll_skip_outrun_cabinet_check", "true", "false");
+                    BindBoolIniFeature(ini, "GameSpecific", "RAMBO_GUNS_SWITCH", "ll_rambo_guns_switch", "true", "false");
                 }
             }
             catch { SimpleLogger.Instance.Error("[ERROR] Unable to save config ini file."); }
