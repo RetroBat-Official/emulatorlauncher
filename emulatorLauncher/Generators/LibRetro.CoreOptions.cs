@@ -1111,13 +1111,16 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "citra_is_new_3ds", "azaharlr_is_new_3ds", "New 3DS");
             BindFeature(coreSettings, "citra_layout_option", "azaharlr_layout_option", "default");
             BindBoolFeature(coreSettings, "citra_swap_screen", "azaharls_swap_screen", "Bottom", "Top");
+            BindFeature(coreSettings, "citra_swap_screen_mode", "azaharlr_swap_screen_mode", "Toggle");
             BindBoolFeature(coreSettings, "citra_use_hw_shader", "azaharlr_use_hw_shaders", "disabled", "enabled");
+            BindBoolFeatureOn(coreSettings, "citra_shaders_accurate_mul", "azaharlr_shaders_accurate_mul", "enabled", "disabled");
             BindFeature(coreSettings, "citra_texture_filter", "azaharlr_texture_filter", "none");
             BindBoolFeature(coreSettings, "citra_custom_textures", "azaharlr_custom_textures", "enabled", "disabled");
+            BindFeature(coreSettings, "citra_texture_sampling", "azaharlr_texture_sampling", "GameControlled");
             BindFeature(coreSettings, "citra_region_value", "azaharlr_region_value", "Auto");
             BindFeature(coreSettings, "citra_language_value", "azaharlr_language", "English");
             BindBoolFeature(coreSettings, "citra_use_virtual_sd", "azaharlr_use_virtual_sd", "disabled", "enabled");
-            BindFeature(coreSettings, "citra_graphics_api", "azaharlr_graphics_api", "OpenGL");
+            BindFeature(coreSettings, "citra_graphics_api", "azaharlr_graphics_api", "Auto");
             BindBoolFeature(coreSettings, "citra_enable_mouse_touchscreen", "azaharlr_mouse_touchscreen", "disabled", "enabled");
             BindFeature(coreSettings, "citra_analog_function", "azaharlr_analog_function", "c_stick_and_touchscreen");
             BindBoolFeatureOn(coreSettings, "citra_enable_touch_pointer_timeout", "azaharlr_enable_touch_pointer_timeout", "enabled", "disabled");
@@ -2734,7 +2737,37 @@ namespace EmulatorLauncher.Libretro
             if (core != "gearcoleco")
                 return;
 
+            bool adam = (system == "adam");
+            coreSettings["gearcoleco_cartridge_hardware"] = adam ? "ADAM" : "ColecoVision";
+
+            if (adam)
+            {
+                BindFeature(coreSettings, "gearcoleco_adam_disk_drive", "gearcoleco_adam_disk_drive", "Loaded media");
+                BindFeature(coreSettings, "gearcoleco_adam_writable_media", "gearcoleco_adam_writable_media", "Save-directory working copy");
+            }
+            else
+            {
+                coreSettings["gearcoleco_adam_disk_drive"] = "Loaded media";
+                coreSettings["gearcoleco_adam_writable_media"] = "Disabled";
+            }
+
+            coreSettings["gearcoleco_adam_computer_reset"] = "Idle";
+
+            // System
+            BindFeature(coreSettings, "gearcoleco_timing", "gearcoleco_timing", "Auto");
+            BindFeature(coreSettings, "gearcoleco_mapper", "gearcoleco_mapper", "Auto");
+
+            // Video
+            BindFeature(coreSettings, "gearcoleco_video_chip", "gearcoleco_video_chip", "Auto");
+            BindFeature(coreSettings, "gearcoleco_aspect_ratio", "gearcoleco_aspect_ratio", "1:1 PAR");
+            BindFeature(coreSettings, "gearcoleco_overscan", "gearcoleco_overscan", "Disabled");
+            BindBoolFeature(coreSettings, "gearcoleco_no_sprite_limit", "gearcoleco_no_sprite_limit", "Enabled", "Disabled");
+
             // Controls
+            BindBoolFeature(coreSettings, "gearcoleco_up_down_allowed", "gearcoleco_up_down_allowed", "Enabled", "Disabled");
+            BindFeature(coreSettings, "gearcoleco_spinners", "gearcoleco_spinners", "Disabled");
+            BindFeatureSlider(coreSettings, "gearcoleco_spinner_sensitivity", "gearcoleco_spinner_sensitivity", "1");
+
             BindFeature(retroarchConfig, "input_libretro_device_p1", "gearcoleco_controller", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "gearcoleco_controller", "1");
         }
