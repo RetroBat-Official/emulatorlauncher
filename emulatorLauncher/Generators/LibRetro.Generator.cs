@@ -1405,7 +1405,14 @@ namespace EmulatorLauncher.Libretro
 
             // Rewind
             if (!SystemConfig.isOptSet("rewind"))
-                retroarchConfig["rewind_enable"] = coreNoRewind.Contains(core) ? "false" : "true"; // AUTO
+            {
+                // AUTO: enable only if the core supports it and its state is light enough to be saved every frame
+                bool autoRewind = !coreNoRewind.Contains(core)
+                                  && !coreNoAutoRewind.Contains(core)
+                                  && !systemNoAutoRewind.Contains(system);
+
+                retroarchConfig["rewind_enable"] = autoRewind ? "true" : "false";
+            }
             else if (SystemConfig.getOptBoolean("rewind"))
                 retroarchConfig["rewind_enable"] = "true";
             else
@@ -1413,7 +1420,6 @@ namespace EmulatorLauncher.Libretro
 
             // Audio
             // xaudio only works if dx9 is installed on the system
-
             string defaultaudioDriver = HasXAudio27() ? "xaudio" : "wasapi";
 
             BindFeature(retroarchConfig, "audio_driver", "audio_driver", defaultaudioDriver);
@@ -2464,10 +2470,16 @@ namespace EmulatorLauncher.Libretro
             "pcsx2", "supermodel", "swanstation", "vecx" };
         
         // Level DISABLED - no savestate support at all
-        static List<string> coreNoSavestate = new List<string>() { "arduous", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "dice", "dinothawr", "doukutsu_rs", "easyrpg", "freej2me", "frodo", "gw", "lowresnx", "mame2010", "mame2014", "mame2016", "nxengine", "openlara", "pd777", "pocketcdg", "retro8", "same_cdi", "scummvm", "superbroswar", "tyrquake", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero" };
+        static List<string> coreNoSavestate = new List<string>() { "arduous", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "cemu", "dice", "dinothawr", "doukutsu_rs", "easyrpg", "freej2me", "frodo", "gw", "lowresnx", "mame2010", "mame2014", "mame2016", "nxengine", "openlara", "pd777", "pocketcdg", "retro8", "same_cdi", "scummvm", "superbroswar", "tyrquake", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero" };
 
         // Level < SERIALIZED - no rewind (core_info.c:3092)
         static List<string> coreNoRewind = new List<string>() { "arduous", "azahar", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "citra", "dice", "dinothawr", "dolphin", "doukutsu_rs", "easyrpg", "ecwolf", "freej2me", "frodo", "gw", "kronos", "lowresnx", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", "mame2010", "mame2014", "mame2016", "nxengine", "o2em", "openlara", "opera", "pcsx2", "pd777", "pocketcdg", "prboom", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", "swanstation", "tic80", "tyrquake", "uzem", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "yabasanshiro" };
+
+        // Rewind is supported but too costly for AUTO mode (large state serialized every frame, rewind_granularity = 1)
+        static readonly List<string> systemNoAutoRewind = new List<string>() { "doom3", "dice", "nds", "3ds", "sega32x", "wii", "gamecube", "triforce", "gc", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn", "supermodel", "mame", "hbmame", "fbneo", "dos", "scummvm", "psp" };
+
+        // Same as above, core-based: flycast stops/restarts its emulation thread on each retro_serialize() call
+        static readonly List<string> coreNoAutoRewind = new List<string>() { "flycast" };
 
         // Level < DETERMINISTIC - no run-ahead, no preemptive frames, no netplay (core_info.c:3098-3107)
         static List<string> coreNoRunahead = new List<string>() { "81", "arduous", "azahar", "b2", "bennugd", "bluemsx", "boom3", "boom3_xp", "bsnes", "bsnes-jg", "bsnes_hd_beta", "cannonball", "cap32", "citra", "crocods", "desmume", "desmume2015", "dice", "dinothawr", "dolphin", "dosbox_pure", "doukutsu_rs", "easyrpg", "ecwolf", "ep128emu_core", "fake08", "fbalpha", "fbalpha2012", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "fbalpha2012_neogeo", "flycast", "freej2me", "frodo", "gw", "handy", "hatari", "hatarib", "holani", "kronos", "lowresnx", "lutro", "m2000", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", "mame2010", "mame2014", "mame2016", "mednafen_snes", "melondsds", "mupen64plus_next", "nekop2", "noods", "np2kai", "nxengine", "o2em", "openlara", "opera", "parallel_n64", "pcsx2", "pd777", "pocketcdg", "ppsspp", "prboom", "prosystem", "puae", "race", "reminiscence", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", "supermodel", "swanstation", "theodore", "tic80", "tyrquake", "uzem", "vecx", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "virtualjaguar", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "yabasanshiro" };
@@ -2489,6 +2501,7 @@ namespace EmulatorLauncher.Libretro
         static readonly Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
         static readonly Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>()
         {
+            { "cemu", "glcore" },
             { "dolphin", "glcore" },
             { "melondsds", "glcore" },
             { "mupen64plus_next", "glcore" },

@@ -39,6 +39,7 @@ namespace EmulatorLauncher.Libretro
                 { "amiarcadia", "AmiArcadia" },
                 { "amiberry", "Amiberry" },
                 { "anarch", "anarch" },
+                { "applewin", "AppleWin" },
                 { "ardens", "Ardens" },
                 { "arduous", "arduous" },
                 { "atari800", "Atari800" },
@@ -64,6 +65,7 @@ namespace EmulatorLauncher.Libretro
                 { "cannonball", "Cannonball" },
                 { "cap32", "cap32" },
                 { "cdi2015", "Philips CDi 2015" },
+                { "cemu", "Cemu" },
                 { "chailove", "ChaiLove" },
                 { "citra2018", "Citra 2018" },
                 { "citra_canary", "Citra Canary/Experimental" },
@@ -360,6 +362,7 @@ namespace EmulatorLauncher.Libretro
             Configurea5200(retroarchConfig, coreSettings, system, core);
             ConfigureamiArcadia(retroarchConfig, coreSettings, system, core);
             Configureamiberry(retroarchConfig, coreSettings, system, core);
+            ConfigureApplewin(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureAzahar(retroarchConfig, coreSettings, system, core);
             ConfigureB2(retroarchConfig, coreSettings, system, core);
@@ -371,6 +374,7 @@ namespace EmulatorLauncher.Libretro
             Configurebsnesjg(retroarchConfig, coreSettings, system, core);
             ConfigureCannonball(retroarchConfig, coreSettings, system, core);
             ConfigureCap32(retroarchConfig, coreSettings, system, core);
+            ConfigureCemu(retroarchConfig, coreSettings, system, core);
             ConfigureCitra(retroarchConfig, coreSettings, system, core);
             ConfigureCraft(retroarchConfig, coreSettings, system, core);
             ConfigureCrocoDS(retroarchConfig, coreSettings, system, core);
@@ -728,6 +732,38 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "amiberry_controller2", defaultDevice);
 
             BindBoolFeature(coreSettings, "amiberry_input_log", "amiberry_input_log", "enabled", "disabled");
+        }
+
+        private void ConfigureApplewin(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "applewin")
+                return;
+
+            // System
+            BindFeature(coreSettings, "applewin_machine", "applewin_machine", "Apple //e (enhanced)");
+            BindFeature(coreSettings, "applewin_video_refresh_rate", "applewin_video_refresh_rate", "60Hz");
+
+            // Expansion slots
+            BindFeature(coreSettings, "applewin_slot3", "applewin_slot3", "Empty");
+            BindFeature(coreSettings, "applewin_slot4", "applewin_slot4", "Mockingboard C");
+            BindFeature(coreSettings, "applewin_slot5", "applewin_slot5", "Empty");
+            BindFeature(coreSettings, "applewin_slot7", "applewin_slot7", "Hard Disk Controller");
+
+            // Video
+            BindFeature(coreSettings, "applewin_video_mode", "applewin_video_mode", "Color (RGB Card/Monitor)");
+            BindFeature(coreSettings, "applewin_video_style", "applewin_video_style", "Half Scanlines");
+
+            // Disk control
+            BindFeature(coreSettings, "applewin_disk_control_drive", "applewin_disk_control_drive", "Drive 1");
+            BindFeature(coreSettings, "applewin_playlist_start", "applewin_playlist_start", "First");
+            BindBoolFeature(coreSettings, "applewin_floppy_multidrive", "applewin_floppy_multidrive", "enabled", "disabled");
+
+            // Input
+            BindFeature(coreSettings, "applewin_keyboard_type", "applewin_keyboard_type", "ASCII");
+            BindFeatureSlider(coreSettings, "applewin_mouse_speed", "applewin_mouse_speed", "1.00", 2);
+
+            // Game port device, player 1 only : the core exposes no device list for port 2,
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "applewin_controller1", "1");
         }
 
         private static readonly Dictionary<string, string[]> _amiberryKickstarts = new Dictionary<string, string[]>(StringComparer.InvariantCultureIgnoreCase)
@@ -1350,6 +1386,115 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "cap32_lightgun_show", "cap32_lightgun_show", "enabled", "disabled");
 
             SetupLightGuns(retroarchConfig, "260", core, 1);
+        }
+
+        private void ConfigureCemu(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "cemu")
+                return;
+
+            Dictionary<string, string> cemuLanguageMap = new Dictionary<string, string>()
+            {
+                { "0", "Japanese" },
+                { "1", "English" },
+                { "2", "French" },
+                { "3", "German" },
+                { "4", "Italian" },
+                { "5", "Spanish" },
+                { "6", "Chinese" },
+                { "7", "Korean" },
+                { "8", "Dutch" },
+                { "9", "Portuguese" },
+                { "10", "Russian" },
+                { "11", "Taiwanese" }
+            };
+
+            coreSettings["cemu_convert_to_wua"] = "disabled";
+
+            // GRAPHICS API
+            string cemuGpuApi = SystemConfig.GetValueOrDefault("cemulr_gpu_api", "OpenGL");
+            coreSettings["cemu_gpu_api"] = cemuGpuApi;
+
+            if (cemuGpuApi == "Vulkan")
+                retroarchConfig["video_driver"] = "vulkan";
+            else
+                retroarchConfig["video_driver"] = "glcore";
+
+            _coreVideoDriverForce = true;
+
+            // VIDEO
+            BindFeature(coreSettings, "cemu_internal_resolution", "cemulr_internal_resolution", "1280x720");
+            BindFeature(coreSettings, "cemu_upscale_filter", "cemulr_upscale_filter", "linear");
+            BindFeature(coreSettings, "cemu_downscale_filter", "cemulr_downscale_filter", "linear");
+            BindFeature(coreSettings, "cemu_fullscreen_scaling", "cemulr_fullscreen_scaling", "keep_aspect");
+            BindBoolFeature(coreSettings, "cemu_skip_draw_on_dupe", "cemulr_skip_draw_on_dupe", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "cemu_bc1_16bit", "cemulr_bc1_16bit", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "cemu_onscreen_notifications", "cemulr_osd", "enabled", "disabled");
+
+            // SHADERS
+            BindBoolFeatureOn(coreSettings, "cemu_async_shader_compile", "cemulr_async_shader_compile", "enabled", "disabled");
+            BindFeature(coreSettings, "cemu_precompiled_shaders", "cemulr_precompiled_shaders", "auto");
+            BindBoolFeatureOn(coreSettings, "cemu_accurate_shader_mul", "cemulr_accurate_shader_mul", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "cemu_shader_fast_math", "cemulr_shader_fast_math", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "cemu_gx2drawdone_sync", "cemulr_gx2drawdone_sync", "enabled", "disabled");
+
+            // SYSTEM
+            BindFeature(coreSettings, "cemu_cpu_mode", "cemulr_cpu_mode", "auto");
+            BindFeature(coreSettings, "cemu_thread_quantum", "cemulr_thread_quantum", "45000");
+
+            if (SystemConfig.isOptSet("wiiu_language") && !string.IsNullOrEmpty(SystemConfig["wiiu_language"]) && cemuLanguageMap.ContainsKey(SystemConfig["wiiu_language"]))
+                coreSettings["cemu_console_language"] = cemuLanguageMap[SystemConfig["wiiu_language"]];
+            else
+                coreSettings["cemu_console_language"] = cemuLanguageMap.TryGetValue(CemuGenerator.GetDefaultWiiULanguage(), out string cemuLanguage) ? cemuLanguage : "English";
+
+            // AUDIO
+            BindFeature(coreSettings, "cemu_audio_latency", "cemulr_audio_latency", "2");
+
+            // GAMEPAD SCREEN
+            string cemuLayout = SystemConfig.GetValueOrDefault("cemulr_screen_layout", "Default Screen");
+
+            if (cemuLayout == "switchable")
+            {
+                coreSettings["cemu_number_of_screen_layouts"] = "2";
+                coreSettings["cemu_screen_layout1"] = "Default Screen";
+                coreSettings["cemu_screen_layout2"] = "GamePad Screen";
+                BindFeature(coreSettings, "cemu_next_screen_layout_button", "cemulr_layout_button", "L + R + L2 + R2 + L3 + R3");
+            }
+            else
+            {
+                coreSettings["cemu_number_of_screen_layouts"] = "1";
+                coreSettings["cemu_screen_layout1"] = cemuLayout;
+                coreSettings["cemu_screen_layout2"] = "GamePad Screen";
+                coreSettings["cemu_next_screen_layout_button"] = "Disabled";
+            }
+
+            coreSettings["cemu_screen_layout3"] = "Side by Side";
+            coreSettings["cemu_screen_layout4"] = "Top Bottom";
+            coreSettings["cemu_screen_layout5"] = "Picture in Picture";
+
+            BindFeature(coreSettings, "cemu_drc_position", "cemulr_drc_position", "normal");
+
+            // EMULATED USB DEVICES
+            BindBoolFeature(coreSettings, "cemu_emulate_skylander_portal", "cemulr_skylander_portal", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "cemu_emulate_infinity_base", "cemulr_infinity_base", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "cemu_emulate_dimensions_toypad", "cemulr_dimensions_toypad", "enabled", "disabled");
+
+            // CONTROLS
+            // Wii Remote 257, Pro Controller 513, Classic 769,
+            // GamePad + Wii Remote 1025, Wii Remote sideways 1281,
+            // GamePad + Wii Remote sideways 1537.
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "cemulr_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "cemulr_controller2", "0");
+            BindFeature(retroarchConfig, "input_libretro_device_p3", "cemulr_controller3", "0");
+            BindFeature(retroarchConfig, "input_libretro_device_p4", "cemulr_controller4", "0");
+
+            // Disable Debug logging
+            coreSettings["cemu_log_filesystem"] = "disabled";
+            coreSettings["cemu_log_thread_sync"] = "disabled";
+            coreSettings["cemu_log_thread_dump"] = "disabled";
+            coreSettings["cemu_log_system_api"] = "disabled";
+            coreSettings["cemu_log_texture_memory"] = "disabled";
+            coreSettings["cemu_log_input_api"] = "disabled";
         }
 
         private void ConfigureCitra(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
