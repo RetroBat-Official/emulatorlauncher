@@ -172,7 +172,7 @@ namespace EmulatorLauncher
             else
                 SimpleLogger.Instance.Info("[Generator] noscreenres set - ScreenRes.txt left untouched.");
 
-            SetupOptions(path, romPath, resolution);
+            SetupOptions(path, romPath, rom, resolution);
             SetupB2STableSettings(path);
 
             var commands = new List<string>();
@@ -243,14 +243,14 @@ namespace EmulatorLauncher
             return null;
         }
 
-        private void SetupOptions(string path, string romPath, ScreenResolution resolution)
+        private void SetupOptions(string path, string romPath, string vpxFile, ScreenResolution resolution)
         {
             if (_version >= new Version(10, 8, 0, 0))
                 SetupOptionsIniFile(path, resolution);
             else
                 SetupOptionsRegistry(resolution);
 
-            SetupVPinMameOptions(path, romPath);
+            SetupVPinMameOptions(path, romPath, vpxFile);
             SetupDmdDevice(path);
         }
 
@@ -371,12 +371,12 @@ namespace EmulatorLauncher
             }
         }
 
-        private static void SetupVPinMameOptions(string path, string romPath)
+        private static void SetupVPinMameOptions(string path, string romPath, string vpxFile)
         {
             var softwareKey = Registry.CurrentUser.OpenSubKey(@"Software", true);
             if (softwareKey == null)
                 return;
-            
+
             var visualPinMame = softwareKey.CreateSubKey("Freeware").CreateSubKey("Visual PinMame");
             if (visualPinMame != null)
             {
@@ -419,87 +419,82 @@ namespace EmulatorLauncher
                     globalKey.Close();
                 }
 
-                // default key
+                // default key: template used by VPinMAME for roms that do not have their own key yet
                 if (defaultKey != null)
                 {
-                    SetOption(defaultKey, "cheat", 1);
-
-                    if (Program.SystemConfig.getOptBoolean("vpmame_dmd"))
-                    {
-                        SetOption(defaultKey, "showpindmd", 1);
-                        SetOption(defaultKey, "showwindmd", 0);
-                    }
-                    else if (Program.SystemConfig["vpmame_dmd"] == "none")
-                    {
-                        SetOption(defaultKey, "showpindmd", 0);
-                        SetOption(defaultKey, "showwindmd", 0);
-                    }
-                    else
-                    {
-                        SetOption(defaultKey, "showpindmd", 0);
-                        SetOption(defaultKey, "showwindmd", 1);
-                    }
-
-                    if (Program.SystemConfig.isOptSet("vpmame_soundmode") && !string.IsNullOrEmpty(Program.SystemConfig["vpmame_soundmode"]))
-                    {
-                        int soundMode = Program.SystemConfig["vpmame_soundmode"].ToInteger();
-                        SetOption(defaultKey, "sound_mode", soundMode);
-                    }
-                    else
-                        SetOption(defaultKey, "sound_mode", 0);
-
-                    BindBoolRegistryFeature(defaultKey, "cabinet_mode", "vpmame_cabinet", 1, 0, true);
-                    BindBoolRegistryFeature(defaultKey, "dmd_colorize", "vpmame_colordmd", 1, 0, false);
-
+                    SetupVPinMameRomKey(defaultKey);
                     defaultKey.Close();
                 }
 
-                // per rom config
-                if (romPath != null)
+                // per rom config: only the rom used by the launched table, to preserve user tweaks on other roms
+                string romName = VpxRomNameReader.GetRomName(vpxFile, romPath);
+                if (!string.IsNullOrEmpty(romName))
                 {
+                    SimpleLogger.Instance.Info("[Generator] VPinMAME rom name read from table: " + romName);
+
+                    // CreateSubKey opens the key if it already exists
+                    using (var romKey = visualPinMame.CreateSubKey(romName))
+                    {
+                        if (romKey != null)
+                            SetupVPinMameRomKey(romKey);
+                    }
+                }
+
+                else if (!string.IsNullOrEmpty(romPath) && Directory.Exists(romPath))
+                {
+                    // Fallback: rom name could not be read from the table, update every rom key
+                    SimpleLogger.Instance.Info("[Generator] VPinMAME rom name not found in table, updating all rom keys.");
+
                     string[] romList = Directory.GetFiles(romPath, "*.zip").Select(r => Path.GetFileNameWithoutExtension(r)).Distinct().ToArray();
                     foreach (var rom in romList)
                     {
-                        var romKey = visualPinMame.OpenSubKey(rom, true);
-
-                        if (romKey == null)
-                            romKey = visualPinMame.CreateSubKey(rom);
-
-                        SetOption(romKey, "cheat", 1);
-
-                        if (Program.SystemConfig.getOptBoolean("vpmame_dmd"))
+                        using (var romKey = visualPinMame.CreateSubKey(rom))
                         {
-                            SetOption(romKey, "showpindmd", 1);
-                            SetOption(romKey, "showwindmd", 0);
+                            if (romKey != null)
+                                SetupVPinMameRomKey(romKey);
                         }
-                        else if (Program.SystemConfig["vpmame_dmd"] == "none")
-                        {
-                            SetOption(romKey, "showpindmd", 0);
-                            SetOption(romKey, "showwindmd", 0);
-                        }
-                        else
-                        {
-                            SetOption(romKey, "showpindmd", 0);
-                            SetOption(romKey, "showwindmd", 1);
-                        }
-
-                        if (Program.SystemConfig.isOptSet("vpmame_soundmode") && !string.IsNullOrEmpty(Program.SystemConfig["vpmame_soundmode"]))
-                        {
-                            int soundMode = Program.SystemConfig["vpmame_soundmode"].ToInteger();
-                            SetOption(romKey, "sound_mode", soundMode);
-                        }
-                        else
-                            SetOption(romKey, "sound_mode", 0);
-
-                        BindBoolRegistryFeature(romKey, "cabinet_mode", "vpmame_cabinet", 1, 0, true);
-                        BindBoolRegistryFeature(romKey, "dmd_colorize", "vpmame_colordmd", 1, 0, false);
-
-                        romKey.Close();
                     }
                 }
+
+                visualPinMame.Close();
             }
 
             softwareKey.Close();
+        }
+
+        // Per-rom VPinMAME settings, shared by the 'default' key and the rom keys
+        private static void SetupVPinMameRomKey(RegistryKey key)
+        {
+            SetOption(key, "cheat", 1);
+
+            if (Program.SystemConfig.getOptBoolean("vpmame_dmd"))
+            {
+                SetOption(key, "showpindmd", 1);
+                SetOption(key, "showwindmd", 0);
+            }
+            else if (Program.SystemConfig["vpmame_dmd"] == "none")
+            {
+                SetOption(key, "showpindmd", 0);
+                SetOption(key, "showwindmd", 0);
+            }
+            else
+            {
+                SetOption(key, "showpindmd", 0);
+                SetOption(key, "showwindmd", 1);
+            }
+
+            if (Program.SystemConfig.isOptSet("vpmame_soundmode") && !string.IsNullOrEmpty(Program.SystemConfig["vpmame_soundmode"]))
+                SetOption(key, "sound_mode", Program.SystemConfig["vpmame_soundmode"].ToInteger());
+            else
+                SetOption(key, "sound_mode", 0);
+
+            if (Program.SystemConfig.isOptSet("vpmame_dmdsize") && !string.IsNullOrEmpty(Program.SystemConfig["vpmame_dmdsize"]))
+                SetOption(key, "dmd_doublesize", Program.SystemConfig["vpmame_dmdsize"].ToInteger());
+            else
+                SetOption(key, "dmd_doublesize", 0);
+
+            BindBoolRegistryFeature(key, "cabinet_mode", "vpmame_cabinet", 1, 0, true);
+            BindBoolRegistryFeature(key, "dmd_colorize", "vpmame_colordmd", 1, 0, false);
         }
 
         private void SetupDmdDevice(string path)

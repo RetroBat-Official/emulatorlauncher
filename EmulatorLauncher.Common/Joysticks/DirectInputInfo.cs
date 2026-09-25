@@ -27,9 +27,12 @@ namespace EmulatorLauncher.Common.Joysticks
                         {
                             foreach (var deviceInstance in directInput.GetDevices())
                             {
+                                if (deviceInstance.UsagePage != SharpDX.Multimedia.UsagePage.Generic)
+                                    continue;
+
                                 if (deviceInstance.Usage != SharpDX.Multimedia.UsageId.GenericGamepad && deviceInstance.Usage != SharpDX.Multimedia.UsageId.GenericJoystick)
                                     continue;
-                                
+
                                 string guidString = deviceInstance.ProductGuid.ToString().Replace("-", "");
 
                                 string dxproductId = guidString.Substring(0, 4).ToUpper();
@@ -63,6 +66,12 @@ namespace EmulatorLauncher.Common.Joysticks
                     catch { }
 
                     _controllers = ret.ToArray();
+
+                    foreach (var c in _controllers)
+                        SimpleLogger.Instance.Info("[DirectInput] Index " + c.DeviceIndex + " : " + c.Name
+                            + " (VID_" + c.VendorId.ToString("X4") + "&PID_" + c.ProductId.ToString("X4") + ")"
+                            + ", usableInputs: " + c.HasUsableInputs
+                            + ", path: " + (string.IsNullOrEmpty(c.DevicePath) ? "<none>" : c.DevicePath));
                 }
 
                 return _controllers;

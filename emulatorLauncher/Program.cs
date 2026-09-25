@@ -58,6 +58,7 @@ namespace EmulatorLauncher
             { "bam", () => new FpinballGenerator() },
             { "bigpemu", () => new BigPEmuGenerator() },
             { "bizhawk", () => new BizhawkGenerator() },
+            { "blastem", () => new BlastemGenerator() },
             { "bstone", () => new BStoneGenerator() },
             { "bsyndrome", () => new BSyndromeGenerator() },
             { "capriceforever", () => new CapriceForeverGenerator() },
@@ -884,7 +885,12 @@ namespace EmulatorLauncher
                         {
                             int exitCode = generator.RunAndWait(path);
                             if (exitCode != 0 && !joy.ProcessKilled)
-                                Environment.ExitCode = (int)ExitCodes.EmulatorExitedUnexpectedly;
+                            {
+                                if (generator.ExitCode == ExitCodes.CustomError)
+                                    Environment.ExitCode = (int)ExitCodes.CustomError;
+                                else
+                                    Environment.ExitCode = (int)ExitCodes.EmulatorExitedUnexpectedly;
+                            }
 
                             joy.Dispose();
                         }

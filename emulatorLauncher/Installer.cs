@@ -34,6 +34,7 @@ namespace EmulatorLauncher
             { new Installer("bam", "fpinball", "Future Pinball.exe") },
             { new Installer("bigpemu", "bigpemu", "BigPEmu.exe") },
             { new Installer("bizhawk", "bizhawk", "EmuHawk.exe") },
+            { new Installer("blastem", "blastem", "blastem.exe") },
             { new Installer("bstone", "bstone", "bstone.exe") },
             { new Installer("bsyndrome", "bsyndrome", "bs.exe") },
             { new Installer("capriceforever", new string[] { "capriceforever", "caprice32", "caprice64" }, new string[] {"Caprice.exe", "Caprice64.exe" }) },

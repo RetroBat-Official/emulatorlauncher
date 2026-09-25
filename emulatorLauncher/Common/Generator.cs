@@ -415,43 +415,96 @@ namespace EmulatorLauncher
         }
 
         public ExitCodes ExitCode { get; protected set; }
+        public int RawExitCode { get; protected set; }
         #endregion
-        
+
         public abstract ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution);
 
         public virtual int RunAndWait(ProcessStartInfo path)
         {
-            try 
-            {
-                var process = Process.Start(path);
+            var process = StartEmulator(path);
+            if (process == null)
+                return ExitCode == ExitCodes.CustomError ? -1 : 0;
 
+            try
+            {
                 bool isBatch = !string.IsNullOrEmpty(path?.FileName) && (path.FileName.EndsWith(".bat", StringComparison.OrdinalIgnoreCase) || path.FileName.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase));
                 bool isLnkorUrl = !string.IsNullOrEmpty(path?.FileName) && (path.FileName.EndsWith(".url", StringComparison.OrdinalIgnoreCase) || path.FileName.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase));
 
                 if (!isBatch && !isLnkorUrl)
                     Job.Current.AddProcess(process);
-                
+
                 process.WaitForExit();
-                SimpleLogger.Instance.Info("[Generator] Process exited with code " + process.ExitCode);
-                int exitCode = process.ExitCode;
+
+                int exitCode = ReportExitCode(process, path);
 
                 if (exitCode == unchecked((int)0xc0000005)) // Null pointer - happen sometimes with Yuzu
+                {
+                    SimpleLogger.Instance.Warning("[Generator] Emulator crashed on exit (access violation) - ignored.");
                     return 0;
+                }
 
                 if (exitCode == unchecked((int)0xc0000374)) // Heap corruption - happen sometimes with scummvm
+                {
+                    SimpleLogger.Instance.Warning("[Generator] Emulator crashed on exit (heap corruption) - ignored.");
                     return 0;
+                }
 
                 if (exitCode == -1 || exitCode == 1) // Happens with some emulators (WinUAE)
                     return 0;
 
-                if (exitCode == unchecked((int)0xC000013A))
+                if (exitCode == unchecked((int)0xC000013A)) // Console closed by the user
                     return 0;
 
                 return exitCode;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[Generator] Error while waiting for the emulator : " + ex.Message, ex);
+            }
 
             return -1;
+        }
+
+        /// <summary>
+        /// Starts the emulator process and reports a launch failure the same way RunAndWait does.
+        /// Generators that need their own process loop must use this instead of Process.Start, so they
+        /// also benefit from the launch diagnostics. Returns null when the process could not be started.
+        /// </summary>
+        protected Process StartEmulator(ProcessStartInfo path)
+        {
+            try
+            {
+                var process = Process.Start(path);
+                if (process == null)
+                    SimpleLogger.Instance.Warning("[Generator] Process.Start returned null, nothing to wait for.");
+
+                return process;
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[Generator] Unable to start process : " + ex.Message, ex);
+                SetCustomError(LaunchDiagnostics.FromException(ex, path));
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Records the real exit code and turns a known Windows failure status into a user message.
+        /// Returns the exit code unchanged, so the caller keeps deciding what to do with it.
+        /// </summary>
+        protected int ReportExitCode(Process process, ProcessStartInfo path)
+        {
+            try { RawExitCode = process.ExitCode; }
+            catch (Exception ex) { SimpleLogger.Instance.Warning("[Generator] Unable to read exit code : " + ex.Message); }
+
+            SimpleLogger.Instance.Info("[Generator] Process exited with code " + RawExitCode + " (0x" + RawExitCode.ToString("X8") + ")");
+
+            string diagnostic = LaunchDiagnostics.FromExitCode(RawExitCode, path);
+            if (diagnostic != null)
+                SetCustomError(diagnostic);
+
+            return RawExitCode;
         }
 
         public bool DependsOnDesktopResolution { get; protected set; }
@@ -750,6 +803,7 @@ namespace EmulatorLauncher
             }
         }
 
+        // BmL bindfeatures
         protected void BindBoolFeature(BmlContainer cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
@@ -1253,6 +1307,35 @@ namespace EmulatorLauncher
 
             if (!string.IsNullOrEmpty(pathName))
                 ini.WriteValue(section, settingName, pathName);
+        }
+
+        // Blastem config file
+        protected void BindFeature(BlastemConfigNode cfg, string settingName, string featureName, string defaultValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+                cfg[settingName] = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+        }
+
+        protected void BindBoolFeature(BlastemConfigNode cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    cfg[settingName] = trueValue;
+                else
+                    cfg[settingName] = falseValue;
+            }
+        }
+
+        protected void BindBoolFeatureOn(BlastemConfigNode cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    cfg[settingName] = falseValue;
+                else
+                    cfg[settingName] = trueValue;
+            }
         }
 
         // JGenesis
