@@ -723,8 +723,8 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "amiberry_swap_ports", "amiberry_swap_ports", "enabled", "disabled");
             BindFeature(coreSettings, "amiberry_joyport_order", "amiberry_joyport_order", "auto");
             BindBoolFeature(coreSettings, "amiberry_analog", "amiberry_analog", "enabled", "disabled");
-            BindFeatureSlider(coreSettings, "amiberry_joy_deadzone", "amiberry_joy_deadzone", "33");
-            BindFeatureSlider(coreSettings, "amiberry_analog_sensitivity", "amiberry_analog_sensitivity", "18");
+            BindFeature(coreSettings, "amiberry_joy_deadzone", "amiberry_joy_deadzone", "33");
+            BindFeature(coreSettings, "amiberry_analog_sensitivity", "amiberry_analog_sensitivity", "18");
             BindFeature(coreSettings, "amiberry_joy_as_mouse", "amiberry_joy_as_mouse", "disabled");
 
             string defaultDevice = system == "amigacd32" ? "513" : "769";
@@ -1015,7 +1015,7 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["atari800_system"] = SystemConfig["atari800_system"];
 
             // Controls
-            BindFeature(coreSettings, "atari800_opt2", "a800_control_hacks", "none");
+            BindFeature(coreSettings, "a800_control_hacks", "a800_control_hacks", "none");
             BindBoolFeature(coreSettings, "paddle_active", "a800_paddle", "enabled", "disabled");
 
             if (system == "atari5200")
@@ -1911,10 +1911,10 @@ namespace EmulatorLauncher.Libretro
                 BindBoolFeature(coreSettings, "dolphin_bluetooth_passthrough", "dolphin_bt_pass", "enabled", "disabled");
                 BindFeature(coreSettings, "dolphin_ir_modifier", "dolphin_ir_modifier", "None");
                 BindFeature(coreSettings, "dolphin_swing_modifier", "dolphin_swing_modifier", "Disabled");
-                BindFeature(coreSettings, "dolphin_ir_mode", "dolphin_ir_mode", "1");
-                BindFeature(coreSettings, "dolphin_ir_offset", "dolphin_ir_offset", "0");
-                BindFeature(coreSettings, "dolphin_ir_deadzone", "dolphin_ir_deadzone", "0");
-                BindFeature(coreSettings, "dolphin_swing_angle", "dolphin_swing_angle", "90");
+                BindFeature(coreSettings, "dolphin_ir_mode", "dolphin_ir_mode", "1");   
+                BindFeatureSlider(coreSettings, "dolphin_ir_offset", "dolphin_ir_offset", "0", 0);
+                BindFeatureSlider(coreSettings, "dolphin_ir_deadzone", "dolphin_ir_deadzone", "0", 0);
+                BindFeatureSlider(coreSettings, "dolphin_swing_angle", "dolphin_swing_angle", "90", 0);
                 BindBoolFeature(coreSettings, "dolphin_alt_gc_ports_on_wii", "dolphin_alt_gc_ports_on_wii", "enabled", "disabled");
             }
 
@@ -2493,7 +2493,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "fceumm_turbo_delay", "fceumm_turbo_delay", "3");
             BindBoolFeature(coreSettings, "fceumm_show_crosshair", "fceumm_show_crosshair", "enabled", "disabled");
             BindFeature(coreSettings, "fceumm_zapper_mode", "gun_input", "clightgun");
-            BindFeature(coreSettings, "fceumm_zapper_tolerance", "fceumm_zapper_tolerance", "6");
+            BindFeatureSlider(coreSettings, "fceumm_zapper_tolerance", "fceumm_zapper_tolerance", "6");
             BindBoolFeature(coreSettings, "fceumm_zapper_trigger", "fceumm_zapper_trigger", "enabled", "disabled");
             BindBoolFeature(coreSettings, "fceumm_zapper_sensor", "fceumm_zapper_sensor", "enabled", "disabled");
 
@@ -2840,6 +2840,7 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "gearsystem_bios_gg", "gearsystem_bios_gg", "Enabled", "Disabled");
             BindBoolFeature(coreSettings, "gearsystem_bios_sms", "gearsystem_bios_sms", "Enabled", "Disabled");
             BindBoolFeature(coreSettings, "gearsystem_ym2413", "gearsystem_ym2413", "Disabled", "Auto");
+            BindFeature(coreSettings, "gearsystem_overscan", "gearsystem_overscan", "Disabled");
 
             // Controls
             BindFeature(retroarchConfig, "input_libretro_device_p1", "gearsystem_controller", "1");
@@ -3452,7 +3453,7 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "mame_alternate_renderer", "alternate_renderer", "enabled", "disabled");
             BindFeature(coreSettings, "mame_altres", "internal_resolution", "640x480");
             BindBoolFeature(coreSettings, "mame_cheats_enable", "cheats_enable", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "mame_mame_4way_enable", "mame_mame_4way_enable", "enabled", "disabled");
+            BindFeature(coreSettings, "mame_mame_4way_enable", "mame_mame_4way_enable", "disabled");
             BindFeature(coreSettings, "mame_lightgun_mode", "lightgun_mode", "lightgun");
             BindFeature(coreSettings, "mame_rotation_mode", "mame_rotation_mode", "internal");
             BindBoolFeatureOn(coreSettings, "mame_thread_mode", "mame_thread_mode", "enabled", "disabled");
@@ -4340,8 +4341,9 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["mupen64plus-BackgroundMode"] = "Stripped";
                 coreSettings["mupen64plus-EnableLegacyBlending"] = "False";
                 coreSettings["mupen64plus-txFilterIgnoreBG"] = "False";
-
             }
+
+            BindBoolFeatureOn(coreSettings, "mupen64plus-ThreadedRenderer", "mupen64plus_ThreadedRenderer", "True", "False");
 
             // Hi Res textures methods
             string texturePack = SystemConfig.isOptSet("TexturesPack") ? SystemConfig["TexturesPack"] : "disabled";
@@ -4995,9 +4997,9 @@ namespace EmulatorLauncher.Libretro
             }
 
             if (Controllers.Count > 5)
-                coreSettings["pcsx_rearmed_multitap"] = "both";
+                coreSettings["pcsx_rearmed_multitap"] = "ports 1 and 2";
             else if (Controllers.Count > 2)
-                coreSettings["pcsx_rearmed_multitap"] = "port 1 only";
+                coreSettings["pcsx_rearmed_multitap"] = "port 1";
             else
                 coreSettings["pcsx_rearmed_multitap"] = "disabled";
 
@@ -5208,7 +5210,7 @@ namespace EmulatorLauncher.Libretro
             }
 
             BindFeature(coreSettings, "ppsspp_cpu_core", "ppsspp_cpu_core", "JIT");
-            BindFeature(coreSettings, "ppsspp_inflight_frames", "ppsspp_inflight_frames", "Up to 2");
+            BindFeature(coreSettings, "ppsspp_inflight_frames", "ppsspp_inflight_frames", "Up to 1");
             BindFeature(coreSettings, "ppsspp_internal_resolution", "ppsspp_internal_resolution", "480x272");
             BindFeature(coreSettings, "ppsspp_texture_anisotropic_filtering", "ppsspp_texture_anisotropic_filtering", "disabled");
             BindFeature(coreSettings, "ppsspp_texture_filtering", "ppsspp_texture_filtering", "Auto");

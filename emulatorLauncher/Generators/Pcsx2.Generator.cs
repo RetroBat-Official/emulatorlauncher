@@ -828,15 +828,18 @@ namespace EmulatorLauncher
                 ini.WriteValue("UI", "SetupWizardIncomplete", "false");
 
                 // fullscreen management
-
+                bool startFullscreen;
                 if (SystemConfig.getOptBoolean("forcefullscreen"))
-                    ini.WriteValue("UI", "StartFullscreen", "true");
+                    startFullscreen = true;
                 else if (SystemConfig.getOptBoolean("disable_fullscreen"))
-                    ini.WriteValue("UI", "StartFullscreen", "false");
-                else if (fullscreen)
-                    ini.WriteValue("UI", "StartFullscreen", "true");
+                    startFullscreen = false;
                 else
-                    ini.WriteValue("UI", "StartFullscreen", "false");
+                    startFullscreen = fullscreen;
+
+                ini.WriteValue("UI", "StartFullscreen", startFullscreen ? "true" : "false");
+
+                if (startFullscreen)
+                    ini.Remove("UI", "DisplayWindowGeometry");
 
                 //ini.Remove("UI", "MainWindowGeometry");
                 //ini.Remove("UI", "MainWindowState");

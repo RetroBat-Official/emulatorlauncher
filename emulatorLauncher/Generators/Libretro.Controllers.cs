@@ -595,6 +595,12 @@ namespace EmulatorLauncher.Libretro
                     retroconfig["input_turbo_bind"] = Program.SystemConfig["turbo_button"];
                 else
                     retroconfig["input_turbo_bind"] = "12";    // L2 by default
+
+                if (Program.SystemConfig.isOptSet("turbo_speed") && !string.IsNullOrEmpty(Program.SystemConfig["turbo_speed"]))
+                    retroconfig["input_turbo_period"] = Program.SystemConfig["turbo_speed"].ToIntegerString();
+                else
+                    retroconfig["input_turbo_period"] = "6";
+
             }
             else
             {
@@ -602,6 +608,7 @@ namespace EmulatorLauncher.Libretro
                 retroconfig["input_turbo_mode"] = "0";
                 retroconfig["input_turbo_button"] = "0";
                 retroconfig["input_turbo_bind"] = "-1";
+                retroconfig["input_turbo_period"] = "6";
             }
 
             if (controller.Name != null && controller.Name == "Keyboard")

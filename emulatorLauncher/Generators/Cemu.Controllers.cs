@@ -362,7 +362,7 @@ namespace EmulatorLauncher
 
             if (_sdlMapping != null && !forceXInput)
             {
-                var sdlTrueGuid = _sdlMapping.GetControllerGuid(ctrl.DevicePath);
+                var sdlTrueGuid = _sdlMapping.GetControllerGuid(ctrl.DevicePath) ?? _sdlMapping.GetControllerGuid(InputDevices.StripHidCollectionSuffix(ctrl.DevicePath));
                 if (sdlTrueGuid != null)
                     uuid = index + "_" + (replaceGuid ? newGuid : sdlTrueGuid.ToLowerInvariant());
             }
