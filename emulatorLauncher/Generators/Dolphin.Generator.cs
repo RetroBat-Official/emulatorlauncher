@@ -1133,7 +1133,10 @@ namespace EmulatorLauncher
             bool manageScreen = targetScreen != null && !guiMode;
             bool needWindow = manageScreen || (_bezelFileInfo != null && !guiMode);
 
-            var process = Process.Start(path);
+            var process = StartEmulator(path);
+            if (process == null)
+                return (int)ExitCodes.CustomError;
+
             Job.Current.AddProcess(process);
 
             if (process != null)
@@ -1164,8 +1167,7 @@ namespace EmulatorLauncher
                     User32.SetForegroundWindow(hWnd);
 
                 process.WaitForExit();
-                try { ret = process.ExitCode; }
-                catch { }
+                ret = ReportExitCode(process, path);
             }
 
             bezel?.Dispose();
