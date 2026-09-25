@@ -233,12 +233,17 @@ namespace EmulatorLauncher
                 catch (Exception ex) { SimpleLogger.Instance.Warning("[RunAndWait] Unable to kill existing rpcs3 process: " + ex.Message); }
             }
 
-            Process process = Process.Start(path);
+            var process = StartEmulator(path);
+            if (process == null)
+                return ExitCode == ExitCodes.CustomError ? (int)ExitCodes.CustomError : 0;
+
             Job.Current.AddProcess(process);
 
             using (var escHook = new KeyboardInterceptor(process, new KeyTrigger(Keys.Escape)))
             {
                 process.WaitForExit();
+
+                ReportExitCode(process, path);
 
                 if (_sindenSoft)
                     Guns.KillSindenSoftware();
@@ -247,7 +252,7 @@ namespace EmulatorLauncher
                 process = Process.GetProcessesByName("rpcs3").FirstOrDefault();
                 process?.WaitForExit();
 
-                return 0;
+                return ExitCode == ExitCodes.CustomError ? (int)ExitCodes.CustomError : 0;
             }
         }
 

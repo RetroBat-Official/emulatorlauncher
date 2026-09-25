@@ -801,6 +801,26 @@ namespace EmulatorLauncher
             }
         }
 
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            int ret = base.RunAndWait(path);
+
+            if (ExitCode != ExitCodes.CustomError)
+            {
+                string diagnostic = LaunchDiagnostics.FromMameExitCode(RawExitCode, path);
+                if (diagnostic != null)
+                {
+                    SimpleLogger.Instance.Error("[Mame64Generator] MAME exit code " + RawExitCode + " : the game did not run.");
+                    SetCustomError(diagnostic);
+
+                    if (ret == 0)
+                        ret = (int)ExitCodes.CustomError;
+                }
+            }
+
+            return ret;
+        }
+
         public override void Cleanup()
         {
             if (_sindenSoft)

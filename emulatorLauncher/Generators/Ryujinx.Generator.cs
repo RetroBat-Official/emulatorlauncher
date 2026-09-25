@@ -30,13 +30,13 @@ namespace EmulatorLauncher
 
             string path = AppConfig.GetFullPath("ryujinx");
             if (!Directory.Exists(path))
-                return null;
+                throw new ApplicationException("Emulator path doesn't exist: " + path);
 
             _emulatorPath = path;
 
             string exe = Path.Combine(path, "Ryujinx.exe");
             if (!File.Exists(exe))
-                return null;
+                throw new ApplicationException("Emulator executable doesn't exist: " + exe);
 
             try
             {
