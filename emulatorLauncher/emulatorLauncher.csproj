@@ -124,6 +124,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\Guitars.cs" />
+    <Compile Include="Common\Launchdiagnostics.cs" />
     <Compile Include="Common\ScreenTools.cs" />
     <Compile Include="ControlCenter\ControlButton.cs">
       <SubType>Component</SubType>
@@ -233,6 +234,16 @@
     </Compile>
     <Compile Include="Generators\Bizhawk.SaveStatesMonitor.cs">
       <DependentUpon>Bizhawk.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Blastem.Generator.cs" />
+    <Compile Include="Generators\Blastem.Controllers.cs">
+      <DependentUpon>Blastem.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Blastem.ConfigFile.cs">
+      <DependentUpon>Blastem.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Blastem.SaveStatesMonitor.cs">
+      <DependentUpon>Blastem.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\CapriceForever.Generator.cs" />
     <Compile Include="Generators\CapriceForever.Controllers.cs">
@@ -605,6 +616,9 @@
       <DependentUpon>VPinball.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\VPinball.Registration.cs">
+      <DependentUpon>VPinball.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\VPinball.RomNameReader.cs">
       <DependentUpon>VPinball.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\WinArcadia.Generator.cs" />

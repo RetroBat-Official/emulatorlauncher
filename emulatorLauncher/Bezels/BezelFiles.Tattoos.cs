@@ -181,6 +181,7 @@ namespace EmulatorLauncher
         static List<string> arcadeSystems = new List<string>() { "mame", "fbneo", "atomiswave", "model3", "naomi", "naomi2" };
         static List<string> gbSystems = new List<string>() { "gb", "gbc", "gb2players", "gbc2players", "gameboy", "gameboycolor" };
         static List<string> psxSystems = new List<string>() { "psx", "ps1", "playstation" };
+        static List<string> msggSystems = new List<string>() { "gamegear", "gg", "mastersystem", "ms" };
         static List<string> ngpSystems = new List<string>() { "ngp", "ngpc", "neogeopocket" };
         static List<string> jaguarSystems = new List<string>() { "jaguar", "jaguarcd", "atarijaguar", "atarijaguarcd" };
         static List<string> megadriveSystems = new List<string>() { "genesis", "genesis-msu", "megacd", "mega-cd", "megadrive", "megadrive-msu", "sega32x", "segacd", "sega-cd" };
@@ -209,6 +210,8 @@ namespace EmulatorLauncher
                 system = "n64";
             else if (gbSystems.Contains(system))
                 system = "gb";
+            else if (msggSystems.Contains(system))
+                system = "mastersystem";
             else if (pceSystems.Contains(system))
                 system = "pcengine";
             else if (jaguarSystems.Contains(system))
@@ -296,10 +299,6 @@ namespace EmulatorLauncher
                             break;
                     }
                 }
-            }
-            else if (system == "gamegear")
-            {
-                ret = "mastersystem";
             }
             else if (system == "gb")
             {
@@ -514,6 +513,7 @@ namespace EmulatorLauncher
                             }
                         }
                         break;
+                    case "blastem":
                     case "bizhawk":
                     case "jgenesis":
                         {
