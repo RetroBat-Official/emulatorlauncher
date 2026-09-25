@@ -11,6 +11,12 @@ namespace EmulatorLauncher
 {
     class NosGbaGenerator : Generator
     {
+        private string _emuBatteryPath;
+        private string _emuSlotPath;
+        private string _savesPath;
+        private string _statesPath;
+        private string _romName;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("nosgba");
@@ -50,6 +56,7 @@ namespace EmulatorLauncher
             bool fullscreen = ShouldRunFullscreen();
 
             SetupConfiguration(path, system);
+            SyncSavesIn(path, system, rom);
 
             var commandArray = new List<string>();
             
@@ -79,6 +86,8 @@ namespace EmulatorLauncher
 
             using (var ini = IniFile.FromFile(conf, IniOptions.KeepEmptyLines | IniOptions.KeepEmptyValues | IniOptions.UseDoubleEqual | IniOptions.UseSpaces))
             {
+                ini.WriteValue("", "SAV/SNA File Format", "Raw");
+
                 // Link cable setup for gba2players
                 if (system == "gba2players")
                 {
@@ -117,6 +126,99 @@ namespace EmulatorLauncher
                 else if (Features.IsSupported("gba_video_renderer"))
                     ini.WriteValue("", "3D Renderer", "nocash");
             }
+        }
+
+        private void SyncSavesIn(string path, string system, string rom)
+        {
+            try
+            {
+                _romName = Path.GetFileNameWithoutExtension(rom);
+                _emuBatteryPath = Path.Combine(path, "BATTERY");
+                _emuSlotPath = Path.Combine(path, "SLOT");
+
+                // Same folder as mGBA battery saves (saves\<system>\<rom>.sav), so saves are shared
+                _savesPath = Path.Combine(AppConfig.GetFullPath("saves"), system);
+                _statesPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "nosgba", "sstates");
+
+                if (!Directory.Exists(_savesPath)) try { Directory.CreateDirectory(_savesPath); } catch { }
+                if (!Directory.Exists(_statesPath)) try { Directory.CreateDirectory(_statesPath); } catch { }
+                if (!Directory.Exists(_emuBatteryPath)) try { Directory.CreateDirectory(_emuBatteryPath); } catch { }
+                if (!Directory.Exists(_emuSlotPath)) try { Directory.CreateDirectory(_emuSlotPath); } catch { }
+
+                // Battery save of the launched game only
+                CopyIfNewer(Path.Combine(_savesPath, _romName + ".sav"), Path.Combine(_emuBatteryPath, _romName + ".SAV"), false);
+
+                // Save states : whole folder (states are specific to NO$GBA)
+                foreach (var file in Directory.GetFiles(_statesPath))
+                    CopyIfNewer(file, Path.Combine(_emuSlotPath, Path.GetFileName(file)), false);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[NosGbaGenerator] Failed to copy saves to emulator folder : " + ex.Message, ex);
+                _savesPath = null;
+            }
+        }
+
+        private void SyncSavesOut()
+        {
+            if (string.IsNullOrEmpty(_savesPath) || string.IsNullOrEmpty(_romName))
+                return;
+
+            try
+            {
+                CopyIfNewer(Path.Combine(_emuBatteryPath, _romName + ".SAV"), Path.Combine(_savesPath, _romName + ".sav"), true);
+
+                if (Directory.Exists(_emuSlotPath))
+                {
+                    foreach (var file in Directory.GetFiles(_emuSlotPath))
+                        CopyIfNewer(file, Path.Combine(_statesPath, Path.GetFileName(file)), false);
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[NosGbaGenerator] Failed to copy saves back to RetroBat saves folder : " + ex.Message, ex);
+            }
+        }
+
+        private static void CopyIfNewer(string source, string target, bool rawOnly)
+        {
+            if (!File.Exists(source))
+                return;
+
+            if (File.Exists(target) && File.GetLastWriteTimeUtc(target) >= File.GetLastWriteTimeUtc(source))
+                return;
+
+            // Never export a NO$GBA compressed battery file to the shared saves folder : other emulators can't read it
+            if (rawOnly && IsNocashCompressed(source))
+            {
+                SimpleLogger.Instance.Warning("[NosGbaGenerator] Compressed NO$GBA save not exported : " + source);
+                return;
+            }
+
+            File.Copy(source, target, true);
+            SimpleLogger.Instance.Info("[NosGbaGenerator] Copied " + source + " to " + target);
+        }
+
+        private static bool IsNocashCompressed(string file)
+        {
+            try
+            {
+                byte[] header = new byte[15];
+                using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    if (fs.Read(header, 0, header.Length) != header.Length)
+                        return false;
+                }
+
+                return System.Text.Encoding.ASCII.GetString(header) == "NocashGbaBackup";
+            }
+            catch { return false; }
+        }
+
+        public override void Cleanup()
+        {
+            SyncSavesOut();
+            base.Cleanup();
         }
     }
 }
