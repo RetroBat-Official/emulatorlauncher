@@ -84,6 +84,48 @@ namespace EmulatorLauncher
 
                 ini.WriteValue("", "ScreenshotPath", screenshotpath);
 
+                string savespath = Path.Combine(AppConfig.GetFullPath("saves"), system);
+                if (!Directory.Exists(savespath)) try { Directory.CreateDirectory(savespath); }
+                    catch { }
+
+                string statepath = Path.Combine(savespath, "kega-fusion", "sstates");
+                if (!Directory.Exists(statepath)) try { Directory.CreateDirectory(statepath); }
+                    catch { }
+
+                ini.WriteValue("", "SRMFiles", savespath);
+                ini.WriteValue("", "StateFiles", statepath);
+
+                string biosPath = AppConfig.GetFullPath("bios");
+                if (!Directory.Exists(biosPath)) try { Directory.CreateDirectory(biosPath); }
+                    catch { }
+
+                ini.WriteValue("", "GenesisBIOS", biosPath);
+
+                // BIOS
+                string euBios = Path.Combine(biosPath, "bios_CD_E.bin");
+                if (File.Exists(euBios))
+                    ini.WriteValue("", "SCDEURBIOS", euBios);
+
+                string usBios = Path.Combine(biosPath, "bios_CD_U.bin");
+                if (File.Exists(usBios))
+                    ini.WriteValue("", "SCDUSABIOS", usBios);
+
+                string jpBios = Path.Combine(biosPath, "bios_CD_J.bin");
+                if (File.Exists(jpBios))
+                    ini.WriteValue("", "SCDJAPBIOS", jpBios);
+
+                string bios32Xg = Path.Combine(biosPath, "32X_G_BIOS.BIN");
+                if (File.Exists(bios32Xg))
+                    ini.WriteValue("", "32XM68KBIOS", bios32Xg);
+
+                string bios32Xm = Path.Combine(biosPath, "32X_M_BIOS.BIN");
+                if (File.Exists(bios32Xm))
+                    ini.WriteValue("", "32XMSH2BIOS", bios32Xm);
+
+                string bios32Xs = Path.Combine(biosPath, "32X_S_BIOS.BIN");
+                if (File.Exists(bios32Xs))
+                    ini.WriteValue("", "32XSSH2BIOS", bios32Xs);
+
                 // VIDEO
                 bool fullscreen = ShouldRunFullscreen();
 
