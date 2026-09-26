@@ -417,6 +417,24 @@ namespace EmulatorLauncher
             }
             catch { SimpleLogger.Instance.Warning("[SAVES] Impossible to sync vmu files between libretro and Flycast."); }
         }
+
+        private void ConfigureFlycastCrosshair(IniFile ini, bool multigun)
+        {
+            ini.WriteValue("config", "rend.CrossHairColor3", "0");
+            ini.WriteValue("config", "rend.CrossHairColor4", "0");
+
+            if (SystemConfig.getOptBoolean("flycast_crosshair"))
+            {
+                ini.WriteValue("config", "rend.CrossHairColor1", "-1073675782");
+                ini.WriteValue("config", "rend.CrossHairColor2", multigun ? "-1073547006" : "0");
+            }
+            else
+            {
+                ini.WriteValue("config", "rend.CrossHairColor1", "0");
+                ini.WriteValue("config", "rend.CrossHairColor2", "0");
+            }
+        }
+
         public override void Cleanup()
         {
             if (_saveStatesWatcher != null)
