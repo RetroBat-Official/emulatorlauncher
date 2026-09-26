@@ -46,7 +46,7 @@ namespace EmulatorLauncher
             string techPadNumber = null;
             string tech = "";
             bool guninvert = SystemConfig.getOptBoolean("gun_invert");
-            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start");
+            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start") || (!SystemConfig.isOptSet("pcsx2_azerty_start") && azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId));
 
             var guns = RawLightgun.GetRawLightguns();
 

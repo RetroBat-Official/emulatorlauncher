@@ -1,8 +1,9 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -18,7 +19,7 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[WHEELS] Configuring wheels.");
 
-            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start");
+            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start") || (!SystemConfig.isOptSet("pcsx2_azerty_start") && azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId));
             string wheelTech1 = "dinput";
             string wheelTech2 = "dinput";
             int wheelIndex1 = -1;

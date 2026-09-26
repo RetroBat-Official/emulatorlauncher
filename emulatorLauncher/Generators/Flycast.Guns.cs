@@ -36,7 +36,10 @@ namespace EmulatorLauncher
             var guns = RawLightgun.GetRawLightguns();
 
             if (guns.Length < 1)
+            {
+                ConfigureFlycastCrosshair(ini, multigun);
                 return;
+            }
             else
                 SimpleLogger.Instance.Info("[GUNS] Found " + guns.Length + " usable guns.");
 
@@ -82,7 +85,15 @@ namespace EmulatorLauncher
             if (!useguns)
             {
                 SimpleLogger.Instance.Info("[GUNS] Guns not enabled, skipping configuration.");
+                ConfigureFlycastCrosshair(ini, multigun);
                 return;
+            }
+
+            // Dreamcast: Flycast only handles aiming (and draws the crosshair) when the port device is LightGun (7)
+            if (!_isArcade && SystemConfig.getOptBoolean("use_guns"))
+            {
+                SimpleLogger.Instance.Info("[GUNS] Dreamcast: forcing player 1 device to lightgun.");
+                ini.WriteValue("input", "device1", "7");
             }
 
             // Get mapping in yml file
@@ -145,6 +156,10 @@ namespace EmulatorLauncher
 
             if (guns.Length > 1 && !useOneGun)
                 multigun = true;
+
+            // User controller choice has priority, if not selected default to gun
+            if (!multigun && !SystemConfig.isOptSet("flycast_controller1"))
+                ini.WriteValue("input", "device1", "7");
 
             ini.WriteValue("input", "maple_sdl_mouse", "0");
 
@@ -872,27 +887,7 @@ namespace EmulatorLauncher
                 catch { SimpleLogger.Instance.Warning($"[WARN] Failed to configure guns"); }
             }
 
-            if (SystemConfig.isOptSet("flycast_crosshair") && SystemConfig.getOptBoolean("flycast_crosshair"))
-            {
-                ini.WriteValue("config", "rend.CrossHairColor3", "0");
-                ini.WriteValue("config", "rend.CrossHairColor4", "0");
-
-                if (multigun)
-                {
-                    ini.WriteValue("config", "rend.CrossHairColor1", "-1073675782");
-                    ini.WriteValue("config", "rend.CrossHairColor2", "-1073547006");
-                }
-                else
-                {
-                    ini.WriteValue("config", "rend.CrossHairColor1", "-1073675782");
-                    ini.WriteValue("config", "rend.CrossHairColor2", "0");
-                }
-            }
-            else
-            {
-                ini.WriteValue("config", "rend.CrossHairColor1", "0");
-                ini.WriteValue("config", "rend.CrossHairColor2", "0");
-            }
+            ConfigureFlycastCrosshair(ini, multigun);
         }
         private RawInputDevice FindAssociatedKeyboardWiimote(string gunPath, List<RawInputDevice> keyboards, RawInputDevice keyboard)
         {

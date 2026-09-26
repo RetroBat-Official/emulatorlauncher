@@ -19,6 +19,7 @@ namespace EmulatorLauncher
         private bool _dolphinbar = false;
         private bool _dolphinbarChecked = false;
         private int _specialControllerIndex = 1;
+        private List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
 
         /// <summary>
         /// Cf. https://github.com/PCSX2/pcsx2/blob/master/pcsx2/Input/SDLInputSource.cpp
@@ -224,7 +225,7 @@ namespace EmulatorLauncher
             if (keyboard == null)
                 return;
 
-            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start");
+            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start") || (!SystemConfig.isOptSet("pcsx2_azerty_start") && azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId));
 
             Action<string, string, InputKey> WriteKeyboardMapping = (v, w, k) =>
             {
@@ -318,7 +319,7 @@ namespace EmulatorLauncher
 
             int sdl3index = -1;
             var sdl3Controller = ctrl.Sdl3Controller;
-            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start");
+            bool azerty = SystemConfig.getOptBoolean("pcsx2_azerty_start") || (!SystemConfig.isOptSet("pcsx2_azerty_start") && azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId));
 
             if (sdl3Controller != null)
             {
