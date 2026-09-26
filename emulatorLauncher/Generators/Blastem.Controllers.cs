@@ -134,64 +134,140 @@ namespace EmulatorLauncher
             if (Program.Controllers.Count(c => !c.IsKeyboard) > maxPlayers)
                 SimpleLogger.Instance.Info("[INFO] More pads connected than emulated ports, only players 1 to " + maxPlayers + " are mapped.");
 
-            // Two identical pads expose the same SDL GUID, so one section would drive both. In that
-            // case the targets must stay relative ("gamepads.n" -> host slot + 1) and the player
-            // order follows whichever pad reports an input first.
-            var ambiguousGuids = new HashSet<string>(controllers
-                .GroupBy(c => c.GetSdlGuid(_sdlVersion).ToLowerInvariant())
-                .Where(g => g.Count() > 1)
-                .Select(g => g.Key));
+            // A pad section is keyed on an SDL GUID, which identifies a model and not an instance, so
+            // two identical pads necessarily share one section and cannot be given a port each. As
+            // soon as that happens every pad has to use the relative "gamepads.n" form : an absolute
+            // target on one pad would otherwise collide with a relative one on another.
+            int duplicateModels = controllers
+                .GroupBy(c => c.GetSdlGuid(_sdlVersion, true).ToLowerInvariant())
+                .Count(g => g.Count() > 1);
+
+            bool relativeTargets = duplicateModels > 0;
+
+            if (relativeTargets)
+                SimpleLogger.Instance.Warning("[WARNING] " + duplicateModels + " pad model(s) used by several players : player order will follow whichever pad sends an input first.");
+
+            // Only the first player of a shared model writes the section, the next ones would just
+            // rewrite the very same bindings.
+            var written = new HashSet<string>();
 
             foreach (var controller in controllers)
-                ConfigureJoystick(pads, controller, ambiguousGuids);
+            {
+                if (!written.Add(controller.GetSdlGuid(_sdlVersion, true).ToLowerInvariant()))
+                {
+                    SimpleLogger.Instance.Info("[INFO] Player " + controller.PlayerIndex + " shares its pad section with an earlier player, skipping.");
+                    continue;
+                }
+
+                ConfigureJoystick(pads, controller, relativeTargets);
+            }
 
             RemoveUiPadBindings(pads);
             ConfigurePorts(cfg);
         }
 
-        private void ConfigureJoystick(BlastemConfigNode pads, Controller controller, HashSet<string> ambiguousGuids)
+        private void ConfigureJoystick(BlastemConfigNode pads, Controller controller, bool relativeTargets)
         {
             var cfg = controller.Config;
             if (cfg == null)
                 return;
 
-            string guid = controller.GetSdlGuid(_sdlVersion).ToLowerInvariant();
+            string guid = controller.GetSdlGuid(_sdlVersion, true).ToLowerInvariant();
 
             string newGuid = SdlJoystickGuid.GetGuidFromFile(
                 Path.Combine(AppConfig.GetFullPath("tools"), "controllerinfo.yml"),
                 controller.SdlController, controller.Guid, "blastem", 0,
                 AppConfig.GetFullPath("retrobat"));
 
-            var sectionKeys = new List<string>();
-
             if (newGuid != null)
-                sectionKeys.Add(newGuid.ToLowerInvariant());
-            else
+                guid = newGuid.ToLowerInvariant();
+
+            var seeds = new List<string>() { guid };
+
+            foreach (var variant in controller.CompatibleSdlGuids)
+                seeds.Add(variant.ToLowerInvariant());
+
+            foreach (var version in new[] { SdlVersion.SDL2_30, SdlVersion.SDL2_26, SdlVersion.SDL2_24, SdlVersion.SDL2_0_X })
+                seeds.Add(controller.GetSdlGuid(version, true).ToLowerInvariant());
+
+            var lookupKeys = new List<string>();
+
+            foreach (var seed in seeds)
             {
-                sectionKeys.Add(guid);
-                foreach (var variant in controller.CompatibleSdlGuids)
+                var sdlGuid = new SdlJoystickGuid(seed);
+                string rawInput = sdlGuid.ToRawInputGuid().ToLowerInvariant();
+                string xInput = sdlGuid.ToXInputGuid().ToLowerInvariant();
+
+                foreach (var candidate in new[]
+                    {
+                        seed, StripNameCrc(seed),
+                        rawInput, StripNameCrc(rawInput),
+                        xInput, StripNameCrc(xInput)
+                    })
                 {
-                    if (!sectionKeys.Contains(variant))
-                        sectionKeys.Add(variant);
+                    if (!lookupKeys.Contains(candidate))
+                        lookupKeys.Add(candidate);
                 }
             }
 
-            bool ambiguous = ambiguousGuids.Contains(guid);
+            string target = relativeTargets ? "gamepads.n" : "gamepads." + controller.PlayerIndex;
 
-            string target = ambiguous ? "gamepads.n" : "gamepads." + controller.PlayerIndex;
+            MegadriveController mdGamepad = null;
 
-            if (ambiguous)
-                SimpleLogger.Instance.Warning("[WARNING] Player " + controller.PlayerIndex + " shares its SDL GUID with another pad : player order will follow the first pad that sends an input.");
-
-            foreach (var sectionKey in sectionKeys)
+            if (megadrivePadSystems.Contains(_system))
             {
-                var pad = pads.ResetSection(sectionKey);
+                foreach (var key in lookupKeys)
+                {
+                    mdGamepad = GetMegadriveController(key);
 
-                if (!ConfigureMegadriveLikePad(pad, controller, sectionKey, target))
-                    FillStandardBindings(pad, cfg, target);
+                    if (mdGamepad != null)
+                    {
+                        SimpleLogger.Instance.Info("[Controller] Performing specific megadrive mapping for " + mdGamepad.Name);
+                        break;
+                    }
+                }
             }
 
-            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex + " (guid " + guid + ", " + sectionKeys.Count + " section(s))");
+            var pad = pads.ResetSection(guid);
+
+            if (mdGamepad == null || !ApplyMegadriveLikePad(pad, controller, mdGamepad, target))
+                FillStandardBindings(pad, cfg, target);
+
+            if (_system == "mastersystem")
+                RedirectStartToSmsPause(pad, target);
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + controller.DevicePath + " to player : " + controller.PlayerIndex + " (section " + guid + ", target " + target + ")");
+        }
+
+        static readonly HashSet<string> megadrivePadSystems = new HashSet<string>()
+        {
+            "megadrive", "megadrive-japan", "genesis", "sega32x", "segacd", "megacd", "md"
+        };
+
+        private static void RedirectStartToSmsPause(BlastemConfigNode pad, string target)
+        {
+            foreach (var groupName in new[] { "buttons", "axes" })
+            {
+                var group = pad.GetSection(groupName);
+                if (group == null)
+                    continue;
+
+                foreach (var key in group.Keys)
+                {
+                    if (group[key] == target + ".start")
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Master System : redirecting " + groupName + "." + key + " to ui.sms_pause.");
+                        group[key] = "ui.sms_pause";
+                    }
+                }
+            }
+        }
+        private static string StripNameCrc(string guid)
+        {
+            if (string.IsNullOrEmpty(guid) || guid.Length != 32)
+                return guid;
+
+            return guid.Substring(0, 4) + "0000" + guid.Substring(8);
         }
 
         /// <summary>Mega Drive pad bindings built from the EmulationStation configuration.</summary>
@@ -201,16 +277,21 @@ namespace EmulatorLauncher
             var axes = pad.GetOrCreateSection("axes");
 
             Dictionary<InputKey, string> mapping;
-            string layout = SystemConfig.isOptSet("megadrive_control_layout") ? SystemConfig["megadrive_control_layout"] : "lr_xz";
-            bool rotate = SystemConfig.getOptBoolean("rotate_buttons");
 
-            if (!padLayouts.TryGetValue(layout, out mapping))
-            {
-                SimpleLogger.Instance.Warning("[WARNING] Unknown megadrive_control_layout '" + layout + "', falling back on lr_xz.");
-                mapping = padLayoutXZ;
-            }
-            else if (rotate)
+            // rotate_buttons belongs to the 8 bit systems and megadrive_control_layout to the 16 bit
+            // ones, so the two are never offered together, but rotation must win if both are set.
+            if (SystemConfig.getOptBoolean("rotate_buttons"))
                 mapping = padLayoutRotate;
+            else
+            {
+                string layout = SystemConfig.isOptSet("megadrive_control_layout") ? SystemConfig["megadrive_control_layout"] : "lr_xz";
+
+                if (!padLayouts.TryGetValue(layout, out mapping))
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] Unknown megadrive_control_layout '" + layout + "', falling back on lr_xz.");
+                    mapping = padLayoutXZ;
+                }
+            }
 
             foreach (var map in mapping)
                 WriteInput(pad, buttons, axes, cfg[map.Key], target + "." + map.Value);
@@ -229,29 +310,27 @@ namespace EmulatorLauncher
             "system\\resources\\inputmapping\\mdControllers.json"
         };
 
-        private bool ConfigureMegadriveLikePad(BlastemConfigNode pad, Controller controller, string guid, string target)
+        private MegadriveController GetMegadriveController(string guid)
         {
             var mdControllers = GetMegadriveControllers();
             if (mdControllers == null)
-                return false;
+                return null;
 
             // The 4 argument overload splits a comma separated GUID list and falls back on a
             // driver agnostic lookup, which the 3 argument one does not. BlastEm is always SDL2.
-            MegadriveController mdGamepad = MegadriveController.GetMDController("blastem", guid, "sdl2", mdControllers);
+            var ret = MegadriveController.GetMDController("blastem", guid, "sdl2", mdControllers);
 
-            if (mdGamepad == null || mdGamepad.Mapping == null || mdGamepad.Mapping.Count == 0)
-            {
-                SimpleLogger.Instance.Info("[Controller] No specific mapping found for Megadrive controller " + guid);
-                return false;
-            }
+            return ret != null && ret.Mapping != null && ret.Mapping.Count > 0 ? ret : null;
+        }
 
+
+        private bool ApplyMegadriveLikePad(BlastemConfigNode pad, Controller controller, MegadriveController mdGamepad, string target)
+        {
             if (NeedsActivationSwitch(mdGamepad) && !SystemConfig.getOptBoolean("md_pad"))
             {
                 SimpleLogger.Instance.Info("[Controller] " + mdGamepad.Name + " (player " + controller.PlayerIndex + ") requires the Megadrive-like controller option, using the standard mapping.");
                 return false;
             }
-
-            SimpleLogger.Instance.Info("[Controller] Performing specific megadrive mapping for " + mdGamepad.Name);
 
             foreach (var entry in mdGamepad.Mapping)
             {
@@ -265,6 +344,10 @@ namespace EmulatorLauncher
 
                 else if (parts.Length == 3 && parts[0] == "axes")
                     pad.GetOrCreateSection("axes")[parts[1] + "." + parts[2]] = target + "." + entry.Key;
+
+                // A semantic axis name carries no sign : BlastEm defaults it to the positive half.
+                else if (parts.Length == 2 && parts[0] == "axes")
+                    pad.GetOrCreateSection("axes")[parts[1]] = target + "." + entry.Key;
 
                 else if (parts.Length == 3 && parts[0] == "dpads")
                     pad.GetOrCreateSection("dpads").GetOrCreateSection(parts[1])[parts[2]] = target + "." + entry.Key;
