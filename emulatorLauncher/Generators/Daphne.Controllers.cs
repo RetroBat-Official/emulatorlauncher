@@ -30,18 +30,24 @@ namespace EmulatorLauncher
             {
                 try
                 {
+                    // Hypseus takes one joystick button and one axis per direction. Writing only the
+                    // stick's axis leaves a pad whose d-pad is reported as buttons (DualSense: 12-15)
+                    // without any d-pad, so the d-pad button goes in the button slot.
+                    string dpadUp = GetDirectionButton(ctrl, InputKey.up), dpadDown = GetDirectionButton(ctrl, InputKey.down);
+                    string dpadLeft = GetDirectionButton(ctrl, InputKey.left), dpadRight = GetDirectionButton(ctrl, InputKey.right);
                     if (SystemConfig.isOptSet("hypseus_flight") && SystemConfig.getOptBoolean("hypseus_flight"))
                     {
-                        ini.WriteValue("KEYBOARD", "KEY_UP", "SDLK_DOWN 0 0 " + GetInputKeyName(ctrl, InputKey.joystick1down));
-                        ini.WriteValue("KEYBOARD", "KEY_DOWN", "SDLK_UP 0 0 " + GetInputKeyName(ctrl, InputKey.joystick1up));
+                        ini.WriteValue("KEYBOARD", "KEY_UP", "SDLK_DOWN 0 " + dpadDown + " " + GetInputKeyName(ctrl, InputKey.joystick1down));
+                        ini.WriteValue("KEYBOARD", "KEY_DOWN", "SDLK_UP 0 " + dpadUp + " " + GetInputKeyName(ctrl, InputKey.joystick1up));
                     }
                     else
                     {
-                        ini.WriteValue("KEYBOARD", "KEY_UP", "SDLK_UP 0 0 " + GetInputKeyName(ctrl, InputKey.joystick1up));
-                        ini.WriteValue("KEYBOARD", "KEY_DOWN", "SDLK_DOWN 0 0 " + GetInputKeyName(ctrl, InputKey.joystick1down));
+                        ini.WriteValue("KEYBOARD", "KEY_UP", "SDLK_UP 0 " + dpadUp + " " + GetInputKeyName(ctrl, InputKey.joystick1up));
+                        ini.WriteValue("KEYBOARD", "KEY_DOWN", "SDLK_DOWN 0 " + dpadDown + " " + GetInputKeyName(ctrl, InputKey.joystick1down));
                     }
-                    ini.WriteValue("KEYBOARD", "KEY_LEFT", "SDLK_LEFT 0 0 "+ GetInputKeyName(ctrl, InputKey.joystick1left));
-                    ini.WriteValue("KEYBOARD", "KEY_RIGHT", "SDLK_RIGHT 0 0 " + GetInputKeyName(ctrl, InputKey.joystick1right));
+                    ini.WriteValue("KEYBOARD", "KEY_LEFT", "SDLK_LEFT 0 " + dpadLeft + " " + GetInputKeyName(ctrl, InputKey.joystick1left));
+                    ini.WriteValue("KEYBOARD", "KEY_RIGHT", "SDLK_RIGHT 0 " + dpadRight + " " + GetInputKeyName(ctrl, InputKey.joystick1right));
+                    SimpleLogger.Instance.Info("[CONTROLLERS] Hypseus directions: d-pad buttons up/down/left/right = " + dpadUp + "/" + dpadDown + "/" + dpadLeft + "/" + dpadRight + " (0 = not a button on this pad), stick axes as before");
                     ini.WriteValue("KEYBOARD", "KEY_COIN1", "SDLK_5 0 " + GetInputKeyName(ctrl, InputKey.select));
                     ini.WriteValue("KEYBOARD", "KEY_COIN2", "SDLK_6 0 0");
                     ini.WriteValue("KEYBOARD", "KEY_START1", "SDLK_1 0 " + GetInputKeyName(ctrl, InputKey.start));
@@ -75,6 +81,16 @@ namespace EmulatorLauncher
                 sw.WriteLine("END");
             }
 
+        }
+
+        // The d-pad direction as a Hypseus joystick-button code, or "0" when the pad reports
+        // it as a hat or nothing (Hypseus handles hats on its own, see -openhat).
+        private static string GetDirectionButton(Controller c, InputKey key)
+        {
+            var input = c == null ? null : c.Config[key];
+            if (input == null || input.Type != "button")
+                return "0";
+            return GetInputKeyName(c, key).Trim();
         }
 
         private static string GetInputKeyName(Controller c, InputKey key)
