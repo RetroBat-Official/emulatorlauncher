@@ -17,6 +17,7 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = false;
         }
 
+        private string _system;
         private SdlVersion _sdlVersion = SdlVersion.SDL2_26;
         private ScreenResolution _resolution;
         private BezelFiles _bezelFileInfo;
@@ -135,6 +136,8 @@ namespace EmulatorLauncher
 
         private void SetupConfiguration(string path, string system, string rom, string core, ScreenResolution resolution)
         {
+            _system = system;
+
             // Start from the previous session's file when there is one, so that anything the user
             // changed by hand survives, and from the shipped default.cfg otherwise. BlastEm does not
             // merge the two files : whichever it finds first is used whole.
