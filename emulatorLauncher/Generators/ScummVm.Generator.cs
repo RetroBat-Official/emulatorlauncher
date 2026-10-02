@@ -25,7 +25,8 @@ namespace EmulatorLauncher
                 return null;
 
             rom = this.TryUnZipGameIfNeeded(system, rom, false);
-            ValidateUncompressedGame();
+            if (Directory.Exists(rom))
+                ValidateUncompressedGame();
 
             bool autodetect = false;
             string romFile = null;
