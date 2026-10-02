@@ -1,18 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
-using System.Drawing;
-using EmulatorLauncher.PadToKeyboard;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.Joysticks;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Compression;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common.Compression;
+using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.PadToKeyboard;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
-    class XEmuGenerator : Generator
+    partial class XEmuGenerator : Generator
     {
         public XEmuGenerator()
         {
@@ -23,14 +24,20 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private BezelFiles _bezelFileInfo;
         private Rectangle _windowRect = Rectangle.Empty;
+        private bool _chihiro;
+        private string _chihiroEeprom;
+        private string _chihiroEepromSave;
+        private bool _sindenSoft;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
 
-            string path = AppConfig.GetFullPath("xemu");
+            string path = AppConfig.GetFullPath(emulator);
             if (string.IsNullOrEmpty(path))
                 return null;
+
+            _chihiro = (emulator == "xemu-chihiro" || system == "chihiro");
 
             string exe = Path.Combine(path, "xemu.exe");
             if (!File.Exists(exe))
@@ -64,33 +71,35 @@ namespace EmulatorLauncher
                     if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); }
                         catch { }
 
-                    // Copy eeprom file from resources if file does not exist yet
-                    if (!File.Exists(Path.Combine(savePath, "eeprom.bin")))
+                    if (!_chihiro)
                     {
-                        SimpleLogger.Instance.Info("[Generator] eeprom.bin not found, copying from template.");
-                        File.WriteAllBytes(Path.Combine(savePath, "eeprom.bin"), Properties.Resources.eeprom);
+                        // Copy eeprom file from resources if file does not exist yet
+                        if (!File.Exists(Path.Combine(savePath, "eeprom.bin")))
+                        {
+                            SimpleLogger.Instance.Info("[Generator] eeprom.bin not found, copying from template.");
+                            File.WriteAllBytes(Path.Combine(savePath, "eeprom.bin"), Properties.Resources.eeprom);
+                        }
+
+                        // Unzip and Copy hdd image file from resources if file does not exist yet
+                        if (!File.Exists(Path.Combine(savePath, "xbox_hdd.qcow2")))
+                        {
+                            SimpleLogger.Instance.Info("[Generator] xbox_hdd.qcow2 not found, copying from template.");
+                            string zipFile = Path.Combine(savePath, "xbox_hdd.qcow2.zip");
+                            File.WriteAllBytes(zipFile, Properties.Resources.xbox_hdd_qcow2);
+
+                            Zip.Extract(zipFile, savePath);
+                            File.Delete(zipFile);
+                        }
+
+                        if (File.Exists(Path.Combine(savePath, "eeprom.bin")))
+                            eepromPath = Path.Combine(savePath, "eeprom.bin");
+
+                        if (File.Exists(Path.Combine(savePath, "xbox_hdd.qcow2")))
+                            hddPath = Path.Combine(savePath, "xbox_hdd.qcow2");
                     }
-
-                    // Unzip and Copy hdd image file from resources if file does not exist yet
-                    if (!File.Exists(Path.Combine(savePath, "xbox_hdd.qcow2")))
-                    {
-                        SimpleLogger.Instance.Info("[Generator] xbox_hdd.qcow2 not found, copying from template.");
-                        string zipFile = Path.Combine(savePath, "xbox_hdd.qcow2.zip");
-                        File.WriteAllBytes(zipFile, Properties.Resources.xbox_hdd_qcow2);
-
-                        Zip.Extract(zipFile, savePath);
-                        File.Delete(zipFile);
-                    }
-
-                    if (File.Exists(Path.Combine(savePath, "eeprom.bin")))
-                        eepromPath = Path.Combine(savePath, "eeprom.bin");
-
-                    if (File.Exists(Path.Combine(savePath, "xbox_hdd.qcow2")))
-                        hddPath = Path.Combine(savePath, "xbox_hdd.qcow2");
                 }
 
-                // BIOS file paths
-                if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig.GetFullPath("bios")))
+                if (!_chihiro && !string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig.GetFullPath("bios")))
                 {
                     if (File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "mcpx_1.0.bin")))
                         bootRom = Path.Combine(AppConfig.GetFullPath("bios"), "mcpx_1.0.bin");
@@ -100,6 +109,9 @@ namespace EmulatorLauncher
                 SetupTOMLConfiguration(path, system, eepromPath, hddPath, bootRom);
             }
             catch { }
+
+            if (_chihiro)
+                SetupChihiroEeprom(path);
 
             // Command line arguments
             List<string> commandArray = new List<string>();
@@ -161,23 +173,35 @@ namespace EmulatorLauncher
                     for (int i = 0; i < 16; i++)
                         ini.Remove("input.bindings", "port" + i);
 
-                    int port = 1;
                     var inputArray = new List<object>();
 
-                    foreach (var ctl in Controllers)
-                    {
-                        if (ctl.Name == "Keyboard")
-                        {
-                            inputArray.Add(new Dictionary<string, string> { { "gamepad_id", "keyboard" } });
-                            ini.WriteValue("input.bindings", "port" + port, "'keyboard'");
-                        }
-                        else if (ctl.Config != null)
-                        {
-                            ini.WriteValue("input.bindings", "port" + port, "'" + ctl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant() + "'");
-                            inputArray.Add(new Dictionary<string, string> { { "gamepad_id", ctl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant() } });
-                        }
+                    int port = 1;
 
+                    foreach (var ctl in Controllers.Where(c => !c.IsKeyboard && c.Config != null))
+                    {
+                        if (port > 4)
+                            break;
+
+                        string guid = ctl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant();
+                        string identity = GetXemuControllerIdentity(ctl);
+
+                        ini.WriteValue("input.bindings", "port" + port, "'" + identity + "'");
+                        if (port == 1)
+                            _chihiroPad = ctl;
+
+                        // The mapping table is keyed by model, never by port: always the
+                        // bare GUID here, even when the port binding carries a path.
+                        inputArray.Add(new Dictionary<string, string> { { "gamepad_id", guid } });
+
+                        SimpleLogger.Instance.Info("[Generator] xemu port " + port + " = " + ctl.ToShortString() + " -> " + identity);
                         port++;
+                    }
+
+                    var keyboard = Controllers.FirstOrDefault(c => c.IsKeyboard);
+                    if (keyboard != null && port <= 4)
+                    {
+                        ini.WriteValue("input.bindings", "port" + port, "'keyboard'");
+                        inputArray.Add(new Dictionary<string, string> { { "gamepad_id", "keyboard" } });
                     }
 
                     ini.SetArray("input", "gamepad_mappings", inputArray);
@@ -211,10 +235,13 @@ namespace EmulatorLauncher
 
 
                 // sys options
-                if (SystemConfig.isOptSet("system_memory") && !string.IsNullOrEmpty(SystemConfig["system_memory"]))
-                    ini.WriteValue("sys", "mem_limit", "'" + SystemConfig["system_memory"] + "'");
-                else
-                    ini.WriteValue("sys", "mem_limit", "'128'");
+                if (!_chihiro)
+                {
+                    if (SystemConfig.isOptSet("system_memory") && !string.IsNullOrEmpty(SystemConfig["system_memory"]))
+                        ini.WriteValue("sys", "mem_limit", "'" + SystemConfig["system_memory"] + "'");
+                    else
+                        ini.WriteValue("sys", "mem_limit", "'128'");
+                }
 
                 if (SystemConfig.isOptSet("xemu_avpack") && !string.IsNullOrEmpty(SystemConfig["xemu_avpack"]))
                     ini.WriteValue("sys", "avpack", "'" + SystemConfig["xemu_avpack"] + "'");
@@ -236,16 +263,20 @@ namespace EmulatorLauncher
                     ini.WriteValue("sys.files", "hdd_path", "'" + hddPath + "'");
 
                 string flashromPath = Path.Combine(AppConfig.GetFullPath("bios"));
-                if (SystemConfig.isOptSet("xemu_flashrom") && !string.IsNullOrEmpty(SystemConfig["xemu_flashrom"]))
-                    ini.WriteValue("sys.files", "flashrom_path", "'" + Path.Combine(flashromPath, SystemConfig["xemu_flashrom"] + "'"));
-                else
-                    ini.WriteValue("sys.files", "flashrom_path", system == "chihiro" ? "'" + Path.Combine(flashromPath, "Cerbios.bin") + "'" : "'" + Path.Combine(flashromPath, "Complex_4627.bin") + "'");
+                if (!_chihiro)
+                {
+                    if (SystemConfig.isOptSet("xemu_flashrom") && !string.IsNullOrEmpty(SystemConfig["xemu_flashrom"]))
+                        ini.WriteValue("sys.files", "flashrom_path", "'" + Path.Combine(flashromPath, SystemConfig["xemu_flashrom"]) + "'");
+                    else
+                        ini.WriteValue("sys.files", "flashrom_path", "'" + Path.Combine(flashromPath, "Complex_4627.bin") + "'");
+                }
+
+                // CHIHIRO: the fork reads its own BIOS from chihiro.roms.bios_path
+                if (_chihiro)
+                    SetupChihiroConfiguration(ini);
 
                 if (!string.IsNullOrEmpty(bootRom))
                     ini.WriteValue("sys.files", "bootrom_path", "'" + bootRom + "'");
-
-                // dvd_path by command line is enough and in newer versions, if put in toml, it brakes the loading
-                //ini.WriteValue("sys.files", "dvd_path", "'" + rom + "'");
 
                 //audio
                 BindBoolIniFeature(ini, "audio", "use_dsp", "xemu_dsp", "true", "false");
@@ -355,6 +386,133 @@ namespace EmulatorLauncher
             return high + low;
         }
 
+        /// <summary>
+        /// Chihiro settings (Tovarichtch fork). The fork identifies the cabinet
+        /// from the game itself - card reader, drive board, monitor type and
+        /// input profile - so no game profile is forced here.
+        /// </summary>
+        private void SetupChihiroConfiguration(IniTomlFile ini)
+        {
+            string biosPath = AppConfig.GetFullPath("bios");
+
+            string chihiroBios = Path.Combine(biosPath, "chihiro", "chihiro_xbox_bios.bin");
+            if (!File.Exists(chihiroBios))
+                chihiroBios = Path.Combine(biosPath, "chihiro_xbox_bios.bin");
+
+            if (File.Exists(chihiroBios))
+            {
+                ini.WriteValue("chihiro.roms", "bios_path", "'" + chihiroBios + "'");
+
+                ini.Remove("chihiro.roms", "mediaboard_path");
+                ini.Remove("chihiro.roms", "ic10_path");
+                ini.Remove("chihiro.roms", "ic11_path");
+                ini.Remove("chihiro.roms", "pc20_path");
+
+                string biosDir = Path.GetDirectoryName(chihiroBios);
+
+                foreach (var f in new[] { "ic10_g24lc64.bin", "ic11_24lc024.bin", "pc20_g24lc64.bin" })
+                {
+                    if (!File.Exists(Path.Combine(biosDir, f)))
+                        SimpleLogger.Instance.Warning("[Generator] Chihiro file missing next to the BIOS: " + f);
+                }
+
+                if (!File.Exists(Path.Combine(biosDir, "fpr21042_m29w160et.bin")) &&
+                    !File.Exists(Path.Combine(biosDir, "fpr-23887_29lv160te.ic4")) &&
+                    !File.Exists(Path.Combine(biosDir, "fpr-23887.bin")))
+                    SimpleLogger.Instance.Warning("[Generator] Chihiro media board flash missing next to the BIOS.");
+            }
+            else
+                SimpleLogger.Instance.Warning("[Generator] chihiro_xbox_bios.bin not found, Chihiro will not boot.");
+
+            string savePath = Path.Combine(AppConfig.GetFullPath("saves"), "chihiro");
+            if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); } catch { }
+            if (Directory.Exists(savePath))
+                ini.WriteValue("chihiro.roms", "snapshot_store_path", "'" + Path.Combine(savePath, "chihiro_snapshots.qcow2") + "'");
+
+            // Cabinet settings. Enum values are quoted strings in the toml.
+            BindBoolIniFeature(ini, "chihiro.settings", "freeplay", "chihiro_freeplay", "true", "false");
+            BindBoolIniFeature(ini, "chihiro.settings", "lightgun_mode", "chihiro_lightgun_mode", "true", "false");
+
+            if (SystemConfig.isOptSet("chihiro_region") && !string.IsNullOrEmpty(SystemConfig["chihiro_region"]))
+                ini.WriteValue("chihiro.settings", "region", "'" + SystemConfig["chihiro_region"] + "'");
+            else
+                ini.WriteValue("chihiro.settings", "region", "'ex'");
+
+            if (SystemConfig.isOptSet("chihiro_dimm_size") && !string.IsNullOrEmpty(SystemConfig["chihiro_dimm_size"]))
+                ini.WriteValue("chihiro.settings", "dimm_size", "'" + SystemConfig["chihiro_dimm_size"] + "'");
+            else
+                ini.WriteValue("chihiro.settings", "dimm_size", "'auto'");
+
+            ini.WriteValue("chihiro.settings", "board_type", "'auto'");
+
+            // Drive board force feedback (OutRun 2, Maximum Tune)
+            BindBoolIniFeature(ini, "chihiro.settings", "force_feedback", "chihiro_ffb", "true", "false");
+            BindIniFeature(ini, "chihiro.settings", "ffb_strength", "chihiro_ffb_strength", "100");
+            BindBoolIniFeature(ini, "chihiro.settings", "ffb_invert", "chihiro_ffb_invert", "true", "false");
+            BindIniFeature(ini, "chihiro.settings", "wheel_rotation", "chihiro_wheel_rotation", "270");
+
+            BindBoolIniFeatureOn(ini, "chihiro.settings", "wheel_autocenter", "chihiro_wheel_autocenter", "true", "false");
+            BindIniFeature(ini, "chihiro.settings", "wheel_autocenter_strength", "chihiro_wheel_autocenter_strength", "50");
+
+            ConfigureChihiroControllers(ini);
+            ConfigureChihiroGuns(ini);
+        }
+
+        private void SetupChihiroEeprom(string path)
+        {
+            if (string.IsNullOrEmpty(AppConfig["saves"]) || !Directory.Exists(AppConfig.GetFullPath("saves")))
+                return;
+
+            string savePath = Path.Combine(AppConfig.GetFullPath("saves"), "chihiro");
+            if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); } catch { }
+            if (!Directory.Exists(savePath))
+                return;
+
+            _chihiroEeprom = Path.Combine(path, "chihiro_eeprom.bin");
+            _chihiroEepromSave = Path.Combine(savePath, "chihiro_eeprom.bin");
+
+            try
+            {
+                if (File.Exists(_chihiroEepromSave))
+                {
+                    if (!File.Exists(_chihiroEeprom) ||
+                        File.GetLastWriteTimeUtc(_chihiroEepromSave) >= File.GetLastWriteTimeUtc(_chihiroEeprom))
+                        File.Copy(_chihiroEepromSave, _chihiroEeprom, true);
+                }
+                else if (File.Exists(_chihiroEeprom))
+                {
+                    File.Copy(_chihiroEeprom, _chihiroEepromSave, true);
+                }
+            }
+            catch { SimpleLogger.Instance.Warning("[Generator] Unable to restore chihiro_eeprom.bin."); }
+        }
+
+        private void SaveChihiroEeprom()
+        {
+            if (string.IsNullOrEmpty(_chihiroEeprom) || string.IsNullOrEmpty(_chihiroEepromSave))
+                return;
+
+            try
+            {
+                if (File.Exists(_chihiroEeprom))
+                    File.Copy(_chihiroEeprom, _chihiroEepromSave, true);
+            }
+            catch { SimpleLogger.Instance.Warning("[Generator] Unable to save chihiro_eeprom.bin."); }
+        }
+
+        private string GetXemuControllerIdentity(Controller ctl)
+        {
+            string guid = ctl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant();
+
+            bool hasTwin = Controllers.Any(c => c != ctl && !c.IsKeyboard && c.Config != null &&
+                                                c.GetSdlGuid(_sdlVersion, true).ToLowerInvariant() == guid);
+
+            if (hasTwin && !string.IsNullOrEmpty(ctl.DevicePath))
+                return guid + "#" + ctl.DevicePath;
+
+            return guid;
+        }
+
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
@@ -401,6 +559,12 @@ namespace EmulatorLauncher
                     catch { }
                 }
             }
+
+            if (_chihiro)
+                SaveChihiroEeprom();
+
+            if (_sindenSoft)
+                Guns.KillSindenSoftware();
 
             bezel?.Dispose();
 

@@ -622,7 +622,13 @@
       <DependentUpon>VPinball.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\WinArcadia.Generator.cs" />
-    <Compile Include="Generators\XEmu.Generator.cs" />
+    <Compile Include="Generators\Xemu.Generator.cs" />
+    <Compile Include="Generators\Xemu.Controllers.cs">
+      <DependentUpon>Xemu.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Xemu.Guns.cs">
+      <DependentUpon>Xemu.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Xenia.Generator.cs" />
     <Compile Include="Generators\Xm6pro.Generator.cs" />
     <Compile Include="Generators\Xroar.Generator.cs" />
