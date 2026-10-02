@@ -163,7 +163,8 @@ namespace EmulatorLauncher
             { new Installer("yuzu", "yuzu", "yuzu.exe") },
             { new Installer("yuzu-early-access", "yuzu-early-access", "yuzu.exe") },
             { new Installer("zesarux", "zesarux", "zesarux.exe") },
-            { new Installer("zinc", "zinc", "ZiNc.exe") } 
+            { new Installer("zinc", "zinc", "ZiNc.exe") },
+            { new Installer("zquestclassic", "zquestclassic", "zplayer.exe") }
         };
 
         // Some emulators do not set correctly version in executable and require specific treatment !
