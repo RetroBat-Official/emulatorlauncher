@@ -20,21 +20,33 @@ namespace EmulatorLauncher
             //string path = Program.AppConfig.GetFullPath("dolphin");
             string iniFile = Path.Combine(path, "User", "Config", "GCPadNew.ini");
 
-            var anyMapping = triforceMapping;
+            var baseMapping = triforceMapping;
 
             if (Program.SystemConfig.isOptSet("triforce_mapping") && !string.IsNullOrEmpty(Program.SystemConfig["triforce_mapping"]))
             {
                 string mappingKey = Program.SystemConfig["triforce_mapping"];
 
                 if (mappingKeys.ContainsKey(mappingKey))
-                    anyMapping = mappingKeys[mappingKey];
+                    baseMapping = mappingKeys[mappingKey];
             }
             else if (triforceGame != null && triforceGame.InputProfile != null)
             {
-                anyMapping = triforceGame.InputProfile;
+                baseMapping = triforceGame.InputProfile;
             }
 
-            if (_emulator == "dolphin" && _emulator != "dolphin-emu")
+            // Profiles were tuned on the 2023 Crediar build: upstream Dolphin reads some games differently
+            if (!crediar)
+                baseMapping = GetUpstreamMapping(baseMapping, triforceGame);
+
+            // The Crediar Virtua Striker layout rotates the main stick: use the matching reverse-axes table
+            // whether the layout was selected manually or picked automatically from the game ID
+            Dictionary<string, string> anyReverseAxes = ReferenceEquals(baseMapping, vsMapping) ? vs4ReverseAxes : gamecubeReverseAxes;
+
+            // Work on a copy so the static profiles are never altered
+            var anyMapping = new InputKeyMapping(baseMapping);
+
+            // Upstream Dolphin: Test/Service/Coin are dedicated Triforce inputs
+            if (!crediar)
             {
                 anyMapping[InputKey.l3] = "Triforce/Service";
                 anyMapping[InputKey.r3] = "Triforce/Test";
@@ -43,14 +55,12 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Triforce: Writing controller configuration in : " + iniFile);
 
-            bool vs4axis = Program.SystemConfig.isOptSet("triforce_mapping") && Program.SystemConfig["triforce_mapping"] == "vs4";
-            Dictionary<string, string> anyReverseAxes = vs4axis ? vs4ReverseAxes : gamecubeReverseAxes;
-
             bool forceSDL = false;
             if (Program.SystemConfig.isOptSet("input_forceSDL") && Program.SystemConfig.getOptBoolean("input_forceSDL"))
                 forceSDL = true;
 
             int nsamepad = 0;
+            HashSet<int> configuredPads = new HashSet<int>();
 
             Dictionary<string, int> double_pads = new Dictionary<string, int>();
             SdlToDirectInput sdlCtrl = null;
@@ -160,24 +170,29 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue(gcpad, "Device", tech + "/" + nsamepad.ToString() + "/" + deviceName);
 
-                    if (isNintendo && pad.PlayerIndex == 1)
+                    // Nintendo controllers: swap A/B and X/Y on a per-pad copy so other players are not affected
+                    InputKeyMapping padMapping = anyMapping;
+
+                    if (isNintendo)
                     {
                         string tempMapA = anyMapping[InputKey.a];
                         string tempMapB = anyMapping[InputKey.b];
                         string tempMapX = anyMapping[InputKey.x];
                         string tempMapY = anyMapping[InputKey.y];
 
+                        padMapping = new InputKeyMapping(anyMapping);
+
                         if (tempMapB != null)
-                            anyMapping[InputKey.a] = tempMapB;
+                            padMapping[InputKey.a] = tempMapB;
                         if (tempMapA != null)
-                            anyMapping[InputKey.b] = tempMapA;
+                            padMapping[InputKey.b] = tempMapA;
                         if (tempMapY != null)
-                            anyMapping[InputKey.x] = tempMapY;
+                            padMapping[InputKey.x] = tempMapY;
                         if (tempMapX != null)
-                            anyMapping[InputKey.y] = tempMapX;
+                            padMapping[InputKey.y] = tempMapX;
                     }
 
-                    foreach (var x in anyMapping)
+                    foreach (var x in padMapping)
                     {
                         string value = x.Value;
 
@@ -264,7 +279,7 @@ namespace EmulatorLauncher
                             if (!string.IsNullOrEmpty(mapTarget))
                                 ini.WriteValue(gcpad, value, mapTarget);
 
-                            if (gamecubeReverseAxes.TryGetValue(value, out string reverseAxis))
+                            if (anyReverseAxes.TryGetValue(value, out string reverseAxis))
                             {
                                 if (joyRevertAxisDInput.ContainsKey(x.Key))
                                 {
@@ -426,8 +441,22 @@ namespace EmulatorLauncher
 
                     // Always connected
                     ini.WriteValue(gcpad, "Options/Always Connected", "True");
+                    configuredPads.Add(pad.PlayerIndex);
 
                     SimpleLogger.Instance.Info("[INFO] Assigned controller " + pad.DevicePath + " to player : " + pad.PlayerIndex.ToString());
+                }
+
+                // Unassigned ports: Dolphin reports a disconnected pad with sticks at 0,0 (full left/down)
+                // and the AM baseboard forwards it as analog input (e.g. Virtua Striker 4 player 2 lever).
+                // Clear stale mappings and force "Always Connected" so the sticks report their center value.
+                for (int i = 1; i <= 4; i++)
+                {
+                    if (configuredPads.Contains(i))
+                        continue;
+
+                    string emptyPad = "GCPad" + i;
+                    ini.ClearSection(emptyPad);
+                    ini.WriteValue(emptyPad, "Options/Always Connected", "True");
                 }
 
                 ini.Save();
@@ -524,6 +553,89 @@ namespace EmulatorLauncher
             { InputKey.joystick1left,   "Main Stick/Left" }, // turn
             { InputKey.r3,              "Buttons/Z" }
         };
+
+        // Upstream Dolphin layouts (Core/HW/Triforce/IOPorts.cpp, FZeroAX.cpp).
+        // The profiles above were tuned on the 2023 Crediar build, which reads these games differently.
+        // Test/Service/Coin are added at runtime (Triforce/*), so select/l3/r3 are not listed here.
+
+        // VS4: A = short pass, X = long pass, B = shoot, Y = dash, D-Pad Left/Up/Right = tactics U/M/D, unrotated stick
+        public static readonly InputKeyMapping vs4DolphinMapping = new InputKeyMapping()
+        {
+            { InputKey.b,               "Buttons/A" },      // short pass
+            { InputKey.y,               "Buttons/X" },      // long pass
+            { InputKey.a,               "Buttons/B" },      // shoot
+            { InputKey.x,               "Buttons/Y" },      // dash
+            { InputKey.start,           "Buttons/Start" },
+            { InputKey.joystick1up,     "Main Stick/Up" },  // movement
+            { InputKey.joystick1left,   "Main Stick/Left" },// movement
+            { InputKey.up,              "D-Pad/Left" },     // tactics (U)
+            { InputKey.right,           "D-Pad/Up" },       // tactics (M)
+            { InputKey.down,            "D-Pad/Right" }     // tactics (D)
+        };
+
+        // VS3 2002: A = short pass, X = long pass, B = shoot, D-Pad = movement
+        public static readonly InputKeyMapping vs3DolphinMapping = new InputKeyMapping()
+        {
+            { InputKey.b,               "Buttons/A" },      // short pass
+            { InputKey.a,               "Buttons/X" },      // long pass
+            { InputKey.y,               "Buttons/B" },      // shoot
+            { InputKey.start,           "Buttons/Start" },
+            { InputKey.up,              "D-Pad/Up" },
+            { InputKey.down,            "D-Pad/Down" },
+            { InputKey.left,            "D-Pad/Left" },
+            { InputKey.right,           "D-Pad/Right" }
+        };
+
+        // Gekitou Pro Yakyuu: A, B and L trigger (Gekitou), D-Pad = movement
+        public static readonly InputKeyMapping gekitouDolphinMapping = new InputKeyMapping()
+        {
+            { InputKey.a,               "Buttons/A" },
+            { InputKey.b,               "Buttons/B" },
+            { InputKey.y,               "Triggers/L" },     // gekitou
+            { InputKey.start,           "Buttons/Start" },
+            { InputKey.up,              "D-Pad/Up" },
+            { InputKey.down,            "D-Pad/Down" },
+            { InputKey.left,            "D-Pad/Left" },
+            { InputKey.right,           "D-Pad/Right" }
+        };
+
+        // F-Zero AX: A = boost, X/Y = left/right paddles, D-Pad = views, analog gas/brake
+        public static readonly InputKeyMapping fzeroDolphinMapping = new InputKeyMapping()
+        {
+            { InputKey.l2,              "Triggers/L-Analog" }, // brake
+            { InputKey.r2,              "Triggers/R-Analog" }, // gas
+            { InputKey.pageup,          "Buttons/X" },      // left paddle
+            { InputKey.pagedown,        "Buttons/Y" },      // right paddle
+            { InputKey.y,               "Buttons/A" },      // boost
+            { InputKey.start,           "Buttons/Start" },
+            { InputKey.up,              "D-Pad/Up" },       // view
+            { InputKey.down,            "D-Pad/Down" },     // view
+            { InputKey.left,            "D-Pad/Left" },     // view
+            { InputKey.right,           "D-Pad/Right" },    // view
+            { InputKey.joystick1up,     "Main Stick/Up" },
+            { InputKey.joystick1left,   "Main Stick/Left" } // steering
+        };
+
+        private static InputKeyMapping GetUpstreamMapping(InputKeyMapping mapping, TriforceGame triforceGame)
+        {
+            if (ReferenceEquals(mapping, vsMapping))
+                return vs4DolphinMapping;
+
+            if (ReferenceEquals(mapping, fzeroMapping))
+                return fzeroDolphinMapping;
+
+            // vs2002Mapping is shared by VS3 2002 and Gekitou on the Crediar build, upstream reads them differently
+            if (ReferenceEquals(mapping, vs2002Mapping))
+            {
+                if (triforceGame != null && triforceGame.Game == "Gekitou_Pro_Yakyuu")
+                    return gekitouDolphinMapping;
+
+                return vs3DolphinMapping;
+            }
+
+            // Mario Kart GP and standard profiles match upstream
+            return mapping;
+        }
 
         public static readonly Dictionary<string, string> vs4ReverseAxes = new Dictionary<string, string>()
         {

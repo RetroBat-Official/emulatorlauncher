@@ -1910,7 +1910,7 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "emulators/dolphin-emu/User/Triforce/segaboot.gcm"
+        "file": "bios/triforce/segaboot.gcm"
       }
     ]
   },
