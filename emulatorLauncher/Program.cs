@@ -205,7 +205,8 @@ namespace EmulatorLauncher
             { "yuzu-early-access", () => new YuzuGenerator() },
             { "zaccariapinball", () => new ZaccariaPinballGenerator() },
             { "zesarux", () => new ZEsarUXGenerator() },
-            { "zinc", () => new ZincGenerator() }
+            { "zinc", () => new ZincGenerator() },
+            { "zquestclassic", () => new ZQuestClassicGenerator() }
         };
 
         public static ConfigFile AppConfig { get; private set; }

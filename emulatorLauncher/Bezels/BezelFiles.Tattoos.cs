@@ -931,6 +931,11 @@ namespace EmulatorLauncher
                         break;
                 }
             }
+            else if (system == "zeldaclassic")
+            {
+                if (emulator == "zquestclassic")
+                    ret = Program.SystemConfig.getOptBoolean("zc_swap_buttons") ? "zeldaclassic_standalone_swap" : "zeldaclassic_standalone";
+            }
             else if (system == "arcade")
             {
                 if (!string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))

@@ -653,6 +653,10 @@
     <Compile Include="Generators\Zinc.Controllers.cs">
       <DependentUpon>Zinc.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Zquestclassic.Generator.cs" />
+    <Compile Include="Generators\Zquestclassic.Controllers.cs">
+      <DependentUpon>Zquestclassic.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="PadToKey\EvMapyKeysFile.cs" />
     <Compile Include="PadToKey\JoyInputState.cs" />
     <Compile Include="PadToKey\JoystickListener.cs" />
