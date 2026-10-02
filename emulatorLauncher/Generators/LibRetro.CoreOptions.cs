@@ -300,6 +300,7 @@ namespace EmulatorLauncher.Libretro
                 { "yabasanshiro", "YabaSanshiro" },
                 { "yabause", "Yabause" },
                 { "ymir", "Emir" },
+                { "zc210", "Zelda Classic v2.10" },
             };
 
             if (coreNames.TryGetValue(core, out string ret))
@@ -482,6 +483,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureYabause(retroarchConfig, coreSettings, system, core);
             ConfigureYabasanshiro(retroarchConfig, coreSettings, system, core);
             ConfigureYmir(retroarchConfig, coreSettings, system, core);
+            ConfigureZc210(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -6367,6 +6369,53 @@ namespace EmulatorLauncher.Libretro
                 guntype = SystemConfig["ymir_guntype"];
 
             SetupLightGuns(retroarchConfig, guntype, core);
+        }
+
+        private void ConfigureZc210(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "zc210")
+                return;
+
+            string zcPath = Path.Combine(AppConfig.GetFullPath("bios"), "zc210");
+            string sf2Path = Path.Combine(zcPath, "sf2");
+
+            // Mandatory data file, the core cannot start without it
+            if (!File.Exists(Path.Combine(zcPath, "zcdata.dat")))
+                SimpleLogger.Instance.Error("[LibretroGenerator] zc210: missing " + Path.Combine(zcPath, "zcdata.dat"));
+
+            // default.sf2 is mandatory: reuse the Roland SC-55 soundfont shipped for ScummVM if missing
+            string defaultSf2 = Path.Combine(sf2Path, "default.sf2");
+            if (!File.Exists(defaultSf2))
+            {
+                string scummSf2 = Path.Combine(AppConfig.GetFullPath("bios"), "scummvm", "extra", "Roland_SC-55.sf2");
+                if (File.Exists(scummSf2))
+                {
+                    try
+                    {
+                        if (!Directory.Exists(sf2Path))
+                            Directory.CreateDirectory(sf2Path);
+
+                        File.Copy(scummSf2, defaultSf2);
+                        SimpleLogger.Instance.Info("[Generator] zc210: copied Roland_SC-55.sf2 to " + defaultSf2);
+                    }
+                    catch { SimpleLogger.Instance.Warning("[WARNING] zc210: unable to copy Roland_SC-55.sf2 to " + defaultSf2); }
+                }
+                else
+                    SimpleLogger.Instance.Error("[LibretroGenerator] zc210: missing " + defaultSf2);
+            }
+
+            // The core aborts content loading if the selected soundfont file does not exist: fall back to default.sf2
+            string soundfont = SystemConfig.GetValueOrDefault("zc_soundfont", "default");
+            if (soundfont != "default" && !File.Exists(Path.Combine(sf2Path, soundfont + ".sf2")))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] zc210: soundfont " + soundfont + ".sf2 not found, using default.sf2");
+                soundfont = "default";
+            }
+            coreSettings["zc_soundfont"] = soundfont;
+
+            // Missing sfx files are silently ignored by the core, no check needed
+            BindFeature(coreSettings, "zc_custom_sfx", "zc_custom_sfx", "Off");
+            BindFeature(coreSettings, "zc_heart_beep", "zc_heart_beep", "true");
         }
         #endregion
     }
