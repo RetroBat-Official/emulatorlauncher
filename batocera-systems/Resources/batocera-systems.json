@@ -651,6 +651,32 @@
     ]
   },
 
+  "chihiro": {
+    "name": "Sega Chihiro",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/chihiro/chihiro_xbox_bios.bin"
+      },
+      {
+        "md5": "",
+        "file": "bios/chihiro/fpr21042_m29w160et.bin"
+      },
+      {
+        "md5": "",
+        "file": "bios/chihiro/ic10_g24lc64"
+      },
+      {
+        "md5": "",
+        "file": "bios/chihiro/ic11_24lc024.bin"
+      },
+      {
+        "md5": "",
+        "file": "bios/chihiro/pc20_g24lc64.bin"
+      }
+    ]
+  },
+
   "coco": {
     "name": "Color Computer",
     "biosFiles": [
@@ -1884,7 +1910,7 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "emulators/dolphin-emu/User/Triforce/segaboot.gcm"
+        "file": "bios/triforce/segaboot.gcm"
       }
     ]
   },

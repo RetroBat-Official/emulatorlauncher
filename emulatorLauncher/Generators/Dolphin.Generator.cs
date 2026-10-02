@@ -780,6 +780,9 @@ namespace EmulatorLauncher
                         ini.WriteValue("Core", "SIDevice3", "0");
                         ini.WriteValue("Interface", "UsePanicHandlers", "False");       // Disable panic handlers
                         ini.WriteValue("Core", "EnableCheats", "True");                 // Cheats must be enabled
+
+                        if (!_crediar)
+                            CopySegaBoot(path);
                     }
                     else
                         ini.WriteValue("Core", "SerialPort1", "255");
@@ -1040,6 +1043,45 @@ namespace EmulatorLauncher
             }
 
             return ret;
+        }
+
+        // Upstream Dolphin needs SegaBoot (User/Triforce/segaboot.gcm) for the Triforce test menu.
+        // The file cannot be shipped: copy it from the RetroBat bios folder when the user provides it.
+        private void CopySegaBoot(string path)
+        {
+            string target = Path.Combine(path, "User", "Triforce", "segaboot.gcm");
+
+            string[] candidates = new string[]
+            {
+                Path.Combine(AppConfig.GetFullPath("bios"), "triforce", "segaboot.gcm"),
+                Path.Combine(AppConfig.GetFullPath("bios"), "segaboot.gcm")
+            };
+
+            string source = candidates.FirstOrDefault(f => File.Exists(f));
+            if (source == null)
+            {
+                if (!File.Exists(target))
+                    SimpleLogger.Instance.Warning("[WARNING] Triforce: segaboot.gcm not found in bios\\triforce, test menu will not be available.");
+                return;
+            }
+
+            try
+            {
+                var src = new FileInfo(source);
+                var dst = new FileInfo(target);
+
+                // Skip if already up to date (File.Copy keeps the source timestamp)
+                if (dst.Exists && dst.Length == src.Length && dst.LastWriteTimeUtc >= src.LastWriteTimeUtc)
+                    return;
+
+                Directory.CreateDirectory(Path.GetDirectoryName(target));
+                File.Copy(source, target, true);
+                SimpleLogger.Instance.Info("[INFO] Triforce: copied " + source + " to " + target);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[ERROR] Triforce: unable to copy segaboot.gcm: " + ex.Message);
+            }
         }
 
         private void ApplyPatches(IniFile ini, string gameID)
@@ -1398,7 +1440,7 @@ namespace EmulatorLauncher
         public static TriforceGame[] TriforceGames = new TriforceGame[]
         {
                 new TriforceGame() { Game = "Mario_Kart_GP", InputProfile = DolphinControllers.mkMapping, GameIDs = new List<string> { "GKPJ6E" }, GameIDsCrediar = new List<string> { "SBKP" } },
-                new TriforceGame() { Game = "Mario_Kart_GP2", InputProfile = DolphinControllers.mkMapping, GameIDs = new List<string> { "GNLJ82" }, GameIDsCrediar = new List<string> { "SBNL" } },
+                new TriforceGame() { Game = "Mario_Kart_GP2", InputProfile = DolphinControllers.mkMapping, GameIDs = new List<string> { "GNLJ82", "GNLE82" }, GameIDsCrediar = new List<string> { "SBNL" } },
                 new TriforceGame() { Game = "F-ZeroAX", InputProfile = DolphinControllers.fzeroMapping, GameIDs = new List<string> { "GGGE6E" }, GameIDsCrediar = new List<string> { "SBGG" } },
                 new TriforceGame() { Game = "F-ZeroAX_Monster_Ride", InputProfile = DolphinControllers.fzeroMapping, GameIDs = new List<string> { "GHAE6E" }, GameIDsCrediar = new List<string> { "SBHA" } },
                 new TriforceGame() { Game = "Gekitou_Pro_Yakyuu", InputProfile = DolphinControllers.vs2002Mapping, GameIDs = new List<string> { "GGXJ6E" }, GameIDsCrediar = new List<string> { "SBGX" } },

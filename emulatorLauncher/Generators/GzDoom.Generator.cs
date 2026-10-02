@@ -39,10 +39,10 @@ namespace EmulatorLauncher
 
             string romExt = Path.GetExtension(rom).ToLowerInvariant();
 
-            if (_romExtensions.Contains(romExt) && File.Exists(rom))
+            if (romExtensions.Contains(romExt) && File.Exists(rom))
             {
                 var lines = File.ReadAllLines(rom)
-                    .Select(l => l.Trim())
+                    .Select(l => UnquoteArgument(l.Trim()))
                     .Where(l => l.Length > 0 && !l.StartsWith("#"))
                     .ToArray();
 
@@ -59,7 +59,8 @@ namespace EmulatorLauncher
                 {
                     foreach (var line in lines)
                     {
-                        if (line.StartsWith("\\") || line.StartsWith("/"))
+                        // Only paths are resolved and quoted, switches and their values are passed as is
+                        if (IsPathArgument(line))
                             commandArray.Add("\"" + ResolveRomRelativePath(rom, line) + "\"");
                         else
                             commandArray.Add(line);
@@ -67,7 +68,7 @@ namespace EmulatorLauncher
                 }
             }
             
-            else if (_romExtensions.Contains(romExt) && Directory.Exists(rom))
+            else if (romExtensions.Contains(romExt) && Directory.Exists(rom))
             {
                 var files = Directory.GetFiles(rom)
                     .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
@@ -175,32 +176,24 @@ namespace EmulatorLauncher
                     }
 
                     // crosshairs
-                    if (SystemConfig.isOptSet("gzdoom_crosshair") && SystemConfig["gzdoom_crosshair"] == "false")
-                    {
-                        WriteGameValue(ini, "crosshairon", "false");
-                        WriteGameValue(ini, "crosshairhealth", "0");
-                    }
-                    else if (SystemConfig.isOptSet("gzdoom_crosshair") && !string.IsNullOrEmpty(SystemConfig["gzdoom_crosshair"]))
+                    if (SystemConfig.isOptSet("gzdoom_crosshair") && !string.IsNullOrEmpty(SystemConfig["gzdoom_crosshair"]) && SystemConfig["gzdoom_crosshair"] != "false")
                     {
                         WriteGameValue(ini, "crosshairon", "true");
                         WriteGameValue(ini, "crosshair", SystemConfig["gzdoom_crosshair"]);
+
+                        if (SystemConfig.isOptSet("gzdoom_crosshair_color") && SystemConfig["gzdoom_crosshair_color"] != "health" && !string.IsNullOrEmpty(SystemConfig["gzdoom_crosshair_color"]))
+                        {
+                            WriteGameValue(ini, "crosshairhealth", "0");
+                            WriteGameValue(ini, "crosshaircolor", SystemConfig["gzdoom_crosshair_color"].Replace("_", " "));
+                        }
+                        else
+                            WriteGameValue(ini, "crosshairhealth", "1");
                     }
                     else
+                    {
                         WriteGameValue(ini, "crosshairon", "false");
-
-                    if (SystemConfig.isOptSet("gzdoom_crosshair_color") && SystemConfig["gzdoom_crosshair_color"] == "health")
-                    {
                         WriteGameValue(ini, "crosshairhealth", "1");
                     }
-                    else if (SystemConfig.isOptSet("gzdoom_crosshair_color") && !string.IsNullOrEmpty(SystemConfig["gzdoom_crosshair_color"]))
-                    {
-                        WriteGameValue(ini, "crosshairhealth", "0");
-                        WriteGameValue(ini, "crosshaircolor", SystemConfig["gzdoom_crosshair_color"].Replace("_", " "));
-                    }
-                    else
-                        WriteGameValue(ini, "crosshairhealth", "1");
-
-
 
                     string savePath = isUzdoom ? Path.Combine(AppConfig.GetFullPath("saves"), "uzdoom") : Path.Combine(AppConfig.GetFullPath("saves"), "gzdoom");
                     if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); }
@@ -234,6 +227,32 @@ namespace EmulatorLauncher
             return Path.Combine(Path.GetDirectoryName(rom), value.TrimStart('\\'));
         }
 
+        // A path written in the file is often quoted, the quotes must be removed before it can be tested
+        private static string UnquoteArgument(string value)
+        {
+            if (value.Length > 1 && value.StartsWith("\"") && value.EndsWith("\""))
+                return value.Substring(1, value.Length - 2);
+
+            return value;
+        }
+
+        // Tell a file path from a switch, or from a value belonging to the previous switch
+        private static bool IsPathArgument(string value)
+        {
+            if (value.StartsWith("-") || value.StartsWith("+"))
+                return false;
+
+            if (value.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+                return false;
+
+            if (value.Contains("\\") || value.Contains("/"))
+                return true;
+
+            string ext = Path.GetExtension(value).ToLowerInvariant();
+
+            return modExtensions.Contains(ext) || customIwadExtensions.Contains(ext);
+        }
+
         // Config sections used by the engine, cvars without CVAR_GLOBALCONFIG are stored once per game
         private readonly static List<string> gameSections = new List<string>()
         {
@@ -253,7 +272,7 @@ namespace EmulatorLauncher
             ".iwad", ".ipk3"
         };
 
-        private readonly static List<string> _romExtensions = new List<string>()
+        private readonly static List<string> romExtensions = new List<string>()
         {
             ".gzdoom", ".uzdoom"
         };

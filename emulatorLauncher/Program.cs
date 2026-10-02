@@ -192,6 +192,7 @@ namespace EmulatorLauncher
             { "xash3d", () => new Xash3DGenerator() },
             { "xbox", () => new CxbxGenerator() },
             { "xemu", () => new XEmuGenerator() },
+            { "xemu-chihiro", () => new XEmuGenerator() },
             { "xenia", () => new XeniaGenerator() },
             { "xenia-canary", () => new XeniaGenerator() },
             { "xenia-edge", () => new XeniaGenerator() },
@@ -955,29 +956,49 @@ namespace EmulatorLauncher
             string filePath = SystemConfig["rom"] + (Directory.Exists(SystemConfig["rom"]) ? "\\padto.keys" : ".keys");
 
             EvMapyKeysFile gameMapping = EvMapyKeysFile.TryLoad(filePath);
+
+            if (gameMapping != null)
+                SimpleLogger.Instance.Info("[PadToKey] Using mapping file : " + filePath);
+
             if (gameMapping == null && SystemConfig["system"] != null)
             {
                 var core = SystemConfig["core"];
                 var system = SystemConfig["system"];
 
-                string systemMapping = "";
+                var candidates = new List<string>();
+
+                string userPadToKeyPath = Program.AppConfig.GetFullPath("user");
+                if (!string.IsNullOrEmpty(userPadToKeyPath))
+                {
+                    userPadToKeyPath = Path.Combine(userPadToKeyPath, "padtokey");
+                    if (!string.IsNullOrEmpty(core))
+                        candidates.Add(Path.Combine(userPadToKeyPath, system + "." + core + ".keys"));
+                    candidates.Add(Path.Combine(userPadToKeyPath, system + ".keys"));
+                }
+
+                string esPadToKeyPath = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey");
+                string systemPadToKeyPath = Program.AppConfig.GetFullPath("padtokey");
 
                 if (!string.IsNullOrEmpty(core))
                 {
-                    systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey", system + "." + core + ".keys");
-
-                    if (!File.Exists(systemMapping))
-                        systemMapping = Path.Combine(Program.AppConfig.GetFullPath("padtokey"), system + "." + core + ".keys");
+                    candidates.Add(Path.Combine(esPadToKeyPath, system + "." + core + ".keys"));
+                    if (!string.IsNullOrEmpty(systemPadToKeyPath))
+                        candidates.Add(Path.Combine(systemPadToKeyPath, system + "." + core + ".keys"));
                 }
 
-                if (!File.Exists(systemMapping))
-                    systemMapping = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey", system + ".keys");
+                candidates.Add(Path.Combine(esPadToKeyPath, system + ".keys"));
+                if (!string.IsNullOrEmpty(systemPadToKeyPath))
+                    candidates.Add(Path.Combine(systemPadToKeyPath, system + ".keys"));
 
-                if (!File.Exists(systemMapping))
-                    systemMapping = Path.Combine(Program.AppConfig.GetFullPath("padtokey"), system + ".keys");
-
-                if (File.Exists(systemMapping))
-                    gameMapping = EvMapyKeysFile.TryLoad(systemMapping);
+                foreach (var candidate in candidates.Where(File.Exists))
+                {
+                    gameMapping = EvMapyKeysFile.TryLoad(candidate);
+                    if (gameMapping != null)
+                    {
+                        SimpleLogger.Instance.Info("[PadToKey] Using mapping file : " + candidate);
+                        break;
+                    }
+                }
             }
 
             if (gameMapping == null || gameMapping.All(c => c == null))
