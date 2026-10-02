@@ -62,14 +62,14 @@ namespace EmulatorLauncher
             if (Path.GetExtension(rom) == ".chd")
                 throw new ApplicationException("Extension CHD not compatible with Bizhawk");
             
-            if (Path.GetExtension(rom) == ".m3u")
+            /*if (Path.GetExtension(rom) == ".m3u")
             {
                 string tempRom = File.ReadAllLines(rom).FirstOrDefault();
                 if (File.Exists(tempRom))
                     rom = tempRom;
                 else
                     rom = Path.Combine(Path.GetDirectoryName(rom), tempRom);
-            }
+            }*/
 
             if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
             {

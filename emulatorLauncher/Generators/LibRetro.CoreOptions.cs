@@ -664,6 +664,97 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "amiarcadia_region", "amiarcadia_region", "PAL");
         }
 
+        /// <summary>
+        /// The libretro core scans a single directory for Kickstart ROMs. It picks that directory
+        /// from a fixed priority list (libretro.cpp, core_entry) where the frontend save directory
+        /// comes before the frontend system directory, and it creates an empty "Kickstarts" folder
+        /// there on every WHDLoad launch. That empty folder then wins the list and hides
+        /// \bios\amiberry, so the WHDBooter can no longer resolve the Kickstart a game asks for.
+        /// Mirroring the available ROMs there keeps the winning folder a populated one.
+        /// </summary>
+        private void ConfigureAmiberryWhdKickstarts(string system)
+        {
+            if (string.IsNullOrEmpty(system))
+                return;
+
+            string savesPath = AppConfig.GetFullPath("saves");
+            string biosPath = AppConfig.GetFullPath("bios");
+
+            if (string.IsNullOrEmpty(savesPath) || string.IsNullOrEmpty(biosPath))
+                return;
+
+            // Must stay aligned with the save path built in LibRetro.Generator.Configure()
+            string targetPath = Path.Combine(savesPath, system, "LR-amiberry", "Kickstarts");
+
+            // Core specific bios folder first, then the shared one
+            var sourcePaths = new List<string>
+            {
+                Path.Combine(biosPath, "amiberry"),
+                biosPath
+            };
+
+            // The WHDBooter can request a Kickstart other than the one of the selected model,
+            // so every known file is mirrored, not only the ones of the current family.
+            var fileNames = new List<string>();
+
+            foreach (var entry in _amiberryKickstarts)
+                fileNames.AddRange(entry.Value);
+
+            foreach (var entry in _amiberryKickstartsExt)
+                fileNames.AddRange(entry.Value);
+
+            // Needed by load_keyring() for encrypted (Cloanto) ROMs
+            fileNames.Add("rom.key");
+
+            int available = 0;
+
+            foreach (var fileName in fileNames.Distinct(StringComparer.InvariantCultureIgnoreCase))
+            {
+                string target = Path.Combine(targetPath, fileName);
+
+                if (File.Exists(target))
+                {
+                    available++;
+                    continue;
+                }
+
+                string source = sourcePaths.Select(p => Path.Combine(p, fileName)).FirstOrDefault(File.Exists);
+
+                if (source == null)
+                    continue;
+
+                try
+                {
+                    FileTools.TryCreateDirectory(targetPath);
+                    File.Copy(source, target, false);
+                    available++;
+                    SimpleLogger.Instance.Info("[Amiberry] Mirrored Kickstart into the ROM scan path: " + fileName);
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Error("[Amiberry] Failed to mirror Kickstart " + fileName + " - " + ex.Message);
+                }
+            }
+
+            if (available > 0)
+            {
+                SimpleLogger.Instance.Info("[Amiberry] ROM scan path: " + targetPath + " (" + available + " file(s))");
+                return;
+            }
+
+            // Nothing could be mirrored. Remove the folder if the core created it empty on an
+            // earlier run, so the priority list falls through to \bios\amiberry instead.
+            try
+            {
+                if (Directory.Exists(targetPath) && !Directory.EnumerateFileSystemEntries(targetPath).Any())
+                {
+                    Directory.Delete(targetPath);
+                    SimpleLogger.Instance.Info("[Amiberry] Removed the empty Kickstarts folder so \\bios\\amiberry is used for the ROM scan.");
+                }
+            }
+            catch { }
+        }
+
         private void Configureamiberry(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "amiberry")
@@ -688,6 +779,7 @@ namespace EmulatorLauncher.Libretro
 
             ConfigureAmiberryKickstart(coreSettings, selectedModel);
             ConfigureCDSystemsExtRoms(selectedModel);
+            ConfigureAmiberryWhdKickstarts(system);
 
             BindFeature(coreSettings, "amiberry_chipset", "amiberry_chipset", "auto");
             BindFeature(coreSettings, "amiberry_chipset_aga", "amiberry_chipset_aga", "auto");
