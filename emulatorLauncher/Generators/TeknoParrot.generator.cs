@@ -220,10 +220,27 @@ namespace EmulatorLauncher
             GameProfile userProfile = null;
 
             SimpleLogger.Instance.Info("[INFO] Checking if userprofile exists.");
-            var userProfilePath = Path.Combine(Path.Combine(path, "UserProfiles", Path.GetFileName(profile.FileName)));
+            var userProfilePath = Path.Combine(path, "UserProfiles", Path.GetFileName(profile.FileName));
+
+            // UserProfiles folder is only created by the TeknoParrot UI library, it can be missing on a fresh install
+            try { Directory.CreateDirectory(Path.GetDirectoryName(userProfilePath)); }
+            catch { }
+
             if (File.Exists(userProfilePath))
             {
-                SimpleLogger.Instance.Info("[INFO] UserProfile already exists.");
+                SimpleLogger.Instance.Info("[INFO] UserProfile already exists, merging it with current game profile.");
+
+                // Rebuild user profile from the up-to-date game profile and restore user values (same rules as TeknoParrot library loader)
+                var oldUserProfile = JoystickHelper.DeSerializeGameProfile(userProfilePath, true);
+                var freshProfile = JoystickHelper.DeSerializeGameProfile(profile.FileName, false);
+                if (freshProfile != null)
+                {
+                    if (oldUserProfile != null)
+                        MergeUserProfile(freshProfile, oldUserProfile);
+
+                    JoystickHelper.SerializeGameProfile(freshProfile, userProfilePath);
+                }
+
                 userProfile = JoystickHelper.DeSerializeGameProfile(userProfilePath, true);
             }
             else
@@ -277,20 +294,6 @@ namespace EmulatorLauncher
             RetryWithSecondExe:
                 userProfile.GamePath = FindExecutable(rom, Path.GetFileNameWithoutExtension(userProfile.FileName));
 
-                if (userProfile.ExecutableName == "game")
-                {
-                    if (userProfile.EmulatorType != null)
-                    {
-                        string exeLoaderPath = Path.Combine(path, userProfile.EmulatorType);
-                        if (Directory.Exists(exeLoaderPath))
-                        {
-                            string[] exeFiles = Directory.GetFiles(exeLoaderPath, "*.exe");
-                            if (exeFiles.Length > 0)
-                                _exename = exeFiles[0];
-                        }
-                    }
-                }
-
                 string tempPath = userProfile.GamePath;
                 if (string.IsNullOrEmpty(tempPath) && userProfile.ExecutableName == "game")
                 {
@@ -318,6 +321,9 @@ namespace EmulatorLauncher
                 {
                     if (multiExe)
                     {
+                        // Retry only once with the second executable, otherwise this loops forever when it is not found either
+                        multiExe = false;
+
                         var split = profile.ExecutableName.Split(';');
                         if (split.Length > 1)
                             userProfile.ExecutableName = split[1];
@@ -387,27 +393,23 @@ namespace EmulatorLauncher
             }
 
             var displaymode = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "DisplayMode");
-            if (displaymode != null && SystemConfig.isOptSet("tp_fsmode") && !string.IsNullOrEmpty(SystemConfig["tp_fsmode"]))
+            if (displaymode != null && displaymode.FieldOptions != null)
             {
-                string fs_mode = SystemConfig["tp_fsmode"];
-                switch (fs_mode)
-                {
-                    case "0":
-                        if (displaymode.FieldOptions != null && displaymode.FieldOptions.Any(f => f == "Windowed"))
-                            displaymode.FieldValue = "Windowed";
-                        break;
-                    case "1":
-                        if (displaymode.FieldOptions != null && displaymode.FieldOptions.Any(f => f == "Fullscreen Windowed"))
-                            displaymode.FieldValue = "Fullscreen Windowed";
-                        break;
-                    case "2":
-                        if (displaymode.FieldOptions != null && displaymode.FieldOptions.Any(f => f == "Fullscreen"))
-                            displaymode.FieldValue = "Fullscreen";
-                        break;
-                    default:
-                        displaymode.FieldValue = fullscreen ? "Fullscreen" : "Windowed";
-                        break;
-                }
+                string fsMode = SystemConfig.isOptSet("tp_fsmode") ? SystemConfig["tp_fsmode"] : null;
+                string targetMode;
+
+                if (fsMode == "0")
+                    targetMode = "Windowed";
+                else if (fsMode == "2")
+                    targetMode = "Fullscreen";
+                else if (fsMode == "1" || fullscreen)
+                    // Borderless when the game offers it (most compatible on Windows), exclusive fullscreen otherwise
+                    targetMode = displaymode.FieldOptions.Contains("Fullscreen Windowed") ? "Fullscreen Windowed" : "Fullscreen";
+                else
+                    targetMode = "Windowed";
+
+                if (displaymode.FieldOptions.Contains(targetMode))
+                    displaymode.FieldValue = targetMode;
             }
 
             var customResolution = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "CustomResolution");
@@ -599,6 +601,18 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
+            // Games run through a loader ("game" executable): the process to watch is the loader
+            if (_exename == null && userProfile.ExecutableName == "game" && userProfile.EmulatorType != null)
+            {
+                string exeLoaderPath = Path.Combine(path, userProfile.EmulatorType);
+                if (Directory.Exists(exeLoaderPath))
+                {
+                    string loaderExe = Directory.GetFiles(exeLoaderPath, "*.exe").FirstOrDefault();
+                    if (loaderExe != null)
+                        _exename = Path.GetFileNameWithoutExtension(loaderExe);
+                }
+            }
+
             if (_exename == null)
                 _exename = Path.GetFileNameWithoutExtension(userProfile.GamePath);
             
@@ -693,6 +707,42 @@ namespace EmulatorLauncher
             }
         }
 
+        private static void MergeUserProfile(GameProfile gameProfile, GameProfile oldUserProfile)
+        {
+            // Restore bindings
+            if (gameProfile.JoystickButtons != null && oldUserProfile.JoystickButtons != null)
+            {
+                foreach (var oldButton in oldUserProfile.JoystickButtons)
+                {
+                    var button = gameProfile.JoystickButtons.FirstOrDefault(b => b.ButtonName == oldButton.ButtonName && b.InputMappingString == oldButton.InputMappingString);
+                    if (button == null)
+                        continue;
+
+                    button.DirectInputButton = oldButton.DirectInputButton;
+                    button.XInputButton = oldButton.XInputButton;
+                    button.RawInputButton = oldButton.RawInputButton;
+                    button.BindNameDi = oldButton.BindNameDi;
+                    button.BindNameXi = oldButton.BindNameXi;
+                    button.BindNameRi = oldButton.BindNameRi;
+                    button.BindName = oldButton.BindName;
+                }
+            }
+
+            // Restore settings values (matched on category + name, some field names exist in several categories)
+            if (gameProfile.ConfigValues != null && oldUserProfile.ConfigValues != null)
+            {
+                foreach (var field in gameProfile.ConfigValues)
+                {
+                    var oldField = oldUserProfile.ConfigValues.FirstOrDefault(f => f.CategoryName == field.CategoryName && f.FieldName == field.FieldName);
+                    if (oldField != null)
+                        field.FieldValue = oldField.FieldValue;
+                }
+            }
+
+            gameProfile.GamePath = oldUserProfile.GamePath;
+            gameProfile.GamePath2 = oldUserProfile.GamePath2;
+        }
+
         private static void ConfigurePlay(GameProfile userProfile)
         {
             var graphicsBackend = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "Graphics Backend");
@@ -723,10 +773,13 @@ namespace EmulatorLauncher
                 resolution.FieldValue = "Native";
 
             var avx2 = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "UseAVX2");
-            if (avx2 != null && Program.SystemConfig.isOptSet("tp_pcsx2x6_disableavx2") && !Program.SystemConfig.getOptBoolean("tp_pcsx2x6_disableavx2"))
-                avx2.FieldValue = "0";
-            else if (avx2 != null)
-                avx2.FieldValue = "1";
+            if (avx2 != null)
+            {
+                if (Program.SystemConfig.isOptSet("tp_pcsx2x6_disableavx2"))
+                    avx2.FieldValue = Program.SystemConfig.getOptBoolean("tp_pcsx2x6_disableavx2") ? "0" : "1";
+                else
+                    avx2.FieldValue = CpuHasAvx2() ? "1" : "0";
+            }
 
             string pcsx2Config = Path.Combine(emuPath, "pcsx2x6", "Teknoparrot", "inis", "PCSX2.ini");
             if (File.Exists(pcsx2Config))
@@ -739,6 +792,13 @@ namespace EmulatorLauncher
                     ini.WriteValue("UI", "StartFullscreen", fullscreen ? "true" : "false");
                 }
             }
+        }
+
+        private static bool CpuHasAvx2()
+        {
+            // Fall back to the SSE4 build (runs on every CPU) if detection fails
+            try { return SDL.SDL_HasAVX2() == SDL.SDL_bool.SDL_TRUE; }
+            catch { return false; }
         }
 
         private static void ConfigureRpcs3(GameProfile userProfile, string emuPath)
@@ -1457,6 +1517,7 @@ namespace EmulatorLauncher
             UiDarkMode = false;
             UiHolidayThemes = true;
             HasReadPolicies = false;
+            HasReadPoliciesNew = false;
             DisableAnalytics = true;
             FirstTimeSetupComplete = true;
             HideDolphinGUI = true;
@@ -1485,6 +1546,7 @@ namespace EmulatorLauncher
         public bool UiDarkMode { get; set; }
         public bool UiHolidayThemes { get; set; }
         public bool HasReadPolicies { get; set; }
+        public bool HasReadPoliciesNew { get; set; }
         public bool DisableAnalytics { get; set; }
         public bool FirstTimeSetupComplete { get; set; }
         public bool HideDolphinGUI { get; set; }

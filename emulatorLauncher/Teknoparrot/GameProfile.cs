@@ -65,6 +65,9 @@ namespace TeknoParrotUi.Common
         public short yAxisMin { get; set; }
         public short yAxisMax { get; set; }
 
+        [XmlAnyElement]
+        public System.Xml.XmlElement[] UnknownElements { get; set; }
+
         public override string ToString()
         {
             return GameName;

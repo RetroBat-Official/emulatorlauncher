@@ -236,7 +236,37 @@ namespace TeknoParrotUi.Common
         Wmmt3InsertCard,
         Rotary1,
         Rotary1Left,
-        Rotary1Right
+        Rotary1Right,
+        Rotary2,
+        Rotary2Left,
+        Rotary2Right,
+        Rotary3,
+        Rotary3Left,
+        Rotary3Right,
+        Rotary4,
+        Rotary4Left,
+        Rotary4Right,
+        Card1,
+        Card2,
+        Card3,
+        Card4,
+        ExtensionOne22,
+        ExtensionOne23,
+        ExtensionTwo23,
+        ExtensionTwo24,
+        ExtensionTwo25,
+        ExtensionTwo26,
+        ExtensionTwo27,
+        ExtensionTwo28,
+        P2Trackball,
+        TPSystem1,
+        TPSystem2,
+        TPSystem3,
+        TPSystem4,
+        TPSystem5,
+        TPSystem6,
+        TPSystem7,
+        TPSystem8
     }
 
     public enum AnalogType
@@ -320,6 +350,9 @@ namespace TeknoParrotUi.Common
         public bool HideWithoutProMode { get; set; }
         public bool HideWithProMode { get; set; }
 
+        // Keep elements unknown to this model (added by newer TeknoParrot versions) when the profile is saved again
+        [XmlAnyElement]
+        public System.Xml.XmlElement[] UnknownElements { get; set; }
     }
 
     [Serializable]

@@ -45,7 +45,8 @@ namespace EmulatorLauncher
                 return false;
 
             var guns = RawLightgun.GetRawLightguns();
-            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
+            // Sinden software is only needed when guns are actually used (native or through DemulShooter)
+            if ((Program.SystemConfig.getOptBoolean("use_guns") || Program.SystemConfig.getOptBoolean("use_demulshooter")) && guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
                 _sindenSoft = true;
@@ -201,9 +202,9 @@ namespace EmulatorLauncher
             {
                 int kbCount = keyboards.Count();
                 int kbIndex = Program.SystemConfig["tp_kbindex"].ToInteger();
-                if (kbIndex > kbCount)
+                if (kbIndex >= kbCount)
                     keyboard = keyboards[kbCount - 1];
-                else
+                else if (kbIndex >= 0)
                     keyboard = keyboards[kbIndex];
             }
 
@@ -226,22 +227,10 @@ namespace EmulatorLauncher
                 kbEnumIndex++;
             }
 
-            if (keyboard != null && keyboard.FriendlyName != null)
+            if (keyboard != null)
             {
-                SimpleLogger.Instance.Info("[GUNS] Using keyboard: " + keyboard.FriendlyName);
+                SimpleLogger.Instance.Info("[GUNS] Using keyboard: " + (keyboard.FriendlyName ?? keyboard.DevicePath));
                 _orgKeyboard = keyboard;
-            }
-            
-            // Cleanup
-            foreach (var joyButton in userProfile.JoystickButtons)
-            {
-                joyButton.RawInputButton = null;
-                joyButton.BindName = null;
-                joyButton.BindNameDi = null;
-                joyButton.BindNameRi = null;
-                joyButton.BindNameXi = null;
-                joyButton.DirectInputButton = null;
-                joyButton.XInputButton = null;
             }
 
             // Variables
@@ -259,10 +248,19 @@ namespace EmulatorLauncher
                 YmlFile ymlFile = YmlFile.Load(tpMappingyml);
                 string gunGameName = tpGameName + "_gun";
                 game = ymlFile.Elements.Where(g => g.Name == gunGameName).FirstOrDefault() as YmlContainer;
-                
+
                 if (game == null)
+                {
                     game = ymlFile.Elements.Where(g => g.Name == tpGameName).FirstOrDefault() as YmlContainer;
-                
+
+                    // A container without "_gun" suffix is a pad mapping, unless it holds gun entries (kb_ values or mouse keys)
+                    if (game != null && !game.Elements.OfType<YmlElement>().Any(e => e.Name.StartsWith("mouse") || (e.Value != null && e.Value.StartsWith("kb_"))))
+                    {
+                        SimpleLogger.Instance.Info("[GUNS] Game mapping is a pad mapping, skipping gun configuration.");
+                        game = null;
+                    }
+                }
+
                 if (game != null)
                 {
                     SimpleLogger.Instance.Info("[GUNS] mapping found for the game, retrieving buttons.");
@@ -301,6 +299,18 @@ namespace EmulatorLauncher
                 return false;
             }
 
+            // Cleanup
+            foreach (var joyButton in userProfile.JoystickButtons)
+            {
+                joyButton.RawInputButton = null;
+                joyButton.BindName = null;
+                joyButton.BindNameDi = null;
+                joyButton.BindNameRi = null;
+                joyButton.BindNameXi = null;
+                joyButton.DirectInputButton = null;
+                joyButton.XInputButton = null;
+            }
+
             // Finalize number of players
             if (useOneGun || gunCount == 1)
                 playerNumber = 1;
@@ -332,6 +342,8 @@ namespace EmulatorLauncher
                         }
                 }
             }
+
+            RawInputDevice baseKeyboard = keyboard;
 
             /// Build the xml gun section for each gun
             /// Use the buttonMap dictionnary to get buttons from the yml file
@@ -395,6 +407,9 @@ namespace EmulatorLauncher
                     {
                         foreach (var button in buttonMap)
                         {
+                            // Start from the default keyboard for each button, never reuse a keyboard found for a previous gun/button
+                            keyboard = baseKeyboard;
+
                             JoystickButtons xmlPlace = null;
                             if (button.Value == null || button.Value == "" || button.Key == "Players")
                                 continue;
@@ -849,7 +864,10 @@ namespace EmulatorLauncher
                 {
                     xmlLightgun = userProfile.JoystickButtons.FirstOrDefault(j => j.InputMapping == inputEnumLG && !j.HideWithRawInput);
 
-                    if (iGun.Type == RawLighGunType.Mouse && wiimoteGun)
+                    if (xmlLightgun == null)
+                        SimpleLogger.Instance.Warning("[GUNS] No " + searchLG + " slot in game profile.");
+
+                    else if (iGun.Type == RawLighGunType.Mouse && wiimoteGun)
                     {
                         xmlLightgun.RawInputButton = new RawInputButton
                         {
