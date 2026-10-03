@@ -1436,19 +1436,20 @@ namespace EmulatorLauncher
         public InputKeyMapping InputProfile { get; set; }
         public List<string> GameIDs { get; private set; }
         public List<string> GameIDsCrediar { get; private set; }
+        public List<string> Codes { get; private set; }
 
         public static TriforceGame[] TriforceGames = new TriforceGame[]
         {
-                new TriforceGame() { Game = "Mario_Kart_GP", InputProfile = DolphinControllers.mkMapping, GameIDs = new List<string> { "GKPJ6E" }, GameIDsCrediar = new List<string> { "SBKP" } },
-                new TriforceGame() { Game = "Mario_Kart_GP2", InputProfile = DolphinControllers.mkMapping, GameIDs = new List<string> { "GNLJ82", "GNLE82" }, GameIDsCrediar = new List<string> { "SBNL" } },
-                new TriforceGame() { Game = "F-ZeroAX", InputProfile = DolphinControllers.fzeroMapping, GameIDs = new List<string> { "GGGE6E" }, GameIDsCrediar = new List<string> { "SBGG" } },
-                new TriforceGame() { Game = "F-ZeroAX_Monster_Ride", InputProfile = DolphinControllers.fzeroMapping, GameIDs = new List<string> { "GHAE6E" }, GameIDsCrediar = new List<string> { "SBHA" } },
-                new TriforceGame() { Game = "Gekitou_Pro_Yakyuu", InputProfile = DolphinControllers.vs2002Mapping, GameIDs = new List<string> { "GGXJ6E" }, GameIDsCrediar = new List<string> { "SBGX" } },
-                new TriforceGame() { Game = "VS3 2002", InputProfile = DolphinControllers.vs2002Mapping, GameIDs = new List<string> { "GEYP6E" }, GameIDsCrediar = new List<string> { "SBEY" } },
-                new TriforceGame() { Game = "VS4", InputProfile = DolphinControllers.vsMapping, GameIDs = new List<string> { "GJAP6E" }, GameIDsCrediar = new List<string> { "SBJA" } },
-                new TriforceGame() { Game = "VS4_2006_JAP", InputProfile = DolphinControllers.vsMapping, GameIDs = new List<string> { "GLKJ6E" }, GameIDsCrediar = new List<string> { "SBLK" } },
-                new TriforceGame() { Game = "VS4_2006", InputProfile = DolphinControllers.vsMapping, GameIDs = new List<string> { "GLLP6E" }, GameIDsCrediar = new List<string> { "SBLL" } },
-                new TriforceGame() { Game = "Standard", InputProfile = DolphinControllers.triforceMapping, GameIDs = new List<string>(), GameIDsCrediar = new List<string>() }
+                new TriforceGame() { Game = "Mario_Kart_GP", InputProfile = DolphinControllers.mkMapping, GameIDs = new List<string> { "GKPJ6E" }, GameIDsCrediar = new List<string> { "SBKP" }, Codes = new List<string> { "KP", "KZ" } },
+                new TriforceGame() { Game = "Mario_Kart_GP2", InputProfile = DolphinControllers.mkMapping, GameIDs = new List<string> { "GNLJ82", "GNLE82" }, GameIDsCrediar = new List<string> { "SBNL" }, Codes = new List<string> { "NJ", "NL" } },
+                new TriforceGame() { Game = "F-ZeroAX", InputProfile = DolphinControllers.fzeroMapping, GameIDs = new List<string> { "GGGE6E" }, GameIDsCrediar = new List<string> { "SBGG" }, Codes = new List<string> { "GG" } },
+                new TriforceGame() { Game = "F-ZeroAX_Monster_Ride", InputProfile = DolphinControllers.fzeroMapping, GameIDs = new List<string> { "GHAE6E" }, GameIDsCrediar = new List<string> { "SBHA" }, Codes = new List<string> { "HA" } },
+                new TriforceGame() { Game = "Gekitou_Pro_Yakyuu", InputProfile = DolphinControllers.vs2002Mapping, GameIDs = new List<string> { "GGXJ6E" }, GameIDsCrediar = new List<string> { "SBGX" }, Codes = new List<string> { "GX" } },
+                new TriforceGame() { Game = "VS3 2002", InputProfile = DolphinControllers.vs2002Mapping, GameIDs = new List<string> { "GEYP6E", "GEYJ6E" }, GameIDsCrediar = new List<string> { "SBEY" }, Codes = new List<string> { "EY", "EJ", "EL", "SB", "12" } },
+                new TriforceGame() { Game = "VS4", InputProfile = DolphinControllers.vsMapping, GameIDs = new List<string> { "GJAP6E", "GHZW6E" }, GameIDsCrediar = new List<string> { "SBJA", "SBHN", "SBHZ" }, Codes = new List<string> { "JA", "JJ", "HJ", "HN", "HZ" } },
+                new TriforceGame() { Game = "VS4_2006_JAP", InputProfile = DolphinControllers.vsMapping, GameIDs = new List<string> { "GLKJ6E" }, GameIDsCrediar = new List<string> { "SBLK" }, Codes = new List<string> { "LK", "LJ" } },
+                new TriforceGame() { Game = "VS4_2006", InputProfile = DolphinControllers.vsMapping, GameIDs = new List<string> { "GLLP6E" }, GameIDsCrediar = new List<string> { "SBLL" }, Codes = new List<string> { "LL" } },
+                new TriforceGame() { Game = "Standard", InputProfile = DolphinControllers.triforceMapping, GameIDs = new List<string>(), GameIDsCrediar = new List<string>(), Codes = new List<string>() }
         };
 
         public static TriforceGame GetByGameId(string gameId, bool isTriforce)
@@ -1463,7 +1464,27 @@ namespace EmulatorLauncher
                 (g.GameIDs != null && g.GameIDs.Contains(gameId, StringComparer.OrdinalIgnoreCase)) ||
                 (g.GameIDsCrediar != null && g.GameIDsCrediar.Contains(gameId, StringComparer.OrdinalIgnoreCase)));
 
+            // Fallback on the Triforce game code, like Dolphin does (AMMediaboard.cpp), to cover other revisions/regions
+            if (game == null)
+            {
+                string code = GetTriforceCode(gameId);
+                if (code != null)
+                    game = TriforceGames.FirstOrDefault(g => g.Codes != null && g.Codes.Contains(code, StringComparer.OrdinalIgnoreCase));
+            }
+
             return game ?? TriforceGames.First(g => g.Game == "Standard");
+        }
+
+        // Triforce game code: characters 2-3 of the 6-char game ID, or the last 2 characters of the 4-char "SBxx" Crediar IDs
+        private static string GetTriforceCode(string gameId)
+        {
+            if (gameId.Length == 6)
+                return gameId.Substring(1, 2);
+
+            if (gameId.Length == 4 && gameId.StartsWith("SB", StringComparison.OrdinalIgnoreCase))
+                return gameId.Substring(2, 2);
+
+            return null;
         }
     }
 
