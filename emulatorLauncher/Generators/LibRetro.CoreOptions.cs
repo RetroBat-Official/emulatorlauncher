@@ -4437,7 +4437,11 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["mupen64plus-txFilterIgnoreBG"] = "False";
             }
 
-            BindBoolFeatureOn(coreSettings, "mupen64plus-ThreadedRenderer", "mupen64plus_ThreadedRenderer", "True", "False");
+            if (SystemConfig.isOptSet("mupen64plus_EnableCopyColorToRDRAM") && !string.IsNullOrEmpty(SystemConfig["mupen64plus_EnableCopyColorToRDRAM"]))
+                coreSettings["mupen64plus-EnableCopyColorToRDRAM"] = SystemConfig["mupen64plus_EnableCopyColorToRDRAM"];
+
+            if (SystemConfig.isOptSet("mupen64plus_ThreadedRenderer") && !string.IsNullOrEmpty(SystemConfig["mupen64plus_ThreadedRenderer"]))
+                coreSettings["mupen64plus-ThreadedRenderer"] = !SystemConfig.getOptBoolean("mupen64plus_ThreadedRenderer") ? "False" : "True";
 
             // Hi Res textures methods
             string texturePack = SystemConfig.isOptSet("TexturesPack") ? SystemConfig["TexturesPack"] : "disabled";
