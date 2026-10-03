@@ -114,6 +114,10 @@ namespace EmulatorLauncher
 
         private void SetupTomlConfiguration(string path, string jGenSystem, string system, string savesSystem, bool fullscreen)
         {
+            string portableFile = Path.Combine(path, "portable.txt");
+            if (!File.Exists(portableFile))
+                try { File.WriteAllText(portableFile, ""); } catch { }
+
             string settingsFile = Path.Combine(path, "jgenesis-config.toml");
 
             if (!File.Exists(settingsFile))
