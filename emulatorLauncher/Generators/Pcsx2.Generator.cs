@@ -70,7 +70,7 @@ namespace EmulatorLauncher
 
             _fullscreen = ShouldRunFullscreen();
 
-            if (!_fullscreen)
+            if (!_fullscreen || string.IsNullOrEmpty(SystemConfig["bezel"]))
                 SystemConfig["bezel"] = "none";
 
             // Manage 7z
