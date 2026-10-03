@@ -77,6 +77,7 @@ namespace EmulatorLauncher
         private bool _nobezels;
         private bool _useReshade = false;
         private bool _pad2Keyoverride = false;
+        private readonly Dictionary<string, string> _environmentVariables = new Dictionary<string, string>();
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -145,9 +146,6 @@ namespace EmulatorLauncher
 
             ConfigurePort(commandArray, rom, exe);
 
-            if (_finishProcess)
-                throw new ApplicationException("Game has been extracted from specified iso file.");
-
             // Specific exe cases
             string replacedPath = null;
             string replacedExe = null;
@@ -188,22 +186,19 @@ namespace EmulatorLauncher
             if (commandArray.Count > 0)
                 args = string.Join(" ", commandArray);
 
-            if (replacedExe != null)
-                return new ProcessStartInfo()
-                {
-                    FileName = replacedExe,
-                    WorkingDirectory = replacedPath,
-                    Arguments = args,
-                    UseShellExecute = false
-                };
-
-            return new ProcessStartInfo()
+            var psi = new ProcessStartInfo()
             {
-                FileName = exe,
-                WorkingDirectory = _workingPath?? _path,
+                FileName = replacedExe ?? exe,
+                WorkingDirectory = replacedExe != null ? replacedPath : (_workingPath ?? _path),
                 Arguments = args,
                 UseShellExecute = false
             };
+
+            // Environment variables for the port process only (e.g. SDL hints)
+            foreach (var env in _environmentVariables)
+                psi.EnvironmentVariables[env.Key] = env.Value;
+
+            return psi;
         }
 
         private readonly Dictionary<string, string> exeDictionnary = new Dictionary<string, string>

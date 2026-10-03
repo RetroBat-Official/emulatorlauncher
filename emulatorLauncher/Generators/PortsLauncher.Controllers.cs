@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Controls;
 using static EmulatorLauncher.PadToKeyboard.SendKey;
 
@@ -251,6 +252,276 @@ namespace EmulatorLauncher
                 changes.Add(new Dhewm3ConfigChange("bind", "JOY_TRIGGER1", "_impulse15"));
                 changes.Add(new Dhewm3ConfigChange("bind", "JOY_TRIGGER2", "_impulse14"));
             }
+        }
+        #endregion
+
+        #region dusklight
+        private void ConfigureDusklightControls(string dataPath)
+        {
+            if (_emulator != "dusklight")
+                return;
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                return;
+            }
+
+            // Dusklight does not change any SDL joystick backend hint: enumerate with plain SDL3 defaults so GUIDs are identical
+            Sdl3GameController.SetEnumerationHints(Sdl3GameController.Sdl3HintProfile.Sdl3Default);
+
+            // Device handling is identical within an SDL3 minor version, warn only when major.minor differ
+            try
+            {
+                string elSdl3 = Path.Combine(AppConfig.GetFullPath("retrobat"), "emulationstation", "SDL3.dll");
+                string duskSdl3 = Path.Combine(_path, "SDL3.dll");
+                if (File.Exists(elSdl3) && File.Exists(duskSdl3))
+                {
+                    var elInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(elSdl3);
+                    var duskInfo = System.Diagnostics.FileVersionInfo.GetVersionInfo(duskSdl3);
+                    if (elInfo.FileMajorPart != duskInfo.FileMajorPart || elInfo.FileMinorPart != duskInfo.FileMinorPart)
+                        SimpleLogger.Instance.Warning("[DUSKLIGHT] SDL3 version mismatch (RetroBat " + elInfo.FileVersion + " / Dusklight " + duskInfo.FileVersion + "), controller ports may not match.");
+                }
+            }
+            catch { }
+
+            string portsFile = Path.Combine(dataPath, "controller_ports.dat");
+
+            var guids = new string[4];
+            var serials = new string[4];
+
+            foreach (var ctrl in this.Controllers.Where(c => !c.IsKeyboard && c.PlayerIndex >= 1 && c.PlayerIndex <= 4))
+            {
+                var sdl3 = ctrl.Sdl3Controller;
+                if (sdl3 == null || string.IsNullOrEmpty(sdl3.GuidString))
+                {
+                    SimpleLogger.Instance.Warning("[DUSKLIGHT] Player " + ctrl.PlayerIndex + " : no SDL3 device found.");
+                    continue;
+                }
+
+                guids[ctrl.PlayerIndex - 1] = sdl3.GuidString;
+                serials[ctrl.PlayerIndex - 1] = NormalizeDusklightSerial(sdl3.Serial);
+            }
+
+            // Serial is only kept to separate identical controllers: aurora rejects a GUID match when the saved serial differs
+            for (int i = 0; i < 4; i++)
+            {
+                if (guids[i] == null)
+                    continue;
+
+                bool sameGuidElsewhere = Enumerable.Range(0, 4).Any(j => j != i && guids[j] == guids[i]);
+                if (!sameGuidElsewhere)
+                    serials[i] = string.Empty;
+            }
+
+            // A pinned port stays empty when its controller is not found, so never pin anything if player 1 is unknown
+            bool pinPorts = guids[0] != null;
+            if (!pinPorts)
+                SimpleLogger.Instance.Warning("[DUSKLIGHT] Player 1 not resolved in SDL3, keeping Dusklight automatic port assignment.");
+
+            // Version 2 is read by every Dusklight release; keep version 3 (and its device rumble setting) only if Dusklight already wrote it
+            ushort rumbleLow = 0x8000;
+            ushort rumbleHigh = 0x8000;
+            bool writeV3 = ReadDusklightPortsFile(portsFile, ref rumbleLow, ref rumbleHigh) == 3;
+
+            try
+            {
+                using (var ms = new MemoryStream())
+                using (var bw = new BinaryWriter(ms))
+                {
+                    bw.Write(Encoding.ASCII.GetBytes("CPRT"));
+                    bw.Write(writeV3 ? (uint)3 : (uint)2);
+
+                    for (int i = 0; i < 4; i++)
+                    {
+                        bool pinned = pinPorts && guids[i] != null;
+                        bw.Write((byte)(pinned ? 2 : 0));
+                        WriteDusklightString(bw, pinned ? guids[i] : string.Empty);
+                        WriteDusklightString(bw, pinned ? serials[i] : string.Empty);
+
+                        if (pinned)
+                            SimpleLogger.Instance.Info("[DUSKLIGHT] Port " + (i + 1) + " => " + guids[i] + (string.IsNullOrEmpty(serials[i]) ? "" : " (serial " + serials[i] + ")"));
+                    }
+
+                    if (writeV3)
+                    {
+                        bw.Write(rumbleLow);
+                        bw.Write(rumbleHigh);
+                    }
+
+                    bw.Flush();
+                    File.WriteAllBytes(portsFile, ms.ToArray());
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[DUSKLIGHT] Unable to write controller_ports.dat : " + ex.Message);
+            }
+        }
+
+        private static string NormalizeDusklightSerial(string serial)
+        {
+            // Same normalization as aurora: drop ':' and '-', lowercase. Aurora rejects strings longer than 256.
+            if (string.IsNullOrEmpty(serial) || serial == "Unknown" || serial.Length > 256)
+                return string.Empty;
+
+            return new string(serial.Where(ch => ch != ':' && ch != '-').ToArray()).ToLowerInvariant();
+        }
+
+        private static void WriteDusklightString(BinaryWriter bw, string value)
+        {
+            byte[] bytes = Encoding.ASCII.GetBytes(value ?? string.Empty);
+            bw.Write((uint)bytes.Length);
+            bw.Write(bytes);
+        }
+
+        /// <summary>
+        /// Returns the version of an existing controller_ports.dat (2 or 3, 0 if missing or invalid)
+        /// and reads its device rumble intensity (version 3 only).
+        /// </summary>
+        private static uint ReadDusklightPortsFile(string portsFile, ref ushort low, ref ushort high)
+        {
+            if (!File.Exists(portsFile))
+                return 0;
+
+            try
+            {
+                using (var br = new BinaryReader(File.OpenRead(portsFile)))
+                {
+                    if (Encoding.ASCII.GetString(br.ReadBytes(4)) != "CPRT")
+                        return 0;
+
+                    uint version = br.ReadUInt32();
+                    if (version != 2 && version != 3)
+                        return 0;
+
+                    if (version == 3)
+                    {
+                        for (int i = 0; i < 4; i++)
+                        {
+                            br.ReadByte();
+                            for (int s = 0; s < 2; s++)
+                            {
+                                uint length = br.ReadUInt32();
+                                if (length > 256)
+                                    return 0;
+                                br.ReadBytes((int)length);
+                            }
+                        }
+
+                        ushort fileLow = br.ReadUInt16();
+                        ushort fileHigh = br.ReadUInt16();
+                        low = fileLow;
+                        high = fileHigh;
+                    }
+
+                    return version;
+                }
+            }
+            catch { return 0; }
+        }
+        #endregion
+
+        #region opengoal
+        private void ConfigureOpenGoalControls(string settingsFolder)
+        {
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                return;
+            }
+
+            // Jak games are single player : only player 1 is assigned (port 0)
+            var p1 = this.Controllers.Where(c => !c.IsKeyboard).OrderBy(c => c.PlayerIndex).FirstOrDefault();
+            if (p1 == null)
+            {
+                SimpleLogger.Instance.Info("[INFO] No controller available, OpenGOAL will enable the keyboard.");
+                return;
+            }
+
+            string inputSettingsFile = Path.Combine(settingsFolder, "input-settings.json");
+
+            JObject json = null;
+            if (File.Exists(inputSettingsFile))
+            {
+                try { json = JObject.Parse(File.ReadAllText(inputSettingsFile)); }
+                catch { SimpleLogger.Instance.Warning("[WARNING] OpenGOAL: input-settings.json is invalid, recreating it."); }
+            }
+
+            if (json == null)
+                json = new JObject { ["version"] = "1.0" };
+
+            // gk.exe embeds SDL3 and only sets the PS3 SIXAXIS hint : enumerate with the same hints to get the same GUIDs
+            Sdl3GameController.SetEnumerationHints(Sdl3GameController.Sdl3HintProfile.OpenGoal);
+
+            var sdl3Controller = p1.Sdl3Controller;
+            string guid = sdl3Controller != null ? sdl3Controller.GuidString : null;
+
+            // Remove the assignment of a previous session, so that another pad is not forced on port 0
+            json.Remove("last_selected_controller_guid");
+            json.Remove("controller_port_mapping");
+
+            if (string.IsNullOrEmpty(guid) || guid.Trim('0').Length == 0)
+            {
+                SaveOpenGoalInputSettings(inputSettingsFile, json);
+                SimpleLogger.Instance.Warning("[WARNING] OpenGOAL: no SDL3 match for player 1 (" + p1.ToShortString() + "), port assignment left to the game.");
+                return;
+            }
+
+            // Hide every other device from the game (other pads, wheels, guns, arcade encoders...) : they could take port 0 or break the port mapping.
+            // SDL applies this list to all joystick backends (XInput, DirectInput, RawInput, WGI, HIDAPI).
+            bool othersHidden = sdl3Controller.VendorId != 0 && sdl3Controller.ProductId != 0;
+            if (othersHidden)
+            {
+                string vidPid = string.Format("0x{0:X4}/0x{1:X4}", sdl3Controller.VendorId, sdl3Controller.ProductId);
+                _environmentVariables["SDL_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT"] = vidPid;
+                SimpleLogger.Instance.Info("[INFO] OpenGOAL: only controllers " + vidPid + " are visible to the game.");
+            }
+
+            // Identical controllers share the same GUID. With the same hints, the game enumerates them in the same order as we do.
+            // At startup, the game first gives port 0 to the LAST controller found in "controller_port_mapping",
+            // then "last_selected_controller_guid" (if set) gives it to the FIRST one with that GUID.
+            var sameGuid = Sdl3GameController.GetControllers()
+                .Where(c => c.GuidString == guid)
+                .OrderBy(c => c.EnumerationIndex)
+                .ToList();
+
+            int rank = sameGuid.IndexOf(sdl3Controller);
+
+            json["controller_port_mapping"] = new JObject { [guid] = 0 };
+
+            if (sameGuid.Count <= 1 || rank == 0)
+            {
+                // Single controller of this model, or player 1 is the first one : "last_selected_controller_guid" has priority for port 0.
+                // It is also the only port mapping the game resolves with the right index (saved port mappings use the SDL joystick index
+                // as a gamepad index, which is wrong as soon as a non-gamepad joystick is enumerated before the pad).
+                json["last_selected_controller_guid"] = guid;
+            }
+            else if (rank == sameGuid.Count - 1 && othersHidden)
+            {
+                // Player 1 is the last identical controller : rely on "controller_port_mapping" only (last one wins).
+                // Safe because only this model is visible, so the SDL joystick index equals the gamepad index.
+                SimpleLogger.Instance.Info("[INFO] OpenGOAL: " + sameGuid.Count + " identical controllers, player 1 is the last one enumerated.");
+            }
+            else
+            {
+                json["last_selected_controller_guid"] = guid;
+                SimpleLogger.Instance.Warning("[WARNING] OpenGOAL: " + sameGuid.Count + " identical controllers connected, the game will use " + sameGuid[0].Path + " instead of player 1.");
+            }
+
+            // Bindings ("controller_binds", "keyboard_binds"...) are left untouched : SDL3 gamepad defaults, or the user's in-game choices
+            SaveOpenGoalInputSettings(inputSettingsFile, json);
+
+            SimpleLogger.Instance.Info("[INFO] OpenGOAL: player 1 " + p1.ToShortString() + " assigned to port 0 (SDL3 GUID " + guid + ", path " + sdl3Controller.Path + ").");
+
+            if (!sdl3Controller.IsGamepad)
+                SimpleLogger.Instance.Warning("[WARNING] OpenGOAL: player 1 has no SDL3 gamepad mapping, it will only work if the game's own controller database knows it.");
+        }
+
+        private static void SaveOpenGoalInputSettings(string inputSettingsFile, JObject json)
+        {
+            try { File.WriteAllText(inputSettingsFile, json.ToString(Newtonsoft.Json.Formatting.Indented)); }
+            catch { SimpleLogger.Instance.Warning("[WARNING] OpenGOAL: could not write " + inputSettingsFile); }
         }
         #endregion
 

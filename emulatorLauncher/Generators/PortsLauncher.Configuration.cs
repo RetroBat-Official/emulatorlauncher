@@ -18,8 +18,6 @@ namespace EmulatorLauncher
 {
     partial class PortsLauncherGenerator : Generator
     {
-        private bool _finishProcess = false;
-
         private void ConfigurePort(List<string> commandArray, string rom, string exe)
         {
             // Add one method per port to configure, you can pass commandArray if the port requires special command line arguments
@@ -549,16 +547,10 @@ namespace EmulatorLauncher
                 commandArray.Add("\"" + rom + "\"");
             }
 
-            // Ensure portable mode
+            // Ensure portable mode: Dusklight 2.x ignores the descriptor without "version": 1 (also accepted by 1.x)
             string dataJson = Path.Combine(_path, "data_location.json");
-            if (!File.Exists(dataJson))
-            {
-                try
-                {
-                    File.WriteAllText(dataJson, "{\r\n    \"mode\": \"portable\"\r\n}");
-                }
-                catch { }
-            }
+            try { File.WriteAllText(dataJson, "{\r\n    \"version\": 1,\r\n    \"mode\": \"portable\"\r\n}"); }
+            catch { SimpleLogger.Instance.Warning("[WARNING] Unable to write Dusklight data_location.json."); }
 
             var datalocation = DynamicJson.Load(dataJson);
             datalocation["mode"] = "portable";
@@ -575,7 +567,7 @@ namespace EmulatorLauncher
 
             var config = DynamicJson.Load(configJson);
             config["backend.checkForUpdates"] = "false";
-            config["backend.isoPath"] = "\"" + rom + "\"";
+            config["backend.isoPath"] = rom;
             config["backend.wasPresetChosen"] = "true";
             config["video.enableFullscreen"] = _fullscreen ? "true" : "false";
 
@@ -589,12 +581,56 @@ namespace EmulatorLauncher
             BindBoolFeature(config, "game.enableFpsOverlay", "dusklight_fps", "true", "false");
             BindBoolFeature(config, "game.enableDiscordPresence", "discord", "true", "false");
             BindFeature(config, "game.bloomMode", "dusklight_bloom", "2");
+            BindFeature(config, "game.enableFrameInterpolation", "dusklight_interpolation", "0");
+            BindFeature(config, "game.depthOfFieldMode", "dusklight_dof", "2");
+            BindFeature(config, "game.disableLetterboxing", "dusklight_letterbox", "0");
+            BindBoolFeature(config, "game.disableCutscenePillarboxing", "dusklight_pillarbox", "true", "false");
+            BindBoolFeature(config, "game.enableMirrorMode", "dusklight_mirror", "true", "false");
+            BindBoolFeature(config, "game.freeCamera", "dusklight_freecam", "true", "false");
+            BindBoolFeature(config, "game.enableGyroAim", "dusklight_gyroaim", "true", "false");
+            BindBoolFeature(config, "game.enableControllerToasts", "dusklight_ctrltoasts", "true", "false");
+            BindBoolFeature(config, "backend.showPipelineCompilation", "dusklight_showshadercompile", "true", "false");
+
+            // Quality of life settings from Dusklight's own presets, only written when the option is set
+            // so that settings changed in the Dusklight menu are kept otherwise
+            if (SystemConfig.isOptSet("dusklight_enhancements") && !string.IsNullOrEmpty(SystemConfig["dusklight_enhancements"]))
+            {
+                bool duskPreset = SystemConfig["dusklight_enhancements"] == "dusk";
+
+                foreach (string key in dusklightEnhancements)
+                    config[key] = duskPreset ? "true" : "false";
+
+                // The original TV settings screen is only shown by the Classic preset
+                config["game.hideTvSettingsScreen"] = duskPreset ? "true" : "false";
+            }
 
             if (config["game.fpsOverlayCorner"] == null)
                 config["game.fpsOverlayCorner"] = "0";
 
             config.Save();
+
+            ConfigureDusklightControls(dataPath);
         }
+
+        // Quality of life settings enabled by Dusklight's "Dusklight" preset (ui/preset.cpp), disabled by its "Classic" preset
+        private static readonly string[] dusklightEnhancements = new string[]
+        {
+            "game.enableQuickTransform",
+            "game.biggerWallets",
+            "game.noReturnRupees",
+            "game.disableRupeeCutscenes",
+            "game.noSwordRecoil",
+            "game.fastClimbing",
+            "game.noMissClimbing",
+            "game.fastTears",
+            "game.no2ndFishForCat",
+            "game.buttonFishing",
+            "game.instantSaves",
+            "game.midnasLamentNonStop",
+            "game.sunsSong",
+            "game.autoSave",
+            "game.enhancedMapMenus"
+        };
 
         // Extracts one entry of a Ship o2r archive (zip) and returns its bytes. Returns null if unavailable.
         private static byte[] ReadShipArchiveEntry(string archivePath, string entryName)
@@ -808,17 +844,52 @@ namespace EmulatorLauncher
             File.WriteAllText(settingsFile, jsonObj.ToString(Formatting.Indented));
         }
 
+        // PC_KERNEL_VERSION, as written by the game in pc-settings.gc
+        private static readonly Dictionary<string, string> _openGoalSettingsHeader = new Dictionary<string, string>
+        {
+            { "jak1", "#x1000a00040000" },  // 1.10.4.0
+            { "jak2", "#x200000000" },      // 0.2.0.0
+            { "jak3", "#x300000000" }       // 0.3.0.0
+        };
+
+        // Language values are game specific
+        private static readonly Dictionary<string, Dictionary<string, int>> _openGoalTextLanguages = new Dictionary<string, Dictionary<string, int>>
+        {
+            { "jak1", OpenGoalLanguageTable("en=0,fr=1,de=2,es=3,it=4,ja=5,en_uk=6,pt=7,fi=8,sv=9,da=10,no=11,nl=12,pt_br=13,hu=14,pl=19,lt=20,cs=21,hr=22,gl=23,bs=24") },
+            { "jak2", OpenGoalLanguageTable("en=0,fr=1,de=2,es=3,it=4,ja=5,ko=6,en_uk=7,pt=8,fi=9,sv=10,da=11,no=12,nl=13,pt_br=14,hu=15,ca=16,is=17,pl=18,lt=19,cs=20,hr=21,gl=22") },
+            { "jak3", OpenGoalLanguageTable("en=0,fr=1,de=2,es=3,it=4,ja=6,ko=7,ru=8,pt=9,nl=10,en_uk=11,fi=12,sv=13,da=14,no=15,pt_br=16,hu=17,ca=18,is=19,pl=20,lt=21,cs=22,hr=23,gl=24") }
+        };
+
+        private static readonly Dictionary<string, Dictionary<string, int>> _openGoalSubtitleLanguages = new Dictionary<string, Dictionary<string, int>>
+        {
+            { "jak1", OpenGoalLanguageTable("en=0,fr=1,de=2,es=3,it=4,en_uk=6,fi=8,sv=9,da=10,nl=12,pt_br=13,pl=19,lt=20,cs=21,hr=22,gl=23,bs=24") },
+            { "jak2", OpenGoalLanguageTable("en=0,fr=1,de=2,es=3,it=4,ja=5,ko=6,en_uk=7,pt=8,fi=9,sv=10,da=11,no=12,nl=13,pt_br=14,hu=15,ca=16,is=17,pl=18,lt=19,cs=20,hr=21,gl=22") },
+            { "jak3", OpenGoalLanguageTable("en=0,fr=1,de=2,es=3,it=4,ja=6,ko=7,ru=8,pt=9,nl=10,en_uk=11,fi=12,sv=13,da=14,no=15,pt_br=16,hu=17,ca=18,is=19,pl=20,lt=21,cs=22,hr=23,gl=24") }
+        };
+
+        private static readonly Dictionary<string, Dictionary<string, int>> _openGoalAudioLanguages = new Dictionary<string, Dictionary<string, int>>
+        {
+            { "jak1", OpenGoalLanguageTable("en=0,fr=1,de=2,es=3,it=4,ja=5") },
+            { "jak2", OpenGoalLanguageTable("en=0,fr=1,de=2,es=3,it=4,ja=5,ko=6") },
+            { "jak3", OpenGoalLanguageTable("en=0,fr=1,de=2,es=3,it=4,ja=6,ko=7,ru=8,pt=9,nl=10,en_uk=11") }
+        };
+
+        private static Dictionary<string, int> OpenGoalLanguageTable(string table)
+        {
+            return table.Split(',')
+                .Select(s => s.Split('='))
+                .ToDictionary(p => p[0], p => int.Parse(p[1], CultureInfo.InvariantCulture));
+        }
         private void ConfigureOpenGoal(List<string> commandArray, string rom)
         {
-            List<string> openGoalGames = new List<string> { "jak1", "jak2", "jak3" };
-            Dictionary<string, string> openGoalDefaultRes = new Dictionary<string, string> 
-            {
-                { "jak1", "aspect4x3 4 3 #f" },
-                { "jak2", "aspect4x3 4 3 #t" },
-                { "jak3", "aspect4x3 4 3 #t" }
-             };
+            if (_emulator != "opengoal")
+                return;
 
-            Dictionary<string, string> jak1ResList = new Dictionary<string, string>
+            List<string> openGoalGames = new List<string> { "jak1", "jak2", "jak3" };
+
+            // "aspect-state" = PS2 game aspect, custom ratio X, custom ratio Y, auto ratio (follows the window)
+            // A fixed ratio (auto = #f) resets "use-vis?", so "use-vis?" must always be written after "aspect-state"
+            Dictionary<string, string> ratioList = new Dictionary<string, string>
             {
                 { "4_3", "aspect4x3 4 3 #f" },
                 { "16_9", "aspect4x3 16 9 #f" },
@@ -827,32 +898,7 @@ namespace EmulatorLauncher
                 { "16_10", "aspect4x3 16 10 #f" },
                 { "21_9", "aspect4x3 21 9 #f" },
                 { "64_27", "aspect4x3 64 27 #f" }
-             };
-
-            Dictionary<string, string> jak2ResList = new Dictionary<string, string>
-            {
-                { "4_3", "aspect4x3 4 3 #f" },
-                { "16_9", "aspect4x3 16 9 #f" },
-                { "4_3_ps2", "aspect4x3 4 3 #t" },
-                { "16_9_ps2", "aspect16x9 4 3 #t" },
-                { "16_10", "aspect4x3 16 10 #f" },
-                { "21_9", "aspect4x3 21 9 #f" },
-                { "64_27", "aspect4x3 64 27 #f" }
-             };
-
-            Dictionary<string, string> jak3ResList = new Dictionary<string, string>
-            {
-                { "4_3", "aspect4x3 4 3 #f" },
-                { "16_9", "aspect4x3 16 9 #f" },
-                { "4_3_ps2", "aspect4x3 4 3 #t" },
-                { "16_9_ps2", "aspect16x9 4 3 #t" },
-                { "16_10", "aspect4x3 16 10 #f" },
-                { "21_9", "aspect4x3 21 9 #f" },
-                { "64_27", "aspect4x3 64 27 #f" }
-             };
-
-            if (_emulator != "opengoal")
-                return;
+            };
 
             string gameName = Path.GetFileNameWithoutExtension(rom);
             string[] romLines = File.ReadAllLines(rom);
@@ -864,71 +910,29 @@ namespace EmulatorLauncher
 
             // Check if game has been extracted already, if not, user can set path to iso in ES
             string outDataPath = Path.Combine(_path, "data", "out", gameName, "iso");
-            {
-                if (!Directory.Exists(outDataPath))
-                {
-                    SimpleLogger.Instance.Warning("[WARNING] OpenGOAL data folder not found, checking if a path to ISO is specified.");
-                    
-                    string isoSearch = "opengoal_isopath_" + gameName;
-
-                    if (SystemConfig.isOptSet(isoSearch) && !string.IsNullOrEmpty(SystemConfig[isoSearch]))
-                    {
-                        string isoPath = SystemConfig[isoSearch];
-                        if (!File.Exists(isoPath))
-                            SimpleLogger.Instance.Error("[ERROR] Failed to extract game from ISO: " + isoPath);
-                        else
-                        {
-                            SimpleLogger.Instance.Error("[INFO] Trying to extract game file with provided path: " + isoPath);
-                            
-                            var openGoalExtractorCommands = new List<string>
-                            {
-                                "-g",
-                                gameName,
-                                "\"" + isoPath + "\""
-                            };
-                            var args = string.Join(" ", openGoalExtractorCommands);
-
-                            var openGoalExtract = new ProcessStartInfo()
-                            {
-                                FileName = Path.Combine(_path, "extractor.exe"),
-                                WorkingDirectory = _path,
-                                Arguments = args,
-                            };
-
-                            try
-                            {
-                                using (var process = new Process())
-                                {
-                                    process.StartInfo = openGoalExtract;
-                                    process.Start();
-                                    process.WaitForExit();
-                                    _finishProcess = true;
-                                    return;
-                                }
-                            }
-                            catch (Exception ex) { SimpleLogger.Instance.Error("[ERROR] Failed to extract game from ISO: " + isoPath + " - " + ex.Message); }
-                        }
-                    }
-                    else
-                        throw new ApplicationException("File needs to be extracted first.");
-                }
-            }
+            if (!Directory.Exists(outDataPath))
+                ExtractOpenGoalGame(gameName, outDataPath);
 
             commandArray.Add("-g");
             commandArray.Add(gameName);
 
             string configFolder = Path.Combine(_path, "config");
-            if (!Directory.Exists(configFolder))
-                try { Directory.CreateDirectory(configFolder); } catch { }
-
             commandArray.Add("--config-path");
             commandArray.Add("\"" + configFolder + "\"");
 
-            // Settings file
             string gameConfigPath = Path.Combine(configFolder, "OpenGOAL", gameName);
-            string debugSettingsFile = Path.Combine(gameConfigPath, "misc", "debug-settings.json");
+            string settingsFolder = Path.Combine(gameConfigPath, "settings");
+            string miscFolder = Path.Combine(gameConfigPath, "misc");
+
+            // Create the folders on first launch, so that settings are applied right away (no need to start the game once)
+            foreach (string folder in new[] { settingsFolder, miscFolder })
+            {
+                if (!Directory.Exists(folder))
+                    try { Directory.CreateDirectory(folder); } catch { }
+            }
 
             // Debug Settings file
+            string debugSettingsFile = Path.Combine(miscFolder, "debug-settings.json");
 
             if (!File.Exists(debugSettingsFile))
             {
@@ -949,7 +953,7 @@ namespace EmulatorLauncher
             }
 
             // Display settings
-            string displaySettingsFile = Path.Combine(gameConfigPath, "settings", "display-settings.json");
+            string displaySettingsFile = Path.Combine(settingsFolder, "display-settings.json");
 
             if (!File.Exists(displaySettingsFile))
             {
@@ -972,8 +976,18 @@ namespace EmulatorLauncher
                 displayConf.Save();
             }
 
-            // Game settings - to check settings for jak 2
-            string configFilePath = Path.Combine(gameConfigPath, "settings", "pc-settings.gc");
+            // Controllers (input-settings.json)
+            ConfigureOpenGoalControls(settingsFolder);
+
+            // Game settings
+            string configFilePath = Path.Combine(settingsFolder, "pc-settings.gc");
+
+            // First launch: create a minimal file, the game fills in the missing settings with its own defaults
+            if (!File.Exists(configFilePath) && _openGoalSettingsHeader.ContainsKey(gameName))
+            {
+                try { File.WriteAllLines(configFilePath, new[] { "(settings " + _openGoalSettingsHeader[gameName], "  )" }); }
+                catch { SimpleLogger.Instance.Warning("[WARNING] Could not create file: " + configFilePath); }
+            }
 
             if (!File.Exists(configFilePath))
             {
@@ -981,58 +995,76 @@ namespace EmulatorLauncher
                 return;
             }
 
-            string[] configLines = File.ReadAllLines(configFilePath);
-            
+            List<string> configLines = File.ReadAllLines(configFilePath).ToList();
+
+            // Replace a top-level setting, or add it before the closing parenthesis when the game has not written it yet
+            // Only keys known by the game must be written : the game rejects the whole file on an unknown key
             Action<string, string> bindFeature = (string feature, string value) =>
             {
-                for (int i = 0; i < configLines.Length; i++)
+                string newLine = "  (" + feature + " " + value + ")";
+
+                int index = configLines.FindIndex(l => l.TrimStart().StartsWith("(" + feature + " "));
+                if (index >= 0)
                 {
-                    if (configLines[i].Contains("(" + feature))
-                    {
-                        configLines[i] = "  ("+ feature + " " + value + ")";
-                        break;
-                    }
+                    configLines[index] = newLine;
+                    return;
                 }
+
+                int closeIndex = configLines.FindLastIndex(l => l.Trim() == ")");
+                if (closeIndex >= 0)
+                    configLines.Insert(closeIndex, newLine);
             };
+
+            // Remove a top-level setting : the game then uses its own default (pc-settings "reset" runs before the file is read)
+            Action<string> removeFeature = (string feature) =>
+            {
+                configLines.RemoveAll(l => l.TrimStart().StartsWith("(" + feature + " "));
+            };
+
+            // Language values differ for each game, ES stores a language code
+            Action<string, string, Dictionary<string, Dictionary<string, int>>> bindLanguage = (string feature, string option, Dictionary<string, Dictionary<string, int>> table) =>
+            {
+                string lang = SystemConfig.isOptSet(option) ? SystemConfig[option] : null;
+
+                int value;
+                if (!string.IsNullOrEmpty(lang) && table.ContainsKey(gameName) && table[gameName].TryGetValue(lang, out value))
+                {
+                    bindFeature(feature, value.ToString(CultureInfo.InvariantCulture));
+                    return;
+                }
+
+                if (!string.IsNullOrEmpty(lang))
+                    SimpleLogger.Instance.Info("[INFO] OpenGOAL: language '" + lang + "' is not available in " + gameName + " (" + feature + "), using the game default.");
+
+                removeFeature(feature);
+            };
+
 
             if (SystemConfig.isOptSet("opengoal_msaa") && !string.IsNullOrEmpty(SystemConfig["opengoal_msaa"]))
                 bindFeature("msaa", SystemConfig["opengoal_msaa"]);
             else
                 bindFeature("msaa", "2");
 
-            // ratio values are different per game
-            if (SystemConfig.isOptSet("opengoal_ratio") && !string.IsNullOrEmpty(SystemConfig["opengoal_ratio"]))
+            // Default = engine default for the 3 games (pc-settings "reset-gfx"): automatic ratio, no PS2 visibility trees
+            string openGoalRatio = SystemConfig["opengoal_ratio"];
+
+            if (!string.IsNullOrEmpty(openGoalRatio) && ratioList.ContainsKey(openGoalRatio))
             {
-                string opengalRatio = SystemConfig["opengoal_ratio"];
-
-                switch (gameName)
-                {
-                    case "jak1":
-                        bindFeature("aspect-state", jak1ResList.ContainsKey(opengalRatio) ? jak1ResList[opengalRatio] : "");
-                        break;
-                    case "jak2":
-                        bindFeature("aspect-state", jak2ResList.ContainsKey(opengalRatio) ? jak2ResList[opengalRatio] : "");
-                        break;
-                    case "jak3":
-                        bindFeature("aspect-state", jak3ResList.ContainsKey(opengalRatio) ? jak3ResList[opengalRatio] : "");
-                        break;
-                }
-
-                if (opengalRatio.EndsWith("_ps2"))
-                    bindFeature("use-vis?", "#t");
-                else
-                    bindFeature("use-vis?", "#f");
+                bindFeature("aspect-state", ratioList[openGoalRatio]);
+                bindFeature("use-vis?", openGoalRatio.EndsWith("_ps2") ? "#t" : "#f");
             }
             else
-                bindFeature("aspect-state", openGoalDefaultRes.ContainsKey(gameName) ? openGoalDefaultRes[gameName] : "");
+            {
+                bindFeature("aspect-state", "aspect4x3 4 3 #t");
+                bindFeature("use-vis?", "#f");
+            }
 
             if (SystemConfig.isOptSet("opengoal_resolution") && !string.IsNullOrEmpty(SystemConfig["opengoal_resolution"]))
                 bindFeature("game-size", SystemConfig["opengoal_resolution"]);
             else
             {
-                string width = Screen.PrimaryScreen.Bounds.Width.ToString();
-                string height = Screen.PrimaryScreen.Bounds.Height.ToString();
-                string res = _resolution == null ? width + " " + height : _resolution.Width.ToString() + " " + _resolution.Height.ToString();
+                var bounds = Program.TargetScreen.Bounds;
+                string res = _resolution == null ? bounds.Width + " " + bounds.Height : _resolution.Width + " " + _resolution.Height;
                 bindFeature("game-size", res);
             }
 
@@ -1058,16 +1090,59 @@ namespace EmulatorLauncher
             else
                 bindFeature("territory", "-1");
 
-            if (SystemConfig.isOptSet("opengoal_language") && !string.IsNullOrEmpty(SystemConfig["opengoal_language"]))
-                bindFeature("game-language", SystemConfig["opengoal_language"]);
-
-            if (SystemConfig.isOptSet("opengoal_menulang") && !string.IsNullOrEmpty(SystemConfig["opengoal_menulang"]) && gameName != "jak3")
-                bindFeature("text-language", SystemConfig["opengoal_menulang"]);
-
-            if (SystemConfig.isOptSet("opengoal_sublang") && !string.IsNullOrEmpty(SystemConfig["opengoal_sublang"]) && gameName != "jak3")
-                bindFeature("subtitle-language", SystemConfig["opengoal_sublang"]);
+            bindLanguage("game-language", "opengoal_audio_lang", _openGoalAudioLanguages);
+            bindLanguage("text-language", "opengoal_text_lang", _openGoalTextLanguages);
+            bindLanguage("subtitle-language", "opengoal_subtitle_lang", _openGoalSubtitleLanguages);
 
             File.WriteAllLines(configFilePath, configLines);
+        }
+
+        private void ExtractOpenGoalGame(string gameName, string outDataPath)
+        {
+            SimpleLogger.Instance.Warning("[WARNING] OpenGOAL data folder not found, checking if a path to ISO is specified.");
+
+            string isoOption = "opengoal_isopath_" + gameName;
+            string isoPath = SystemConfig.isOptSet(isoOption) ? SystemConfig[isoOption] : null;
+
+            if (string.IsNullOrEmpty(isoPath))
+                throw new ApplicationException("OpenGOAL: " + gameName + " is not extracted yet. Set '" + gameName.ToUpperInvariant() + " ISO PATH' in the advanced settings of the system to extract it automatically.");
+
+            if (!File.Exists(isoPath))
+                throw new ApplicationException("OpenGOAL: ISO file not found: " + isoPath);
+
+            string extractor = Path.Combine(_path, "extractor.exe");
+            if (!File.Exists(extractor))
+                throw new ApplicationException("OpenGOAL: extractor.exe not found in " + _path);
+
+            SimpleLogger.Instance.Info("[INFO] Extracting " + gameName + " from ISO: " + isoPath);
+
+            // Steps are explicit (extract, decompile, compile): without step flags, the extractor also runs "play",
+            // which starts gk.exe without --config-path (settings and saves would be written to %APPDATA%)
+            var extractorInfo = new ProcessStartInfo()
+            {
+                FileName = extractor,
+                WorkingDirectory = _path,
+                Arguments = "-g " + gameName + " -e -d -c \"" + isoPath + "\"",
+            };
+
+            int exitCode;
+            try
+            {
+                using (var process = Process.Start(extractorInfo))
+                {
+                    process.WaitForExit();
+                    exitCode = process.ExitCode;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("OpenGOAL: failed to start the extractor - " + ex.Message);
+            }
+
+            if (exitCode != 0 || !Directory.Exists(outDataPath))
+                throw new ApplicationException("OpenGOAL: extraction of " + gameName + " failed (code " + exitCode + "). Check that the ISO is a supported release of the game.");
+
+            SimpleLogger.Instance.Info("[INFO] OpenGOAL: " + gameName + " extracted successfully, starting the game.");
         }
 
         private void ConfigureOpenJazz(List<string> commandArray, string rom)

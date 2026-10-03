@@ -103,30 +103,20 @@ namespace EmulatorLauncher
                     inputAPI.FieldValue = "DirectInput";
             }
 
-            if (Program.SystemConfig.isOptSet("tp_inputdriver") && !string.IsNullOrEmpty(Program.SystemConfig["tp_inputdriver"]))
+            if (inputAPI != null && Program.SystemConfig.isOptSet("tp_inputdriver") && !string.IsNullOrEmpty(Program.SystemConfig["tp_inputdriver"]))
             {
-                switch (Program.SystemConfig["tp_inputdriver"])
-                {
-                    case "XInput":
-                        if (inputAPI.FieldOptions.Any(f => f == "XInput"))
-                            inputAPI.FieldValue = "XInput";
-                        break;
-                    case "DirectInput":
-                        if (inputAPI.FieldOptions.Any(f => f == "DirectInput"))
-                            inputAPI.FieldValue = "DirectInput";
-                        break;
-                    case "RawInput":
-                        if (inputAPI.FieldOptions.Any(f => f == "RawInput"))
-                            inputAPI.FieldValue = "RawInput";
-                        break;
-                    case "MergedInput":
-                        inputAPI.FieldValue = "MergedInput";
-                        break;
-                }
+                string forcedApi = Program.SystemConfig["tp_inputdriver"];
+
+                // MergedInput is accepted by TeknoParrot even when it is not listed in the field options
+                if (forcedApi == "MergedInput" || (inputAPI.FieldOptions != null && inputAPI.FieldOptions.Contains(forcedApi)))
+                    inputAPI.FieldValue = forcedApi;
             }
-            
+
             if (inputAPI != null && inputAPI.FieldValue == "XInput" && c1.IsXInputDevice)
                 SimpleLogger.Instance.Info("[INFO] Controller for player 1 has XInput index " + c1.XInput.DeviceIndex.ToString());
+
+            // Default mapping must follow the API actually written in the profile (forced driver included)
+            bool useXInput = (inputAPI == null || inputAPI.FieldValue == "MergedInput") ? xInput : inputAPI.FieldValue == "XInput";
 
             // Look for number of players based on string search in userprofile file (Px, Player x)
             playerNumber = GetNumberOfPlayers(userProfile);
@@ -260,8 +250,8 @@ namespace EmulatorLauncher
                                         break;
                                     }
                             }
-                            
-                            if (ymlButtonMapping.ContainsKey(value))
+
+                            if (inputAPI != null && ymlButtonMapping.ContainsKey(value))
                             {
                                 if (inputAPI.FieldValue == "DirectInput")
                                 {
@@ -288,7 +278,7 @@ namespace EmulatorLauncher
 
                 else
                 {
-                    if (xInput)
+                    if (useXInput)
                     {
                         //            foreach (var btn in userProfile.JoystickButtons)
                         //                btn.XInputButton = null;

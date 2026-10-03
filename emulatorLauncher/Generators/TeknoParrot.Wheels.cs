@@ -134,6 +134,12 @@ namespace EmulatorLauncher
             return "Driving " + code;
         }
 
+        // Gear positions and reverse belong to the gear stick (possibly a separate device), GearUp/GearDown are the wheel paddles
+        private static bool IsStickGearRole(string role)
+        {
+            return role != null && role.StartsWith("Gear") && role != "GearUp" && role != "GearDown";
+        }
+
         private static bool ConfigureTPWheels(GameProfile userProfile, string rom)
         {
             if (!Program.SystemConfig.getOptBoolean("use_wheel"))
@@ -358,7 +364,7 @@ namespace EmulatorLauncher
                 { "Gear4", new[] { InputMapping.Wmmt5GearChange4, InputMapping.SrcGearChange4, InputMapping.FnfGearChange4, InputMapping.IDZGearChange4 } },
                 { "Gear5", new[] { InputMapping.Wmmt5GearChange5, InputMapping.IDZGearChange5 } },
                 { "Gear6", new[] { InputMapping.Wmmt5GearChange6, InputMapping.IDZGearChange6 } },
-                { "GearReverse", new[] { InputMapping.Wmmt5GearChange6, InputMapping.IDZGearChange6, InputMapping.P1Button5 } },
+                { "GearReverse", new[] { InputMapping.P1Button5 } },
                 { "ViewChange", new[] { InputMapping.ExtensionOne1 } },
                 { "ViewChange2", new InputMapping[] { } },
                 { "ViewChange3", new InputMapping[] { } },
@@ -500,10 +506,11 @@ namespace EmulatorLauncher
                     if (xmlPlace == null)
                         continue;
 
-                    if (nogearstick && codeKey.StartsWith("Gear") && codeKey != "GearUp" && codeKey != "GearDown" && codeKey != "GearReverse")
+                    bool stickGear = IsStickGearRole(codeKey);
+                    if (nogearstick && stickGear)
                         continue;
 
-                    Guid targetGuid = codeKey.StartsWith("Gear") ? gearstickGuid : diGuid;
+                    Guid targetGuid = stickGear ? gearstickGuid : diGuid;
 
                     var diButton = new JoystickButton
                     {
@@ -660,10 +667,18 @@ namespace EmulatorLauncher
                     continue;
                 }
 
+                bool stickGear = IsStickGearRole(roleKey);
+                if (nogearstick && stickGear)
+                    continue;
+
                 var diButton = new JoystickButton
                 {
-                    JoystickGuid = diGuid,
-                    IsAxis = false, IsAxisMinus = false, IsFullAxis = false, IsReverseAxis = false, PovDirection = 0
+                    JoystickGuid = stickGear ? gearstickGuid : diGuid,
+                    IsAxis = false,
+                    IsAxisMinus = false,
+                    IsFullAxis = false,
+                    IsReverseAxis = false,
+                    PovDirection = 0
                 };
 
                 if (code.StartsWith("BUTTON"))

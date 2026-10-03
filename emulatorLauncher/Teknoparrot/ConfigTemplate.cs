@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Xml.Serialization;
 
 namespace TeknoParrotUi.Common
 {
@@ -20,5 +21,9 @@ namespace TeknoParrotUi.Common
         public int FieldMin { get; set; }
         public int FieldMax { get; set; }
         public List<string> FieldOptions { get; set; }
+
+        // Keep elements unknown to this model (added by newer TeknoParrot versions) when the profile is saved again
+        [XmlAnyElement]
+        public System.Xml.XmlElement[] UnknownElements { get; set; }
     }
 }

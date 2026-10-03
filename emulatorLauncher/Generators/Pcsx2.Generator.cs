@@ -121,7 +121,12 @@ namespace EmulatorLauncher
             File.WriteAllText(Path.Combine(_path, "portable.ini"), "RunWizard=0");
 
             //Applying bezels
-            if (!SystemConfig.isOptSet("ratio") || SystemConfig["ratio"] == "4:3")
+            // With "Auto 4:3/3:2" (default), PCSX2 switches to 16:9 by itself when a widescreen patch exists:
+            // only show bezels when the output is guaranteed to be 4:3
+            bool widescreenPatchEnabled = !SystemConfig.isOptSet("widescreen_patch") || SystemConfig.getOptBoolean("widescreen_patch");
+            bool autoRatio = !SystemConfig.isOptSet("ratio");
+
+            if (SystemConfig["ratio"] == "4:3" || (autoRatio && (!_isPcsxqt || _isArcade || !widescreenPatchEnabled)))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             _resolution = resolution;
