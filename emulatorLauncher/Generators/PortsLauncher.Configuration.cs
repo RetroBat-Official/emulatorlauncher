@@ -581,6 +581,28 @@ namespace EmulatorLauncher
             BindBoolFeature(config, "game.enableFpsOverlay", "dusklight_fps", "true", "false");
             BindBoolFeature(config, "game.enableDiscordPresence", "discord", "true", "false");
             BindFeature(config, "game.bloomMode", "dusklight_bloom", "2");
+            BindFeature(config, "game.enableFrameInterpolation", "dusklight_interpolation", "0");
+            BindFeature(config, "game.depthOfFieldMode", "dusklight_dof", "2");
+            BindFeature(config, "game.disableLetterboxing", "dusklight_letterbox", "0");
+            BindBoolFeature(config, "game.disableCutscenePillarboxing", "dusklight_pillarbox", "true", "false");
+            BindBoolFeature(config, "game.enableMirrorMode", "dusklight_mirror", "true", "false");
+            BindBoolFeature(config, "game.freeCamera", "dusklight_freecam", "true", "false");
+            BindBoolFeature(config, "game.enableGyroAim", "dusklight_gyroaim", "true", "false");
+            BindBoolFeature(config, "game.enableControllerToasts", "dusklight_ctrltoasts", "true", "false");
+            BindBoolFeature(config, "backend.showPipelineCompilation", "dusklight_showshadercompile", "true", "false");
+
+            // Quality of life settings from Dusklight's own presets, only written when the option is set
+            // so that settings changed in the Dusklight menu are kept otherwise
+            if (SystemConfig.isOptSet("dusklight_enhancements") && !string.IsNullOrEmpty(SystemConfig["dusklight_enhancements"]))
+            {
+                bool duskPreset = SystemConfig["dusklight_enhancements"] == "dusk";
+
+                foreach (string key in dusklightEnhancements)
+                    config[key] = duskPreset ? "true" : "false";
+
+                // The original TV settings screen is only shown by the Classic preset
+                config["game.hideTvSettingsScreen"] = duskPreset ? "true" : "false";
+            }
 
             if (config["game.fpsOverlayCorner"] == null)
                 config["game.fpsOverlayCorner"] = "0";
@@ -589,6 +611,26 @@ namespace EmulatorLauncher
 
             ConfigureDusklightControls(dataPath);
         }
+
+        // Quality of life settings enabled by Dusklight's "Dusklight" preset (ui/preset.cpp), disabled by its "Classic" preset
+        private static readonly string[] dusklightEnhancements = new string[]
+        {
+            "game.enableQuickTransform",
+            "game.biggerWallets",
+            "game.noReturnRupees",
+            "game.disableRupeeCutscenes",
+            "game.noSwordRecoil",
+            "game.fastClimbing",
+            "game.noMissClimbing",
+            "game.fastTears",
+            "game.no2ndFishForCat",
+            "game.buttonFishing",
+            "game.instantSaves",
+            "game.midnasLamentNonStop",
+            "game.sunsSong",
+            "game.autoSave",
+            "game.enhancedMapMenus"
+        };
 
         // Extracts one entry of a Ship o2r archive (zip) and returns its bytes. Returns null if unavailable.
         private static byte[] ReadShipArchiveEntry(string archivePath, string entryName)
