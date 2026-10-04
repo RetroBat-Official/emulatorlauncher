@@ -54,6 +54,8 @@ namespace EmulatorLauncher.Libretro
 
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
+            Environment.SetEnvironmentVariable("RETROBAT_LIBRETRO_REAL_CORE", null);
+
             if (string.IsNullOrEmpty(RetroarchPath))
                 return null;
 
@@ -227,6 +229,8 @@ namespace EmulatorLauncher.Libretro
 
         public override void Cleanup()
         {
+            Environment.SetEnvironmentVariable("RETROBAT_LIBRETRO_REAL_CORE", null);
+
             if (SystemConfig["core"] == "atari800")
                 Environment.SetEnvironmentVariable("HOME", CurrentHomeDirectory);
 
@@ -327,19 +331,26 @@ namespace EmulatorLauncher.Libretro
         /// <summary>
         /// File passed to RetroArch with -L.
         /// A plugin can place a proxy core under the same name in retroarch\core_proxy (for example a wrapper
-        /// that loads the real core from retroarch\cores). The real core stays in retroarch\cores, where it is
-        /// checked and updated as usual. Without a proxy file, nothing changes.
+        /// that loads the real core from RETROBAT_LIBRETRO_REAL_CORE). The real core stays in the configured
+        /// core directory, where it is checked and updated as usual. Without a proxy file, or when
+        /// libretro_coreproxy is disabled, the real core is loaded directly.
         /// </summary>
         private string GetCoreFileToLoad(string core)
         {
             string coreFile = Path.Combine(RetroarchCorePath, core + "_libretro.dll");
+
+            bool proxyEnabled = !SystemConfig.isOptSet("libretro_coreproxy") || SystemConfig.getOptBoolean("libretro_coreproxy");
+            if (!proxyEnabled)
+                return coreFile;
 
             try
             {
                 string proxyFile = Path.Combine(RetroarchPath, "core_proxy", core + "_libretro.dll");
                 if (File.Exists(proxyFile) && File.Exists(coreFile))
                 {
-                    SimpleLogger.Instance.Info("[LibretroGenerator] Using proxy core: " + proxyFile);
+                    string realCoreFile = Path.GetFullPath(coreFile);
+                    SimpleLogger.Instance.Info("[LibretroGenerator] Using proxy core: " + proxyFile + " (real core: " + realCoreFile + ")");
+                    Environment.SetEnvironmentVariable("RETROBAT_LIBRETRO_REAL_CORE", realCoreFile);
                     return proxyFile;
                 }
             }
