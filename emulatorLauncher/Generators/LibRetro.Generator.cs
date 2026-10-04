@@ -135,6 +135,9 @@ namespace EmulatorLauncher.Libretro
             string logFile = Path.Combine(Program.LocalPath, ".emulationstation", "es_launch_stdout.log");
             string logCommand = $"--log-file \"{LogFile}\" -verbose ";
 
+            // Core file passed to RetroArch : retroarch\cores, or a proxy core in retroarch\core_proxy
+            string coreFile = GetCoreFileToLoad(core);
+
             // manage MESS systems (MAME core)
             MessSystem messSystem = core == "mame" ? MessSystem.GetMessSystem(system, subCore) : null;
             if (messSystem != null && !string.IsNullOrEmpty(messSystem.MachineName))
@@ -149,7 +152,7 @@ namespace EmulatorLauncher.Libretro
                 {
                     FileName = Path.Combine(RetroarchPath, emulator == "angle" ? "retroarch_angle.exe" : "retroarch.exe"),
                     WorkingDirectory = RetroarchPath,
-                    Arguments = (logCommand + "-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + messArgs).Trim()
+                    Arguments = (logCommand + "-L \"" + coreFile + "\" " + messArgs).Trim()
                 };
             }
 
@@ -162,16 +165,16 @@ namespace EmulatorLauncher.Libretro
             if (patchArgs.Count > 0)
             {
                 if (string.IsNullOrEmpty(rom))
-                    finalArgs = (patchArg + " -L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + args).Trim();
+                    finalArgs = (patchArg + " -L \"" + coreFile + "\" " + args).Trim();
                 else
-                    finalArgs = (patchArg + " -L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim();
+                    finalArgs = (patchArg + " -L \"" + coreFile + "\" \"" + rom + "\" " + args).Trim();
             }
             else
             {
                 if (string.IsNullOrEmpty(rom))
-                    finalArgs = ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" " + args).Trim();
+                    finalArgs = ("-L \"" + coreFile + "\" " + args).Trim();
                 else
-                    finalArgs = ("-L \"" + Path.Combine(RetroarchCorePath, core + "_libretro.dll") + "\" \"" + rom + "\" " + args).Trim();
+                    finalArgs = ("-L \"" + coreFile + "\" \"" + rom + "\" " + args).Trim();
             }
 
             return new ProcessStartInfo()
@@ -319,6 +322,30 @@ namespace EmulatorLauncher.Libretro
             }
 
             return core;
+        }
+
+        /// <summary>
+        /// File passed to RetroArch with -L.
+        /// A plugin can place a proxy core under the same name in retroarch\core_proxy (for example a wrapper
+        /// that loads the real core from retroarch\cores). The real core stays in retroarch\cores, where it is
+        /// checked and updated as usual. Without a proxy file, nothing changes.
+        /// </summary>
+        private string GetCoreFileToLoad(string core)
+        {
+            string coreFile = Path.Combine(RetroarchCorePath, core + "_libretro.dll");
+
+            try
+            {
+                string proxyFile = Path.Combine(RetroarchPath, "core_proxy", core + "_libretro.dll");
+                if (File.Exists(proxyFile) && File.Exists(coreFile))
+                {
+                    SimpleLogger.Instance.Info("[LibretroGenerator] Using proxy core: " + proxyFile);
+                    return proxyFile;
+                }
+            }
+            catch { }
+
+            return coreFile;
         }
 
         private void CheckCoreAndUpdateIfNeeded(string core)
