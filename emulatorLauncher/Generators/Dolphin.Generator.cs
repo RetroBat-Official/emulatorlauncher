@@ -38,9 +38,6 @@ namespace EmulatorLauncher
                 _saveStatesWatcher = null;
             }
 
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
-
             base.Cleanup();
         }
 
@@ -49,7 +46,6 @@ namespace EmulatorLauncher
         private bool _triforce = false;
         private Rectangle _windowRect = Rectangle.Empty;
         private bool _runWiiMenu = false;
-        private bool _sindenSoft = false;
         private bool _crediar = false;
         private bool _fullscreen = false;
 
@@ -799,7 +795,7 @@ namespace EmulatorLauncher
                     // SDL hints
                     BindBoolIniFeature(ini, "SDL_Hints", "SDL_JOYSTICK_DIRECTINPUT", "input_sdldinput", "1", "0");
 
-                    DolphinControllers.WriteControllersConfig(path, ini, system, emulator, rom, _triforce, _crediar, triforceGame, region, out _sindenSoft);
+                    DolphinControllers.WriteControllersConfig(path, ini, system, emulator, rom, _triforce, _crediar, triforceGame, region);
 
                     ini.Save();
                 }

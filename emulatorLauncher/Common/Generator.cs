@@ -137,6 +137,10 @@ namespace EmulatorLauncher
         public virtual void Cleanup()
         {
             SimpleLogger.Instance.Info("[Generator] Cleanup.");
+
+            // Close the Sinden software if it was started for this game (and "sindenKill" option is set)
+            Guns.KillSindenSoftware();
+
             if (_mountFile != null)
             {
                 // Delete overlay path if it's empty

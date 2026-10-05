@@ -53,7 +53,6 @@ namespace EmulatorLauncher
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
-                _sindenSoft = true;
 
                 if (_isArcade && !SystemConfig.isOptSet("pcsx2x6_sindenborder"))
                 {

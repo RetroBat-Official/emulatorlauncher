@@ -10,8 +10,13 @@ namespace EmulatorLauncher
 {
     public class Guns
     {
+        // Set when the Sinden software is requested for the current game, it is then closed in Generator.Cleanup()
+        private static bool _sindenRequested = false;
+
         public static void StartSindenSoftware()
         {
+            _sindenRequested = true;
+
             bool[] players = new bool[4];
 
             var guns = RawLightgun.GetRawLightguns();
@@ -247,6 +252,12 @@ namespace EmulatorLauncher
 
         public static void KillSindenSoftware()
         {
+            // Only close the Sinden software if it was requested for the current game
+            if (!_sindenRequested)
+                return;
+
+            _sindenRequested = false;
+
             if (!Program.SystemConfig.getOptBoolean("sindenKill"))
                 return;
 

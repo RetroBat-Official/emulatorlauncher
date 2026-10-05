@@ -648,9 +648,6 @@ namespace EmulatorLauncher
                 _saveStatesWatcher = null;
             }
 
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
-
             if (_cleanupbezel || _restoreShaders)
             {
                 string iniFile = Path.Combine(_path, "settings.ini");

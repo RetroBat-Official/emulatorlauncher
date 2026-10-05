@@ -13,8 +13,6 @@ namespace EmulatorLauncher
 {
     partial class Model3Generator : Generator
     {
-        private bool _sindenSoft = false;
-
         // Gun configuration variables
         private string _mouse1 = "MOUSE1";
         private string _mouse2 = "MOUSE2";
@@ -58,7 +56,6 @@ namespace EmulatorLauncher
                 if (useGun && guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
                 {
                     Guns.StartSindenSoftware();
-                    _sindenSoft = true;
                 }
             }
 
@@ -2693,7 +2690,6 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("use_guns") && guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
                 {
                     Guns.StartSindenSoftware();
-                    _sindenSoft = true;
                 }
             }
 

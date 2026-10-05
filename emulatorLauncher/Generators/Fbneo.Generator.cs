@@ -208,6 +208,8 @@ namespace EmulatorLauncher
                 try { File.WriteAllText(_ipsIniFile, _ipsOriginalFile); }
                 catch { }
             }
+
+            base.Cleanup();
         }
     }
     

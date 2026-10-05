@@ -12,7 +12,6 @@ namespace EmulatorLauncher
 {
     partial class Snes9xGenerator : Generator
     {
-        private bool _sindenSoft = false;
         private bool _monoplayer = false;
         private void CreateControllerConfiguration(IniFile ini)
         {
@@ -44,7 +43,6 @@ namespace EmulatorLauncher
                 if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
                 {
                     Guns.StartSindenSoftware();
-                    _sindenSoft = true;
                 }
 
                 if (SystemConfig.isOptSet("snes9x_guntype"))

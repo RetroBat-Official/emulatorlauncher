@@ -9,7 +9,7 @@ namespace EmulatorLauncher
 {
     partial class DolphinControllers
     {
-        private static void GenerateControllerConfig_wiilightgun(string path, bool sindenSoft)
+        private static void GenerateControllerConfig_wiilightgun(string path)
         {
             string iniFile = Path.Combine(path, "User", "Config", "WiimoteNew.ini");
 
@@ -23,7 +23,6 @@ namespace EmulatorLauncher
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
-                sindenSoft = true;
             }
 
             // Search gun game in gamesDB.xml file

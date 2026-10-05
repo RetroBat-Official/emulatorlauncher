@@ -443,6 +443,42 @@ namespace EmulatorLauncher.Common.Lightguns
             return keyboard;
         }
 
+        // Find the keyboard collection exposed by the same physical device as the gun (same VID/PID, same interface when composite)
+        public static RawInputDevice FindKeyboardByVidPid(string gunPath, List<RawInputDevice> keyboards, RawInputDevice defaultKeyboard)
+        {
+            if (string.IsNullOrEmpty(gunPath) || keyboards == null || keyboards.Count == 0)
+                return defaultKeyboard;
+
+            int startIndex = gunPath.IndexOf("VID");
+            if (startIndex < 0)
+                return defaultKeyboard;
+
+            int endIndex = gunPath.IndexOf('#', startIndex);
+            if (endIndex < 0)
+                return defaultKeyboard;
+
+            // Composite device : keep the interface number (e.g. VID_xxxx&PID_yyyy&MI_02)
+            int miIndex = gunPath.IndexOf("MI_", startIndex);
+            if (miIndex >= 0 && miIndex < endIndex)
+                endIndex = Math.Min(miIndex + 5, gunPath.Length);
+
+            string searchPath = gunPath.Substring(startIndex, endIndex - startIndex);
+            var kb = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
+            if (kb != null)
+                return kb;
+
+            // Fallback : same VID/PID, any interface or collection
+            string vidPid = GetVIDPID(gunPath);
+            if (!string.IsNullOrEmpty(vidPid))
+            {
+                kb = keyboards.FirstOrDefault(k => k.DevicePath.Contains(vidPid));
+                if (kb != null)
+                    return kb;
+            }
+
+            return defaultKeyboard;
+        }
+
         public static string GetVIDPID(string path)
         {
             if (string.IsNullOrEmpty(path))

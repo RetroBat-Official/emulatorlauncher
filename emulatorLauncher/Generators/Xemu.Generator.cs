@@ -27,7 +27,6 @@ namespace EmulatorLauncher
         private bool _chihiro;
         private string _chihiroEeprom;
         private string _chihiroEepromSave;
-        private bool _sindenSoft;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -562,9 +561,6 @@ namespace EmulatorLauncher
 
             if (_chihiro)
                 SaveChihiroEeprom();
-
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
 
             bezel?.Dispose();
 

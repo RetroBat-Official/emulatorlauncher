@@ -472,9 +472,6 @@ namespace EmulatorLauncher
             if (_demulshooter)
                 Demulshooter.KillDemulShooter();
 
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
-
             base.Cleanup();
         }
     }

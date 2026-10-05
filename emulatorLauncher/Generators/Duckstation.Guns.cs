@@ -12,7 +12,6 @@ namespace EmulatorLauncher
 {
     partial class DuckstationGenerator : Generator
     {
-        private bool _sindenSoft = false;
         private bool _multigun = false;
 
         private void CreateGunConfiguration(IniFile ini)
@@ -59,7 +58,6 @@ namespace EmulatorLauncher
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
-                _sindenSoft = true;
             }
 
             string pointer1 = "Pointer-0";

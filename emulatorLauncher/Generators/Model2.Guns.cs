@@ -10,7 +10,6 @@ namespace EmulatorLauncher
     partial class Model2Generator : Generator
     {
         private bool _demulshooter = false;
-        private bool _sindenSoft = false;
 
         private void ConfigureModel2Guns(IniFile ini, byte[] bytes, string parentRom, bool noChangeInput = false)
         {
@@ -34,7 +33,6 @@ namespace EmulatorLauncher
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
-                _sindenSoft = true;
             }
 
             if (guns.Length == 1)

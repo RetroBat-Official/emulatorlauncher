@@ -14,7 +14,6 @@ namespace EmulatorLauncher
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
-        private bool _sindenSoft = false;
         static List<string> _m3uSystems = new List<string>() { "pcenginecd", "turbografxcd" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -345,7 +344,6 @@ namespace EmulatorLauncher
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
-                _sindenSoft = true;
             }
 
             foreach (var port in nesPorts)
@@ -513,9 +511,6 @@ namespace EmulatorLauncher
             int ret = base.RunAndWait(path);
 
             bezel?.Dispose();
-
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
 
             if (ret == 1)
                 return 0;

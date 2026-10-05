@@ -217,48 +217,6 @@ namespace EmulatorLauncher
                     return false;
                 }
             }
-
-            private static string UpdatePortNumber(string line, string comPort)
-            {
-                // Extract port number from COM string (e.g., "COM1" -> "1")
-                string portNumber = comPort.Substring(3);
-                
-                // Replace the port number in cmw commands
-                int cmwIndex = line.IndexOf("cmw");
-                if (cmwIndex >= 0)
-                {
-                    int spaceIndex = line.IndexOf(' ', cmwIndex);
-                    if (spaceIndex >= 0 && spaceIndex + 1 < line.Length)
-                    {
-                        int endIndex = spaceIndex + 1;
-                        while (endIndex < line.Length && (char.IsDigit(line[endIndex]) || line[endIndex] == '*'))
-                            endIndex++;
-
-                        string prefix = line.Substring(0, spaceIndex + 1);
-                        string suffix = line.Substring(endIndex);
-                        return prefix + portNumber + suffix;
-                    }
-                }
-                return line;
-            }
-
-            private static void KillMameHooker()
-            {
-                try
-                {
-                    var existingProcess = Process.GetProcessesByName("MameHooker").FirstOrDefault();
-                    if (existingProcess != null)
-                    {
-                        SimpleLogger.Instance.Info("[INFO] Found existing MameHooker process - stopping it");
-                        existingProcess.Kill();
-                        existingProcess.WaitForExit(1000);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    SimpleLogger.Instance.Error($"[ERROR] Failed to stop existing MameHooker: {ex.Message}");
-                }
-            }
         }
     }
 } 
