@@ -91,7 +91,7 @@ namespace EmulatorLauncher.Common.Lightguns
                 if (xgunnerDeviceIds.Any(d => devicePath.Contains(d)))
                     return RawLighGunType.Xgunner;
 
-                string[] wiimote4GunsDeviceIds = new string[] { "vmultia", "vmultib", "vmultic", "vmultid" };
+                string[] wiimote4GunsDeviceIds = new string[] { "vmultia", "vmultib", "vmultic", "vmultid", "VID_001F&PID_BACC", "VID_002F&PID_BACC", "VID_003F&PID_BACC", "VID_004F&PID_BACC" };
                 if (wiimote4GunsDeviceIds.Any(d => devicePath.ToLowerInvariant().Contains(d.ToLowerInvariant())))
                     return RawLighGunType.Wiimote4Guns;
             }
@@ -288,13 +288,13 @@ namespace EmulatorLauncher.Common.Lightguns
                     break;
 
                 case RawLighGunType.Wiimote4Guns:
-                    if (DevicePath != null && DevicePath.ToLowerInvariant().Contains("vmultia"))
+                    if (DevicePath != null && (DevicePath.ToLowerInvariant().Contains("vmultia") || DevicePath.ToLowerInvariant().Contains("VID_001F&PID_BACC")))
                         Priority = 180;
-                    else if (DevicePath != null && DevicePath.ToLowerInvariant().Contains("vmultib"))
+                    else if (DevicePath != null && (DevicePath.ToLowerInvariant().Contains("vmultib") || DevicePath.ToLowerInvariant().Contains("VID_002F&PID_BACC")))
                         Priority = 181;
-                    else if (DevicePath != null && DevicePath.ToLowerInvariant().Contains("vmultic"))
+                    else if (DevicePath != null && (DevicePath.ToLowerInvariant().Contains("vmultic") || DevicePath.ToLowerInvariant().Contains("VID_003F&PID_BACC")))
                         Priority = 182;
-                    else if (DevicePath != null && DevicePath.ToLowerInvariant().Contains("vmultid"))
+                    else if (DevicePath != null && (DevicePath.ToLowerInvariant().Contains("vmultid") || DevicePath.ToLowerInvariant().Contains("VID_004F&PID_BACC")))
                         Priority = 183;
                     else
                         Priority = 184 + Index;
