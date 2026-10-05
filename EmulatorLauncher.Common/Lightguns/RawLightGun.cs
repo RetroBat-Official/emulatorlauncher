@@ -91,12 +91,28 @@ namespace EmulatorLauncher.Common.Lightguns
                 if (xgunnerDeviceIds.Any(d => devicePath.Contains(d)))
                     return RawLighGunType.Xgunner;
 
-                string[] wiimote4GunsDeviceIds = new string[] { "vmultia", "vmultib", "vmultic", "vmultid", "VID_001F&PID_BACC", "VID_002F&PID_BACC", "VID_003F&PID_BACC", "VID_004F&PID_BACC" };
-                if (wiimote4GunsDeviceIds.Any(d => devicePath.ToLowerInvariant().Contains(d.ToLowerInvariant())))
+                if (GetWiimote4GunsPlayer(devicePath) > 0)
                     return RawLighGunType.Wiimote4Guns;
             }
 
             return RawLighGunType.Mouse;
+        }
+
+        // Wiimote4Guns player number (1-4) from the device path, 0 if not a Wiimote4Guns device
+        // Legacy versions : vmultia..vmultid / HIDMaestro versions : VID_001F..VID_004F with PID_BACC
+        private static int GetWiimote4GunsPlayer(string devicePath)
+        {
+            if (string.IsNullOrEmpty(devicePath))
+                return 0;
+
+            string path = devicePath.ToLowerInvariant();
+            for (int p = 1; p <= 4; p++)
+            {
+                if (path.Contains("vmulti" + (char)('a' + p - 1)) || path.Contains("vid_00" + p + "f&pid_bacc"))
+                    return p;
+            }
+
+            return 0;
         }
 
         private static int GetGamePadIndex(RawInputDevice device)
@@ -140,19 +156,8 @@ namespace EmulatorLauncher.Common.Lightguns
             {
                 if (mouse.Type == RawLighGunType.Wiimote4Guns)
                 {
-                    int playerNumber = 1;
-                    if (mouse.DevicePath != null)
-                    {
-                        if (mouse.DevicePath.ToLowerInvariant().Contains("vmultia"))
-                            playerNumber = 1;
-                        else if (mouse.DevicePath.ToLowerInvariant().Contains("vmultib"))
-                            playerNumber = 2;
-                        else if (mouse.DevicePath.ToLowerInvariant().Contains("vmultic"))
-                            playerNumber = 3;
-                        else if (mouse.DevicePath.ToLowerInvariant().Contains("vmultid"))
-                            playerNumber = 4;
-                    }
-                    mouse.Name = "Wiimote4Guns P" + playerNumber;
+                    int playerNumber = GetWiimote4GunsPlayer(mouse.DevicePath);
+                    mouse.Name = "Wiimote4Guns P" + (playerNumber > 0 ? playerNumber : 1);
                     mouse.Manufacturer = "RetroBat";
                 }
             }
@@ -288,16 +293,8 @@ namespace EmulatorLauncher.Common.Lightguns
                     break;
 
                 case RawLighGunType.Wiimote4Guns:
-                    if (DevicePath != null && (DevicePath.ToLowerInvariant().Contains("vmultia") || DevicePath.ToLowerInvariant().Contains("VID_001F&PID_BACC")))
-                        Priority = 180;
-                    else if (DevicePath != null && (DevicePath.ToLowerInvariant().Contains("vmultib") || DevicePath.ToLowerInvariant().Contains("VID_002F&PID_BACC")))
-                        Priority = 181;
-                    else if (DevicePath != null && (DevicePath.ToLowerInvariant().Contains("vmultic") || DevicePath.ToLowerInvariant().Contains("VID_003F&PID_BACC")))
-                        Priority = 182;
-                    else if (DevicePath != null && (DevicePath.ToLowerInvariant().Contains("vmultid") || DevicePath.ToLowerInvariant().Contains("VID_004F&PID_BACC")))
-                        Priority = 183;
-                    else
-                        Priority = 184 + Index;
+                    int w4gPlayer = GetWiimote4GunsPlayer(DevicePath);
+                    Priority = w4gPlayer > 0 ? 179 + w4gPlayer : 184 + Index;   // P1..P4 -> 180..183
                     break;
 
                 case RawLighGunType.MayFlashWiimote:
@@ -349,6 +346,173 @@ namespace EmulatorLauncher.Common.Lightguns
         {
             return Name + " [" + Type + "] [" + Index + "] [" + DevicePath + "]";
         }
+
+        #region Gun / keyboard association
+        // Associate each Wiimote gun (Mayflash / Wiimote4Guns) with its own keyboard device.
+        // Must run once, in player order and before any gun index override,
+        // as FindAssociatedKeyboard skips keyboards that are already associated.
+        public static Dictionary<RawLightgun, RawInputDevice> AssociateGunKeyboards(RawLightgun[] orgGuns, List<RawInputDevice> keyboards, RawInputDevice keyboard)
+        {
+            var associations = new Dictionary<RawLightgun, RawInputDevice>();
+
+            foreach (var gun in orgGuns)
+            {
+                if (gun == null || associations.ContainsKey(gun))
+                    continue;
+
+                if (gun.Type != RawLighGunType.MayFlashWiimote && gun.Type != RawLighGunType.Wiimote4Guns)
+                    continue;
+
+                associations.Add(gun, FindAssociatedKeyboard(gun.DevicePath, keyboards, keyboard, associations));
+            }
+
+            return associations;
+        }
+
+        public static RawInputDevice FindAssociatedKeyboard(string gunPath, List<RawInputDevice> keyboards, RawInputDevice keyboard, Dictionary<RawLightgun, RawInputDevice> associations)
+        {
+            if (string.IsNullOrEmpty(gunPath) || keyboards == null)
+                return keyboard;
+
+            if (associations == null)
+                associations = new Dictionary<RawLightgun, RawInputDevice>();
+
+            string lowerPath = gunPath.ToLowerInvariant();
+            bool isVmulti = lowerPath.Contains("vmulti");
+            bool isHidMaestro = gunPath.Contains("&PID_BACC");
+
+            // Keyboards already associated to another gun must not be reused
+            List<RawInputDevice> kbToIgnore = associations.Values.Where(v => v != null).ToList();
+
+            // Handle Wiimote4Guns differently
+            if (isVmulti || isHidMaestro)
+            {
+                string gunIdentifier = null;
+
+                // HIDMaestro : mouse (Col01) and keyboard (Col02) collections share the same VID/PID (e.g. VID_001F&PID_BACC)
+                if (isHidMaestro)
+                    gunIdentifier = GetVIDPID(gunPath).ToLowerInvariant();
+                else if (lowerPath.Contains("vmultia"))
+                    gunIdentifier = "vmultia";
+                else if (lowerPath.Contains("vmultib"))
+                    gunIdentifier = "vmultib";
+                else if (lowerPath.Contains("vmultic"))
+                    gunIdentifier = "vmultic";
+                else if (lowerPath.Contains("vmultid"))
+                    gunIdentifier = "vmultid";
+
+                if (string.IsNullOrEmpty(gunIdentifier))
+                    return keyboard;
+
+                foreach (var kb in keyboards)
+                {
+                    if (kbToIgnore.Contains(kb))
+                        continue;
+
+                    if (kb.DevicePath.ToLowerInvariant().Contains(gunIdentifier))
+                        return kb;
+                }
+            }
+            else
+            {
+                // Original logic for MayFlashWiimote and other guns
+                if (associations.Any(g => g.Key.DevicePath == gunPath))
+                    return associations.First(g => g.Key.DevicePath == gunPath).Value;
+
+                string mouseVIDPID = GetWiimoteVIDPID(gunPath);
+                string mouseChar = GetWiimoteAssociationChar(gunPath);
+                string toSearch = mouseVIDPID + "_" + mouseChar;
+
+                foreach (var kb in keyboards)
+                {
+                    if (kbToIgnore.Contains(kb))
+                        continue;
+
+                    string kbVIDPID = GetWiimoteVIDPID(kb.DevicePath);
+                    string kbChar = GetWiimoteAssociationChar(kb.DevicePath);
+
+                    if (kbVIDPID != null && kbChar != null)
+                    {
+                        string toFind = kbVIDPID + "_" + kbChar;
+                        if (toSearch.ToLowerInvariant() == toFind.ToLowerInvariant())
+                            return kb;
+                    }
+                }
+            }
+
+            return keyboard;
+        }
+
+        public static string GetVIDPID(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return "";
+
+            bool acpi = false;
+            int vidIndex = path.IndexOf("VID");
+            if (vidIndex < 0)
+            {
+                int acpiIndex = path.IndexOf("ACPI");
+                if (acpiIndex < 0)
+                    return "";
+
+                vidIndex = acpiIndex + 5;
+                acpi = true;
+            }
+
+            int pidIndex = path.IndexOf("PID");
+            if (pidIndex < 0 && acpi)
+                pidIndex = path.IndexOf("#", vidIndex + 5);
+            if (pidIndex < 0)
+                return "";
+
+            int endindex = acpi ? path.IndexOf("#", pidIndex) : path.IndexOf("&", pidIndex);
+            if (endindex < 0)
+                return path.Substring(vidIndex, path.Length - vidIndex);
+            else
+                return path.Substring(vidIndex, endindex - vidIndex);
+        }
+        public static string GetWiimoteVIDPID(string devicePath)
+        {
+            try
+            {
+                string[] parts = devicePath.Split('#');
+                if (parts.Length < 3)
+                    return null;
+
+                string[] vidPidParts = parts[1].Split('&');
+                string vidPid = $"{vidPidParts[0]}&{vidPidParts[1]}"; // Only take VID and PID
+
+                string partAfterSecondHash = parts[2];
+                char characterAfterSecondHash = partAfterSecondHash[0];
+
+                return vidPid;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static string GetWiimoteAssociationChar(string devicePath)
+        {
+            try
+            {
+                string[] parts = devicePath.Split('#');
+                if (parts.Length < 3)
+                    return "";
+
+                string partAfterSecondHash = parts[2];
+                char characterAfterSecondHash = partAfterSecondHash[0]; // First character
+
+                return characterAfterSecondHash.ToString();
+            }
+            catch
+            {
+                return "";
+            }
+        }
+        #endregion
     }
 
     // When adding new type, don't forget about MAME64 vidpid forcing
