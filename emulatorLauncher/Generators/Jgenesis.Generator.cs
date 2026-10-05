@@ -554,10 +554,14 @@ namespace EmulatorLauncher
                 case "genesis":
                     return "Genesis";
                 case "mastersystem":
-                case "gamegear":
-                case "gg":
                 case "ms":
                     return "MasterSystem";
+                case "sg1000":
+                case "sg-1000":
+                    return "Sg1000";
+                case "gamegear":
+                case "gg":
+                    return "GameGear";
                 case "gb":
                 case "gbc":
                 case "gameboy":
@@ -568,6 +572,10 @@ namespace EmulatorLauncher
                 case "sega32x":
                 case "mega32x":
                     return "Sega32X";
+                case "pcengine":
+                case "pce":
+                case "turbografx16":
+                    return "PcEngine";
             }
             return null;
         }
