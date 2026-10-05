@@ -23,6 +23,7 @@ namespace EmulatorLauncher
         private ScreenResolution _resolution;
         private SaveStatesWatcher _saveStatesWatcher;
         private int _saveStateSlot;
+        private string _path;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -31,6 +32,8 @@ namespace EmulatorLauncher
             string path = AppConfig.GetFullPath(emulator);
             if (!Directory.Exists(path))
                 return null;
+
+            _path = path;
 
             string exe = Path.Combine(path, "gopher64-windows-x86_64.exe");
             if (!File.Exists(exe))
@@ -44,6 +47,9 @@ namespace EmulatorLauncher
             string portableFolder = Path.Combine(path, "portable_data");
             if (!Directory.Exists(portableFolder)) try { Directory.CreateDirectory(portableFolder); }
                 catch { }
+
+            // Copy saves from retrobat\saves to emulator folder
+            CopySavesToEmulator(path);
 
             bool fullscreen = ShouldRunFullscreen();
 
@@ -233,7 +239,79 @@ namespace EmulatorLauncher
                 _saveStatesWatcher = null;
             }
 
+            // Copy saves from emulator folder to retrobat\saves
+            CopySavesToRetroBat(_path);
+
             base.Cleanup();
+        }
+
+        // Method to copy saves from retrobat\saves to emulator folder, called before the game
+        private void CopySavesToEmulator(string path)
+        {
+            string savesPath = Path.Combine(AppConfig.GetFullPath("saves"));
+                
+            string rbSavePath = Path.Combine(savesPath, "n64", "gopher64");
+            if (!Directory.Exists(rbSavePath))
+            {
+                try { Directory.CreateDirectory(rbSavePath); } catch { }
+                return;
+            }
+
+            string[] rbSavesFiles = Directory.GetFiles(rbSavePath);
+
+            if (rbSavesFiles.Length > 0)
+            {
+                string emulatorSavesFolder = Path.Combine(path, "portable_data", "data", "saves");
+                if (!Directory.Exists(emulatorSavesFolder))
+                    try { Directory.CreateDirectory(emulatorSavesFolder); } catch { }
+
+                foreach (string s in rbSavesFiles)
+                {
+                    string fileName = Path.GetFileName(s);
+                    string targetFile = Path.Combine(emulatorSavesFolder, fileName);
+
+                    if (!File.Exists(targetFile))
+                        try { File.Copy(s, targetFile, true); } catch { }
+                    else if (File.GetLastWriteTime(s) > File.GetLastWriteTime(targetFile))
+                        try { File.Copy(s, targetFile, true); } catch { }
+                }
+            }
+
+            return;
+        }
+
+        private void CopySavesToRetroBat(string emuPath)
+        {
+            string savesPath = Path.Combine(AppConfig.GetFullPath("saves"));
+
+            string rbSavePath = Path.Combine(savesPath, "n64", "gopher64");
+            if (!Directory.Exists(rbSavePath))
+            {
+                try { Directory.CreateDirectory(rbSavePath); } catch { }
+                return;
+            }
+
+            string emulatorSavesFolder = Path.Combine(_path, "portable_data", "data", "saves");
+            if (!Directory.Exists(emulatorSavesFolder))
+                try { Directory.CreateDirectory(emulatorSavesFolder); } catch { }
+
+            string[] SavesFiles = Directory.GetFiles(emulatorSavesFolder);
+
+            if (SavesFiles.Length > 0)
+            {
+                foreach (string s in SavesFiles)
+                {
+                    string fileName = Path.GetFileName(s);
+                    string targetFile = Path.Combine(rbSavePath, fileName);
+
+                    if (!File.Exists(targetFile))
+                        try { File.Copy(s, targetFile, true); } catch { }
+                    else if (File.GetLastWriteTime(s) > File.GetLastWriteTime(targetFile))
+                        try { File.Copy(s, targetFile, true); } catch { }
+                }
+            }
+
+            return;
         }
     }
 }

@@ -1,9 +1,10 @@
-﻿using System.Linq;
-using System.IO;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.Joysticks;
-using System.Collections.Generic;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -24,8 +25,8 @@ namespace EmulatorLauncher
             if (Program.Controllers.Count < 1)
                 return;
 
-            // Get count of xinput controllers (will be used later for index of gamepad)
-            _xinputCount = Controllers.Where(c => c.IsXInputDevice).Count();
+            // Number of connected XInput pads: Altirra registers them before DirectInput devices
+            _xinputCount = XInputDevice.GetDevices().Length;
 
             // Save existing mapping profiles to restore them later
             string inputMapsSection = "User\\Software\\virtualdub.org\\Altirra\\Profiles\\00000000\\Input maps";
@@ -129,25 +130,33 @@ namespace EmulatorLauncher
 
             byteList.AddRange(new byte[] { 0x00, 0x00, 0x00 });
 
-            // index of gamepad
-            if (ctrl.IsXInputDevice && SystemConfig.isOptSet("altirra_inputdriver") && SystemConfig["altirra_inputdriver"] == "xinput")
+            // Altirra input unit: connected XInput pads first (slot order), then DirectInput devices not handled by XInput (joystick.cpp RescanForDevices)
+            int unitIndex = -1;
+
+            if (ctrl.IsXInputDevice)
             {
-                int xIndex = ctrl.PlayerIndex - 1;
-
                 if (ctrl.XInput != null)
-                    xIndex = ctrl.XInput.DeviceIndex;
-
-                if (SystemConfig.isOptSet("altirra_forcepadindex" + playerIndex) && !string.IsNullOrEmpty(SystemConfig["altirra_forcepadindex" + playerIndex]))
-                    xIndex = SystemConfig["altirra_forcepadindex" + playerIndex].ToInteger() - 1;
-
-                byteList.Add((byte)xIndex);
+                    unitIndex = XInputDevice.GetDevices().Count(x => x.DeviceIndex < ctrl.XInput.DeviceIndex);
             }
             else if (ctrl.DirectInput != null)
             {
-                int dIndex = ctrl.DirectInput.DeviceIndex + _xinputCount;
-                byteList.Add((byte)dIndex);
+                var dinputPads = DirectInputInfo.Controllers
+                    .Where(d => !d.IsXInput)
+                    .OrderBy(d => d.DeviceIndex)
+                    .ToList();
+
+                int rank = dinputPads.FindIndex(d => d.InstanceGuid == ctrl.DirectInput.InstanceGuid);
+                if (rank >= 0)
+                    unitIndex = _xinputCount + rank;
             }
-            byteList.AddRange(new byte[] { 0x00, 0x00, 0x00 });
+
+            if (SystemConfig.isOptSet("altirra_forcepadindex" + playerIndex) && !string.IsNullOrEmpty(SystemConfig["altirra_forcepadindex" + playerIndex]))
+                unitIndex = SystemConfig["altirra_forcepadindex" + playerIndex].ToInteger() - 1;
+
+            if (unitIndex < 0)
+                SimpleLogger.Instance.Info("[INFO] Altirra: input unit not found for player " + playerIndex + ", mapping bound to any controller.");
+
+            byteList.AddRange(BitConverter.GetBytes(unitIndex));
 
             // Add the bytes corresponding to the name of the controller
             byteList.AddRange(GetControllerNameByteRange(system, playerIndex, joyPort));
@@ -210,19 +219,19 @@ namespace EmulatorLauncher
                     byteList.AddRange(GetByteRangeForXInput(system, "a"));
                 byteList.AddRange(GetByteRangeForButton(system, 5, playerIndex));   // up - button 1
 
-                if (playerIndex == 1 && system != "atari5200")
+                if (playerIndex != 1 && system != "atari5200")
                     goto finish;
 
                 if (system == "atari5200")
                     byteList.AddRange(GetByteRangeForXInput(system, "dpdown"));
                 else
-                    byteList.AddRange(GetByteRangeForXInput(system, "start"));
+                    byteList.AddRange(ToConsole(GetByteRangeForXInput(system, "start")));
                 byteList.AddRange(GetByteRangeForButton(system, 6, playerIndex));   // down - start
 
                 if (system == "atari5200")
                     byteList.AddRange(GetByteRangeForXInput(system, "leftx"));
                 else
-                    byteList.AddRange(GetByteRangeForXInput(system, "back"));
+                    byteList.AddRange(ToConsole(GetByteRangeForXInput(system, "back")));
                 byteList.AddRange(GetByteRangeForButton(system, 7, playerIndex));   // analog H - select
 
                 if (system != "atari5200")
@@ -297,19 +306,19 @@ namespace EmulatorLauncher
                     byteList.AddRange(GetByteRangeForInput(system, "a", sdlCtrl));
                 byteList.AddRange(GetByteRangeForButton(system, 5, playerIndex));   // up - button 1
 
-                if (playerIndex == 1 && system != "atari5200")
+                if (playerIndex != 1 && system != "atari5200")
                     goto finish;
 
                 if (system == "atari5200")
                     byteList.AddRange(GetByteRangeForInput(system, "dpdown", sdlCtrl));
                 else
-                    byteList.AddRange(GetByteRangeForInput(system, "start", sdlCtrl));
+                    byteList.AddRange(ToConsole(GetByteRangeForInput(system, "start", sdlCtrl)));
                 byteList.AddRange(GetByteRangeForButton(system, 6, playerIndex));   // down - start
 
                 if (system == "atari5200")
                     byteList.AddRange(GetByteRangeForInput(system, "leftx", sdlCtrl, true));
                 else
-                    byteList.AddRange(GetByteRangeForInput(system, "back", sdlCtrl));
+                    byteList.AddRange(ToConsole(GetByteRangeForInput(system, "back", sdlCtrl)));
                 byteList.AddRange(GetByteRangeForButton(system, 7, playerIndex));   // analog H - select
 
                 if (system != "atari5200")
@@ -391,6 +400,13 @@ namespace EmulatorLauncher
                 ini.WriteValue(defaultProfileSection, "Input: Active map names", "\"" + kbProfile.Name + "\"");
         }
 
+        // Bytes 4-5 of an input range are the low word of the mapping controller id: route the mapping to the 2nd controller (console)
+        private static byte[] ToConsole(byte[] input)
+        {
+            input[4] = 0x01;
+            return input;
+        }
+
         private byte[] GetByteRangeForInput(string system, string buttonkey, SdlToDirectInput ctrl, bool isAxis = false)
         {
             byte[] byteArray = new byte[6];
@@ -450,7 +466,6 @@ namespace EmulatorLauncher
             else if (button.StartsWith("b"))
             {
                 int buttonID = button.Substring(1).ToInteger();
-                buttonID++;
                 byteArray[0] = (byte)buttonID;
                 byteArray[1] = 0x28;
             }
@@ -676,7 +691,7 @@ namespace EmulatorLauncher
         static readonly AltirraKBProfile[] altirraDefaultKeyboardProfiles = new AltirraKBProfile[]
         {
             new AltirraKBProfile { System = "atari800,xegs", Name = "Arrow Keys -> Joystick (port 1)", Port = 1, Type = "Joystick(CX40)", ByteArray = "02 00 00 00 1F 00 00 00 01 00 00 00 05 00 00 00 FF FF FF FF 41 00 72 00 72 00 6F 00 77 00 20 00 4B 00 65 00 79 00 73 00 20 00 2D 00 3E 00 20 00 4A 00 6F 00 79 00 73 00 74 00 69 00 63 00 6B 00 20 00 28 00 70 00 6F 00 72 00 74 00 20 00 31 00 29 00 00 00 01 00 00 00 00 00 00 00 25 00 00 00 00 00 00 00 02 01 00 00 27 00 00 00 00 00 00 00 03 01 00 00 26 00 00 00 00 00 00 00 00 01 00 00 28 00 00 00 00 00 00 00 01 01 00 00 A2 00 00 00 00 00 00 00 00 00 00 00" },
-            new AltirraKBProfile { System = "atari800,xegs", Name = "Arrow Keys -> Joystick (port 2)", Port = 2, Type = "Joystick(CX40)", ByteArray = "02 00 00 00 1F 00 00 00 01 00 00 00 05 00 00 00 FF FF FF FF 41 00 72 00 72 00 6F 00 77 00 20 00 4B 00 65 00 79 00 73 00 20 00 2D 00 3E 00 20 00 4A 00 6F 00 79 00 73 00 74 00 69 00 63 00 6B 00 20 00 28 00 70 00 6F 00 72 00 74 00 20 00 31 00 29 00 00 00 01 00 00 00 01 00 00 00 25 00 00 00 00 00 00 00 02 01 00 00 27 00 00 00 00 00 00 00 03 01 00 00 26 00 00 00 00 00 00 00 00 01 00 00 28 00 00 00 00 00 00 00 01 01 00 00 A2 00 00 00 00 00 00 00 00 00 00 00" },
+            new AltirraKBProfile { System = "atari800,xegs", Name = "Arrow Keys -> Joystick (port 2)", Port = 2, Type = "Joystick(CX40)", ByteArray = "02 00 00 00 1F 00 00 00 01 00 00 00 05 00 00 00 FF FF FF FF 41 00 72 00 72 00 6F 00 77 00 20 00 4B 00 65 00 79 00 73 00 20 00 2D 00 3E 00 20 00 4A 00 6F 00 79 00 73 00 74 00 69 00 63 00 6B 00 20 00 28 00 70 00 6F 00 72 00 74 00 20 00 32 00 29 00 00 00 01 00 00 00 01 00 00 00 25 00 00 00 00 00 00 00 02 01 00 00 27 00 00 00 00 00 00 00 03 01 00 00 26 00 00 00 00 00 00 00 00 01 00 00 28 00 00 00 00 00 00 00 01 01 00 00 A2 00 00 00 00 00 00 00 00 00 00 00" },
             new AltirraKBProfile { System = "atari5200", Name = "Arrow Keys -> Joystick5200 (port 1)", Port = 1, Type = "5200 Controller", ByteArray = "02 00 00 00 23 00 00 00 01 00 00 00 17 00 00 00 FF FF FF FF 41 00 72 00 72 00 6F 00 77 00 20 00 4B 00 65 00 79 00 73 00 20 00 2D 00 3E 00 20 00 4A 00 6F 00 79 00 73 00 74 00 69 00 63 00 6B 00 35 00 32 00 30 00 30 00 20 00 28 00 70 00 6F 00 72 00 74 00 20 00 31 00 29 00 00 00 05 00 00 00 00 00 00 00 A2 00 00 00 00 00 00 00 00 00 00 00 A0 00 00 00 00 00 00 00 01 00 00 00 25 00 00 00 00 00 00 00 02 01 00 00 27 00 00 00 00 00 00 00 03 01 00 00 26 00 00 00 00 00 00 00 00 01 00 00 28 00 00 00 00 00 00 00 01 01 00 00 00 00 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00 00 00 00 01 08 00 00 60 00 00 00 00 00 00 00 00 04 00 00 61 00 00 00 00 00 00 00 01 04 00 00 62 00 00 00 00 00 00 00 02 04 00 00 63 00 00 00 00 00 00 00 03 04 00 00 64 00 00 00 00 00 00 00 04 04 00 00 65 00 00 00 00 00 00 00 05 04 00 00 66 00 00 00 00 00 00 00 06 04 00 00 67 00 00 00 00 00 00 00 07 04 00 00 68 00 00 00 00 00 00 00 08 04 00 00 69 00 00 00 00 00 00 00 09 04 00 00 6A 00 00 00 00 00 00 00 0A 04 00 00 6F 00 00 00 00 00 00 00 0B 04 00 00 0D 00 00 00 00 00 00 00 0C 04 00 00 74 00 00 00 00 00 00 00 0E 04 00 00 50 00 00 00 00 00 00 00 0D 04 00 00" },
             new AltirraKBProfile { System = "atari5200", Name = "Arrow Keys -> Joystick5200 (port 2)", Port = 2, Type = "5200 Controller", ByteArray = "02 00 00 00 23 00 00 00 01 00 00 00 17 00 00 00 FF FF FF FF 41 00 72 00 72 00 6F 00 77 00 20 00 4B 00 65 00 79 00 73 00 20 00 2D 00 3E 00 20 00 4A 00 6F 00 79 00 73 00 74 00 69 00 63 00 6B 00 35 00 32 00 30 00 30 00 20 00 28 00 70 00 6F 00 72 00 74 00 20 00 32 00 29 00 00 00 05 00 00 00 01 00 00 00 A2 00 00 00 00 00 00 00 00 00 00 00 A0 00 00 00 00 00 00 00 01 00 00 00 25 00 00 00 00 00 00 00 02 01 00 00 27 00 00 00 00 00 00 00 03 01 00 00 26 00 00 00 00 00 00 00 00 01 00 00 28 00 00 00 00 00 00 00 01 01 00 00 00 00 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00 00 00 00 01 08 00 00 60 00 00 00 00 00 00 00 00 04 00 00 61 00 00 00 00 00 00 00 01 04 00 00 62 00 00 00 00 00 00 00 02 04 00 00 63 00 00 00 00 00 00 00 03 04 00 00 64 00 00 00 00 00 00 00 04 04 00 00 65 00 00 00 00 00 00 00 05 04 00 00 66 00 00 00 00 00 00 00 06 04 00 00 67 00 00 00 00 00 00 00 07 04 00 00 68 00 00 00 00 00 00 00 08 04 00 00 69 00 00 00 00 00 00 00 09 04 00 00 6A 00 00 00 00 00 00 00 0A 04 00 00 6F 00 00 00 00 00 00 00 0B 04 00 00 0D 00 00 00 00 00 00 00 0C 04 00 00 74 00 00 00 00 00 00 00 0E 04 00 00 50 00 00 00 00 00 00 00 0D 04 00 00" }
         };
@@ -710,23 +725,22 @@ namespace EmulatorLauncher
 
         private static readonly Dictionary<int, byte[]> p1_800 = new Dictionary<int, byte[]>
         {
-            { 1, new byte[] { 0x00, 0x00, 0x02, 0x01, 0x00, 0x00 } },
-            { 2, new byte[] { 0x00, 0x00, 0x03, 0x01, 0x00, 0x00 } },
-            { 3, new byte[] { 0x00, 0x00, 0x00, 0x01, 0x00, 0x00 } },
-            { 4, new byte[] { 0x00, 0x00, 0x01, 0x01, 0x00, 0x00 } },
-            { 5, new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } },
-            { 6, new byte[] { 0x00, 0x00, 0x01, 0x01, 0x00, 0x00 } },
-            { 7, new byte[] { 0x00, 0x00, 0x00, 0x02, 0x00, 0x00 } },
-            { 8, new byte[] { 0x00, 0x00, 0x01, 0x02, 0x00, 0x00 } },
+            { 1, new byte[] { 0x00, 0x00, 0x02, 0x01, 0x00, 0x00 } },   // Left
+            { 2, new byte[] { 0x00, 0x00, 0x03, 0x01, 0x00, 0x00 } },   // Right
+            { 3, new byte[] { 0x00, 0x00, 0x00, 0x01, 0x00, 0x00 } },   // Up
+            { 4, new byte[] { 0x00, 0x00, 0x01, 0x01, 0x00, 0x00 } },   // Down
+            { 5, new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } },   // Button 0
+            { 6, new byte[] { 0x00, 0x00, 0x00, 0x02, 0x00, 0x00 } },   // Start (console)
+            { 7, new byte[] { 0x00, 0x00, 0x01, 0x02, 0x00, 0x00 } },   // Select (console)
         };
 
         private static readonly Dictionary<int, byte[]> p2_800 = new Dictionary<int, byte[]>
         {
-            { 1, new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } },
-            { 2, new byte[] { 0x00, 0x00, 0x01, 0x00, 0x00, 0x00 } },
-            { 3, new byte[] { 0x00, 0x00, 0x02, 0x01, 0x00, 0x00 } },
-            { 4, new byte[] { 0x00, 0x00, 0x03, 0x01, 0x00, 0x00 } },
-            { 5, new byte[] { 0x00, 0x00, 0x00, 0x01, 0x00, 0x00 } },
+            { 1, new byte[] { 0x00, 0x00, 0x02, 0x01, 0x00, 0x00 } },   // Left
+            { 2, new byte[] { 0x00, 0x00, 0x03, 0x01, 0x00, 0x00 } },   // Right
+            { 3, new byte[] { 0x00, 0x00, 0x00, 0x01, 0x00, 0x00 } },   // Up
+            { 4, new byte[] { 0x00, 0x00, 0x01, 0x01, 0x00, 0x00 } },   // Down
+            { 5, new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } },   // Button 0
         };
     }
 }
