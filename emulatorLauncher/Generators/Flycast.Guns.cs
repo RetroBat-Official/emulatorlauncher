@@ -633,11 +633,11 @@ namespace EmulatorLauncher
                             string vidpid = GetVIDPID(devicePath);
                             bool isWiimote = devicePath.Contains("VID_0079&PID_1802");
 
-                            // Keyboard owned by one of the guns: Wiimote keyboard (Mayflash, Wiimote4Guns) or keyboard collection of the gun itself (Gun4IR, Sinden...)
+                            // Keyboard associated to a Wiimote gun (Mayflash or Wiimote4Guns): assign it to the gun port
                             bool isWiimoteGunKb = _gunsKbAssociation.Any(p => p.Value == kb && (p.Key.Type == RawLighGunType.MayFlashWiimote || p.Key.Type == RawLighGunType.Wiimote4Guns));
-                            bool isGunDeviceKb = kb1 != kb2 && (IsKeyboardOfGun(kb, lightgun1) || IsKeyboardOfGun(kb, lightgun2));
+                            RawLightgun w4gGun = _gunsKbAssociation.Where(p => p.Value == kb && p.Key.Type == RawLighGunType.Wiimote4Guns).Select(p => p.Key).FirstOrDefault();
 
-                            if (kbDic.Contains(kb) && (isWiimoteGunKb || isGunDeviceKb))
+                            if (kbDic.Contains(kb) && isWiimoteGunKb)
                             {
                                 index = 0;
                                 if (kb == kb2)
@@ -878,19 +878,20 @@ namespace EmulatorLauncher
                                         }
                                     }
 
-                                    // Keyboard owned by a gun (Wiimote4Guns, Gun4IR, Sinden...): start/coin keys may be 1/5 for every gun or 2/6 for P2...
-                                    // A keyboard assigned to a single port only uses unsuffixed binds, so bind all start/coin keys to its own port.
-                                    if (index < 4 && !isWiimote)
+                                    // Wiimote4Guns: each vmulti keyboard sends the keys of its player (P1: 1/5, P2: 2/6...).
+                                    // A keyboard assigned to a single port only reads unsuffixed binds and Flycast keeps one key per button and port:
+                                    // bind start/coin to this player's keys, written last so that they replace the default 1/5.
+                                    if (w4gGun != null && index < 4)
                                     {
-                                        int bindIndex = 0;
-                                        while (!string.IsNullOrEmpty(ctrlini.GetValue("digital", "bind" + bindIndex)))
-                                            bindIndex++;
-
-                                        for (int p = 0; p < 4; p++)
+                                        int player = GetWiimote4GunsPlayer(w4gGun);
+                                        if (player > 0)
                                         {
-                                            ctrlini.WriteValue("digital", "bind" + bindIndex++, (30 + p) + ":btn_start");   // 1..4
-                                            if (_isArcade)
-                                                ctrlini.WriteValue("digital", "bind" + bindIndex++, (34 + p) + ":btn_d");   // 5..8 (coin)
+                                            int bindIndex = 0;
+                                            while (!string.IsNullOrEmpty(ctrlini.GetValue("digital", "bind" + bindIndex)))
+                                                bindIndex++;
+
+                                            ctrlini.WriteValue("digital", "bind" + bindIndex++, (29 + player) + ":btn_start");                          // 1, 2, 3, 4
+                                            ctrlini.WriteValue("digital", "bind" + bindIndex++, (33 + player) + (_isArcade ? ":btn_d" : ":btn_a"));     // 5, 6, 7, 8
                                         }
                                     }
 
@@ -911,14 +912,14 @@ namespace EmulatorLauncher
             ConfigureFlycastCrosshair(ini, multigun);
         }
 
-        // True when the keyboard is a collection of the same physical lightgun device (same VID/PID)
-        private static bool IsKeyboardOfGun(RawInputDevice kb, RawLightgun gun)
+        // Wiimote4Guns player number (1-4) from the gun name set by RawLightgun ("Wiimote4Guns P2"), 0 if unknown
+        private static int GetWiimote4GunsPlayer(RawLightgun gun)
         {
-            if (kb == null || gun == null || gun.Type == RawLighGunType.Mouse)
-                return false;
+            if (gun == null || string.IsNullOrEmpty(gun.Name))
+                return 0;
 
-            string vidPid = RawLightgun.GetVIDPID(gun.DevicePath);
-            return !string.IsNullOrEmpty(vidPid) && kb.DevicePath.Contains(vidPid);
+            char last = gun.Name[gun.Name.Length - 1];
+            return (last >= '1' && last <= '4') ? last - '0' : 0;
         }
 
         private static string GetVIDPID(string path)
