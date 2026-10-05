@@ -296,10 +296,24 @@ namespace EmulatorLauncher
             if (_emulator != "corsixth")
                 return;
 
+            // Theme Hospital data: the game is normally a ".game" folder, if a file is used its folder is taken
+            string thInstall = Directory.Exists(rom) ? rom : Path.GetDirectoryName(rom);
+
+            // Portable mode: without config.path.txt, CorsixTH creates %APPDATA%\CorsixTH at startup even with --config-file
+            // "." = working directory (emulator folder), avoids path encoding issues in Lua
+            string configPathFile = Path.Combine(_path, "config.path.txt");
+            try
+            {
+                if (!File.Exists(configPathFile) || File.ReadAllText(configPathFile).Trim() != ".")
+                    File.WriteAllText(configPathFile, ".");
+            }
+            catch { SimpleLogger.Instance.Warning("[WARNING] Unable to write CorsixTH config.path.txt."); }
+
             string cfgFile = Path.Combine(_path, "config.txt");
             if (!File.Exists(cfgFile))
             {
-                try { 
+                try
+                {
                     File.WriteAllText(cfgFile, corsixth_config);
                     System.Threading.Thread.Sleep(100);
                 }
@@ -308,7 +322,8 @@ namespace EmulatorLauncher
             string hotkeyFile = Path.Combine(_path, "hotkeys.txt");
             if (!File.Exists(hotkeyFile))
             {
-                try { 
+                try
+                {
                     File.WriteAllText(hotkeyFile, corsixth_hotkeys);
                     System.Threading.Thread.Sleep(100);
                 }
@@ -320,8 +335,8 @@ namespace EmulatorLauncher
                 try
                 {
                     // Paths
-                    ini.WriteValue("", "theme_hospital_install", "[[" + rom + "]]");
-                    
+                    ini.WriteValue("", "theme_hospital_install", "[[" + thInstall + "]]");
+
                     string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "corsixth");
                     if (!Directory.Exists(savesPath))
                     {
@@ -341,43 +356,38 @@ namespace EmulatorLauncher
                     //Video
                     ini.WriteValue("", "fullscreen", _fullscreen ? "true" : "false");
 
-                    /// Game resolution
-                    string gameWidth = Screen.PrimaryScreen.Bounds.Width.ToString();
-                    string gameHeight = Screen.PrimaryScreen.Bounds.Height.ToString();
+                    // Internal resolution = logical size, letterboxed by CorsixTH in desktop fullscreen
+                    // CorsixTH always opens on the primary display
+                    int width = _resolution != null ? _resolution.Width : Screen.PrimaryScreen.Bounds.Width;
+                    int height = _resolution != null ? _resolution.Height : Screen.PrimaryScreen.Bounds.Height;
 
-                    if (_resolution != null)
-                    {
-                        gameWidth = _resolution.Width.ToString();
-                        gameHeight = _resolution.Height.ToString();
-                    }
-
-                    else if (SystemConfig.isOptSet("th_resolution") && !string.IsNullOrEmpty(SystemConfig["th_resolution"]))
+                    // The game option has priority over the desktop video mode
+                    if (SystemConfig.isOptSet("th_resolution") && !string.IsNullOrEmpty(SystemConfig["th_resolution"]))
                     {
                         string[] gameRes = SystemConfig["th_resolution"].Split('x');
-                        gameWidth = gameRes[0];
-                        gameHeight = gameRes[1];
+                        if (gameRes.Length == 2 && gameRes[0].ToInteger() > 0 && gameRes[1].ToInteger() > 0)
+                        {
+                            width = gameRes[0].ToInteger();
+                            height = gameRes[1].ToInteger();
+                        }
                     }
 
-                    int width = gameWidth.ToInteger();
-                    int height = gameHeight.ToInteger();
+                    if (height > 0 && (float)width / height > 1.4f)
+                        _nobezels = true;
 
-                    if (height > 0)
-                    {
-                        float ratio = (float)width / height;
+                    ini.WriteValue("", "width", width.ToString());
+                    ini.WriteValue("", "height", height.ToString());
 
-                        if (ratio > 1.4f)
-                            _nobezels = true;
-                    }
-
-                    ini.WriteValue("", "width", gameWidth);
-                    ini.WriteValue("", "height", gameHeight);
+                    // UI scale is capped by CorsixTH to the largest scale fitting the resolution
+                    // Removed when not set, so that the engine default applies
+                    if (SystemConfig.isOptSet("th_ui_scale") && !string.IsNullOrEmpty(SystemConfig["th_ui_scale"]))
+                        ini.WriteValue("", "ui_scale", SystemConfig["th_ui_scale"]);
+                    else
+                        ini.Remove("", "ui_scale");
 
                     ini.WriteValue("", "check_for_updates", "false");
                     BindBoolIniFeatureOn(ini, "", "capture_mouse", "th_capture_mouse", "true", "false");
-                    if (SystemConfig.isOptSet("th_language") && !string.IsNullOrEmpty(SystemConfig["th_language"]))
-                        ini.WriteValue("", "language", "[[" + SystemConfig["th_language"] + "]]");
-                    else
-                        ini.WriteValue("", "language", "[[English]]");
+                    ini.WriteValue("", "language", "[[" + GetCorsixTHLanguage() + "]]");
 
                     ini.Save();
                 }
@@ -402,6 +412,51 @@ namespace EmulatorLauncher
             }
             commandArray.Add("--config-file=" + "\"" + cfgFile + "\"");
             commandArray.Add("--hotkeys-file=" + "\"" + hotkeyFile + "\"");
+        }
+
+        // CorsixTH language names (Lua/languages/*.lua), by EmulationStation language code
+        private static readonly Dictionary<string, string> corsixthLanguages = new Dictionary<string, string>
+        {
+            { "cs", "Czech" },
+            { "da", "Danish" },
+            { "de", "German" },
+            { "el", "Greek" },
+            { "en", "English" },
+            { "es", "Spanish" },
+            { "fi", "Finnish" },
+            { "fr", "French" },
+            { "hu", "Hungarian" },
+            { "it", "Italian" },
+            { "ja", "Japanese" },
+            { "ko", "Korean" },
+            { "nb", "Norwegian" },
+            { "nl", "Dutch" },
+            { "no", "Norwegian" },
+            { "pl", "Polish" },
+            { "pt", "Portuguese" },
+            { "ru", "Russian" },
+            { "sv", "Swedish" },
+            { "uk", "Ukrainian" },
+            { "zh", "Chinese (simplified)" }
+        };
+
+        private string GetCorsixTHLanguage()
+        {
+            if (SystemConfig.isOptSet("th_language") && !string.IsNullOrEmpty(SystemConfig["th_language"]))
+                return SystemConfig["th_language"];
+
+            // Default: EmulationStation language, regional variants first
+            string esLanguage = SystemConfig["Language"] ?? string.Empty;
+            if (esLanguage.Equals("pt_BR", StringComparison.OrdinalIgnoreCase))
+                return "Brazilian Portuguese";
+            if (esLanguage.Equals("zh_TW", StringComparison.OrdinalIgnoreCase))
+                return "Chinese (traditional)";
+
+            string lang;
+            if (corsixthLanguages.TryGetValue(GetCurrentLanguage(), out lang))
+                return lang;
+
+            return "English";
         }
 
         private void Configuredhewm3(List<string> commandArray, string rom)

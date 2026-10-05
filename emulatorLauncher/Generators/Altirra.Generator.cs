@@ -98,28 +98,18 @@ namespace EmulatorLauncher
             if (SystemConfig.getOptBoolean("altirra_autoprofile"))
                 commandArray.Add("/autoprofile");
 
-            if (SystemConfig.isOptSet("altirra_kernel") &&  SystemConfig["altirra_kernel"] != "default")
-                commandArray.Add("/kernel:default");
-
             if (SystemConfig.isOptSet("altirra_cartmapper") && !string.IsNullOrEmpty(SystemConfig["altirra_cartmapper"]))
             {
                 commandArray.Add("/cartmapper");
                 commandArray.Add(SystemConfig["altirra_cartmapper"]);
             }
-            else
+            else if (_profile != null && (_profile.Machine == "5200" || _profile.Machine == "XEGS"))
             {
-                if (_profile != null)
+                string mapper = GetDefaultCartMapper(rom, _profile.Machine);
+                if (mapper != null)
                 {
-                    if (_profile.Machine == "5200")
-                    {
-                        commandArray.Add("/cartmapper");
-                        commandArray.Add("19");
-                    }
-                    else if (_profile.Machine == "XEGS")
-                    {
-                        commandArray.Add("/cartmapper");
-                        commandArray.Add("13");
-                    }
+                    commandArray.Add("/cartmapper");
+                    commandArray.Add(mapper);
                 }
             }
 
@@ -154,6 +144,14 @@ namespace EmulatorLauncher
 
                 ini.WriteValue("User\\Software\\virtualdub.org\\Altirra", "ShownSetupWizard", "1");
                 ini.WriteValue("User\\Software\\virtualdub.org\\Altirra\\DialogDefaults", "DiscardMemory", "\"ok\"");
+
+                // Environment and acceleration categories are read from the global profile (machine profiles only hold hardware/firmware)
+                string globalProfileSection = "User\\Software\\virtualdub.org\\Altirra\\Profiles\\00000000";
+                ini.Remove("", "Pause when inactive");  // stray root key written by older versions
+                ini.WriteValue(globalProfileSection, "Pause when inactive", "1");
+                ini.WriteValue(globalProfileSection, "Cassette: Auto-boot enabled", "1");
+                ini.WriteValue(globalProfileSection, "Cassette: Auto-rewind enabled", "1");
+
                 if (p != null)
                     ini.WriteValue("User\\Software\\virtualdub.org\\Altirra\\Profiles", "Current profile", p.ProfileCode);
 
@@ -162,16 +160,18 @@ namespace EmulatorLauncher
 
                 if (p != null)
                 {
-                    ini.WriteValue(profileSection, "Pause when inactive", "1");
-
                     profileSection = "User\\Software\\virtualdub.org\\Altirra\\Profiles\\" + p.ProfileSectionCode;
+
                     ini.WriteValue(profileSection, "_Name", "\"" + p.Name + "\"");
                     ini.WriteValue(profileSection, "_Visible", "1");
                     ini.WriteValue(profileSection, "_Category Mask", "\"hardware,firmware\"");
                     ini.WriteValue(profileSection, "_Saved Category Mask", "\"hardware,firmware\"");
-                    
+
+                    // String values must be quoted, otherwise Altirra silently ignores them
                     if (SystemConfig.isOptSet("altirra_kernel") && SystemConfig["altirra_kernel"] == "internal")
-                        ini.WriteValue(profileSection, "Kernel path", p.InternalKernel);
+                        ini.WriteValue(profileSection, "Kernel path", "\"" + p.InternalKernel + "\"");
+                    else
+                        ini.WriteValue(profileSection, "Kernel path", "\"\"");
 
                     ini.WriteValue(defaultsProfileSection, _machine, p.ProfileCode);
 
@@ -208,17 +208,66 @@ namespace EmulatorLauncher
                                 break;
                         }
                     }
+                    else
+                    {
+                        // Default: NTSC (Altirra default)
+                        ini.WriteValue(profileSection, "PAL mode", "0");
+                        ini.WriteValue(profileSection, "SECAM mode", "0");
+                        ini.WriteValue(profileSection, "Mixed video mode", "0");
+                    }
 
                     BindBoolIniFeature(ini, profileSection, "GTIA: CTIA mode", "altirra_ctia", "1", "0");
-
-                    ini.WriteValue(profileSection, "Cassette: Auto-boot enabled", "1");
-                    ini.WriteValue(profileSection, "Cassette: Auto-rewind enabled", "1");
                 }
 
                 ConfigureControllers(ini, system, p);
 
                 ini.Save();
             }
+        }
+
+        /// <summary>
+        /// Altirra applies /cartmapper to any headerless image regardless of its size (image is truncated or padded),
+        /// so the mapper must match the image size. Returns null when no safe default exists.
+        /// </summary>
+        private static string GetDefaultCartMapper(string rom, string machine)
+        {
+            string ext = Path.GetExtension(rom).ToLowerInvariant();
+            if (ext != ".a52" && ext != ".bin" && ext != ".rom")
+                return null;
+
+            long size;
+            try { size = new FileInfo(rom).Length; }
+            catch { return null; }
+
+            if (machine == "5200")
+            {
+                switch (size)
+                {
+                    case 4096: return "20";     // 5200 4K
+                    case 8192: return "19";     // 5200 8K
+                    case 16384: return "6";     // 5200 16K (two chips)
+                    case 32768: return "4";     // 5200 32K
+                    case 40960: return "7";     // Bounty Bob (5200)
+                }
+            }
+            else if (machine == "XEGS")
+            {
+                if (size <= 8192)
+                    return "1";                 // 8K (2K/4K images are mirrored)
+
+                switch (size)
+                {
+                    case 16384: return "2";     // 16K
+                    case 32768: return "12";    // XEGS 32K
+                    case 65536: return "13";    // XEGS 64K
+                    case 131072: return "14";   // XEGS 128K
+                    case 262144: return "23";   // XEGS 256K
+                    case 524288: return "24";   // XEGS 512K
+                    case 1048576: return "25";  // XEGS 1M
+                }
+            }
+
+            return null;
         }
 
         public override int RunAndWait(ProcessStartInfo path)
