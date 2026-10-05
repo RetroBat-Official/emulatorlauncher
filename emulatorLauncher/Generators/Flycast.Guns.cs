@@ -46,7 +46,6 @@ namespace EmulatorLauncher
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
-                _sindenSoft = true;
             }
 
             // If DemulShooter is enabled, configure it
@@ -397,13 +396,13 @@ namespace EmulatorLauncher
                     if (lightgun1.Type == RawLighGunType.MayFlashWiimote || lightgun1.Type == RawLighGunType.Wiimote4Guns)
                         kb1 = RawLightgun.FindAssociatedKeyboard(lightgun1.DevicePath, keyboards, keyboard, _gunsKbAssociation);
                     else
-                        kb1 = FindAssociatedKeyboard(keyboards, lightgun1);
+                        kb1 = RawLightgun.FindKeyboardByVidPid(lightgun1.DevicePath, keyboards, keyboard);
                     _gunsKbAssociation.Add(lightgun1, kb1);
 
                     if (lightgun2.Type == RawLighGunType.MayFlashWiimote || lightgun2.Type == RawLighGunType.Wiimote4Guns)
                         kb2 = RawLightgun.FindAssociatedKeyboard(lightgun2.DevicePath, keyboards, keyboard, _gunsKbAssociation);
                     else
-                        kb2 = FindAssociatedKeyboard(keyboards, lightgun2);
+                        kb2 = RawLightgun.FindKeyboardByVidPid(lightgun2.DevicePath, keyboards, keyboard);
                     _gunsKbAssociation.Add(lightgun2, kb2);
 
                     List<RawInputDevice> kbdevices = new List<RawInputDevice>();
@@ -634,9 +633,11 @@ namespace EmulatorLauncher
                             string vidpid = GetVIDPID(devicePath);
                             bool isWiimote = devicePath.Contains("VID_0079&PID_1802");
 
-                            // Keyboard associated to a Wiimote gun (Mayflash or Wiimote4Guns): use the gun player index
+                            // Keyboard owned by one of the guns: Wiimote keyboard (Mayflash, Wiimote4Guns) or keyboard collection of the gun itself (Gun4IR, Sinden...)
                             bool isWiimoteGunKb = _gunsKbAssociation.Any(p => p.Value == kb && (p.Key.Type == RawLighGunType.MayFlashWiimote || p.Key.Type == RawLighGunType.Wiimote4Guns));
-                            if (kbDic.Contains(kb) && isWiimoteGunKb)
+                            bool isGunDeviceKb = kb1 != kb2 && (IsKeyboardOfGun(kb, lightgun1) || IsKeyboardOfGun(kb, lightgun2));
+
+                            if (kbDic.Contains(kb) && (isWiimoteGunKb || isGunDeviceKb))
                             {
                                 index = 0;
                                 if (kb == kb2)
@@ -877,6 +878,22 @@ namespace EmulatorLauncher
                                         }
                                     }
 
+                                    // Keyboard owned by a gun (Wiimote4Guns, Gun4IR, Sinden...): start/coin keys may be 1/5 for every gun or 2/6 for P2...
+                                    // A keyboard assigned to a single port only uses unsuffixed binds, so bind all start/coin keys to its own port.
+                                    if (index < 4 && !isWiimote)
+                                    {
+                                        int bindIndex = 0;
+                                        while (!string.IsNullOrEmpty(ctrlini.GetValue("digital", "bind" + bindIndex)))
+                                            bindIndex++;
+
+                                        for (int p = 0; p < 4; p++)
+                                        {
+                                            ctrlini.WriteValue("digital", "bind" + bindIndex++, (30 + p) + ":btn_start");   // 1..4
+                                            if (_isArcade)
+                                                ctrlini.WriteValue("digital", "bind" + bindIndex++, (34 + p) + ":btn_d");   // 5..8 (coin)
+                                        }
+                                    }
+
                                     ctrlini.WriteValue("emulator", "dead_zone", "10");
                                     ctrlini.WriteValue("emulator", "mapping_name", "Keyboard");
                                     ctrlini.WriteValue("emulator", "rumble_power", "100");
@@ -894,31 +911,14 @@ namespace EmulatorLauncher
             ConfigureFlycastCrosshair(ini, multigun);
         }
 
-        private static RawInputDevice FindAssociatedKeyboard(List<RawInputDevice> keyboards, RawLightgun iGun)
+        // True when the keyboard is a collection of the same physical lightgun device (same VID/PID)
+        private static bool IsKeyboardOfGun(RawInputDevice kb, RawLightgun gun)
         {
-            int startIndex = iGun.DevicePath.IndexOf("VID");
-            if (startIndex >= 0)
-            {
-                int endIndex = iGun.DevicePath.IndexOf('#', startIndex);
-                if (endIndex == -1) return keyboards[0];
-                if (iGun.DevicePath.Contains("MI_"))
-                {
-                    endIndex = iGun.DevicePath.IndexOf("MI_", startIndex);
-                    if (endIndex == -1) return keyboards[0];
-                    endIndex += 5;
-                }
-                string searchPath = iGun.DevicePath.Substring(startIndex, endIndex - startIndex);
+            if (kb == null || gun == null || gun.Type == RawLighGunType.Mouse)
+                return false;
 
-                if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
-                    return keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
-                else
-                {
-                    searchPath = iGun.DevicePath.Substring(startIndex, endIndex - startIndex - 5);
-                    if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
-                        return keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
-                }
-            }
-            return keyboards[0];
+            string vidPid = RawLightgun.GetVIDPID(gun.DevicePath);
+            return !string.IsNullOrEmpty(vidPid) && kb.DevicePath.Contains(vidPid);
         }
 
         private static string GetVIDPID(string path)

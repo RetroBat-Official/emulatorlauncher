@@ -77,7 +77,6 @@ namespace EmulatorLauncher
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
-                _sindenSoft = true;
 
                 ini.WriteValue("chihiro.settings", "sinden_border", "true");
 

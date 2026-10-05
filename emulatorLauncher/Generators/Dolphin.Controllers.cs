@@ -35,9 +35,8 @@ namespace EmulatorLauncher
         private static Dictionary<string, string> _gcSpecialHotkeys = new Dictionary<string, string>();
         private static string _emulator;
 
-        public static bool WriteControllersConfig(string path, IniFile ini, string system, string emulator, string rom, bool triforce, bool crediar, TriforceGame triforceGame, string region, out bool sindenSoft)
+        public static bool WriteControllersConfig(string path, IniFile ini, string system, string emulator, string rom, bool triforce, bool crediar, TriforceGame triforceGame, string region)
         {
-            sindenSoft = false;
             _emulator = emulator;
 
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -60,7 +59,7 @@ namespace EmulatorLauncher
                 // Guns
                 if (Program.SystemConfig.getOptBoolean("use_guns"))
                 {
-                    GenerateControllerConfig_wiilightgun(path, sindenSoft);
+                    GenerateControllerConfig_wiilightgun(path);
                     return true;
                 }
 

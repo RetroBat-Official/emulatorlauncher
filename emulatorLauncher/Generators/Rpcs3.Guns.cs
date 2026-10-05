@@ -8,8 +8,6 @@ namespace EmulatorLauncher
 {
     partial class Rpcs3Generator
     {
-        private bool _sindenSoft = false;
-        
         // Setup config.yml file for guns
         
         private void SetupGuns(string path, YmlFile yml, YmlContainer vulkan)
@@ -21,7 +19,6 @@ namespace EmulatorLauncher
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
-                _sindenSoft = true;
             }
 
             SimpleLogger.Instance.Info("[GENERATOR] Setting up guns.");

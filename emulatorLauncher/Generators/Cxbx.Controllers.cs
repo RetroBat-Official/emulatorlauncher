@@ -10,7 +10,6 @@ namespace EmulatorLauncher
 {
     partial class CxbxGenerator : Generator
     {
-        private bool _sindenSoft = false;
         private void ConfigureControllers(IniFile ini)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -276,7 +275,6 @@ namespace EmulatorLauncher
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
-                _sindenSoft = true;
             }
 
             string profileSection = "input-profile-" + (playerIndex - 1);

@@ -26,19 +26,7 @@ namespace EmulatorLauncher
         {
             // Always kill any existing MameHook process at startup
             SimpleLogger.Instance.Info("[INFO] Checking for existing MameHook process");
-            try
-            {
-                var existingProcess = Process.GetProcessesByName("mamehook").FirstOrDefault();
-                if (existingProcess != null)
-                {
-                    existingProcess.Kill();
-                    existingProcess.WaitForExit(1000);
-                }
-            }
-            catch (Exception ex)
-            {
-                SimpleLogger.Instance.Error($"[ERROR] Failed to stop existing MameHooker: {ex.Message}");
-            }
+            MameHooker.KillMameHooker();
 
             bool hbmame = emulator == "hbmame";
             _groovy = emulator == "groovymame";
@@ -823,9 +811,6 @@ namespace EmulatorLauncher
 
         public override void Cleanup()
         {
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
-
             if (_filesToRestore != null)
             {
                 foreach (var f in _filesToRestore)

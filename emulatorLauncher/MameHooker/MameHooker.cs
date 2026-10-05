@@ -38,7 +38,7 @@ namespace EmulatorLauncher
         public static Process StartMameHooker()
         {
             // Check if MameHook is already running
-            Process[] existingProcesses = Process.GetProcessesByName("mamehook");
+            var existingProcesses = FindMameHookerProcesses();
             if (existingProcesses.Length > 0)
             {
                 SimpleLogger.Instance.Info("[INFO] MameHook is already running");
@@ -74,12 +74,29 @@ namespace EmulatorLauncher
             return null;
         }
 
+        private static Process[] FindMameHookerProcesses()
+        {
+            try
+            {
+                return Process.GetProcesses()
+                    .Where(p =>
+                    {
+                        try { return p.ProcessName.IndexOf("mamehook", StringComparison.OrdinalIgnoreCase) >= 0; }
+                        catch { return false; }
+                    })
+                    .ToArray();
+            }
+            catch
+            {
+                return new Process[0];
+            }
+        }
+
         public static void KillMameHooker()
         {
-            var existingProcess = Process.GetProcessesByName("mamehook").FirstOrDefault();
-            if (existingProcess != null)
+            foreach (var existingProcess in FindMameHookerProcesses())
             {
-                SimpleLogger.Instance.Info("[INFO] Found existing MameHooker process - stopping it");
+                SimpleLogger.Instance.Info("[INFO] Found existing MameHooker process (" + existingProcess.ProcessName + ") - stopping it");
                 try
                 {
                     existingProcess.Kill();
@@ -91,6 +108,34 @@ namespace EmulatorLauncher
                     SimpleLogger.Instance.Error($"[ERROR] Failed to stop existing MameHooker: {ex.Message}");
                 }
             }
+        }
+
+        // Replace the port number of "cmw" commands in a MameHook ini line with the given COM port (e.g. "COM3" -> 3)
+        private static string UpdatePortNumber(string line, string comPort)
+        {
+            if (string.IsNullOrEmpty(line) || string.IsNullOrEmpty(comPort) || comPort.Length < 4)
+                return line;
+
+            // Extract port number from COM string (e.g., "COM1" -> "1")
+            string portNumber = comPort.Substring(3);
+
+            // Replace the port number in cmw commands
+            int cmwIndex = line.IndexOf("cmw");
+            if (cmwIndex >= 0)
+            {
+                int spaceIndex = line.IndexOf(' ', cmwIndex);
+                if (spaceIndex >= 0 && spaceIndex + 1 < line.Length)
+                {
+                    int endIndex = spaceIndex + 1;
+                    while (endIndex < line.Length && (char.IsDigit(line[endIndex]) || line[endIndex] == '*'))
+                        endIndex++;
+
+                    string prefix = line.Substring(0, spaceIndex + 1);
+                    string suffix = line.Substring(endIndex);
+                    return prefix + portNumber + suffix;
+                }
+            }
+            return line;
         }
     }
 } 

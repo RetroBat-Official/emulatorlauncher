@@ -21,7 +21,6 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private string _path;
-        private bool _sindenSoft;
         private string _romName;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -349,9 +348,6 @@ namespace EmulatorLauncher
 
             if (_demulshooter)
                 Demulshooter.KillDemulShooter();
-
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
         }
 
         public static Dictionary<string, string> ParseLauncherPaths(string ymlPath)

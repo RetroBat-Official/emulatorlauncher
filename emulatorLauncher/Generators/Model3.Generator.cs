@@ -238,9 +238,6 @@ namespace EmulatorLauncher
 
         public override void Cleanup()
         {
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
-
             base.Cleanup();
         }
     }

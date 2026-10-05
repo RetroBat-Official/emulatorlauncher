@@ -16,7 +16,6 @@ namespace EmulatorLauncher
     partial class TeknoParrotGenerator : Generator
     {
         private static bool _demulshooter = false;
-        private static bool _sindenSoft = false;
         private static RawInputDevice _orgKeyboard = null;
         private static Dictionary<RawLightgun, RawInputDevice> _gunsKbAssociation = new Dictionary<RawLightgun, RawInputDevice>();
 
@@ -49,7 +48,6 @@ namespace EmulatorLauncher
             if ((Program.SystemConfig.getOptBoolean("use_guns") || Program.SystemConfig.getOptBoolean("use_demulshooter")) && guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
-                _sindenSoft = true;
             }
             
             RawLightgun gun1 = null;
@@ -623,28 +621,8 @@ namespace EmulatorLauncher
                                         ts_nogun = true;
 
                                     // Find keyboard associated to lightgun
-                                    int startIndex = iGun.DevicePath.IndexOf("VID");
-                                    if (startIndex >= 0 && !useKb && !ts_nogun)
-                                    {
-                                        int endIndex = iGun.DevicePath.IndexOf('#', startIndex);
-                                        if (endIndex == -1) continue;
-                                        if (iGun.DevicePath.Contains("MI_"))
-                                        {
-                                            endIndex = iGun.DevicePath.IndexOf("MI_", startIndex);
-                                            if (endIndex == -1) continue;
-                                            endIndex += 5;
-                                        }
-                                        string searchPath = iGun.DevicePath.Substring(startIndex, endIndex - startIndex);
-
-                                        if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
-                                            keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
-                                        else
-                                        {
-                                            searchPath = iGun.DevicePath.Substring(startIndex, endIndex - startIndex - 5);
-                                            if (keyboards.Any(k => k.DevicePath.Contains(searchPath)))
-                                                keyboard = keyboards.FirstOrDefault(k => k.DevicePath.Contains(searchPath));
-                                        }
-                                    }
+                                    if (!useKb && !ts_nogun)
+                                        keyboard = RawLightgun.FindKeyboardByVidPid(iGun.DevicePath, keyboards, keyboard);
 
                                     if (_orgKeyboard != null && (useKb || ts_nogun))
                                     {

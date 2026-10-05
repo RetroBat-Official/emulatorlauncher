@@ -51,10 +51,24 @@ namespace EmulatorLauncher.Libretro
         private string _dosBoxTempRom;
         private bool _bias = true;
         private bool _overrideAspect = false;
+        private bool _ps5RumbleEnvSet = false;
 
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             Environment.SetEnvironmentVariable("RETROBAT_LIBRETRO_REAL_CORE", null);
+
+            // RetroArch sdl2 joypad driver sets SDL_HINT_JOYSTICK_HIDAPI_PS4_RUMBLE only after SDL_InitSubSystem,
+            // and never sets the PS5 hint: DualSense over Bluetooth stays in simple report mode (no rumble/LED/gyro).
+            // Environment variables are read by SDL during device init and take precedence over normal-priority hints.
+            // Do not override a value explicitly set by the user.
+            if (!SystemConfig.isOptSet("ps_controller_enhanced") || Program.SystemConfig.getOptBoolean("ps_controller_enhanced"))
+            {
+                if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SDL_JOYSTICK_HIDAPI_PS5_RUMBLE")))
+                {
+                    Environment.SetEnvironmentVariable("SDL_JOYSTICK_HIDAPI_PS5_RUMBLE", "1");
+                    _ps5RumbleEnvSet = true;
+                }
+            }
 
             if (string.IsNullOrEmpty(RetroarchPath))
                 return null;
@@ -234,6 +248,13 @@ namespace EmulatorLauncher.Libretro
             if (SystemConfig["core"] == "atari800")
                 Environment.SetEnvironmentVariable("HOME", CurrentHomeDirectory);
 
+            // Remove the DualSense hint only if it was set by RetroBat
+            if (_ps5RumbleEnvSet)
+            {
+                Environment.SetEnvironmentVariable("SDL_JOYSTICK_HIDAPI_PS5_RUMBLE", null);
+                _ps5RumbleEnvSet = false;
+            }
+
             if (_dosBoxTempRom != null && File.Exists(_dosBoxTempRom))
                 File.Delete(_dosBoxTempRom);
 
@@ -248,9 +269,6 @@ namespace EmulatorLauncher.Libretro
                 _stateFileManager.Dispose();
                 _stateFileManager = null;
             }
-
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
 
             // Kill java processes as there is a bug where sound continues even when retroarch is closed
             if (SystemConfig["core"] == "freej2me")

@@ -28,7 +28,7 @@ namespace EmulatorLauncher
         {
             var hints = new List<string> { "SDL_JOYSTICK_HIDAPI_WII = 1" };
 
-            if (Program.SystemConfig.getOptBoolean("ps_controller_enhanced"))
+            if (!SystemConfig.isOptSet("ps_controller_enhanced") || Program.SystemConfig.getOptBoolean("ps_controller_enhanced"))
             {
                 hints.Add("SDL_JOYSTICK_HIDAPI_PS4_RUMBLE = 1");
                 hints.Add("SDL_JOYSTICK_HIDAPI_PS5_RUMBLE = 1");
@@ -137,7 +137,7 @@ namespace EmulatorLauncher
 
             bool revertP1P2 = !_forceSDL && !_forceDInput && SystemConfig.getOptBoolean("revertXIndex");
 
-            BindBoolIniFeature(pcsx2ini, "InputSources", "SDLControllerEnhancedMode", "ps_controller_enhanced", "true", "false");
+            BindBoolIniFeatureOn(pcsx2ini, "InputSources", "SDLControllerEnhancedMode", "ps_controller_enhanced", "true", "false");
 
             // Reset hotkeys
             ResetHotkeysToDefault(pcsx2ini);
@@ -373,7 +373,7 @@ namespace EmulatorLauncher
             // Generic settings
             pcsx2ini.WriteValue(padNumber, "InvertL", "0");
             pcsx2ini.WriteValue(padNumber, "InvertR", "0");
-            BindIniFeatureSlider(pcsx2ini, padNumber, "Deadzone", "pcsx2_deadzone", "0", 2);
+            BindIniFeatureSlider(pcsx2ini, padNumber, "Deadzone", "pcsx2_deadzone", "0.10", 2);
             BindIniFeatureSlider(pcsx2ini, padNumber, "AxisScale", "pcsx2_axisscale", "1.33", 2);
             BindIniFeatureSlider(pcsx2ini, padNumber, "LargeMotorScale", "pcsx2_rumble_strength", "1", 2);
             BindIniFeatureSlider(pcsx2ini, padNumber, "SmallMotorScale", "pcsx2_rumble_strength", "1", 2);

@@ -29,8 +29,6 @@ namespace EmulatorLauncher
     /// </summary>
     partial class AmiberryGenerator : Generator
     {
-        private bool _sindenSoft = false;
-
         private const string ABSOLUTE_MOUSE_TABLET = "tablet";
 
         private const string MODE_LIGHTPEN = "lightpen";
@@ -54,7 +52,6 @@ namespace EmulatorLauncher
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
-                _sindenSoft = true;
             }
 
             bool useOneGun = SystemConfig.getOptBoolean("one_gun");

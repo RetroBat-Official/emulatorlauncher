@@ -15,7 +15,6 @@ namespace EmulatorLauncher
 {
     partial class Mame64Generator
     {
-        private bool _sindenSoft = false;
         private bool _messcfgInput = false;
         private GameMapping _gameMapping = null;
         private Layout _gameLayout = null;
@@ -63,7 +62,6 @@ namespace EmulatorLauncher
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
-                _sindenSoft = true;
             }
 
             if (Controllers.Count == 0 && gunCount == 0)

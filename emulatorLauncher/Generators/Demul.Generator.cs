@@ -17,7 +17,6 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private bool _demulshooter = false;
-        private bool _sindenSoft = false;
         private string _videoDriverName = "gpuDX11";
 
         public DemulGenerator()
@@ -317,9 +316,6 @@ namespace EmulatorLauncher
                 if (_demulshooter)
                     Demulshooter.KillDemulShooter();
 
-                if (_sindenSoft)
-                    Guns.KillSindenSoftware();
-
                 try { return process.ExitCode; }
                 catch { }
             }
@@ -328,9 +324,6 @@ namespace EmulatorLauncher
             
             if (_demulshooter)
                 Demulshooter.KillDemulShooter();
-
-            if (_sindenSoft)
-                Guns.KillSindenSoftware();
 
             return -1;
         }
@@ -348,7 +341,6 @@ namespace EmulatorLauncher
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
             {
                 Guns.StartSindenSoftware();
-                _sindenSoft = true;
             }
 
             // Get first gun

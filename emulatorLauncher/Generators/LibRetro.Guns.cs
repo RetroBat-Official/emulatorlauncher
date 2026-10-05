@@ -10,8 +10,6 @@ namespace EmulatorLauncher.Libretro
 {
     partial class LibRetroGenerator : Generator
     {
-        private bool _sindenSoft = false;
-
         /// <summary>
         /// Injects guns settings
         /// </summary>
@@ -49,7 +47,6 @@ namespace EmulatorLauncher.Libretro
             {
                 // Start Sinden software automatically if a sinden gun is connected
                 Guns.StartSindenSoftware();
-                _sindenSoft = true;
             }
 
             // Set multigun to true in some cases
