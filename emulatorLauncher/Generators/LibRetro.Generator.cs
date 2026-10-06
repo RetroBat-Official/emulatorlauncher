@@ -675,7 +675,7 @@ namespace EmulatorLauncher.Libretro
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
             {
                 string videoDriver = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"))["video_driver"];
-                bool isOpenGL = (emulator != "angle") && (!coreNoGL.Contains(core)) && (videoDriver == "gl" || coreGLCompat.Contains(core));
+                bool isOpenGL = (emulator != "angle") && (!coreNoGL.Contains(core)) && videoDriver == "gl" && !(core == "parallel_n64" && SystemConfig["parallel_gfx_plugin"] == "parallel");
                 bool dx12 = videoDriver == "d3d12";
 
                 string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
@@ -1699,9 +1699,7 @@ namespace EmulatorLauncher.Libretro
                 return;
             }
 
-            // Default to d3d11: widest hardware coverage on Windows (feature level 10_0),
-            // no dependency on the vendor OpenGL ICD. RetroArch forces the right driver
-            // for HW-rendered cores anyway (video_driver.c: video_driver_find_driver).
+            // Default to d3d11: widest hardware coverage on Windows
             retroarchConfig["video_driver"] = _video_driver = "d3d11";
 
             // general, assigned selected core
@@ -2523,9 +2521,9 @@ namespace EmulatorLauncher.Libretro
 
         static readonly List<string> capsimgCore = new List<string>() { "amiberry", "hatari", "hatarib", "puae" };
         static readonly List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
-        static List<string> coreNoGL = new List<string>() { "azahar", "citra", "dolphin", "flycast", "kronos", "mednafen_psx_hw", "melonds", "melondsds", "mupen64plus_next", 
-            "pcsx2", "supermodel", "swanstation", "vecx" };
-        
+        static List<string> coreNoGL = new List<string>() { "azahar", "citra", "dolphin", "flycast", "kronos", "mednafen_psx_hw", "melonds", "melondsds", "mupen64plus_next",
+            "pcsx2", "play", "supermodel", "swanstation", "vecx", "vircon32" };
+
         // Level DISABLED - no savestate support at all
         static List<string> coreNoSavestate = new List<string>() { "arduous", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "cemu", "dice", "dinothawr", "doukutsu_rs", "easyrpg", "freej2me", "frodo", "gw", "lowresnx", "mame2010", "mame2014", "mame2016", "nxengine", "openlara", "pd777", "pocketcdg", "retro8", "same_cdi", "scummvm", "superbroswar", "tyrquake", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "zc210" };
 
@@ -2547,10 +2545,6 @@ namespace EmulatorLauncher.Libretro
         // Hardware-rendered cores: a duplicated instance cannot get a second GPU context
         static List<string> coreNoSecondInstance = new List<string>() { "mednafen_psx_hw", "melonds", "vircon32" };
         
-        // Cores requesting RETRO_HW_CONTEXT_OPENGL (compat profile):
-        // RetroArch forces the 'gl' driver for these (video_driver.c:3143), so glsl shaders apply.
-        static List<string> coreGLCompat = new List<string>() { "boom3", "boom3_xp", "desmume", "openlara", "parallel_n64", "ppsspp", "vircon32", "yabasanshiro" };
-        
         static readonly List<string> CoreSaveSort = new List<string>() { "dolphin" };
         static readonly List<string> CoreNoZip = new List<string>() { "mednafen_pce", "mednafen_pce_fast", "mednafen_psx_hw", "mednafen_psx", "mednafen_saturn", "swanstation", 
             "pcsx_rearmed", "pcsx2" };
@@ -2560,6 +2554,7 @@ namespace EmulatorLauncher.Libretro
         {
             { "cemu", "glcore" },
             { "dolphin", "glcore" },
+            { "mednafen_psx_hw", "glcore" },
             { "melondsds", "glcore" },
             { "mupen64plus_next", "glcore" },
             { "pcsx2", "glcore" },

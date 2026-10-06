@@ -4520,6 +4520,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "mupen64plus-CorrectTexrectCoords", "mupen64plus-CorrectTexrectCoords", "Off");
             BindFeature(coreSettings, "mupen64plus-FXAA", "mupen64plus-FXAA", "0");
             BindFeature(coreSettings, "mupen64plus-RDRAMImageDitheringMode", "mupen64plus-RDRAMImageDitheringMode", "False");
+            BindBoolFeature(coreSettings, "mupen64plus-EnableHWLighting", "mupen64plus-EnableHWLighting", "True", "False");
 
             // Parallel
             BindFeature(coreSettings, "mupen64plus-parallel-rdp-deinterlace-method", "mupen64plus-parallel-rdp-deinterlace-method", "Bob");
