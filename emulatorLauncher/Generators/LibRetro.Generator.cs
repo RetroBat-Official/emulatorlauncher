@@ -549,20 +549,6 @@ namespace EmulatorLauncher.Libretro
                     rom = newRom;
             }
 
-
-            // m3u management in some cases
-            if (core == "mednafen_pce" || core == "mednafen_pce_fast")
-            {
-                if (Path.GetExtension(rom).ToLower() == ".m3u")
-                {
-                    string tempRom = File.ReadLines(rom).FirstOrDefault();
-                    if (File.Exists(tempRom))
-                        rom = tempRom;
-                    else
-                        rom = Path.Combine(Path.GetDirectoryName(rom), tempRom);
-                }
-            }
-
             // dosbox core specifics
             if (core != null && core.IndexOf("dosbox", StringComparison.InvariantCultureIgnoreCase) >= 0)
             {
@@ -1720,18 +1706,6 @@ namespace EmulatorLauncher.Libretro
                     return;
                 }
             }
-            if (core == "pcsx2" && retroarchConfig["video_driver"] == "gl")
-            {
-                _video_driver = "glcore";
-                retroarchConfig["video_driver"] = "glcore";
-                return;
-            }
-            if (core == "scummvm" && (retroarchConfig["video_driver"] != "gl" && retroarchConfig["video_driver"] != "glcore"))
-            {
-                _video_driver = "glcore";
-                retroarchConfig["video_driver"] = "glcore";
-                return;
-            }
 
             // Set default video driver per core
             if (!SystemConfig.isOptSet("video_driver"))
@@ -2515,30 +2489,41 @@ namespace EmulatorLauncher.Libretro
         // List and dictionaries
         static readonly List<string> ratioIndexes = new List<string> { "4/3", "16/9", "16/10", "16/15", "21/9", "1/1", "2/1", "3/2", "3/4", "4/1", "4/4", "5/4", 
             "6/5", "7/9", "8/3", "8/7", "19/12", "19/14", "30/17", "32/9", "config", "squarepixel", "core", "custom", "full" };
-        
-        // Hardware-rendered cores: a duplicated instance cannot get a second GPU context
+
+        // Cores using a dedicated subfolder of the bios folder as system directory
         static List<string> coreSystemSubfolder = new List<string>() { "amiberry" };
 
         static readonly List<string> capsimgCore = new List<string>() { "amiberry", "hatari", "hatarib", "puae" };
         static readonly List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
-        static List<string> coreNoGL = new List<string>() { "azahar", "citra", "dolphin", "flycast", "kronos", "mednafen_psx_hw", "melonds", "melondsds", "mupen64plus_next",
+        static List<string> coreNoGL = new List<string>() { "azahar", "citra", "dolphin", "kronos", "melonds", "melondsds", "mupen64plus_next",
             "pcsx2", "play", "supermodel", "swanstation", "vecx", "vircon32" };
 
         // Level DISABLED - no savestate support at all
-        static List<string> coreNoSavestate = new List<string>() { "arduous", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "cemu", "dice", "dinothawr", "doukutsu_rs", "easyrpg", "freej2me", "frodo", "gw", "lowresnx", "mame2010", "mame2014", "mame2016", "nxengine", "openlara", "pd777", "pocketcdg", "retro8", "same_cdi", "scummvm", "superbroswar", "tyrquake", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "zc210" };
-
+        static List<string> coreNoSavestate = new List<string>() { "arduous", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "cemu", "dice", "dinothawr", "doukutsu_rs", "easyrpg", "emux_gb", 
+            "emux_nes", "emux_sms", "freej2me", "frodo", "gw", "lowresnx", "mame2010", "mame2014", "mame2016", "nxengine", "openlara", "pd777", "pocketcdg", "retro8", "same_cdi", "scummvm", 
+            "superbroswar", "tyrquake", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "zc210" };
         // Level < SERIALIZED - no rewind (core_info.c:3092)
-        static List<string> coreNoRewind = new List<string>() { "arduous", "azahar", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "citra", "dice", "dinothawr", "dolphin", "doukutsu_rs", "easyrpg", "ecwolf", "freej2me", "frodo", "gw", "kronos", "lowresnx", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", "mame2010", "mame2014", "mame2016", "nxengine", "o2em", "openlara", "opera", "pcsx2", "pd777", "pocketcdg", "prboom", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", "swanstation", "tic80", "tyrquake", "uzem", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "yabasanshiro", "zc210" };
-
+        static List<string> coreNoRewind = new List<string>() { "arduous", "azahar", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "cemu", "citra", "dice", "dinothawr", "dolphin", 
+            "doukutsu_rs", "easyrpg", "ecwolf", "emux_gb", "emux_nes", "emux_sms", "freej2me", "frodo", "gw", "kronos", "lowresnx", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", 
+            "mame2010", "mame2014", "mame2016", "nxengine", "o2em", "openlara", "opera", "pcsx2", "pd777", "play", "pocketcdg", "prboom", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", 
+            "swanstation", "tic80", "tyrquake", "uzem", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "yabasanshiro", "yabause", "zc210" };
         // Rewind is supported but too costly for AUTO mode (large state serialized every frame, rewind_granularity = 1)
-        static readonly List<string> systemNoAutoRewind = new List<string>() { "doom3", "dice", "nds", "3ds", "sega32x", "wii", "gamecube", "triforce", "gc", "psx", "zxspectrum", "odyssey2", "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn", "supermodel", "mame", "hbmame", "fbneo", "dos", "scummvm", "psp" };
+        static readonly List<string> systemNoAutoRewind = new List<string>() { "doom3", "dice", "nds", "3ds", "sega32x", "wii", "gamecube", "triforce", "gc", "psx", "zxspectrum", "odyssey2", 
+            "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn", "supermodel", "mame", "hbmame", "fbneo", "dos", "scummvm", "psp" };
 
         // Same as above, core-based: flycast stops/restarts its emulation thread on each retro_serialize() call
         static readonly List<string> coreNoAutoRewind = new List<string>() { "flycast" };
 
         // Level < DETERMINISTIC - no run-ahead, no preemptive frames, no netplay (core_info.c:3098-3107)
-        static List<string> coreNoRunahead = new List<string>() { "81", "arduous", "azahar", "b2", "bennugd", "bluemsx", "boom3", "boom3_xp", "bsnes", "bsnes-jg", "bsnes_hd_beta", "cannonball", "cap32", "citra", "crocods", "desmume", "desmume2015", "dice", "dinothawr", "dolphin", "dosbox_pure", "doukutsu_rs", "easyrpg", "ecwolf", "ep128emu_core", "fake08", "fbalpha", "fbalpha2012", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "fbalpha2012_neogeo", "flycast", "freej2me", "frodo", "gw", "handy", "hatari", "hatarib", "holani", "kronos", "lowresnx", "lutro", "m2000", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", "mame2010", "mame2014", "mame2016", "mednafen_snes", "melondsds", "mupen64plus_next", "nekop2", "noods", "np2kai", "nxengine", "o2em", "openlara", "opera", "parallel_n64", "pcsx2", "pd777", "pocketcdg", "ppsspp", "prboom", "prosystem", "puae", "race", "reminiscence", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", "supermodel", "swanstation", "theodore", "tic80", "tyrquake", "uzem", "vecx", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "virtualjaguar", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "yabasanshiro", "zc210" };
-
+        static List<string> coreNoRunahead = new List<string>() { "81", "applewin", "arduous", "azahar", "b2", "bennugd", "blastem", "bluemsx", "boom3", "boom3_xp", "bsnes", "bsnes-jg", 
+            "bsnes2014_accuracy", "bsnes2014_balanced", "bsnes2014_performance", "bsnes_hd_beta", "bsnes_mercury_accuracy", "bsnes_mercury_balanced", "cannonball", "cap32", "cemu", "citra", 
+            "crocods", "desmume", "desmume2015", "dice", "dinothawr", "dolphin", "dosbox_pure", "doukutsu_rs", "duckstation", "easyrpg", "ecwolf", "emux_gb", "emux_nes", "emux_sms", "ep128emu_core", 
+            "fake08", "fbalpha", "fbalpha2012", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "fbalpha2012_neogeo", "flycast", "freej2me", "frodo", "gw", "handy", "hatari", "hatarib", 
+            "holani", "kronos", "lowresnx", "lutro", "m2000", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", "mame2010", "mame2014", "mame2016", "mednafen_snes", "melondsds", 
+            "mupen64plus_next", "mupen64plus_next_gles3", "nekop2", "noods", "np2kai", "nxengine", "o2em", "openlara", "opera", "parallel_n64", "pcsx2", "pd777", "play", "pocketcdg", "ppsspp", 
+            "prboom", "prosystem", "puae", "race", "reminiscence", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", "supermodel", "swanstation", "theodore", "tic80", "tyrquake", "uzem", 
+            "vecx", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "virtualjaguar", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", 
+            "yabasanshiro", "yabause", "zc210" };
         // Netplay shares the same requirement as run-ahead (core_info.c:3098-3107)
         static List<string> coreNoNetplay { get { return coreNoRunahead; } }
 
@@ -2558,6 +2543,7 @@ namespace EmulatorLauncher.Libretro
             { "melondsds", "glcore" },
             { "mupen64plus_next", "glcore" },
             { "pcsx2", "glcore" },
+            { "scummvm", "glcore" },
             { "supermodel", "vulkan" }
         };
         private readonly Dictionary<string, string> coreConfigRemap = new Dictionary<string, string>()
@@ -2657,11 +2643,11 @@ namespace EmulatorLauncher.Libretro
 
             new SubSystem("fbneo", "supergrafx", "sgx"),
             new SubSystem("fbneo", "pcengine", "pce"),
-            new SubSystem("fbneo", "pcenginecd", "pce"),
+            new SubSystem("fbneo", "pcenginecd", "pcecd"),
 
-            new SubSystem("fbneo", "turbografx", "tg"),
-            new SubSystem("fbneo", "turbografxcd", "tg"),
-            new SubSystem("fbneo", "turbografx16", "tg"),
+            new SubSystem("fbneo", "turbografx", "tg16"),
+            new SubSystem("fbneo", "turbografxcd", "pcecd"),
+            new SubSystem("fbneo", "turbografx16", "tg16"),
 
             new SubSystem("fbneo", "gamegear", "gg"),
             new SubSystem("fbneo", "mastersystem", "sms"),
