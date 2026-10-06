@@ -926,6 +926,10 @@ namespace EmulatorLauncher
             if (CurrentGame == null)
                 return;
 
+            // Disabled by user (global option)
+            if (SystemConfig.getOptBoolean("disable_controlcenter"))
+                return;
+
             if (emulatorsNoControlCenter.Contains(SystemConfig["emulator"]))
                 return;
 
