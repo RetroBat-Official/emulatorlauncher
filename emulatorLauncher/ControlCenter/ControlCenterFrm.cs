@@ -233,6 +233,8 @@ namespace EmulatorLauncher.ControlCenter
 
         protected override void Dispose(bool disposing)
         {
+            SuspendEmulator(false);
+
             if (_overlay != null)
             {
                 _overlay.Dispose();

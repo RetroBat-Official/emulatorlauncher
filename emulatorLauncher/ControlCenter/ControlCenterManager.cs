@@ -24,10 +24,22 @@ namespace EmulatorLauncher.ControlCenter
 
         private static void DoShowControlCenter()
         {
-            using (var frm = new ControlCenterFrm())
+            try
             {
-                Application.Run(frm);
-                _lastResult = frm.DialogResult;
+                using (var frm = new ControlCenterFrm())
+                {
+                    Application.Run(frm);
+                    _lastResult = frm.DialogResult;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                // Never let a UI failure kill emulatorLauncher
+                var w32 = ex as System.ComponentModel.Win32Exception;
+                EmulatorLauncher.Common.SimpleLogger.Instance.Error("[ControlCenter] Unable to show control center" + (w32 != null ? " (Win32 error " + w32.NativeErrorCode + ")" : "") + " : " + ex.Message, ex);
+            }
+            finally
+            {
                 _isRunning = false;
             }
         }

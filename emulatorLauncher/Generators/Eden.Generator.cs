@@ -237,6 +237,29 @@ namespace EmulatorLauncher
                 BindQtIniFeature(ini, "Core", "memory_layout_mode", "eden_memory", "0");
                 BindQtIniFeature(ini, "Cpu", "cpu_accuracy", "eden_cpu_accuracy", "0");
 
+                if (SystemConfig.isOptSet("eden_speedlimit") && !string.IsNullOrEmpty(SystemConfig["eden_speedlimit"]) && SystemConfig["eden_speedlimit"] != "none")
+                {
+                    bool defaultspeed = SystemConfig["eden_speedlimit"] == "100";
+                    ini.WriteValue("Core", "use_speed_limit\\default", "true");
+                    ini.WriteValue("Core", "use_speed_limit", "true");
+                    ini.WriteValue("Core", "speed_limit\\default", defaultspeed ? "true" : "false");
+                    ini.WriteValue("Core", "speed_limit", SystemConfig["eden_speedlimit"]);
+                }
+                else if (SystemConfig["eden_speedlimit"] == "none")
+                {
+                    ini.WriteValue("Core", "use_speed_limit\\default", "false");
+                    ini.WriteValue("Core", "use_speed_limit", "false");
+                    ini.WriteValue("Core", "speed_limit\\default", "true");
+                    ini.WriteValue("Core", "speed_limit", "100");
+                }
+                else
+                {
+                    ini.WriteValue("Core", "use_speed_limit\\default", "true");
+                    ini.WriteValue("Core", "use_speed_limit", "true");
+                    ini.WriteValue("Core", "speed_limit\\default", "true");
+                    ini.WriteValue("Core", "speed_limit", "100");
+                }
+
                 CreateControllerConfiguration(ini);
             }
         }
