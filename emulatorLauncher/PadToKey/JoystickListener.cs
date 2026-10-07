@@ -204,18 +204,29 @@ namespace EmulatorLauncher.PadToKeyboard
 
             SimpleLogger.Instance.Info("[PadToKey] Start listening");
 
-            while (true)
+            // Wake up every 5 ms instead of 1 ms: still responsive for pad-to-key gameplay mappings,
+            // but far fewer SDL_PumpEvents calls competing with the emulator for CPU and controllers
+            const int pollIntervalMs = 5;
+            bool quit = false;
+
+            while (!quit)
             {
-                if (_waitHandle.WaitOne(1))
+                if (_waitHandle.WaitOne(pollIntervalMs))
                     break;
 
                 try
                 {
+                    // Drain the whole SDL queue on each wake-up.
+                    // Reading a single event per pass lets analog stick noise pile up in the queue and delays hotkeys.
                     SDL.SDL_Event evt;
-                    if (SDL.SDL_PollEvent(out evt) != 0)
+
+                    while (SDL.SDL_PollEvent(out evt) != 0)
                     {
                         if (evt.type == SDL.SDL_EventType.SDL_QUIT)
+                        {
+                            quit = true;
                             break;
+                        }
 
                         switch (evt.type)
                         {
@@ -358,7 +369,7 @@ namespace EmulatorLauncher.PadToKeyboard
                             joy.OldState = joy.State.Clone();
                         }
 
-                        Thread.Sleep(1);
+                        //Thread.Sleep(1);
                     }
                 }
                 catch { }

@@ -21,6 +21,24 @@ namespace EmulatorLauncher
 
         public static bool Setup(ReshadeBezelType type, ReshadePlatform platform, string system, string rom, string path, ScreenResolution resolution, string emulator,  bool displayIsStretched = false)
         {
+            string reshadeMode = Program.SystemConfig["reshade"];
+
+            // User manages his own ReShade: never install or overwrite it. Callers fall back to the overlay bezel.
+            if (reshadeMode == "own")
+            {
+                SimpleLogger.Instance.Info("[ReShade] User-managed ReShade, RetroBat ReShade not installed.");
+                return false;
+            }
+
+            // Disabled by user: remove the ReShade installed by a previous launch, otherwise the emulator would still load it.
+            // Callers fall back to the overlay bezel.
+            if (reshadeMode == "disabled")
+            {
+                SimpleLogger.Instance.Info("[ReShade] Disabled by user (global option).");
+                UninstallReshader(type, path);
+                return false;
+            }
+
             var bezel = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             string shaderName = Program.SystemConfig["shader"] ?? "";
 
@@ -46,6 +64,10 @@ namespace EmulatorLauncher
                 reShadeIni.WriteValue("GENERAL", "PresetFiles", @".\" + ReshadeFolder + @"\ReShadePreset.ini");
                 reShadeIni.WriteValue("GENERAL", "PresetPath", @".\" + ReshadeFolder + @"\ReShadePreset.ini");
                 reShadeIni.WriteValue("GENERAL", "ShowPresetTransitionMessage", "0");
+
+                // Performance
+                reShadeIni.WriteValue("GENERAL", "PerformanceMode", "1");
+                reShadeIni.WriteValue("ADDON", "DisabledAddons", "Generic Depth");
 
                 if (!string.IsNullOrEmpty(Program.AppConfig["screenshots"]))
                 {
@@ -252,6 +274,10 @@ namespace EmulatorLauncher
 
         public static void UninstallReshader(ReshadeBezelType type, string path)
         {
+            // User manages his own ReShade (or another dxgi/d3d9/opengl32 wrapper): never delete anything
+            if (Program.SystemConfig["reshade"] == "own")
+                return;
+
             string dllName = Path.Combine(path, GetEnumDescription(type));
             if (File.Exists(dllName))
                 try { File.Delete(dllName); } catch { }
