@@ -62,7 +62,7 @@ namespace EmulatorLauncher
                     }
 
                     string tech = "XInput";
-                    string deviceName = "Gamepad";
+                    string deviceName = GetXInputDeviceName(pad);
                     int xIndex = 0;
 
                     if (pad.Config.Type == "keyboard")
@@ -154,30 +154,38 @@ namespace EmulatorLauncher
                     bool revertXY = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "reverse_ab";
                     bool rumble = !Program.SystemConfig.isOptSet("input_rumble") || Program.SystemConfig.getOptBoolean("input_rumble");
 
-                    if (isNintendo && pad.PlayerIndex == 1)
+                    // Nintendo controllers: swap A/B and X/Y on a per-pad copy so other players are not affected
+                    InputKeyMapping padMapping = anyMapping;
+
+                    if (isNintendo)
                     {
                         string tempMapA = anyMapping[InputKey.a];
                         string tempMapB = anyMapping[InputKey.b];
                         string tempMapX = anyMapping[InputKey.x];
                         string tempMapY = anyMapping[InputKey.y];
 
+                        padMapping = new InputKeyMapping(anyMapping);
+
                         if (tempMapB != null)
-                            anyMapping[InputKey.a] = tempMapB;
+                            padMapping[InputKey.a] = tempMapB;
                         if (tempMapA != null)
-                            anyMapping[InputKey.b] = tempMapA;
+                            padMapping[InputKey.b] = tempMapA;
                         if (tempMapY != null)
-                            anyMapping[InputKey.x] = tempMapY;
+                            padMapping[InputKey.x] = tempMapY;
                         if (tempMapX != null)
-                            anyMapping[InputKey.y] = tempMapX;
+                            padMapping[InputKey.y] = tempMapX;
                     }
 
                     // Microphone
                     if (Program.SystemConfig.isOptSet("dolphin_gcpad_microphone") && Program.SystemConfig.getOptBoolean("dolphin_gcpad_microphone") && pad.PlayerIndex == 2)
                     {
-                        anyMapping[InputKey.pageup] = "Microphone/Button";
+                        if (ReferenceEquals(padMapping, anyMapping))
+                            padMapping = new InputKeyMapping(anyMapping);
+
+                        padMapping[InputKey.pageup] = "Microphone/Button";
                     }
 
-                    foreach (var x in anyMapping)
+                    foreach (var x in padMapping)
                     {
                         string value = x.Value;
 

@@ -562,7 +562,7 @@ namespace EmulatorLauncher
                     }
 
                     string tech = "XInput";
-                    string deviceName = "Gamepad";
+                    string deviceName = GetXInputDeviceName(pad);
                     int xIndex = 0;
 
                     if (pad.Config.Type == "keyboard")
@@ -656,24 +656,29 @@ namespace EmulatorLauncher
                     bool revertXY = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "reverse_ab";
                     bool rumble = !Program.SystemConfig.isOptSet("input_rumble") || Program.SystemConfig.getOptBoolean("input_rumble");
 
-                    if (isNintendo && pad.PlayerIndex == 1)
+                    // Nintendo controllers: swap A/B and X/Y on a per-pad copy so other players are not affected
+                    InputKeyMapping padMapping = anyMapping;
+
+                    if (isNintendo)
                     {
                         string tempMapA = anyMapping[InputKey.a];
                         string tempMapB = anyMapping[InputKey.b];
                         string tempMapX = anyMapping[InputKey.x];
                         string tempMapY = anyMapping[InputKey.y];
 
+                        padMapping = new InputKeyMapping(anyMapping);
+
                         if (tempMapB != null)
-                            anyMapping[InputKey.a] = tempMapB;
+                            padMapping[InputKey.a] = tempMapB;
                         if (tempMapA != null)
-                            anyMapping[InputKey.b] = tempMapA;
+                            padMapping[InputKey.b] = tempMapA;
                         if (tempMapY != null)
-                            anyMapping[InputKey.x] = tempMapY;
+                            padMapping[InputKey.x] = tempMapY;
                         if (tempMapX != null)
-                            anyMapping[InputKey.y] = tempMapX;
+                            padMapping[InputKey.y] = tempMapX;
                     }
 
-                    foreach (var x in anyMapping)
+                    foreach (var x in padMapping)
                     {
                         string value = x.Value;
 
@@ -1029,8 +1034,11 @@ namespace EmulatorLauncher
                     else
                         ini.WriteValue(gcpad, "IR/Auto-Hide", "False");
 
-                    // Relative input for IR cursor
-                    if (Program.SystemConfig.getOptBoolean("wii_relativecursor") || pad.Config.Type == "keyboard")
+                    // Relative input for IR cursor - default on (the pointer stays in place when the stick is released)
+                    // Turning it off centers the pointer when the stick is released. Keyboard uses the mouse (absolute).
+                    bool relativeCursor = !Program.SystemConfig.isOptSet("wii_relativecursor") || Program.SystemConfig.getOptBoolean("wii_relativecursor");
+                    
+                    if (!relativeCursor || pad.Config.Type == "keyboard")
                         ini.WriteValue(gcpad, "IR/Relative Input", "False");
                     else
                         ini.WriteValue(gcpad, "IR/Relative Input", "True");
@@ -1086,7 +1094,7 @@ namespace EmulatorLauncher
             { "Drums/Stick/Modifier/Range", "50." },
             { "Turntable/Stick/Modifier/Range", "50." },
             { "uDraw/Stylus/Modifier/Range", "50." },
-            { "Drawsome/Stylus/Modifier/Rangee", "50." },
+            { "Drawsome/Stylus/Modifier/Range", "50." },
             { "Buttons/A", "`A`" },
             { "Buttons/B", "`B`" },
             { "Buttons/1", "`1`" },
