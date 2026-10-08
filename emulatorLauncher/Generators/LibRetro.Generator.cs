@@ -1171,7 +1171,7 @@ namespace EmulatorLauncher.Libretro
 
             if (resolution == null)
             {
-                var res = ScreenResolution.CurrentResolution;
+                var res = GetTargetScreenResolution();
                 retroarchConfig["video_fullscreen_x"] = res.Width.ToString();
                 retroarchConfig["video_fullscreen_y"] = res.Height.ToString();
                 retroarchConfig["video_refresh_rate"] = res.DisplayFrequency.ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
@@ -1207,7 +1207,7 @@ namespace EmulatorLauncher.Libretro
             }
             else if (IsEmulationStationWindowed())
             {
-                var res = ScreenResolution.CurrentResolution;
+                var res = GetTargetScreenResolution();
                 bool identicalRes = resolution.Width == res.Width && resolution.Height == res.Height;
 
                 retroarchConfig["video_fullscreen_x"] = resolution.Width.ToString();
@@ -1232,7 +1232,7 @@ namespace EmulatorLauncher.Libretro
 
             else
             {
-                var res = ScreenResolution.CurrentResolution;
+                var res = GetTargetScreenResolution();
                 bool isNativeResolution = resolution.Width == res.Width && resolution.Height == res.Height;
                 float dpiScale = isNativeResolution ? 1.0f : GetDpiScaleFactor();
                 int physicalWidth = (int)(resolution.Width * dpiScale);
@@ -1440,6 +1440,10 @@ namespace EmulatorLauncher.Libretro
             else if (SystemConfig["shader"].Contains("Mega_Bezel"))
             {
                 retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("full").ToString();
+
+                // Mega Bezel presets draw their own bezel: disable decorations unless explicitly selected by the user
+                if (!SystemConfig.isOptSet("bezel"))
+                    SystemConfig["bezel"] = "none";
             }
             else
             {
@@ -2171,8 +2175,8 @@ namespace EmulatorLauncher.Libretro
 
             int resX = (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
             int resY = (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
-            
-            var currentRes = ScreenResolution.CurrentResolution;
+
+            var currentRes = GetTargetScreenResolution();
             bool isNativeResolution = resolution == null ||
                 (resolution.Width == currentRes.Width && resolution.Height == currentRes.Height);
 

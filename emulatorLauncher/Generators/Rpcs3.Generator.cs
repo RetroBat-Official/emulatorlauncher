@@ -291,7 +291,14 @@ namespace EmulatorLauncher
                         // Qt order = primary first, same as SDL order.
                         int index = Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike);
                         if (index >= 0)
+                        {
+                            // gui_application.cpp : saved geometry is reused when "screen" equals the last used screen.
+                            // Changing "screen" here would make RPCS3 reuse a geometry saved on another screen, so drop it.
+                            if (ini.GetValue("GSFrame", "screen") != index.ToString())
+                                ini.Remove("GSFrame", "geometry");
+
                             ini.WriteValue("GSFrame", "screen", index.ToString());
+                        }
                     }
 
                     ini.WriteValue("Shortcuts", "game_window_pause_play", "P");
