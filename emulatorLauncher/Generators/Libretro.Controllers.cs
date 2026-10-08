@@ -38,9 +38,38 @@ namespace EmulatorLauncher.Libretro
         public static bool WriteControllersConfig(ConfigFile retroconfig, string system, string core, out bool kbPad)
         {
             kbPad = false;
+
+            if (Program.SystemConfig.isOptSet("input_driver") && Program.SystemConfig["input_driver"] == "xinput")
+                _inputDriver = "xinput";
+
+            if (Program.SystemConfig.isOptSet("input_driver") && Program.SystemConfig["input_driver"] == "dinput")
+                _inputDriver = "dinput";
+
+            // Let RetroArch map controllers with its own autoconfig profiles (e.g. Bliss-Box: one profile per connected pad type)
+            if (Program.SystemConfig.getOptBoolean("libretro_autoconfig"))
+            {
+                SimpleLogger.Instance.Info("[INFO] Controllers mapped by RetroArch autoconfig profiles.");
+
+                CleanControllerConfig(retroconfig);
+                retroconfig["input_autodetect_enable"] = "true";
+
+                // 'xinput' is RetroArch default on Windows: XInput pads + DirectInput pads using 'autoconfig\dinput' profiles
+                if (Program.SystemConfig.isOptSet("input_driver") && !string.IsNullOrEmpty(Program.SystemConfig["input_driver"]))
+                    retroconfig["input_joypad_driver"] = Program.SystemConfig["input_driver"];
+                else
+                    retroconfig["input_joypad_driver"] = "xinput";
+
+                WriteKBHotKeyConfig(retroconfig, core);
+                return false;
+            }
+
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+
+                if (Program.SystemConfig.isOptSet("input_driver") && !string.IsNullOrEmpty(Program.SystemConfig["input_driver"]))
+                    retroconfig["input_joypad_driver"] = Program.SystemConfig["input_driver"];
+
                 WriteKBHotKeyConfig(retroconfig, core, true);
                 return false;
             }
@@ -49,12 +78,6 @@ namespace EmulatorLauncher.Libretro
 
             _indexes.Clear();
             _forcedIndexes.Clear();
-
-            if (Program.SystemConfig.isOptSet("input_driver") && Program.SystemConfig["input_driver"] == "xinput")
-                _inputDriver = "xinput";
-
-            if (Program.SystemConfig.isOptSet("input_driver") && Program.SystemConfig["input_driver"] == "dinput")
-                _inputDriver = "dinput";
 
             // no menu in non full uimode
             if (Program.SystemConfig.isOptSet("uimode") && Program.SystemConfig["uimode"] != "Full")
