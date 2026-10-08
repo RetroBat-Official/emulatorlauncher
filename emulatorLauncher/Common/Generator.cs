@@ -436,7 +436,10 @@ namespace EmulatorLauncher
                 bool isLnkorUrl = !string.IsNullOrEmpty(path?.FileName) && (path.FileName.EndsWith(".url", StringComparison.OrdinalIgnoreCase) || path.FileName.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase));
 
                 if (!isBatch && !isLnkorUrl)
+                {
                     Job.Current.AddProcess(process);
+                    ApplyScreenPlacement(process);
+                }
 
                 process.WaitForExit();
 
@@ -646,19 +649,45 @@ namespace EmulatorLauncher
         #endregion
 
         /// <summary>
-        /// Enable moving the emulator window to the target screen after launch.
+        /// Enable moving the emulator window to the target screen after launch (only when MonitorIndex is set, fullscreen only).
         /// </summary>
         protected virtual bool UseGenericScreenPlacement { get { return false; } }
 
+        /// <summary>
+        /// Selects the emulator render window among the visible windows of the process.
+        /// </summary>
+        protected virtual bool IsScreenPlacementWindow(IntPtr hWnd)
+        {
+            var rect = User32.GetWindowRect(hWnd);
+            return (rect.right - rect.left) > 100 && (rect.bottom - rect.top) > 100;
+        }
+
         protected void ApplyScreenPlacement(Process process)
         {
-            if (!UseGenericScreenPlacement)
+            if (!UseGenericScreenPlacement || process == null)
                 return;
 
             if (!SystemConfig.isOptSet("MonitorIndex") || string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
                 return;
 
-            ScreenTools.MoveWindow(process, Program.TargetScreen);
+            // Windowed mode : keep the emulator's own placement and size
+            if (!ShouldRunFullscreen())
+                return;
+
+            try
+            {
+                // Wait for the fullscreen window, so the emulator cannot re-apply fullscreen on its initial screen afterwards
+                IntPtr hWnd = ScreenTools.WaitForReadyWindow(process, IsScreenPlacementWindow, true);
+                if (hWnd == IntPtr.Zero)
+                    return;
+
+                ScreenTools.HoldWindowOnScreen(process, hWnd, Program.TargetScreen);
+                User32.SetForegroundWindow(hWnd);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[SCREENMOVER] Screen placement failed : " + ex.Message);
+            }
         }
 
         public static bool ShouldRunFullscreen()
@@ -1437,6 +1466,17 @@ namespace EmulatorLauncher
             IntPtr hdc = GetDC(IntPtr.Zero);
             int dpiX = GetDeviceCaps(hdc, LOGPIXELSX);
             return dpiX / 96.0f; // 96 is the default (100%) DPI
+        }
+
+        /// <summary>
+        /// Current display mode of the screen where the game is displayed (Program.TargetScreen).
+        /// Falls back to the primary screen.
+        /// </summary>
+        public static ScreenResolution GetTargetScreenResolution()
+        {
+            var screen = Program.TargetScreen;
+            var res = screen != null ? ScreenResolution.GetCurrentResolution(screen.DeviceName) : null;
+            return res ?? ScreenResolution.CurrentResolution;
         }
     }
 

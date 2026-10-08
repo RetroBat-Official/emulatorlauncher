@@ -20,6 +20,14 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
+        protected override bool UseGenericScreenPlacement { get { return true; } }
+
+        protected override bool IsScreenPlacementWindow(IntPtr hWnd)
+        {
+            // SDL default window class : excludes message boxes (#32770) and other helper windows
+            return User32.GetClassName(hWnd) == "SDL_app" && base.IsScreenPlacementWindow(hWnd);
+        }
+
         private SdlVersion _sdlVersion = SdlVersion.SDL2_0_X;
         private ScreenResolution _resolution;
         private BezelFiles _bezelFileInfo;
