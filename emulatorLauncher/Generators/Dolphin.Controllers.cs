@@ -150,7 +150,7 @@ namespace EmulatorLauncher
                 var c1 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
 
                 string tech = "XInput";
-                string deviceName = "Gamepad";
+                string deviceName = GetXInputDeviceName(c1);
                 int xIndex = 0;
                 bool xinputAsSdl = false;
 
@@ -305,18 +305,29 @@ namespace EmulatorLauncher
                             return axis + "`";
                         };
 
+                        // Upstream Dolphin: SDL gamepad button names (the meaning of legacy "Button N" names changed in 2609)
+                        // Crediar build: legacy names only
+                        Func<Input, InputKey, string> buttonValue = (inp, key) =>
+                        {
+                            if (inp == null)
+                                return null;
+
+                            if (!_triforcecrediar && (inp.Type == "button" || inp.Type == "hat"))
+                                return GetSdlGamepadButtonName(c1, key, xinputAsSdl, false);
+
+                            if (inp.Type == "button")
+                                return "`Button " + inp.Id.ToString() + "`";
+
+                            if (inp.Type == "axis")
+                                return axisValue(inp, false);
+
+                            return null;
+                        };
+
                         // Get hotkey button text
-                        var hkinput = c1.Config[InputKey.hotkey];
-                        string hkvalue = "";
-
-                        if (hkinput == null)
+                        string hkvalue = buttonValue(c1.Config[InputKey.hotkey], InputKey.hotkey);
+                        if (string.IsNullOrEmpty(hkvalue))
                             return;
-
-                        if (hkinput.Type == "button")
-                            hkvalue = "`Button " + hkinput.Id.ToString() + "`";
-
-                        else if (hkinput.Type == "axis")
-                            hkvalue = axisValue(hkinput, false);
 
                         try
                         {
@@ -347,17 +358,13 @@ namespace EmulatorLauncher
 
                                 var hkButton = xinputAsSdl ? c1.Config[targetKey] : c1.GetSdlMapping(targetKey);
 
-                                if (hkButton != null)
-                                {
-                                    string hkvalueOther = "";
-                                    if (hkButton.Type == "button")
-                                        hkvalueOther = "`Button " + hkButton.Id.ToString() + "`";
-                                    else if (hkButton.Type == "axis")
-                                        hkvalueOther = axisValue(hkButton, false);
+                                string hkvalueOther = buttonValue(hkButton, targetKey);
+                                if (string.IsNullOrEmpty(hkvalueOther))
+                                    continue;
 
-                                    // ini.WriteValue("Hotkeys", "General/Toggle Pause", "@(" + hkvalue + "+" + hkvalueOther + ")");
-                                    ini.WriteValue("Hotkeys", hk.Key, hkvalue + "+" + hkvalueOther + "|" + kbKey);
-                                }
+                                // "&" requires both buttons ("+" is an addition: the hotkey button alone would trigger every hotkey)
+                                // kbKey already starts with "|"
+                                ini.WriteValue("Hotkeys", hk.Key, hkvalue + "&" + hkvalueOther + kbKey);
                             }
                         }
                         catch
@@ -719,6 +726,100 @@ namespace EmulatorLauncher
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Dolphin names XInput devices after their XInput subtype (XInput.cpp, Device::GetName):
+        /// an XInput arcade stick is "XInput/0/Arcade Stick", not "XInput/0/Gamepad".
+        /// </summary>
+        private static string GetXInputDeviceName(Controller pad)
+        {
+            if (pad == null || pad.XInput == null)
+                return "Gamepad";
+
+            switch (pad.XInput.SubType)
+            {
+                case XINPUT_DEVSUBTYPE.UNKNOWN:     // Subtype could not be read: use the most common name
+                case XINPUT_DEVSUBTYPE.GAMEPAD:
+                    return "Gamepad";
+                case XINPUT_DEVSUBTYPE.WHEEL:
+                    return "Wheel";
+                case XINPUT_DEVSUBTYPE.ARCADE_STICK:
+                    return "Arcade Stick";
+                case XINPUT_DEVSUBTYPE.FLIGHT_STICK:
+                    return "Flight Stick";
+                case XINPUT_DEVSUBTYPE.DANCE_PAD:
+                    return "Dance Pad";
+                case XINPUT_DEVSUBTYPE.GUITAR:
+                    return "Guitar";
+                case XINPUT_DEVSUBTYPE.DRUM_KIT:
+                    return "Drum Kit";
+                default:
+                    return "Device";
+            }
+        }
+
+        // Names given by Dolphin to the SDL gamepad buttons (SDLGamepad.h, s_sdl_button_names), indexed by SDL gamepad button
+        private static readonly string[] _sdlGamepadButtonNames = new string[]
+        {
+            "Button S", "Button E", "Button W", "Button N", "Back", "Guide", "Start", "Thumb L", "Thumb R",
+            "Shoulder L", "Shoulder R", "Pad N", "Pad S", "Pad W", "Pad E", "Misc 1",
+            "Paddle 1", "Paddle 2", "Paddle 3", "Paddle 4", "Touchpad"
+        };
+
+        // XInput button (EmulationStation index, see Controller.GetXInputMapping) to SDL gamepad button
+        private static readonly Dictionary<XINPUTMAPPING, int> _xinputToSdlGamepadButton = new Dictionary<XINPUTMAPPING, int>()
+        {
+            { XINPUTMAPPING.A,              0 },    // South
+            { XINPUTMAPPING.B,              1 },    // East
+            { XINPUTMAPPING.Y,              2 },    // West (XINPUTMAPPING.Y is XInput button index 2)
+            { XINPUTMAPPING.X,              3 },    // North
+            { XINPUTMAPPING.BACK,           4 },
+            { XINPUTMAPPING.GUIDE,          5 },
+            { XINPUTMAPPING.START,          6 },
+            { XINPUTMAPPING.LEFTSTICK,      7 },
+            { XINPUTMAPPING.RIGHTSTICK,     8 },
+            { XINPUTMAPPING.LEFTSHOULDER,   9 },
+            { XINPUTMAPPING.RIGHTSHOULDER,  10 },
+            { XINPUTMAPPING.DPAD_UP,        11 },
+            { XINPUTMAPPING.DPAD_DOWN,      12 },
+            { XINPUTMAPPING.DPAD_LEFT,      13 },
+            { XINPUTMAPPING.DPAD_RIGHT,     14 },
+        };
+
+        /// <summary>
+        /// Get the Dolphin name of the SDL gamepad button bound to an EmulationStation key, e.g. "`Button S`".
+        /// Since Dolphin 2609 (SDLGamepad.cpp, Button::IsMatchingName), a legacy "Button N" name is matched against
+        /// the SDL gamepad button index instead of the raw joystick button: writing the name gives the same result on every version.
+        /// Do not use for the Crediar triforce build, which only knows the legacy names.
+        /// </summary>
+        private static string GetSdlGamepadButtonName(Controller pad, InputKey key, bool xinputAsSdl, bool invertAB)
+        {
+            int button = -1;
+
+            if (xinputAsSdl)
+            {
+                if (!_xinputToSdlGamepadButton.TryGetValue(pad.GetXInputMapping(key), out button))
+                    return null;
+            }
+            else
+            {
+                var input = pad.GetSdlMapping(key);
+                if (input == null || input.Type != "button")
+                    return null;
+
+                button = (int)input.Id;
+            }
+
+            if (invertAB && button == 0)
+                button = 1;
+            else if (invertAB && button == 1)
+                button = 0;
+
+            if (button < 0 || button >= _sdlGamepadButtonNames.Length)
+                return null;
+
+            return "`" + _sdlGamepadButtonNames[button] + "`";
         }
 
         static Dictionary<InputKey, string> dolphinSDLMapping = new Dictionary<InputKey, string>()

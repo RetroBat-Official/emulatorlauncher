@@ -49,7 +49,7 @@ namespace EmulatorLauncher
                         continue;
 
                     string tech = "XInput";
-                    string deviceName = "Gamepad";
+                    string deviceName = GetXInputDeviceName(pad);
                     int xIndex = 0;
 
                     if (pad.Config.Type == "keyboard")
@@ -105,18 +105,23 @@ namespace EmulatorLauncher
                     bool xboxLayout = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "xbox";
                     bool revertXY = Program.Features.IsSupported("gamecube_buttons") && Program.SystemConfig.isOptSet("gamecube_buttons") && Program.SystemConfig["gamecube_buttons"] == "reverse_ab";
 
-                    if (isNintendo && pad.PlayerIndex == 1)
+                    // Nintendo controllers: swap A/B on a per-pad copy so other players are not affected
+                    InputKeyMapping padMapping = anyMapping;
+
+                    if (isNintendo)
                     {
                         string tempMapA = anyMapping[InputKey.a];
                         string tempMapB = anyMapping[InputKey.b];
 
+                        padMapping = new InputKeyMapping(anyMapping);
+
                         if (tempMapB != null)
-                            anyMapping[InputKey.a] = tempMapB;
+                            padMapping[InputKey.a] = tempMapB;
                         if (tempMapA != null)
-                            anyMapping[InputKey.b] = tempMapA;
+                            padMapping[InputKey.b] = tempMapA;
                     }
 
-                    foreach (var x in anyMapping)
+                    foreach (var x in padMapping)
                     {
                         string value = x.Value;
 

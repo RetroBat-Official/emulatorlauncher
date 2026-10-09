@@ -14,6 +14,7 @@ namespace EmulatorLauncher
     partial class DolphinControllers
     {
         private static bool _triforcectrl = false;
+        private static bool _triforcecrediar = false;
 
         private static void GenerateControllerConfig_triforce(string path, TriforceGame triforceGame, string region, bool crediar)
         {
@@ -83,7 +84,7 @@ namespace EmulatorLauncher
                     string gamecubepad = "gamecubepad" + (pad.PlayerIndex - 1);
 
                     string tech = "XInput";
-                    string deviceName = "Gamepad";
+                    string deviceName = GetXInputDeviceName(pad);
                     int xIndex = 0;
 
                     if (pad.Config.Type == "keyboard")
@@ -303,28 +304,34 @@ namespace EmulatorLauncher
                             if (input == null)
                                 continue;
 
-                            if (input.Type == "button")
+                            if (input.Type == "button" || (!crediar && xinputAsSdl && input.Type == "hat"))
                             {
-                                if (input.Id == 0) // invert A&B
-                                    ini.WriteValue(gcpad, value, "`Button 1`");
-                                else if (input.Id == 1) // invert A&B
-                                    ini.WriteValue(gcpad, value, "`Button 0`");
-                                else
-                                {
-                                    string name = "`Button " + input.Id.ToString() + "`";
-                                    
-                                    if (value.StartsWith("Triforce/"))
-                                    {
-                                        if (value == "Triforce/Service")
-                                            name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:9`" : name + "|`DInput/0/Keyboard Mouse:9`";
-                                        else if (value == "Triforce/Test")
-                                            name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:0`" : name + "|`DInput/0/Keyboard Mouse:0`";
-                                        else if (value == "Triforce/Coin")
-                                            name = string.IsNullOrEmpty(name) ? "`DInput/0/Keyboard Mouse:5`" : name + "|`DInput/0/Keyboard Mouse:5`";
-                                    }
+                                string name;
 
-                                    ini.WriteValue(gcpad, value, name);
+                                // Upstream Dolphin: SDL gamepad button names (the meaning of legacy "Button N" names changed in 2609)
+                                if (!crediar)
+                                    name = GetSdlGamepadButtonName(pad, x.Key, xinputAsSdl, true);
+                                else if (input.Id == 0) // invert A&B
+                                    name = "`Button 1`";
+                                else if (input.Id == 1) // invert A&B
+                                    name = "`Button 0`";
+                                else
+                                    name = "`Button " + input.Id.ToString() + "`";
+
+                                if (string.IsNullOrEmpty(name))
+                                    continue;
+
+                                if (value.StartsWith("Triforce/"))
+                                {
+                                    if (value == "Triforce/Service")
+                                        name = name + "|`DInput/0/Keyboard Mouse:9`";
+                                    else if (value == "Triforce/Test")
+                                        name = name + "|`DInput/0/Keyboard Mouse:0`";
+                                    else if (value == "Triforce/Coin")
+                                        name = name + "|`DInput/0/Keyboard Mouse:5`";
                                 }
+
+                                ini.WriteValue(gcpad, value, name);
                             }
                             else if (input.Type == "axis")
                             {
@@ -463,6 +470,7 @@ namespace EmulatorLauncher
             }
 
             _triforcectrl = true;
+            _triforcecrediar = crediar;
 
             // Reset hotkeys
             string hotkeyini = Path.Combine(path, "User", "Config", "Hotkeys.ini");

@@ -61,10 +61,18 @@ namespace EmulatorLauncher
             else if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
                 string romPath = Path.GetDirectoryName(rom);
-                string romSubPath = File.ReadAllText(rom);
+
+                // Use the first non-empty, non-comment line (m3u files usually end with a newline)
+                string romSubPath = File.ReadAllLines(rom)
+                    .Select(l => l.Trim())
+                    .FirstOrDefault(l => !string.IsNullOrEmpty(l) && !l.StartsWith("#"));
+
+                if (string.IsNullOrEmpty(romSubPath))
+                    throw new ApplicationException("Unable to find any game in the provided m3u file");
+
                 rom = Path.Combine(romPath, romSubPath);
             }
-            
+
             else if (Path.GetExtension(rom).ToLower() == ".lnk")
             {
                 targetRom = FileTools.GetShortcutArgswsh(rom);
@@ -119,7 +127,11 @@ namespace EmulatorLauncher
                 }
 
                 if (SystemConfig.getOptBoolean("shadps4_gui"))
+                {
+                    // The launcher stays open after the game exits: allow hotkey + start to close it
+                    _showGUI = true;
                     commandArray.Add("-s");
+                }
 
                 if (SystemConfig.getOptBoolean("shadps4_configglobal"))
                 {
@@ -182,6 +194,7 @@ namespace EmulatorLauncher
 
             BindBoolFeature(general, "discord_rpc_enabled", "discord");
             BindBoolFeatureOn(input, "motion_controls_enabled", "shadps4_motion");
+            BindBoolFeature(general, "redzone_patches", "shadps4_redzone");
             general["show_splash"] = false;
 
             string homeDir = Path.Combine(AppConfig.GetFullPath("saves"), "ps4", "shadps4", "home");
@@ -241,9 +254,11 @@ namespace EmulatorLauncher
                 string escaped = Regex.Replace(versionPath, @"(?<!\\)\\(?!\\)", @"\\");
                 ini.WriteValue("version_manager", "versionPath", escaped);
 
+                // "-d" starts the version stored in versionSelected: reset it when it no longer points to an existing executable
+                // (happens when a RetroBat update replaces the shipped shadPS4 version)
                 string selectedVersion = ini.GetValue("version_manager", "versionSelected");
 
-                if (string.IsNullOrEmpty(selectedVersion) && _versionselected != null)
+                if (_versionselected != null && !ShadPS4ExecutableExists(path, selectedVersion))
                     ini.WriteValue("version_manager", "versionSelected", _versionselected);
 
                 ini.WriteValue("general_settings", "checkForUpdates", "false");
@@ -254,6 +269,24 @@ namespace EmulatorLauncher
 
                 ini.Save();
             }
+        }
+
+        private static bool ShadPS4ExecutableExists(string path, string exe)
+        {
+            if (string.IsNullOrEmpty(exe))
+                return false;
+
+            try
+            {
+                // QSettings stores backslashes escaped; relative paths are resolved from the emulator folder (launcher working directory)
+                exe = exe.Trim('"').Replace(@"\\", @"\");
+
+                if (!Path.IsPathRooted(exe))
+                    exe = Path.Combine(path, exe);
+
+                return File.Exists(exe);
+            }
+            catch { return false; }
         }
 
         private void SetupController(JObject input)
@@ -429,10 +462,12 @@ namespace EmulatorLauncher
                     {
                         _versionselected = target.Entry.path;
 
-                        if ((target.Entry.path).StartsWith("./"))
-                            return Path.Combine(path, target.Entry.path.Replace("./", "").Replace("/", "\\"));
-                        else
-                            return target.Entry.path;
+                        // Relative paths are resolved from the emulator folder (launcher working directory)
+                        string versionExe = target.Entry.path.Replace("/", "\\");
+                        if (!Path.IsPathRooted(versionExe))
+                            versionExe = Path.GetFullPath(Path.Combine(path, versionExe));
+
+                        return versionExe;
                     }
                 }
                 catch (Exception ex)

@@ -246,26 +246,24 @@ namespace EmulatorLauncher
                     }
 
                     // various performance hacks - Default Off
-                    if (SystemConfig.isOptSet("perf_hacks"))
+                    // Not enabled (AUTO included): back to Dolphin defaults, GFX.ini is persistent
+                    if (SystemConfig.getOptBoolean("perf_hacks"))
                     {
-                        if (SystemConfig.getOptBoolean("perf_hacks"))
-                        {
-                            ini.WriteValue("Hacks", "BBoxEnable", "False");
-                            ini.WriteValue("Hacks", "SkipDuplicateXFBs", "True");
-                            ini.WriteValue("Hacks", "XFBToTextureEnable", "True");
-                            ini.WriteValue("Enhancements", "ArbitraryMipmapDetection", "True");
-                            ini.WriteValue("Enhancements", "DisableCopyFilter", "True");
-                            ini.WriteValue("Enhancements", "ForceTrueColor", "True");
-                        }
-                        else
-                        {
-                            ini.Remove("Hacks", "BBoxEnable");
-                            ini.Remove("Hacks", "SkipDuplicateXFBs");
-                            ini.Remove("Hacks", "XFBToTextureEnable");
-                            ini.Remove("Enhancements", "ArbitraryMipmapDetection");
-                            ini.Remove("Enhancements", "DisableCopyFilter");
-                            ini.Remove("Enhancements", "ForceTrueColor");
-                        }
+                        ini.WriteValue("Hacks", "BBoxEnable", "False");
+                        ini.WriteValue("Hacks", "SkipDuplicateXFBs", "True");
+                        ini.WriteValue("Hacks", "XFBToTextureEnable", "True");
+                        ini.WriteValue("Enhancements", "ArbitraryMipmapDetection", "True");
+                        ini.WriteValue("Enhancements", "DisableCopyFilter", "True");
+                        ini.WriteValue("Enhancements", "ForceTrueColor", "True");
+                    }
+                    else
+                    {
+                        ini.Remove("Hacks", "BBoxEnable");
+                        ini.Remove("Hacks", "SkipDuplicateXFBs");
+                        ini.Remove("Hacks", "XFBToTextureEnable");
+                        ini.Remove("Enhancements", "ArbitraryMipmapDetection");
+                        ini.Remove("Enhancements", "DisableCopyFilter");
+                        ini.Remove("Enhancements", "ForceTrueColor");
                     }
 
                     BindBoolIniFeatureOn(ini, "Hacks", "XFBToTextureEnable", "dolphin_xfbtotexture", "True", "False");
@@ -311,9 +309,9 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "Hacks", "FastTextureSampling", "manual_texture_sampling", "False", "True");
                     BindBoolIniFeature(ini, "Settings", "WaitForShadersBeforeStarting", "WaitForShadersBeforeStarting", "True", "False");
                     BindIniFeature(ini, "Settings", "ShaderCompilationMode", "ShaderCompilationMode", "2");
-                    BindBoolIniFeature(ini, "Hacks", "EFBAccessEnable", "EFBAccessEnable", "False", "True");
+                    BindBoolIniFeatureOn(ini, "Hacks", "EFBAccessEnable", "EFBAccessEnable", "False", "True");
                     BindBoolIniFeatureOn(ini, "Hacks", "EFBScaledCopy", "EFBScaledCopy", "True", "False");
-                    BindBoolIniFeature(ini, "Hacks", "EFBEmulateFormatChanges", "EFBEmulateFormatChanges", "True", "False");
+                    BindBoolIniFeature(ini, "Hacks", "EFBEmulateFormatChanges", "EFBEmulateFormatChanges", "False", "True");
                     BindIniFeature(ini, "Enhancements", "MaxAnisotropy", "anisotropic_filtering", "-1");
                     BindBoolIniFeature(ini, "Settings", "SSAA", "ssaa", "True", "False");
                     BindBoolIniFeature(ini, "Settings", "Crop", "dolphin_crop", "True", "False");
@@ -348,6 +346,7 @@ namespace EmulatorLauncher
                         ini.WriteValue("Achievements", "DiscordPresenceEnabled", SystemConfig.getOptBoolean("retroachievements.richpresence") ? "True" : "False");
                         ini.WriteValue("Achievements", "ProgressEnabled", SystemConfig.getOptBoolean("retroachievements.challenge_indicators") ? "True" : "False");
                         ini.WriteValue("Achievements", "UnofficialEnabled", SystemConfig.getOptBoolean("retroachievements.unofficial") ? "True" : "False");
+                        ini.WriteValue("Achievements", "LeaderboardTrackerEnabled", SystemConfig.getOptBoolean("retroachievements.leaderboards") ? "True" : "False");
 
                         // Inject credentials
                         if (SystemConfig.isOptSet("retroachievements.username") && SystemConfig.isOptSet("retroachievements.token"))
@@ -711,10 +710,13 @@ namespace EmulatorLauncher
                             ini.WriteValue("Core", "GCIFolderAPath", gcSavePath);
                             ini.WriteValue("Core", "MemcardAPath", sramFile);
                         }
-
-                        if (SystemConfig.getOptBoolean("dolphin_microphone"))
-                            ini.WriteValue("Core", "SlotB", "4");
                     }
+
+                    // Microphone in slot B - remove it when it was set by a previous session, keep any other user choice
+                    if (!_triforce && SystemConfig.getOptBoolean("dolphin_microphone"))
+                        ini.WriteValue("Core", "SlotB", "4");
+                    else if (ini.GetValue("Core", "SlotB") == "4")
+                        ini.WriteValue("Core", "SlotB", "255");
 
                     // Add rom path to isopath
                     AddPathToIsoPath(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
@@ -780,7 +782,7 @@ namespace EmulatorLauncher
                         if (!_crediar)
                             CopySegaBoot(path);
                     }
-                    else
+                    else if (ini.GetValue("Core", "SerialPort1") == "6")
                         ini.WriteValue("Core", "SerialPort1", "255");
 
                     // Bluetooth passthrough

@@ -300,7 +300,7 @@ namespace EmulatorLauncher.Libretro
                 { "yabasanshiro", "YabaSanshiro" },
                 { "yabause", "Yabause" },
                 { "ymir", "Emir" },
-                { "zc210", "Zelda Classic v2.10" },
+                { "zc255", "Zelda Classic 2.55 Prototype" },
             };
 
             if (coreNames.TryGetValue(core, out string ret))
@@ -483,7 +483,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureYabause(retroarchConfig, coreSettings, system, core);
             ConfigureYabasanshiro(retroarchConfig, coreSettings, system, core);
             ConfigureYmir(retroarchConfig, coreSettings, system, core);
-            ConfigureZc210(retroarchConfig, coreSettings, system, core);
+            ConfigureZc255(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -6376,51 +6376,33 @@ namespace EmulatorLauncher.Libretro
             SetupLightGuns(retroarchConfig, guntype, core);
         }
 
-        private void ConfigureZc210(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        private void ConfigureZc255(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
-            if (core != "zc210")
+            if (core != "zc255")
                 return;
 
-            string zcPath = Path.Combine(AppConfig.GetFullPath("bios"), "zc210");
-            string sf2Path = Path.Combine(zcPath, "sf2");
+            // Engine data, soundfont and sound effects are embedded in the DLL: nothing is needed in the bios folder
 
-            // Mandatory data file, the core cannot start without it
-            if (!File.Exists(Path.Combine(zcPath, "zcdata.dat")))
-                SimpleLogger.Instance.Error("[LibretroGenerator] zc210: missing " + Path.Combine(zcPath, "zcdata.dat"));
-
-            // default.sf2 is mandatory: reuse the Roland SC-55 soundfont shipped for ScummVM if missing
-            string defaultSf2 = Path.Combine(sf2Path, "default.sf2");
-            if (!File.Exists(defaultSf2))
+            // Same key as the ZQuest Classic standalone, so both emulators of the system share the choice
+            if (SystemConfig.getOptBoolean("zc_swap_buttons"))
             {
-                string scummSf2 = Path.Combine(AppConfig.GetFullPath("bios"), "scummvm", "extra", "Roland_SC-55.sf2");
-                if (File.Exists(scummSf2))
-                {
-                    try
-                    {
-                        if (!Directory.Exists(sf2Path))
-                            Directory.CreateDirectory(sf2Path);
-
-                        File.Copy(scummSf2, defaultSf2);
-                        SimpleLogger.Instance.Info("[Generator] zc210: copied Roland_SC-55.sf2 to " + defaultSf2);
-                    }
-                    catch { SimpleLogger.Instance.Warning("[WARNING] zc210: unable to copy Roland_SC-55.sf2 to " + defaultSf2); }
-                }
-                else
-                    SimpleLogger.Instance.Error("[LibretroGenerator] zc210: missing " + defaultSf2);
+                coreSettings["zc255_ab_layout"] = "swapped";
+                coreSettings["zc255_xy_layout"] = "swapped";
+            }
+            else
+            {
+                coreSettings["zc255_ab_layout"] = "normal";
+                coreSettings["zc255_xy_layout"] = "normal";
             }
 
-            // The core aborts content loading if the selected soundfont file does not exist: fall back to default.sf2
-            string soundfont = SystemConfig.GetValueOrDefault("zc_soundfont", "default");
-            if (soundfont != "default" && !File.Exists(Path.Combine(sf2Path, soundfont + ".sf2")))
-            {
-                SimpleLogger.Instance.Warning("[WARNING] zc210: soundfont " + soundfont + ".sf2 not found, using default.sf2");
-                soundfont = "default";
-            }
-            coreSettings["zc_soundfont"] = soundfont;
+            // Core default is off, but most users expect the stick to move the hero
+            BindBoolFeatureOn(coreSettings, "zc255_analog_dpad", "zc_analog_dpad", "enabled", "disabled");
 
-            // Missing sfx files are silently ignored by the core, no check needed
-            BindFeature(coreSettings, "zc_custom_sfx", "zc_custom_sfx", "Off");
-            BindFeature(coreSettings, "zc_heart_beep", "zc_heart_beep", "true");
+            // Never leave a pending "clear saved progress" request in the global core options file
+            coreSettings["zc255_clear_progress"] = "keep";
+
+            // Cheat options (zc255_cheats_enabled, invulnerability, walls, R2 refills) are not bound:
+            // they stay editable in RetroArch Quick Menu > Core Options and are kept between sessions
         }
         #endregion
     }
