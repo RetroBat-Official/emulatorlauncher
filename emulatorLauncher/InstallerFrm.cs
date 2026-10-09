@@ -111,6 +111,29 @@ namespace EmulatorLauncher
             this.label1.Text = label;
         }
 
+        /// <summary>
+        /// Show the form as a non-blocking progress window (no buttons), e.g. while an emulator installs a game
+        /// </summary>
+        public void ShowProgress(string label, bool indeterminate = false)
+        {
+            SetLabel(label);
+            SetupLayout(InstallerLayout.ProgressAndText);
+            progressBar1.Style = indeterminate ? ProgressBarStyle.Marquee : ProgressBarStyle.Continuous;
+            progressBar1.Value = 0;
+            progressBar1.Visible = true;
+            Show();
+            Refresh();
+        }
+
+        public void SetProgress(int percentage)
+        {
+            if (IsDisposed || InvokeRequired)
+                return;
+
+            if (progressBar1.Style != ProgressBarStyle.Marquee)
+                progressBar1.Value = Math.Max(0, Math.Min(100, percentage));
+        }
+
         void SetupButtons(InstallerButtons buttons)
         {
             switch (buttons)

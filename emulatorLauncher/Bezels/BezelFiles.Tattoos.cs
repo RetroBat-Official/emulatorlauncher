@@ -935,6 +935,8 @@ namespace EmulatorLauncher
             {
                 if (emulator == "zquestclassic")
                     ret = Program.SystemConfig.getOptBoolean("zc_swap_buttons") ? "zeldaclassic_standalone_swap" : "zeldaclassic_standalone";
+                else if (Program.SystemConfig.getOptBoolean("zc_swap_buttons"))
+                    ret = "zeldaclassic_swap";
             }
             else if (system == "arcade")
             {

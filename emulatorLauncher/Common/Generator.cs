@@ -347,6 +347,7 @@ namespace EmulatorLauncher
             string[] scummVMExtensions = new string[] { ".scummvm" };
             string[] snesMSUExtensions = new string[] { ".sfc", ".smc" };
             string[] sgbMSUExtensions = new string[] { ".gb", ".gbc" };
+            string[] zc255Extensions = new string[] { ".qst" };
             string[] extensions = new string[] { };
             bool tryMount = false;
             bool silent = false;
@@ -385,6 +386,10 @@ namespace EmulatorLauncher
             {
                 extensions = sgbMSUExtensions;
                 tryMount = true;
+            }
+            else if (core == "zc255")
+            {
+                extensions = zc255Extensions;
             }
 
             else

@@ -1635,6 +1635,42 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["rewind_enable"] = "false";
             }
 
+            // ---- Rewind buffer for cores with a very large state ----
+            // RetroArch records nothing when one state does not fit in rewind_buffer_size ("State capacity insufficient", state_manager.c)
+            const long largeRewindBuffer = 268435456;               // 256 MB, one zc255 state is ~34 MB
+            const string largeRewindBufferValue = "268435456";
+            const int largeRewindGranularity = 4;                   // capturing every frame is too slow for such a state
+
+            if (coreLargeRewindState.Contains(core))
+            {
+                if (retroarchConfig["rewind_enable"] == "true")
+                {
+                    long currentBuffer;
+                    if (!long.TryParse(retroarchConfig["rewind_buffer_size"], out currentBuffer))
+                        currentBuffer = 20971520;                   // RetroArch default (20 MB)
+                    else if (currentBuffer < 10000)
+                        currentBuffer *= 1024 * 1024;               // RetroArch reads values below 10000 as MB (configuration.c)
+
+                    // Only raise values that are too small, to keep a value set by the user
+                    if (currentBuffer < largeRewindBuffer)
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Rewind buffer too small for '" + core + "', raising it to 256 MB");
+                        retroarchConfig["rewind_buffer_size"] = largeRewindBufferValue;
+
+                        int currentGranularity;
+                        if (!int.TryParse(retroarchConfig["rewind_granularity"], out currentGranularity) || currentGranularity < largeRewindGranularity)
+                            retroarchConfig["rewind_granularity"] = largeRewindGranularity.ToString();
+                    }
+                }
+            }
+            else if (retroarchConfig["rewind_buffer_size"] == largeRewindBufferValue)
+            {
+                // Undo the values set by a previous session of such a core, never a value set by the user
+                retroarchConfig["rewind_buffer_size"] = "20971520";
+                if (retroarchConfig["rewind_granularity"] == largeRewindGranularity.ToString())
+                    retroarchConfig["rewind_granularity"] = "1";
+            }
+
             // ---- Run-ahead & preemptive frames (min level: DETERMINISTIC) ----
             bool wantRunahead = SystemConfig.isOptSet("runahead") && SystemConfig["runahead"].ToIntegerString().ToInteger() > 0;
             bool wantPreempt = SystemConfig.isOptSet("preemptive_frames") && SystemConfig.getOptBoolean("preemptive_frames");
@@ -2505,18 +2541,21 @@ namespace EmulatorLauncher.Libretro
         // Level DISABLED - no savestate support at all
         static List<string> coreNoSavestate = new List<string>() { "arduous", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "cemu", "dice", "dinothawr", "doukutsu_rs", "easyrpg", "emux_gb", 
             "emux_nes", "emux_sms", "freej2me", "frodo", "gw", "lowresnx", "mame2010", "mame2014", "mame2016", "nxengine", "openlara", "pd777", "pocketcdg", "retro8", "same_cdi", "scummvm", 
-            "superbroswar", "tyrquake", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "zc210" };
+            "superbroswar", "tyrquake", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero" };
         // Level < SERIALIZED - no rewind (core_info.c:3092)
         static List<string> coreNoRewind = new List<string>() { "arduous", "azahar", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "cemu", "citra", "dice", "dinothawr", "dolphin", 
             "doukutsu_rs", "easyrpg", "ecwolf", "emux_gb", "emux_nes", "emux_sms", "freej2me", "frodo", "gw", "kronos", "lowresnx", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", 
             "mame2010", "mame2014", "mame2016", "nxengine", "o2em", "openlara", "opera", "pcsx2", "pd777", "play", "pocketcdg", "prboom", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", 
-            "swanstation", "tic80", "tyrquake", "uzem", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "yabasanshiro", "yabause", "zc210" };
+            "swanstation", "tic80", "tyrquake", "uzem", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "yabasanshiro", "yabause" };
         // Rewind is supported but too costly for AUTO mode (large state serialized every frame, rewind_granularity = 1)
         static readonly List<string> systemNoAutoRewind = new List<string>() { "doom3", "dice", "nds", "3ds", "sega32x", "wii", "gamecube", "triforce", "gc", "psx", "zxspectrum", "odyssey2", 
             "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn", "supermodel", "mame", "hbmame", "fbneo", "dos", "scummvm", "psp" };
 
         // Same as above, core-based: flycast stops/restarts its emulation thread on each retro_serialize() call
-        static readonly List<string> coreNoAutoRewind = new List<string>() { "flycast" };
+        static readonly List<string> coreNoAutoRewind = new List<string>() { "flycast", "zc255" };
+
+        // Cores whose state leaves little or no room in RetroArch's default 20 MB rewind buffer
+        static readonly List<string> coreLargeRewindState = new List<string>() { "mupen64plus_next", "mupen64plus_next_gles3", "parallel_n64", "zc255" };
 
         // Level < DETERMINISTIC - no run-ahead, no preemptive frames, no netplay (core_info.c:3098-3107)
         static List<string> coreNoRunahead = new List<string>() { "81", "applewin", "arduous", "azahar", "b2", "bennugd", "blastem", "bluemsx", "boom3", "boom3_xp", "bsnes", "bsnes-jg", 
@@ -2527,7 +2566,7 @@ namespace EmulatorLauncher.Libretro
             "mupen64plus_next", "mupen64plus_next_gles3", "nekop2", "noods", "np2kai", "nxengine", "o2em", "openlara", "opera", "parallel_n64", "pcsx2", "pd777", "play", "pocketcdg", "ppsspp", 
             "prboom", "prosystem", "puae", "race", "reminiscence", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", "supermodel", "swanstation", "theodore", "tic80", "tyrquake", "uzem", 
             "vecx", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "virtualjaguar", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", 
-            "yabasanshiro", "yabause", "zc210" };
+            "yabasanshiro", "yabause", "zc255" };
         // Netplay shares the same requirement as run-ahead (core_info.c:3098-3107)
         static List<string> coreNoNetplay { get { return coreNoRunahead; } }
 
@@ -2536,7 +2575,7 @@ namespace EmulatorLauncher.Libretro
         
         static readonly List<string> CoreSaveSort = new List<string>() { "dolphin" };
         static readonly List<string> CoreNoZip = new List<string>() { "mednafen_pce", "mednafen_pce_fast", "mednafen_psx_hw", "mednafen_psx", "mednafen_saturn", "swanstation", 
-            "pcsx_rearmed", "pcsx2" };
+            "pcsx_rearmed", "pcsx2", "zc255" };
         static readonly Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "fuse", "513" } };
         static readonly Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
         static readonly Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>()

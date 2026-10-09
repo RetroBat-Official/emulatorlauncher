@@ -292,11 +292,10 @@ namespace EmulatorLauncher
                         int index = Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike);
                         if (index >= 0)
                         {
-                            // gui_application.cpp : saved geometry is reused when "screen" equals the last used screen.
-                            // Changing "screen" here would make RPCS3 reuse a geometry saved on another screen, so drop it.
-                            if (ini.GetValue("GSFrame", "screen") != index.ToString())
-                                ini.Remove("GSFrame", "geometry");
-
+                            // RPCS3 saves its window geometry on every close (gs_frame::hide_on_close) and reuses it
+                            // when "screen" matches the last used screen (gui_application.cpp). A restored geometry can
+                            // land on the wrong monitor, so always drop it and let RPCS3 center the window on the target screen.
+                            ini.Remove("GSFrame", "geometry");
                             ini.WriteValue("GSFrame", "screen", index.ToString());
                         }
                     }
