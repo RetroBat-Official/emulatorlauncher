@@ -39,9 +39,18 @@ namespace EmulatorLauncher
         {
             guns = RawLightgun.GetRawLightguns();
             _gunCount = RawLightgun.GetUsableLightGunCount();
-            _multigun = _gunCount > 1;
-            if (SystemConfig.isOptSet("multigun") && !SystemConfig.getOptBoolean("multigun"))
-                _multigun = false;
+
+            // Multigun (RawInput) is on by default with 2 guns or more, unless disabled or an SDL input driver is forced (SDL cannot tell mice apart)
+            bool sdlInputDriver = SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"].StartsWith("sdl");
+            if (SystemConfig.isOptSet("multigun"))
+                _multigun = _gunCount > 1 && SystemConfig.getOptBoolean("multigun");
+            else
+                _multigun = _gunCount > 1 && !sdlInputDriver;
+
+            // Restore the default exit key if a previous DolphinBar configuration limited it to some keyboards
+            string uiExit = ini.GetValue(" Global ", "InputUIExit");
+            if (!string.IsNullOrEmpty(uiExit) && Regex.IsMatch(uiExit, @"KEY\d+_ESCAPE"))
+                ini.WriteValue(" Global ", "InputUIExit", "\"KEY_ESCAPE\"");
 
             bool useGun = SystemConfig.getOptBoolean("use_guns");
             string mouseIndex1 = "1";
@@ -173,7 +182,7 @@ namespace EmulatorLauncher
             if (c2 != null && c2.Config != null && c2.VendorID == USB_VENDOR.NINTENDO)
                 n2 = "nintendo";
 
-            else if (SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"] == "sdlgamepad")
+            if (SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"] == "sdlgamepad")
                 tech = "sdlgamepad";
             else if (SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"] == "sdl")
                 tech = "sdl";
@@ -966,7 +975,7 @@ namespace EmulatorLauncher
             //Now write buttons mapping for generic sdl case (when player 1 controller is NOT XINPUT)
             else if (tech == "sdl")
             {
-                if (_forceRawInput)
+                if (!_forceRawInput)
                     ini.WriteValue(" Global ", "InputSystem", "sdl");
 
                 //common - start to start and select to input coins
@@ -2639,21 +2648,8 @@ namespace EmulatorLauncher
             foreach (var pair in gunsKbAssociation.Where(p => p.Value != null))
                 SimpleLogger.Instance.Info("[GUNS] Associated keyboard for " + pair.Key.Name + ": " + (pair.Value.FriendlyName ?? pair.Value.DevicePath));
 
-            // default to multigun if we have more than one usable gun and the inputdriver is not set to sdl (which do not support multigun)
-            bool hasSdlInputDriverConfigured = SystemConfig.isOptSet("inputdriver") && SystemConfig["inputdriver"].StartsWith("sdl");
-
-            if (hasSdlInputDriverConfigured && !SystemConfig.getOptBoolean("multigun"))
-                _multigun = true;
-
-            string tech = ini.GetValue(" Global ", "InputSystem");
-            if (_multigun)
-            {
-                // multigun and sdl are incompatible, so change our input mapping to dinput by default.
-                if (tech != null && tech.StartsWith("sdl"))
-                    tech = "dinput";
-                SimpleLogger.Instance.Info("[GUNS] Using multigun with input mappings from " + tech + ".");
-            }
-            else SimpleLogger.Instance.Info("[GUNS] Not using multigun.");
+            // Multigun is decided in DefineGunIndexes, before InputSystem and mouse indexes are written
+            SimpleLogger.Instance.Info(_multigun ? "[GUNS] Using multigun (RawInput)." : "[GUNS] Not using multigun.");
 
             string mouseIndex1 = "1";
             string mouseIndex2 = "2";
@@ -2709,35 +2705,42 @@ namespace EmulatorLauncher
             else
                 ini.WriteValue(" Global ", "Crosshairs", "3");
 
-            // Write gun mappings
+            // Write gun mappings (gun_invert swaps trigger and reload, e.g. Wiimote with Nunchuk or WiiZapper)
+            bool gunInvert = SystemConfig.getOptBoolean("gun_invert");
+            string triggerButton = gunInvert ? "_RIGHT_BUTTON" : "_LEFT_BUTTON";
+            string reloadButton = gunInvert ? "_LEFT_BUTTON" : "_RIGHT_BUTTON";
+
             ini.WriteValue(" Global ", "InputGunX", "\"" + _mouse1 + "_XAXIS\"");
             ini.WriteValue(" Global ", "InputGunY", "\"" + _mouse1 + "_YAXIS\"");
-            ini.WriteValue(" Global ", "InputTrigger", "\"" + _mouse1 + "_LEFT_BUTTON\"");
-            ini.WriteValue(" Global ", "InputOffscreen", "\"" + _mouse1 + "_RIGHT_BUTTON\"");
+            ini.WriteValue(" Global ", "InputTrigger", "\"" + _mouse1 + triggerButton + "\"");
+            ini.WriteValue(" Global ", "InputOffscreen", "\"" + _mouse1 + reloadButton + "\"");
             ini.WriteValue(" Global ", "InputAutoTrigger", "1");
 
             if (_multigun)
             {
                 ini.WriteValue(" Global ", "InputGunX2", "\"" + _mouse2 + "_XAXIS\"");
                 ini.WriteValue(" Global ", "InputGunY2", "\"" + _mouse2 + "_YAXIS\"");
-                ini.WriteValue(" Global ", "InputTrigger2", "\"" + _mouse2 + "_LEFT_BUTTON\"");
-                ini.WriteValue(" Global ", "InputOffscreen2", "\"" + _mouse2 + "_RIGHT_BUTTON\"");
+                ini.WriteValue(" Global ", "InputTrigger2", "\"" + _mouse2 + triggerButton + "\"");
+                ini.WriteValue(" Global ", "InputOffscreen2", "\"" + _mouse2 + reloadButton + "\"");
                 ini.WriteValue(" Global ", "InputAutoTrigger2", "1");
             }
 
             // Analog guns mappings
             ini.WriteValue(" Global ", "InputAnalogGunX", "\"" + _mouse1 + "_XAXIS\"");
             ini.WriteValue(" Global ", "InputAnalogGunY", "\"" + _mouse1 + "_YAXIS\"");
-            ini.WriteValue(" Global ", "InputAnalogTriggerLeft", "KEY_A," + _mouse1 + "_LEFT_BUTTON");
-            ini.WriteValue(" Global ", "InputAnalogTriggerRight", "KEY_S," + _mouse1 + "_RIGHT_BUTTON");
+            ini.WriteValue(" Global ", "InputAnalogTriggerLeft", "KEY_A," + _mouse1 + triggerButton);
+            ini.WriteValue(" Global ", "InputAnalogTriggerRight", "KEY_S," + _mouse1 + reloadButton);
 
             if (_multigun)
             {
                 ini.WriteValue(" Global ", "InputAnalogGunX2", "\"" + _mouse2 + "_XAXIS\"");
                 ini.WriteValue(" Global ", "InputAnalogGunY2", "\"" + _mouse2 + "_YAXIS\"");
-                ini.WriteValue(" Global ", "InputAnalogTriggerLeft2", _mouse2 + "_LEFT_BUTTON");
-                ini.WriteValue(" Global ", "InputAnalogTriggerRight2", _mouse2 + "_RIGHT_BUTTON");
+                ini.WriteValue(" Global ", "InputAnalogTriggerLeft2", _mouse2 + triggerButton);
+                ini.WriteValue(" Global ", "InputAnalogTriggerRight2", _mouse2 + reloadButton);
             }
+
+            // DolphinBar: start/coin on the D-pad, exit key and legacy keys
+            ConfigureDolphinBar(ini, guns, gunsKbAssociation);
 
             // Star Wars trilogy
             Dictionary<string, string> starWarsMapping = new Dictionary<string, string>();
@@ -2776,6 +2779,91 @@ namespace EmulatorLauncher
                         ini.WriteValue(" Global ", entry.Key, newValue);
                 }
             }
+        }
+
+        /// <summary>
+        /// DolphinBar (Mayflash Wiimote): D-pad Right = start, D-pad Left = coin (same keys in DolphinBar modes 1 and 2), added to the player inputs.
+        /// With RawInput, each player only reads the keyboard of its own DolphinBar (KEYn_), otherwise any keyboard (KEY_).
+        /// </summary>
+        private void ConfigureDolphinBar(IniFile ini, RawLightgun[] guns, Dictionary<RawLightgun, RawInputDevice> gunsKbAssociation)
+        {
+            if (!guns.Take(2).Any(g => g.Type == RawLighGunType.MayFlashWiimote))
+                return;
+
+            bool rawInput = ini.GetValue(" Global ", "InputSystem") == "rawinput";
+
+            // Supermodel lists RawInput keyboards in reverse device list order and skips RDP devices (DirectInputSystem.cpp, OpenKeyboardsAndMice)
+            var rawKeyboards = RawInputDevice.GetRawInputDevices()
+                .Where(d => d.Type == RawInputDeviceType.Keyboard && d.DevicePath.IndexOf("Root#RDP_", StringComparison.OrdinalIgnoreCase) < 0)
+                .ToList();
+
+            int playerCount = rawInput ? 2 : 1;
+            for (int p = 1; p <= playerCount && p <= guns.Length; p++)
+            {
+                var gun = guns[p - 1];
+                if (gun.Type != RawLighGunType.MayFlashWiimote)
+                    continue;
+
+                string kbPrefix = "KEY";
+                if (rawInput)
+                {
+                    RawInputDevice kb = gunsKbAssociation.ContainsKey(gun) ? gunsKbAssociation[gun] : null;
+                    int kbPos = kb != null ? rawKeyboards.FindIndex(k => k.DevicePath == kb.DevicePath) : -1;
+                    if (kbPos < 0)
+                    {
+                        SimpleLogger.Instance.Warning("[GUNS] P" + p + " DolphinBar keyboard not found, D-pad start/coin not added.");
+                        continue;
+                    }
+                    kbPrefix = "KEY" + (rawKeyboards.Count - kbPos);
+                }
+
+                AppendInput(ini, "InputStart" + p, "KEY_" + p, kbPrefix + "_RIGHT");
+                AppendInput(ini, "InputCoin" + p, "KEY_" + (p + 4), kbPrefix + "_LEFT");
+                SimpleLogger.Instance.Info("[GUNS] P" + p + " DolphinBar start/coin: " + kbPrefix + "_RIGHT / " + kbPrefix + "_LEFT");
+            }
+
+            if (!rawInput)
+                return;
+
+            // Legacy DolphinBar keys bound to any keyboard (Return, PageUp, PageDown) would let the player 2 Wiimote start or add coins for player 1
+            RemoveInput(ini, "InputStart1", "KEY_RETURN", "KEY_PGDN");
+            RemoveInput(ini, "InputCoin1", "KEY_PGUP");
+
+            // The DolphinBar sends Escape on the - button (mode 2): exit is limited to the other keyboards
+            var exitKeys = new List<string>();
+            for (int k = 0; k < rawKeyboards.Count; k++)
+            {
+                if (rawKeyboards[k].DevicePath.IndexOf("VID_0079&PID_1802", StringComparison.OrdinalIgnoreCase) < 0)
+                    exitKeys.Add("KEY" + (rawKeyboards.Count - k) + "_ESCAPE");
+            }
+
+            if (exitKeys.Count > 0)
+                ini.WriteValue(" Global ", "InputUIExit", "\"" + string.Join(",", exitKeys) + "\"");
+            else
+                SimpleLogger.Instance.Info("[GUNS] No keyboard other than the DolphinBar found, exit key not changed.");
+        }
+
+        // Add a key to a Supermodel input (comma separated list), starting from a default value if the input is not set
+        private static void AppendInput(IniFile ini, string key, string defaultValue, string toAdd)
+        {
+            string value = ini.GetValue(" Global ", key);
+            value = string.IsNullOrEmpty(value) ? defaultValue : value.Trim('"');
+
+            if (!value.Split(',').Contains(toAdd))
+                value += "," + toAdd;
+
+            ini.WriteValue(" Global ", key, "\"" + value + "\"");
+        }
+
+        // Remove keys from a Supermodel input (comma separated list)
+        private static void RemoveInput(IniFile ini, string key, params string[] toRemove)
+        {
+            string value = ini.GetValue(" Global ", key);
+            if (string.IsNullOrEmpty(value))
+                return;
+
+            var keys = value.Trim('"').Split(',').Where(k => !toRemove.Contains(k)).ToArray();
+            ini.WriteValue(" Global ", key, "\"" + (keys.Length > 0 ? string.Join(",", keys) : "NONE") + "\"");
         }
     }
 }
