@@ -158,21 +158,9 @@ namespace EmulatorLauncher
             }
             else if (gun1.Type == RawLighGunType.MayFlashWiimote)
             {
-                if (SystemConfig.isOptSet("WiimoteMode") && SystemConfig["WiimoteMode"] == "game")
-                {
-                    bytes[32] = (byte)0x1C;     // Return
-                    bytes[36] = (byte)0x0E;     // Esc / Backspace
-                }
-                else if (SystemConfig.isOptSet("WiimoteMode") && SystemConfig["WiimoteMode"] == "normal")
-                {
-                    bytes[32] = (byte)0xC9;     // PageUp
-                    bytes[36] = (byte)0xD1;     // PageDown
-                }
-                else
-                {
-                    bytes[32] = (byte)0xC8;     // up
-                    bytes[36] = (byte)0xD0;     // down
-                }
+                // DolphinBar: D-pad Right = start, D-pad Left = coin, same keys in DolphinBar modes 1 and 2
+                bytes[32] = (byte)0xCD;     // right
+                bytes[36] = (byte)0xCB;     // left
             }
             else if (gun1.Type == RawLighGunType.Mouse && SystemConfig.isOptSet("WiimoteMode") && SystemConfig["WiimoteMode"] == "wiimotegun")
             {
@@ -199,10 +187,11 @@ namespace EmulatorLauncher
                 bytes[72] = (byte)0x03;     // 2
                 bytes[76] = (byte)0x07;     // 6
             }
-            else if (gun2.Type == RawLighGunType.MayFlashWiimote)
+            else if (gun2 != null && gun2.Type == RawLighGunType.MayFlashWiimote)
             {
-                bytes[72] = (byte)0xCB;     // left
-                bytes[76] = (byte)0xCD;     // right
+                // DolphinBar: Model2 merges all keyboards, so player 2 uses other D-pad directions than player 1 (Up = start, Down = coin)
+                bytes[72] = (byte)0xC8;     // up
+                bytes[76] = (byte)0xD0;     // down
             }
             else
             {

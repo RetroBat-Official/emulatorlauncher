@@ -339,7 +339,6 @@ namespace EmulatorLauncher
                 string kbName;
                 string kbSuffix;
                 bool wiimoteGun = Program.SystemConfig.isOptSet("WiimoteMode") && Program.SystemConfig["WiimoteMode"] == "wiimotegun";
-                bool wiimoteGaming = Program.SystemConfig.isOptSet("WiimoteMode") && Program.SystemConfig["WiimoteMode"] == "game";
                 bool wiimoteNormal = Program.SystemConfig.isOptSet("WiimoteMode") && Program.SystemConfig["WiimoteMode"] == "normal";
 
                 // Add manufacturer and name in some cases
@@ -363,6 +362,11 @@ namespace EmulatorLauncher
                 {
                     if (buttonMap.Count > 0)
                     {
+                        // DolphinBar: free Wiimote buttons for game-specific extras, D-pad Up first, then buttons depending on DolphinBar mode (mode 2 if not set)
+                        // Mode 1 (normal): 1 = PageUp, 2 = PageDown - Mode 2 (game): + = Return (1/2 send volume keys, - sends Escape)
+                        var wiiExtraKeys = new Dictionary<string, Keys>();
+                        var wiiFreeKeys = new Queue<Keys>(wiimoteNormal ? new[] { Keys.Up, Keys.PageUp, Keys.PageDown } : new[] { Keys.Up, Keys.Return });
+
                         foreach (var button in buttonMap)
                         {
                             // Start from the default keyboard for each button, never reuse a keyboard found for a previous gun/button
@@ -472,8 +476,25 @@ namespace EmulatorLauncher
                                         keyboard = _gunsKbAssociation.ContainsKey(iGun) ? _gunsKbAssociation[iGun] : RawLightgun.FindAssociatedKeyboard(iGun.DevicePath, keyboards, keyboard, _gunsKbAssociation);
 
                                     string wiiButton = button.Value;
-                                    // Use normal keyboard
-                                    if (!WiiKBKeys.Contains(wiiButton) || useKb || ts_nogun)
+
+                                    // Game-specific extras (arrow keys in yml): each distinct arrow gets the next free Wiimote button, in yml order
+                                    Keys wiiExtraKey = Keys.None;
+                                    bool wiiArrow = WiiArrowKeys.Contains(wiiButton) && !useKb && !ts_nogun;
+                                    if (wiiArrow)
+                                    {
+                                        string arrowId = wiiButton.ToLowerInvariant();
+                                        if (!wiiExtraKeys.TryGetValue(arrowId, out wiiExtraKey) && wiiFreeKeys.Count > 0)
+                                        {
+                                            wiiExtraKey = wiiFreeKeys.Dequeue();
+                                            wiiExtraKeys[arrowId] = wiiExtraKey;
+                                        }
+
+                                        if (wiiExtraKey == Keys.None)
+                                            SimpleLogger.Instance.Warning("[GUNS] No free Wiimote button left for " + button.Key + ", using keyboard.");
+                                    }
+
+                                    // Use normal keyboard (also when no free Wiimote button is left for an extra)
+                                    if (!WiiKBKeys.Contains(wiiButton) || useKb || ts_nogun || (wiiArrow && wiiExtraKey == Keys.None))
                                     {
                                         var tempKb = _orgKeyboard;
 
@@ -523,48 +544,26 @@ namespace EmulatorLauncher
 
                                     switch (wiiButton)
                                     {
+                                        // Start: D-pad Right, same key in DolphinBar modes 1 and 2
                                         case "kb_1":
                                         case "kb_2":
                                         case "kb_3":
                                         case "kb_4":
-                                            if (wiimoteGaming)
-                                            {
-                                                xmlPlace.RawInputButton.KeyboardKey = Keys.Return;
-                                                xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " Return";
-                                            }
-                                            else
-                                            {
-                                                xmlPlace.RawInputButton.KeyboardKey = Keys.Up;
-                                                xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " Up";
-                                            }
+                                            xmlPlace.RawInputButton.KeyboardKey = Keys.Right;
                                             break;
+                                        // Coin: D-pad Left, same key in DolphinBar modes 1 and 2
                                         case "kb_5":
                                         case "kb_6":
                                         case "kb_7":
                                         case "kb_8":
-                                            if (wiimoteGaming)
-                                            {
-                                                xmlPlace.RawInputButton.KeyboardKey = Keys.VolumeUp;
-                                                xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " VolumeUp";
-                                            }
-                                            else
-                                            {
-                                                xmlPlace.RawInputButton.KeyboardKey = Keys.Down;
-                                                xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " Down";
-                                            }
+                                            xmlPlace.RawInputButton.KeyboardKey = Keys.Left;
                                             break;
+                                        // Game-specific extras: free Wiimote button resolved above
                                         default:
-                                            string kbkey = button.Value.Split('_')[1];
-                                            if (Numbers.Contains(kbkey))
-                                                kbkey = "D" + kbkey;
-
-                                            if (Enum.TryParse(kbkey, true, out Keys key))
-                                                xmlPlace.RawInputButton.KeyboardKey = key;
-
-                                            xmlPlace.RawInputButton.KeyboardKey = key;
-                                            xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " " + kbkey;
+                                            xmlPlace.RawInputButton.KeyboardKey = wiiExtraKey;
                                             break;
                                     }
+                                    xmlPlace.BindName = xmlPlace.BindNameRi = kbSuffix + " " + kbName + " " + xmlPlace.RawInputButton.KeyboardKey.ToString();
                                 }
                                 else if (iGun.Type == RawLighGunType.Wiimote4Guns)
                                 {
@@ -585,7 +584,7 @@ namespace EmulatorLauncher
                                     else
                                     {
                                         kbName = iGun.Name;
-                                        kbSuffix = "RetroBat"; // Fabricant RetroBat pour les claviers Wiimote4Guns
+                                        kbSuffix = "RetroBat"; // RetroBat manufacturer for Wiimote4Guns keyboards
                                     }
 
                                     xmlPlace.RawInputButton = new RawInputButton
@@ -715,31 +714,17 @@ namespace EmulatorLauncher
                                     else if (mouseButton.StartsWith("mouseright")) 
                                         mouseButton = gunInvert ? "LeftButton" : "RightButton";
 
-                                    if (mouseButton.StartsWith("mousemiddle") && wiimoteGaming)
+                                    if (mouseButton.StartsWith("mousemiddle"))
                                     {
-                                        mouseButton = "VolumeDown";
-
+                                        // Middle button (grenade...): D-pad Down, same key in DolphinBar modes 1 and 2
                                         xmlPlace.RawInputButton = new RawInputButton
                                         {
                                             DevicePath = keyboard.DevicePath.ToString(),
                                             DeviceType = RawDeviceType.Keyboard,
                                             MouseButton = RawMouseButton.None,
-                                            KeyboardKey = Keys.VolumeDown,
+                                            KeyboardKey = Keys.Down,
                                         };
-                                        xmlPlace.BindName = xmlPlace.BindNameRi = "Mayflash DolphinBar " + kbName + " VolumeDown";
-                                    }
-                                    else if (mouseButton.StartsWith("mousemiddle"))
-                                    {
-                                        mouseButton = "PageUp";
-
-                                        xmlPlace.RawInputButton = new RawInputButton
-                                        {
-                                            DevicePath = keyboard.DevicePath.ToString(),
-                                            DeviceType = RawDeviceType.Keyboard,
-                                            MouseButton = RawMouseButton.None,
-                                            KeyboardKey = Keys.PageUp,
-                                        };
-                                        xmlPlace.BindName = xmlPlace.BindNameRi = "Mayflash DolphinBar " + kbName + " PageUp";
+                                        xmlPlace.BindName = xmlPlace.BindNameRi = "Mayflash DolphinBar " + kbName + " Down";
                                     }
                                     else
                                     {
@@ -851,6 +836,10 @@ namespace EmulatorLauncher
 
         private readonly static List<string> WiiKBKeys = new List<string>
         { "kb_1", "kb_2", "kb_3", "kb_4", "kb_5", "kb_6", "kb_7", "kb_8", "kb_Up", "kb_Down", "kb_Left", "kb_Right", "kb_left", "kb_right", "kb_up", "kb_down" };
+
+        // Arrow keys used in yml for game-specific extras (pedals, menu select...), redistributed on free Wiimote buttons
+        private readonly static List<string> WiiArrowKeys = new List<string>
+        { "kb_Up", "kb_Down", "kb_Left", "kb_Right", "kb_up", "kb_down", "kb_left", "kb_right" };
 
         private static string GetDescriptionFromFile(string path, string device)
         {
