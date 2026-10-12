@@ -281,48 +281,46 @@ namespace EmulatorLauncher
 
             using (var kbini = new IniFile(kbmappingFile, IniOptions.UseSpaces))
             {
-                if (guns[0].Type == RawLighGunType.MayFlashWiimote)
+                // DolphinBar on arcade systems: D-pad Right = start, Left = coin, Down = B, Up = X, same keys in DolphinBar modes 1 and 2
+                // A key can only drive one button in Flycast, so D-pad directions are not bound (Dreamcast keeps them, the Dreamcast gun has its own D-pad)
+                if (guns[0].Type == RawLighGunType.MayFlashWiimote && _isArcade)
                 {
-                    if (SystemConfig.isOptSet("WiimoteMode") && !string.IsNullOrEmpty(SystemConfig["WiimoteMode"]))
-                    {
-                        string wiiMode = SystemConfig["WiimoteMode"];
+                    kbini.WriteValue("digital", "bind0", "79:btn_start");              //Right
+                    kbini.WriteValue("digital", "bind1", "80:btn_d");                  //Left
+                    kbini.WriteValue("digital", "bind2", "81:btn_b");                  //Down
+                    kbini.WriteValue("digital", "bind3", "82:btn_x");                  //Up
+                    kbini.WriteValue("digital", "bind4", "225:btn_a");                 //Leftshift
+                }
+                else if (guns[0].Type == RawLighGunType.MayFlashWiimote)
+                {
+                    // DolphinBar mode not set: behave as mode 2 (game)
+                    string wiiMode = SystemConfig["WiimoteMode"];
+                    if (string.IsNullOrEmpty(wiiMode))
+                        wiiMode = "game";
 
-                        if (wiiMode == "game")
-                        {
-                            kbini.WriteValue("digital", "bind0", "40:btn_start");
-                            kbini.WriteValue("digital", "bind1", "41:btn_d");
-                            kbini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
-                            kbini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
-                            kbini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
-                            kbini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
-                            kbini.WriteValue("digital", "bind6", "128:btn_a");
-                            kbini.WriteValue("digital", "bind7", "129:btn_b");
-                            kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
-                        }
-                        else if (wiiMode == "normal")
-                        {
-                            kbini.WriteValue("digital", "bind0", "75:btn_start");
-                            kbini.WriteValue("digital", "bind1", "78:btn_d");
-                            kbini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
-                            kbini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
-                            kbini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
-                            kbini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
-                            kbini.WriteValue("digital", "bind6", "224:btn_b");              //Leftctrl
-                            kbini.WriteValue("digital", "bind7", "225:btn_a");              //Leftshift
-                            kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
-                        }
-                        else
-                        {
-                            kbini.WriteValue("digital", "bind0", "30:btn_start");
-                            kbini.WriteValue("digital", "bind1", "34:btn_d");
-                            kbini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
-                            kbini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
-                            kbini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
-                            kbini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
-                            kbini.WriteValue("digital", "bind6", "224:btn_b");
-                            kbini.WriteValue("digital", "bind7", "225:btn_a");
-                            kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
-                        }
+                    if (wiiMode == "game")
+                    {
+                        kbini.WriteValue("digital", "bind0", "40:btn_start");
+                        kbini.WriteValue("digital", "bind1", "41:btn_d");
+                        kbini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
+                        kbini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
+                        kbini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
+                        kbini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
+                        kbini.WriteValue("digital", "bind6", "128:btn_a");
+                        kbini.WriteValue("digital", "bind7", "129:btn_b");
+                        kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
+                    }
+                    else if (wiiMode == "normal")
+                    {
+                        kbini.WriteValue("digital", "bind0", "75:btn_start");
+                        kbini.WriteValue("digital", "bind1", "78:btn_d");
+                        kbini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
+                        kbini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
+                        kbini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
+                        kbini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
+                        kbini.WriteValue("digital", "bind6", "224:btn_b");              //Leftctrl
+                        kbini.WriteValue("digital", "bind7", "225:btn_a");              //Leftshift
+                        kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
                     }
                     else
                     {
@@ -361,8 +359,12 @@ namespace EmulatorLauncher
                     kbini.WriteValue("digital", "bind7", "4:btn_a");
                     kbini.WriteValue("digital", "bind8", "20:btn_x");              //Q
                 }
-                
-                int i = 9;
+
+                // Append hotkeys after the last bind (Flycast stops reading at the first missing bind index)
+                int i = 0;
+                while (!string.IsNullOrEmpty(kbini.GetValue("digital", "bind" + i)))
+                    i++;
+
                 if (hotkeyMapping != null)
                 {
                     foreach (var hk in hotkeyMapping)
@@ -676,71 +678,14 @@ namespace EmulatorLauncher
                                     {
                                         if (isWiimote)
                                         {
-                                            if (SystemConfig.isOptSet("WiimoteMode") && !string.IsNullOrEmpty(SystemConfig["WiimoteMode"]))
-                                            {
-                                                string wiiMode = SystemConfig["WiimoteMode"];
+                                            // DolphinBar: D-pad Right = start, Left = coin, Down = B, Up = X, same keys in DolphinBar modes 1 and 2
+                                            // A key can only drive one button in Flycast, so D-pad directions are not bound (arcade gun games do not use them)
+                                            ctrlini.WriteValue("digital", "bind0", "79:btn_start");        // Right
+                                            ctrlini.WriteValue("digital", "bind1", "80:btn_d");            // Left
+                                            ctrlini.WriteValue("digital", "bind2", "81:btn_b");            // Down
+                                            ctrlini.WriteValue("digital", "bind3", "82:btn_x");            // Up
 
-                                                if (wiiMode == "game")
-                                                {
-                                                    ctrlini.WriteValue("digital", "bind0", "40:btn_start");
-                                                    ctrlini.WriteValue("digital", "bind1", "41:btn_d");
-                                                    ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
-                                                    ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
-                                                    ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
-                                                    ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
-                                                    ctrlini.WriteValue("digital", "bind6", "128:btn_a");
-                                                    ctrlini.WriteValue("digital", "bind7", "129:btn_b");
-                                                }
-                                                else if (wiiMode == "normal")
-                                                {
-                                                    ctrlini.WriteValue("digital", "bind0", "75:btn_start");
-                                                    ctrlini.WriteValue("digital", "bind1", "78:btn_d");
-                                                    ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
-                                                    ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
-                                                    ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
-                                                    ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
-                                                    ctrlini.WriteValue("digital", "bind6", "224:btn_b");
-                                                    ctrlini.WriteValue("digital", "bind7", "225:btn_a");
-                                                }
-                                                else
-                                                {
-                                                    ctrlini.WriteValue("digital", "bind0", "30:btn_start");
-                                                    ctrlini.WriteValue("digital", "bind1", "34:btn_d");
-                                                    ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
-                                                    ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
-                                                    ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
-                                                    ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
-                                                    ctrlini.WriteValue("digital", "bind6", "224:btn_b");
-                                                    ctrlini.WriteValue("digital", "bind7", "225:btn_a");
-                                                }
-                                            }
-                                            else
-                                            {
-                                                ctrlini.WriteValue("digital", "bind0", "30:btn_start");
-                                                ctrlini.WriteValue("digital", "bind1", "34:btn_d");
-                                                ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
-                                                ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
-                                                ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
-                                                ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
-                                                ctrlini.WriteValue("digital", "bind6", "224:btn_b");
-                                                ctrlini.WriteValue("digital", "bind7", "225:btn_a");
-                                            }
-
-                                            ctrlini.WriteValue("digital", "bind8", "20:btn_x");            //Q
-
-                                            if (hotkeyMapping != null)
-                                            {
-                                                if (index == 1)
-                                                {
-                                                    int i = 9;
-                                                    foreach (var hk in hotkeyMapping)
-                                                    {
-                                                        string toAdd = hk.Value + ":" + hk.Key;
-                                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
-                                                        i++;
-                                                    }
-                                                }
-                                            }
+                                            // No hotkeys on the DolphinBar keyboard: the only hotkey key it can send is Escape (- button), which would quit the emulator
                                         }
                                         else
                                         {
@@ -786,57 +731,49 @@ namespace EmulatorLauncher
                                     {
                                         if (isWiimote)
                                         {
-                                            if (SystemConfig.isOptSet("WiimoteMode") && !string.IsNullOrEmpty(SystemConfig["WiimoteMode"]))
+                                            // DolphinBar mode not set: behave as mode 2 (game)
+                                            string wiiMode = SystemConfig["WiimoteMode"];
+                                            if (string.IsNullOrEmpty(wiiMode))
+                                                wiiMode = "game";
+
+                                            if (wiiMode == "game")
                                             {
-                                                string wiiMode = SystemConfig["WiimoteMode"];
-
-                                                if (wiiMode == "game")
-                                                {
-                                                    ctrlini.WriteValue("digital", "bind0", "40:btn_start");         //return
-                                                    ctrlini.WriteValue("digital", "bind1", "41:btn_d");             //Escape
-                                                    ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
-                                                    ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
-                                                    ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
-                                                    ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
-                                                    ctrlini.WriteValue("digital", "bind6", "128:btn_a");            //volumeup
-                                                    ctrlini.WriteValue("digital", "bind7", "129:btn_b");            //volumedown
-                                                }
-                                                else if (wiiMode == "normal")
-                                                {
-                                                    ctrlini.WriteValue("digital", "bind0", "75:btn_start");         //pageup
-                                                    ctrlini.WriteValue("digital", "bind1", "78:btn_d");             //pagedown
-                                                    ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
-                                                    ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
-                                                    ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
-                                                    ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
-                                                    ctrlini.WriteValue("digital", "bind6", "224:btn_b");            //Lctrl
-                                                    ctrlini.WriteValue("digital", "bind7", "225:btn_a");            //Lshift
-                                                }
-                                                else
-                                                {
-                                                    ctrlini.WriteValue("digital", "bind0", "30:btn_start");         //1
-                                                    ctrlini.WriteValue("digital", "bind1", "34:btn_d");             //5
-                                                    ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
-                                                    ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
-                                                    ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
-                                                    ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
-                                                    ctrlini.WriteValue("digital", "bind6", "224:btn_b");            //Lctrl
-                                                    ctrlini.WriteValue("digital", "bind7", "225:btn_a");            //Lshift
-                                                }
-
-                                                ctrlini.WriteValue("digital", "bind8", "20:btn_x");            //Q
-
-                                                if (hotkeyMapping != null)
-                                                {
-                                                    int i = 9;
-                                                    foreach (var hk in hotkeyMapping)
-                                                    {
-                                                        string toAdd = hk.Value + ":" + hk.Key;
-                                                        ctrlini.WriteValue("digital", "bind" + i, toAdd);
-                                                        i++;
-                                                    }
-                                                }
+                                                ctrlini.WriteValue("digital", "bind0", "40:btn_start");         //return
+                                                ctrlini.WriteValue("digital", "bind1", "41:btn_d");             //Escape
+                                                ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
+                                                ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
+                                                ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
+                                                ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
+                                                ctrlini.WriteValue("digital", "bind6", "128:btn_a");            //volumeup
+                                                ctrlini.WriteValue("digital", "bind7", "129:btn_b");            //volumedown
                                             }
+                                            else if (wiiMode == "normal")
+                                            {
+                                                ctrlini.WriteValue("digital", "bind0", "75:btn_start");         //pageup
+                                                ctrlini.WriteValue("digital", "bind1", "78:btn_d");             //pagedown
+                                                ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
+                                                ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
+                                                ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
+                                                ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
+                                                ctrlini.WriteValue("digital", "bind6", "224:btn_b");            //Lctrl
+                                                ctrlini.WriteValue("digital", "bind7", "225:btn_a");            //Lshift
+                                            }
+                                            else
+                                            {
+                                                ctrlini.WriteValue("digital", "bind0", "30:btn_start");         //1
+                                                ctrlini.WriteValue("digital", "bind1", "34:btn_d");             //5
+                                                ctrlini.WriteValue("digital", "bind2", "79:btn_dpad1_right");
+                                                ctrlini.WriteValue("digital", "bind3", "80:btn_dpad1_left");
+                                                ctrlini.WriteValue("digital", "bind4", "81:btn_dpad1_down");
+                                                ctrlini.WriteValue("digital", "bind5", "82:btn_dpad1_up");
+                                                ctrlini.WriteValue("digital", "bind6", "224:btn_b");            //Lctrl
+                                                ctrlini.WriteValue("digital", "bind7", "225:btn_a");            //Lshift
+                                            }
+
+                                            ctrlini.WriteValue("digital", "bind8", "20:btn_x");            //Q
+
+
+                                            // No hotkeys on the DolphinBar keyboard: the only hotkey key it can send is Escape (- button), which would quit the emulator
                                         }
 
                                         else
