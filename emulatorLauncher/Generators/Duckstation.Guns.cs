@@ -161,72 +161,7 @@ namespace EmulatorLauncher
             ini.WriteValue(padNumber1, "Pointer", pointer1);
             ini.WriteValue(padNumber1, "Trigger", guninvert ? pointer1 + "/RightButton" : pointer1 + "/LeftButton");
 
-            // Define mapping for A and B buttons (default is mouse right click and middle click)
-            if (SystemConfig.isOptSet("duck_gun_ab") && !string.IsNullOrEmpty(SystemConfig["duck_gun_ab"]) && SystemConfig["duck_gun_ab"] == "controller_1")
-            {
-                if (gamepad1)
-                {
-                    ini.WriteValue(padNumber1, "A", techPadNumber1 + GetInputKeyName(ctrl1, InputKey.a));
-                    ini.WriteValue(padNumber1, "B", techPadNumber1 + GetInputKeyName(ctrl1, InputKey.b));
-                    ini.WriteValue(padNumber1, "Start", techPadNumber1 + GetInputKeyName(ctrl1, InputKey.start));
-                    ini.WriteValue(padNumber1, "Back", techPadNumber1 + GetInputKeyName(ctrl1, InputKey.select));
-                    ini.WriteValue(padNumber1, "ShootOffscreen", guninvert ? pointer1 + "/LeftButton" : pointer1 + "/RightButton");
-                }
-                else
-                {
-                    ini.WriteValue(padNumber1, justifier1 ? "Start" : "A", "Keyboard/PageUp");
-                    ini.WriteValue(padNumber1, justifier1 ? "Back" : "B", "Keyboard/PageDown");
-                    ini.WriteValue(padNumber1, "ShootOffscreen", guninvert ? pointer1 + "/LeftButton" : pointer1 + "/RightButton");
-                }
-            }
-            else if (SystemConfig["duck_gun_ab"] == "key_1")
-            {
-                ini.WriteValue(padNumber1, justifier1 ? "Start" : "A", "Keyboard/PageUp");
-                ini.WriteValue(padNumber1, justifier1 ? "Back" : "B", "Keyboard/PageDown");
-                ini.WriteValue(padNumber1, "ShootOffscreen", guninvert ? pointer1 + "/LeftButton" : pointer1 + "/RightButton");
-            }
-            else if (SystemConfig["duck_gun_ab"] == "key_2")
-            {
-                ini.WriteValue(padNumber1, justifier1 ? "Start" : "A", "Keyboard/K");
-                ini.WriteValue(padNumber1, justifier1 ? "Back" : "B", "Keyboard/L");
-                ini.WriteValue(padNumber1, "ShootOffscreen", guninvert ? pointer1 + "/LeftButton" : pointer1 + "/RightButton");
-            }
-            else if (SystemConfig["duck_gun_ab"] == "key_3")
-            {
-                ini.WriteValue(padNumber1, justifier1 ? "Start" : "A", "Keyboard/Left");
-                ini.WriteValue(padNumber1, justifier1 ? "Back" : "B", "Keyboard/Right");
-                ini.WriteValue(padNumber1, "ShootOffscreen", guninvert ? pointer1 + "/LeftButton" : pointer1 + "/RightButton");
-            }
-            else if (SystemConfig["duck_gun_ab"] == "key_4")
-            {
-                ini.WriteValue(padNumber1, justifier1 ? "Start" : "A", "Keyboard/Left");
-                ini.WriteValue(padNumber1, justifier1 ? "Back" : "B", "Keyboard/Return");
-                ini.WriteValue(padNumber1, "ShootOffscreen", guninvert ? pointer1 + "/LeftButton" : pointer1 + "/RightButton");
-            }
-            else if (SystemConfig["duck_gun_ab"] == "key_5")
-            {
-                ini.WriteValue(padNumber1, justifier1 ? "Start" : "A", "Keyboard/VolumeUp");
-                ini.WriteValue(padNumber1, justifier1 ? "Back" : "B", "Keyboard/VolumeDown");
-                ini.WriteValue(padNumber1, "ShootOffscreen", guninvert ? pointer1 + "/LeftButton" : pointer1 + "/RightButton");
-            }
-            else if (SystemConfig["duck_gun_ab"] == "key_6")
-            {
-                ini.WriteValue(padNumber1, justifier1 ? "Start" : "A", "Keyboard/1");
-                ini.WriteValue(padNumber1, justifier1 ? "Back" : "B", "Keyboard/5");
-                ini.WriteValue(padNumber1, "ShootOffscreen", guninvert ? pointer1 + "/LeftButton" : pointer1 + "/RightButton");
-            }
-            else if(SystemConfig.isOptSet("gun_reload_button") && SystemConfig.getOptBoolean("gun_reload_button"))
-            {
-                ini.WriteValue(padNumber1, "ShootOffscreen", guninvert ? pointer1 + "/LeftButton" : pointer1 + "/RightButton");
-                ini.WriteValue(padNumber1, justifier1 ? "Start" : "A", pointer1 + "/MiddleButton");
-                ini.WriteValue(padNumber1, justifier1 ? "Back" : "B", "Keyboard/1");
-            }
-            else
-            {
-                ini.WriteValue(padNumber1, "ShootOffscreen", "Keyboard/1");
-                ini.WriteValue(padNumber1, justifier1 ? "Start" : "A", guninvert ? pointer1 + "/LeftButton" : pointer1 + "/RightButton");
-                ini.WriteValue(padNumber1, justifier1 ? "Back" : "B", pointer1 + "/MiddleButton");
-            }
+            ConfigureGunButtons(ini, padNumber1, pointer1, 1, justifier1, guninvert, GetGunFromPointer(guns, pointer1), ctrl1, techPadNumber1, gamepad1);
 
             string crosshairSize = "0.500000";
             if (SystemConfig.isOptSet("duck_crosshair") && !string.IsNullOrEmpty(SystemConfig["duck_crosshair"]))
@@ -273,72 +208,7 @@ namespace EmulatorLauncher
                 ini.WriteValue(padNumber2, "Pointer", pointer2);
                 ini.WriteValue(padNumber2, "Trigger", guninvert ? pointer2 + "/RightButton" : pointer2 + "/LeftButton");
 
-                // Define mapping for A and B buttons (default is mouse right click and middle click)
-                if (SystemConfig.isOptSet("duck_gun_ab") && !string.IsNullOrEmpty(SystemConfig["duck_gun_ab"]) && SystemConfig["duck_gun_ab"] == "controller_1")
-                {
-                    if (gamepad2)
-                    {
-                        ini.WriteValue(padNumber2, "A", techPadNumber2 + GetInputKeyName(ctrl2, InputKey.a));
-                        ini.WriteValue(padNumber2, "B", techPadNumber2 + GetInputKeyName(ctrl2, InputKey.b));
-                        ini.WriteValue(padNumber2, "Start", techPadNumber2 + GetInputKeyName(ctrl2, InputKey.start));
-                        ini.WriteValue(padNumber2, "Back", techPadNumber2 + GetInputKeyName(ctrl2, InputKey.select));
-                        ini.WriteValue(padNumber2, "ShootOffscreen", guninvert ? pointer2 + "/LeftButton" : pointer2 + "/RightButton");
-                    }
-                    else
-                    {
-                        ini.WriteValue(padNumber2, justifier2 ? "Start" : "A", "Keyboard/PageUp");
-                        ini.WriteValue(padNumber2, justifier2 ? "Back" : "B", "Keyboard/PageDown");
-                        ini.WriteValue(padNumber2, "ShootOffscreen", guninvert ? pointer2 + "/LeftButton" : pointer2 + "/RightButton");
-                    }
-                }
-                else if (SystemConfig["duck_gun_ab"] == "key_1")
-                {
-                    ini.WriteValue(padNumber2, justifier2 ? "Start" : "A", "Keyboard/PageUp");
-                    ini.WriteValue(padNumber2, justifier2 ? "Back" : "B", "Keyboard/PageDown");
-                    ini.WriteValue(padNumber2, "ShootOffscreen", guninvert ? pointer2 + "/LeftButton" : pointer2 + "/RightButton");
-                }
-                else if (SystemConfig["duck_gun_ab"] == "key_2")
-                {
-                    ini.WriteValue(padNumber2, justifier2 ? "Start" : "A", "Keyboard/K");
-                    ini.WriteValue(padNumber2, justifier2 ? "Back" : "B", "Keyboard/L");
-                    ini.WriteValue(padNumber2, "ShootOffscreen", guninvert ? pointer2 + "/LeftButton" : pointer2 + "/RightButton");
-                }
-                else if (SystemConfig["duck_gun_ab"] == "key_3")
-                {
-                    ini.WriteValue(padNumber2, justifier2 ? "Start" : "A", "Keyboard/Left");
-                    ini.WriteValue(padNumber2, justifier2 ? "Back" : "B", "Keyboard/Right");
-                    ini.WriteValue(padNumber2, "ShootOffscreen", guninvert ? pointer2 + "/LeftButton" : pointer2 + "/RightButton");
-                }
-                else if (SystemConfig["duck_gun_ab"] == "key_4")
-                {
-                    ini.WriteValue(padNumber2, justifier2 ? "Start" : "A", "Keyboard/Left");
-                    ini.WriteValue(padNumber2, justifier2 ? "Back" : "B", "Keyboard/Return");
-                    ini.WriteValue(padNumber2, "ShootOffscreen", guninvert ? pointer2 + "/LeftButton" : pointer2 + "/RightButton");
-                }
-                else if (SystemConfig["duck_gun_ab"] == "key_5")
-                {
-                    ini.WriteValue(padNumber2, justifier2 ? "Start" : "A", "Keyboard/VolumeUp");
-                    ini.WriteValue(padNumber2, justifier2 ? "Back" : "B", "Keyboard/VolumeDown");
-                    ini.WriteValue(padNumber2, "ShootOffscreen", guninvert ? pointer2 + "/LeftButton" : pointer2 + "/RightButton");
-                }
-                else if (SystemConfig["duck_gun_ab"] == "key_6")
-                {
-                    ini.WriteValue(padNumber2, justifier2 ? "Start" : "A", "Keyboard/2");
-                    ini.WriteValue(padNumber2, justifier2 ? "Back" : "B", "Keyboard/6");
-                    ini.WriteValue(padNumber2, "ShootOffscreen", guninvert ? pointer2 + "/LeftButton" : pointer2 + "/RightButton");
-                }
-                else if (SystemConfig.isOptSet("gun_reload_button") && SystemConfig.getOptBoolean("gun_reload_button"))
-                {
-                    ini.WriteValue(padNumber2, "ShootOffscreen", guninvert ? pointer2 + "/LeftButton" : pointer2 + "/RightButton");
-                    ini.WriteValue(padNumber2, justifier2 ? "Start" : "A", pointer2 + "/MiddleButton");
-                    ini.WriteValue(padNumber2, justifier2 ? "Back" : "B", "Keyboard/2");
-                }
-                else
-                {
-                    ini.WriteValue(padNumber2, "ShootOffscreen", "Keyboard/2");
-                    ini.WriteValue(padNumber2, justifier2 ? "Start" : "A", guninvert ? pointer2 + "/LeftButton" : pointer2 + "/RightButton");
-                    ini.WriteValue(padNumber2, justifier2 ? "Back" : "B", pointer2 + "/MiddleButton");
-                }
+                ConfigureGunButtons(ini, padNumber2, pointer2, 2, justifier2, guninvert, GetGunFromPointer(guns, pointer2), ctrl2, techPadNumber2, gamepad2);
 
                 string crosshairSize2 = "0.500000";
                 if (SystemConfig.isOptSet("duck_crosshair") && !string.IsNullOrEmpty(SystemConfig["duck_crosshair"]))
@@ -363,6 +233,79 @@ namespace EmulatorLauncher
                     ini.WriteValue("Main", "HideCursorInFullscreen", "true");
                 }
             }
+        }
+
+        /// <summary>
+        /// GunCon A/B (Justifier Start/Back) and offscreen shot mapping: the "duck_gun_ab" option has priority, then the DolphinBar layout, then mouse buttons.
+        /// </summary>
+        private void ConfigureGunButtons(IniFile ini, string pad, string pointer, int player, bool justifier, bool guninvert, RawLightgun gun, Controller ctrl, string techPad, bool gamepad)
+        {
+            string buttonA = justifier ? "Start" : "A";
+            string buttonB = justifier ? "Back" : "B";
+            string reloadClick = guninvert ? pointer + "/LeftButton" : pointer + "/RightButton";
+            string gunAB = SystemConfig["duck_gun_ab"];
+
+            if (gunAB == "controller_1")
+            {
+                if (gamepad)
+                {
+                    ini.WriteValue(pad, "A", techPad + GetInputKeyName(ctrl, InputKey.a));
+                    ini.WriteValue(pad, "B", techPad + GetInputKeyName(ctrl, InputKey.b));
+                    ini.WriteValue(pad, "Start", techPad + GetInputKeyName(ctrl, InputKey.start));
+                    ini.WriteValue(pad, "Back", techPad + GetInputKeyName(ctrl, InputKey.select));
+                }
+                else
+                {
+                    ini.WriteValue(pad, buttonA, "Keyboard/PageUp");
+                    ini.WriteValue(pad, buttonB, "Keyboard/PageDown");
+                }
+                ini.WriteValue(pad, "ShootOffscreen", reloadClick);
+            }
+            else if (gunAB == "key_2")
+            {
+                ini.WriteValue(pad, buttonA, "Keyboard/K");
+                ini.WriteValue(pad, buttonB, "Keyboard/L");
+                ini.WriteValue(pad, "ShootOffscreen", reloadClick);
+            }
+            else if (gunAB == "key_6")
+            {
+                // Wiimote4Guns: each player keyboard sends 1/5, 2/6...
+                ini.WriteValue(pad, buttonA, "Keyboard/" + player);
+                ini.WriteValue(pad, buttonB, "Keyboard/" + (player + 4));
+                ini.WriteValue(pad, "ShootOffscreen", reloadClick);
+            }
+            else if (gun != null && gun.Type == RawLighGunType.MayFlashWiimote)
+            {
+                // DolphinBar: A = reload, D-pad Right/Left = A/B (Start/Back), same keys in DolphinBar modes 1 and 2
+                // DuckStation does not tell keyboards apart (host keyboard keys only), so player 2 uses D-pad Up/Down
+                ini.WriteValue(pad, "ShootOffscreen", reloadClick);
+                ini.WriteValue(pad, buttonA, player == 1 ? "Keyboard/Right" : "Keyboard/Up");
+                ini.WriteValue(pad, buttonB, player == 1 ? "Keyboard/Left" : "Keyboard/Down");
+            }
+            else if (SystemConfig.getOptBoolean("gun_reload_button"))
+            {
+                ini.WriteValue(pad, "ShootOffscreen", reloadClick);
+                ini.WriteValue(pad, buttonA, pointer + "/MiddleButton");
+                ini.WriteValue(pad, buttonB, "Keyboard/" + player);
+            }
+            else
+            {
+                ini.WriteValue(pad, "ShootOffscreen", "Keyboard/" + player);
+                ini.WriteValue(pad, buttonA, reloadClick);
+                ini.WriteValue(pad, buttonB, pointer + "/MiddleButton");
+            }
+        }
+
+        // Gun behind a DuckStation pointer ("Pointer-N" = gun index N), or the only connected gun
+        private static RawLightgun GetGunFromPointer(RawLightgun[] guns, string pointer)
+        {
+            if (guns.Length == 1)
+                return guns[0];
+
+            if (pointer != null && pointer.StartsWith("Pointer-") && int.TryParse(pointer.Substring(8), out int index))
+                return guns.FirstOrDefault(g => g.Index == index);
+
+            return null;
         }
     }
 }
