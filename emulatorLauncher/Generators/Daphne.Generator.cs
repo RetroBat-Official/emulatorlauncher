@@ -53,7 +53,7 @@ namespace EmulatorLauncher
                     commandArray.Add(xString);
                 }
 
-                if (SystemConfig.isOptSet("MonitorIndex"))
+                if (Program.IsMonitorIndexSet)
                 {
                     // Hypseus uses SDL : -screen expects a 0-based SDL index.
                     commandArray.Add("-screen");

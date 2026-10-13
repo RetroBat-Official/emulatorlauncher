@@ -1156,7 +1156,7 @@ namespace EmulatorLauncher
         private Screen GetTargetScreen()
         {
             // Pas de MonitorIndex defini : on ne gere pas le placement d'ecran.
-            if (!SystemConfig.isOptSet("MonitorIndex") || string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+            if (!Program.IsMonitorIndexSet)
                 return null;
 
             return Program.TargetScreen;

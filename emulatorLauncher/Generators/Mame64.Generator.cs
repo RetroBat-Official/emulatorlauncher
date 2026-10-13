@@ -319,7 +319,7 @@ namespace EmulatorLauncher
             }
 
             // Monitor index
-            if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+            if (Program.IsMonitorIndexSet)
             {
                 retList.Add("-screen");
                 retList.Add(Program.TargetScreen.DeviceName);

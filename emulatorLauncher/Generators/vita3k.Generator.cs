@@ -411,6 +411,26 @@ namespace EmulatorLauncher
         {
             return !string.IsNullOrEmpty(title) && title.Contains(" | ") && !title.StartsWith("Vita3K", StringComparison.OrdinalIgnoreCase);
         }
+
+        /// <summary>
+        /// Vita3K has no screen setting : wait for the fullscreen game window, then keep it on the target screen.
+        /// </summary>
+        private static void PlaceVita3kGameWindow(Process px)
+        {
+            try
+            {
+                IntPtr hWnd = ScreenTools.WaitForReadyWindow(px, h => IsVita3kGameWindowTitle(User32.GetWindowText(h)), true, 10000);
+                if (hWnd == IntPtr.Zero)
+                    return;
+
+                ScreenTools.HoldWindowOnScreen(px, hWnd, Program.TargetScreen);
+                User32.SetForegroundWindow(hWnd);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[SCREENMOVER] Vita3K screen placement failed : " + ex.Message);
+            }
+        }
         #endregion
 
         #region Game and firmware detection
@@ -691,6 +711,9 @@ namespace EmulatorLauncher
                     bool gameWindowSeen = false;
                     int gameWindowMissingTicks = 0;
 
+                    // Move the game window to the chosen screen once (only when MonitorIndex is set, fullscreen only)
+                    bool screenPlacementDone = !Program.IsMonitorIndexSet || !_fullscreen;
+
                     // First launch of a package: Vita3K installs it without any window, show the progress meanwhile
                     InstallProgressWindow installProgress = null;
                     if (!string.IsNullOrEmpty(_installName))
@@ -715,6 +738,12 @@ namespace EmulatorLauncher
                         {
                             gameWindowSeen = true;
                             gameWindowMissingTicks = 0;
+
+                            if (!screenPlacementDone)
+                            {
+                                screenPlacementDone = true;
+                                PlaceVita3kGameWindow(px);
+                            }
                         }
                         else if (gameWindowSeen && mainWindow != IntPtr.Zero && windows.Count(w => !string.IsNullOrEmpty(w.Value)) == 1)
                         {

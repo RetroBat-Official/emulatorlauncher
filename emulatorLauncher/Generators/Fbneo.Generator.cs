@@ -143,14 +143,15 @@ namespace EmulatorLauncher
                     cfg["nVidSelect"] = "3";
 
                 // Monitor indexes : FBNeo expects a Windows adapter name, not an index.
-                cfg["HorScreen"] = Program.TargetScreen.DeviceName;
+                if (Program.IsMonitorIndexSet)
+                    cfg["HorScreen"] = Program.TargetScreen.DeviceName;
 
                 if (SystemConfig.isOptSet("VerticalMonitorIndex") && !string.IsNullOrEmpty(SystemConfig["VerticalMonitorIndex"]))
                 {
                     var vScreen = Displays.FromIndex(SystemConfig["VerticalMonitorIndex"].ToInteger(), MonitorOrder.SdlLike);
                     cfg["VerScreen"] = (vScreen ?? Program.TargetScreen).DeviceName;
                 }
-                else
+                else if (Program.IsMonitorIndexSet)
                     cfg["VerScreen"] = Program.TargetScreen.DeviceName;
 
                 // Scanlines

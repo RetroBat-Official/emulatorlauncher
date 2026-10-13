@@ -549,19 +549,28 @@ namespace EmulatorLauncher
             if (_filesToRestore == null)
                 return;
 
+            SimpleLogger.Instance.Info("[Generator] Restoring " + _filesToRestore.Count + " files.");
+
             foreach (var file in _filesToRestore)
             {
-                if (file.Value == null)
+                string filePath = file.Key ?? "na";
+
+                SimpleLogger.Instance.Info("[Generator] Restoring " + filePath);
+
+                try
                 {
-                    try
+                    if (file.Value == null)
                     {
-                        if (File.Exists(file.Key))
-                            File.Delete(file.Key);
+                        if (File.Exists(filePath))
+                            File.Delete(filePath);
                     }
-                    catch { }
+                    else
+                        File.WriteAllBytes(file.Key, file.Value);
                 }
-                else
-                    File.WriteAllBytes(file.Key, file.Value);
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Warning("[Generator] Unable to restore " + filePath + " : " + ex.Message);
+                }
             }
         }
 
@@ -672,7 +681,7 @@ namespace EmulatorLauncher
             if (!UseGenericScreenPlacement || process == null)
                 return;
 
-            if (!SystemConfig.isOptSet("MonitorIndex") || string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+            if (!Program.IsMonitorIndexSet)
                 return;
 
             // Windowed mode : keep the emulator's own placement and size

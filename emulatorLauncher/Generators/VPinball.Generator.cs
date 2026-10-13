@@ -285,15 +285,11 @@ namespace EmulatorLauncher
 
                 ini.WriteValue("Player", "DisableESC", "1");
 
-                // Get monitor index 
-                int monitorIndex = SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]) ? SystemConfig["MonitorIndex"].ToInteger() - 1 : 0;
-                if (monitorIndex >= Screen.AllScreens.Length)
-                    monitorIndex = 0;
+                // Target screen : only when the user chose one (MonitorIndex is 0-based, SDL order)
+                Screen vpScreen = Program.IsMonitorIndexSet ? Program.TargetScreen : null;
 
                 // Get bounds based on screen or resolution
-                Size bounds = resolution == null ? Screen.PrimaryScreen.Bounds.Size : new Size(resolution.Width, resolution.Height);
-                if (monitorIndex != 0 && resolution == null && monitorIndex < Screen.AllScreens.Length)
-                    bounds = Screen.AllScreens[monitorIndex].Bounds.Size;
+                Size bounds = resolution == null ? (vpScreen ?? Screen.PrimaryScreen).Bounds.Size : new Size(resolution.Width, resolution.Height);
 
                 // Resolution and fullscreen
                 ini.WriteValue("Player", "Width", bounds.Width.ToString());
@@ -308,7 +304,9 @@ namespace EmulatorLauncher
                 else
                     ini.WriteValue("Player", "FullScreen", "0");
 
-                ini.WriteValue("Player", "Display", monitorIndex.ToString());
+                // VPX display index follows the adapter enumeration order. Not set : keep VPX's own choice
+                if (vpScreen != null)
+                    ini.WriteValue("Player", "Display", Math.Max(0, Displays.IndexOf(vpScreen, MonitorOrder.EnumDisplayMonitors)).ToString());
 
                 // Vertical sync
                 if (SystemConfig.isOptSet("vp_vsync") && !string.IsNullOrEmpty(SystemConfig["vp_vsync"]))

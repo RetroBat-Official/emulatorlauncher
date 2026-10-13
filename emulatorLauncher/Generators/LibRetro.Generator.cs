@@ -1165,7 +1165,7 @@ namespace EmulatorLauncher.Libretro
             if (Features.IsSupported("MonitorIndex"))
             {
                 // RetroArch : 0 = auto, 1..N = 1-based on the order of EnumDisplayMonitors
-                int raIndex = Displays.IndexOf(Program.TargetScreen, MonitorOrder.EnumDisplayMonitors);
+                int raIndex = Program.IsMonitorIndexSet ? Displays.IndexOf(Program.TargetScreen, MonitorOrder.EnumDisplayMonitors) : -1;
                 retroarchConfig["video_monitor_index"] = raIndex < 0 ? "0" : (raIndex + 1).ToString();
             }
 
@@ -1176,7 +1176,7 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["video_fullscreen_y"] = res.Height.ToString();
                 retroarchConfig["video_refresh_rate"] = res.DisplayFrequency.ToString("N6", System.Globalization.CultureInfo.InvariantCulture);
 
-                if (!SystemConfig.isOptSet("MonitorIndex"))
+                if (!Program.IsMonitorIndexSet)
                 {
                     Rectangle emulationStationBounds;
                     if (IsEmulationStationWindowed(out emulationStationBounds) && !forcefs)

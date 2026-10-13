@@ -64,14 +64,10 @@ namespace EmulatorLauncher
                 else
                     SetOption(regKeyc, "AdaptiveVSync", 1);
 
-                // Monitor index is 1-based
-                if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
-                {
-                    int monitor = SystemConfig["MonitorIndex"].ToInteger() - 1;
-                    SetOption(regKeyc, "Display", monitor);
-                }
-                else
-                    SetOption(regKeyc, "Display", 0);
+                // MonitorIndex is 0-based (SDL order), VPX expects the adapter enumeration order.
+                // Not set : keep VPX's own choice
+                if (Program.IsMonitorIndexSet)
+                    SetOption(regKeyc, "Display", Math.Max(0, Displays.IndexOf(Program.TargetScreen, MonitorOrder.EnumDisplayMonitors)));
 
                 // Video options
                 SetOption(regKeyc, "BallReflection", SystemConfig["vp_ballreflection"] == "1" ? 1 : 0);

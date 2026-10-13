@@ -66,7 +66,7 @@ namespace EmulatorLauncher
         public FakeBezelFrm ShowFakeBezel(ScreenResolution resolution, bool useFakeBackground = false, Screen screen = null)
         {
             if (screen == null)
-                screen = Program.TargetScreen;
+                screen = Program.TargetScreen ?? Screen.PrimaryScreen;
 
             int resX = (resolution == null ? screen.Bounds.Width : resolution.Width);
             int resY = (resolution == null ? screen.Bounds.Height : resolution.Height);
@@ -133,7 +133,13 @@ namespace EmulatorLauncher
                 }
             }
             else
-                bezel.ViewPort = new Rectangle(0, 0, resX, resY);
+            {
+                bezel.ViewPort = new Rectangle(
+                    screen.Bounds.Left,
+                    screen.Bounds.Top,
+                    resX,
+                    resY);
+            }
 
             var file = stretchImage ? PngFile : GetStretchedBezel(PngFile, resX, resY);
             if (!bezel.SelectBezel(file, resX, resY))

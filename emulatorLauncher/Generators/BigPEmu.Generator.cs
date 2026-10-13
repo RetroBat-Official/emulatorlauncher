@@ -186,7 +186,8 @@ namespace EmulatorLauncher
                     video["DisplayHeight"] = (ScreenResolution.CurrentResolution.Height).ToString();
                 }
 
-                video["Display"] = Program.TargetScreen.DeviceName;
+                if (Program.IsMonitorIndexSet)
+                    video["Display"] = Program.TargetScreen.DeviceName;
 
                 BindFeature(video, "MSAAPref", "bigpemu_antialiasing", "0");
                 BindFeature(video, "ScreenFilter", "smooth", "0");

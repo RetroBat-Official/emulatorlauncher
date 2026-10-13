@@ -23,7 +23,7 @@ namespace EmulatorLauncher.Common.Joysticks
             var device = devices.FirstOrDefault(dev => dev.product == prod && dev.vendor == vend);
             if (device == null)
             {
-                SimpleLogger.Instance.Warning("Unknown HID device : " + guid.ToString() + ", " + guid.ProductId + ", " + guid.VendorId);
+                SimpleLogger.Instance.Warning("[HID Devices] Unknown HID device : " + guid.ToString() + ", " + guid.ProductId + ", " + guid.VendorId);
                 return null;
             }
             

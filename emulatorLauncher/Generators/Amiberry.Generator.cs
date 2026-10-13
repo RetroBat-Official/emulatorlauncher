@@ -836,8 +836,11 @@ namespace EmulatorLauncher
             Set("gfx_resolution", SystemConfig.isOptSet("amiberry_resolution") ? SystemConfig["amiberry_resolution"] : "hires");
             Set("gfx_linemode", SystemConfig.isOptSet("amiberry_linemode") ? SystemConfig["amiberry_linemode"] : "double");
 
-            int amiberryDisplay = Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike);
-            Set("gfx_display", (amiberryDisplay < 0 ? 1 : amiberryDisplay + 1).ToString(CultureInfo.InvariantCulture));
+            if (Program.IsMonitorIndexSet)
+            {
+                int amiberryDisplay = Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike);
+                Set("gfx_display", (amiberryDisplay < 0 ? 1 : amiberryDisplay + 1).ToString(CultureInfo.InvariantCulture));
+            }
 
             // scaling_method: -1 auto, 0 nearest, 1 linear, 2 integer, 3 stretch
             Set("amiberry.scaling_method", SystemConfig.isOptSet("amiberry_scaling") ? SystemConfig["amiberry_scaling"] : "-1");

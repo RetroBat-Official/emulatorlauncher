@@ -839,12 +839,15 @@ namespace EmulatorLauncher
 
                 ini.WriteValue("UI", "StartFullscreen", startFullscreen ? "true" : "false");
 
-                if (startFullscreen)
+                // Saved window geometry decides on which screen PCSX2 opens.
+                // Drop it only when the user chose a screen, otherwise PCSX2 keeps its own placement
+                // (fallback for users : place the window once in PCSX2, it will be remembered).
+                if (startFullscreen && Program.IsMonitorIndexSet)
+                {
+                    ini.Remove("UI", "MainWindowGeometry");
+                    ini.Remove("UI", "MainWindowState");
                     ini.Remove("UI", "DisplayWindowGeometry");
-
-                //ini.Remove("UI", "MainWindowGeometry");
-                //ini.Remove("UI", "MainWindowState");
-                //ini.Remove("UI", "DisplayWindowGeometry");
+                }
 
                 // Emucore section
                 ini.WriteValue("EmuCore", "EnableGameFixes", "true");
@@ -1167,98 +1170,57 @@ namespace EmulatorLauncher
         }
         #endregion
 
+        /// <summary>
+        /// Without bezel, the generic placement moves the PCSX2 render window to the target screen
+        /// (only when MonitorIndex is set and in fullscreen).
+        /// </summary>
+        protected override bool UseGenericScreenPlacement { get { return true; } }
+
         public override int RunAndWait(ProcessStartInfo path)
         {
+            if (_bezelFileInfo == null)
+                return base.RunAndWait(path);
+
+            var bezel = _bezelFileInfo.ShowFakeBezel(_resolution, true, Program.TargetScreen);
+            if (bezel == null)
+                return base.RunAndWait(path);
+
             int ret = 0;
-            Screen targetScreen = Program.TargetScreen;
 
-            if (_bezelFileInfo != null)
+            var process = StartEmulator(path);
+            if (process != null)
             {
-                var bezel = _bezelFileInfo.ShowFakeBezel(_resolution, true, targetScreen);
-                if (bezel != null)
-                {
-                    RECT rc = bezel.ViewPort;
+                Job.Current.AddProcess(process);
 
-                    //if (rc.bottom - rc.top == (_resolution ?? ScreenResolution.CurrentResolution).Height)
-                    //    rc.bottom--;
+                // Fit the window into the bezel viewport, only when the user chose a screen
+                if (Program.IsMonitorIndexSet)
+                    MoveWindowToViewport(process, bezel.ViewPort);
 
-                    var process = StartProcessAndMoveItsWindowTo(path, rc, targetScreen);
-                    if (process != null)
-                    {
-                        Job.Current.AddProcess(process);
+                while (!process.WaitForExit(50))
+                    Application.DoEvents();
 
-                        while (!process.WaitForExit(50))
-                            Application.DoEvents();
-
-                        ret = ReportExitCode(process, path);
-                    }
-
-                    bezel?.Dispose();
-
-                    return ret;
-                }
+                ret = ReportExitCode(process, path);
             }
 
-            if (targetScreen != null)
-            {
-                var process = StartProcessAndMoveItsWindowTo(path, targetScreen.Bounds, targetScreen);
-                if (process != null)
-                {
-                    Job.Current.AddProcess(process);
-                    process.WaitForExit();
-
-                    ret = ReportExitCode(process, path);
-                }
-
-                return ret;
-            }
-
-            return base.RunAndWait(path);
+            bezel.Dispose();
+            return ret;
         }
 
-        private Process StartProcessAndMoveItsWindowTo(ProcessStartInfo path, RECT rc, Screen screen)
+        private void MoveWindowToViewport(Process process, RECT rc)
         {
-            var process = StartEmulator(path);
-            if (process == null)
-                return null;
+            IntPtr hWnd = ScreenTools.WaitForReadyWindow(process, IsScreenPlacementWindow, _fullscreen);
+            if (hWnd == IntPtr.Zero)
+                return;
 
-            if (screen == null || screen.Primary)
-                return process;
+            User32.SetWindowPos(
+                hWnd,
+                IntPtr.Zero,
+                rc.left, rc.top,
+                rc.right - rc.left, rc.bottom - rc.top,
+                SWP.NOZORDER | SWP.NOACTIVATE
+            );
 
-            int retryCount = 0;
-            while (process != null)
-            {
-                if (process.WaitForExit(50))
-                {
-                    process = null;
-                    break;
-                }
-
-                retryCount++;
-
-                // If it's longer than 10 seconds, then exit loop
-                if (retryCount > 10000 / 50)
-                    break;
-
-                var hWnd = User32.FindHwnd(process.Id);
-                if (hWnd == IntPtr.Zero)
-                    continue;
-
-                if (!User32.IsWindowVisible(hWnd))
-                    continue;
-
-                Thread.Sleep(200);
-
-                User32.SetWindowPos(
-                    hWnd,
-                    IntPtr.Zero,
-                    rc.left, rc.top,
-                    rc.right - rc.left, rc.bottom - rc.top,
-                    SWP.NOZORDER | SWP.NOACTIVATE
-                );
-                break;
-            }
-            return process;
+            SimpleLogger.Instance.Info($"[SCREENMOVER] PCSX2 window fitted to bezel viewport on {Screen.FromHandle(hWnd).DeviceName}");
         }
     }
 }
