@@ -314,13 +314,18 @@ namespace EmulatorLauncher.Libretro
 
             retroarchConfig[player + "_gun_start"] = "right";      // D-pad Right
             retroarchConfig[player + "_gun_select"] = "left";      // D-pad Left
-            retroarchConfig[player + "_gun_aux_a"] = "down";       // D-pad Down
-            retroarchConfig[player + "_gun_aux_b"] = "up";         // D-pad Up
+            
+            // "directions" is the D-pad layout too; "keyboard" / "mouse" keep the keys set by the caller
+            if (!SystemConfig.isOptSet("gun_ab") || SystemConfig["gun_ab"] == "directions")
+            {
+                retroarchConfig[player + "_gun_aux_a"] = "down";   // D-pad Down
+                retroarchConfig[player + "_gun_aux_b"] = "up";     // D-pad Up
 
-            // Aux C: button 1 (PageUp) in mode 1, + (Enter) in mode 2 (default, buttons 1/2 send volume keys in mode 2)
-            retroarchConfig[player + "_gun_aux_c"] = SystemConfig["WiimoteMode"] == "normal" ? "pageup" : "enter";
+                // Aux C: button 1 (PageUp) in mode 1, + (Enter) in mode 2 (default, buttons 1/2 send volume keys in mode 2)
+                retroarchConfig[player + "_gun_aux_c"] = SystemConfig["WiimoteMode"] == "normal" ? "pageup" : "enter";
+            }
 
-            // Arrows are already used above and RetroArch would trigger both inputs: gun D-pad is left unbound
+            // Arrows are used for start/coin and RetroArch would trigger both inputs: gun D-pad is left unbound
             retroarchConfig[player + "_gun_dpad_up"] = "nul";
             retroarchConfig[player + "_gun_dpad_down"] = "nul";
             retroarchConfig[player + "_gun_dpad_left"] = "nul";

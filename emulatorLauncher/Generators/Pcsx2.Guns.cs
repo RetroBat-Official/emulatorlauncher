@@ -197,6 +197,14 @@ namespace EmulatorLauncher
                     }
                     else
                         pcsx2ini.WriteValue(usbSection, "guncon2_Start", "Keyboard/Return");
+
+                    if (guns[0].Type == RawLighGunType.MayFlashWiimote && !SystemConfig.isOptSet("pcsx2_gunmapping"))
+                    {
+                        pcsx2ini.AppendValue(usbSection, "guncon2_Start", "Keyboard/Right");
+                        pcsx2ini.AppendValue(usbSection, "guncon2_Select", "Keyboard/Left");
+                        pcsx2ini.AppendValue(usbSection, "guncon2_A", "Keyboard/Down");
+                        pcsx2ini.AppendValue(usbSection, "guncon2_B", "Keyboard/Up");
+                    }
                 }
             }
             else
@@ -237,6 +245,15 @@ namespace EmulatorLauncher
                     pcsx2ini.WriteValue("USB2", "guncon2_Select", azerty ? "Keyboard/Minus" : "Keyboard/6");
                     pcsx2ini.WriteValue("USB2", "guncon2_Pointer", "Pointer-1");
 
+                    // DolphinBar: JVS start/coin on the D-pad, for each player whose gun is a Wiimote
+                    bool p1Wiimote = guns[0].Type == RawLighGunType.MayFlashWiimote;
+                    bool p2Wiimote = guns[1].Type == RawLighGunType.MayFlashWiimote;
+                    if (p1Wiimote || p2Wiimote)
+                        RemoveJvsKeyboardDirections(pcsx2ini);
+                    if (p1Wiimote)
+                        AddDolphinBarJvsStartCoin(pcsx2ini, 1, true);
+                    if (p2Wiimote)
+                        AddDolphinBarJvsStartCoin(pcsx2ini, 2, !p1Wiimote);
 
                     var testDPadSection = pcsx2ini.GetOrCreateSection("Pad1");
 
@@ -269,6 +286,12 @@ namespace EmulatorLauncher
                     pcsx2ini.WriteValue(usbSection, "guncon2_Start", azerty ? "Keyboard/Ampersand" : "Keyboard/1");
                     pcsx2ini.WriteValue(usbSection, "guncon2_Select", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
                     pcsx2ini.WriteValue("JVS", "Coin1", azerty ? "Keyboard/ParenLeft" : "Keyboard/5");
+
+                    if (guns[0].Type == RawLighGunType.MayFlashWiimote)
+                    {
+                        RemoveJvsKeyboardDirections(pcsx2ini);
+                        AddDolphinBarJvsStartCoin(pcsx2ini, 1, true);
+                    }
 
                     var testDPadSection = pcsx2ini.GetOrCreateSection("Pad1");
 
@@ -335,6 +358,27 @@ namespace EmulatorLauncher
             pcsx2ini.Remove(usbSection, "guncon2_RelativeDown");
             pcsx2ini.Remove(usbSection, "guncon2_RelativeLeft");
             pcsx2ini.Remove(usbSection, "guncon2_RelativeRight");
+        }
+
+        /// <summary>
+        /// DolphinBar (Mayflash Wiimote) on pcsx2x6: D-pad Right = JVS start, D-pad Left = JVS coin, same keys in DolphinBar modes 1 and 2.
+        /// PCSX2 reads every keyboard as one (host keyboard keys only), so a second Wiimote uses D-pad Up/Down.
+        /// </summary>
+        private static void AddDolphinBarJvsStartCoin(IniFile pcsx2ini, int player, bool firstWiimote)
+        {
+            pcsx2ini.AppendValue("JVS", "P" + player + "_Start", firstWiimote ? "Keyboard/Right" : "Keyboard/Up");
+            pcsx2ini.AppendValue("JVS", "Coin" + player, firstWiimote ? "Keyboard/Left" : "Keyboard/Down");
+        }
+
+        // Keyboard arrows on JVS player 1 directions would also press the gun bits (trigger/sensor in Cobra and Time Crisis 4)
+        private static void RemoveJvsKeyboardDirections(IniFile pcsx2ini)
+        {
+            foreach (var dir in new[] { "P1_Up", "P1_Down", "P1_Left", "P1_Right" })
+            {
+                string value = pcsx2ini.GetValue("JVS", dir);
+                if (value != null && value.StartsWith("Keyboard/"))
+                    pcsx2ini.Remove("JVS", dir);
+            }
         }
     }
 }

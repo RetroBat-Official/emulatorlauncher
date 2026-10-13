@@ -19,7 +19,7 @@ namespace EmulatorLauncher
         private bool _isArcade;
         private SaveStatesWatcher _saveStatesWatcher;
         private int _saveStateSlot;
-
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         public FlycastGenerator()
         {
             DependsOnDesktopResolution = true;
@@ -198,6 +198,15 @@ namespace EmulatorLauncher
                         ini.WriteValue("window", "height", resolution.Height.ToString());
                         ini.WriteValue("window", "width", resolution.Width.ToString());
                     }
+                }
+
+                // Screen : Flycast (SDL) creates its window at the saved position, then goes fullscreen on that screen.
+                // Only when the user chose a screen, otherwise Flycast keeps its own placement.
+                if (Program.IsMonitorIndexSet)
+                {
+                    var bounds = Program.TargetScreen.Bounds;
+                    ini.WriteValue("window", "left", (bounds.Left + 50).ToString());
+                    ini.WriteValue("window", "top", (bounds.Top + 50).ToString());
                 }
 
                 if (SystemConfig.isOptSet("flycast_transparent_sorting") && SystemConfig["flycast_transparent_sorting"] == "triangle")
@@ -462,6 +471,8 @@ namespace EmulatorLauncher
 
                 using (var escHook = new KeyboardInterceptor(px, new KeyTrigger(Keys.Escape)))
                 {
+                    // After the Escape hook, so the user can still quit while we wait for the window
+                    ApplyScreenPlacement(px);
                     px.WaitForExit();
                     return px.ExitCode;
                 }

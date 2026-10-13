@@ -24,6 +24,7 @@ namespace EmulatorLauncher
         private string _sdl2dll;
         private bool _gameProfileRename = false;
         private string _gameProfilePath;
+        protected override bool UseGenericScreenPlacement { get { return true; } }
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -199,6 +200,25 @@ namespace EmulatorLauncher
             BindFeature(xdoc, "console_language", "wiiu_language", GetDefaultWiiULanguage());
             BindBoolFeature(xdoc, "open_pad", "cemu_open_pad", "true", "false");
 
+            // Screen : Cemu restores its saved window position, then goes fullscreen on that screen.
+            // Only when the user chose a screen, otherwise Cemu keeps its own placement.
+            if (Program.IsMonitorIndexSet)
+            {
+                var bounds = Program.TargetScreen.Bounds;
+                int width = bounds.Width / 2;
+                int height = bounds.Height / 2;
+
+                var position = xdoc.GetOrCreateElement("window_position");
+                position.SetElementValue("x", bounds.Left + (bounds.Width - width) / 2);
+                position.SetElementValue("y", bounds.Top + (bounds.Height - height) / 2);
+
+                var size = xdoc.GetOrCreateElement("window_size");
+                size.SetElementValue("x", width);
+                size.SetElementValue("y", height);
+
+                xdoc.SetElementValue("window_maximized", "false");
+            }
+
             if (!fullscreen)
                 xdoc.SetElementValue("fullscreen", "false");
 
@@ -334,6 +354,7 @@ namespace EmulatorLauncher
 
                 using (var escHook = new KeyboardInterceptor(px, new KeyTrigger(Keys.Escape)))
                 {
+                    ApplyScreenPlacement(px);
                     px.WaitForExit();
                 }
             }

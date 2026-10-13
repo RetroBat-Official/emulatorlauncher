@@ -33,6 +33,11 @@ namespace EmulatorLauncher
         private List<KeyValuePair<string, string>[]> stages = new List<KeyValuePair<string, string>[]>();
         private bool _restoreShaders = false;
 
+        /// <summary>
+        /// Safety net : if DuckStation still opens on another screen, move its window (only when MonitorIndex is set, fullscreen only).
+        /// </summary>
+        protected override bool UseGenericScreenPlacement { get { return true; } }
+
         public DuckstationGenerator()
         {
             DependsOnDesktopResolution = true;
@@ -500,6 +505,26 @@ namespace EmulatorLauncher
                         ini.WriteValue("Main", "StartFullscreen", "false");
                     else
                         ini.WriteValue("Main", "StartFullscreen", "true");
+
+                    // Screen : DuckStation restores the saved position of its main or display window, then goes fullscreen on that screen.
+                    // Only when the user chose a screen, otherwise DuckStation keeps its own placement.
+                    if (Program.IsMonitorIndexSet)
+                    {
+                        var bounds = Program.TargetScreen.Bounds;
+                        int width = bounds.Width / 2;
+                        int height = bounds.Height / 2;
+                        string x = (bounds.Left + (bounds.Width - width) / 2).ToString();
+                        string y = (bounds.Top + (bounds.Height - height) / 2).ToString();
+
+                        foreach (var window in new[] { "MainWindow", "DisplayWindow" })
+                        {
+                            ini.WriteValue("UI", window + "X", x);
+                            ini.WriteValue("UI", window + "Y", y);
+                            ini.WriteValue("UI", window + "Width", width.ToString());
+                            ini.WriteValue("UI", window + "Height", height.ToString());
+                            ini.WriteValue("UI", window + "Maximized", "false");
+                        }
+                    }
 
                     if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
                         ini.WriteValue("Main", "EnableDiscordPresence", "true");
