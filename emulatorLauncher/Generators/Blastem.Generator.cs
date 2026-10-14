@@ -16,7 +16,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = false;
         }
-
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private string _system;
         private SdlVersion _sdlVersion = SdlVersion.SDL2_26;
         private ScreenResolution _resolution;

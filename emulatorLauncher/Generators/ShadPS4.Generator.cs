@@ -16,6 +16,7 @@ namespace EmulatorLauncher
 {
     partial class ShadPS4Generator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private bool _useLauncher = false;
         private bool _default = false;
         private string _versionselected = null;

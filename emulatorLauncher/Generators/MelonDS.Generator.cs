@@ -14,6 +14,7 @@ namespace EmulatorLauncher
 {
    partial class MelonDSGenerator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private bool _bezelsEnabled = false;

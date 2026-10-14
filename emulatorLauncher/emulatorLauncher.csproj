@@ -452,6 +452,9 @@
     <Compile Include="Generators\Mame64.Controllers.cs">
       <DependentUpon>Mame64.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Mame64.Guns.cs">
+      <DependentUpon>Mame64.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Mandarine.Generator.cs" />
     <Compile Include="Generators\Mandarine.Controllers.cs">
       <DependentUpon>Mandarine.Generator.cs</DependentUpon>

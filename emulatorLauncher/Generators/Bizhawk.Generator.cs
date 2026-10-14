@@ -20,7 +20,7 @@ namespace EmulatorLauncher
          * - Add setup of core options if any options exists
          * - Check Controllers.cs for the controller part
         */
-
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private string _path;
@@ -232,6 +232,21 @@ namespace EmulatorLauncher
             json["PauseWhenMenuActivated"] = SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true";
             json["MainFormStayOnTop"] = "true";
             json["SingleInstanceMode"] = "true";
+
+            // Screen : BizHawk restores its main window position (SaveWindowPosition + MainWindowPosition), then goes fullscreen on that screen.
+            // Only when the user chose a screen, otherwise BizHawk keeps its own placement.
+            if (Program.IsMonitorIndexSet)
+            {
+                var bounds = Program.TargetScreen.Bounds;
+                int x = bounds.Left + bounds.Width / 4;
+                int y = bounds.Top + bounds.Height / 4;
+
+                json["SaveWindowPosition"] = "true";
+
+                // System.Drawing.Point is stored as a "X, Y" string
+                json["MainWindowPosition"] = x + ", " + y;
+            }
+
             json["ShowContextMenu"] = "false";
             json["UpdateAutoCheckEnabled"] = "false";
             json["HostInputMethod"] = "0";

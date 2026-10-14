@@ -67,7 +67,7 @@ namespace EmulatorLauncher
             ini.ClearSection("ArcadeOperator");
             ResetHotkeysToDefault(ini);
 
-            var mice = new ArcadeDuckPointerDevices();
+            var mice = new ArcadeDuckPointerDevices(ports.Take(MaxPorts).Count(p => p != null && p.Type == "lightgun"));
 
             for (int i = 0; i < MaxPorts; i++)
             {
@@ -631,6 +631,13 @@ namespace EmulatorLauncher
                 append("GearDown", InputKey.pageup);
                 append("Button1", InputKey.a);
                 append("Button2", InputKey.b);
+                return;
+            }
+
+            // Lightgun layouts have no directions (Konami GV would read them, and DolphinBar Wiimotes use the arrow keys)
+            if (port.Type == "lightgun")
+            {
+                append("Reload", InputKey.b);
                 return;
             }
 

@@ -12,6 +12,7 @@ namespace EmulatorLauncher
 {
     partial class MesenGenerator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         static List<string> _m3uSystems = new List<string>() { "pcenginecd", "turbografxcd" };
@@ -92,6 +93,20 @@ namespace EmulatorLauncher
             ConfigureGameboy(systemSection, mesenSystem, system, path);
             ConfigureGba(systemSection, mesenSystem, system, path);
             ConfigureColeco(systemSection, mesenSystem, system, path);
+
+            // Screen : Mesen restores its main window position (MainWindow.WindowLocation), then goes fullscreen on that screen.
+            // Only when the user chose a screen, otherwise Mesen keeps its own placement.
+            if (Program.IsMonitorIndexSet)
+            {
+                var bounds = Program.TargetScreen.Bounds;
+                int width = bounds.Width / 2;
+                int height = bounds.Height / 2;
+
+                var mainWindow = GetOrCreateContainer(json, "MainWindow");
+                mainWindow["WindowLocation"] = new JObject { ["X"] = bounds.Left + (bounds.Width - width) / 2, ["Y"] = bounds.Top + (bounds.Height - height) / 2 };
+                mainWindow["WindowSize"] = new JObject { ["Width"] = width, ["Height"] = height };
+                mainWindow["WindowIsMaximized"] = false;
+            }
 
             // Emulator preferences
             var preference = GetOrCreateContainer(json, "Preferences");

@@ -10,6 +10,7 @@ namespace EmulatorLauncher
 {
     class GZDoomGenerator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath(emulator);
@@ -133,6 +134,15 @@ namespace EmulatorLauncher
                         ini.WriteValue("GlobalSettings", "vid_fullscreen", "true");
                     else
                         ini.WriteValue("GlobalSettings", "vid_fullscreen", "false");
+
+                    // Screen : vid_adapter (0 = primary screen, N = Nth monitor in EnumDisplayMonitors order, 1-based)
+                    // Only when the user chose a screen, otherwise GZDoom/UZDoom keeps its own choice
+                    if (Program.IsMonitorIndexSet)
+                    {
+                        var screen = Program.TargetScreen;
+                        int adapter = screen.Primary ? 0 : Displays.IndexOf(screen, MonitorOrder.EnumDisplayMonitors) + 1;
+                        ini.WriteValue("GlobalSettings", "vid_adapter", Math.Max(0, adapter).ToString());
+                    }
 
                     BindIniFeature(ini, "GlobalSettings", "vid_preferbackend", "gzdoom_renderer", "0");
                     BindIniFeature(ini, "GlobalSettings", "vid_aspect", "gzdoom_ratio", "0");

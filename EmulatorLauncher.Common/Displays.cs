@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace EmulatorLauncher.Common
@@ -47,6 +48,45 @@ namespace EmulatorLauncher.Common
         {
             var list = Order(order);
             return (index < 0 || index >= list.Length) ? null : list[index];
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private struct DISPLAY_DEVICE
+        {
+            public int cb;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string DeviceName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string DeviceString;
+            public int StateFlags;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string DeviceID;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string DeviceKey;
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern bool EnumDisplayDevices(string lpDevice, uint iDevNum, ref DISPLAY_DEVICE lpDisplayDevice, uint dwFlags);
+
+        /// <summary>
+        /// Name of the monitor plugged on this adapter (EnumDisplayDevices DeviceString, e.g. "Generic PnP Monitor"), or null.
+        /// </summary>
+        public static string GetMonitorName(Screen screen)
+        {
+            if (screen == null)
+                return null;
+
+            try
+            {
+                var dd = new DISPLAY_DEVICE();
+                dd.cb = Marshal.SizeOf(typeof(DISPLAY_DEVICE));
+
+                if (EnumDisplayDevices(screen.DeviceName, 0, ref dd, 0))
+                    return dd.DeviceString;
+            }
+            catch { }
+
+            return null;
         }
 
         public static int IndexOf(Screen screen, MonitorOrder order)

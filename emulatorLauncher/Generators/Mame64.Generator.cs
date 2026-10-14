@@ -1,6 +1,5 @@
 ﻿using EmulatorLauncher;
 using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.EmulationStation;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,8 +16,6 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private bool _multigun = false;
-        private bool _mouseGun = false;
         private bool _separatecfg = false;
         private bool _groovy = false;
 

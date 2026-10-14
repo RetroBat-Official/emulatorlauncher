@@ -12,6 +12,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = true;
         }
+        protected override bool UseGenericScreenPlacement { get { return true; } }
 
         private string _gamedirsIniPath;
         private string _gamedirsSize;

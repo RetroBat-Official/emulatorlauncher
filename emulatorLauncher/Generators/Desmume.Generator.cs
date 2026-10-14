@@ -14,6 +14,7 @@ namespace EmulatorLauncher
 {
    partial class DesmumeGenerator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private BezelFiles _bezelFileInfo;
         private SaveStatesWatcher _saveStatesWatcher;
         private ScreenResolution _resolution;

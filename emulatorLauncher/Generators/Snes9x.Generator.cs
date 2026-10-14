@@ -11,7 +11,8 @@ namespace EmulatorLauncher
 {
 	partial class Snes9xGenerator : Generator
 	{
-		private BezelFiles _bezelFileInfo;
+        protected override bool UseGenericScreenPlacement { get { return true; } }
+        private BezelFiles _bezelFileInfo;
 		private ScreenResolution _resolution;
 		private List<string> _commandArray = new List<string>();
 		private bool _pad2Keyoverride = false;

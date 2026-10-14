@@ -18,7 +18,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = true;
         }
-
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private string _emulatorPath;
         private bool _sdl3 = false;
         private string _confPath;
@@ -130,6 +130,7 @@ namespace EmulatorLauncher
                     if (hwnd != IntPtr.Zero)
                         User32.ForceForegroundWindow(hwnd);
 
+                    ApplyScreenPlacement(ryujinx);
                     break;
                 }
                 Thread.Sleep(500);
@@ -212,6 +213,25 @@ namespace EmulatorLauncher
 
             //Set fullscreen
             json.start_fullscreen = fullscreen ? true : false;
+
+            // Screen : Ryujinx restores its saved window position (remember_window_state), then goes fullscreen on that screen.
+            // Only when the user chose a screen, otherwise Ryujinx keeps its own placement.
+            if (Program.IsMonitorIndexSet)
+            {
+                var bounds = Program.TargetScreen.Bounds;
+                int width = bounds.Width / 2;
+                int height = bounds.Height / 2;
+
+                var windowStartup = dynRoot["window_startup"] as JObject ?? new JObject();
+                windowStartup["window_size_width"] = width;
+                windowStartup["window_size_height"] = height;
+                windowStartup["window_position_x"] = bounds.Left + (bounds.Width - width) / 2;
+                windowStartup["window_position_y"] = bounds.Top + (bounds.Height - height) / 2;
+                windowStartup["window_maximized"] = false;
+                dynRoot["window_startup"] = windowStartup;
+
+                dynRoot["remember_window_state"] = true;
+            }
 
             // Folder
             _savedGameDirs = dynRoot["game_dirs"] as JArray ?? new JArray();
