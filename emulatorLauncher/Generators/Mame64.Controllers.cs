@@ -1361,6 +1361,25 @@ namespace EmulatorLauncher
             return "";
         }
 
+        /// <summary>
+        /// Converts a mapping file pointer entry to a MAME code :
+        /// MOUSE_XAXIS -> MOUSECODE_n_XAXIS, GUN_BUTTON1 -> GUNCODE_n_BUTTON1, optional "_reverse" suffix -> _REVERSE
+        /// </summary>
+        private static string GetSpecificPointerCode(string value, string mouseindex)
+        {
+            string[] mapParts = value.Split('_');
+            if (mapParts.Length < 2)
+                return null;
+
+            string device = mapParts[0].StartsWith("GUN", StringComparison.OrdinalIgnoreCase) ? "GUNCODE_" : "MOUSECODE_";
+            string target = device + mouseindex + "_" + mapParts[1].ToUpperInvariant();
+
+            if (mapParts.Length > 2 && mapParts[2].Equals("reverse", StringComparison.OrdinalIgnoreCase))
+                target += "_REVERSE";
+
+            return target;
+        }
+
         private string GetSpecificMappingX(string joy, string mouseindex, string mapping, int player)
         {
             string ret = "";
@@ -1402,39 +1421,15 @@ namespace EmulatorLauncher
                         }
                     }
                 }
-                else if (value.StartsWith("GUN") || value.StartsWith("gun"))
+                else if (value.StartsWith("GUN") || value.StartsWith("gun") || value.StartsWith("MOUSE") || value.StartsWith("mouse"))
                 {
-                    if (player >1 && !_multigun)
-                        ret = "";
-                    else
-                    {
-                        string[] mapParts = value.Split('_');
-                        if (mapParts.Length > 1)
-                        {
-                            string target = mapParts[1];
-                            if (string.IsNullOrEmpty(ret))
-                                ret += "GUNCODE_" + mouseindex + "_" + target;
-                            else
-                                ret += " OR " + "GUNCODE_" + mouseindex + "_" + target;
-                        }
-                    }
-                }
-                else if (value.StartsWith("MOUSE") || value.StartsWith("mouse"))
-                {
+                    // Only player 1 uses the mouse / gun when multigun is off : skip this part, keep the rest of the sequence
                     if (player > 1 && !_multigun)
-                        ret = "";
-                    else
-                    {
-                        string[] mapParts = value.Split('_');
-                        if (mapParts.Length > 1)
-                        {
-                            string target = mapParts[1];
-                            if (string.IsNullOrEmpty(ret))
-                                ret += "MOUSECODE_" + mouseindex + "_" + target;
-                            else
-                                ret += " OR " + "MOUSECODE_" + mouseindex + "_" + target;
-                        }
-                    }
+                        continue;
+
+                    string target = GetSpecificPointerCode(value, mouseindex);
+                    if (target != null)
+                        ret += string.IsNullOrEmpty(ret) ? target : " OR " + target;
                 }
 
                 else if (value.StartsWith("KEY") || value.StartsWith("key"))
@@ -1570,39 +1565,15 @@ namespace EmulatorLauncher
                         }
                     }
                 }
-                else if (value.StartsWith("GUN"))
+                else if (value.StartsWith("GUN") || value.StartsWith("MOUSE"))
                 {
+                    // Only player 1 uses the mouse / gun when multigun is off : skip this part, keep the rest of the sequence
                     if (player > 1 && !_multigun)
-                        ret = "";
-                    else
-                    {
-                        string[] mapParts = value.Split('_');
-                        if (mapParts.Length > 1)
-                        {
-                            string target = mapParts[1];
-                            if (string.IsNullOrEmpty(ret))
-                                ret += "GUNCODE_" + mouseindex + "_" + target;
-                            else
-                                ret += " OR " + "GUNCODE_" + mouseindex + "_" + target;
-                        }
-                    }
-                }
-                else if (value.StartsWith("MOUSE"))
-                {
-                    if (player > 1 && !_multigun)
-                        ret = "";
-                    else
-                    {
-                        string[] mapParts = value.Split('_');
-                        if (mapParts.Length > 1)
-                        {
-                            string target = mapParts[1];
-                            if (string.IsNullOrEmpty(ret))
-                                ret += "MOUSECODE_" + mouseindex + "_" + target;
-                            else
-                                ret += " OR " + "MOUSECODE_" + mouseindex + "_" + target;
-                        }
-                    }
+                        continue;
+
+                    string target = GetSpecificPointerCode(value, mouseindex);
+                    if (target != null)
+                        ret += string.IsNullOrEmpty(ret) ? target : " OR " + target;
                 }
 
                 else if (value.StartsWith("KEY"))

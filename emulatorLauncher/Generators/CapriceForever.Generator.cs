@@ -17,7 +17,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = true;
         }
-
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private bool _xAxis = false;
         private bool _yAxis = false;
         private bool _zAxis = false;

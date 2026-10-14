@@ -17,6 +17,8 @@ namespace EmulatorLauncher
 
     partial class DaphneGenerator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
+
         public DaphneGenerator()
         {
             _executableName = "daphne";
@@ -210,7 +212,7 @@ namespace EmulatorLauncher
             }
 
             if (emulator == "hypseus")
-                CreateControllerConfiguration(emulatorPath);
+                CreateControllerConfiguration(emulatorPath, (singeFile != null && File.Exists(singeFile)) || useAlt || zipHypseus);
 
             List<string> commandArray = new List<string>();
 

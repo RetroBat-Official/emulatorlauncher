@@ -38,6 +38,7 @@ namespace EmulatorLauncher
             string[] indexes = { null, index1, index2, index3, index4 };
             var wiiStart = new string[5];
             var wiiCoin = new string[5];
+            var wiiButton3 = new string[5];
             int players = _multigun ? Math.Min(gunNb, 4) : 1;
             int wiimotes = 0;
 
@@ -60,6 +61,16 @@ namespace EmulatorLauncher
                 }
                 else
                     SimpleLogger.Instance.Info("[GUNS] P" + p + " DolphinBar: no D-pad direction left for start/coin, keyboard only.");
+            }
+
+            // Single Wiimote: D-pad Down is free and replaces the missing middle click (button 3)
+            if (wiimotes == 1)
+            {
+                for (int p = 1; p <= players; p++)
+                {
+                    if (wiiStart[p] != null)
+                        wiiButton3[p] = " OR KEYCODE_DOWN";
+                }
             }
 
             AddPort(guninput, hbmame ? "UI_CONFIGURE" : "UI_MENU", standard: "KEYCODE_TAB");
@@ -88,7 +99,7 @@ namespace EmulatorLauncher
             // Buttons
             AddPort(guninput, "P1_BUTTON1", standard: "GUNCODE_" + index1 + "_BUTTON1 OR MOUSECODE_" + index1 + "_BUTTON1");
             AddPort(guninput, "P1_BUTTON2", standard: "GUNCODE_" + index1 + "_BUTTON2 OR MOUSECODE_" + index1 + "_BUTTON2");
-            AddPort(guninput, "P1_BUTTON3", standard: "GUNCODE_" + index1 + "_BUTTON3 OR MOUSECODE_" + index1 + "_BUTTON3");
+            AddPort(guninput, "P1_BUTTON3", standard: "GUNCODE_" + index1 + "_BUTTON3 OR MOUSECODE_" + index1 + "_BUTTON3" + wiiButton3[1]);
 
             // Start & Select
             AddPort(guninput, "P1_START", standard: "KEYCODE_1" + wiiStart[1]);
@@ -115,7 +126,7 @@ namespace EmulatorLauncher
                 AddPort(guninput, "P2_JOYSTICK_RIGHT", "GUNCODE_" + index2 + "_BUTTON8");
                 AddPort(guninput, "P2_BUTTON1", "GUNCODE_" + index2 + "_BUTTON1 OR MOUSECODE_" + index2 + "_BUTTON1");
                 AddPort(guninput, "P2_BUTTON2", "GUNCODE_" + index2 + "_BUTTON2 OR MOUSECODE_" + index2 + "_BUTTON2");
-                AddPort(guninput, "P2_BUTTON3", "GUNCODE_" + index2 + "_BUTTON3 OR MOUSECODE_" + index2 + "_BUTTON3");
+                AddPort(guninput, "P2_BUTTON3", "GUNCODE_" + index2 + "_BUTTON3 OR MOUSECODE_" + index2 + "_BUTTON3" + wiiButton3[2]);
                 AddPort(guninput, "P2_START", "KEYCODE_2" + wiiStart[2]);
                 AddPort(guninput, "P2_SELECT", "KEYCODE_6" + wiiCoin[2]);
                 AddPort(guninput, "START2", "KEYCODE_2" + wiiStart[2]);
@@ -137,7 +148,7 @@ namespace EmulatorLauncher
                         AddPort(guninput, $"P{p}_JOYSTICK_RIGHT", "GUNCODE_" + idx + "_BUTTON8");
                         AddPort(guninput, $"P{p}_BUTTON1", "GUNCODE_" + idx + "_BUTTON1 OR MOUSECODE_" + idx + "_BUTTON1");
                         AddPort(guninput, $"P{p}_BUTTON2", "GUNCODE_" + idx + "_BUTTON2 OR MOUSECODE_" + idx + "_BUTTON2");
-                        AddPort(guninput, $"P{p}_BUTTON3", "GUNCODE_" + idx + "_BUTTON3 OR MOUSECODE_" + idx + "_BUTTON3");
+                        AddPort(guninput, $"P{p}_BUTTON3", "GUNCODE_" + idx + "_BUTTON3 OR MOUSECODE_" + idx + "_BUTTON3" + wiiButton3[p]);
                         AddPort(guninput, $"P{p}_START", "KEYCODE_" + p + wiiStart[p]);
                         AddPort(guninput, $"P{p}_SELECT", "KEYCODE_" + (p + 4) + wiiCoin[p]);
                         AddPort(guninput, $"START{p}", "KEYCODE_" + p + wiiStart[p]);
