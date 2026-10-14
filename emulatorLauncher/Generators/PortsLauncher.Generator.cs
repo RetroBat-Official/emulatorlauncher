@@ -65,6 +65,7 @@ namespace EmulatorLauncher
 
     partial class PortsLauncherGenerator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private ScreenResolution _resolution;
         private BezelFiles _bezelFileInfo;
         private string _emulator;

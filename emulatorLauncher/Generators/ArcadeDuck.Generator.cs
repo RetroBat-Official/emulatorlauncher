@@ -20,6 +20,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = true;
         }
+        protected override bool UseGenericScreenPlacement { get { return true; } }
 
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {

@@ -391,6 +391,9 @@
     <Compile Include="Generators\Jgenesis.Controllers.cs">
       <DependentUpon>Jgenesis.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Jgenesis.Guns.cs">
+      <DependentUpon>Jgenesis.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Jgenesis.SaveStatesMonitor.cs">
       <DependentUpon>Jgenesis.Generator.cs</DependentUpon>
     </Compile>
@@ -450,6 +453,9 @@
       <DependentUpon>Mame64.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Mame64.Controllers.cs">
+      <DependentUpon>Mame64.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Mame64.Guns.cs">
       <DependentUpon>Mame64.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Mandarine.Generator.cs" />

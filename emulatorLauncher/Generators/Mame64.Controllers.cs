@@ -1,19 +1,15 @@
 ﻿using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.Lightguns;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using static EmulatorLauncher.Common.Joysticks.DirectInputInfo;
-using DI = SharpDX.DirectInput;
 
 namespace EmulatorLauncher
 {
-    partial class Mame64Generator
+    partial class Mame64Generator : Generator
     {
         private bool _messcfgInput = false;
         private GameMapping _gameMapping = null;
@@ -191,24 +187,15 @@ namespace EmulatorLauncher
             }
 
             // GUNS & MOUSES
-            bool forceOneGun = SystemConfig.getOptBoolean("mame_forceOneGun");
-            _multigun = gunCount > 1 && !forceOneGun;
-
-            if (gunCount > 0)
-                ConfigureGunRemap(input, guns, _multigun);
-
-
-            if (SystemConfig.getOptBoolean("mame_forceOneGun"))
-                _multigun = false;
-
-            string mouseIndex1 = GetGunIndexOrDefault("p1_gunIndex", "1", 1);
-            string mouseIndex2 = GetGunIndexOrDefault("p2_gunIndex", "2", 2);
-            string mouseIndex3 = GetGunIndexOrDefault("p3_gunIndex", "3", 3);
-            string mouseIndex4 = GetGunIndexOrDefault("p4_gunIndex", "4", 4);
+            string[] gunIndexes = ConfigureMameGunDevices(input, guns, gunCount);
+            string mouseIndex1 = gunIndexes[0];
+            string mouseIndex2 = gunIndexes[1];
+            string mouseIndex3 = gunIndexes[2];
+            string mouseIndex4 = gunIndexes[3];
 
             if (SystemConfig.getOptBoolean("use_guns") && _gameLayout == null)
             {
-                ConfigureLightguns(input, mouseIndex1, mouseIndex2, mouseIndex3, mouseIndex4, gunCount, hbmame);
+                ConfigureLightguns(input, guns, mouseIndex1, mouseIndex2, mouseIndex3, mouseIndex4, gunCount, hbmame);
             }
 
             else
@@ -1172,56 +1159,6 @@ namespace EmulatorLauncher
             AddPort(input, $"P{i}_AD_STICK_Z", joy + GetDinputMapping(ctrlr, "righty", xinputCtrl, 0));
         }
 
-        private void ConfigureGunRemap(XElement guninput, RawLightgun[] guns, bool multi = false)
-        {
-            Regex regex = new Regex(@"HID#(?:\{([^}]+)\}|([^#]+))");
-            int i = 1;
-            int mouseCount = 0;
-            foreach (RawLightgun gun in guns)
-            {
-                var type = gun.Type;
-                Match match = regex.Match(gun.DevicePath);
-
-                if (match.Success)
-                {
-                    string result = !string.IsNullOrEmpty(match.Groups[1].Value)? match.Groups[1].Value : match.Groups[2].Value;
-                    result.Replace("&", "&amp;");
-                    string target;
-
-                    if (gun.Type == RawLighGunType.Mouse || _mouseGun)
-                    {
-                        if (mouseCount > 0)
-                            continue;
-                        target = "MOUSECODE_" + i;
-                        guninput.Add(new XElement("mapdevice", new XAttribute("device", result), new XAttribute("controller", target)));
-                        mouseCount++;
-                        i++;
-                    }
-                    else
-                    {
-                        target = "GUNCODE_" + i;
-                        guninput.Add(new XElement("mapdevice", new XAttribute("device", result), new XAttribute("controller", target)));
-                        i++;
-                    }
-                }  
-            }
-        }
-
-        private string GetGunIndexOrDefault(string key, string defaultValue, int playerNumber)
-        {
-            if (SystemConfig.isOptSet(key))
-            {
-                string value = SystemConfig[key];
-                if (!string.IsNullOrEmpty(value))
-                {
-                    SimpleLogger.Instance.Info($"[GUNS] Overwriting Gun {playerNumber} index : {value}");
-                    return value;
-                }
-            }
-
-            return defaultValue;
-        }
-
         private void SaveMessConfig(string cfgFile, XElement input, string systemName)
         {
             try
@@ -1424,6 +1361,25 @@ namespace EmulatorLauncher
             return "";
         }
 
+        /// <summary>
+        /// Converts a mapping file pointer entry to a MAME code :
+        /// MOUSE_XAXIS -> MOUSECODE_n_XAXIS, GUN_BUTTON1 -> GUNCODE_n_BUTTON1, optional "_reverse" suffix -> _REVERSE
+        /// </summary>
+        private static string GetSpecificPointerCode(string value, string mouseindex)
+        {
+            string[] mapParts = value.Split('_');
+            if (mapParts.Length < 2)
+                return null;
+
+            string device = mapParts[0].StartsWith("GUN", StringComparison.OrdinalIgnoreCase) ? "GUNCODE_" : "MOUSECODE_";
+            string target = device + mouseindex + "_" + mapParts[1].ToUpperInvariant();
+
+            if (mapParts.Length > 2 && mapParts[2].Equals("reverse", StringComparison.OrdinalIgnoreCase))
+                target += "_REVERSE";
+
+            return target;
+        }
+
         private string GetSpecificMappingX(string joy, string mouseindex, string mapping, int player)
         {
             string ret = "";
@@ -1465,39 +1421,15 @@ namespace EmulatorLauncher
                         }
                     }
                 }
-                else if (value.StartsWith("GUN") || value.StartsWith("gun"))
+                else if (value.StartsWith("GUN") || value.StartsWith("gun") || value.StartsWith("MOUSE") || value.StartsWith("mouse"))
                 {
-                    if (player >1 && !_multigun)
-                        ret = "";
-                    else
-                    {
-                        string[] mapParts = value.Split('_');
-                        if (mapParts.Length > 1)
-                        {
-                            string target = mapParts[1];
-                            if (string.IsNullOrEmpty(ret))
-                                ret += "GUNCODE_" + mouseindex + "_" + target;
-                            else
-                                ret += " OR " + "GUNCODE_" + mouseindex + "_" + target;
-                        }
-                    }
-                }
-                else if (value.StartsWith("MOUSE") || value.StartsWith("mouse"))
-                {
+                    // Only player 1 uses the mouse / gun when multigun is off : skip this part, keep the rest of the sequence
                     if (player > 1 && !_multigun)
-                        ret = "";
-                    else
-                    {
-                        string[] mapParts = value.Split('_');
-                        if (mapParts.Length > 1)
-                        {
-                            string target = mapParts[1];
-                            if (string.IsNullOrEmpty(ret))
-                                ret += "MOUSECODE_" + mouseindex + "_" + target;
-                            else
-                                ret += " OR " + "MOUSECODE_" + mouseindex + "_" + target;
-                        }
-                    }
+                        continue;
+
+                    string target = GetSpecificPointerCode(value, mouseindex);
+                    if (target != null)
+                        ret += string.IsNullOrEmpty(ret) ? target : " OR " + target;
                 }
 
                 else if (value.StartsWith("KEY") || value.StartsWith("key"))
@@ -1633,39 +1565,15 @@ namespace EmulatorLauncher
                         }
                     }
                 }
-                else if (value.StartsWith("GUN"))
+                else if (value.StartsWith("GUN") || value.StartsWith("MOUSE"))
                 {
+                    // Only player 1 uses the mouse / gun when multigun is off : skip this part, keep the rest of the sequence
                     if (player > 1 && !_multigun)
-                        ret = "";
-                    else
-                    {
-                        string[] mapParts = value.Split('_');
-                        if (mapParts.Length > 1)
-                        {
-                            string target = mapParts[1];
-                            if (string.IsNullOrEmpty(ret))
-                                ret += "GUNCODE_" + mouseindex + "_" + target;
-                            else
-                                ret += " OR " + "GUNCODE_" + mouseindex + "_" + target;
-                        }
-                    }
-                }
-                else if (value.StartsWith("MOUSE"))
-                {
-                    if (player > 1 && !_multigun)
-                        ret = "";
-                    else
-                    {
-                        string[] mapParts = value.Split('_');
-                        if (mapParts.Length > 1)
-                        {
-                            string target = mapParts[1];
-                            if (string.IsNullOrEmpty(ret))
-                                ret += "MOUSECODE_" + mouseindex + "_" + target;
-                            else
-                                ret += " OR " + "MOUSECODE_" + mouseindex + "_" + target;
-                        }
-                    }
+                        continue;
+
+                    string target = GetSpecificPointerCode(value, mouseindex);
+                    if (target != null)
+                        ret += string.IsNullOrEmpty(ret) ? target : " OR " + target;
                 }
 
                 else if (value.StartsWith("KEY"))
@@ -1701,98 +1609,6 @@ namespace EmulatorLauncher
             return c.DirectInput != null
                 ? "instance_" + c.DirectInput.InstanceGuid.ToString("D")
                 : null;
-        }
-
-        private void ConfigureLightguns(XElement guninput, string index1, string index2, string index3, string index4, int gunNb, bool hbmame = false)
-        {
-            AddPort(guninput, hbmame ? "UI_CONFIGURE" : "UI_MENU", standard: "KEYCODE_TAB");
-
-            AddPort(guninput, "UI_SELECT", standard: "GUNCODE_" + index1 + "_BUTTON1 OR KEYCODE_ENTER OR MOUSECODE_" + index1 + "_BUTTON1");
-            AddPort(guninput, "UI_BACK", standard: "GUNCODE_" + index1 + "_BUTTON3 OR MOUSECODE_" + index1 + "_BUTTON3 OR KEYCODE_ESC");
-            AddPort(guninput, "UI_CANCEL", standard: "KEYCODE_ESC");
-            AddPort(guninput, "UI_UP", standard: "KEYCODE_UP");
-            AddPort(guninput, "UI_DOWN", standard: "KEYCODE_DOWN");
-            AddPort(guninput, "UI_LEFT", standard: "KEYCODE_LEFT");
-            AddPort(guninput, "UI_RIGHT", standard: "KEYCODE_RIGHT");
-            AddPort(guninput, "UI_PAUSE", standard: "KEYCODE_P");
-            AddPort(guninput, "UI_REWIND_SINGLE", standard: "KEYCODE_BACKSPACE");
-            AddPort(guninput, "UI_FAST_FORWARD", standard: "KEYCODE_SPACE");
-            AddPort(guninput, "UI_SAVE_STATE", standard: "KEYCODE_F2");
-            AddPort(guninput, "UI_LOAD_STATE", standard: "KEYCODE_F4");
-            AddPort(guninput, "SERVICE", standard: "KEYCODE_0");
-            AddPort(guninput, "SERVICE1", standard: "KEYCODE_9");
-
-            // Joystick directions
-            AddPort(guninput, "P1_JOYSTICK_UP", standard: "KEYCODE_UP");
-            AddPort(guninput, "P1_JOYSTICK_DOWN", standard: "KEYCODE_DOWN");
-            AddPort(guninput, "P1_JOYSTICK_LEFT", standard: "KEYCODE_LEFT");
-            AddPort(guninput, "P1_JOYSTICK_RIGHT", standard: "KEYCODE_RIGHT");
-
-            // Buttons
-            AddPort(guninput, "P1_BUTTON1", standard: "GUNCODE_" + index1 + "_BUTTON1 OR MOUSECODE_" + index1 + "_BUTTON1");
-            AddPort(guninput, "P1_BUTTON2", standard: "GUNCODE_" + index1 + "_BUTTON2 OR MOUSECODE_" + index1 + "_BUTTON2");
-            AddPort(guninput, "P1_BUTTON3", standard: "GUNCODE_" + index1 + "_BUTTON3 OR MOUSECODE_" + index1 + "_BUTTON3");
-
-            // Start & Select
-            AddPort(guninput, "P1_START", standard: "KEYCODE_1");
-            AddPort(guninput, "P1_SELECT", standard: "KEYCODE_5");
-
-            // Start & Coin aliases
-            AddPort(guninput, "START1", standard: "KEYCODE_1");
-            AddPort(guninput, "COIN1", standard: "KEYCODE_5");
-
-            // Analog / Lightgun / Mouse axes
-            AddPort(guninput, "P1_AD_STICK_X", standard: "GUNCODE_" + index1 + "_XAXIS OR MOUSECODE_" + index1 + "_XAXIS");
-            AddPort(guninput, "P1_AD_STICK_Y", standard: "GUNCODE_" + index1 + "_YAXIS OR MOUSECODE_" + index1 + "_YAXIS");
-            AddPort(guninput, "P1_LIGHTGUN_X", standard: "GUNCODE_" + index1 + "_XAXIS OR MOUSECODE_" + index1 + "_XAXIS");
-            AddPort(guninput, "P1_LIGHTGUN_Y", standard: "GUNCODE_" + index1 + "_YAXIS OR MOUSECODE_" + index1 + "_YAXIS");
-            AddPort(guninput, "P1_MOUSE_X", standard: "GUNCODE_" + index1 + "_XAXIS OR MOUSECODE_" + index1 + "_XAXIS");
-            AddPort(guninput, "P1_MOUSE_Y", standard: "GUNCODE_" + index1 + "_YAXIS OR MOUSECODE_" + index1 + "_YAXIS");
-
-            if (_multigun)
-            {
-                // Player 2
-                AddPort(guninput, "P2_JOYSTICK_UP", "GUNCODE_" + index2 + "_BUTTON7");
-                AddPort(guninput, "P2_JOYSTICK_DOWN", "GUNCODE_" + index2 + "_BUTTON9");
-                AddPort(guninput, "P2_JOYSTICK_LEFT", "GUNCODE_" + index2 + "_BUTTON10");
-                AddPort(guninput, "P2_JOYSTICK_RIGHT", "GUNCODE_" + index2 + "_BUTTON8");
-                AddPort(guninput, "P2_BUTTON1", "GUNCODE_" + index2 + "_BUTTON1 OR MOUSECODE_" + index2 + "_BUTTON1");
-                AddPort(guninput, "P2_BUTTON2", "GUNCODE_" + index2 + "_BUTTON2 OR MOUSECODE_" + index2 + "_BUTTON2");
-                AddPort(guninput, "P2_BUTTON3", "GUNCODE_" + index2 + "_BUTTON3 OR MOUSECODE_" + index2 + "_BUTTON3");
-                AddPort(guninput, "P2_START", "KEYCODE_2");
-                AddPort(guninput, "P2_SELECT", "KEYCODE_6");
-                AddPort(guninput, "START2", "KEYCODE_2");
-                AddPort(guninput, "COIN2", "KEYCODE_6");
-                AddPort(guninput, "P2_AD_STICK_X", "GUNCODE_" + index2 + "_XAXIS OR MOUSECODE_" + index2 + "_XAXIS");
-                AddPort(guninput, "P2_AD_STICK_Y", "GUNCODE_" + index2 + "_YAXIS OR MOUSECODE_" + index2 + "_YAXIS");
-                AddPort(guninput, "P2_LIGHTGUN_X", "GUNCODE_" + index2 + "_XAXIS OR MOUSECODE_" + index2 + "_XAXIS");
-                AddPort(guninput, "P2_LIGHTGUN_Y", "GUNCODE_" + index2 + "_YAXIS OR MOUSECODE_" + index2 + "_YAXIS");
-                AddPort(guninput, "P2_MOUSE_X", "GUNCODE_" + index2 + "_XAXIS OR MOUSECODE_" + index2 + "_XAXIS");
-                AddPort(guninput, "P2_MOUSE_Y", "GUNCODE_" + index2 + "_YAXIS OR MOUSECODE_" + index2 + "_YAXIS");
-
-                if (gunNb > 2) // Player 3
-                    for (int p = 3; p <= Math.Min(gunNb, 4); p++)
-                    {
-                        string idx = p == 3 ? index3 : index4;
-                        AddPort(guninput, $"P{p}_JOYSTICK_UP", "GUNCODE_" + idx + "_BUTTON7");
-                        AddPort(guninput, $"P{p}_JOYSTICK_DOWN", "GUNCODE_" + idx + "_BUTTON9");
-                        AddPort(guninput, $"P{p}_JOYSTICK_LEFT", "GUNCODE_" + idx + "_BUTTON10");
-                        AddPort(guninput, $"P{p}_JOYSTICK_RIGHT", "GUNCODE_" + idx + "_BUTTON8");
-                        AddPort(guninput, $"P{p}_BUTTON1", "GUNCODE_" + idx + "_BUTTON1 OR MOUSECODE_" + idx + "_BUTTON1");
-                        AddPort(guninput, $"P{p}_BUTTON2", "GUNCODE_" + idx + "_BUTTON2 OR MOUSECODE_" + idx + "_BUTTON2");
-                        AddPort(guninput, $"P{p}_BUTTON3", "GUNCODE_" + idx + "_BUTTON3 OR MOUSECODE_" + idx + "_BUTTON3");
-                        AddPort(guninput, $"P{p}_START", "KEYCODE_" + p);
-                        AddPort(guninput, $"P{p}_SELECT", "KEYCODE_" + (p + 4));
-                        AddPort(guninput, $"START{p}", "KEYCODE_" + p);
-                        AddPort(guninput, $"COIN{p}", "KEYCODE_" + (p + 4));
-                        AddPort(guninput, $"P{p}_AD_STICK_X", "GUNCODE_" + idx + "_XAXIS OR MOUSECODE_" + idx + "_XAXIS");
-                        AddPort(guninput, $"P{p}_AD_STICK_Y", "GUNCODE_" + idx + "_YAXIS OR MOUSECODE_" + idx + "_YAXIS");
-                        AddPort(guninput, $"P{p}_LIGHTGUN_X", "GUNCODE_" + idx + "_XAXIS OR MOUSECODE_" + idx + "_XAXIS");
-                        AddPort(guninput, $"P{p}_LIGHTGUN_Y", "GUNCODE_" + idx + "_YAXIS OR MOUSECODE_" + idx + "_YAXIS");
-                        AddPort(guninput, $"P{p}_MOUSE_X", "GUNCODE_" + idx + "_XAXIS OR MOUSECODE_" + idx + "_XAXIS");
-                        AddPort(guninput, $"P{p}_MOUSE_Y", "GUNCODE_" + idx + "_YAXIS OR MOUSECODE_" + idx + "_YAXIS");
-                    }
-            }
         }
         #endregion
 

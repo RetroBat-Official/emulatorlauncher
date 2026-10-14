@@ -12,6 +12,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = true;
         }
+        protected override bool UseGenericScreenPlacement { get { return true; } }
 
         static List<string> _mdSystems = new List<string>() { "genesis", "megadrive", "mega32x", "megacd", "segacd", "sega32x" };
 

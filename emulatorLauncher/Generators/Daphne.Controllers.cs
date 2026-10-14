@@ -1,14 +1,16 @@
-﻿using System.Linq;
-using System.IO;
-using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
-using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Lightguns;
+using System;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {   
     partial class DaphneGenerator : Generator
     {
-        private void CreateControllerConfiguration(string path)
+        private void CreateControllerConfiguration(string path, bool singe)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
@@ -48,10 +50,15 @@ namespace EmulatorLauncher
                     ini.WriteValue("KEYBOARD", "KEY_LEFT", "SDLK_LEFT 0 " + dpadLeft + " " + GetInputKeyName(ctrl, InputKey.joystick1left));
                     ini.WriteValue("KEYBOARD", "KEY_RIGHT", "SDLK_RIGHT 0 " + dpadRight + " " + GetInputKeyName(ctrl, InputKey.joystick1right));
                     SimpleLogger.Instance.Info("[CONTROLLERS] Hypseus directions: d-pad buttons up/down/left/right = " + dpadUp + "/" + dpadDown + "/" + dpadLeft + "/" + dpadRight + " (0 = not a button on this pad), stick axes as before");
-                    ini.WriteValue("KEYBOARD", "KEY_COIN1", "SDLK_5 0 " + GetInputKeyName(ctrl, InputKey.select));
-                    ini.WriteValue("KEYBOARD", "KEY_COIN2", "SDLK_6 0 0");
-                    ini.WriteValue("KEYBOARD", "KEY_START1", "SDLK_1 0 " + GetInputKeyName(ctrl, InputKey.start));
-                    ini.WriteValue("KEYBOARD", "KEY_START2", "SDLK_2 0 0");
+
+                    // DolphinBar Wiimotes (mode 1 or 2) send keyboard keys. Hypseus reads all keyboards as one,
+                    // so the second Wiimote uses other directions (second key slot of each action, Singe games only)
+                    int wiimotes = singe ? RawLightgun.GetRawLightguns().Count(g => g.Type == RawLighGunType.MayFlashWiimote) : 0;
+
+                    ini.WriteValue("KEYBOARD", "KEY_COIN1", "SDLK_5 " + (wiimotes > 0 ? "SDLK_LEFT" : "0") + " " + GetInputKeyName(ctrl, InputKey.select));
+                    ini.WriteValue("KEYBOARD", "KEY_COIN2", "SDLK_6 " + (wiimotes > 1 ? "SDLK_DOWN" : "0") + " 0");
+                    ini.WriteValue("KEYBOARD", "KEY_START1", "SDLK_1 " + (wiimotes > 0 ? "SDLK_RIGHT" : "0") + " " + GetInputKeyName(ctrl, InputKey.start));
+                    ini.WriteValue("KEYBOARD", "KEY_START2", "SDLK_2 " + (wiimotes > 1 ? "SDLK_UP" : "0") + " 0");
                     ini.WriteValue("KEYBOARD", "KEY_BUTTON1", "SDLK_LCTRL 0 " + GetInputKeyName(ctrl, InputKey.a));
                     ini.WriteValue("KEYBOARD", "KEY_BUTTON2", "SDLK_LALT 0 " + GetInputKeyName(ctrl, InputKey.b));
                     ini.WriteValue("KEYBOARD", "KEY_BUTTON3", "SDLK_SPACE 0 " + GetInputKeyName(ctrl, InputKey.pagedown));

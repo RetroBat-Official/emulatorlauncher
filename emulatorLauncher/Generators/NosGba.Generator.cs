@@ -11,6 +11,7 @@ namespace EmulatorLauncher
 {
     class NosGbaGenerator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private string _emuBatteryPath;
         private string _emuSlotPath;
         private string _savesPath;

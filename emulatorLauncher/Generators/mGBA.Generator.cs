@@ -10,6 +10,7 @@ namespace EmulatorLauncher
 {
     partial class MGBAGenerator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 

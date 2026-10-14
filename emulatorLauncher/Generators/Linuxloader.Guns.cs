@@ -15,13 +15,12 @@ namespace EmulatorLauncher
         private void ConfigureLindberghGuns(IniFile ini, string system, bool autoconfOff = false)
         {
             bool configGuns = SystemConfig.getOptBoolean("use_guns");
-            bool guninvert = SystemConfig.getOptBoolean("gun_invert");
             bool gunindexrevert = SystemConfig.getOptBoolean("gun_index_revert");
 
-            if (configGuns)
-                ConfigureGunButtons(ini, autoconfOff);
-
             var guns = RawLightgun.GetRawLightguns();
+
+            if (configGuns)
+                ConfigureGunButtons(ini, guns, autoconfOff);
 
             if (guns.Length < 1)
                 return;
@@ -69,7 +68,7 @@ namespace EmulatorLauncher
 
         private static readonly List<string> buttonsToMap = new List<string> { "ll_gun_reload", "ll_gun_button", "ll_gun_action" };
 
-        private void ConfigureGunButtons(IniFile ini, bool autoconfOff = false)
+        private void ConfigureGunButtons(IniFile ini, RawLightgun[] guns, bool autoconfOff = false)
         {
             // Common section
             if (autoconfOff)
@@ -81,9 +80,12 @@ namespace EmulatorLauncher
                 ini.WriteValue("Common", "P2_Start", "KEY_2");
             }
 
+            string triggerButton = "MOUSE_LEFT_BUTTON";
             string reloadButton = "MOUSE_RIGHT_BUTTON";
             string gunButton = "MOUSE_MIDDLE_BUTTON";
             string actionButton = "KEY_1";
+            string pedalLeft = "KEY_Left";
+            string pedalRight = "KEY_Right";
 
             foreach (string button in buttonsToMap)
             {
@@ -102,6 +104,52 @@ namespace EmulatorLauncher
                             actionButton = mappedButton;
                             break;
                     }
+                }
+            }
+
+            // Swap left and right clicks (e.g. Wiimote with Nunchuk or WiiZapper on a DolphinBar)
+            if (SystemConfig.getOptBoolean("gun_invert"))
+            {
+                triggerButton = "MOUSE_RIGHT_BUTTON";
+                reloadButton = SwapMouseButtons(reloadButton);
+                gunButton = SwapMouseButtons(gunButton);
+                actionButton = SwapMouseButtons(actionButton);
+            }
+
+            // DolphinBar Wiimotes (mode 1 or 2) send keyboard keys. Linuxloader reads all keyboards as one,
+            // so player 2 uses other directions. Pedals are moved away from Left/Right (used by start/coin).
+            int wiimotes = guns.Count(g => g.Type == RawLighGunType.MayFlashWiimote);
+            if (wiimotes > 0)
+            {
+                bool wiimoteNormal = SystemConfig["WiimoteMode"] == "normal";
+                string extraKey = wiimoteNormal ? "KEY_PageUp" : "KEY_Return";
+                bool gunButtonDefault = !SystemConfig.isOptSet("ll_gun_button") || string.IsNullOrEmpty(SystemConfig["ll_gun_button"]);
+
+                AppendInput(ini, "Common", "P1_Start", "KEY_Right");
+                AppendInput(ini, "Common", "P1_Coin", "KEY_Left");
+
+                // Action button follows start when it is mapped on start key
+                if (actionButton == "KEY_1")
+                    actionButton = "KEY_1, KEY_Right";
+
+                if (wiimotes == 1)
+                {
+                    if (gunButtonDefault)
+                        gunButton = "KEY_Down";
+
+                    pedalLeft = "KEY_Up";
+                    pedalRight = extraKey;
+                }
+                else
+                {
+                    AppendInput(ini, "Common", "P2_Start", "KEY_Up");
+                    AppendInput(ini, "Common", "P2_Coin", "KEY_Down");
+
+                    if (gunButtonDefault)
+                        gunButton = extraKey;
+
+                    pedalLeft = wiimoteNormal ? "KEY_PageDown" : "";
+                    pedalRight = "";
                 }
             }
 
@@ -138,12 +186,40 @@ namespace EmulatorLauncher
                 ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
             }
 
-            ini.WriteValue("Shooting", "P1_Trigger", "MOUSE_LEFT_BUTTON");
+            ini.WriteValue("Shooting", "P1_Trigger", triggerButton);
             ini.WriteValue("Shooting", "P1_Reload", reloadButton);
             ini.WriteValue("Shooting", "P1_GunButton", gunButton);
             ini.WriteValue("Shooting", "P1_ActionButton", actionButton);
-            ini.WriteValue("Shooting", "P1_PedalLeft", "KEY_Left");
-            ini.WriteValue("Shooting", "P1_PedalRight", "KEY_Right");
+            ini.WriteValue("Shooting", "P1_PedalLeft", pedalLeft);
+            ini.WriteValue("Shooting", "P1_PedalRight", pedalRight);
+        }
+
+        private static string SwapMouseButtons(string input)
+        {
+            if (input == "MOUSE_LEFT_BUTTON")
+                return "MOUSE_RIGHT_BUTTON";
+            if (input == "MOUSE_RIGHT_BUTTON")
+                return "MOUSE_LEFT_BUTTON";
+            return input;
+        }
+
+        /// <summary>
+        /// Adds an input to a comma separated binding list (controls.ini), without duplicates.
+        /// </summary>
+        private static void AppendInput(IniFile ini, string section, string key, string input)
+        {
+            string value = ini.GetValue(section, key);
+            if (string.IsNullOrEmpty(value))
+            {
+                ini.WriteValue(section, key, input);
+                return;
+            }
+
+            var inputs = value.Split(',').Select(v => v.Trim()).Where(v => v.Length > 0).ToList();
+            if (!inputs.Contains(input))
+                inputs.Add(input);
+
+            ini.WriteValue(section, key, string.Join(", ", inputs));
         }
     }
 }

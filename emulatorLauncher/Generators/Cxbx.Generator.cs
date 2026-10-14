@@ -17,6 +17,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = false;
         }
+        protected override bool UseGenericScreenPlacement { get { return true; } }
 
         #region XboxIsoVfs management
         private string MountIso(string rom)

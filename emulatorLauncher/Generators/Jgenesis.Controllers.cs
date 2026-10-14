@@ -450,50 +450,6 @@ namespace EmulatorLauncher
             return null;
         }
 
-        private string GetInputInfoOld(Controller c, InputKey key)
-        {
-            Int64 pid;
-            Int64 pvalue;
-
-            key = key.GetRevertedAxis(out bool revertAxis);
-
-            var input = c.Config[key];
-            if (input != null)
-            {
-                if (input.Type == "button")
-                {
-                    pid = input.Id;
-                    return "Button " + pid;
-                }
-
-                if (input.Type == "axis")
-                {
-                    pid = input.Id;
-                    pvalue = input.Value;
-                    string direction = pvalue > 0 ? "+" : "-";
-                    return "Axis " + pid + " " + direction;
-                }
-
-                if (input.Type == "hat")
-                {
-                    pid = input.Id;
-                    pvalue = input.Value;
-                    switch (pvalue)
-                    {
-                        case 1:
-                            return "Hat " + pid + " Up";
-                        case 2:
-                            return "Hat " + pid + " Right";
-                        case 4:
-                            return "Hat " + pid + " Down";
-                        case 8:
-                            return "Hat " + pid + " Left";
-                    }
-                }
-            }
-            return null;
-        }
-
         private static Dictionary<string, InputKey> ConfigureMappingPerSystem(Dictionary<string, InputKey> mapping, string jGenSystem, int playerIndex)
         {
             var newMapping = new Dictionary<string, InputKey>(mapping);

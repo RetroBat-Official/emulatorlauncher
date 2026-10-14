@@ -285,7 +285,7 @@ namespace EmulatorLauncher
 
                     ini.WriteValue("GSFrame", "disableMouse", "true");
 
-                    if (SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]))
+                    if (Program.IsMonitorIndexSet)
                     {
                         // gs_frame.cpp : index 0-based in QGuiApplication::screens(),
                         // Qt order = primary first, same as SDL order.

@@ -12,6 +12,7 @@ namespace EmulatorLauncher
 {
     partial class Singe2Generator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private string _videoFile = null;
         private string _singeFile = null;
         private string _symLink;

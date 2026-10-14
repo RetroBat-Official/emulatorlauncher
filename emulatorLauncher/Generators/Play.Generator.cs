@@ -13,7 +13,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = false;
         }
-
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private bool _isArcade = false;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;

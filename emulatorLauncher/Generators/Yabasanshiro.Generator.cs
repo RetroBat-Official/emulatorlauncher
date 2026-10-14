@@ -14,7 +14,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = false;
         }
-
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private string _multitap;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;

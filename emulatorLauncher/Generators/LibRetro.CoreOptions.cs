@@ -794,6 +794,7 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "amiberry_internal_vsync", "amiberry_internal_vsync", "disabled");
             BindBoolFeature(coreSettings, "amiberry_statusline", "amiberry_statusline", "enabled", "disabled");
             BindFeature(coreSettings, "amiberry_statusline_size", "amiberry_statusline_size", "1x");
+            BindBoolFeature(coreSettings, "amiberry_on_screen_keyboard", "amiberry_on_screen_keyboard", "enabled", "disabled");
 
             // Audio
             BindFeature(coreSettings, "amiberry_audio_rate", "amiberry_audio_rate", "auto");
@@ -816,7 +817,7 @@ namespace EmulatorLauncher.Libretro
 
             BindBoolFeature(coreSettings, "amiberry_swap_ports", "amiberry_swap_ports", "enabled", "disabled");
             BindFeature(coreSettings, "amiberry_joyport_order", "amiberry_joyport_order", "auto");
-            BindBoolFeature(coreSettings, "amiberry_analog", "amiberry_analog", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "amiberry_analog", "amiberry_analog", "enabled", "disabled");
             BindFeature(coreSettings, "amiberry_joy_deadzone", "amiberry_joy_deadzone", "33");
             BindFeature(coreSettings, "amiberry_analog_sensitivity", "amiberry_analog_sensitivity", "18");
             BindFeature(coreSettings, "amiberry_joy_as_mouse", "amiberry_joy_as_mouse", "disabled");
@@ -865,8 +866,8 @@ namespace EmulatorLauncher.Libretro
             { "A500OG", new[] { "kick33180.A500", "kick33180.A500.rom", "amiga-os-120.rom", "kick12.rom",
                 "Kickstart v1.2 rev 33.180 (1986)(Commodore)(A500-A2000)[!].rom" } },
 
-            { "A500", new[] { "kick34005.A500", "kick34005.A500.rom", "amiga-os-130.rom", "kick13.rom", "kick.rom",
-                "Kickstart v1.3 rev 34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[!].rom" } },
+            { "A500", new[] { "kick34005.A500", "kick34005.A500.rom", "amiga-os-130.rom", "kick13.rom",
+                "Kickstart v1.3 rev 34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[!].rom", "kick.rom" } },
 
             { "A500+", new[] { "kick37175.A500", "kick37175.A500.rom", "amiga-os-204.rom", "kick20.rom", "kick204.rom",
                 "Kickstart v2.04 rev 37.175 (1991)(Commodore)(A500+)[!].rom" } },
@@ -874,11 +875,11 @@ namespace EmulatorLauncher.Libretro
             { "A600", new[] { "kick40063.A600", "kick40063.A600.rom", "amiga-os-310-a600.rom", "kick205.rom", "kick31.rom",
                 "Kickstart v3.1 rev 40.63 (1993)(Commodore)(A500-A600-A2000)[!].rom" } },
 
-            { "A1200", new[] { "kick40068.A1200", "kick40068.A1200.rom", "amiga-os-310-a1200.rom", "kick31.rom", "kick.rom",
-                "Kickstart v3.1 rev 40.68 (1993)(Commodore)(A1200)[!].rom" } },
+            { "A1200", new[] { "kick40068.A1200", "kick40068.A1200.rom", "amiga-os-310-a1200.rom", "kick31.rom",
+                "Kickstart v3.1 rev 40.68 (1993)(Commodore)(A1200)[!].rom", "kick.rom" } },
 
-            { "A4000", new[] { "kick40068.A4000", "kick40068.A4000.rom", "amiga-os-310-a4000.rom", "kick31.rom", "kick.rom",
-                "Kickstart v3.1 rev 40.68 (1993)(Commodore)(A4000).rom" } },
+            { "A4000", new[] { "kick40068.A4000", "kick40068.A4000.rom", "amiga-os-310-a4000.rom", "kick31.rom",
+                "Kickstart v3.1 rev 40.68 (1993)(Commodore)(A4000).rom", "kick.rom" } },
 
             { "CD32", new[] { "kick40060.CD32", "kick40060.CD32.rom", "cd32.rom", "amiga-os-310-cd32.rom",
                 "Kickstart v3.1 rev 40.60 (1993)(Commodore)(CD32).rom" } },
@@ -942,7 +943,7 @@ namespace EmulatorLauncher.Libretro
             foreach (var candidate in candidates)
             {
                 string targetBiosToUse = Path.Combine(targetBiosPath, candidate);
-                string sourceBiosToCopy = Path.Combine(biosPath, candidate);
+                string sourceBiosToCopy = new[] { biosPath, Path.Combine(biosPath, "amiga") }.Select(d => Path.Combine(d, candidate)).FirstOrDefault(File.Exists) ?? Path.Combine(biosPath, candidate);
                 if (!File.Exists(targetBiosToUse) && !File.Exists(sourceBiosToCopy))
                     continue;
 
@@ -962,6 +963,7 @@ namespace EmulatorLauncher.Libretro
 
                 if (File.Exists(targetBiosToUse))
                 {
+                    coreSettings["amiberry_kickstart"] = targetBiosToUse;
                     SimpleLogger.Instance.Info("[Amiberry] Kickstart for " + model + ": " + targetBiosToUse);
                     return;
                 }
@@ -972,11 +974,10 @@ namespace EmulatorLauncher.Libretro
 
         private void ConfigureCDSystemsExtRoms(string model)
         {
-            if (model != "CD32" && model != "CDTV")
-                return;
+            string family = AmiberryModelFamily(model);
 
             string[] candidates;
-            if (!_amiberryKickstartsExt.TryGetValue(AmiberryModelFamily(model), out candidates))
+            if (!_amiberryKickstartsExt.TryGetValue(family, out candidates))
                 return;
 
             string biosPath = AppConfig.GetFullPath("bios");
@@ -990,7 +991,7 @@ namespace EmulatorLauncher.Libretro
             foreach (var candidate in candidates)
             {
                 string targetBiosToUse = Path.Combine(targetBiosPath, candidate);
-                string sourceBiosToCopy = Path.Combine(biosPath, candidate);
+                string sourceBiosToCopy = new[] { biosPath, Path.Combine(biosPath, "amiga") }.Select(d => Path.Combine(d, candidate)).FirstOrDefault(File.Exists) ?? Path.Combine(biosPath, candidate);
                 if (!File.Exists(targetBiosToUse) && !File.Exists(sourceBiosToCopy))
                     continue;
 
@@ -1015,50 +1016,34 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            if (model == "CD32")
+            // The core only finds the extended ROM under its own short names and has no option
+            // to point at another file, so any known name is copied under the one it looks for.
+            string[] renames = family == "CD32"
+                ? new[] { "kick40060.CD32.ext", "amiga-os-310-cd32-ext.rom", "CD32 Extended-ROM rev 40.60 (1993)(Commodore)(CD32).rom" }
+                : new[] { "kick34005.CDTV", "amiga-os-130-cdtv-ext.rom", "CDTV Extended-ROM v1.0 (1991)(Commodore)(CDTV)[!].rom", "CDTV Extended-ROM v1.0 (1992)(Commodore)(CDTV).rom" };
+
+            string expected = Path.Combine(targetBiosPath, candidates[0]);
+            string[] searchDirs = { targetBiosPath, biosPath, Path.Combine(biosPath, "amiga") };
+
+            string source = renames
+                .SelectMany(n => searchDirs.Select(d => Path.Combine(d, n)))
+                .FirstOrDefault(File.Exists);
+
+            if (source != null)
             {
-                string retroBios = Path.Combine(AppConfig.GetFullPath("bios"), "kick40060.CD32.ext");
-                string retroTargetBios = Path.Combine(targetBiosPath, "cd32ext.rom");
-
-                if (!File.Exists(retroTargetBios) && File.Exists(retroBios))
+                try
                 {
-                    try
-                    {
-                        File.Copy(retroBios, retroTargetBios, true);
-                        SimpleLogger.Instance.Info("[Amiberry] Copied Kickstart ext for " + model + ": " + "kick40060.CD32.ext");
-                    }
-                    catch (Exception ex)
-                    {
-                        SimpleLogger.Instance.Error("[Amiberry] Failed to copy Kickstart Ext for " + model + ": " + "kick40060.CD32.ext" + " - " + ex.Message);
-                    }
-                }
-
-                if (File.Exists(retroTargetBios))
+                    File.Copy(source, expected, true);
+                    SimpleLogger.Instance.Info("[Amiberry] Copied extended ROM for " + model + ": " + source + " -> " + expected);
                     return;
-            }
-            else if (model == "CDTV")
-            {
-                string retroBios = Path.Combine(AppConfig.GetFullPath("bios"), "kick34005.CDTV");
-                string retroTargetBios = Path.Combine(targetBiosPath, "cdtvext.rom");
-
-                if (!File.Exists(retroTargetBios) && File.Exists(retroBios))
+                }
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        File.Copy(retroBios, retroTargetBios, true);
-                        SimpleLogger.Instance.Info("[Amiberry] Copied Kickstart ext for " + model + ": " + "kick34005.CDTV");
-                    }
-                    catch (Exception ex)
-                    {
-                        SimpleLogger.Instance.Error("[Amiberry] Failed to copy Kickstart Ext for " + model + ": " + "kick34005.CDTV" + " - " + ex.Message);
-                    }
+                    SimpleLogger.Instance.Error("[Amiberry] Failed to copy extended ROM " + source + " - " + ex.Message);
                 }
-
-                if (File.Exists(retroTargetBios))
-                    return;
             }
 
-            SimpleLogger.Instance.Warning("[Amiberry] No Kickstart Ext found for " + model + ". Expected one of: " + string.Join(", ", candidates) + " in \\bios\\amiberry.");
+            SimpleLogger.Instance.Warning("[Amiberry] No extended ROM found for " + model + ". Expected one of: " + string.Join(", ", candidates.Concat(renames)) + " in \\bios.");
         }
 
         private void ConfigureAtari800(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

@@ -15,6 +15,8 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private string _romName = null;
+        private Screen _targetScreen;
+        private bool _borderlessOnTarget;
 
         private void ConfigureMameHook()
         {
@@ -65,6 +67,9 @@ namespace EmulatorLauncher
 
             List<string> commandArray = new List<string>();
 
+            _targetScreen = Program.IsMonitorIndexSet ? Program.TargetScreen : null;
+            var screenBounds = (_targetScreen ?? Screen.PrimaryScreen).Bounds;
+
             if (resolution != null)
             {
                 isWideScreen = ((float)resolution.Width / (float)resolution.Height) > 1.75f;
@@ -72,16 +77,24 @@ namespace EmulatorLauncher
             }
             else
             {
-                isWideScreen = ((float)Screen.PrimaryScreen.Bounds.Width / (float)Screen.PrimaryScreen.Bounds.Height) >= 1.75f;
-                commandArray.Add("-res=" + Screen.PrimaryScreen.Bounds.Width + "," + Screen.PrimaryScreen.Bounds.Height);
+                isWideScreen = ((float)screenBounds.Width / (float)screenBounds.Height) >= 1.75f;
+                commandArray.Add("-res=" + screenBounds.Width + "," + screenBounds.Height);
             }
 
             _resolution = resolution;
 
             bool wideScreen = SystemConfig["widescreen"] == "1" || SystemConfig["widescreen"] == "2" || (!SystemConfig.isOptSet("widescreen") && isWideScreen);
             bool fullscreen = ShouldRunFullscreen();
+            bool fullscreenRequested = (fullscreen && !SystemConfig.isOptSet("videomode")) || SystemConfig.getOptBoolean("forcefullscreen");
 
-            if ((fullscreen && !SystemConfig.isOptSet("videomode")) || SystemConfig.getOptBoolean("forcefullscreen"))
+            _borderlessOnTarget = fullscreenRequested && _targetScreen != null && !_targetScreen.Primary;
+
+            if (_borderlessOnTarget)
+            {
+                commandArray.Add("-borderless");
+                commandArray.Add("-window-pos=" + screenBounds.Left + "," + screenBounds.Top);
+            }
+            else if (fullscreenRequested)
                 commandArray.Add("-fullscreen");
 
             if (wideScreen)
@@ -156,11 +169,14 @@ namespace EmulatorLauncher
                                 var style = User32.GetWindowStyle(hWnd);
                                 if (style.HasFlag(WS.CAPTION))
                                 {
-                                    int resX = (_resolution == null ? Screen.PrimaryScreen.Bounds.Width : _resolution.Width);
-                                    int resY = (_resolution == null ? Screen.PrimaryScreen.Bounds.Height : _resolution.Height);
+                                    var bounds = (_targetScreen ?? Screen.PrimaryScreen).Bounds;
+                                    int resX = (_resolution == null ? bounds.Width : _resolution.Width);
+                                    int resY = (_resolution == null ? bounds.Height : _resolution.Height);
+                                    int posX = _targetScreen != null ? bounds.Left : 0;
+                                    int posY = _targetScreen != null ? bounds.Top : 0;
 
                                     User32.SetWindowStyle(hWnd, style & ~WS.CAPTION);
-                                    User32.SetWindowPos(hWnd, IntPtr.Zero, 0, 0, resX, resY, SWP.NOZORDER | SWP.FRAMECHANGED);
+                                    User32.SetWindowPos(hWnd, IntPtr.Zero, posX, posY, resX, resY, SWP.NOZORDER | SWP.FRAMECHANGED);
 
                                     if (_bezelFileInfo != null && bezel == null)
                                         bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
@@ -194,16 +210,18 @@ namespace EmulatorLauncher
                 using (IniFile ini = new IniFile(iniPath, IniOptions.UseSpaces))
                 {
                     //Fullscreen and widescreen values (should we keep these as commandline take precedent ?
-                    ini.WriteValue(" Global ", "BorderlessWindow", SystemConfig.getOptBoolean("exclusivefs") ? "False" : "True");
-                    if ((fullscreen && !SystemConfig.isOptSet("videomode")) || SystemConfig.getOptBoolean("forcefullscreen"))
+                    ini.WriteValue(" Global ", "BorderlessWindow", SystemConfig.getOptBoolean("exclusivefs") && !_borderlessOnTarget ? "False" : "True");
+                    if (!_borderlessOnTarget && ((fullscreen && !SystemConfig.isOptSet("videomode")) || SystemConfig.getOptBoolean("forcefullscreen")))
                         ini.WriteValue(" Global ", "FullScreen", "1");
                     else
                     {
+                        // Window on the chosen screen (top-left corner), or on the primary screen when Supermodel keeps its own placement
+                        var bounds = (_targetScreen ?? Screen.PrimaryScreen).Bounds;
                         ini.WriteValue(" Global ", "FullScreen", "0");
-                        ini.WriteValue(" Global ", "XResolution", _resolution == null ? Screen.PrimaryScreen.Bounds.Width.ToString() : _resolution.Width.ToString());
-                        ini.WriteValue(" Global ", "YResolution", _resolution == null ? Screen.PrimaryScreen.Bounds.Height.ToString() : _resolution.Height.ToString());
-                        ini.WriteValue(" Global ", "WindowXPosition", "0");
-                        ini.WriteValue(" Global ", "WindowYPosition", "0");
+                        ini.WriteValue(" Global ", "XResolution", _resolution == null || _borderlessOnTarget ? bounds.Width.ToString() : _resolution.Width.ToString());
+                        ini.WriteValue(" Global ", "YResolution", _resolution == null || _borderlessOnTarget ? bounds.Height.ToString() : _resolution.Height.ToString());
+                        ini.WriteValue(" Global ", "WindowXPosition", _targetScreen != null ? bounds.Left.ToString() : "0");
+                        ini.WriteValue(" Global ", "WindowYPosition", _targetScreen != null ? bounds.Top.ToString() : "0");
                     }
 
                     ini.WriteValue(" Global ", "WideScreen", wideScreen ? "1" : "0");

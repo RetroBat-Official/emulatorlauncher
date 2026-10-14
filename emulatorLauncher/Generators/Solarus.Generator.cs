@@ -11,6 +11,7 @@ namespace EmulatorLauncher
 {
     class SolarusGenerator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 

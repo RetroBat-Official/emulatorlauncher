@@ -14,7 +14,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = true;
         }
-
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private string _destRom;
         private readonly List<string> extensions = new List<string>() { ".nex", ".pzx", ".rzx", ".sna", ".snx", ".sp", ".spg", ".tap", ".tzx", ".z80", ".zsf", ".zx", };
 

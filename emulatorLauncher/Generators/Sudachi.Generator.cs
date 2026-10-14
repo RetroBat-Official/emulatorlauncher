@@ -13,7 +13,8 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = true;
         }
-        
+        protected override bool UseGenericScreenPlacement { get { return true; } }
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath(emulator);

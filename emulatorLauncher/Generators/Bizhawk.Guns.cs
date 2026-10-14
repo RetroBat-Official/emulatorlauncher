@@ -6,6 +6,8 @@ namespace EmulatorLauncher
 {
     partial class BizhawkGenerator : Generator
     {
+        private bool _lightgunConfigured = false;
+
         /// <summary>
         /// Injects guns settings
         /// </summary>
@@ -17,6 +19,8 @@ namespace EmulatorLauncher
         {
             if (!SystemConfig.getOptBoolean("use_guns"))
                 return;
+
+            _lightgunConfigured = true;
 
             var guns = RawLightgun.GetRawLightguns();
             if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
@@ -32,7 +36,8 @@ namespace EmulatorLauncher
                 var smsTroller = trollers.GetOrCreateContainer("SMS Light Phaser Controller");
 
                 smsTroller["P1 Trigger"] = "WMouse L";
-                smsTroller["P2 B1"] = "WMouse R";      // Grenades for operation wolf
+                smsTroller["P2 B1"] = "WMouse R";       // Grenades for operation wolf
+                smsTroller["Pause"] = "Number1";        // Console pause = start (pad bindings are not read when the phaser is in port 1)
 
                 var smsAnalog = analogtrollers.GetOrCreateContainer("SMS Light Phaser Controller");
                 var p1X = smsAnalog.GetOrCreateContainer("P1 X");
@@ -107,6 +112,69 @@ namespace EmulatorLauncher
                 p1Y.SetObject("Mult", 1.0);
                 p1Y.SetObject("Deadzone", 0.1);
             }
+        }
+
+        /// <summary>
+        /// DolphinBar Wiimote (mode 1 or 2) : the D-pad sends the arrow keys.
+        /// D-pad Right = Start / Pause, D-pad Left = Select, D-pad Down = secondary gun button.
+        /// BizHawk reads one mouse, so only one gun is used.
+        /// Must be called after the pad configuration, which resets the pad bindings.
+        /// </summary>
+        private void ConfigureDolphinBarKeys(DynamicJson json, string system)
+        {
+            if (!_lightgunConfigured)
+                return;
+
+            if (!RawLightgun.GetRawLightguns().Any(g => g.Type == RawLighGunType.MayFlashWiimote))
+                return;
+
+            var trollers = json.GetOrCreateContainer("AllTrollers");
+
+            switch (system)
+            {
+                case "nes":
+                case "famicom":
+                    {
+                        // Zapper has only a trigger : start and select are on the player 1 pad
+                        var nesTroller = trollers.GetOrCreateContainer(systemController[system]);
+                        AppendBinding(nesTroller, "P1 Start", "Right");
+                        AppendBinding(nesTroller, "P1 Select", "Left");
+                    }
+                    break;
+                case "snes":
+                case "superfamicom":
+                    {
+                        var snesTroller = trollers.GetOrCreateContainer(systemController[system]);
+                        AppendBinding(snesTroller, "P2 Pause", "Right");
+                        AppendBinding(snesTroller, "P2 Cursor", "Down");
+                    }
+                    break;
+                case "saturn":
+                    {
+                        var saturnTroller = trollers.GetOrCreateContainer(systemController[system]);
+                        AppendBinding(saturnTroller, "P1 Start", "Right");
+                    }
+                    break;
+                case "mastersystem":
+                    {
+                        var smsTroller = trollers.GetOrCreateContainer("SMS Light Phaser Controller");
+                        AppendBinding(smsTroller, "Pause", "Right");
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Adds an input to a BizHawk binding list (inputs separated by ", "), without duplicates.
+        /// </summary>
+        private static void AppendBinding(DynamicJson container, string key, string input)
+        {
+            string value = container[key];
+
+            if (string.IsNullOrEmpty(value))
+                container[key] = input;
+            else if (!value.Split(',').Select(v => v.Trim()).Contains(input))
+                container[key] = value + ", " + input;
         }
     }
 }

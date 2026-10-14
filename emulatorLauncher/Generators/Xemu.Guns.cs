@@ -13,16 +13,21 @@ namespace EmulatorLauncher
         private const int POINTER_MIDDLE = 1002;
         private const int POINTER_RIGHT = 1003;
         private const int KEY_SPACE = 44;
+        private const int KEY_Q = 20;
+        private const int KEY_S = 22;
+        private const int KEY_RIGHT = 79;
+        private const int KEY_LEFT = 80;
+        private const int KEY_DOWN = 81;
+        private const int KEY_UP = 82;
+
+        private bool _multigun = false;
         /// <summary>
         /// CHIHIRO: bind one pointer device per player for the gun games (The House
         /// of the Dead 3, Virtua Cop 3, Ghost Squad). The fork reads each mouse or
-        /// light gun on its own through Raw Input, so two players can aim with
-        /// their own device instead of sharing the system cursor.
+        /// light gun on its own through Raw Input.
         /// </summary>
         private void ConfigureChihiroGuns(IniTomlFile ini)
         {
-            // Default: the system cursor aims, which is what the emulator already
-            // does out of the box (chihiro.jvs.pointer_device defaults to 'mouse').
             if (!SystemConfig.getOptBoolean("use_guns"))
             {
                 ini.WriteValue("chihiro.settings", "pointer_devices", "false");
@@ -32,7 +37,6 @@ namespace EmulatorLauncher
                 return;
             }
 
-            // Already sorted: known light guns first, integrated touchpads last.
             var guns = RawLightgun.GetRawLightguns();
             int gunCount = RawLightgun.GetUsableLightGunCount();
             bool useOneGun = SystemConfig.getOptBoolean("one_gun");
@@ -49,11 +53,6 @@ namespace EmulatorLauncher
                 return;
             }
 
-            ini.WriteValue("chihiro.jvs", "start", KEY_1.ToString());
-            ini.WriteValue("chihiro.jvs", "coin", KEY_5.ToString());
-            ini.WriteValue("chihiro.jvs_p2", "start", KEY_2.ToString());
-            ini.WriteValue("chihiro.jvs_p2", "coin", KEY_6.ToString());
-
             // Hides the cursor and hands the mouse buttons to the gun instead of
             // the emulator UI while a gun game runs.
             ini.WriteValue("chihiro.settings", "lightgun_mode", "true");
@@ -66,6 +65,7 @@ namespace EmulatorLauncher
 
             if (!useOneGun && guns.Length > 1 && gunCount > 1)
             {
+                _multigun = true;
                 ini.WriteValue("chihiro.jvs_p2", "pointer_device", "'" + GetPointerIdentity(guns, guns[1]) + "'");
                 SimpleLogger.Instance.Info("[LightGun] P2 -> " + guns[1].ToString());
             }
@@ -105,25 +105,13 @@ namespace EmulatorLauncher
                 ini.Remove("chihiro.jvs_p2", "crosshair_path");
             }
 
-            ConfigureChihiroGunButtons(ini);
+            ConfigureChihiroGunButtons(ini, guns);
         }
 
-        /// <summary>
-        /// The identity the fork gives a pointer device (xemu-pointer-rawinput.c):
-        /// "vidpid:vvvv:pppp" in lower case when the Raw Input device path carries a
-        /// VID and a PID, else "path:" + that path, stripped of its "\\?\" prefix
-        /// and of its trailing class GUID, keeping the last 56 characters.
-        /// When two connected devices share one VID:PID, the fork keeps the VID:PID
-        /// identity for the first one Raw Input enumerates and registers the others
-        /// under their path, so the same split is applied here.
-        /// </summary>
         private static string GetPointerIdentity(RawLightgun[] guns, RawLightgun gun)
         {
             string path = gun.DevicePath ?? string.Empty;
 
-            // The enums are built from a signed short (VidPid.Parse), so a VID above
-            // 0x7FFF - an Aimtrak is VID_D209 - is stored negative: mask it back to
-            // 16 bits, or the identity would come out as "ffffd209".
             int vid = (int)gun.VendorId & 0xFFFF;
             int pid = (int)gun.ProductId & 0xFFFF;
 
@@ -142,7 +130,7 @@ namespace EmulatorLauncher
         }
 
         /// <summary>
-        /// Same normalization as device_path() and path_identity() in the fork.
+        /// Same normalization as device_path() and path_identity() in xemu-chihiro.
         /// </summary>
         private static string NormalizePointerPath(string path)
         {
@@ -162,38 +150,113 @@ namespace EmulatorLauncher
             return path;
         }
 
-        private void ConfigureChihiroGunButtons(IniTomlFile ini)
+        private void ConfigureChihiroGunButtons(IniTomlFile ini, RawLightgun[] guns)
         {
             bool invert = SystemConfig.getOptBoolean("gun_invert");
             bool reloadButton = SystemConfig.getOptBoolean("gun_reload_button");
 
-            // Trigger and grip. Inverting swaps them, for a WiiZapper held the other
-            // way round.
             int trigger = invert ? POINTER_RIGHT : POINTER_LEFT;
             int grip = invert ? POINTER_LEFT : POINTER_RIGHT;
 
             // Reloading is done by shooting off the picture, as on the cabinet. A gun
-            // that cannot shoot off screen gets the middle button instead, and the
-            // secondary action falls back to the keyboard so nothing is doubled up.
+            // that cannot shoot off screen gets the middle button instead.
             int reload = reloadButton ? POINTER_MIDDLE : 0;
-            int secondary = reloadButton ? KEY_SPACE : POINTER_MIDDLE;
+            int secondary1 = reloadButton ? KEY_Q : POINTER_MIDDLE;
+            int secondary2 = reloadButton ? KEY_S : POINTER_MIDDLE;
 
-            // The House of the Dead 3: trigger and grip only, no reload key - the
-            // shotgun is reloaded by pumping off the picture.
+            // DolphinBar (Mayflash Wiimote), detected for each player
+            bool p1Wiimote = guns[0].Type == RawLighGunType.MayFlashWiimote;
+            bool p2Wiimote = _multigun && guns.Length > 1 && guns[1].Type == RawLighGunType.MayFlashWiimote;
+            bool twoWiimotes = p1Wiimote && p2Wiimote;
+
+            var p1 = GetChihiroGunKeys(1, p1Wiimote, true, twoWiimotes, grip, reload, secondary1);
+            var p2 = GetChihiroGunKeys(2, p2Wiimote, !p1Wiimote, twoWiimotes, grip, reload, secondary2);
+
+            ini.WriteValue("chihiro.jvs", "start", p1.Start.ToString());
+            ini.WriteValue("chihiro.jvs", "coin", p1.Coin.ToString());
+            ini.WriteValue("chihiro.jvs_p2", "start", p2.Start.ToString());
+            ini.WriteValue("chihiro.jvs_p2", "coin", p2.Coin.ToString());
+
+            // The House of the Dead 3 (no reload input: aim off the picture)
             ini.WriteValue("chihiro.jvs.hotd3", "trigger", trigger.ToString());
-            ini.WriteValue("chihiro.jvs.hotd3", "body_button", grip.ToString());
+            ini.WriteValue("chihiro.jvs.hotd3", "body_button", p1.Hotd3Body.ToString());
 
             // Virtua Cop 3: the pedal takes cover
             ini.WriteValue("chihiro.jvs.vc3", "trigger", trigger.ToString());
-            ini.WriteValue("chihiro.jvs.vc3", "body_button", grip.ToString());
-            ini.WriteValue("chihiro.jvs.vc3", "pedal", secondary.ToString());
-            ini.WriteValue("chihiro.jvs.vc3", "reload", reload.ToString());
+            ini.WriteValue("chihiro.jvs.vc3", "body_button", p1.Body.ToString());
+            ini.WriteValue("chihiro.jvs.vc3", "pedal", p1.Extra.ToString());
+            ini.WriteValue("chihiro.jvs.vc3", "reload", p1.Reload.ToString());
 
             // Ghost Squad: 'change' switches weapon
             ini.WriteValue("chihiro.jvs.gs", "trigger", trigger.ToString());
-            ini.WriteValue("chihiro.jvs.gs", "body_button", grip.ToString());
-            ini.WriteValue("chihiro.jvs.gs", "change", secondary.ToString());
-            ini.WriteValue("chihiro.jvs.gs", "reload", reload.ToString());
+            ini.WriteValue("chihiro.jvs.gs", "body_button", p1.Body.ToString());
+            ini.WriteValue("chihiro.jvs.gs", "change", p1.Extra.ToString());
+            ini.WriteValue("chihiro.jvs.gs", "reload", p1.Reload.ToString());
+
+            // Multigun is written in chihiro.jvs_p2 section
+            if (_multigun)
+            {
+                ini.WriteValue("chihiro.jvs_p2", "gs_trigger", trigger.ToString());
+                ini.WriteValue("chihiro.jvs_p2", "gs_body_button", p2.Body.ToString());
+                ini.WriteValue("chihiro.jvs_p2", "gs_change", p2.Extra.ToString());
+                ini.WriteValue("chihiro.jvs_p2", "gs_reload", p2.Reload.ToString());
+
+                ini.WriteValue("chihiro.jvs_p2", "hotd3_trigger", trigger.ToString());
+                ini.WriteValue("chihiro.jvs_p2", "hotd3_body_button", p2.Hotd3Body.ToString());
+
+                ini.WriteValue("chihiro.jvs_p2", "vc3_trigger", trigger.ToString());
+                ini.WriteValue("chihiro.jvs_p2", "vc3_body_button", p2.Body.ToString());
+                ini.WriteValue("chihiro.jvs_p2", "vc3_pedal", p2.Extra.ToString());
+                ini.WriteValue("chihiro.jvs_p2", "vc3_reload", p2.Reload.ToString());
+            }
+
+            SimpleLogger.Instance.Info("[LightGun] DolphinBar P1: " + p1Wiimote + ", P2: " + p2Wiimote);
+        }
+
+        // Keys of one player for the gun games (SDL scancodes, 1001+ = buttons of the player's pointer device)
+        private class ChihiroGunKeys
+        {
+            public int Start, Coin, Reload, Hotd3Body, Body, Extra;
+        }
+
+        /// <summary>
+        /// DolphinBar: start/coin on the D-pad (same keys in DolphinBar modes 1 and 2). xemu-chihiro reads every keyboard
+        /// as one (SDL keyboard state), so a second Wiimote uses other directions; pointer buttons are read per device.
+        /// </summary>
+        private static ChihiroGunKeys GetChihiroGunKeys(int player, bool wiimote, bool firstWiimote, bool twoWiimotes, int grip, int reload, int secondary)
+        {
+            var keys = new ChihiroGunKeys
+            {
+                Start = player == 1 ? KEY_1 : KEY_2,
+                Coin = player == 1 ? KEY_5 : KEY_6,
+                Reload = reload,
+                Hotd3Body = grip,
+                Body = grip,
+                Extra = secondary
+            };
+
+            if (!wiimote)
+                return keys;
+
+            keys.Start = firstWiimote ? KEY_RIGHT : KEY_UP;
+            keys.Coin = firstWiimote ? KEY_LEFT : KEY_DOWN;
+
+            if (twoWiimotes)
+            {
+                // Every D-pad direction is taken by start/coin: A takes the pedal / weapon change, reload by aiming off the picture
+                keys.Extra = grip;
+                keys.Reload = 0;
+                keys.Body = 0;
+            }
+            else
+            {
+                // A = reload, D-pad Down = pedal / weapon change, D-pad Up = body button
+                keys.Reload = grip;
+                keys.Extra = KEY_DOWN;
+                keys.Body = KEY_UP;
+            }
+
+            return keys;
         }
     }
 }

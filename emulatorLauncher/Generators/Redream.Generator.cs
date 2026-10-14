@@ -10,6 +10,7 @@ namespace EmulatorLauncher
 {
     partial class RedreamGenerator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
 
@@ -90,10 +91,12 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "", "frameskip", "redream_frameskip", "1", "0");
                 BindIniFeature(ini, "", "aspect", "redream_aspect", "4:3");
 
-                ini.WriteValue("", "fullwidth", (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
-                ini.WriteValue("", "fullheight", (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
-                ini.WriteValue("", "width", (resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width).ToString());
-                ini.WriteValue("", "height", (resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height).ToString());
+                // Size of the chosen screen (MonitorIndex), or of the primary screen when Redream keeps its own placement
+                var screenBounds = (Program.IsMonitorIndexSet ? Program.TargetScreen : Screen.PrimaryScreen).Bounds;
+                ini.WriteValue("", "fullwidth", (resolution == null ? screenBounds.Width : resolution.Width).ToString());
+                ini.WriteValue("", "fullheight", (resolution == null ? screenBounds.Height : resolution.Height).ToString());
+                ini.WriteValue("", "width", (resolution == null ? screenBounds.Width : resolution.Width).ToString());
+                ini.WriteValue("", "height", (resolution == null ? screenBounds.Height : resolution.Height).ToString());
 
                 ConfigureControllers(ini);
             }

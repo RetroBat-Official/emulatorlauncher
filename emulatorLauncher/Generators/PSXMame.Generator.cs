@@ -113,6 +113,13 @@ namespace EmulatorLauncher
                 commandArray.Add("retrobat");
             }
 
+            // Monitor index : MAME expects the Windows device name of the screen
+            if (Program.IsMonitorIndexSet)
+            {
+                commandArray.Add("-screen");
+                commandArray.Add(Program.TargetScreen.DeviceName);
+            }
+
             commandArray.Add("-verbose");
 
             commandArray.Add(Path.GetFileNameWithoutExtension(rom));

@@ -15,6 +15,7 @@ namespace EmulatorLauncher
         private string _machine;
         private string _config;
         private AltirraProfile _profile;
+        protected override bool UseGenericScreenPlacement { get { return true; } }
 
         // Altirra.exe /portable /f /hardware 5200 "<path to rom>"
         //  /w /f /[no]borderless     Enable/disable borderless full-screen mode

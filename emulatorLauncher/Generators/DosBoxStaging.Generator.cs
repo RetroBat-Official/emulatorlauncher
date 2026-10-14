@@ -17,6 +17,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = true;
         }
+        protected override bool UseGenericScreenPlacement { get { return true; } }
 
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
@@ -202,7 +203,10 @@ namespace EmulatorLauncher
                     ini.AppendValue("sdl", "fullscreen", fullscreen ? "true" : "false");
                     BindIniFeature(ini, "sdl", "output", "dbs_output", "opengl");
                     BindIniFeature(ini, "sdl", "texture_renderer", "dbs_texture_renderer", "auto");
-                    ini.AppendValue("sdl", "display", Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike).ToString());
+
+                    if (Program.IsMonitorIndexSet)
+                        ini.AppendValue("sdl", "display", Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike).ToString());
+
                     ini.AppendValue("sdl", "fullresolution", "desktop");
                     BindIniFeature(ini, "sdl", "host_rate", "dbs_host_rate", "auto");
                     BindIniFeature(ini, "sdl", "vsync", "dbs_vsync", "auto");

@@ -10,6 +10,7 @@ namespace EmulatorLauncher
 {
     partial class RaineGenerator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private string _path;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;

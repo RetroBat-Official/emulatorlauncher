@@ -12,6 +12,7 @@ namespace EmulatorLauncher
 {
     partial class JgenesisGenerator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private SaveStatesWatcher _saveStatesWatcher;
@@ -217,6 +218,7 @@ namespace EmulatorLauncher
                 ConfigureSnes(ini, jGenSystem);
 
                 SetupControllers(ini, jGenSystem);
+                SetupDolphinBarKeys(ini, jGenSystem);
 
                 // Save toml file
                 ini.Save();
@@ -433,51 +435,7 @@ namespace EmulatorLauncher
             SetupGuns(ini, system);
         }
 
-        private void SetupGuns(IniFileJGenesis ini, string jgenSystem)
-        {
-            var guns = RawLightgun.GetRawLightguns();
-            if (guns.Any(g => g.Type == RawLighGunType.SindenLightgun))
-            {
-                Guns.StartSindenSoftware();
-            }
-
-            if (!SystemConfig.getOptBoolean("use_guns"))
-            {
-                ini.WriteValue("input.snes", "p2_type", "\"" + "Gamepad" + "\"");
-                ini.WriteValue("input.nes", "p2_type", "\"" + "Gamepad" + "\"");
-                return;
-            }
-
-            if (jgenSystem == "snes")
-            {
-                ini.DeleteSection("input.snes.mapping_1.super_scope");
-                ini.WriteValue("[[input.snes.mapping_2.super_scope]]", "", null);
-
-                ini.WriteValue("input.snes", "p2_type", "\"" + "SuperScope" + "\"");
-
-                ini.WriteValue("[[input.snes.mapping_1.super_scope.fire]]", "type", "\"" + "Mouse" + "\"");
-                ini.WriteValue("[[input.snes.mapping_1.super_scope.fire]]", "button", "\"" + "Left" + "\"");
-                ini.WriteValue("[[input.snes.mapping_1.super_scope.cursor]]", "type", "\"" + "Mouse" + "\"");
-                ini.WriteValue("[[input.snes.mapping_1.super_scope.cursor]]", "button", "\"" + "Right" + "\"");
-                ini.WriteValue("[[input.snes.mapping_1.super_scope.pause]]", "type", "\"" + "Mouse" + "\"");
-                ini.WriteValue("[[input.snes.mapping_1.super_scope.pause]]", "button", "\"" + "Middle" + "\"");
-                return;
-            }
-
-            if (jgenSystem == "nes")
-            {
-                ini.DeleteSection("input.nes.mapping_1.zapper");
-                ini.WriteValue("[[input.nes.mapping_2.zapper]]", "", null);
-
-                ini.WriteValue("input.nes", "p2_type", "\"" + "Zapper" + "\"");
-
-                ini.WriteValue("[[input.nes.mapping_1.zapper.fire]]", "type", "\"" + "Mouse" + "\"");
-                ini.WriteValue("[[input.nes.mapping_1.zapper.fire]]", "button", "\"" + "Left" + "\"");
-                ini.WriteValue("[[input.nes.mapping_1.zapper.force_offscreen]]", "type", "\"" + "Mouse" + "\"");
-                ini.WriteValue("[[input.nes.mapping_1.zapper.force_offscreen]]", "button", "\"" + "Right" + "\"");
-                return;
-            }
-        }
+        
 
         private static Dictionary<string, InputKey> GetMapping(string system)
         {

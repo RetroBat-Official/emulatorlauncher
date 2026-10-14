@@ -21,6 +21,11 @@ namespace EmulatorLauncher
         private bool _xeniaManagerConfig = false;
         private string _xeniaManagerConfigFile = null;
 
+        /// <summary>
+        /// Xenia has no screen setting : move its window to the chosen screen (only when MonitorIndex is set, fullscreen only).
+        /// </summary>
+        protected override bool UseGenericScreenPlacement { get { return true; } }
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");

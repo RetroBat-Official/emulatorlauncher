@@ -26,8 +26,10 @@ namespace EmulatorLauncher
             private int _trackballPorts;
             private bool _rawInputUsed;
             private bool _sindenUsed;
+            private readonly int _dolphinBarWiimotes;
+            private int _dolphinBarIndex;
 
-            public ArcadeDuckPointerDevices()
+            public ArcadeDuckPointerDevices(int lightgunPortCount)
             {
                 var all = RawLightgun.GetRawLightguns();
 
@@ -47,6 +49,9 @@ namespace EmulatorLauncher
                         _guns[1] = first;
                     }
                 }
+
+                // DolphinBar Wiimotes actually used by lightgun ports
+                _dolphinBarWiimotes = _guns.Take(lightgunPortCount).Count(g => g.Type == RawLighGunType.MayFlashWiimote);
 
                 _invert = Program.SystemConfig.getOptBoolean("gun_invert");
                 _rawMiceSlots = EnumerateRawMice();
@@ -109,12 +114,52 @@ namespace EmulatorLauncher
                     string crosshair = Program.SystemConfig["arcadeduck_crosshair"];
                     bool showCrosshair = crosshair == "1" || (string.IsNullOrEmpty(crosshair) && !isGun);
                     ini.WriteValue(section, "CrosshairEnabled", showCrosshair ? "true" : "false");
+
+                    if (isGun && device.Type == RawLighGunType.MayFlashWiimote)
+                        ConfigureDolphinBarKeys(ini, section, port.Layout);
                 }
                 else
                 {
                     ini.AppendValue(section, "Button1", rawMouse + "Button0");
                     ini.AppendValue(section, "Button2", rawMouse + "Button1");
                 }
+            }
+
+            /// <summary>
+            /// DolphinBar (mode 1 or 2) sends keyboard keys for the Wiimote buttons. ArcadeDuck reads all keyboards as one (Qt host keyboard),
+            /// so each Wiimote uses different D-pad keys :
+            /// - first Wiimote : Right = Start, Left = Coin
+            /// - second Wiimote : Up = Start, Down = Coin
+            /// Judge Dredd secondary weapon : D-pad Down with one Wiimote, else button 1 (mode 1) or + (mode 2) for player 1, button 2 (mode 1 only) for player 2.
+            /// Keyboard keys 1-4 / 5-8 stay bound for start / coin.
+            /// </summary>
+            private void ConfigureDolphinBarKeys(IniFile ini, string section, string layout)
+            {
+                bool first = _dolphinBarIndex == 0;
+                _dolphinBarIndex++;
+
+                // Only 2 sets of D-pad keys are available
+                if (_dolphinBarIndex > 2)
+                    return;
+
+                ini.AppendValue(section, "Start", "Keyboard/" + (first ? "Right" : "Up"));
+                ini.AppendValue(section, "Coin", "Keyboard/" + (first ? "Left" : "Down"));
+
+                if (layout != "jdredd")
+                    return;
+
+                bool normalMode = Program.SystemConfig["WiimoteMode"] == "normal";
+                string key = null;
+
+                if (_dolphinBarWiimotes == 1)
+                    key = "Down";
+                else if (first)
+                    key = normalMode ? "PageUp" : "Return";
+                else if (normalMode)
+                    key = "PageDown";
+
+                if (key != null)
+                    ini.AppendValue(section, "Button2", "Keyboard/" + key);
             }
 
             public void Finish(IniFile ini)

@@ -17,6 +17,11 @@ namespace EmulatorLauncher
 
         private SaveStatesWatcher _saveStatesWatcher;
 
+        /// <summary>
+        /// Safety net : if PPSSPP still opens on another screen, move its window (only when MonitorIndex is set, fullscreen only).
+        /// </summary>
+        protected override bool UseGenericScreenPlacement { get { return true; } }
+
         public override void Cleanup()
         {
             if (_saveStatesWatcher != null)
@@ -137,6 +142,20 @@ namespace EmulatorLauncher
                     {
                         ini.WriteValue("Achievements", "AchievementsEnable", "False");
                         ini.WriteValue("Achievements", "AchievementsChallengeMode", "False");
+                    }
+
+                    // Screen : PPSSPP restores its saved window position, then goes fullscreen on that screen (MonitorFromWindow).
+                    // Only when the user chose a screen, otherwise PPSSPP keeps its own placement.
+                    if (Program.IsMonitorIndexSet)
+                    {
+                        var bounds = Program.TargetScreen.Bounds;
+                        int width = bounds.Width / 2;
+                        int height = bounds.Height / 2;
+
+                        ini.WriteValue("General", "WindowX", (bounds.Left + (bounds.Width - width) / 2).ToString());
+                        ini.WriteValue("General", "WindowY", (bounds.Top + (bounds.Height - height) / 2).ToString());
+                        ini.WriteValue("General", "WindowWidth", width.ToString());
+                        ini.WriteValue("General", "WindowHeight", height.ToString());
                     }
 
                     // Graphics

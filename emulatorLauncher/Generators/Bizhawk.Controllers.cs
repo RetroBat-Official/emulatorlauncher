@@ -108,6 +108,8 @@ namespace EmulatorLauncher
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(maxPad))
                 ConfigureInput(controller, json, system, core);
 
+            ConfigureDolphinBarKeys(json, system);
+
             ConfigureHotkeys(json, core);
         }
 

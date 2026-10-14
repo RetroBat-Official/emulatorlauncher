@@ -17,6 +17,8 @@ namespace EmulatorLauncher
 
     partial class DaphneGenerator : Generator
     {
+        protected override bool UseGenericScreenPlacement { get { return true; } }
+
         public DaphneGenerator()
         {
             _executableName = "daphne";
@@ -53,7 +55,7 @@ namespace EmulatorLauncher
                     commandArray.Add(xString);
                 }
 
-                if (SystemConfig.isOptSet("MonitorIndex"))
+                if (Program.IsMonitorIndexSet)
                 {
                     // Hypseus uses SDL : -screen expects a 0-based SDL index.
                     commandArray.Add("-screen");
@@ -210,7 +212,7 @@ namespace EmulatorLauncher
             }
 
             if (emulator == "hypseus")
-                CreateControllerConfiguration(emulatorPath);
+                CreateControllerConfiguration(emulatorPath, (singeFile != null && File.Exists(singeFile)) || useAlt || zipHypseus);
 
             List<string> commandArray = new List<string>();
 

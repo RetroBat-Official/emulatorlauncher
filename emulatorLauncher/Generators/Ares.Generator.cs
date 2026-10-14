@@ -16,7 +16,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = false;
         }
-
+        protected override bool UseGenericScreenPlacement { get { return true; } }
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private string _path;
@@ -170,6 +170,23 @@ namespace EmulatorLauncher
 
             // Video
             var video = bml.GetOrCreateContainer("Video");
+
+            // Screen : ares "Fullscreen monitor" (Video/Monitor), named "<n>: <monitor name>" where n is the 1-based
+            // position in EnumDisplayMonitors order, pseudo monitors (\\.\DISPLAYV) excluded (ruby/video/video.cpp).
+            // Only when the user chose a screen, otherwise ares keeps its own choice.
+            if (Program.IsMonitorIndexSet)
+            {
+                var screen = Program.TargetScreen;
+                var monitors = System.Windows.Forms.Screen.AllScreens.Where(sc => !sc.DeviceName.StartsWith(@"\\.\DISPLAYV")).ToList();
+                int index = monitors.FindIndex(sc => sc.DeviceName == screen.DeviceName);
+                string monitorName = Displays.GetMonitorName(screen);
+
+                if (screen.Primary)
+                    video["Monitor"] = "Primary";
+                else if (index >= 0 && !string.IsNullOrEmpty(monitorName))
+                    video["Monitor"] = (index + 1) + ": " + monitorName;
+            }
+
             video["AdaptiveSizing"] = "true";
             BindFeature(video, "Driver", "ares_renderer", "OpenGL 3.2");
             BindFeature(video, "Output", "ares_aspect", "Scale");
