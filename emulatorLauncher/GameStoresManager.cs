@@ -28,7 +28,7 @@ namespace EmulatorLauncher
 
             if (Program.SystemConfig.getOptBoolean("n64_recompscan"))
             {
-                N64RecompGenerator.UpdateN64RecompGames();
+                QuiverLauncherGenerator.UpdateQuiverGames();
             }
 
             if (Program.SystemConfig.getOptBoolean("exodosScan") && Program.SystemConfig.isOptSet("exodosPath") && !string.IsNullOrEmpty(Program.SystemConfig["exodosPath"]))

@@ -1,11 +1,12 @@
-﻿using System;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.FileFormats;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 using System.Xml.Serialization;
-using System.IO;
-using EmulatorLauncher.Common.FileFormats;
-using EmulatorLauncher.Common;
 
 namespace RetrobatUpdater
 {
@@ -93,6 +94,13 @@ namespace RetrobatUpdater
                         SimpleLogger.Instance.Info("[UPGRADE ACTION] Preparing to merge: " + action.path + " with " + action.to);
                         action.Execute(rootPath);
                     }
+
+                if (upgrade.MergeGamelistActions != null)
+                    foreach (var action in upgrade.MergeGamelistActions)
+                    {
+                        SimpleLogger.Instance.Info("[UPGRADE ACTION] Preparing to merge rom folder: " + action.path + " into " + action.to);
+                        action.Execute(rootPath);
+                    }
             }
         }
 
@@ -177,6 +185,9 @@ namespace RetrobatUpdater
 
         [XmlElement("merge")]
         public MergeDirectoryAction[] MergeDirectoryActions { get; set; }
+
+        [XmlElement("mergegamelist")]
+        public MergeGamelistAction[] MergeGamelistActions { get; set; }
 
         [XmlAttribute("version")]
         public string Version { get; set; }
@@ -524,6 +535,373 @@ namespace RetrobatUpdater
                 string destSubDir = Path.Combine(destDir, Path.GetFileName(directory));
                 MergeDirectoriesKeepNewest(directory, destSubDir);
             }
+        }
+    }
+
+    public partial class MergeGamelistAction
+    {
+        [XmlAttribute("path")]
+        public string path { get; set; }
+
+        [XmlAttribute("to")]
+        public string to { get; set; }
+
+        private const string GamelistFile = "gamelist.xml";
+
+        /// <summary>
+        /// Merges a rom folder into another one : moves files (renaming them on name conflict), merges gamelist.xml entries,
+        /// then deletes the source folder once everything has been moved.
+        /// Safe to run several times : does nothing when the source folder no longer exists.
+        /// </summary>
+        public void Execute(string root)
+        {
+            string sourceDir = Path.GetFullPath(Path.Combine(root, path)).TrimEnd('\\', '/');
+            string destDir = Path.GetFullPath(Path.Combine(root, to)).TrimEnd('\\', '/');
+
+            if (!Directory.Exists(sourceDir))
+            {
+                SimpleLogger.Instance.Info("[Upgrade] Source folder does not exist, nothing to merge: " + sourceDir);
+                return;
+            }
+
+            if (string.Equals(sourceDir, destDir, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            try { Directory.CreateDirectory(destDir); }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[Upgrade] Unable to create target directory: " + destDir + " - " + ex.Message);
+                return;
+            }
+
+            // Source relative path ('/' separated) -> new relative path, for files renamed because of a name conflict
+            var renamed = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            bool filesMoved = MoveFiles(sourceDir, destDir, sourceDir, renamed);
+            bool gamelistMerged = MergeGamelists(sourceDir, destDir, renamed);
+
+            if (filesMoved && gamelistMerged)
+                DeleteSourceFolder(sourceDir);
+            else
+                SimpleLogger.Instance.Warning("[Upgrade] Merge incomplete, source folder kept: " + sourceDir);
+
+            SimpleLogger.Instance.Info("[Upgrade] Merged " + sourceDir + " into " + destDir);
+        }
+
+        private static bool MoveFiles(string sourceRoot, string destRoot, string currentDir, Dictionary<string, string> renamed)
+        {
+            bool ok = true;
+
+            foreach (var file in Directory.GetFiles(currentDir))
+            {
+                string rel = GetRelativePath(sourceRoot, file);
+
+                // Source gamelist is merged separately
+                if (rel.Equals(GamelistFile, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                string target = Path.Combine(destRoot, rel);
+
+                try
+                {
+                    string targetDir = Path.GetDirectoryName(target);
+                    if (!Directory.Exists(targetDir))
+                        Directory.CreateDirectory(targetDir);
+
+                    if (File.Exists(target))
+                    {
+                        // Same file already in target : nothing to keep
+                        if (FilesAreEqual(file, target))
+                        {
+                            File.Delete(file);
+                            continue;
+                        }
+
+                        target = GetUniqueFileName(target);
+                        renamed[rel.Replace('\\', '/')] = GetRelativePath(destRoot, target).Replace('\\', '/');
+                        SimpleLogger.Instance.Info("[Upgrade] Name conflict, " + file + " renamed to " + target);
+                    }
+
+                    MoveFile(file, target);
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Warning("[Upgrade] Unable to move " + file + " to " + target + " - " + ex.Message);
+                    ok = false;
+                }
+            }
+
+            foreach (var dir in Directory.GetDirectories(currentDir))
+                ok = MoveFiles(sourceRoot, destRoot, dir, renamed) && ok;
+
+            return ok;
+        }
+
+        private static bool MergeGamelists(string sourceDir, string destDir, Dictionary<string, string> renamed)
+        {
+            string sourceGamelist = Path.Combine(sourceDir, GamelistFile);
+            if (!File.Exists(sourceGamelist))
+                return true;
+
+            string destGamelist = Path.Combine(destDir, GamelistFile);
+
+            try
+            {
+                XDocument src = XDocument.Load(sourceGamelist);
+                if (src.Root == null)
+                    return true;
+
+                XDocument dst = null;
+                if (File.Exists(destGamelist))
+                {
+                    try { dst = XDocument.Load(destGamelist); }
+                    catch (Exception ex)
+                    {
+                        // Never overwrite a gamelist that could not be read
+                        SimpleLogger.Instance.Warning("[Upgrade] Unable to read " + destGamelist + " - " + ex.Message);
+                        return false;
+                    }
+                }
+
+                if (dst == null || dst.Root == null)
+                    dst = new XDocument(new XElement("gameList"));
+
+                // Existing entries indexed by normalized path
+                var existing = new Dictionary<string, XElement>(StringComparer.OrdinalIgnoreCase);
+                foreach (var entry in dst.Root.Elements())
+                {
+                    string key = GetEntryKey(entry, destDir);
+                    if (key != null && !existing.ContainsKey(key))
+                        existing[key] = entry;
+                }
+
+                int added = 0;
+                int completed = 0;
+
+                foreach (var entry in src.Root.Elements())
+                {
+                    if (entry.Name.LocalName != "game" && entry.Name.LocalName != "folder")
+                        continue;
+
+                    var copy = new XElement(entry);
+
+                    // Rebase paths (rom, image, video, manual...) on the target folder
+                    foreach (var child in copy.Elements().Where(e => !e.HasElements))
+                        child.Value = RemapPath(child.Value, sourceDir, renamed);
+
+                    string key = GetEntryKey(copy, destDir);
+                    if (key == null)
+                        continue;
+
+                    XElement current;
+                    if (existing.TryGetValue(key, out current))
+                    {
+                        // Keep target metadata, only add what is missing
+                        foreach (var child in copy.Elements())
+                        {
+                            if (current.Element(child.Name) == null)
+                            {
+                                current.Add(new XElement(child));
+                                completed++;
+                            }
+                        }
+                        continue;
+                    }
+
+                    dst.Root.Add(copy);
+                    existing[key] = copy;
+                    added++;
+                }
+
+                if (File.Exists(destGamelist) && !File.Exists(destGamelist + ".backup"))
+                    File.Copy(destGamelist, destGamelist + ".backup");
+
+                var settings = new System.Xml.XmlWriterSettings()
+                {
+                    Indent = true,
+                    IndentChars = "\t",
+                    Encoding = new UTF8Encoding(false)
+                };
+
+                using (var writer = System.Xml.XmlWriter.Create(destGamelist, settings))
+                    dst.Save(writer);
+
+                SimpleLogger.Instance.Info("[Upgrade] Gamelist merged into " + destGamelist + " : " + added + " entries added, " + completed + " fields completed.");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[Upgrade] Unable to merge " + sourceGamelist + " - " + ex.Message);
+                return false;
+            }
+        }
+
+        private static string GetEntryKey(XElement entry, string baseDir)
+        {
+            var pathElement = entry.Element("path");
+            if (pathElement == null || string.IsNullOrWhiteSpace(pathElement.Value))
+                return null;
+
+            string value = pathElement.Value.Trim().Replace('\\', '/');
+
+            if (value.StartsWith("./"))
+                return value.Substring(2).TrimEnd('/');
+
+            try
+            {
+                if (Path.IsPathRooted(value))
+                {
+                    string full = Path.GetFullPath(value);
+                    if (full.StartsWith(baseDir + "\\", StringComparison.OrdinalIgnoreCase))
+                        return full.Substring(baseDir.Length + 1).Replace('\\', '/').TrimEnd('/');
+                }
+            }
+            catch { }
+
+            return value.TrimEnd('/');
+        }
+
+        private static string RemapPath(string value, string sourceDir, Dictionary<string, string> renamed)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return value;
+
+            string rel = null;
+
+            try
+            {
+                string v = value.Trim();
+
+                if (v.StartsWith("./") || v.StartsWith(".\\"))
+                    rel = v.Substring(2);
+                else if (Path.IsPathRooted(v))
+                {
+                    string full = Path.GetFullPath(v);
+                    if (full.StartsWith(sourceDir + "\\", StringComparison.OrdinalIgnoreCase))
+                        rel = full.Substring(sourceDir.Length + 1);
+                }
+            }
+            catch { }
+
+            // Not a path inside the source folder (description, date, url...)
+            if (rel == null)
+                return value;
+
+            rel = rel.Replace('\\', '/');
+
+            string newRel;
+            if (renamed.TryGetValue(rel, out newRel))
+                rel = newRel;
+
+            return "./" + rel;
+        }
+
+        private static void DeleteSourceFolder(string sourceDir)
+        {
+            try
+            {
+                // Only the merged gamelist and empty folders should remain
+                var remaining = Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories)
+                    .Where(f => !string.Equals(f, Path.Combine(sourceDir, GamelistFile), StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                if (remaining.Count > 0)
+                {
+                    SimpleLogger.Instance.Warning("[Upgrade] Files remaining, source folder kept: " + sourceDir);
+                    return;
+                }
+
+                Directory.Delete(sourceDir, true);
+                SimpleLogger.Instance.Info("[Upgrade] Deleted merged folder " + sourceDir);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[Upgrade] Unable to delete merged folder " + sourceDir + " - " + ex.Message);
+            }
+        }
+
+        private static string GetRelativePath(string root, string file)
+        {
+            return file.Substring(root.Length).TrimStart('\\', '/');
+        }
+
+        private static string GetUniqueFileName(string file)
+        {
+            string dir = Path.GetDirectoryName(file);
+            string name = Path.GetFileNameWithoutExtension(file);
+            string ext = Path.GetExtension(file);
+
+            int i = 2;
+            string candidate;
+            do
+            {
+                candidate = Path.Combine(dir, name + " (" + i + ")" + ext);
+                i++;
+            }
+            while (File.Exists(candidate) || Directory.Exists(candidate));
+
+            return candidate;
+        }
+
+        private static void MoveFile(string source, string target)
+        {
+            try
+            {
+                File.Move(source, target);
+            }
+            catch (IOException)
+            {
+                // Different volume (e.g. junction) or locked : copy then delete
+                File.Copy(source, target, false);
+                File.Delete(source);
+            }
+        }
+
+        private static bool FilesAreEqual(string file1, string file2)
+        {
+            var info1 = new FileInfo(file1);
+            var info2 = new FileInfo(file2);
+            if (info1.Length != info2.Length)
+                return false;
+
+            const int bufferSize = 1024 * 64;
+            using (var fs1 = File.OpenRead(file1))
+            using (var fs2 = File.OpenRead(file2))
+            {
+                var buffer1 = new byte[bufferSize];
+                var buffer2 = new byte[bufferSize];
+
+                while (true)
+                {
+                    int read1 = ReadBlock(fs1, buffer1);
+                    int read2 = ReadBlock(fs2, buffer2);
+
+                    if (read1 != read2)
+                        return false;
+
+                    if (read1 == 0)
+                        return true;
+
+                    for (int i = 0; i < read1; i++)
+                        if (buffer1[i] != buffer2[i])
+                            return false;
+                }
+            }
+        }
+
+        private static int ReadBlock(Stream stream, byte[] buffer)
+        {
+            int total = 0;
+            while (total < buffer.Length)
+            {
+                int read = stream.Read(buffer, total, buffer.Length - total);
+                if (read == 0)
+                    break;
+
+                total += read;
+            }
+
+            return total;
         }
     }
 }

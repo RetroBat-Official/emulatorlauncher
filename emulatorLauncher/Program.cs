@@ -150,6 +150,7 @@ namespace EmulatorLauncher
             { "ps3", () => new Rpcs3Generator() },
             { "psvita", () => new Vita3kGenerator() },
             { "psxmame", () => new PSXMameGenerator() },
+            { "quiverlauncher", () => new QuiverLauncherGenerator() },
             { "raine", () => new RaineGenerator() },
             { "raze", () => new RazeGenerator() },
             { "redream", () => new RedreamGenerator() },
