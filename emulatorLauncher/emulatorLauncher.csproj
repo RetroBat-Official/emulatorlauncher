@@ -560,6 +560,7 @@
     <Compile Include="Generators\PSXMame.Controllers.cs">
       <DependentUpon>PSXMame.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\QuiverLauncher.Generator.cs" />
     <Compile Include="Generators\Raine.Generator.cs" />
     <Compile Include="Generators\Raine.Controllers.cs">
       <DependentUpon>Raine.Generator.cs</DependentUpon>

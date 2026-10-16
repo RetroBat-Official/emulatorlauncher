@@ -454,6 +454,14 @@ namespace EmulatorLauncher.Libretro
 
         private string GetRomOverride(string system, string emulator, string core, string rom, string romName)
         {
+            // prboom cannot read .gzdoom / .uzdoom launch files, they are converted to a m3u playlist
+            if (core == "prboom")
+            {
+                string playlist = GetPrBoomPlaylist(rom);
+                if (playlist != null)
+                    rom = playlist;
+            }
+
             if (Path.GetExtension(rom).ToLowerInvariant() == ".libretro")
             {
                 if (core == "xrick")
@@ -2408,6 +2416,112 @@ namespace EmulatorLauncher.Libretro
                     return false;
 
                 return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // Convert a .gzdoom / .uzdoom launch file (or folder) into a m3u playlist the prboom core can load
+        // Only the IWAD, WAD / PK3 files and DeHackEd patches are kept, GZDoom/UZDoom switches and cvars are ignored
+        private static string GetPrBoomPlaylist(string rom)
+        {
+            string ext = Path.GetExtension(rom).ToLowerInvariant();
+            if (ext != ".gzdoom" && ext != ".uzdoom")
+                return null;
+
+            var loadable = new string[] { ".wad", ".iwad", ".pwad", ".pk3", ".zip", ".deh", ".bex" };
+            string romDir = Path.GetDirectoryName(rom);
+            string iwad = null;
+            var files = new List<string>();
+
+            if (Directory.Exists(rom))
+            {
+                files = Directory.GetFiles(rom)
+                    .Where(f => loadable.Contains(Path.GetExtension(f).ToLowerInvariant()))
+                    .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+            }
+            else if (File.Exists(rom))
+            {
+                var lines = File.ReadAllLines(rom)
+                    .Select(l => l.Trim().Trim('"'))
+                    .Where(l => l.Length > 0 && !l.StartsWith("#"))
+                    .ToArray();
+
+                // A single line file only holds the path of the game to run
+                bool singleIwad = lines.Length == 1 && !lines[0].StartsWith("-") && !lines[0].StartsWith("+");
+                string previousSwitch = null;
+
+                foreach (var line in lines)
+                {
+                    if (line.StartsWith("-") || line.StartsWith("+"))
+                    {
+                        previousSwitch = line.ToLowerInvariant();
+                        continue;
+                    }
+
+                    bool isIwad = singleIwad || previousSwitch == "-iwad";
+                    if (previousSwitch == "-iwad")
+                        previousSwitch = null;
+
+                    string value = line.Replace("/", "\\");
+                    if (isIwad && !Path.HasExtension(value))
+                        value += ".wad";
+
+                    // Values of other switches (skill, map, config...) are skipped
+                    if (!loadable.Contains(Path.GetExtension(value).ToLowerInvariant()))
+                        continue;
+
+                    string path = Path.IsPathRooted(value) && !value.StartsWith("\\") ? value : Path.Combine(romDir, value.TrimStart('\\'));
+                    if (!File.Exists(path))
+                    {
+                        SimpleLogger.Instance.Warning("[LibretroGenerator] prboom : file not found '" + path + "'.");
+                        continue;
+                    }
+
+                    if (isIwad)
+                        iwad = path;
+                    else
+                        files.Add(path);
+                }
+            }
+            else
+                return null;
+
+            // The core uses the first IWAD-like entry as IWAD, so the real IWAD must come first
+            var playlist = new List<string>();
+            if (iwad != null)
+                playlist.Add(iwad);
+
+            playlist.AddRange(files.Where(f => HasIwadHeader(f)));
+            playlist.AddRange(files.Where(f => !HasIwadHeader(f)));
+
+            if (playlist.Count == 0)
+                throw new ApplicationException("prboom : no loadable file found in '" + rom + "'.");
+
+            // Same base name as the rom, so that saves and states keep their name
+            string tempDir = Path.Combine(Path.GetTempPath(), "prboom");
+            if (!Directory.Exists(tempDir))
+                Directory.CreateDirectory(tempDir);
+
+            string m3u = Path.Combine(tempDir, Path.GetFileNameWithoutExtension(rom) + ".m3u");
+            File.WriteAllLines(m3u, playlist.Distinct(StringComparer.OrdinalIgnoreCase).ToArray());
+
+            SimpleLogger.Instance.Info("[LibretroGenerator] prboom : launch file converted to playlist '" + m3u + "'.");
+            return m3u;
+        }
+
+        private static bool HasIwadHeader(string file)
+        {
+            try
+            {
+                using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    var header = new byte[4];
+                    return fs.Read(header, 0, 4) == 4 && System.Text.Encoding.ASCII.GetString(header) == "IWAD";
+                }
             }
             catch
             {

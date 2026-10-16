@@ -99,11 +99,35 @@ namespace EmulatorLauncher
                         commandArray.Add("\"" + modFile + "\"");
                 }
             }
-            
+
             else
             {
-                commandArray.Add("-iwad");
-                commandArray.Add("\"" + rom + "\"");
+                // A PWAD passed with -iwad is rejected by the engine, which then shows its IWAD picker without loading the mod
+                string[] pwadLumps = ReadPwadLumpNames(rom);
+
+                if (pwadLumps != null && !pwadLumps.Contains("IWADINFO"))
+                {
+                    // A GAMEINFO lump lets the engine pick the right IWAD by itself
+                    if (!pwadLumps.Contains("GAMEINFO"))
+                    {
+                        string iwad = FindIwadForPwad(rom, pwadLumps);
+                        if (iwad != null)
+                        {
+                            commandArray.Add("-iwad");
+                            commandArray.Add("\"" + iwad + "\"");
+                        }
+                        else
+                            SimpleLogger.Instance.Warning("[GZDoomGenerator] No matching IWAD found next to the PWAD, the engine will choose one.");
+                    }
+
+                    commandArray.Add("-file");
+                    commandArray.Add("\"" + rom + "\"");
+                }
+                else
+                {
+                    commandArray.Add("-iwad");
+                    commandArray.Add("\"" + rom + "\"");
+                }
             }
 
             string args = string.Join(" ", commandArray);
@@ -261,6 +285,81 @@ namespace EmulatorLauncher
             string ext = Path.GetExtension(value).ToLowerInvariant();
 
             return modExtensions.Contains(ext) || customIwadExtensions.Contains(ext);
+        }
+
+        // Read the lump names of a WAD file with a PWAD header, null for an IWAD or any other file type
+        private static string[] ReadPwadLumpNames(string file)
+        {
+            try
+            {
+                using (var fs = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var br = new BinaryReader(fs))
+                {
+                    if (fs.Length < 12)
+                        return null;
+
+                    string id = System.Text.Encoding.ASCII.GetString(br.ReadBytes(4));
+                    if (id != "PWAD")
+                        return null;
+
+                    int numLumps = br.ReadInt32();
+                    int tableOffset = br.ReadInt32();
+
+                    if (numLumps <= 0 || tableOffset <= 0 || tableOffset + (long)numLumps * 16 > fs.Length)
+                        return null;
+
+                    fs.Seek(tableOffset, SeekOrigin.Begin);
+
+                    var names = new string[numLumps];
+                    for (int i = 0; i < numLumps; i++)
+                    {
+                        br.ReadBytes(8); // lump offset and size
+
+                        string name = System.Text.Encoding.ASCII.GetString(br.ReadBytes(8));
+                        int end = name.IndexOf('\0');
+                        if (end >= 0)
+                            name = name.Substring(0, end);
+
+                        names[i] = name.Trim().ToUpperInvariant();
+                    }
+
+                    return names;
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // Pick the IWAD a PWAD was made for, using the same rules as the libretro prboom core :
+        // ExMy maps = Doom 1 (or Heretic when Heretic lumps are present), MAPxx maps = Doom 2
+        private static string FindIwadForPwad(string rom, string[] lumps)
+        {
+            bool exmy = lumps.Any(n => n.Length == 4 && n[0] == 'E' && char.IsDigit(n[1]) && n[1] != '0' && n[2] == 'M' && char.IsDigit(n[3]));
+            bool mapxx = lumps.Any(n => n.Length == 5 && n.StartsWith("MAP") && char.IsDigit(n[3]) && char.IsDigit(n[4]));
+            bool heretic = lumps.Any(n => n.StartsWith("MUS_E") || n == "M_HTIC");
+
+            string[] candidates;
+            if (exmy && heretic)
+                candidates = new string[] { "heretic.wad", "heretic1.wad", "blasphem.wad" };
+            else if (mapxx)
+                candidates = new string[] { "doom2.wad", "doom2f.wad", "plutonia.wad", "tnt.wad", "freedoom2.wad" };
+            else if (exmy)
+                candidates = new string[] { "doom.wad", "doomu.wad", "freedoom1.wad", "freedoom.wad", "doom1.wad" };
+            else
+                return null;
+
+            string romDir = Path.GetDirectoryName(rom);
+
+            foreach (var candidate in candidates)
+            {
+                string iwad = Path.Combine(romDir, candidate);
+                if (File.Exists(iwad))
+                    return iwad;
+            }
+
+            return null;
         }
 
         // Config sections used by the engine, cvars without CVAR_GLOBALCONFIG are stored once per game

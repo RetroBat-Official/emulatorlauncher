@@ -112,6 +112,7 @@ namespace EmulatorLauncher
             { new Installer("project64", "project64") },
             { new Installer("ps3", "rpcs3") },
             { new Installer("psxmame", "psxmame", "mame.exe") },
+            { new Installer("quiverlauncher", "quiverlauncher", "QuiverLauncher.exe") },
             { new Installer("raine") },
             { new Installer("raze", "raze", "raze.exe") },
             { new Installer("redream") },

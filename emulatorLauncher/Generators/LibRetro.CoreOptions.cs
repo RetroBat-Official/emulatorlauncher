@@ -5325,10 +5325,18 @@ namespace EmulatorLauncher.Libretro
             if (core != "prboom")
                 return;
 
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "DoomControllerP1", "1");
+            
             BindFeature(coreSettings, "prboom-resolution", "prboom_resolution", "320x200");
-            BindBoolFeature(coreSettings, "prboom-mouse_on", "prboom_mouse", "enabled", "disabled");
+            BindFeature(coreSettings, "prboom-color_format", "prboom_color_format", "16bits");
+            BindFeature(coreSettings, "prboom-render_threads", "prboom_render_threads", "OFF");
+            BindFeature(coreSettings, "prboom-complevel", "prboom_complevel", "-1");
             BindBoolFeatureOn(coreSettings, "prboom-find_recursive_on", "prboom_recursive", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "prboom-wall_decals", "prboom_wall_decals", "enabled", "disabled");
+
+            BindBoolFeature(coreSettings, "prboom-mouse_on", "prboom_mouse", "enabled", "disabled");
+            BindFeatureSlider(coreSettings, "prboom-analog_deadzone", "prboom_analog_deadzone", "15");
+            BindBoolFeature(coreSettings, "prboom-rumble", "prboom_rumble", "enabled", "disabled");
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "DoomControllerP1", "1");
         }
 
         private void ConfigureProSystem(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
