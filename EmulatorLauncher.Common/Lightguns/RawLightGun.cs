@@ -339,6 +339,10 @@ namespace EmulatorLauncher.Common.Lightguns
             if (!path.Contains("VID_"))
                 return true;
 
+            // 8bitDo receiver detected as mouse
+            if (path.ToLowerInvariant().Contains("vid_2dc8&pid_3106"))
+                return true;
+
             return false;
         }
 
