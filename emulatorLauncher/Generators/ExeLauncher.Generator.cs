@@ -109,14 +109,29 @@ namespace EmulatorLauncher
                 return null;
 
             // Manage .m3u extension
-            if (extension == ".m3u")
+            if (extension.Equals(".m3u", StringComparison.InvariantCultureIgnoreCase))
             {
-                rom = File.ReadAllText(rom);
+                string target = FileTools.ReadFirstValidLine(rom);
+                if (string.IsNullOrEmpty(target))
+                {
+                    SimpleLogger.Instance.Error("[ExeLauncher] No executable path found in " + rom);
+                    return null;
+                }
 
-                if (rom.StartsWith(".\\") || rom.StartsWith("./"))
-                    rom = Path.Combine(path, rom.Substring(2));
-                else if (rom.StartsWith("\\") || rom.StartsWith("/"))
-                    rom = Path.Combine(path, rom.Substring(1));
+                target = target.Trim('"');
+
+                if (target.StartsWith(".\\") || target.StartsWith("./"))
+                    target = Path.Combine(path, target.Substring(2));
+                else if (target.StartsWith("\\") || target.StartsWith("/"))
+                    target = Path.Combine(path, target.Substring(1));
+
+                if (!File.Exists(target))
+                {
+                    SimpleLogger.Instance.Error("[ExeLauncher] Target file not found: " + target);
+                    return null;
+                }
+
+                rom = target;
             }
 
             UpdateMugenConfig(path, fullscreen, resolution);
