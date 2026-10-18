@@ -418,6 +418,50 @@ namespace EmulatorLauncher
         }
 
         /// <summary>
+        /// When RetroBat is launched from Steam (Big Picture, non-Steam shortcut), Steam injects SDL hints
+        /// as environment variables, even when Steam Input is disabled.
+        /// SDL_GAMECONTROLLERCONFIG is loaded by SDL with USER priority and overrides every other mapping source
+        /// (SDL internal db, gamecontrollerdb.txt), in emulatorLauncher and in every emulator it starts.
+        /// It is removed from the process environment, so child processes inherit a clean environment.
+        /// Other Steam related variables are only logged for diagnosis.
+        /// </summary>
+        private static void SanitizeSteamEnvironment()
+        {
+            try
+            {
+                string[] steamMarkers = { "SteamGameId", "SteamAppId", "SteamOverlayGameId", "SteamClientLaunch" };
+                if (!steamMarkers.Any(m => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(m))))
+                    return;
+
+                SimpleLogger.Instance.Info("[Steam] Launched by Steam : checking SDL environment variables");
+
+                string[] loggedVars = { "SteamGameId", "EnableConfiguratorSupport", "SDL_GAMECONTROLLER_IGNORE_DEVICES",
+                    "SDL_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT", "SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD", "SteamVirtualGamepadInfo" };
+
+                foreach (var name in loggedVars)
+                {
+                    string value = Environment.GetEnvironmentVariable(name);
+                    if (value != null)
+                        SimpleLogger.Instance.Info("[Steam]   " + name + "=" + value);
+                }
+
+                string mapping = Environment.GetEnvironmentVariable("SDL_GAMECONTROLLERCONFIG");
+                if (mapping != null)
+                {
+                    SimpleLogger.Instance.Warning("[Steam]   SDL_GAMECONTROLLERCONFIG set by Steam (" + mapping.Length + " chars) : removed");
+                    SimpleLogger.Instance.Info("[Steam]   SDL_GAMECONTROLLERCONFIG=" + mapping);
+
+                    // Process level : affects SDL loaded later in this process and every child process
+                    Environment.SetEnvironmentVariable("SDL_GAMECONTROLLERCONFIG", null);
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[Steam] SanitizeSteamEnvironment failed : " + ex.Message);
+            }
+        }
+
+        /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
@@ -440,6 +484,9 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("--------------------------------------------------------------");
             SimpleLogger.Instance.Info("[Startup] " + Environment.CommandLine);
+
+            // Mostly to sanitize STEAM messing up with SDL, must run before any SDL2/SDL3 dll is loaded and before any emulator is started
+            SanitizeSteamEnvironment();
 
             try { SetProcessDPIAware(); }
             catch { }
