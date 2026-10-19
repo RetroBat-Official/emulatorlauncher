@@ -114,6 +114,16 @@ namespace EmulatorLauncher
                             rom = Path.Combine(path, tempPath);
                     }
                 }
+
+                else if (Path.GetExtension(rom).Equals(".psn", StringComparison.OrdinalIgnoreCase))
+                {
+                    string gameID = FileTools.ReadFirstValidLine(rom)?.Trim();
+
+                    if (string.IsNullOrEmpty(gameID))
+                        throw new ApplicationException("Unable to find any path in the m3u.");
+
+                    rom = "%RPCS3_GAMEID%:" + gameID;
+                }
             }
             catch (Exception ex)
             {
