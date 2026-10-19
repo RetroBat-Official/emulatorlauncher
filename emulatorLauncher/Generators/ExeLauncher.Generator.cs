@@ -23,6 +23,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = true;
         }
+        protected override bool UseGenericScreenPlacement { get { return true; } }
 
         private string _systemName;
         private string _exename = null;         // variable used for EL to track the game process
@@ -598,6 +599,7 @@ namespace EmulatorLauncher
                 {
                     SimpleLogger.Instance.Info("[INFO] Game process '" + gameProcess.ProcessName + "' identified by window focus. Monitoring process.");
                     Job.Current.AddProcess(gameProcess);
+                    ApplyScreenPlacement(gameProcess);
                     gameProcess.WaitForExit();
                     SimpleLogger.Instance.Info("[INFO] Game process has exited.");
                 }
@@ -608,6 +610,7 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
                 Job.Current.AddProcess(game);
+                ApplyScreenPlacement(game);
                 game.WaitForExit();
                 MonitorSecondExeAfterExit();
             }
@@ -626,6 +629,7 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("Process : " + _exename2 + " found, waiting to exit");
                 Job.Current.AddProcess(game2);
+                ApplyScreenPlacement(game2);
                 game2.WaitForExit();
                 SimpleLogger.Instance.Info("[INFO] Process " + _exename2 + " has exited.");
             }
