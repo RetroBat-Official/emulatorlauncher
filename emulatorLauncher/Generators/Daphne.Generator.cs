@@ -375,7 +375,7 @@ namespace EmulatorLauncher
                             continue;
 
                         if (s == "-framefile" || s == "-script" || s == "script" || s == "-useoverlaysb" || s == "-homedir" ||
-                            s == "-datadir" || s == "-scalefactor" || s == "singedir")
+                            s == "-datadir" || s == "-scalefactor" || s == "singedir" || s == "-bezel")
                         {
                             i++;
                             continue;
@@ -402,44 +402,13 @@ namespace EmulatorLauncher
             }
             else if (emulator == "hypseus")
             {
-                var bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-                if (bezelFileInfo != null)
+                string gameDataPath = !string.IsNullOrEmpty(frameFile) ? Path.GetDirectoryName(frameFile) : rom;
+                GetBezelToApply(system, rom, romName, gameDataPath, resolution, emulator, out string bezelName);
+
+                if (!string.IsNullOrEmpty(bezelName))
                 {
-                    string bezelFile = bezelFileInfo.PngFile;
-                    if (bezelFile != null && File.Exists(bezelFile))
-                    {
-                        string hypseusBezelPath = Path.Combine(AppConfig.GetFullPath("hypseus"), "bezels");
-                        string hypseusBezelFile = Path.Combine(hypseusBezelPath, "retrobatBezel.png");
-
-                        try
-                        {
-                            if (!Directory.Exists(hypseusBezelPath))
-                                Directory.CreateDirectory(hypseusBezelPath);
-
-                            if (File.Exists(hypseusBezelFile))
-                                File.Delete(hypseusBezelFile);
-
-                            File.Copy(bezelFile, hypseusBezelFile);
-
-                            string targetBezelFile = Path.GetFileName(hypseusBezelFile);
-
-                            commandArray.Add("-bezel");
-                            commandArray.Add("\"" + targetBezelFile + "\"");
-                        }
-                        catch { }
-                    }
-                }
-
-                if (SystemConfig["bezel"] == "default_unglazed")
-                {
-                    string hypseusBezelFile = Path.Combine(AppConfig.GetFullPath("hypseus"), "bezels", romName + ".png");
-
-                    if (File.Exists(hypseusBezelFile))
-                    {
-                        string targetBezelFile = Path.GetFileName(hypseusBezelFile);
-                        commandArray.Add("-bezel");
-                        commandArray.Add("\"" + targetBezelFile + "\"");
-                    }
+                    commandArray.Add("-bezel");
+                    commandArray.Add("\"" + bezelName + "\"");
                 }
 
                 return new ProcessStartInfo()
@@ -457,6 +426,111 @@ namespace EmulatorLauncher
                 Arguments = string.Join(" ", commandArray),
                 WorkingDirectory = emulatorPath,
             };
+        }
+
+        private void GetBezelToApply(string system, string rom, string romName, string gameDataPath, ScreenResolution resolution, string emulator, out string bezelName)
+        {
+            bezelName = null;
+
+            string hypseusBezelPath = Path.Combine(AppConfig.GetFullPath("hypseus"), "bezels");
+
+            // 1. User-selected bezel file (explicit emulator option, always wins)
+            string userBezel = SystemConfig["hypseus_bezel"];
+            if (!string.IsNullOrEmpty(userBezel) && File.Exists(userBezel))
+            {
+                string target = Path.Combine(hypseusBezelPath, Path.GetFileName(userBezel));
+                if (CopyBezelFile(userBezel, target))
+                {
+                    bezelName = Path.GetFileName(target);
+                    SimpleLogger.Instance.Info("[Bezel] Using user-selected bezel file: " + userBezel);
+                    return;
+                }
+            }
+
+            if (SystemConfig["bezel"] == "none")
+                return;
+
+            // Game-specific bezels take priority over RetroBat generic (system) bezels, only with default decoration setting
+            bool defaultDecoration = string.IsNullOrEmpty(SystemConfig["bezel"]);
+
+            if (defaultDecoration)
+            {
+                // 2. Hypseus native bezel named after the game
+                if (File.Exists(Path.Combine(hypseusBezelPath, romName + ".png")))
+                {
+                    bezelName = romName + ".png";
+                    SimpleLogger.Instance.Info("[Bezel] Using bezel located in emulator bezel folder: " + romName);
+                    return;
+                }
+
+                // 3. Find a bezel near the game data if any exists (for example, in the vldp folder)
+                if (!string.IsNullOrEmpty(gameDataPath) && Directory.Exists(gameDataPath))
+                {
+                    string gameBezel = null;
+                    try
+                    {
+                        string romNameLower = romName.ToLowerInvariant();
+
+                        // Any png file with "bezel" in its name, files also containing the game name first, then alphabetical (deterministic)
+                        gameBezel = Directory.GetFiles(gameDataPath, "*.png", SearchOption.TopDirectoryOnly)
+                            .Where(f =>
+                            {
+                                string name = Path.GetFileName(f).ToLowerInvariant();
+                                return name.EndsWith(".png") && name.Contains("bezel");
+                            })
+                            .OrderByDescending(f => Path.GetFileName(f).ToLowerInvariant().Contains(romNameLower))
+                            .ThenBy(f => Path.GetFileName(f), StringComparer.OrdinalIgnoreCase)
+                            .FirstOrDefault();
+                    }
+                    catch { }
+
+                    if (gameBezel != null)
+                    {
+                        // Fixed target name to never overwrite a native hypseus bezel (<romName>.png)
+                        string target = Path.Combine(hypseusBezelPath, "retrobatGameBezel.png");
+                        if (CopyBezelFile(gameBezel, target))
+                        {
+                            bezelName = Path.GetFileName(target);
+                            SimpleLogger.Instance.Info("[Bezel] Using bezel found in game folder: " + gameBezel);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // 4. RetroBat bezel (decoration system, may fall back to system bezel)
+            var bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            if (bezelFileInfo != null && !string.IsNullOrEmpty(bezelFileInfo.PngFile) && File.Exists(bezelFileInfo.PngFile))
+            {
+                string target = Path.Combine(hypseusBezelPath, "retrobatBezel.png");
+                if (CopyBezelFile(bezelFileInfo.PngFile, target))
+                {
+                    bezelName = Path.GetFileName(target);
+                    SimpleLogger.Instance.Info("[Bezel] Using RetroBat bezel: " + bezelFileInfo.PngFile);
+                }
+            }
+        }
+
+        private static bool CopyBezelFile(string source, string target)
+        {
+            try
+            {
+                // Source already in hypseus bezels folder: nothing to copy (and never delete it)
+                if (string.Equals(Path.GetFullPath(source), Path.GetFullPath(target), StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                string dir = Path.GetDirectoryName(target);
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+
+                File.Copy(source, target, true);
+                return File.Exists(target);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[Generator] Unable to copy bezel file for hypseus: " + ex.Message);
+                return false;
+            }
         }
 
         public override void Cleanup()
