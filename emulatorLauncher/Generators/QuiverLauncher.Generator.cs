@@ -21,24 +21,33 @@ namespace EmulatorLauncher
         private string _exename = LauncherProcessName;
         private bool _launcherMode = false;
         private bool _batFile = false;
+        private ExeLauncherGenerator _exeLauncher;
+        protected override bool UseGenericScreenPlacement { get { return true; } }
+
 
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("quiverlauncher");
-            if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
-                return null;
+            string launcherExe = string.IsNullOrEmpty(path) ? null : Path.Combine(path, LauncherExe);
+            bool hasQuiver = launcherExe != null && File.Exists(launcherExe);
 
-            string launcherExe = Path.Combine(path, LauncherExe);
-            if (!File.Exists(launcherExe))
-                return null;
-
-            bool useLauncher = SystemConfig.getOptBoolean("quiver_useLauncher") || !FileTools.IsExtension(rom, ".lnk");
+            bool useLauncher = hasQuiver && SystemConfig.getOptBoolean("quiver_useLauncher");
 
             if (!useLauncher)
             {
-                string gameExe = ResolveShortcutExecutable(rom, path);
+                // .m3u, .game, .bat... : same handling as the windows system
+                if (!FileTools.IsExtension(rom, ".lnk"))
+                    return DelegateToExeLauncher(system, emulator, core, rom, playersControllers, resolution);
 
-                if (string.IsNullOrEmpty(gameExe))
+                string gameExe;
+                string arguments;
+                var kind = ResolveShortcut(rom, hasQuiver ? path : null, out gameExe, out arguments);
+
+                // Port installed outside Quiver : keep the shortcut as is (target, arguments, working directory)
+                if (kind == ShortcutKind.External || (kind == ShortcutKind.Unresolved && !hasQuiver))
+                    return DelegateToExeLauncher(system, emulator, core, rom, playersControllers, resolution);
+
+                if (kind == ShortcutKind.Unresolved)
                 {
                     // Show the launcher so the user can fix the installation instead of failing silently
                     SimpleLogger.Instance.Warning("[QuiverLauncher] Unable to resolve game executable from shortcut, starting launcher instead.");
@@ -53,13 +62,16 @@ namespace EmulatorLauncher
                     _batFile = FileTools.IsExtension(gameExe, ".bat") || FileTools.IsExtension(gameExe, ".cmd");
                     _exename = _batFile ? "" : Path.GetFileNameWithoutExtension(gameExe);
 
-                    SimpleLogger.Instance.Info("[QuiverLauncher] Running " + gameExe);
+                    SimpleLogger.Instance.Info("[QuiverLauncher] Running " + gameExe + (arguments != null ? " " + arguments : ""));
 
                     var psi = new ProcessStartInfo()
                     {
                         FileName = gameExe,
                         WorkingDirectory = gameFolder,
                     };
+
+                    if (arguments != null)
+                        psi.Arguments = arguments;
 
                     if (_batFile)
                         psi.UseShellExecute = true;
@@ -84,6 +96,19 @@ namespace EmulatorLauncher
             };
         }
 
+        private ProcessStartInfo DelegateToExeLauncher(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
+        {
+            SimpleLogger.Instance.Info("[QuiverLauncher] Not a Quiver game, using ExeLauncher.");
+
+            _exeLauncher = new ExeLauncherGenerator();
+            var psi = _exeLauncher.Generate(system, emulator, core, rom, playersControllers, resolution);
+
+            DependsOnDesktopResolution = _exeLauncher.DependsOnDesktopResolution;
+            UseEsPadToKey = _exeLauncher.UseEsPadToKey;
+
+            return psi;
+        }
+
         #region configuration
         private static void SetupLauncher(string conf)
         {
@@ -92,6 +117,9 @@ namespace EmulatorLauncher
             jsonObj["StartFullscreen"] = ShouldRunFullscreen();
             jsonObj["EnableGamepadInput"] = true;
             jsonObj["FirstStartup"] = false;
+
+            // Closing the window must end the process, otherwise RetroBat keeps waiting for a launcher hidden in the tray
+            jsonObj["CloseToTray"] = false;
 
             var asked = jsonObj["UsageDataAsked"];
             if (asked == null || asked.Type != JTokenType.Boolean || !(bool)asked)
@@ -105,7 +133,6 @@ namespace EmulatorLauncher
 
         private static void SetupGame(string gameFolder, string gameExe)
         {
-            // Quiver checks "portable.txt" in the working directory, otherwise it stores config and saves in %LOCALAPPDATA%
             string portableFile = Path.Combine(gameFolder, "portable.txt");
             if (!File.Exists(portableFile))
             {
@@ -160,42 +187,65 @@ namespace EmulatorLauncher
         #region process
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
+            if (_exeLauncher != null)
+                return _exeLauncher.SetupCustomPadToKeyMapping(mapping);
+
             if (string.IsNullOrEmpty(_exename))
                 return mapping;
 
-            return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{CLOSE})");
+            mapping = PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{CLOSE})");
+
+            // Launcher mode : games started from Quiver must also close with HOTKEY + START
+            if (_launcherMode)
+            {
+                string launcherPath = AppConfig.GetFullPath("quiverlauncher");
+                string appsFolder = GetAppsFolder(launcherPath);
+
+                foreach (var app in LoadApps(launcherPath))
+                {
+                    string exe = GetAppExecutable(app, appsFolder);
+                    if (string.IsNullOrEmpty(exe) || !FileTools.IsExtension(exe, ".exe"))
+                        continue;
+
+                    mapping = PadToKey.AddOrUpdateKeyMapping(mapping, Path.GetFileNameWithoutExtension(exe), InputKey.hotkey | InputKey.start, "(%{CLOSE})");
+                }
+            }
+
+            return mapping;
         }
 
         public override int RunAndWait(ProcessStartInfo path)
         {
-            if (_launcherMode)
+            if (_exeLauncher != null)
             {
-                KillLauncher();
-                Process.Start(path);
-
-                // Velopack stub hands off to current\QuiverLauncher.exe : wait for every launcher instance
-                WaitForProcessName(LauncherProcessName, 10000);
-                return 0;
+                int exeRet = _exeLauncher.RunAndWait(path);
+                ExitCode = _exeLauncher.ExitCode;
+                return exeRet;
             }
 
-            Process process = Process.Start(path);
-            if (process == null)
-                return 0;
+            if (_launcherMode)
+                KillLauncher();
 
-            process.WaitForExit();
+            int ret = base.RunAndWait(path);
 
-            // Some ports restart themselves (e.g. after first setup) : wait for any remaining instance
+            // Ports or Quiver itself (Velopack update) may restart : wait for any remaining instance
             if (!string.IsNullOrEmpty(_exename))
             {
                 Thread.Sleep(500);
                 WaitForProcessName(_exename, 0);
             }
 
-            return 0;
+            return ret;
         }
 
         public override void Cleanup()
         {
+            if (_exeLauncher != null)
+            {
+                _exeLauncher.Cleanup();
+                return;
+            }
+
             base.Cleanup();
 
             if (_launcherMode)
@@ -247,12 +297,16 @@ namespace EmulatorLauncher
         #endregion
 
         #region library
+        private enum ShortcutKind { Unresolved, Managed, External }
         /// <summary>
         /// Resolves the game executable targeted by a shortcut.
         /// Handles direct shortcuts created by Quiver, moved installations and old launcher shortcuts ("--run name").
         /// </summary>
-        private static string ResolveShortcutExecutable(string shortcut, string launcherPath)
+        private static ShortcutKind ResolveShortcut(string shortcut, string launcherPath, out string exe, out string arguments)
         {
+            exe = null;
+            arguments = null;
+
             string target = null;
             try { target = FileTools.GetShortcutTargetwsh(shortcut); }
             catch { }
@@ -261,37 +315,88 @@ namespace EmulatorLauncher
                 target = FileTools.GetShortcutTarget(shortcut);
 
             if (string.IsNullOrEmpty(target))
-                return null;
+                return ShortcutKind.Unresolved;
 
-            string appsFolder = GetAppsFolder(launcherPath);
+            string shortcutArgs = FileTools.GetShortcutArgswsh(shortcut);
             string targetName = Path.GetFileName(target);
 
             // Shortcut to the launcher itself (Quiver or old N64RecompLauncher) : resolve game by name
             if (targetName.Equals(LauncherExe, StringComparison.InvariantCultureIgnoreCase) || targetName.Equals(OldLauncherExe, StringComparison.InvariantCultureIgnoreCase))
             {
-                string gameName = GetRunArgument(FileTools.GetShortcutArgswsh(shortcut));
+                if (string.IsNullOrEmpty(launcherPath))
+                    return ShortcutKind.Unresolved;
+
+                string gameName = GetRunArgument(shortcutArgs);
                 if (string.IsNullOrEmpty(gameName))
-                    return null;
+                    return ShortcutKind.Unresolved;
 
                 var app = LoadApps(launcherPath).FirstOrDefault(a => a.Matches(gameName));
                 if (app == null)
                 {
                     SimpleLogger.Instance.Warning("[QuiverLauncher] Game not found in Quiver library: " + gameName);
-                    return null;
+                    return ShortcutKind.Unresolved;
                 }
 
-                return GetAppExecutable(app, appsFolder);
+                exe = GetAppExecutable(app, GetAppsFolder(launcherPath));
+                return exe != null ? ShortcutKind.Managed : ShortcutKind.Unresolved;
+            }
+
+            if (!string.IsNullOrWhiteSpace(shortcutArgs))
+                arguments = shortcutArgs.Trim();
+
+            if (!string.IsNullOrEmpty(launcherPath))
+            {
+                string appsFolder = GetAppsFolder(launcherPath);
+
+                if (File.Exists(target))
+                {
+                    exe = target;
+                    return IsManagedPath(target, launcherPath, appsFolder) ? ShortcutKind.Managed : ShortcutKind.External;
+                }
+
+                // RetroBat folder moved : rebase the stored absolute path on the current apps folder
+                string rebased = RebaseOnFolder(target, appsFolder);
+                if (rebased != null)
+                {
+                    SimpleLogger.Instance.Info("[QuiverLauncher] Shortcut target not found, using " + rebased);
+                    exe = rebased;
+                    return ShortcutKind.Managed;
+                }
             }
 
             if (File.Exists(target))
-                return target;
+            {
+                exe = target;
+                return ShortcutKind.External;
+            }
 
-            // RetroBat folder moved : rebase the stored absolute path on the current apps folder
-            string rebased = RebaseOnFolder(target, appsFolder);
-            if (rebased != null)
-                SimpleLogger.Instance.Info("[QuiverLauncher] Shortcut target not found, using " + rebased);
+            return ShortcutKind.Unresolved;
+        }
 
-            return rebased;
+        /// <summary>
+        /// True if the file is inside the Quiver apps folder or inside the custom install folder of a Quiver app.
+        /// </summary>
+        private static bool IsManagedPath(string file, string launcherPath, string appsFolder)
+        {
+            var folders = new List<string>() { appsFolder };
+            folders.AddRange(LoadApps(launcherPath).Select(a => a.GetInstallFolder(appsFolder)).Where(f => !string.IsNullOrEmpty(f)));
+
+            string fullPath;
+            try { fullPath = Path.GetFullPath(file); }
+            catch { return false; }
+
+            foreach (var folder in folders)
+            {
+                try
+                {
+                    string root = Path.GetFullPath(folder).TrimEnd('\\') + "\\";
+                    if (fullPath.StartsWith(root, StringComparison.InvariantCultureIgnoreCase))
+                        return true;
+                }
+                catch { }
+            }
+
+            return false;
         }
 
         private static string GetRunArgument(string args)

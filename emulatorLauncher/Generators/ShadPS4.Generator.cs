@@ -48,6 +48,8 @@ namespace EmulatorLauncher
             if (exe == null || !File.Exists(exe))
                 return null;
 
+            SetSdl3EmulatorVersion(exe);
+
             string targetRom = "";
             string exePath = Path.GetDirectoryName(exe);
 

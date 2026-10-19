@@ -39,6 +39,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            SetSdl3EmulatorVersion(exe);
+
             string portableFile = Path.Combine(path, "portable.txt");
             if (!File.Exists(portableFile))
                 File.WriteAllText(portableFile, "");

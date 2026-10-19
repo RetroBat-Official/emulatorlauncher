@@ -23,6 +23,7 @@ namespace EmulatorLauncher
         {
             DependsOnDesktopResolution = true;
         }
+        protected override bool UseGenericScreenPlacement { get { return true; } }
 
         private string _systemName;
         private string _exename = null;         // variable used for EL to track the game process
@@ -109,14 +110,29 @@ namespace EmulatorLauncher
                 return null;
 
             // Manage .m3u extension
-            if (extension == ".m3u")
+            if (extension.Equals(".m3u", StringComparison.InvariantCultureIgnoreCase))
             {
-                rom = File.ReadAllText(rom);
+                string target = FileTools.ReadFirstValidLine(rom);
+                if (string.IsNullOrEmpty(target))
+                {
+                    SimpleLogger.Instance.Error("[ExeLauncher] No executable path found in " + rom);
+                    return null;
+                }
 
-                if (rom.StartsWith(".\\") || rom.StartsWith("./"))
-                    rom = Path.Combine(path, rom.Substring(2));
-                else if (rom.StartsWith("\\") || rom.StartsWith("/"))
-                    rom = Path.Combine(path, rom.Substring(1));
+                target = target.Trim('"');
+
+                if (target.StartsWith(".\\") || target.StartsWith("./"))
+                    target = Path.Combine(path, target.Substring(2));
+                else if (target.StartsWith("\\") || target.StartsWith("/"))
+                    target = Path.Combine(path, target.Substring(1));
+
+                if (!File.Exists(target))
+                {
+                    SimpleLogger.Instance.Error("[ExeLauncher] Target file not found: " + target);
+                    return null;
+                }
+
+                rom = target;
             }
 
             UpdateMugenConfig(path, fullscreen, resolution);
@@ -583,6 +599,7 @@ namespace EmulatorLauncher
                 {
                     SimpleLogger.Instance.Info("[INFO] Game process '" + gameProcess.ProcessName + "' identified by window focus. Monitoring process.");
                     Job.Current.AddProcess(gameProcess);
+                    ApplyScreenPlacement(gameProcess);
                     gameProcess.WaitForExit();
                     SimpleLogger.Instance.Info("[INFO] Game process has exited.");
                 }
@@ -593,6 +610,7 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("Process : " + _exename + " found, waiting to exit");
                 Job.Current.AddProcess(game);
+                ApplyScreenPlacement(game);
                 game.WaitForExit();
                 MonitorSecondExeAfterExit();
             }
@@ -611,6 +629,7 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("Process : " + _exename2 + " found, waiting to exit");
                 Job.Current.AddProcess(game2);
+                ApplyScreenPlacement(game2);
                 game2.WaitForExit();
                 SimpleLogger.Instance.Info("[INFO] Process " + _exename2 + " has exited.");
             }

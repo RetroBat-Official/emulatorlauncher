@@ -227,12 +227,13 @@ namespace EmulatorLauncher
                 names.Add(controller.Sdl3Controller.Name);
             if (!string.IsNullOrEmpty(controller.SdlController?.Name))
                 names.Add(controller.SdlController.Name);
-            if (!string.IsNullOrEmpty(controller.Name) && !names.Contains(controller.Name))
+            if (!string.IsNullOrEmpty(controller.Name))
                 names.Add(controller.Name);
 
-            foreach (var name in names)
+            // Same file name for several sources (SDL2 and SDL3 often report the same name): write it once
+            foreach (var name in names.Select(n => SanitizeDeviceName(n)).Distinct(StringComparer.OrdinalIgnoreCase).ToList())
             {
-                string file = Path.Combine(controllersPath, SanitizeDeviceName(name) + ".controller");
+                string file = Path.Combine(controllersPath, name + ".controller");
                 try
                 {
                     File.WriteAllLines(file, lines);

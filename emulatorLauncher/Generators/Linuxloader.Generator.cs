@@ -34,6 +34,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            SetSdl3EmulatorVersion(exe);
+
             _romName = Path.GetFileNameWithoutExtension(rom);
 
             // Check existence of config file, if not create it

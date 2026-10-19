@@ -59,6 +59,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            SetSdl3EmulatorVersion(exe);
+
             var ver = Version.TryParse(FileVersionInfo.GetVersionInfo(exe).FileVersion, out _duckstationVersion);
 
             _resolution = resolution;

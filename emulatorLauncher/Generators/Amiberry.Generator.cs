@@ -199,6 +199,8 @@ namespace EmulatorLauncher
                 return null;
             }
 
+            SetSdl3EmulatorVersion(exe);
+
             _emulatorPath = path;
             _resolution = resolution;
             _fullscreen = ShouldRunFullscreen();

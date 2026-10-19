@@ -732,6 +732,17 @@ namespace EmulatorLauncher
             return s;
         }
 
+        /// <summary>
+        /// Mirror the SDL3 generation linked by the emulator when RetroBat enumerates SDL3 controllers
+        /// (SDL 3.2 / 3.4 / 3.5 drivers give different GUIDs and paths for some devices).
+        /// Must be called before any Controller.Sdl3Controller access.
+        /// </summary>
+        protected static void SetSdl3EmulatorVersion(string exe)
+        {
+            // The SDL3 version is only read from the executable if SDL3 controllers get enumerated
+            EmulatorLauncher.Common.Joysticks.Sdl3GameController.SetEmulatorExecutable(exe);
+        }
+
         // xml bindfeatures
         protected void BindFeature(System.Xml.Linq.XElement cfg, string settingName, string featureName, string defaultValue, bool force = false)
         {

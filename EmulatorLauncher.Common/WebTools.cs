@@ -192,15 +192,17 @@ namespace EmulatorLauncher.Common
             }
             catch (WebException ex)
             {
-                if ((ex.Response as HttpWebResponse).StatusCode == (HttpStatusCode)429)
+                // ex.Response is null when no HTTP response was received (timeout, DNS failure, connection reset...)
+                var httpResponse = ex.Response as HttpWebResponse;
+                if (httpResponse != null && httpResponse.StatusCode == (HttpStatusCode)429)
                 {
                     Console.WriteLine("429 - " + url + " : Retrying");
                     System.Threading.Thread.Sleep(30000);
                     goto retry;
                 }
 
-                SimpleLogger.Instance.Error("[DownloadToStream] WebException : " + ex.Message, ex);
-                throw ex;
+                SimpleLogger.Instance.Error("[DownloadToStream] WebException (" + ex.Status + ") : " + ex.Message, ex);
+                throw;
             }
             catch (Exception ex)
             {

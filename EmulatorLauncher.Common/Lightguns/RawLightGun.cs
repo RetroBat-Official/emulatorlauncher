@@ -311,13 +311,14 @@ namespace EmulatorLauncher.Common.Lightguns
                     break;
             }
 
-            if (Type == RawLighGunType.Mouse && IsLikelyIntegrated())
+            // High index for known integrated touchpads and non-mouse receivers
+            if (Type == RawLighGunType.Mouse && IsLowPriority())
                 return 10000 + Index;
 
             return Priority;
         }
 
-        private bool IsLikelyIntegrated()
+        private bool IsLowPriority()
         {
             if (string.IsNullOrEmpty(DevicePath))
                 return false;
@@ -337,6 +338,10 @@ namespace EmulatorLauncher.Common.Lightguns
 
             // No VID => almost certainly not USB
             if (!path.Contains("VID_"))
+                return true;
+
+            // 8bitDo receiver detected as mouse
+            if (path.ToLowerInvariant().Contains("vid_2dc8&pid_3106"))
                 return true;
 
             return false;

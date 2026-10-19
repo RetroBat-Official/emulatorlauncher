@@ -29,6 +29,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            SetSdl3EmulatorVersion(exe);
+
             bool fullscreen = ShouldRunFullscreen();
             bool startBios = SystemConfig.getOptBoolean("saturn_startbios");
 

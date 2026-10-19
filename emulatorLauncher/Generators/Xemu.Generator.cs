@@ -35,6 +35,7 @@ namespace EmulatorLauncher
         private bool _chihiro;
         private string _chihiroEeprom;
         private string _chihiroEepromSave;
+        private ReshadeBezelType _reshadeType = ReshadeBezelType.opengl;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -56,14 +57,20 @@ namespace EmulatorLauncher
             bool fullscreen = ShouldRunFullscreen();
 
             //Applying bezels
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+            // Upstream 0.8.137+ presents through DXGI, older builds and the Chihiro fork through OpenGL.
+            // Remove the other wrapper so that two ReShade instances are never loaded.
+            _reshadeType = UsesDxgiPresent(exe) ? ReshadeBezelType.dxgi : ReshadeBezelType.opengl;
+            ReshadeManager.UninstallReshader(_reshadeType == ReshadeBezelType.dxgi ? ReshadeBezelType.opengl : ReshadeBezelType.dxgi, path);
+
+            if (!ReshadeManager.Setup(_reshadeType, ReshadePlatform.x64, system, rom, path, resolution, emulator))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             _resolution = resolution;
 
-            // Extract SDL2 version info
+            // SDL linked in xemu (SDL3, static): GUID layout, and SDL 3.4 drivers to mirror when enumerating
             SimpleLogger.Instance.Info("[Generator] Getting SDL version from: " + exe);
-            _sdlVersion = SdlJoystickGuidManager.GetSdlVersionFromStaticBinary(exe, SdlVersion.SDL2_0_X);
+            _sdlVersion = SdlJoystickGuidManager.GetSdlVersionFromStaticBinary(exe, SdlVersion.SDL2_30);
+            SetSdl3EmulatorVersion(exe);
 
             try
             {
@@ -140,7 +147,7 @@ namespace EmulatorLauncher
             if (!SystemConfig.isOptSet("bezel") && SystemConfig["scale"] == "stretch")
             {
                 SystemConfig["forceNoBezel"] = "1";
-                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator);
+                ReshadeManager.Setup(_reshadeType, ReshadePlatform.x64, system, rom, path, resolution, emulator);
             }
 
             // Launch emulator
@@ -177,10 +184,14 @@ namespace EmulatorLauncher
                 // Controllers
                 if (!SystemConfig.getOptBoolean("disableautocontrollers"))
                 {
+                    // xemu and the Chihiro fork set no SDL joystick hint: enumerate with plain SDL3 defaults
+                    Sdl3GameController.SetEnumerationHints(Sdl3GameController.Sdl3HintProfile.Sdl3Default);
+
                     for (int i = 0; i < 16; i++)
                         ini.Remove("input.bindings", "port" + i);
 
                     var inputArray = new List<object>();
+                    var mappedGuids = new HashSet<string>();
 
                     int port = 1;
 
@@ -189,16 +200,16 @@ namespace EmulatorLauncher
                         if (port > 4)
                             break;
 
-                        string guid = ctl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant();
+                        string guid = GetXemuGuid(ctl);
                         string identity = GetXemuControllerIdentity(ctl);
 
                         ini.WriteValue("input.bindings", "port" + port, "'" + identity + "'");
                         if (port == 1)
                             _chihiroPad = ctl;
 
-                        // The mapping table is keyed by model, never by port: always the
-                        // bare GUID here, even when the port binding carries a path.
-                        inputArray.Add(new Dictionary<string, string> { { "gamepad_id", guid } });
+                        // The mapping table is keyed by GUID in both builds: one entry per controller model
+                        if (mappedGuids.Add(guid))
+                            inputArray.Add(new Dictionary<string, string> { { "gamepad_id", guid } });
 
                         SimpleLogger.Instance.Info("[Generator] xemu port " + port + " = " + ctl.ToShortString() + " -> " + identity);
                         port++;
@@ -253,7 +264,7 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("xemu_avpack") && !string.IsNullOrEmpty(SystemConfig["xemu_avpack"]))
                     ini.WriteValue("sys", "avpack", "'" + SystemConfig["xemu_avpack"] + "'");
                 else
-                    ini.WriteValue("sys", "avpack", "'HDTV'");
+                    ini.WriteValue("sys", "avpack", "'hdtv'");
 
                 // Vsync
                 BindBoolIniFeatureOn(ini, "display.window", "vsync", "vsync", "true", "false");
@@ -287,6 +298,7 @@ namespace EmulatorLauncher
 
                 //audio
                 BindBoolIniFeature(ini, "audio", "use_dsp", "xemu_dsp", "true", "false");
+                BindBoolIniFeature(ini, "audio", "use_dsp_jit", "xemu_dsp_jit", "true", "false");
 
                 ini.Save();
             }
@@ -507,17 +519,70 @@ namespace EmulatorLauncher
             catch { SimpleLogger.Instance.Warning("[Generator] Unable to save chihiro_eeprom.bin."); }
         }
 
+        /// <summary>
+        /// SDL3 GUID exactly as xemu reports it (CRC kept). Key of the gamepad_mappings table in both builds.
+        /// </summary>
+        private string GetXemuGuid(Controller ctl)
+        {
+            var sdl3 = ctl.Sdl3Controller;
+            if (sdl3 != null && !string.IsNullOrEmpty(sdl3.GuidString))
+                return sdl3.GuidString.ToLowerInvariant();
+
+            // Fallback: rebuild it from the ES GUID (SDL3 uses the SDL 2.30 GUID layout)
+            SimpleLogger.Instance.Warning("[Generator] No SDL3 device found for " + ctl.ToShortString() + ", using rebuilt GUID.");
+            return ctl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant();
+        }
+
+        /// <summary>
+        /// Port binding string, as each build compares it.
+        /// Upstream xemu: plain strcmp on the GUID, no suffix allowed; identical pads share it.
+        /// Chihiro fork: GUID + "/" + serial (8 chars or more), else GUID + "#" + SDL path;
+        /// with identical pads connected, only the exact identity binds a port.
+        /// </summary>
         private string GetXemuControllerIdentity(Controller ctl)
         {
-            string guid = ctl.GetSdlGuid(_sdlVersion, true).ToLowerInvariant();
+            string guid = GetXemuGuid(ctl);
 
-            bool hasTwin = Controllers.Any(c => c != ctl && !c.IsKeyboard && c.Config != null &&
-                                                c.GetSdlGuid(_sdlVersion, true).ToLowerInvariant() == guid);
+            var sdl3 = ctl.Sdl3Controller;
+            if (!_chihiro || sdl3 == null)
+                return guid;
 
-            if (hasTwin && !string.IsNullOrEmpty(ctl.DevicePath))
-                return guid + "#" + ctl.DevicePath;
+            // Same order as controller_identity() in the fork (ui/xemu-input.c)
+            if (!string.IsNullOrEmpty(sdl3.Serial) && sdl3.Serial != "Unknown" && sdl3.Serial.Length >= 8)
+                return guid + "/" + sdl3.Serial;
+
+            if (!string.IsNullOrEmpty(sdl3.Path) && sdl3.Path != "Unknown")
+                return guid + "#" + sdl3.Path;
 
             return guid;
+        }
+
+        /// <summary>
+        /// True when xemu presents through the Win32 DXGI swap chain (upstream 0.8.137+).
+        /// The build may support it and still fall back to OpenGL at runtime, which xemu.log reports: 
+        /// the previous run decides, DXGI when there is no log.
+        /// </summary>
+        private static bool UsesDxgiPresent(string exe)
+        {
+            try
+            {
+                byte[] bytes = File.ReadAllBytes(exe);
+                if (bytes.IndexOf(System.Text.Encoding.ASCII.GetBytes("win32_dxgi_present")) < 0)
+                    return false;
+
+                string log = Path.Combine(Path.GetDirectoryName(exe), "xemu.log");
+                if (!File.Exists(log))
+                {
+                    SimpleLogger.Instance.Info("[Generator] xemu supports DXGI presentation, no previous log: assuming DXGI.");
+                    return true;
+                }
+
+                string content = File.ReadAllText(log);
+                bool fallback = content.Contains("falling back to SDL_GL_SwapWindow");
+                SimpleLogger.Instance.Info("[Generator] xemu presentation from previous run: " + (fallback ? "OpenGL (DXGI fallback)" : "DXGI"));
+                return !fallback;
+            }
+            catch { return false; }
         }
 
         public override int RunAndWait(ProcessStartInfo path)
@@ -572,7 +637,7 @@ namespace EmulatorLauncher
 
             bezel?.Dispose();
 
-            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
+            ReshadeManager.UninstallReshader(_reshadeType, path.WorkingDirectory);
 
             return ret;
         }

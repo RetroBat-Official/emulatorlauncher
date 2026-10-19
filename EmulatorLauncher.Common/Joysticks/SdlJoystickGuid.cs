@@ -495,10 +495,11 @@ namespace EmulatorLauncher.Common.Joysticks
         /// Next to it, since 2.2x versions, we should find another string containing linked version like this :</summary>
         /// SDL-release-2.26.2-0-gf070c83a6
         /// SDL-2.26.4-no-vcs
+        /// SDL3 has no SDL_LEGACY_VERSION marker: its SDL_REVISION string (SDL-3.4.18-xxx, SDL-release-3.4.2-xxx) is used instead.
         /// <returns></returns>
         public static SdlVersion GetSdlVersionFromStaticBinary(string fileName, SdlVersion defaultValue = SdlVersion.SDL2_0_X)
         {
-            var version = GetSdlVersionFromStaticBinaryInternal(fileName, defaultValue = SdlVersion.SDL2_0_X);
+            var version = GetSdlVersionFromStaticBinaryInternal(fileName, defaultValue);
             SimpleLogger.Instance.Info("[GetSdlVersionFromStaticBinary] " + version.ToString());
             return version;
         }
@@ -534,6 +535,9 @@ namespace EmulatorLauncher.Common.Joysticks
                         }
                     }
                 }
+                // SDL3: no legacy marker, look for the SDL_REVISION string
+                if (version == null)
+                    version = FindSdlRevision(bytes, 3);
             }
             catch
             {
@@ -543,8 +547,9 @@ namespace EmulatorLauncher.Common.Joysticks
             if (version == null)
                 return defaultValue;
 
+            // SDL3 builds GUIDs like SDL 2.30 (CRC16 of manufacturer + " " + product)
             if (version.Major >= 3)
-                return SdlVersion.SDL2_26;
+                return SdlVersion.SDL2_30;
 
             if (version.Minor >= 30)
                 return SdlVersion.SDL2_30;
@@ -556,6 +561,69 @@ namespace EmulatorLauncher.Common.Joysticks
                 return SdlVersion.SDL2_24;
 
             return SdlVersion.SDL2_0_X;
+        }
+
+        /// <summary>
+        /// SDL3 version used by an emulator: SDL3.dll next to the executable (file version),
+        /// else SDL3 statically linked in the executable (SDL_REVISION string),
+        /// else guessed from the driver hint names compiled in. Null if not found.
+        /// </summary>
+        public static Version GetEmulatorSdl3Version(string exe)
+        {
+            Version version = null;
+
+            try
+            {
+                string dll = Path.Combine(Path.GetDirectoryName(exe), "SDL3.dll");
+                if (File.Exists(dll))
+                {
+                    var info = FileVersionInfo.GetVersionInfo(dll);
+                    if (info.FileMajorPart == 3)
+                        version = new Version(info.FileMajorPart, info.FileMinorPart, info.FileBuildPart);
+                }
+
+                if (version == null && File.Exists(exe))
+                {
+                    byte[] bytes = File.ReadAllBytes(exe);
+                    version = FindSdlRevision(bytes, 3);
+
+                    // Builds without SDL_REVISION (e.g. Ymir): guess the generation from the driver hint names compiled in
+                    if (version == null)
+                    {
+                        if (bytes.IndexOf(Encoding.ASCII.GetBytes("SDL_JOYSTICK_HIDAPI_GAMESIR")) >= 0)
+                            version = new Version(3, 5, 0);
+                        else if (bytes.IndexOf(Encoding.ASCII.GetBytes("SDL_JOYSTICK_HIDAPI_8BITDO")) >= 0)
+                            version = new Version(3, 4, 0);
+                    }
+                }
+            }
+            catch { }
+
+            SimpleLogger.Instance.Info("[GetEmulatorSdl3Version] " + (version != null ? version.ToString() : "not found"));
+            return version;
+        }
+
+        /// <summary>
+        /// Search the SDL_REVISION string of the requested major version: "SDL-3.4.18-xxx" or "SDL-release-3.4.2-xxx".
+        /// </summary>
+        private static Version FindSdlRevision(byte[] bytes, int major)
+        {
+            byte[] marker = Encoding.ASCII.GetBytes("SDL-");
+            int idx = 0;
+
+            while ((idx = bytes.IndexOf(marker, idx)) >= 0)
+            {
+                int len = Math.Min(40, bytes.Length - idx);
+                string str = Encoding.ASCII.GetString(bytes, idx, len);
+
+                var m = Regex.Match(str, @"^SDL-(?:release-)?(\d+)\.(\d+)\.(\d+)");
+                if (m.Success && m.Groups[1].Value.ToInteger() == major)
+                    return new Version(m.Groups[1].Value.ToInteger(), m.Groups[2].Value.ToInteger(), m.Groups[3].Value.ToInteger());
+
+                idx += marker.Length;
+            }
+
+            return null;
         }
     }
 
