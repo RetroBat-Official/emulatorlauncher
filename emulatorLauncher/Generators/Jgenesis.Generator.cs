@@ -41,6 +41,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            SetSdl3EmulatorVersion(exe);
+
             string hardware = GetJgenesisHardware(system);
             string jGenSystem = GetJgenesisSystem(system);
 

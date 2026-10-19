@@ -136,6 +136,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            SetSdl3EmulatorVersion(exe);
+
             _romPath = Path.GetDirectoryName(rom);
             _resolution = resolution;
 

@@ -64,6 +64,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            SetSdl3EmulatorVersion(exe);
+
             _fullscreen = ShouldRunFullscreen();
 
             if (!_fullscreen)

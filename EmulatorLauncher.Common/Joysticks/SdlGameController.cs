@@ -491,6 +491,9 @@ namespace EmulatorLauncher.Common.Joysticks
         private static List<Sdl3GameController> _controllers;
         private static bool _standardHints = false;
         private static Sdl3HintProfile _hintProfile = Sdl3HintProfile.RetroBat;
+        private static string _emulatorExe;
+        private static Version _emulatorSdlVersion;
+        private static bool _emulatorSdlVersionKnown;
 
         public static List<Sdl3GameController> GetControllers()
         {
@@ -543,9 +546,10 @@ namespace EmulatorLauncher.Common.Joysticks
         }
 
         /// <summary>
-        /// SDL 3.4 moved some controllers to new backends (HIDAPI 8BitDo, Flydigi, SInput, ZUIKI, GameInput raw instruments),
+        /// SDL 3.4 moved some controllers to new backends (HIDAPI 8BitDo, Flydigi, SInput, ZUIKI, Switch 2, GIP, GameInput raw instruments),
         /// which changes their GUID, name and enumeration order. Disabling them keeps the SDL 3.2 view of these devices,
-        /// matching emulators that still ship SDL 3.2. SDL 3.2 ignores these unknown hints.
+        /// matching emulators that still ship SDL 3.2. A disabled HIDAPI driver leaves the device to XInput/DirectInput.
+        /// SDL versions that do not know a hint ignore it.
         /// </summary>
         private static void DisableSdl34Drivers()
         {
@@ -553,7 +557,11 @@ namespace EmulatorLauncher.Common.Joysticks
             SDL_SetHint("SDL_JOYSTICK_HIDAPI_FLYDIGI", "0");
             SDL_SetHint("SDL_JOYSTICK_HIDAPI_SINPUT", "0");
             SDL_SetHint("SDL_JOYSTICK_HIDAPI_ZUIKI", "0");
+            SDL_SetHint("SDL_JOYSTICK_HIDAPI_SWITCH2", "0");
+            SDL_SetHint("SDL_JOYSTICK_HIDAPI_GIP", "0");
+            SDL_SetHint("SDL_JOYSTICK_HIDAPI_GAMESIR", "0"); // SDL 3.5
             SDL_SetHint("SDL_JOYSTICK_GAMEINPUT_RAW", "0");
+            // LG4FF (3.4) is already disabled by default on Windows, STEAM_TRITON follows the STEAM hint (off)
         }
 
 
@@ -578,7 +586,6 @@ namespace EmulatorLauncher.Common.Joysticks
                         SDL_SetHint("SDL_JOYSTICK_RAWINPUT", "0");
                         SDL_SetHint("SDL_JOYSTICK_ENHANCED_REPORTS", "0");
                         SDL_SetHint("SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS", "1");
-                        DisableSdl34Drivers();
                         break;
 
                     default:
@@ -586,9 +593,18 @@ namespace EmulatorLauncher.Common.Joysticks
                         SDL_SetHint("SDL_JOYSTICK_RAWINPUT", "1");
                         SDL_SetHint("SDL_JOYSTICK_ENHANCED_REPORTS", "0");
                         SDL_SetHint("SDL_JOYSTICK_HIDAPI_COMBINE_JOY_CONS", "1");
-                        DisableSdl34Drivers();
                         break;
                 }
+
+                // Mirror the emulator's SDL generation: a newer SDL3.dll can still give the older view of the devices
+                var emulatorSdlVersion = EmulatorSdlVersion;
+                bool disable34 = ShouldDisableSdl34Drivers();
+                SimpleLogger.Instance.Info("[Sdl3GameController] Profile " + _hintProfile + ", emulator SDL " + (emulatorSdlVersion != null ? emulatorSdlVersion.ToString() : "unknown") + ", SDL 3.4 drivers " + (disable34 ? "disabled" : "enabled"));
+
+                if (disable34)
+                    DisableSdl34Drivers();
+                else if (emulatorSdlVersion != null && emulatorSdlVersion < new Version(3, 5))
+                    SDL_SetHint("SDL_JOYSTICK_HIDAPI_GAMESIR", "0"); // driver added in SDL 3.5, ignored by older DLLs
 
                 if (!SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER))
                     return false;
@@ -710,6 +726,48 @@ namespace EmulatorLauncher.Common.Joysticks
                 return;
             }
             _hintProfile = profile;
+        }
+
+        /// <summary>
+        /// Executable of the emulator, whose SDL3 version (see SdlJoystickGuidManager.GetEmulatorSdl3Version) is read
+        /// only when SDL3 controllers are actually enumerated. Below 3.4, the HIDAPI drivers added in 3.4 are disabled
+        /// so devices get the SDL 3.2 GUID and path. Must be called before any SDL3 controller is resolved.
+        /// </summary>
+        public static void SetEmulatorExecutable(string exe)
+        {
+            if (_controllers != null)
+            {
+                SimpleLogger.Instance.Warning("[Sdl3GameController] Emulator executable set after controllers were enumerated - ignored.");
+                return;
+            }
+            _emulatorExe = exe;
+            _emulatorSdlVersionKnown = false;
+        }
+
+        /// <summary>
+        /// SDL3 version linked by the emulator, resolved once on first use. Null keeps the profile behavior.
+        /// </summary>
+        private static Version EmulatorSdlVersion
+        {
+            get
+            {
+                if (!_emulatorSdlVersionKnown)
+                {
+                    _emulatorSdlVersionKnown = true;
+                    _emulatorSdlVersion = string.IsNullOrEmpty(_emulatorExe) ? null : SdlJoystickGuidManager.GetEmulatorSdl3Version(_emulatorExe);
+                }
+                return _emulatorSdlVersion;
+            }
+        }
+
+        private static bool ShouldDisableSdl34Drivers()
+        {
+            var emulatorSdlVersion = EmulatorSdlVersion;
+            if (emulatorSdlVersion != null)
+                return emulatorSdlVersion < new Version(3, 4);
+
+            // Unknown emulator version: historical behavior of each profile
+            return _hintProfile == Sdl3HintProfile.RetroBat || _hintProfile == Sdl3HintProfile.Legacy;
         }
 
         public enum Sdl3HintProfile

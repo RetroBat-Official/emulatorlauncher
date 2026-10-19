@@ -38,6 +38,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 throw new ApplicationException("Emulator executable doesn't exist: " + exe);
 
+            SetSdl3EmulatorVersion(exe);
+
             try
             {
                 var versionInfo = FileVersionInfo.GetVersionInfo(exe);

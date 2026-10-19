@@ -43,6 +43,8 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
+            SetSdl3EmulatorVersion(exe);
+
             var output = ProcessExtensions.RunWithOutput(exe, "-v");
             output = StringExtensions.FormatVersionString(output.ExtractString("Rosalie's Mupen GUI v", "\r"));
 
