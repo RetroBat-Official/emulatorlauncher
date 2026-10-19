@@ -1,11 +1,12 @@
-﻿using System;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.EmulationStation;
+using static EmulatorLauncher.ArcadeDuckDatabase;
 
 namespace EmulatorLauncher
 {
@@ -107,17 +108,30 @@ namespace EmulatorLauncher
             var pad1 = pads.FirstOrDefault();
             var pad2 = pads.Skip(1).FirstOrDefault();
 
+            bool forceLayout = SystemConfig.isOptSet("amiberry_port2") && (SystemConfig["amiberry_port2"] == "mouse" || SystemConfig["amiberry_port2"] == "keyboard");
+
             // Primary joystick port
-            if (pad1 != null)
+            if (pad1 != null && !forceLayout)
             {
                 BindPort(Set, joystickPort, pad1, mode);
                 WriteHotkeyFile(pad1);
             }
             else
             {
-                // No pad
                 string layout = SystemConfig.isOptSet("amiberry_kbdlayout") && !string.IsNullOrEmpty(SystemConfig["amiberry_kbdlayout"]) ? SystemConfig["amiberry_kbdlayout"] : "kbd2";
-                Set("joyport" + joystickPort, layout);
+
+                if (forceLayout && SystemConfig["amiberry_port2"] == "mouse")
+                {
+                    Set("joyport" + joystickPort, "mouse");
+                    Set("joyportfriendlyname" + joystickPort, "System mouse");
+                    Set("joyportname" + joystickPort, "MOUSE0");
+                    Set("joyport" + joystickPort + "mode", MODE_MOUSE);
+                }
+                else
+                {
+                    Set("joyport" + joystickPort, layout);
+                }
+
                 Set("joyport" + joystickPort + "mode", mode);
             }
 
@@ -136,7 +150,9 @@ namespace EmulatorLauncher
             else
             {
                 // "mousedefault" binds the system mouse without depending on any index.
-                Set("joyport" + secondPort, "mousedefault");
+                Set("joyport" + secondPort, "mouse");
+                Set("joyportfriendlyname" + secondPort, "System mouse");
+                Set("joyportname" + secondPort, "MOUSE0");
                 Set("joyport" + secondPort + "mode", MODE_MOUSE);
             }
 
@@ -146,6 +162,11 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("amiberry_deadzone") && !string.IsNullOrEmpty(SystemConfig["amiberry_deadzone"]))
                 Set("input.joymouse_deadzone", SystemConfig["amiberry_deadzone"].ToIntegerString());
+
+            if (SystemConfig.isOptSet("amiberry_autoswitch") && SystemConfig.getOptBoolean("amiberry_autoswitch"))
+                Set("input.autoswitch", "true");
+            else
+                Set("input.autoswitch", "false");
         }
 
         /// <summary>

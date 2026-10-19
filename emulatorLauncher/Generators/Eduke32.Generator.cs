@@ -38,7 +38,15 @@ namespace EmulatorLauncher
             if (Path.GetExtension(rom).ToLower() == ".eduke32")
             {
                 var edukeArgs = Eduke32Arg.ParseConfig(rom, Path.GetDirectoryName(rom), out gamegrp, out _dirArgInFile);
-                commandArray.AddRange(edukeArgs);
+
+                // Paths returned by ParseConfig are not quoted : quote the values containing spaces
+                foreach (var arg in edukeArgs)
+                {
+                    if (!arg.StartsWith("-") && arg.Contains(" "))
+                        commandArray.Add("\"" + arg + "\"");
+                    else
+                        commandArray.Add(arg);
+                }
 
                 if (gamegrp != null && !_dirArgInFile)
                 {
@@ -47,7 +55,6 @@ namespace EmulatorLauncher
                     commandArray.Add("\"" + dirPath + "\"");
                 }
             }
-
             else
             {
                 commandArray.Add("-gamegrp");
