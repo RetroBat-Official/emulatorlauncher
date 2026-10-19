@@ -35,22 +35,30 @@ namespace RetrobatUpdater
 
         public static string GetRemoteVersion(string branch, string localversion)
         {
-            string url = GetInstallUrlNew(string.Format("{0}/{1}/remote_version.info", branch, localversion));
+            string relativePath = string.Format("{0}/{1}/remote_version.info", branch, localversion);
 
-            if (string.IsNullOrEmpty(url))
-                url = GetInstallUrl(string.Format("{0}/{1}/remote_version.info", branch, localversion));
-
-            string remoteVersion = WebTools.DownloadString(url);
-
-            if (string.IsNullOrEmpty(remoteVersion))
+            // Try the new host first, then the legacy one.
+            // Each attempt is isolated: a network failure on one host (timeout, DNS, TLS, HTTP 403 on VPN IPs...)
+            // must not prevent the fallback, as WebTools.DownloadString throws instead of returning null.
+            foreach (string url in new string[] { GetInstallUrlNew(relativePath), GetInstallUrl(relativePath) }.Distinct())
             {
-                url = GetInstallUrl(string.Format("{0}/{1}/remote_version.info", branch, localversion));
-                remoteVersion = WebTools.DownloadString(url);
+                if (string.IsNullOrEmpty(url))
+                    continue;
+
+                try
+                {
+                    string remoteVersion = WebTools.DownloadString(url);
+                    if (!string.IsNullOrEmpty(remoteVersion))
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Remote version retrieved from: " + url);
+                        return remoteVersion;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Error("[ERROR] Unable to get remote version from " + url + " : " + ex.Message);
+                }
             }
-
-            if (!string.IsNullOrEmpty(remoteVersion))
-                return remoteVersion;
-
 
             return null;
         }
