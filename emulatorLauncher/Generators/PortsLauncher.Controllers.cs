@@ -159,7 +159,7 @@ namespace EmulatorLauncher
         #endregion
 
         #region dhewm3
-        private void ConfigureDhewm3Controls(List<Dhewm3ConfigChange> changes)
+        private void ConfigureDhewm3Controls(List<Dhewm3ConfigChange> changes, bool isD3xp)
         {
             if (_emulator != "dhewm3")
                 return;
@@ -170,87 +170,50 @@ namespace EmulatorLauncher
                 return;
             }
 
-            // Keyboard defaults
-            changes.Add(new Dhewm3ConfigChange("bind", "TAB", "_impulse19"));
-            changes.Add(new Dhewm3ConfigChange("bind", "ENTER", "_button2"));
-            changes.Add(new Dhewm3ConfigChange("bind", "ESCAPE", "togglemenu"));
-            changes.Add(new Dhewm3ConfigChange("bind", "SPACE", "_moveup"));
-            changes.Add(new Dhewm3ConfigChange("bind", "/", "_impulse14"));
-            changes.Add(new Dhewm3ConfigChange("bind", "0", "_impulse27"));
-            changes.Add(new Dhewm3ConfigChange("bind", "1", "_impulse1"));
-            changes.Add(new Dhewm3ConfigChange("bind", "2", "_impulse3"));
-            changes.Add(new Dhewm3ConfigChange("bind", "3", "_impulse4"));
-            changes.Add(new Dhewm3ConfigChange("bind", "4", "_impulse6"));
-            changes.Add(new Dhewm3ConfigChange("bind", "5", "_impulse7"));
-            changes.Add(new Dhewm3ConfigChange("bind", "6", "_impulse8"));
-            changes.Add(new Dhewm3ConfigChange("bind", "7", "_impulse9"));
-            changes.Add(new Dhewm3ConfigChange("bind", "8", "_impulse10"));
-            changes.Add(new Dhewm3ConfigChange("bind", "9", "_impulse11"));
-            changes.Add(new Dhewm3ConfigChange("bind", "[", "_impulse15"));
-            changes.Add(new Dhewm3ConfigChange("bind", "\\", "_mlook"));
-            changes.Add(new Dhewm3ConfigChange("bind", "]", "_impulse14"));
-            changes.Add(new Dhewm3ConfigChange("bind", "a", "_moveleft"));
-            changes.Add(new Dhewm3ConfigChange("bind", "c", "_movedown"));
-            changes.Add(new Dhewm3ConfigChange("bind", "d", "_moveright"));
-            changes.Add(new Dhewm3ConfigChange("bind", "f", "_impulse0"));
-            changes.Add(new Dhewm3ConfigChange("bind", "q", "_impulse12"));
-            changes.Add(new Dhewm3ConfigChange("bind", "r", "_impulse13"));
-            changes.Add(new Dhewm3ConfigChange("bind", "s", "_back"));
-            changes.Add(new Dhewm3ConfigChange("bind", "t", "clientMessageMode"));
-            changes.Add(new Dhewm3ConfigChange("bind", "w", "_forward"));
-            changes.Add(new Dhewm3ConfigChange("bind", "y", "clientMessageMode 1"));
-            changes.Add(new Dhewm3ConfigChange("bind", "z", "_zoom"));
-            changes.Add(new Dhewm3ConfigChange("bind", "BACKSPACE", "clientDropWeapon"));
-            changes.Add(new Dhewm3ConfigChange("bind", "PAUSE", "pause"));
-            changes.Add(new Dhewm3ConfigChange("bind", "p", "pause"));
-            changes.Add(new Dhewm3ConfigChange("bind", "UPARROW", "_forward"));
-            changes.Add(new Dhewm3ConfigChange("bind", "DOWNARROW", "_back"));
-            changes.Add(new Dhewm3ConfigChange("bind", "LEFTARROW", "_moveLeft"));
-            changes.Add(new Dhewm3ConfigChange("bind", "RIGHTARROW", "_moveright"));
-            changes.Add(new Dhewm3ConfigChange("bind", "ALT", "_strafe"));
-            changes.Add(new Dhewm3ConfigChange("bind", "CTRL", "_attack"));
-            changes.Add(new Dhewm3ConfigChange("bind", "SHIFT", "_speed"));
-            changes.Add(new Dhewm3ConfigChange("bind", "DEL", "_lookdown"));
-            changes.Add(new Dhewm3ConfigChange("bind", "PGDN", "_lookup"));
-            changes.Add(new Dhewm3ConfigChange("bind", "END", "_impulse18"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F1", "_impulse28"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F5", "_impulse29"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F3", "_impulse17"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F2", "savegame quick"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F6", "_impulse20"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F7", "_impulse22"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F4", "loadgame quick"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F10", "dhewm3Settings"));
-            changes.Add(new Dhewm3ConfigChange("bind", "F8", "screenshot"));
-            changes.Add(new Dhewm3ConfigChange("bind", "MOUSE1", "_attack"));
-            changes.Add(new Dhewm3ConfigChange("bind", "MOUSE2", "_moveup"));
-            changes.Add(new Dhewm3ConfigChange("bind", "MOUSE3", "_zoom"));
-            changes.Add(new Dhewm3ConfigChange("bind", "MWHEELDOWN", "_impulse15"));
-            changes.Add(new Dhewm3ConfigChange("bind", "MWHEELUP", "_impulse14"));
-
+            // Keyboard bindings are left to the template / user (hotkey keys F2/F4/F8 are written in Configuredhewm3)
+            // dhewm3 has no gamepad binding by default. All SDL gamepads act as the same player (no device index to set),
+            // buttons are positional (SOUTH = bottom face button on every layout).
+            // Layout based on gamepad.cfg / gamepad-d3xp.cfg shipped with dhewm3, PDA moved from BACK to NORTH (BACK is the RetroBat hotkey).
             int controllerCount = Controllers.Where(c => !c.IsKeyboard).Count();
-            if (controllerCount > 0)
+            if (controllerCount == 0)
+                return;
+
+            changes.Add(new Dhewm3ConfigChange("seta", "in_useGamepad", "1"));
+
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_SOUTH", "_moveUp"));         // Jump
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_EAST", "_moveDown"));        // Crouch
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_WEST", "_impulse13"));       // Reload
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_NORTH", "_impulse19"));      // PDA
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_LSTICK", "_speed"));         // Run
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_RSTICK", "_moveDown"));      // Crouch
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_LSHOULDER", "_impulse15"));  // Previous weapon
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_RSHOULDER", "_impulse14"));  // Next weapon
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK1_UP", "_forward"));
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK1_DOWN", "_back"));
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK1_LEFT", "_moveLeft"));
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK1_RIGHT", "_moveRight"));
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK2_UP", "_lookUp"));
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK2_DOWN", "_lookDown"));
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK2_LEFT", "_left"));
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK2_RIGHT", "_right"));
+            changes.Add(new Dhewm3ConfigChange("bind", "JOY_TRIGGER2", "_attack"));
+
+            // Weapon slots differ between Doom 3 and Resurrection of Evil
+            if (isD3xp)
             {
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_SOUTH", "_moveUp"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_EAST", "_moveDown"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_WEST", "_speed"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_NORTH", "_zoom"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_LSHOULDER", "_impulse13"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_BTN_RSHOULDER", "_attack"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_UP", "_forward"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_DOWN", "_back"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_LEFT", "_moveLeft"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_RIGHT", "_moveRight"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK1_UP", "_forward"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK1_DOWN", "_back"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK1_LEFT", "_moveLeft"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK1_RIGHT", "_moveRight"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK2_UP", "_lookUp"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK2_DOWN", "_lookDown"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK2_LEFT", "_left"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_STICK2_RIGHT", "_right"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_TRIGGER1", "_impulse15"));
-                changes.Add(new Dhewm3ConfigChange("bind", "JOY_TRIGGER2", "_impulse14"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_UP", "_impulse8"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_DOWN", "_impulse11"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_LEFT", "_impulse12"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_RIGHT", "_impulse1"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_TRIGGER1", "_impulse0"));   // Flashlight
+            }
+            else
+            {
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_UP", "_impulse5"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_DOWN", "_impulse8"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_LEFT", "_impulse9"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_DPAD_RIGHT", "_impulse0"));
+                changes.Add(new Dhewm3ConfigChange("bind", "JOY_TRIGGER1", "_impulse11"));  // Flashlight
             }
         }
         #endregion

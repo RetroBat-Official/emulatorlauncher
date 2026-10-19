@@ -462,6 +462,34 @@ namespace EmulatorLauncher
         }
 
         /// <summary>
+        /// SDL 3.4+ HIDAPI 8BitDo driver switches the controller firmware to its enhanced report mode.
+        /// Nothing switches it back: until the pad is power-cycled, SDL2 (EmulationStation), DirectInput (RetroArch)
+        /// and SDL < 3.4 emulators no longer receive any usable input, while the pad still shows as connected.
+        /// Disabled at process level so that EmulatorLauncher's own SDL3 enumeration and every child process
+        /// (emulators with SDL 3.4+) keep the pad in standard mode. An environment variable set by the user is kept.
+        /// </summary>
+        private static void DisableSdl8BitDoEnhancedMode()
+        {
+            const string hint = "SDL_JOYSTICK_HIDAPI_8BITDO";
+
+            try
+            {
+                string userValue = Environment.GetEnvironmentVariable(hint);
+                if (userValue != null)
+                {
+                    SimpleLogger.Instance.Info("[Startup] " + hint + "=" + userValue + " set by user : kept");
+                    return;
+                }
+
+                Environment.SetEnvironmentVariable(hint, "0");
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[Startup] DisableSdl8BitDoEnhancedMode failed : " + ex.Message);
+            }
+        }
+
+        /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
@@ -487,6 +515,9 @@ namespace EmulatorLauncher
 
             // Mostly to sanitize STEAM messing up with SDL, must run before any SDL2/SDL3 dll is loaded and before any emulator is started
             SanitizeSteamEnvironment();
+
+            // Keep 8BitDo pads out of SDL 3.4+ enhanced report mode, which breaks them for ES and non-SDL3.4 emulators
+            DisableSdl8BitDoEnhancedMode();
 
             try { SetProcessDPIAware(); }
             catch { }
