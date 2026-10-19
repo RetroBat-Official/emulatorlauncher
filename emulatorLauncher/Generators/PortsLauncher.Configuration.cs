@@ -465,7 +465,7 @@ namespace EmulatorLauncher
                 return;
 
             string cfgPath = _path;
-            
+
             string[] pakFile = File.ReadAllLines(rom);
             if (pakFile.Length < 1)
             {
@@ -474,6 +474,9 @@ namespace EmulatorLauncher
 
             string pakSubPath = pakFile[0];
             string game = pakSubPath.Split('\\')[0];
+
+            // Resurrection of Evil and d3xp based mods (fs_game_base d3xp) use a different weapon slot layout
+            bool isD3xp = pakFile.Any(l => l.IndexOf("d3xp", StringComparison.OrdinalIgnoreCase) >= 0);
 
             string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "doom3", "dhewm3");
             if (!Directory.Exists(savesPath))
@@ -489,31 +492,17 @@ namespace EmulatorLauncher
             commandArray.Add("fs_savepath");
             commandArray.Add("\"" + savesPath + "\"");
 
-            if (_fullscreen)
-            {
-                commandArray.Add("+set");
-                commandArray.Add("r_fullscreen");
-                commandArray.Add("1");
-            }
-            else
-            {
-                commandArray.Add("+set");
-                commandArray.Add("r_fullscreen");
-                commandArray.Add("0");
-            }
+            commandArray.Add("+set");
+            commandArray.Add("r_fullscreen");
+            commandArray.Add(_fullscreen ? "1" : "0");
 
-            if (_resolution != null)
-            {
-                commandArray.Add("+set");
-                commandArray.Add("r_fullscreenDesktop");
-                commandArray.Add("0");
-            }
-            else
-            {
-                commandArray.Add("+set");
-                commandArray.Add("r_fullscreenDesktop");
-                commandArray.Add("1");
-            }
+            // Desktop fullscreen (borderless, desktop resolution) unless a resolution is forced in RetroBat
+            bool forcedMode = SystemConfig.isOptSet("dhewm3_resolution") && !string.IsNullOrEmpty(SystemConfig["dhewm3_resolution"]);
+            bool desktopFullscreen = !forcedMode && _resolution == null;
+
+            commandArray.Add("+set");
+            commandArray.Add("r_fullscreenDesktop");
+            commandArray.Add(desktopFullscreen ? "1" : "0");
 
             commandArray.Add("+set");
             commandArray.Add("fs_game");
@@ -527,29 +516,74 @@ namespace EmulatorLauncher
                 }
             }
 
-            var changes = new List<Dhewm3ConfigChange>();
             string cfgFile = Path.Combine(_path, game, "dhewm.cfg");
 
-            if (SystemConfig.isOptSet("dhewm3_resolution") && !string.IsNullOrEmpty(SystemConfig["dhewm3_resolution"]))
+            // Restore the RetroBat template if the config file was deleted (mods have no template, the file is created empty)
+            if (!File.Exists(cfgFile))
+            {
+                string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "dhewm3", game, "dhewm.cfg");
+                if (File.Exists(templateFile))
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(cfgFile));
+                        File.Copy(templateFile, cfgFile);
+                    }
+                    catch { }
+                }
+            }
+
+            // Without config.spec, dhewm3 runs its hardware detection on first launch and overrides resolution, anti-aliasing, quality and speakers
+            string specFile = Path.Combine(_path, game, "config.spec");
+            if (!File.Exists(specFile))
+            {
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(specFile));
+                    File.WriteAllText(specFile, string.Empty);
+                }
+                catch { }
+            }
+
+            var changes = new List<Dhewm3ConfigChange>();
+
+            if (forcedMode)
                 changes.Add(new Dhewm3ConfigChange("seta", "r_mode", SystemConfig["dhewm3_resolution"]));
+            else if (_resolution != null)
+            {
+                changes.Add(new Dhewm3ConfigChange("seta", "r_mode", "-1"));
+                changes.Add(new Dhewm3ConfigChange("seta", "r_customWidth", _resolution.Width.ToString()));
+                changes.Add(new Dhewm3ConfigChange("seta", "r_customHeight", _resolution.Height.ToString()));
+            }
 
             if (!SystemConfig.isOptSet("dhewm3_vsync") || SystemConfig.getOptBoolean("dhewm3_vsync"))
                 changes.Add(new Dhewm3ConfigChange("seta", "r_swapInterval", "1"));
             else
                 changes.Add(new Dhewm3ConfigChange("seta", "r_swapInterval", "0"));
-            
-            if (SystemConfig.isOptSet("dhewm3_quality") && !string.IsNullOrEmpty(SystemConfig["dhewm3_quality"]))
-                changes.Add(new Dhewm3ConfigChange("seta", "com_machineSpec", SystemConfig["dhewm3_quality"]));
+
+            // com_machineSpec alone is only a label: write the preset values like dhewm3 does when a preset is loaded (r_mode and r_multiSamples excluded)
+            int quality;
+            if (SystemConfig.isOptSet("dhewm3_quality") && int.TryParse(SystemConfig["dhewm3_quality"], out quality) && quality >= 0 && quality <= 3)
+            {
+                changes.Add(new Dhewm3ConfigChange("seta", "com_machineSpec", quality.ToString()));
+                foreach (var preset in dhewm3QualityPresets)
+                    changes.Add(new Dhewm3ConfigChange("seta", preset.Key, preset.Value[quality]));
+            }
 
             if (SystemConfig.isOptSet("dhewm3_antialiasing") && !string.IsNullOrEmpty(SystemConfig["dhewm3_antialiasing"]))
                 changes.Add(new Dhewm3ConfigChange("seta", "r_multiSamples", SystemConfig["dhewm3_antialiasing"]));
             else
                 changes.Add(new Dhewm3ConfigChange("seta", "r_multiSamples", "0"));
 
+            if (SystemConfig.isOptSet("dhewm3_brightness") && !string.IsNullOrEmpty(SystemConfig["dhewm3_brightness"]))
+                changes.Add(new Dhewm3ConfigChange("seta", "r_brightness", SystemConfig["dhewm3_brightness"]));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "r_brightness", "1"));
+
             if (SystemConfig.isOptSet("dhewm3_sound") && !string.IsNullOrEmpty(SystemConfig["dhewm3_sound"]))
                 changes.Add(new Dhewm3ConfigChange("seta", "s_numberOfSpeakers", SystemConfig["dhewm3_sound"]));
 
-            if (SystemConfig.isOptSet("dhewm3_eax") && SystemConfig.getOptBoolean("dhewm3_eax"))
+            if (!SystemConfig.isOptSet("dhewm3_eax") || SystemConfig.getOptBoolean("dhewm3_eax"))
                 changes.Add(new Dhewm3ConfigChange("seta", "s_useEAXReverb", "1"));
             else
                 changes.Add(new Dhewm3ConfigChange("seta", "s_useEAXReverb", "0"));
@@ -564,18 +598,69 @@ namespace EmulatorLauncher
             else
                 changes.Add(new Dhewm3ConfigChange("seta", "g_showHud", "1"));
 
-            ConfigureDhewm3Controls(changes);
+            if (SystemConfig.isOptSet("dhewm3_showfps") && SystemConfig.getOptBoolean("dhewm3_showfps"))
+                changes.Add(new Dhewm3ConfigChange("seta", "com_showFPS", "1"));
+            else
+                changes.Add(new Dhewm3ConfigChange("seta", "com_showFPS", "0"));
 
-            ConfigEditorDhewm3.ChangeConfigValues(cfgFile, changes);
-
-            // Cleanup if disabled autoconfigure
-            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            // Always run is ignored in single player unless in_allowAlwaysRunInSP is set
+            if (SystemConfig.isOptSet("dhewm3_alwaysrun") && SystemConfig.getOptBoolean("dhewm3_alwaysrun"))
             {
-                string[] lines = File.ReadAllLines(cfgFile);
-                lines = lines.Where(line => !line.StartsWith("bind \"JOY")).ToArray();
-                File.WriteAllLines(cfgFile, lines);
+                changes.Add(new Dhewm3ConfigChange("seta", "in_alwaysRun", "1"));
+                changes.Add(new Dhewm3ConfigChange("seta", "in_allowAlwaysRunInSP", "1"));
             }
+            else
+            {
+                changes.Add(new Dhewm3ConfigChange("seta", "in_alwaysRun", "0"));
+                changes.Add(new Dhewm3ConfigChange("seta", "in_allowAlwaysRunInSP", "0"));
+            }
+
+            if (SystemConfig.isOptSet("dhewm3_invertlook") && SystemConfig.getOptBoolean("dhewm3_invertlook"))
+            {
+                changes.Add(new Dhewm3ConfigChange("seta", "joy_invertLook", "1"));
+                changes.Add(new Dhewm3ConfigChange("seta", "m_invertLook", "1"));
+            }
+            else
+            {
+                changes.Add(new Dhewm3ConfigChange("seta", "joy_invertLook", "0"));
+                changes.Add(new Dhewm3ConfigChange("seta", "m_invertLook", "0"));
+            }
+
+            // Keyboard keys used by RetroBat hotkeys (es_padtokey.cfg): F2 quicksave, F4 quickload, F8 screenshot
+            changes.Add(new Dhewm3ConfigChange("bind", "F2", "savegame quick"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F4", "loadgame quick"));
+            changes.Add(new Dhewm3ConfigChange("bind", "F8", "screenshot"));
+
+            // Multiplayer "vote no" moved from F2 to F11
+            changes.Add(new Dhewm3ConfigChange("bind", "F11", "_impulse29"));
+
+            ConfigureDhewm3Controls(changes, isD3xp);
+
+            ConfigEditorDhewm3.ChangeConfigValues(cfgFile, changes, true);
         }
+
+        // Same values as dhewm3 Com_ExecMachineSpec_f, index = com_machineSpec (0 = low, 1 = medium, 2 = high, 3 = ultra)
+        private static readonly Dictionary<string, string[]> dhewm3QualityPresets = new Dictionary<string, string[]>()
+        {
+            { "image_filter", new[] { "GL_LINEAR_MIPMAP_LINEAR", "GL_LINEAR_MIPMAP_LINEAR", "GL_LINEAR_MIPMAP_LINEAR", "GL_LINEAR_MIPMAP_LINEAR" } },
+            { "image_anisotropy", new[] { "0", "1", "8", "8" } },
+            { "image_lodbias", new[] { "0", "0", "0", "0" } },
+            { "image_downSize", new[] { "1", "0", "0", "0" } },
+            { "image_forceDownSize", new[] { "0", "0", "0", "0" } },
+            { "image_roundDown", new[] { "1", "1", "1", "1" } },
+            { "image_preload", new[] { "1", "1", "1", "1" } },
+            { "image_useAllFormats", new[] { "1", "1", "1", "1" } },
+            { "image_useCompression", new[] { "1", "1", "1", "0" } },
+            { "image_usePrecompressedTextures", new[] { "1", "1", "1", "0" } },
+            { "image_useNormalCompression", new[] { "2", "2", "0", "0" } },
+            { "image_ignoreHighQuality", new[] { "1", "0", "0", "0" } },
+            { "image_downSizeSpecular", new[] { "1", "0", "0", "0" } },
+            { "image_downSizeBump", new[] { "1", "0", "0", "0" } },
+            { "image_downSizeSpecularLimit", new[] { "64", "64", "64", "64" } },
+            { "image_downSizeBumpLimit", new[] { "256", "256", "256", "256" } },
+            { "s_maxSoundsPerShader", new[] { "1", "0", "0", "0" } },
+            { "r_useSoftParticles", new[] { "0", "0", "0", "1" } }
+        };
 
         private void Configuredusklight(List<string> commandArray, string rom)
         {
@@ -2655,43 +2740,63 @@ namespace EmulatorLauncher
 
     class ConfigEditorDhewm3
     {
-        public static void ChangeConfigValues(string filePath, List<Dhewm3ConfigChange> changes)
+        public static void ChangeConfigValues(string filePath, List<Dhewm3ConfigChange> changes, bool createIfMissing = false)
         {
-            if (!File.Exists(filePath))
+            if (string.IsNullOrEmpty(filePath) || changes == null || changes.Count == 0)
                 return;
 
+            if (!File.Exists(filePath))
+            {
+                if (!createIfMissing)
+                    return;
+
+                try
+                {
+                    string dir = Path.GetDirectoryName(filePath);
+                    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                        Directory.CreateDirectory(dir);
+
+                    File.WriteAllText(filePath, string.Empty);
+                }
+                catch { return; }
+            }
+
             // Read all lines from the file
-            string[] lines = File.ReadAllLines(filePath);
+            List<string> lines = File.ReadAllLines(filePath).ToList();
             bool[] foundFlags = new bool[changes.Count];
 
             // Make changes in memory
-            for (int i = 0; i < lines.Length; i++)
+            for (int i = 0; i < lines.Count; i++)
             {
                 for (int j = 0; j < changes.Count; j++)
                 {
-                    string pattern = $@"^{Regex.Escape(changes[j].Type)}\s+{Regex.Escape(changes[j].Key)}\s+""(.*?)""";
-                    if (Regex.IsMatch(lines[i], pattern))
+                    // Key can be quoted or not (dhewm3 writes: bind "KEY" "value"), cvar and key names are case insensitive
+                    string pattern = $@"^\s*{Regex.Escape(changes[j].Type)}\s+""?{Regex.Escape(changes[j].Key)}""?\s+";
+                    if (Regex.IsMatch(lines[i], pattern, RegexOptions.IgnoreCase))
                     {
-                        lines[i] = $"{changes[j].Type} {changes[j].Key} \"{changes[j].NewValue}\"";
+                        lines[i] = FormatLine(changes[j]);
                         foundFlags[j] = true;
                     }
                 }
             }
 
-            // Append any missing keys to the file
-            using (StreamWriter writer = File.AppendText(filePath))
+            // Append missing keys
+            for (int j = 0; j < changes.Count; j++)
             {
-                for (int j = 0; j < changes.Count; j++)
-                {
-                    if (!foundFlags[j])
-                    {
-                        writer.WriteLine($"{changes[j].Type} {changes[j].Key} \"{changes[j].NewValue}\"");
-                    }
-                }
+                if (!foundFlags[j])
+                    lines.Add(FormatLine(changes[j]));
             }
 
             // Write all updated lines back to the file
             File.WriteAllLines(filePath, lines);
+        }
+
+        private static string FormatLine(Dhewm3ConfigChange change)
+        {
+            if (change.Type == "bind")
+                return $"bind \"{change.Key}\" \"{change.NewValue}\"";
+
+            return $"{change.Type} {change.Key} \"{change.NewValue}\"";
         }
     }
     #endregion
