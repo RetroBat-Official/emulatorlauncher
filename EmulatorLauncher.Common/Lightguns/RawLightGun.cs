@@ -311,13 +311,14 @@ namespace EmulatorLauncher.Common.Lightguns
                     break;
             }
 
-            if (Type == RawLighGunType.Mouse && IsLikelyIntegrated())
+            // High index for known integrated touchpads and non-mouse receivers
+            if (Type == RawLighGunType.Mouse && IsLowPriority())
                 return 10000 + Index;
 
             return Priority;
         }
 
-        private bool IsLikelyIntegrated()
+        private bool IsLowPriority()
         {
             if (string.IsNullOrEmpty(DevicePath))
                 return false;
