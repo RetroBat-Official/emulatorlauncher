@@ -95,13 +95,18 @@ namespace EmulatorLauncher.PadToKeyboard
         private HashSet<PadToKeyInput> _pressedKeys = new HashSet<PadToKeyInput>();
 
         private IntPtr _lastForegroundHwnd = IntPtr.Zero;
+        private uint _lastForegroundPid = 0;
         private string _lastForegroundProcess = null;
-        private bool _lastForegroundIsDesktop = false;
-        private IntPtr _lastForegroundMainWnd = IntPtr.Zero;
 
-        public JoystickListener(Controller[] inputList, PadToKey mapping)
+        // Executable started by emulatorLauncher (lower case, no extension), used by the safety exit
+        private string _launchedProcessName;
+
+        public JoystickListener(Controller[] inputList, PadToKey mapping, string launchedProcessName = null)
         {
+            _launchedProcessName = string.IsNullOrEmpty(launchedProcessName) ? null : launchedProcessName.ToLowerInvariant();
+
             bool joy2Key = Process.GetProcessesByName("JoyToKey").Length > 0;
+
             if (joy2Key)
             {
                 SimpleLogger.Instance.Info("[JoystickListener] JoyToKey is running : disabling pad2key");
@@ -383,13 +388,17 @@ namespace EmulatorLauncher.PadToKeyboard
             SDL.SDL_Quit();
         }
 
+        private static readonly InputKey ExitInputKey = InputKey.hotkey | InputKey.start;
+
         private void ProcessJoystickState(Controller controller, JoyInputState keyState, JoyInputState prevState)
         {
             //Debug.WriteLine("ProcessJoystickState : " + keyState.ToString() + " - OldState : " + prevState.ToString());
 
-            IntPtr hWndProcess;
-            bool isDesktop;
-            string process = GetActiveProcessFileName(out isDesktop, out hWndProcess);
+            int targetPid;
+            IntPtr foregroundWnd;
+            string process = GetActiveProcessFileName(out targetPid, out foregroundWnd);
+
+            var hWndProcess = new Lazy<IntPtr>(() => ResolveMainWindow(targetPid, foregroundWnd));
 
             var mapping = _mapping[process];
             if (mapping != null)
@@ -423,9 +432,15 @@ namespace EmulatorLauncher.PadToKeyboard
                     SendInput(controller, keyState, prevState, hWndProcess, process, keyMap);
                 }
             }
+
+            // Safety exit : the foreground process has no 'hotkey start' entry (focus on the desktop, a backglass, a bezel, another window...)
+            if (keyState.HasNewInput(ExitInputKey, prevState) &&
+                (mapping == null || mapping[ExitInputKey] == null) &&
+                (commonMapping == null || commonMapping[ExitInputKey] == null))
+                ExitLaunchedEmulator(process);
         }
 
-        private void SendInput(Controller controller, JoyInputState newState, JoyInputState oldState, IntPtr hWndProcess, string process, PadToKeyInput input)
+        private void SendInput(Controller controller, JoyInputState newState, JoyInputState oldState, Lazy<IntPtr> hWndProcess, string process, PadToKeyInput input)
         {
             if (input.Type == PadToKeyType.Mouse && (input.Code == "CLICK" || input.Code == "RCLICK" || input.Code == "MCLICK"))
             {
@@ -533,20 +548,20 @@ namespace EmulatorLauncher.PadToKeyboard
                             SimpleLogger.Instance.Info("[SendKey] " + input.Key + " to " + process);
                     }
 
-                    if (input.Key == "(%{CLOSE})" && hWndProcess != IntPtr.Zero)
+                    if (input.Key == "(%{CLOSE})" && hWndProcess.Value != IntPtr.Zero)
                     {
                         SimpleLogger.Instance.Info("[SendKey] Send WM_CLOSE to " + process);
 
                         const int WM_CLOSE = 0x0010;
-                        User32.SendMessage(hWndProcess, WM_CLOSE, 0, 0);
+                        User32.SendMessage(hWndProcess.Value, WM_CLOSE, 0, 0);
                         ProcessKilled = true;
                     }
-                    else if (input.Key == "(%{KILL})" && hWndProcess != IntPtr.Zero)
+                    else if (input.Key == "(%{KILL})" && hWndProcess.Value != IntPtr.Zero)
                     {
                         SimpleLogger.Instance.Info("[SendKey] Kill " + process);
-                        KillProcess(hWndProcess);
+                        KillProcess(hWndProcess.Value);
                     }
-                    else if (input.Key == "(%{PRTSC})" && hWndProcess != IntPtr.Zero)
+                    else if (input.Key == "(%{PRTSC})" && hWndProcess.Value != IntPtr.Zero)
                     {
                         SimpleLogger.Instance.Info("[SendKey] Print Screen " + process);
                         SendKeys.SendWait("{PRTSC}");
@@ -656,39 +671,35 @@ namespace EmulatorLauncher.PadToKeyboard
         void KillProcess(IntPtr hWndProcess)
         {
             if (User32.GetWindowThreadProcessId(hWndProcess, out uint pxi) != 0)
+                KillProcessTree((int)pxi);
+        }
+
+        static void KillProcessTree(int pid)
+        {
+            foreach (var processId in ProcessExtensions.GetChildrenProcessIds(pid).Union(new int[] { pid }).Reverse())
             {
-                int pid = (int)pxi;
-                foreach (var processId in ProcessExtensions.GetChildrenProcessIds(pid).Union(new int[] { pid }).Reverse())
+                try
                 {
-                    try
-                    {
-                        using (var proc = Process.GetProcessById(processId))
-                            proc.Kill();
-                    }
-                    catch { }
+                    using (var proc = Process.GetProcessById(processId))
+                        proc.Kill();
                 }
+                catch { }
             }
         }
 
-        string GetActiveProcessFileName(out bool isDesktop, out IntPtr hMainWnd)
+        string GetActiveProcessFileName(out int targetPid, out IntPtr foregroundWnd)
         {
             IntPtr hwnd = User32.GetForegroundWindow();
-
-            if (hwnd == _lastForegroundHwnd && _lastForegroundProcess != null)
-            {
-                isDesktop = _lastForegroundIsDesktop;
-                hMainWnd = _lastForegroundMainWnd;
-                return _lastForegroundProcess;
-            }
-
-            isDesktop = false;
-            hMainWnd = IntPtr.Zero;
-
-            if (hwnd != User32.GetDesktopWindow())
-                hMainWnd = hwnd;
+            foregroundWnd = hwnd;
 
             uint pid;
             User32.GetWindowThreadProcessId(hwnd, out pid);
+            targetPid = (int)pid;
+
+            bool useCache = _mapping.ForceApplyToProcess == null;
+
+            if (useCache && hwnd == _lastForegroundHwnd && pid == _lastForegroundPid && _lastForegroundProcess != null)
+                return _lastForegroundProcess;
 
             try
             {
@@ -703,27 +714,22 @@ namespace EmulatorLauncher.PadToKeyboard
                         {
                             forced = Process.GetProcessesByName(_mapping.ForceApplyToProcess).FirstOrDefault();
                             if (forced != null)
+                            {
                                 target = forced;
+                                targetPid = forced.Id;
+                            }
                         }
-
-                        if (target.MainWindowHandle != IntPtr.Zero && target.MainWindowHandle != User32.GetDesktopWindow())
-                            hMainWnd = target.MainWindowHandle;
 
                         string fn;
                         try { fn = Path.GetFileNameWithoutExtension(target.MainModule.FileName).ToLower(); }
                         catch { fn = target.ProcessName.ToLower(); }
 
-                        if (fn == "explorer")
+                        if (useCache)
                         {
-                            int style = User32.GetWindowLong(hwnd, GWL.STYLE);
-                            if (style == -1778384896)
-                                isDesktop = true;
+                            _lastForegroundHwnd = hwnd;
+                            _lastForegroundPid = pid;
+                            _lastForegroundProcess = fn;
                         }
-
-                        _lastForegroundHwnd = hwnd;
-                        _lastForegroundProcess = fn;
-                        _lastForegroundIsDesktop = isDesktop;
-                        _lastForegroundMainWnd = hMainWnd;
 
                         return fn;
                     }
@@ -735,10 +741,110 @@ namespace EmulatorLauncher.PadToKeyboard
             }
             catch
             {
-                isDesktop = _lastForegroundIsDesktop;
-                hMainWnd = _lastForegroundMainWnd;
-                return _lastForegroundProcess;
+                return null;
             }
+        }
+
+        private static IntPtr ResolveMainWindow(int targetPid, IntPtr foregroundWnd)
+        {
+            IntPtr desktop = User32.GetDesktopWindow();
+            IntPtr ret = foregroundWnd != desktop ? foregroundWnd : IntPtr.Zero;
+
+            try
+            {
+                using (var p = Process.GetProcessById(targetPid))
+                {
+                    IntPtr mainWnd = p.MainWindowHandle;
+                    if (mainWnd != IntPtr.Zero && mainWnd != desktop)
+                        ret = mainWnd;
+                }
+            }
+            catch { }
+
+            return ret;
+        }
+
+        private void ExitLaunchedEmulator(string foregroundProcess)
+        {
+            // Control center shown : the emulator is suspended, and the control center has its own kill button
+            if (EmulatorLauncher.ControlCenter.ControlCenterManager.IsRunning)
+                return;
+
+            var exitApps = _mapping.Applications
+                .Where(app => !app.ProcessNames.Contains("*"))
+                .Select(app => new { App = app, Input = app[ExitInputKey] })
+                .Where(a => a.Input != null && (a.Input.Action != null || a.Input.Key == "(%{CLOSE})" || a.Input.Key == "(%{KILL})"))
+                .ToList();
+
+            if (exitApps.Count == 0)
+                return;
+
+            Process[] processes;
+            try { processes = Process.GetProcesses(); }
+            catch { return; }
+
+            try
+            {
+                var candidates = new List<KeyValuePair<Process, PadToKeyInput>>();
+
+                foreach (var p in processes)
+                {
+                    string name;
+                    try { name = p.ProcessName.ToLowerInvariant(); }
+                    catch { continue; }
+
+                    var exitApp = exitApps.FirstOrDefault(a => a.App.ProcessNames.Contains(name));
+                    if (exitApp == null)
+                        continue;
+
+                    if (name == _launchedProcessName || Job.IsInCurrentJob(p.Id))
+                        candidates.Add(new KeyValuePair<Process, PadToKeyInput>(p, exitApp.Input));
+                }
+
+                string from = foregroundProcess ?? "<unknown process>";
+
+                if (candidates.Count == 0)
+                {
+                    SimpleLogger.Instance.Info("[PadToKey] Safety exit : focus on '" + from + "', no launched emulator with an exit mapping found");
+                    return;
+                }
+
+                // Several candidates (launcher + emulator...) : take the most recent one, i.e. the deepest in the process tree
+                var target = candidates.OrderByDescending(c => GetStartTime(c.Key)).First();
+                var targetProcess = target.Key;
+                var input = target.Value;
+
+                SimpleLogger.Instance.Info("[PadToKey] Safety exit : focus on '" + from + "', applying '" + (input.Action != null ? "action" : input.Key) + "' to " + targetProcess.ProcessName);
+
+                if (input.Action != null)
+                    input.Action();
+                else if (input.Key == "(%{KILL})")
+                    KillProcessTree(targetProcess.Id);
+                else
+                {
+                    // CloseMainWindow posts WM_CLOSE : never blocks pad2key, even if the emulator is not responding
+                    bool closed = false;
+                    try { closed = targetProcess.CloseMainWindow(); }
+                    catch { }
+
+                    // No main window to close : kill the emulator
+                    if (!closed)
+                        KillProcessTree(targetProcess.Id);
+                }
+
+                ProcessKilled = true;
+            }
+            finally
+            {
+                foreach (var p in processes)
+                    p.Dispose();
+            }
+        }
+
+        private static DateTime GetStartTime(Process p)
+        {
+            try { return p.StartTime; }
+            catch { return DateTime.MinValue; }
         }
     }
 }

@@ -518,21 +518,6 @@ namespace EmulatorLauncher
 
             string cfgFile = Path.Combine(_path, game, "dhewm.cfg");
 
-            // Restore the RetroBat template if the config file was deleted (mods have no template, the file is created empty)
-            if (!File.Exists(cfgFile))
-            {
-                string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "dhewm3", game, "dhewm.cfg");
-                if (File.Exists(templateFile))
-                {
-                    try
-                    {
-                        Directory.CreateDirectory(Path.GetDirectoryName(cfgFile));
-                        File.Copy(templateFile, cfgFile);
-                    }
-                    catch { }
-                }
-            }
-
             // Without config.spec, dhewm3 runs its hardware detection on first launch and overrides resolution, anti-aliasing, quality and speakers
             string specFile = Path.Combine(_path, game, "config.spec");
             if (!File.Exists(specFile))
@@ -546,6 +531,11 @@ namespace EmulatorLauncher
             }
 
             var changes = new List<Dhewm3ConfigChange>();
+
+            // d3xp re-executes default.cfg after dhewm.cfg on first launch when g_xp_bind_run_once is 0, which would reset the RetroBat bindings
+            // default.cfg of d3xp is already executed at startup (fs_game d3xp), so the xp bindings are not lost
+            if (isD3xp)
+                changes.Add(new Dhewm3ConfigChange("seta", "g_xp_bind_run_once", "1"));
 
             if (forcedMode)
                 changes.Add(new Dhewm3ConfigChange("seta", "r_mode", SystemConfig["dhewm3_resolution"]));
@@ -625,6 +615,9 @@ namespace EmulatorLauncher
                 changes.Add(new Dhewm3ConfigChange("seta", "joy_invertLook", "0"));
                 changes.Add(new Dhewm3ConfigChange("seta", "m_invertLook", "0"));
             }
+
+            // Stick dead zone (0 to 1, dhewm3 default 0.25)
+            changes.Add(new Dhewm3ConfigChange("seta", "joy_deadZone", SystemConfig.GetValueOrDefault("dhewm3_deadzone", "0.25")));
 
             // Keyboard keys used by RetroBat hotkeys (es_padtokey.cfg): F2 quicksave, F4 quickload, F8 screenshot
             changes.Add(new Dhewm3ConfigChange("bind", "F2", "savegame quick"));

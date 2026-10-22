@@ -26,6 +26,16 @@ namespace EmulatorLauncher.Common
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool CloseHandle(IntPtr hObject);
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool IsProcessInJob(IntPtr processHandle, IntPtr jobHandle, [MarshalAs(UnmanagedType.Bool)] out bool result);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern IntPtr OpenProcess(uint desiredAccess, bool inheritHandle, int processId);
+
+        // Minimal right required by IsProcessInJob, also granted on elevated processes
+        const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
+
         private IntPtr handle;
         private bool disposed;
 
@@ -101,6 +111,27 @@ namespace EmulatorLauncher.Common
         public bool AddProcess(int processId)
         {
             return AddProcess(Process.GetProcessById(processId).Handle);
+        }
+
+        public static bool IsInCurrentJob(int processId)
+        {
+            var job = _job;
+            if (job == null || job.handle == IntPtr.Zero)
+                return false;
+
+            IntPtr hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, processId);
+            if (hProcess == IntPtr.Zero)
+                return false;
+
+            try
+            {
+                bool result;
+                return IsProcessInJob(hProcess, job.handle, out result) && result;
+            }
+            finally
+            {
+                CloseHandle(hProcess);
+            }
         }
     }
 

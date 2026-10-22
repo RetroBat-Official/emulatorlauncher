@@ -1,11 +1,11 @@
-﻿using System;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.EmulationStation;
 
 namespace EmulatorLauncher
 {
@@ -79,6 +79,8 @@ namespace EmulatorLauncher
             }
 
             Set("input.config", "1");
+            Set("input.1.keyboard.0.empty", "false");
+            Set("input.1.keyboard.0.disabled", "0");
             Set("input.1.keyboard.0.button.59", "SPC_STATESAVE.0");    // F2
             Set("input.1.keyboard.0.button.61", "SPC_STATERESTORE.0"); // F4
 
@@ -105,39 +107,52 @@ namespace EmulatorLauncher
                 mode = SystemConfig["amiberry_padmode"];
 
             var pad1 = pads.FirstOrDefault();
-            var pad2 = pads.Skip(1).FirstOrDefault();
+            var secondPad = pads.Skip(1).FirstOrDefault();
+
+            string primaryDevice = SystemConfig.isOptSet("amiberry_port2") && !string.IsNullOrEmpty(SystemConfig["amiberry_port2"]) ? SystemConfig["amiberry_port2"] : "joystick";
 
             // Primary joystick port
-            if (pad1 != null)
+            if (primaryDevice == "mouse")
             {
-                BindPort(Set, joystickPort, pad1, mode);
-                WriteHotkeyFile(pad1);
+                BindMouse(Set, joystickPort);
+                secondPad = pad1; // player 1's pad is free for the other port
             }
-            else
+            else if (primaryDevice == "keyboard" || pad1 == null)
             {
-                // No pad
                 string layout = SystemConfig.isOptSet("amiberry_kbdlayout") && !string.IsNullOrEmpty(SystemConfig["amiberry_kbdlayout"]) ? SystemConfig["amiberry_kbdlayout"] : "kbd2";
                 Set("joyport" + joystickPort, layout);
                 Set("joyport" + joystickPort + "mode", mode);
+
+                if (pad1 != null)
+                    secondPad = pad1; // player 1's pad is free for the other port
+            }
+            else
+            {
+                BindPort(Set, joystickPort, pad1, mode);
+                WriteHotkeyFile(pad1);
             }
 
             // Second port: mouse, or player 2
             string secondPortDevice = SystemConfig.isOptSet("amiberry_port1") ? SystemConfig["amiberry_port1"] : (_model.IsCd == false ? "mouse" : "none");
 
-            if (secondPortDevice == "joystick" && pad2 != null)
+            if (secondPortDevice == "joystick" && secondPad != null)
             {
-                BindPort(Set, secondPort, pad2, mode);
-                WriteHotkeyFile(pad2);
+                BindPort(Set, secondPort, secondPad, mode);
+                WriteHotkeyFile(secondPad);
             }
             else if (secondPortDevice == "none")
             {
                 Set("joyport" + secondPort, "none");
             }
+            else if (primaryDevice == "mouse")
+            {
+                // The system mouse is already on the other port. Amiberry does not allow the
+                // same device on two ports.
+                Set("joyport" + secondPort, "none");
+            }
             else
             {
-                // "mousedefault" binds the system mouse without depending on any index.
-                Set("joyport" + secondPort, "mousedefault");
-                Set("joyport" + secondPort + "mode", MODE_MOUSE);
+                BindMouse(Set, secondPort);
             }
 
             // Mouse speed (Amiberry option, percentage).
@@ -145,7 +160,20 @@ namespace EmulatorLauncher
                 Set("input.mouse_speed", SystemConfig["amiberry_mouse_speed"].ToIntegerString());
 
             if (SystemConfig.isOptSet("amiberry_deadzone") && !string.IsNullOrEmpty(SystemConfig["amiberry_deadzone"]))
-                Set("input.joymouse_deadzone", SystemConfig["amiberry_deadzone"].ToIntegerString());
+                Set("input.joystick_deadzone", SystemConfig["amiberry_deadzone"].ToIntegerString());
+
+            if (SystemConfig.isOptSet("amiberry_autoswitch") && SystemConfig.getOptBoolean("amiberry_autoswitch"))
+                Set("input.autoswitch", "true");
+            else
+                Set("input.autoswitch", "false");
+        }
+
+        private static void BindMouse(Action<string, string> Set, int port)
+        {
+            Set("joyport" + port, "mouse");
+            Set("joyport" + port + "mode", MODE_MOUSE);
+            Set("joyportfriendlyname" + port, "System mouse");
+            Set("joyportname" + port, "MOUSE0");
         }
 
         /// <summary>
@@ -186,8 +214,6 @@ namespace EmulatorLauncher
             string gamepadName = controller.Sdl3Controller?.Name;
             if (controller.IsXInputDevice)
                 gamepadName = "XInput Controller";
-            if (string.IsNullOrEmpty(gamepadName))
-                gamepadName = controller.Sdl3Controller?.Name;
             if (!string.IsNullOrEmpty(gamepadName))
                 return gamepadName;
 

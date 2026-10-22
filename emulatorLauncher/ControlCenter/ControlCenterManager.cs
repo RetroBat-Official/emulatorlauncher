@@ -8,6 +8,8 @@ namespace EmulatorLauncher.ControlCenter
         private static DialogResult _lastResult;
         private static bool _isRunning;
 
+        public static bool IsRunning { get { return _isRunning; } }
+
         public static void ShowControlCenter()
         {
             if (_isRunning)
