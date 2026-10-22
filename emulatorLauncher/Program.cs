@@ -991,7 +991,7 @@ namespace EmulatorLauncher
 
                         using (new HighPerformancePowerScheme())
                         using (var kb = new KeyboardListener(KeyboardListener.VK_F12, true, ShowControlCenter))
-                        using (var joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping))
+                        using (var joy = new JoystickListener(Controllers.Where(c => c.Config.DeviceName != "Keyboard").ToArray(), mapping, Path.GetFileNameWithoutExtension(path.FileName)))
                         {
                             int exitCode = generator.RunAndWait(path);
                             if (exitCode != 0 && !joy.ProcessKilled)

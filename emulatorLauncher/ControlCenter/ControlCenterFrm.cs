@@ -315,12 +315,16 @@ namespace EmulatorLauncher.ControlCenter
             if (!root)
                 processIds = processIds.Union(new int[] { pid });
 
+            int selfPid = Process.GetCurrentProcess().Id;
+
             foreach (var processId in processIds.Reverse())
             {
+                if (processId == selfPid)
+                    continue;
+
                 try
                 {
-                    var proc = Process.GetProcessById(pid);
-                    if (proc != null)
+                    using (var proc = Process.GetProcessById(processId))
                         proc.Kill();
                 }
                 catch { }

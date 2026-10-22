@@ -666,11 +666,38 @@ namespace EmulatorLauncher
         public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
             if (_remapexit)
-                mapping = PadToKey.AddOrUpdateKeyMapping(mapping, _processName, InputKey.hotkey | InputKey.start, null, action: () => SendKeys.SendWait("x"));
+                mapping = PadToKey.AddOrUpdateKeyMapping(mapping, _processName, InputKey.hotkey | InputKey.start, null, action: () => ExitVPinball());
             else
-                PadToKey.AddOrUpdateKeyMapping(mapping, _processName, InputKey.hotkey | InputKey.start, "(%{CLOSE})");
+                mapping = PadToKey.AddOrUpdateKeyMapping(mapping, _processName, InputKey.hotkey | InputKey.start, "(%{CLOSE})");
 
             return PadToKey.AddOrUpdateKeyMapping(mapping, _processName, InputKey.hotkey | InputKey.r3, () => SaveScreenshot());
+        }
+
+        private void ExitVPinball()
+        {
+            uint foregroundPid;
+            User32.GetWindowThreadProcessId(User32.GetForegroundWindow(), out foregroundPid);
+
+            var vpx = Process.GetProcessesByName(_processName);
+            try
+            {
+                if (vpx.Any(p => p.Id == foregroundPid))
+                {
+                    SendKeys.SendWait("x");
+                    return;
+                }
+
+                foreach (var p in vpx)
+                {
+                    try { p.CloseMainWindow(); }
+                    catch { }
+                }
+            }
+            finally
+            {
+                foreach (var p in vpx)
+                    p.Dispose();
+            }
         }
 
         private static void SaveScreenshot()
