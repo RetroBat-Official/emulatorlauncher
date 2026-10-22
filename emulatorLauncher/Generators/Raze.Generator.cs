@@ -206,7 +206,32 @@ namespace EmulatorLauncher
 
                     // Controllers : joystick input is disabled by default in Raze
                     if (!SystemConfig.getOptBoolean("disableautocontrollers"))
+                    {
                         ini.WriteValue("GlobalSettings", "use_joystick", "true");
+
+                        // Stick dead zone : one config section per device
+                        //  - XInput : "Joy:XI:<slot>", axes 0 to 3 = left X/Y, right X/Y
+                        //  - DirectInput : "Joy:DI:{instance guid}", axis order depends on the device, so the first 8 axes are set (unmapped axes are not affected)
+                        string deadZone = SystemConfig["raze_deadzone"];
+
+                        var sections = new List<KeyValuePair<string, int>>();
+                        for (int slot = 0; slot < 4; slot++)
+                            sections.Add(new KeyValuePair<string, int>("Joy:XI:" + slot, 4));
+
+                        foreach (var ctrl in this.Controllers.Where(c => !c.IsKeyboard && c.DirectInput != null && c.DirectInput.InstanceGuid != Guid.Empty))
+                            sections.Add(new KeyValuePair<string, int>("Joy:DI:" + ctrl.DirectInput.InstanceGuid.ToString("B"), 8));
+
+                        foreach (var section in sections)
+                        {
+                            for (int axis = 0; axis < section.Value; axis++)
+                            {
+                                if (string.IsNullOrEmpty(deadZone))
+                                    ini.Remove(section.Key, "Axis" + axis + "deadzone");
+                                else
+                                    ini.WriteValue(section.Key, "Axis" + axis + "deadzone", deadZone);
+                            }
+                        }
+                    }
 
                     // hdr
                     if (SystemConfig["raze_renderer"] == "1" && SystemConfig.getOptBoolean("enable_hdr"))

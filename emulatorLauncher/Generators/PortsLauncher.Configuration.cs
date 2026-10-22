@@ -626,6 +626,9 @@ namespace EmulatorLauncher
                 changes.Add(new Dhewm3ConfigChange("seta", "m_invertLook", "0"));
             }
 
+            // Stick dead zone (0 to 1, dhewm3 default 0.25)
+            changes.Add(new Dhewm3ConfigChange("seta", "joy_deadZone", SystemConfig.GetValueOrDefault("dhewm3_deadzone", "0.25")));
+
             // Keyboard keys used by RetroBat hotkeys (es_padtokey.cfg): F2 quicksave, F4 quickload, F8 screenshot
             changes.Add(new Dhewm3ConfigChange("bind", "F2", "savegame quick"));
             changes.Add(new Dhewm3ConfigChange("bind", "F4", "loadgame quick"));

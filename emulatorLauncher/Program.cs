@@ -226,54 +226,59 @@ namespace EmulatorLauncher
             get { return SystemConfig.isOptSet("MonitorIndex") && !string.IsNullOrEmpty(SystemConfig["MonitorIndex"]); }
         }
 
+        private static Screen _targetScreen;
         /// <summary>
         /// Target screen of the game. Priority order:
-        ///   1. the MonitorIndex feature (0-based index, SDL order)
+        ///   1. the MonitorIndex feature (0-based index, SDL order, or "es" to follow EmulationStation)
         ///   2. the screen on which EmulationStation is running (-monitor)
         ///   3. the primary Windows screen (default, most compatible)
         /// Only use it to place the emulator when IsMonitorIndexSet is true.
         /// Without MonitorIndex, it only serves for resolution and bezel purposes.
+        /// Resolved once per launch (and logged once).
         /// </summary>
         public static Screen TargetScreen
         {
             get
             {
-                if (IsMonitorIndexSet)
-                {
-                    string rawValue = SystemConfig["MonitorIndex"];
-                    SimpleLogger.Instance.Info("[Displays] MonitorIndex set by user: " + rawValue);
-                    
-                    if (int.TryParse(rawValue, out int n) && n >= 0)
-                    {
-                        var s = Displays.FromIndex(n, MonitorOrder.SdlLike);
-                        if (s != null)
-                        {
-                            if (s.DeviceName != null)
-                                SimpleLogger.Instance.Info("[Displays] MonitorIndex " + n + " -> " + s.DeviceName);
-                            return s;
-                        }
+                if (_targetScreen == null)
+                    _targetScreen = ResolveTargetScreen();
 
-                        int screenCount = Screen.AllScreens?.Length ?? 0;
-                        SimpleLogger.Instance.Warning($"[Displays] MonitorIndex {n} out of range ({screenCount} screen(s) detected), falling back.");
-                    }
-                }
-
-                var es = Displays.FromDeviceName(EsScreenDeviceName);
-                if (es != null)
-                {
-                    SimpleLogger.Instance.Info("[Displays] Found target screen by DeviceName: " + EsScreenDeviceName);
-                    return es;
-                }
-
-                var primary = Screen.PrimaryScreen ?? Screen.AllScreens?.FirstOrDefault();
-                if (primary == null)
-                {
-                    SimpleLogger.Instance.Error("[Displays] No screen detected on the system!");
-                }
-
-                return primary;
+                return _targetScreen;
             }
         }
+
+        private static Screen ResolveTargetScreen()
+        {
+            if (IsMonitorIndexSet && SystemConfig["MonitorIndex"] != "es")
+            {
+                int n;
+                if (int.TryParse(SystemConfig["MonitorIndex"], out n) && n >= 0)
+                {
+                    var s = Displays.FromIndex(n, MonitorOrder.SdlLike);
+                    if (s != null)
+                    {
+                        SimpleLogger.Instance.Info("[Displays] MonitorIndex " + n + " -> " + s.DeviceName);
+                        return s;
+                    }
+
+                    SimpleLogger.Instance.Warning("[Displays] MonitorIndex " + n +
+                        " out of range (" + Screen.AllScreens.Length + " screen(s)), falling back.");
+                }
+            }
+
+            var es = Displays.FromDeviceName(EsScreenDeviceName);
+            if (es != null)
+            {
+                SimpleLogger.Instance.Info("[Displays] Target screen = EmulationStation screen " + es.DeviceName +
+                    (IsMonitorIndexSet ? "" : " (MonitorIndex not set : placement left to the emulator)"));
+                return es;
+            }
+
+            SimpleLogger.Instance.Info("[Displays] Target screen = primary " + Screen.PrimaryScreen.DeviceName +
+                (IsMonitorIndexSet ? "" : " (MonitorIndex not set : placement left to the emulator)"));
+            return Screen.PrimaryScreen;
+        }
+
         public static string EsScreenDeviceName { get; private set; }
         public static List<Controller> Controllers { get; private set; }
         public static EsFeatures Features { get; private set; }
