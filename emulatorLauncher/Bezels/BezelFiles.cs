@@ -446,6 +446,7 @@ namespace EmulatorLauncher
                             return "3ds_bigsmall";
                         break;
                     case "azahar":
+                    case "azahar-plus":
                         if (Program.SystemConfig.isOptSet("azahar_layout_option") && Program.SystemConfig["azahar_layout_option"] == "3")
                             return "3ds_side_by_side";
                         else if (Program.SystemConfig.isOptSet("azahar_layout_option") && Program.SystemConfig["azahar_layout_option"] == "5")

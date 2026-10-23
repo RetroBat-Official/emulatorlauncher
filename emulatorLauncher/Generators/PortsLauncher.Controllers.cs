@@ -1950,6 +1950,14 @@ namespace EmulatorLauncher
                         if (revertAxis || forceAxisSignPositive) return (512 + pid).ToString();
                         else return "-" + (512 + pid).ToString();
                     }
+                    else if (port == "cgenius")
+                    {
+                        // Direction comes from es_input (value -1 / +1), reverted for the opposite direction of the same axis
+                        bool negative = input.Value < 0;
+                        if (revertAxis)
+                            negative = !negative;
+                        return "A" + pid + (negative ? "-" : "+");
+                    }
                     else
                     {
                         if (revertAxis) return "A" + pid + "-";

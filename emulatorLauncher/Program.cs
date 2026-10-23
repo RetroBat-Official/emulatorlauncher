@@ -56,6 +56,7 @@ namespace EmulatorLauncher
             { "arcadeflashweb", () => new ArcadeFlashWebGenerator() },
             { "ares", () => new AresGenerator() },
             { "azahar", () => new AzaharGenerator() },
+            { "azahar-plus", () => new AzaharGenerator() },
             { "bam", () => new FpinballGenerator() },
             { "bigpemu", () => new BigPEmuGenerator() },
             { "bizhawk", () => new BizhawkGenerator() },

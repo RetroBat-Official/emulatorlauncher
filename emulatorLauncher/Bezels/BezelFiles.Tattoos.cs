@@ -263,6 +263,7 @@ namespace EmulatorLauncher
                     case "lime3ds":
                     case "mandarine":
                     case "azahar":
+                    case "azahar-plus":
                         ret = revert ? "3ds_revert" : "3ds";
                         break;
                     case "bizhawk":

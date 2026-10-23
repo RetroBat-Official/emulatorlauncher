@@ -2665,23 +2665,26 @@ namespace EmulatorLauncher.Libretro
         static List<string> coreNoSavestate = new List<string>() { "arduous", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "cemu", "dice", "dinothawr", "doukutsu_rs", "easyrpg", "emux_gb", 
             "emux_nes", "emux_sms", "freej2me", "frodo", "gw", "lowresnx", "mame2010", "mame2014", "mame2016", "nxengine", "openlara", "pd777", "pocketcdg", "retro8", "same_cdi", "scummvm", 
             "superbroswar", "tyrquake", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero" };
+        
         // Level < SERIALIZED - no rewind (core_info.c:3092)
         static List<string> coreNoRewind = new List<string>() { "arduous", "azahar", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "cemu", "citra", "dice", "dinothawr", "dolphin", 
             "doukutsu_rs", "easyrpg", "ecwolf", "emux_gb", "emux_nes", "emux_sms", "freej2me", "frodo", "gw", "kronos", "lowresnx", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", 
             "mame2010", "mame2014", "mame2016", "nxengine", "o2em", "openlara", "opera", "pcsx2", "pd777", "play", "pocketcdg", "prboom", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", 
             "swanstation", "tic80", "tyrquake", "uzem", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "yabasanshiro", "yabause" };
+        
         // Rewind is supported but too costly for AUTO mode (large state serialized every frame, rewind_granularity = 1)
         static readonly List<string> systemNoAutoRewind = new List<string>() { "doom3", "dice", "nds", "3ds", "sega32x", "wii", "gamecube", "triforce", "gc", "psx", "zxspectrum", "odyssey2", 
             "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn", "supermodel", "mame", "hbmame", "fbneo", "dos", "scummvm", "psp" };
 
         // Same as above, core-based: flycast stops/restarts its emulation thread on each retro_serialize() call
-        static readonly List<string> coreNoAutoRewind = new List<string>() { "flycast", "zc255" };
+        static readonly List<string> coreNoAutoRewind = new List<string>() { "flycast", "geartowns", "zc255" };
 
         // Cores whose state leaves little or no room in RetroArch's default 20 MB rewind buffer
         // Value: minimum rewind_granularity forced when rewind is on (1 = keep the user's value)
         static readonly Dictionary<string, int> coreLargeRewindState = new Dictionary<string, int>()
         {
             { "flycast", 4 },                   // Dreamcast state is 26 MB+ (RAM 16 + VRAM 8 + ARAM 2), Naomi/Naomi 2 larger
+            { "geartowns", 3 },
             { "mupen64plus_next", 1 },          // ~16.8 MB state, only ~3 MB of history left in 20 MB
             { "mupen64plus_next_gles3", 1 },
             { "parallel_n64", 1 },

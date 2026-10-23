@@ -79,6 +79,7 @@ namespace EmulatorLauncher
         private bool _useReshade = false;
         private bool _pad2Keyoverride = false;
         private readonly Dictionary<string, string> _environmentVariables = new Dictionary<string, string>();
+        private string _cgeniusUserCfg = null;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -315,6 +316,21 @@ namespace EmulatorLauncher
         // Used so far to copy saves from emulator folder to Retrobat saves folder
         public override void Cleanup()
         {
+            // Commander Genius : restore the standalone installation config renamed before the game
+            if (_cgeniusUserCfg != null)
+            {
+                string userCfgBackup = _cgeniusUserCfg + ".retrobat";
+                try
+                {
+                    if (File.Exists(userCfgBackup) && !File.Exists(_cgeniusUserCfg))
+                        File.Move(userCfgBackup, _cgeniusUserCfg);
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] Commander Genius: unable to restore " + _cgeniusUserCfg + " : " + ex.Message);
+                }
+            }
+
             try
             {
                 string savesPath = Path.Combine(AppConfig.GetFullPath("saves"));
