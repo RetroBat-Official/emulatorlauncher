@@ -557,6 +557,26 @@ namespace EmulatorLauncher.Libretro
                     rom = newRom;
             }
 
+            // anybor: a game listed by its OpenBOR executable is loaded from its data (unpacked data\models.txt, or a pak of the Paks folder)
+            if (rom != null && core == "anybor" && Path.GetExtension(rom).ToLower() == ".exe")
+            {
+                string gameDir = Path.GetDirectoryName(rom);
+                string models = Path.Combine(gameDir, "data", "models.txt");
+                string paksDir = Path.Combine(gameDir, "Paks");
+                string[] paks = Directory.Exists(paksDir) ? Directory.GetFiles(paksDir, "*.pak").OrderBy(p => p).ToArray() : new string[] { };
+
+                if (File.Exists(models))
+                    rom = models;
+                else if (paks.Length > 0)
+                {
+                    if (paks.Length > 1)
+                        SimpleLogger.Instance.Info("[INFO] anybor: several paks found, loading " + paks[0]);
+                    rom = paks[0];
+                }
+                else
+                    SimpleLogger.Instance.Warning("[WARNING] anybor: no data\\models.txt or Paks\\*.pak found next to " + rom);
+            }
+
             // dosbox core specifics
             if (core != null && core.IndexOf("dosbox", StringComparison.InvariantCultureIgnoreCase) >= 0)
             {
@@ -1646,7 +1666,9 @@ namespace EmulatorLauncher.Libretro
             // ---- Rewind buffer for cores with a very large state ----
             const long largeRewindBuffer = 268435456;               // 256 MB, largest state is flycast Naomi 2 (~90 MB)
             const string largeRewindBufferValue = "268435456";
-            const int largeRewindGranularity = 4;                   // value forced for zc255, also used to undo it
+
+            // Granularity forced by a previous session of one of these cores (used to undo it, never a user value)
+            bool forcedGranularity = coreLargeRewindState.Values.Any(v => v > 1 && v.ToString() == retroarchConfig["rewind_granularity"]);
 
             int minGranularity;
             if (coreLargeRewindState.TryGetValue(core, out minGranularity))
@@ -1657,7 +1679,7 @@ namespace EmulatorLauncher.Libretro
                     if (!long.TryParse(retroarchConfig["rewind_buffer_size"], out currentBuffer))
                         currentBuffer = 20971520;                   // RetroArch default (20 MB)
                     else if (currentBuffer < 10000)
-                        currentBuffer *= 1024 * 1024;               // RetroArch reads values below 10000 as MB (configuration.c)
+                        currentBuffer *= 1024 * 1024;
 
                     // Only raise values that are too small, to keep a value set by the user
                     if (currentBuffer < largeRewindBuffer)
@@ -1670,12 +1692,12 @@ namespace EmulatorLauncher.Libretro
                     {
                         // Capturing every frame is too slow for this core
                         int currentGranularity;
-                        if (!int.TryParse(retroarchConfig["rewind_granularity"], out currentGranularity) || currentGranularity < minGranularity)
+                        if (!int.TryParse(retroarchConfig["rewind_granularity"], out currentGranularity) || currentGranularity < minGranularity || forcedGranularity)
                             retroarchConfig["rewind_granularity"] = minGranularity.ToString();
                     }
-                    else if (retroarchConfig["rewind_buffer_size"] == largeRewindBufferValue && retroarchConfig["rewind_granularity"] == largeRewindGranularity.ToString())
+                    else if (retroarchConfig["rewind_buffer_size"] == largeRewindBufferValue && forcedGranularity)
                     {
-                        // Undo the granularity left by a previous zc255 session
+                        // Undo the granularity left by a previous session of a core listed above
                         retroarchConfig["rewind_granularity"] = "1";
                     }
                 }
@@ -1684,7 +1706,7 @@ namespace EmulatorLauncher.Libretro
             {
                 // Undo the values set by a previous session of such a core, never a value set by the user
                 retroarchConfig["rewind_buffer_size"] = "20971520";
-                if (retroarchConfig["rewind_granularity"] == largeRewindGranularity.ToString())
+                if (forcedGranularity)
                     retroarchConfig["rewind_granularity"] = "1";
             }
 
@@ -2677,12 +2699,13 @@ namespace EmulatorLauncher.Libretro
             "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn", "supermodel", "mame", "hbmame", "fbneo", "dos", "scummvm", "psp" };
 
         // Same as above, core-based: flycast stops/restarts its emulation thread on each retro_serialize() call
-        static readonly List<string> coreNoAutoRewind = new List<string>() { "flycast", "geartowns", "zc255" };
+        static readonly List<string> coreNoAutoRewind = new List<string>() { "anybor", "flycast", "geartowns", "zc255" };
 
         // Cores whose state leaves little or no room in RetroArch's default 20 MB rewind buffer
         // Value: minimum rewind_granularity forced when rewind is on (1 = keep the user's value)
         static readonly Dictionary<string, int> coreLargeRewindState = new Dictionary<string, int>()
         {
+            { "anybor", 10 },                   // Fixed 64 MB state, upstream recommends granularity 10 with a 256 MB buffer
             { "flycast", 4 },                   // Dreamcast state is 26 MB+ (RAM 16 + VRAM 8 + ARAM 2), Naomi/Naomi 2 larger
             { "geartowns", 3 },
             { "mupen64plus_next", 1 },          // ~16.8 MB state, only ~3 MB of history left in 20 MB
@@ -2692,7 +2715,7 @@ namespace EmulatorLauncher.Libretro
         };
 
         // Level < DETERMINISTIC - no run-ahead, no preemptive frames, no netplay (core_info.c:3098-3107)
-        static List<string> coreNoRunahead = new List<string>() { "81", "applewin", "arduous", "azahar", "b2", "bennugd", "blastem", "bluemsx", "boom3", "boom3_xp", "bsnes", "bsnes-jg", 
+        static List<string> coreNoRunahead = new List<string>() { "81", "anybor", "applewin", "arduous", "azahar", "b2", "bennugd", "blastem", "bluemsx", "boom3", "boom3_xp", "bsnes", "bsnes-jg", 
             "bsnes2014_accuracy", "bsnes2014_balanced", "bsnes2014_performance", "bsnes_hd_beta", "bsnes_mercury_accuracy", "bsnes_mercury_balanced", "cannonball", "cap32", "cemu", "citra", 
             "crocods", "desmume", "desmume2015", "dice", "dinothawr", "dolphin", "dosbox_pure", "doukutsu_rs", "duckstation", "easyrpg", "ecwolf", "emux_gb", "emux_nes", "emux_sms", "ep128emu_core", 
             "fake08", "fbalpha", "fbalpha2012", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "fbalpha2012_neogeo", "flycast", "freej2me", "frodo", "gw", "handy", "hatari", "hatarib", 

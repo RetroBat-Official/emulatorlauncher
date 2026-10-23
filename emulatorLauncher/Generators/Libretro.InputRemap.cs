@@ -644,6 +644,17 @@ namespace EmulatorLauncher.Libretro
                 }
                 #endregion
 
+                #region openbor
+                if (core == "anybor" && Program.SystemConfig["anybor_layout"] == "standalone")
+                {
+                    // Same layout as the OpenBOR standalone: east = attack 2, north = special, L = attack 4, R = attack 3
+                    inputremap["input_player" + i + "_btn_a"] = "9";
+                    inputremap["input_player" + i + "_btn_x"] = "8";
+                    inputremap["input_player" + i + "_btn_l"] = "11";
+                    inputremap["input_player" + i + "_btn_r"] = "10";
+                }
+                #endregion
+
                 #region psx
                 if (system == "psx" && Program.SystemConfig.getOptBoolean("psx_triggerswap"))
                 {

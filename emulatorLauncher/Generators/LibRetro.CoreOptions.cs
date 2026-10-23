@@ -39,6 +39,7 @@ namespace EmulatorLauncher.Libretro
                 { "amiarcadia", "AmiArcadia" },
                 { "amiberry", "Amiberry" },
                 { "anarch", "anarch" },
+                { "anybor", "AnyBOR" },
                 { "applewin", "AppleWin" },
                 { "ardens", "Ardens" },
                 { "arduous", "arduous" },
@@ -364,6 +365,7 @@ namespace EmulatorLauncher.Libretro
             Configurea5200(retroarchConfig, coreSettings, system, core);
             ConfigureamiArcadia(retroarchConfig, coreSettings, system, core);
             Configureamiberry(retroarchConfig, coreSettings, system, core);
+            ConfigureAnybor(retroarchConfig, coreSettings, system, core);
             ConfigureApplewin(retroarchConfig, coreSettings, system, core);
             ConfigureAtari800(retroarchConfig, coreSettings, system, core);
             ConfigureAzahar(retroarchConfig, coreSettings, system, core);
@@ -829,6 +831,50 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "amiberry_controller2", defaultDevice);
 
             BindBoolFeature(coreSettings, "amiberry_input_log", "amiberry_input_log", "enabled", "disabled");
+        }
+
+        // obor_engine values, "Auto" is the core default
+        static readonly string[] anyborEngineProfiles = new string[] { "v3.0 3400", "v3.0 3741", "v3.0 3780", "v3.0 3783", "v3.0 3789", "v3.0 3793",
+            "v3.0 3797", "v3.0 3805", "v3.0 3814", "v3.0 3818", "v3.0 3822", "v3.0 3824", "v3.0 3829", "v3.0 3831", "v3.0 3837", "v3.0 3839", "v3.0 3842",
+            "v3.0 4086", "v3.0 4088-dev", "v3.0 4107", "v3.0 4111", "v3.0 4129", "v3.0 4153", "v3.0 4432", "v3.0 4453", "v3.0 6330", "v3.0 6391",
+            "v3.0 6391-mod", "v3.0 6392-dev", "v3.0 6412-dev", "v3.0 6510-dev", "v3.0 7086-dev", "v3.0 7123-dev", "v4.0 7142-alpha", "v4.0 7533", "v4.0 8023-dev" };
+
+        private void ConfigureAnybor(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "anybor")
+                return;
+
+            // Engine build: ES option first, then the "[XXXX]" build tag used by the OpenBOR standalone, then the core auto detection
+            string engine = "Auto";
+            if (SystemConfig.isOptSet("anybor_engine") && !string.IsNullOrEmpty(SystemConfig["anybor_engine"]))
+                engine = SystemConfig["anybor_engine"];
+            else if (!string.IsNullOrEmpty(SystemConfig["rom"]))
+            {
+                // The core only reads "Build XXXX" file name tags: translate the RetroBat tag when the core has this exact build
+                var tags = Regex.Matches(SystemConfig["rom"], @"\[(\d{4})\]");
+                if (tags.Count > 0)
+                {
+                    string build = tags[tags.Count - 1].Groups[1].Value;
+                    string profile = anyborEngineProfiles.FirstOrDefault(p => p.Split(' ')[1].Split('-')[0] == build);
+
+                    if (profile != null)
+                    {
+                        engine = profile;
+                        SimpleLogger.Instance.Info("[INFO] anybor: build tag [" + build + "] found, using engine " + profile);
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[INFO] anybor: no engine profile for build tag [" + build + "], using Auto");
+                }
+            }
+            coreSettings["obor_engine"] = engine;
+
+            BindBoolFeature(coreSettings, "obor_crt_tv", "anybor_crt_tv", "On", "Off");
+            BindBoolFeatureOn(coreSettings, "obor_analog", "anybor_analog", "On", "Off");
+            BindBoolFeatureOn(coreSettings, "obor_macros", "anybor_macros", "On", "Off");
+            BindBoolFeatureOn(coreSettings, "obor_rumble", "anybor_rumble", "On", "Off");
+
+            // Never leave a pending "delete saved data" request in the global core options file
+            coreSettings["obor_clear_local_data"] = "Off";
         }
 
         private void ConfigureApplewin(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
