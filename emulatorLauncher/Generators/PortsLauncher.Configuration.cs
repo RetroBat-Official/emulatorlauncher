@@ -219,49 +219,115 @@ namespace EmulatorLauncher
             if (_emulator != "cgenius")
                 return;
 
+            // Commander Genius looks for cgenius.cfg in %USERPROFILE%\Documents\Commander Genius first, then in the working directory (emulator folder)
+            // The file is fully written below before each launch, no template is needed
             string cfgFile = Path.Combine(_path, "cgenius.cfg");
+
+            // A standalone installation config would be used instead of the RetroBat one : rename it during the game, restored in Cleanup()
+            string userCfg = Path.Combine(Environment.GetEnvironmentVariable("USERPROFILE") ?? "", "Documents", "Commander Genius", "cgenius.cfg");
+            string userCfgBackup = userCfg + ".retrobat";
+
+            if (File.Exists(userCfg))
+            {
+                if (File.Exists(userCfgBackup))
+                    SimpleLogger.Instance.Warning("[WARNING] Commander Genius: " + userCfg + " and " + userCfgBackup + " both exist, the user configuration is used instead of the RetroBat one.");
+                else
+                {
+                    try
+                    {
+                        File.Move(userCfg, userCfgBackup);
+                        _cgeniusUserCfg = userCfg;
+                        SimpleLogger.Instance.Info("[INFO] Commander Genius: " + userCfg + " renamed during the game.");
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Instance.Warning("[WARNING] Commander Genius: unable to rename " + userCfg + " : " + ex.Message);
+                    }
+                }
+            }
+            else if (File.Exists(userCfgBackup))
+            {
+                // Backup left by a previous session that was not restored : restore it after this game
+                _cgeniusUserCfg = userCfg;
+            }
+
+            // Games are only detected in the "games" subfolder of a search path : find the root folder that contains "games"
+            string gameFolder = Path.GetDirectoryName(rom);
+            string searchRoot = null;
+            string relativeGamePath = null;
+
+            var dir = new DirectoryInfo(gameFolder);
+            while (dir != null && dir.Parent != null)
+            {
+                if (dir.Name.Equals("games", StringComparison.OrdinalIgnoreCase))
+                {
+                    searchRoot = dir.Parent.FullName;
+                    break;
+                }
+                dir = dir.Parent;
+            }
+
+            if (searchRoot == null)
+            {
+                SimpleLogger.Instance.Warning("[WARNING] Commander Genius: the game must be in a \"games\" subfolder (roms\\cgenius\\games\\<game>).");
+                searchRoot = Path.Combine(AppConfig.GetFullPath("roms"), "cgenius");
+            }
+
+            relativeGamePath = gameFolder.Substring(Math.Min(gameFolder.Length, searchRoot.Length)).Replace('\\', '/').TrimStart('/');
+
+            // Game resolution (320x200 = original)
+            string gameWidth = "320";
+            string gameHeight = "200";
+            if (SystemConfig.isOptSet("cgenius_resolution") && !string.IsNullOrEmpty(SystemConfig["cgenius_resolution"]))
+            {
+                string[] gameRes = SystemConfig["cgenius_resolution"].Split('x');
+                if (gameRes.Length == 2)
+                {
+                    gameWidth = gameRes[0];
+                    gameHeight = gameRes[1];
+                }
+            }
+
+            // Bezels need the 4:3 picture
+            string aspect = SystemConfig.GetValueOrDefault("ratio", "4:3");
+            if (aspect != "4:3")
+                _nobezels = true;
+
+            var screen = Program.TargetScreen ?? Screen.PrimaryScreen;
 
             using (var ini = IniFile.FromFile(cfgFile, IniOptions.UseSpaces))
             {
                 try
                 {
-                    // Paths
+                    // Paths : ${BIN} first, configuration and saves (save\<game>) are written to the first search path
                     ini.WriteValue("FileHandling", "EnableLogfile", "true");
                     ini.WriteValue("FileHandling", "SearchPath1", "${BIN}");
-                    ini.WriteValue("FileHandling", "SearchPath2", Path.Combine(AppConfig.GetFullPath("roms"), "cgenius"));
+                    ini.WriteValue("FileHandling", "SearchPath2", searchRoot);
 
-                    //Video
-                    /// Screen size
+                    // Window size (fullscreen always uses the desktop resolution)
                     if (_resolution != null)
                     {
-                        ini.WriteValue("Video", "height", _resolution.Height.ToString());
                         ini.WriteValue("Video", "width", _resolution.Width.ToString());
+                        ini.WriteValue("Video", "height", _resolution.Height.ToString());
                     }
                     else
                     {
-                        ini.WriteValue("Video", "height", Screen.PrimaryScreen.Bounds.Height.ToString());
-                        ini.WriteValue("Video", "width", Screen.PrimaryScreen.Bounds.Width.ToString());
+                        ini.WriteValue("Video", "width", screen.Bounds.Width.ToString());
+                        ini.WriteValue("Video", "height", screen.Bounds.Height.ToString());
                     }
 
-                    /// Game resolution
-                    if (SystemConfig.isOptSet("cgenius_resolution") && !string.IsNullOrEmpty(SystemConfig["cgenius_resolution"]))
+                    // Game resolution : since 3.4.0 it is stored per engine section, [Video] gameWidth / gameHeight are no longer read
+                    foreach (string engine in new[] { "Launcher", "Vorticon", "Galaxy" })
                     {
-                        string[] gameRes = SystemConfig["cgenius_resolution"].Split('x');
-                        string gameWidth = gameRes[0];
-                        string gameHeight = gameRes[1];
-
-                        ini.WriteValue("Video", "gameWidth", gameWidth);
-                        ini.WriteValue("Video", "gameHeight", gameHeight);
+                        ini.WriteValue(engine, "gameWidth", gameWidth);
+                        ini.WriteValue(engine, "gameHeight", gameHeight);
                     }
-                    else
-                    {
-                        ini.WriteValue("Video", "gameWidth", "320");
-                        ini.WriteValue("Video", "gameHeight", "200");
-                    }
+                    ini.Remove("Video", "gameWidth");
+                    ini.Remove("Video", "gameHeight");
 
                     ini.WriteValue("Video", "fullscreen", _fullscreen ? "true" : "false");
+                    ini.WriteValue("Video", "aspect", aspect);
                     BindIniFeature(ini, "Video", "filter", "cgenius_filter", "1");
-                    BindIniFeature(ini, "Video", "aspect", "ratio", "4:3");
                     BindIniFeature(ini, "Video", "OGLfilter", "OGLfilter", "nearest");
                     BindBoolIniFeatureOn(ini, "Video", "vsync", "cgenius_vsync", "true", "false");
                     BindBoolIniFeature(ini, "Video", "integerScaling", "integerscale", "true", "false");
@@ -271,23 +337,17 @@ namespace EmulatorLauncher
                     // Game options
                     BindBoolIniFeatureOn(ini, "Game", "hud", "cgenius_hud", "true", "false");
                     BindBoolIniFeature(ini, "Game", "showfps", "cgenius_showfps", "true", "false");
+                    BindBoolIniFeatureOn(ini, "Game", "showachv", "cgenius_achievements", "true", "false");
 
                     ConfigureCGeniusControls(ini);
                 }
-                catch 
+                catch
                 {
                     SimpleLogger.Instance.Warning("[WARNING] Error opening cgenius.cfg config file.");
                 }
             }
 
-            string relativeGamePath = Path.GetDirectoryName(rom);
-            string romPath = Path.Combine(AppConfig.GetFullPath("roms"), "cgenius");
-            relativeGamePath = relativeGamePath.Replace(romPath, "");
-            relativeGamePath = relativeGamePath.Replace('\\', '/');
-            int index = relativeGamePath.IndexOf('/');
-            if (index > -1 && relativeGamePath.StartsWith("/"))
-                relativeGamePath = relativeGamePath.Remove(index, 1);
-
+            // Start the game directly (path relative to the search path, as listed by the game launcher)
             commandArray.Add("dir=" + "\"" + relativeGamePath + "\"");
         }
 

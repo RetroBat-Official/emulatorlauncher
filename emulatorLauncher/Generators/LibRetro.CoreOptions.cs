@@ -123,6 +123,7 @@ namespace EmulatorLauncher.Libretro
                 { "gearcoleco", "Gearcoleco" },
                 { "geargrafx", "Geargrafx" },
                 { "gearsystem", "Gearsystem" },
+                { "geartowns", "Geartowns" },
                 { "genesis_plus_gx", "Genesis Plus GX" },
                 { "genesis_plus_gx_expanded", "Genesis Plus GX" },
                 { "genesis_plus_gx_wide", "Genesis Plus GX Wide" },
@@ -406,6 +407,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureGearColeco(retroarchConfig, coreSettings, system, core);
             ConfigureGearGrafx(retroarchConfig, coreSettings, system, core);
             ConfigureGearSystem(retroarchConfig, coreSettings, system, core);
+            ConfigureGearTowns(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGX(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGXWide(retroarchConfig, coreSettings, system, core);
             ConfigureGeolith(retroarchConfig, coreSettings, system, core);
@@ -2928,6 +2930,45 @@ namespace EmulatorLauncher.Libretro
             // Guns
             BindBoolFeature(coreSettings, "gearsystem_lightgun_crosshair", "gearsystem_lightgun_crosshair", "Enabled", "Disabled");
             SetupLightGuns(retroarchConfig, "260", core);
+        }
+
+        private void ConfigureGearTowns(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "geartowns")
+                return;
+
+            // Emulations
+            BindFeature(coreSettings, "geartowns_model", "geartowns_model", "auto");
+            BindFeature(coreSettings, "geartowns_cpu_clock", "geartowns_cpu_clock", "auto");
+            BindFeature(coreSettings, "geartowns_main_ram", "geartowns_main_ram", "auto");
+            BindBoolFeatureOn(coreSettings, "geartowns_dynarec", "geartowns_dynarec", "Enabled", "Disabled");
+            BindFeature(coreSettings, "geartowns_boot_device", "geartowns_boot_device", "auto");
+            BindBoolFeature(coreSettings, "geartowns_cmos", "geartowns_cmos", "Per Game", "Shared");
+
+            // Display
+            BindFeature(coreSettings, "geartowns_aspect_ratio", "geartowns_aspect_ratio", "4:3 DAR");
+            BindBoolFeatureOn(coreSettings, "geartowns_native_resolution", "geartowns_native_resolution", "Enabled", "Disabled");
+            BindFeature(coreSettings, "geartowns_frameskip", "geartowns_frameskip", "Disabled");
+            BindFeature(coreSettings, "geartowns_frameskip_threshold", "geartowns_frameskip_threshold", "33");
+
+            // CD-ROM
+            BindFeature(coreSettings, "geartowns_cdrom_speed", "geartowns_cdrom_speed", "1x");
+            BindBoolFeature(coreSettings, "geartowns_cdrom_preload", "geartowns_cdrom_preload", "Enabled", "Disabled");
+
+            // Floppy
+            BindFeature(coreSettings, "geartowns_floppy_drive", "geartowns_floppy_drive", "Floppy 1");
+            BindBoolFeature(coreSettings, "geartowns_floppy_multidrive", "geartowns_floppy_multidrive", "Enabled", "Disabled");
+            BindBoolFeature(coreSettings, "geartowns_save_disk", "geartowns_save_disk", "Enabled", "Disabled");
+
+            // Input
+            BindBoolFeature(coreSettings, "geartowns_up_down_allowed", "geartowns_up_down_allowed", "Enabled", "Disabled");
+            BindFeature(coreSettings, "geartowns_mouse_sensitivity", "geartowns_mouse_sensitivity", "5");
+            BindFeature(coreSettings, "geartowns_analog_mouse", "geartowns_analog_mouse", "Disabled");
+            BindFeature(coreSettings, "geartowns_analog_mouse_speed", "geartowns_analog_mouse_speed", "5");
+
+            // Controls
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "geartowns_controller1", "1");
+            BindFeature(retroarchConfig, "input_libretro_device_p2", "geartowns_controller2", "1");
         }
 
         private void ConfigureGenesisPlusGX(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

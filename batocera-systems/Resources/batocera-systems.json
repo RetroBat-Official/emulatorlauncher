@@ -59,7 +59,7 @@
     "name": "Adventure Vision",
     "biosFiles": [
       {
-        "md5": "1c08606408029751fd30ac91d2bf30d5",
+        "md5": "",
         "file": "bios/advision.zip"
       },
       {
@@ -139,7 +139,7 @@
     "name": "APF M-1000",
     "biosFiles": [
       {
-        "md5": "b197db12f7a13827717bbeb7cfd9542a",
+        "md5": "",
         "file": "bios/apfm1000.zip"
       },
       {
@@ -295,7 +295,7 @@
     "name": "Arcadia 2001",
     "biosFiles": [
       {
-        "md5": "37e9746f4491aa2df9a83729d1a93620",
+        "md5": "",
         "file": "bios/ar_bios.zip"
       },
       {
@@ -327,7 +327,7 @@
     "name": "Astrocade",
     "biosFiles": [
       {
-        "md5": "f58a3823ab308ef0a02b498d126e5d96",
+        "md5": "",
         "file": "bios/astrocde.zip"
       },
       {
@@ -467,7 +467,7 @@
     "name": "Atomiswave",
     "biosFiles": [
       {
-        "md5": "0ec5ae5b5a5c4959fa8b43fcf8687f7c",
+        "md5": "",
         "file": "bios/dc/awbios.zip"
       }
     ]
@@ -589,7 +589,7 @@
     "name": "Casio Loopy",
     "biosFiles": [
       {
-        "md5": "0e1d8dc0110ecf8201c0cef11ef4a858",
+        "md5": "",
         "file": "bios/casloopy.zip"
       },
       {
@@ -867,15 +867,7 @@
     "name": "FMTowns",
     "biosFiles": [
       {
-        "md5": "",
-        "file": "bios/fmtowns.zip"
-      },
-      {
-        "md5": "",
-        "file": "bios/fmtownsux.zip"
-      },
-      {
-        "md5": "8fa4e553f28cfc0c30a0a1e589799942",
+        "md5": "34847786d7de94b5d1133c956ab1d75d",
         "file": "bios/fmtowns/FMT_DIC.ROM"
       },
       {
@@ -883,32 +875,12 @@
         "file": "bios/fmtowns/FMT_DOS.ROM"
       },
       {
-        "md5": "ac0c7021e9bf48ca84b51ab651169a88",
-        "file": "bios/fmtowns/FMT_F20.ROM"
-      },
-      {
-        "md5": "b91300e55b70227ce98b59c5f02fa8dd",
+        "md5": "eb44f2093f51eb7159f03e170b13af76",
         "file": "bios/fmtowns/FMT_FNT.ROM"
       },
       {
-        "md5": "86fb6f7280689259f0ca839dd3dd6cde",
+        "md5": "feaf8c5675151e00cfe3ad27673bff29",
         "file": "bios/fmtowns/FMT_SYS.ROM"
-      },
-      {
-        "md5": "",
-        "file": "bios/mame/hash/fmtowns_cd.xml"
-      },
-      {
-        "md5": "",
-        "file": "bios/mame/hash/fmtowns_flop_cracked.xml"
-      },
-      {
-        "md5": "",
-        "file": "bios/mame/hash/fmtowns_flop_misc.xml"
-      },
-      {
-        "md5": "",
-        "file": "bios/mame/hash/fmtowns_flop_orig.xml"
       }
     ]
   },
@@ -917,7 +889,7 @@
     "name": "Gamate",
     "biosFiles": [
       {
-        "md5": "320bf3d4142fa1043255db7ff87d17c7",
+        "md5": "",
         "file": "bios/gamate.zip"
       },
       {
@@ -931,7 +903,7 @@
     "name": "Game.com",
     "biosFiles": [
       {
-        "md5": "f2087ed09f7fa8d8856cfafb20dd00dc",
+        "md5": "",
         "file": "bios/gamecom.zip"
       },
       {
@@ -945,7 +917,7 @@
     "name": "Game Pocket",
     "biosFiles": [
       {
-        "md5": "887479fe3c69a0b935c57a7a738e26c4",
+        "md5": "",
         "file": "bios/gamepock.zip"
       },
       {
@@ -989,7 +961,7 @@
     "name": "Game Master",
     "biosFiles": [
       {
-        "md5": "4239d6f44a0d78d27c69f9b95885f48e",
+        "md5": "",
         "file": "bios/gmaster.zip"
       },
       {
@@ -1003,7 +975,7 @@
     "name": "Game Park 32",
     "biosFiles": [
       {
-        "md5": "8c392f475834218d88533150d36cc84c",
+        "md5": "",
         "file": "bios/gp32.zip"
       },
       {
@@ -1017,11 +989,11 @@
     "name": "Hikaru",
     "biosFiles": [
       {
-        "md5": "aac601811a25d7b31a3d5f3f1f82f338",
+        "md5": "",
         "file": "bios/hikaru.zip"
       },
       {
-        "md5": "e95415b161121bef35ade12367138c63",
+        "md5": "",
         "file": "bios/mie.zip"
       }
     ]
@@ -1389,7 +1361,7 @@
     "name": "Naomi",
     "biosFiles": [
       {
-        "md5": "eb4099aeb42ef089cfe94f8fe95e51f6",
+        "md5": "",
         "file": "bios/dc/naomi.zip"
       }
     ]
@@ -1439,7 +1411,7 @@
     "name": "NeoGeo",
     "biosFiles": [
       {
-        "md5": "dffb72f116d36d025068b23970a4f6df",
+        "md5": "",
         "file": "bios/neogeo.zip"
       }
     ]
@@ -1449,7 +1421,7 @@
     "name": "Hyper NeoGeo 64",
     "biosFiles": [
       {
-        "md5": "dffb72f116d36d025068b23970a4f6df",
+        "md5": "",
         "file": "bios/neogeo.zip"
       }
     ]
@@ -1459,11 +1431,11 @@
     "name": "NeoGeo CD",
     "biosFiles": [
       {
-        "md5": "dffb72f116d36d025068b23970a4f6df",
+        "md5": "",
         "file": "bios/neogeo.zip"
       },
       {
-        "md5": "c733b4b7bd30fa849874d96c591c8639",
+        "md5": "",
         "file": "bios/neocdz.zip"
       },
       {
@@ -1659,7 +1631,7 @@
     "name": "Aamber Pegasus",
     "biosFiles": [
       {
-        "md5": "fee37d8140e4fab48aac4fdab2847f7d",
+        "md5": "",
         "file": "bios/pegasus.zip"
       },
       {
@@ -1767,7 +1739,7 @@
     "name": "Super Cassette Vision",
     "biosFiles": [
       {
-        "md5": "33df021613fb12abe2ad14b9eb17c7fe",
+        "md5": "",
         "file": "bios/scv.zip"
       },
       {
@@ -1916,7 +1888,7 @@
   },
 
   "tutor": {
-    "name": "APF M-1000",
+    "name": "Tomy Tutor",
     "biosFiles": [
       {
         "md5": "",
