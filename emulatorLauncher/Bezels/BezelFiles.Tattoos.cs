@@ -333,6 +333,7 @@ namespace EmulatorLauncher
                         switch (core)
                         {
                             case "mgba":
+                            case "mgba_splitscreen":
                                 ret = invertButtons ? "gba_turbo_invert" : "gba_turbo";
                                 break;
                             case "mednafen_gba":
