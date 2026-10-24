@@ -126,6 +126,7 @@ namespace EmulatorLauncher
             { new Installer("simcoupe") },
             { new Installer("simple64", "simple64", "simple64-gui.exe") },
             { new Installer("singe2", "singe2", "Singe-v2.10-Windows-x86_64.exe") },
+            { new Installer("sm2-emu", "sm2-emu", "sm2-emu.exe") },
             { new Installer("snes9x", "snes9x", "snes9x-x64.exe") },
             { new Installer("soh", "soh", "soh.exe") },
             { new Installer("solarus", "solarus", "solarus-run.exe") },

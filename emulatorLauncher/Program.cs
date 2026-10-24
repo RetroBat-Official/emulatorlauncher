@@ -165,6 +165,7 @@ namespace EmulatorLauncher
             { "simcoupe", () => new SimCoupeGenerator() },
             { "simple64", () => new Simple64Generator() },
             { "singe2", () => new Singe2Generator() },
+            { "sm2-emu", () => new Sm2EmuGenerator() },
             { "snes9x", () => new Snes9xGenerator() },
             { "soh", () => new SohGenerator() },
             { "solarus", () => new SolarusGenerator() },

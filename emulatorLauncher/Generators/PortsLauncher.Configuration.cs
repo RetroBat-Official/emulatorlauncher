@@ -2495,60 +2495,95 @@ namespace EmulatorLauncher
             if (_emulator != "vkquake")
                 return;
 
-            bool hipnotic = false;
-            bool rogue = false;
+            // Base folder = folder holding id1, game folder = first folder below it in the rom path (id1, hipnotic, rogue, dopa, mods...)
+            string rompath = QuakeGameFolders.GetBaseDir(rom, "id1", "quake");
+            string game = QuakeGameFolders.GetGameDir(rom, rompath, "id1");
 
+            // An explicit -basedir disables the Steam/GOG/Epic detection and the user folder: everything is written in the roms folder
             commandArray.Add("-basedir");
-            string rompath =Path.Combine(AppConfig.GetFullPath("roms"), "quake");
-
             commandArray.Add("\"" + rompath + "\"");
 
-            if (rom.ToLowerInvariant().Contains("scourge") || rom.ToLowerInvariant().Contains("hipnotic"))
+            if (game != null)
             {
-                commandArray.Add("-hipnotic");
-                hipnotic = true;
+                string lowerGame = game.ToLowerInvariant();
+
+                // Mission packs have their own switch (status bar), any other folder is loaded as a mod
+                if (lowerGame == "hipnotic" || lowerGame == "rogue" || lowerGame == "quoth")
+                    commandArray.Add("-" + lowerGame);
+                else
+                {
+                    commandArray.Add("-game");
+                    commandArray.Add("\"" + game + "\"");
+                }
             }
-            else if (rom.ToLowerInvariant().Contains("dissolution") || rom.ToLowerInvariant().Contains("rogue"))
+
+            // Default: borderless desktop fullscreen (no display mode change)
+            // Exclusive fullscreen: Vulkan exclusive mode (vid_fullscreen 2) with a real display mode
+            // Forced video mode: real display mode at the chosen resolution
+            bool desktopFullscreen = _fullscreen && !_exclusivefs && _resolution == null;
+            commandArray.Add(_fullscreen ? "-fullscreen" : "-window");
+
+            // Only "+" commands from here: stuffcmds stops at the next "-" switch, and a "+" value cannot be negative.
+            // Settings not needed at video startup are in retrobat.cfg, executed after vkQuake.cfg (quake.rc runs stuffcmds after the config files)
+            commandArray.Add("+exec");
+            commandArray.Add("retrobat.cfg");
+
+            // Video settings are read on the command line before the window is created (CFG_ReadCvarOverrides), whatever the config layout
+            // (single vkQuake.cfg up to 1.35, global <basedir>\vkQuake.cfg + per game vkQuake.cfg since 1.36)
+            AddQuakeCvar(commandArray, "vid_fullscreen", !_fullscreen ? "0" : (_exclusivefs ? "2" : "1"));
+            AddQuakeCvar(commandArray, "vid_desktopfullscreen", desktopFullscreen ? "1" : "0");
+            AddQuakeCvar(commandArray, "vid_borderless", "0");
+
+            ScreenResolution res = _resolution;
+            if (res == null && _fullscreen && !desktopFullscreen)
+                res = ScreenResolution.CurrentResolution;
+
+            if (res != null)
             {
-                commandArray.Add("-rogue");
-                rogue = true;
+                AddQuakeCvar(commandArray, "vid_width", res.Width.ToString());
+                AddQuakeCvar(commandArray, "vid_height", res.Height.ToString());
+
+                if (res.DisplayFrequency > 1)
+                    AddQuakeCvar(commandArray, "vid_refreshrate", res.DisplayFrequency.ToString());
             }
-
-            if (_fullscreen)
-                commandArray.Add("-fullscreen");
-
-            // Config file
-            string vkquakecfg = Path.Combine(rompath, "id1", "vkQuake.cfg");
-
-            if (hipnotic)
-                vkquakecfg = Path.Combine(rompath, "hipnotic", "vkQuake.cfg");
-            else if (rogue)
-                vkquakecfg = Path.Combine(rompath, "rogue", "vkQuake.cfg");
-
-            var cfg = new QuakeConfig(vkquakecfg);
-            cfg.AppendIfMissing = true;
-            var height = _resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height;
-            var width = _resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width;
-
-            cfg["vid_width"] = width.ToString();
-            cfg["vid_height"] = height.ToString();
 
             if (SystemConfig.isOptSet("vkquake_vsync") && !string.IsNullOrEmpty(SystemConfig["vkquake_vsync"]))
-                cfg["vid_vsync"] = SystemConfig["vkquake_vsync"];
+                AddQuakeCvar(commandArray, "vid_vsync", SystemConfig["vkquake_vsync"]);
             else
-                cfg["vid_vsync"] = "0";
+                AddQuakeCvar(commandArray, "vid_vsync", "1");
 
-            if (_fullscreen)
-                cfg["vid_fullscreen"] = "1";
+            if (SystemConfig.isOptSet("vkquake_msaa") && !string.IsNullOrEmpty(SystemConfig["vkquake_msaa"]))
+                AddQuakeCvar(commandArray, "vid_fsaa", SystemConfig["vkquake_msaa"]);
             else
-                cfg["vid_fullscreen"] = "0";
+                AddQuakeCvar(commandArray, "vid_fsaa", "0");
 
-            if (_exclusivefs)
-                cfg["vid_borderless"] = "0";
-            else
-                cfg["vid_borderless"] = "1";
+            // vkQuake rebuilds its command line from all the arguments and cuts it at 255 characters (CMDLINE_LENGTH)
+            int cmdLength = string.Join(" ", commandArray).Replace("\"", "").Length;
+            if (cmdLength > 255)
+                SimpleLogger.Instance.Warning("[WARNING] vkQuake: command line is " + cmdLength + " characters long (limit 255), the last settings may be ignored. Use a shorter roms path.");
 
-            cfg.Save();
+            // Settings applied after the config files
+            string filter = SystemConfig.isOptSet("vkquake_filter") && !string.IsNullOrEmpty(SystemConfig["vkquake_filter"]) ? SystemConfig["vkquake_filter"] : "0";
+
+            var retrobatCfg = new List<string>
+            {
+                "// Generated by RetroBat at each launch, changes are overwritten",
+                "vid_filter \"" + filter + "\"",
+                "scr_showfps \"" + (SystemConfig.getOptBoolean("vkquake_showfps") ? "1" : "0") + "\"",
+                "joy_invert \"" + (SystemConfig.getOptBoolean("vkquake_invertlook") ? "1" : "0") + "\"",
+
+                // Keyboard keys sent by RetroBat hotkeys (es_padtokey.cfg): F2 quicksave, F4 quickload, F8 screenshot
+                "bind \"F2\" \"save quick\"",
+                "bind \"F4\" \"load quick\"",
+                "bind \"F8\" \"screenshot\""
+            };
+
+            // id1 is always in the search path, mods included
+            string retrobatCfgFile = Path.Combine(rompath, "id1", "retrobat.cfg");
+            try { File.WriteAllLines(retrobatCfgFile, retrobatCfg); }
+            catch (Exception ex) { SimpleLogger.Instance.Warning("[WARNING] vkQuake: unable to write " + retrobatCfgFile + " : " + ex.Message); }
+
+            ConfigurevkQuakeControls();
         }
 
         private void ConfigurevkQuake2(List<string> commandArray, string rom)
@@ -2556,58 +2591,60 @@ namespace EmulatorLauncher
             if (_emulator != "vkquake2")
                 return;
 
-            bool zaero = false;
-            bool xatrix = false;
-            bool smd = false;
-            bool rogue = false;
-            string rompath = Path.Combine(AppConfig.GetFullPath("roms"), "quake2");
+            // Base folder = folder holding baseq2, game folder = first folder below it in the rom path (baseq2, rogue, xatrix, zaero, smd, ctf, mods...)
+            string rompath = QuakeGameFolders.GetBaseDir(rom, "baseq2", "quake2");
+            string game = QuakeGameFolders.GetGameDir(rom, rompath, "baseq2");
 
-            commandArray.Add("+set basedir");
-            commandArray.Add("\"" + rompath + "\"");
+            // Quake 2 splits its command line on spaces and ignores quotes (ParseCommandLine in win32/sys_win.c): "+set basedir" breaks when the path contains a space.
+            // basedir defaults to "." (working directory), ref_vk.dll is still loaded from the executable folder.
+            _workingPath = rompath;
 
-            if (rom.ToLowerInvariant().Contains("zaero"))
+            // The game library is only searched in <basedir>\<game> (Sys_GetGameAPI)
+            CopyQuake2GameLibrary("baseq2", rompath);
+
+            if (game != null)
             {
-                commandArray.Add("+set game zaero");
-                zaero = true;
-            }
-            else if (rom.ToLowerInvariant().Contains("xatrix"))
-            {
-                commandArray.Add("+set game xatrix");
-                xatrix = true;
-            }
-            else if (rom.ToLowerInvariant().Contains("rogue"))
-            {
-                commandArray.Add("+set game rogue");
-                rogue = true;
-            }
-            else if (rom.ToLowerInvariant().Contains("smd"))
-            {
-                commandArray.Add("+set game smd");
-                smd = true;
+                CopyQuake2GameLibrary(game, rompath);
+                commandArray.Add("+set game " + game);
             }
 
-            if (_fullscreen)
-                commandArray.Add("-fullscreen");
-
-            // Config file
+            // Quake 2 executes the first config.cfg found in <game> then baseq2 (and writes it in <game> on exit):
+            // do not create an almost empty <game>\config.cfg that would hide the baseq2 bindings
             string vkquake2cfg = Path.Combine(rompath, "baseq2", "config.cfg");
-
-            if (zaero)
-                vkquake2cfg = Path.Combine(rompath, "zaero", "config.cfg");
-            else if (xatrix)
-                vkquake2cfg = Path.Combine(rompath, "xatrix", "config.cfg");
-            else if (smd)
-                vkquake2cfg = Path.Combine(rompath, "smd", "config.cfg");
-            else if (rogue)
-                vkquake2cfg = Path.Combine(rompath, "rogue", "config.cfg");
+            if (game != null && File.Exists(Path.Combine(rompath, game, "config.cfg")))
+                vkquake2cfg = Path.Combine(rompath, game, "config.cfg");
 
             var cfg = new QuakeConfig(vkquake2cfg);
-            var height = _resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height;
-            var width = _resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width;
 
-            cfg["set vk_mode"] = "-1";
-            cfg["set r_customwidth"] = width.ToString();
-            cfg["set r_customheight"] = height.ToString();
+            // Fullscreen always changes the display mode (ChangeDisplaySettingsEx) of the monitor holding the window:
+            // use the target screen resolution unless a video mode is forced. Windowed mode keeps its size unless a video mode is forced.
+            ScreenResolution res = _resolution;
+            if (res == null && _fullscreen)
+            {
+                if (Program.IsMonitorIndexSet && Program.TargetScreen != null)
+                    res = ScreenResolution.GetCurrentResolution(Program.TargetScreen.DeviceName);
+                if (res == null)
+                    res = ScreenResolution.CurrentResolution;
+            }
+
+            if (res != null)
+            {
+                cfg["set vk_mode"] = "-1";
+                cfg["set r_customwidth"] = res.Width.ToString();
+                cfg["set r_customheight"] = res.Height.ToString();
+            }
+
+            // The window position selects the monitor used in fullscreen (MonitorFromWindow), upstream default position otherwise
+            if (Program.IsMonitorIndexSet && Program.TargetScreen != null)
+            {
+                cfg["set vid_xpos"] = Program.TargetScreen.Bounds.X.ToString();
+                cfg["set vid_ypos"] = Program.TargetScreen.Bounds.Y.ToString();
+            }
+            else
+            {
+                cfg["set vid_xpos"] = "3";
+                cfg["set vid_ypos"] = "22";
+            }
 
             if (SystemConfig.isOptSet("vkquake2_vsync") && SystemConfig.getOptBoolean("vkquake2_vsync"))
                 cfg["set vk_vsync"] = "1";
@@ -2624,6 +2661,7 @@ namespace EmulatorLauncher
             else
                 cfg["set vk_fullscreen_exclusive"] = "0";
 
+            // s_khz 44 is not usable (snd_win.c falls back to 11 kHz), only 11 and 22
             if (SystemConfig.isOptSet("vkquake2_soundhighquality") && !SystemConfig.getOptBoolean("vkquake2_soundhighquality"))
                 cfg["set s_khz"] = "11";
             else
@@ -2644,7 +2682,101 @@ namespace EmulatorLauncher
             else
                 cfg["set vk_msaa"] = "0";
 
+            // Keyboard keys sent by RetroBat hotkeys (es_padtokey.cfg): F2 quicksave, F4 quickload, F8 screenshot
+            cfg["bind F2"] = "save quick";
+            cfg["bind F4"] = "load quick";
+            cfg["bind F8"] = "screenshot";
+
             cfg.Save();
+        }
+
+        // Quake 2 loads the game library from <basedir>\<game> only: copy the one shipped with the emulator when it is missing in the roms folder
+        private void CopyQuake2GameLibrary(string game, string basePath)
+        {
+            foreach (string dll in new[] { "gamex64.dll", "gamex86.dll" })
+            {
+                string source = Path.Combine(_path, game, dll);
+                string target = Path.Combine(basePath, game, dll);
+
+                if (!File.Exists(source) || File.Exists(target))
+                    continue;
+
+                try
+                {
+                    Directory.CreateDirectory(Path.Combine(basePath, game));
+                    File.Copy(source, target);
+                    SimpleLogger.Instance.Info("[INFO] vkQuake2: " + game + "\\" + dll + " copied to the roms folder.");
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] vkQuake2: unable to copy " + source + " : " + ex.Message);
+                }
+            }
+        }
+
+        // Quake engines: the base folder is the one holding the base game folder (id1, baseq2), searched from the rom path
+        private static string GetQuakeBaseDir(string rom, string baseGame, string systemFolder)
+        {
+            try
+            {
+                string dir = Path.GetDirectoryName(Path.GetFullPath(rom));
+                while (!string.IsNullOrEmpty(dir))
+                {
+                    if (Directory.Exists(Path.Combine(dir, baseGame)))
+                        return dir;
+
+                    dir = Path.GetDirectoryName(dir);
+                }
+            }
+            catch { }
+
+            return Path.Combine(Program.AppConfig.GetFullPath("roms"), systemFolder);
+        }
+
+        // Quake engines: the game folder is the first folder of the rom path below the base folder.
+        // A game file placed in the base folder (.quake, .quake2) gives the folder on its first line, otherwise its file name is used.
+        // Returns null for the base game.
+        private static string GetQuakeGameDir(string rom, string baseDir, string baseGame)
+        {
+            string game = null;
+
+            try
+            {
+                string romDir = Path.GetDirectoryName(Path.GetFullPath(rom)).TrimEnd('\\') + "\\";
+                string root = Path.GetFullPath(baseDir).TrimEnd('\\') + "\\";
+
+                if (romDir.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (romDir.Length > root.Length)
+                        game = romDir.Substring(root.Length).Split('\\')[0];
+                    else if (!Path.GetExtension(rom).Equals(".pak", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string line = null;
+                        if (new FileInfo(rom).Length < 4096)
+                            line = File.ReadAllLines(rom).Select(l => l.Trim()).FirstOrDefault(l => l.Length > 0);
+
+                        string fileName = Path.GetFileNameWithoutExtension(rom);
+
+                        if (!string.IsNullOrEmpty(line) && line.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 && Directory.Exists(Path.Combine(root, line)))
+                            game = line;
+                        else if (Directory.Exists(Path.Combine(root, fileName)))
+                            game = fileName;
+                    }
+                }
+            }
+            catch { }
+
+            if (string.IsNullOrEmpty(game) || game.Equals(baseGame, StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            return game;
+        }
+
+        // Quake engines: "+cvar value" on the command line
+        private static void AddQuakeCvar(List<string> commandArray, string cvar, string value)
+        {
+            commandArray.Add("+" + cvar);
+            commandArray.Add(value);
         }
 
         private void ConfigureXash3d(List<string> commandArray, string rom)
@@ -3041,19 +3173,140 @@ namespace EmulatorLauncher
 
         private string UpdateRawValue(string raw, string newValue)
         {
-            // find first " after key
-            int quoteStart = raw.IndexOf('"');
-            if (quoteStart < 0)
+            // The value is the last quoted string of the line (bind lines may also quote the key: bind "F2" "value")
+            int quoteEnd = raw.LastIndexOf('"');
+            if (quoteEnd <= 0)
                 return raw; // cannot parse, leave unchanged
 
-            int quoteEnd = raw.IndexOf('"', quoteStart + 1);
-            if (quoteEnd < 0)
+            int quoteStart = raw.LastIndexOf('"', quoteEnd - 1);
+            if (quoteStart < 0)
                 return raw;
 
             return raw.Substring(0, quoteStart + 1) + newValue + raw.Substring(quoteEnd);
         }
 
         #endregion
+    }
+    #endregion
+
+    #region Quake game folders
+    /// <summary>
+    /// Game folders shared by vkQuake / vkQuake2 and the libretro cores tyrquake / vitaquake2:
+    /// roms\quake\[game]\ and roms\quake2\[game]\, the base game being id1 / baseq2.
+    /// </summary>
+    static class QuakeGameFolders
+    {
+        /// <summary>Base folder = folder holding the base game folder (id1, baseq2), searched from the rom path.</summary>
+        public static string GetBaseDir(string rom, string baseGame, string systemFolder)
+        {
+            try
+            {
+                string dir = Path.GetDirectoryName(Path.GetFullPath(rom));
+                while (!string.IsNullOrEmpty(dir))
+                {
+                    if (Directory.Exists(Path.Combine(dir, baseGame)))
+                        return dir;
+
+                    dir = Path.GetDirectoryName(dir);
+                }
+            }
+            catch { }
+
+            return Path.Combine(Program.AppConfig.GetFullPath("roms"), systemFolder);
+        }
+
+        /// <summary>
+        /// Game folder of a rom, null for the base game.
+        /// Game data file: first folder below the base folder.
+        /// Launch file (.quake / .quake2): folder name on its first line, otherwise its file name, otherwise the historic keywords of its file name.
+        /// </summary>
+        public static string GetGameDir(string rom, string baseDir, string baseGame)
+        {
+            string game = null;
+
+            try
+            {
+                string ext = Path.GetExtension(rom).ToLowerInvariant();
+                string root = Path.GetFullPath(baseDir).TrimEnd('\\') + "\\";
+
+                if (ext == ".quake" || ext == ".quake2")
+                {
+                    string line = null;
+                    if (new FileInfo(rom).Length < 4096)
+                        line = File.ReadAllLines(rom).Select(l => l.Trim()).FirstOrDefault(l => l.Length > 0);
+
+                    string fileName = Path.GetFileNameWithoutExtension(rom);
+
+                    if (!string.IsNullOrEmpty(line) && line.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 && Directory.Exists(Path.Combine(root, line)))
+                        game = line;
+                    else if (Directory.Exists(Path.Combine(root, fileName)))
+                        game = fileName;
+                    else
+                        game = GetLegacyGameDir(fileName, baseGame);
+                }
+                else
+                {
+                    string romDir = Path.GetDirectoryName(Path.GetFullPath(rom)).TrimEnd('\\') + "\\";
+                    if (romDir.StartsWith(root, StringComparison.OrdinalIgnoreCase) && romDir.Length > root.Length)
+                        game = romDir.Substring(root.Length).Split('\\')[0];
+                }
+            }
+            catch { }
+
+            if (string.IsNullOrEmpty(game) || game.Equals(baseGame, StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            return game;
+        }
+
+        /// <summary>
+        /// File given to the libretro cores, which only use its folder: pak0.pak, otherwise the first pak, otherwise any file (mod without pak).
+        /// </summary>
+        public static string GetContentFile(string baseDir, string game, string baseGame)
+        {
+            string dir = Path.Combine(baseDir, game ?? baseGame);
+            string pak0 = Path.Combine(dir, "pak0.pak");
+
+            try
+            {
+                if (!File.Exists(pak0) && Directory.Exists(dir))
+                {
+                    string file = Directory.GetFiles(dir, "*.pak").OrderBy(f => f, StringComparer.OrdinalIgnoreCase).FirstOrDefault()
+                        ?? Directory.GetFiles(dir).OrderBy(f => f, StringComparer.OrdinalIgnoreCase).FirstOrDefault();
+
+                    if (file != null)
+                        return file;
+                }
+            }
+            catch { }
+
+            return pak0;
+        }
+
+        // Keywords of the launch files used by previous RetroBat versions
+        private static string GetLegacyGameDir(string fileName, string baseGame)
+        {
+            string name = fileName.ToLowerInvariant();
+
+            if (baseGame == "id1")
+            {
+                if (name.Contains("scourge") || name.Contains("hipnotic"))
+                    return "hipnotic";
+                if (name.Contains("dissolution") || name.Contains("rogue"))
+                    return "rogue";
+            }
+            else if (baseGame == "baseq2")
+            {
+                if (name.Contains("rogue"))
+                    return "rogue";
+                if (name.Contains("xatrix"))
+                    return "xatrix";
+                if (name.Contains("zaero"))
+                    return "zaero";
+            }
+
+            return null;
+        }
     }
     #endregion
 }

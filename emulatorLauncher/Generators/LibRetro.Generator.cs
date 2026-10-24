@@ -333,14 +333,16 @@ namespace EmulatorLauncher.Libretro
             }
             else if (core == "vitaquake2")
             {
-                string pakPath = Path.GetDirectoryName(rom);
+                // One core per mission pack: vitaquake2-<game folder>
+                string baseDir = QuakeGameFolders.GetBaseDir(rom, "baseq2", "quake2");
+                string game = QuakeGameFolders.GetGameDir(rom, baseDir, "baseq2");
 
-                if (rom.ToLowerInvariant().Contains("rogue"))
-                    core = "vitaquake2-rogue";
-                else if (rom.ToLowerInvariant().Contains("xatrix"))
-                    core = "vitaquake2-xatrix";
-                else if (rom.ToLowerInvariant().Contains("zaero"))
-                    core = "vitaquake2-zaero";
+                if (game != null)
+                {
+                    string lowerGame = game.ToLowerInvariant();
+                    if (lowerGame == "rogue" || lowerGame == "xatrix" || lowerGame == "zaero")
+                        core = "vitaquake2-" + lowerGame;
+                }
             }
 
             return core;
@@ -488,41 +490,29 @@ namespace EmulatorLauncher.Libretro
             }
             else if (core == "tyrquake")
             {
+                // tyrquake only uses the folder of the content (basedir = parent folder, -rogue / -hipnotic / -quoth / -game <folder>)
                 if (Path.GetExtension(rom).ToLowerInvariant() == ".quake")
                 {
-                    if (rom.ToLowerInvariant().Contains("scourge") || rom.ToLowerInvariant().Contains("hipnotic"))
-                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake", "hipnotic", "pak0.pak");
-                    else if (rom.ToLowerInvariant().Contains("dissolution") || rom.ToLowerInvariant().Contains("rogue"))
-                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake", "rogue", "pak0.pak");
-                    else
-                    {
-                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake", "id1", "pak1.pak");
-
-                        if (!File.Exists(rom))
-                            rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake", "id1", "pak0.pak");
-                    }
+                    string baseDir = QuakeGameFolders.GetBaseDir(rom, "id1", "quake");
+                    string game = QuakeGameFolders.GetGameDir(rom, baseDir, "id1");
+                    rom = QuakeGameFolders.GetContentFile(baseDir, game, "id1");
                 }
             }
             else if (core.StartsWith("vitaquake2"))
             {
-                string pakPath = Path.GetDirectoryName(rom);
+                string baseDir = QuakeGameFolders.GetBaseDir(rom, "baseq2", "quake2");
+                string game = QuakeGameFolders.GetGameDir(rom, baseDir, "baseq2");
+
+                // vitaQuake II has one core per game: other mission packs (ctf, smd...) and mods need vkquake2
+                if (game != null)
+                {
+                    string lowerGame = game.ToLowerInvariant();
+                    if (lowerGame != "rogue" && lowerGame != "xatrix" && lowerGame != "zaero")
+                        throw new ApplicationException("[ERROR] vitaQuake II does not support the game folder \"" + game + "\", use the vkquake2 emulator.");
+                }
 
                 if (Path.GetExtension(rom).ToLowerInvariant() == ".quake2")
-                {
-                    if (rom.ToLowerInvariant().Contains("rogue"))
-                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "rogue", "pak0.pak");
-                    else if (rom.ToLowerInvariant().Contains("xatrix"))
-                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "xatrix", "pak0.pak");
-                    else if (rom.ToLowerInvariant().Contains("zaero"))
-                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "zaero", "pak0.pak");
-                    else
-                    {
-                        rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "baseq2", "pak0.pak");
-
-                        if (!File.Exists(rom))
-                            rom = Path.Combine(AppConfig.GetFullPath("roms"), "quake2", "baseq2", "pak1.pak");
-                    }
-                }
+                    rom = QuakeGameFolders.GetContentFile(baseDir, game, "baseq2");
             }
             // Throw error for geolith when no .neo file
             else if (core == "geolith" && Path.GetExtension(rom).ToLower() == ".zip")
@@ -1535,6 +1525,9 @@ namespace EmulatorLauncher.Libretro
                 retroarchConfig["input_auto_game_focus"] = "1";
             else
                 retroarchConfig["input_auto_game_focus"] = "0";
+
+            // Mouse capture is only enabled by the cores that need it (core options), reset it for the others
+            retroarchConfig["input_auto_mouse_grab"] = "false";
 
             // Discord presence
             if (SystemConfig.isOptSet("discord") && SystemConfig.getOptBoolean("discord"))
@@ -2699,7 +2692,7 @@ namespace EmulatorLauncher.Libretro
             "n64", "dreamcast", "atomiswave", "naomi", "naomi2", "neogeocd", "saturn", "supermodel", "mame", "hbmame", "fbneo", "dos", "scummvm", "psp" };
 
         // Same as above, core-based: flycast stops/restarts its emulation thread on each retro_serialize() call
-        static readonly List<string> coreNoAutoRewind = new List<string>() { "anybor", "flycast", "geartowns", "zc255" };
+        static readonly List<string> coreNoAutoRewind = new List<string>() { "anybor", "flycast", "geartowns", "sm2", "zc255" };
 
         // Cores whose state leaves little or no room in RetroArch's default 20 MB rewind buffer
         // Value: minimum rewind_granularity forced when rewind is on (1 = keep the user's value)
@@ -2711,6 +2704,7 @@ namespace EmulatorLauncher.Libretro
             { "mupen64plus_next", 1 },          // ~16.8 MB state, only ~3 MB of history left in 20 MB
             { "mupen64plus_next_gles3", 1 },
             { "parallel_n64", 1 },
+            { "sm2", 1 },                       // Fixed 9 MB state, only 2 states fit in the default 20 MB buffer
             { "zc255", 4 }                      // ~34 MB state, capturing every frame is too slow
         };
 
@@ -2744,6 +2738,7 @@ namespace EmulatorLauncher.Libretro
             { "mupen64plus_next", "glcore" },
             { "pcsx2", "glcore" },
             { "scummvm", "glcore" },
+            { "sm2", "glcore" },
             { "supermodel", "vulkan" }
         };
         private readonly Dictionary<string, string> coreConfigRemap = new Dictionary<string, string>()
