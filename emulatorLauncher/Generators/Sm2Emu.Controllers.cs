@@ -280,8 +280,7 @@ namespace EmulatorLauncher
                 mapping.Applications.Add(app);
             }
 
-            app.Input.Clear();
-
+            // The inputs of a game / system .keys file (padtokey folders) are kept: only the hotkey combinations are replaced
             foreach (var hotkey in padHotkeys)
             {
                 InputKey button;
@@ -289,16 +288,22 @@ namespace EmulatorLauncher
                     continue;
 
                 if (hotkey.Key == "CLOSE")
-                    app.Input.Add(new PadToKeyInput() { Name = InputKey.hotkey | button, Key = "(%{CLOSE})" });
+                    SetPadToKeyInput(app, new PadToKeyInput() { Name = InputKey.hotkey | button, Key = "(%{CLOSE})" });
                 else
-                    app.Input.Add(new PadToKeyInput() { Name = InputKey.hotkey | button, Code = hotkey.Key });
+                    SetPadToKeyInput(app, new PadToKeyInput() { Name = InputKey.hotkey | button, Code = hotkey.Key });
             }
 
             // Always keep a way to quit
             if (!app.Input.Any(i => i.Key == "(%{CLOSE})"))
-                app.Input.Add(new PadToKeyInput() { Name = InputKey.hotkey | InputKey.start, Key = "(%{CLOSE})" });
+                SetPadToKeyInput(app, new PadToKeyInput() { Name = InputKey.hotkey | InputKey.start, Key = "(%{CLOSE})" });
 
             return mapping;
+        }
+
+        private static void SetPadToKeyInput(PadToKeyApp app, PadToKeyInput input)
+        {
+            app.Input.RemoveAll(i => i.Name == input.Name);
+            app.Input.Add(input);
         }
         #endregion
     }
