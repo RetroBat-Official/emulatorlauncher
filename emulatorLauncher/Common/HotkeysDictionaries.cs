@@ -375,6 +375,20 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_disk_eject_toggle", "input_disk_eject_toggle", "f11")
                 }),
 
+            // sm2-emu keyboard shortcuts are fixed: the emulator value is the key sent by the controller hotkey (Sm2Emu.Controllers.cs)
+            new EmulatorHotkey("sm2-emu", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_menu_toggle", "KEY_F10", "F10"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "KEY_F11", "F11"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "KEY_TAB", "TAB"),
+                    new EmulatorHotkeyInfo("input_rewind", "KEY_BACKSPACE", "BACKSPACE"),
+                    new EmulatorHotkeyInfo("input_screenshot", "KEY_F12", "F12"),
+                    new EmulatorHotkeyInfo("input_save_state", "KEY_F6", "F6"),
+                    new EmulatorHotkeyInfo("input_load_state", "KEY_F7", "F7"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "KEY_P", "P"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "CLOSE", "")
+                }),
+
             new EmulatorHotkey("snes9x", new EmulatorHotkeyInfo[]
                 {
                     new EmulatorHotkeyInfo("input_hold_fast_forward", "FastForward", "L"),

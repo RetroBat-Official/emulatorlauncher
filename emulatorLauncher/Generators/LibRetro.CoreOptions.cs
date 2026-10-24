@@ -237,6 +237,7 @@ namespace EmulatorLauncher.Libretro
                 { "same_cdi", "SAME_CDI" },
                 { "scummvm", "ScummVM" },
                 { "simcp", "SimCoupe" },
+                { "sm2", "SM2-Emu" },
                 { "smsplus", "SMS Plus GX" },
                 { "snes9x2002", "Snes9x 2002" },
                 { "snes9x2005", "Snes9x 2005" },
@@ -470,6 +471,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureSameCDI(retroarchConfig, coreSettings, system, core);
             ConfigureSameDuck(retroarchConfig, coreSettings, system, core);
             ConfigureScummVM(retroarchConfig, coreSettings, system, core);
+            ConfigureSm2(retroarchConfig, coreSettings, system, core);
             ConfigureSNes9x(retroarchConfig, coreSettings, system, core);
             ConfigureSNes9x2005(retroarchConfig, coreSettings, system, core);
             ConfigureStella(retroarchConfig, coreSettings, system, core);
@@ -5851,6 +5853,44 @@ namespace EmulatorLauncher.Libretro
             catch { }
         }
 
+        private void ConfigureSm2(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "sm2")
+                return;
+
+            // Mandatory game database, it must match the core version: shipped with the core (cores\sm2-emu\games.xml) and copied to bios\sm2-emu
+            string biosDb = Path.Combine(AppConfig.GetFullPath("bios"), "sm2-emu", "games.xml");
+            if (!File.Exists(biosDb))
+                SimpleLogger.Instance.Error("[LibretroGenerator] sm2: missing " + biosDb);
+
+            // Video: the Auto renderer follows the RetroArch video driver (glcore by default, see defaultVideoDriver)
+            BindFeature(coreSettings, "sm2_renderer", "sm2_renderer", "auto");
+            BindFeature(coreSettings, "sm2_internal_resolution", "sm2_internal_resolution", "1");
+            BindFeature(coreSettings, "sm2_texture_filter", "sm2_texture_filter", "faithful");
+            BindFeature(coreSettings, "sm2_upscale_2d", "sm2_upscale_2d", "faithful");
+            BindBoolFeature(coreSettings, "sm2_widescreen_mode", "sm2_widescreen_mode", "expand_3d", "stretch");
+            BindBoolFeature(coreSettings, "sm2_av_timing", "sm2_av_timing", "native", "60hz");
+
+            // Widescreen expansion is suppressed unless the core aspect ratio is Auto or 16:9
+            if (SystemConfig.getOptBoolean("sm2_widescreen_mode"))
+                coreSettings["sm2_aspect_ratio"] = "auto";
+
+            // System
+            BindBoolFeatureOn(coreSettings, "sm2_rom_crc_verification", "sm2_rom_crc_verification", "enabled", "disabled");
+
+            // Controls
+            BindBoolFeatureOn(coreSettings, "sm2_controller_profile_type", "sm2_test_service", "test_service", "normal");
+            BindBoolFeatureOn(coreSettings, "sm2_gamepad_rumble", "sm2_gamepad_rumble", "enabled", "disabled");
+            BindFeature(coreSettings, "sm2_four_speed_shifter", "sm2_four_speed_shifter", "h_gate");
+
+            // Guns: with real lightguns, only read the lightgun so a gamepad stick or the mouse cannot move the aim
+            coreSettings["sm2_gun_input"] = SystemConfig.getOptBoolean("use_guns") ? "lightgun" : "hybrid";
+            BindFeature(coreSettings, "sm2_crosshairs", "sm2_crosshairs", "auto");
+            BindBoolFeature(coreSettings, "sm2_hide_shot_flash", "sm2_hide_shot_flash", "enabled", "disabled");
+
+            SetupLightGuns(retroarchConfig, "1", core);
+        }
+
         private void ConfigureSNes9x(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "snes9x" && core != "snes9x_next")
@@ -6169,11 +6209,20 @@ namespace EmulatorLauncher.Libretro
             if (core != "tyrquake")
                 return;
 
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "quake_device_type", "1");
+            BindFeature(coreSettings, "tyrquake_resolution", "quake_resolution", "320x200");
+
+            // Controls
             BindFeatureSlider(coreSettings, "tyrquake_analog_deadzone", "quake_analog_deadzone", "15");
             BindBoolFeature(coreSettings, "tyrquake_invert_y_axis", "quake_invert_y_axis", "enabled", "disabled");
             BindBoolFeature(coreSettings, "tyrquake_rumble", "quake_rumble", "enabled", "disabled");
-            BindFeature(coreSettings, "tyrquake_resolution", "quake_resolution", "320x200");
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "quake_device_type", "1");
+
+            // Keyboard + mouse: give the whole keyboard to the core (Escape, Space, F1... are RetroArch shortcuts otherwise, Scroll Lock toggles them back) and grab the mouse
+            if (SystemConfig["quake_device_type"] == "3")
+            {
+                retroarchConfig["input_auto_game_focus"] = "1";
+                retroarchConfig["input_auto_mouse_grab"] = "true";
+            }
         }
 
         private void ConfigureVecx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -6351,8 +6400,16 @@ namespace EmulatorLauncher.Libretro
             BindFeatureSlider(coreSettings, "vitaquakeii_analog_deadzone", "vitaquakeii_analog_deadzone", "15");
             BindBoolFeature(coreSettings, "vitaquakeii_rumble", "vitaquakeii_rumble", "enabled", "disabled");
             BindBoolFeature(coreSettings, "vitaquakeii_aimfix", "vitaquakeii_aimfix", "enabled","disabled");
+
             BindFeatureSlider(coreSettings, "vitaquakeii_mouse_sensitivity", "vitaquakeii_mouse_sensitivity", "3.0", 1);
             BindFeature(retroarchConfig, "input_libretro_device_p1", "quake2_device_type", "1");
+
+            // Keyboard + mouse: give the whole keyboard to the core (Escape, Space, F1... are RetroArch shortcuts otherwise, Scroll Lock toggles them back) and grab the mouse
+            if (SystemConfig["quake2_device_type"] == "3")
+            {
+                retroarchConfig["input_auto_game_focus"] = "1";
+                retroarchConfig["input_auto_mouse_grab"] = "true";
+            }
         }
 
         private void Configurex1(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

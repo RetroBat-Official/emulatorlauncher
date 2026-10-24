@@ -1842,6 +1842,43 @@ namespace EmulatorLauncher
         }
         #endregion
 
+        #region vkquake
+        private void ConfigurevkQuakeControls()
+        {
+            if (_emulator != "vkquake")
+                return;
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                return;
+            }
+
+            // vkQuake is single player and opens the FIRST SDL gamepad found (IN_StartupJoystick in in_sdl2.c / in_sdl3.c), without any device selection.
+            // Buttons are positional (SOUTH/EAST/WEST/NORTH), START = Escape, BACK = scoreboard: no mapping to write.
+            var p1 = this.Controllers.Where(c => !c.IsKeyboard).OrderBy(c => c.PlayerIndex).FirstOrDefault();
+            if (p1 == null)
+                return;
+
+            // vkQuake does not set any SDL joystick hint
+            Sdl3GameController.SetEnumerationHints(Sdl3GameController.Sdl3HintProfile.Sdl3Default);
+
+            // VID/PID from the SDL3 enumeration: the ES GUID does not always carry them (XInput)
+            var sdl3Controller = p1.Sdl3Controller;
+            if (sdl3Controller == null || sdl3Controller.VendorId == 0 || sdl3Controller.ProductId == 0)
+            {
+                SimpleLogger.Instance.Warning("[WARNING] vkQuake: no SDL match for player 1 (" + p1.ToShortString() + "), the game will use the first controller found.");
+                return;
+            }
+
+            // Hide every other device so that player 1's controller is the first one. Works with SDL2 (vkQuake up to 1.34) and SDL3 (1.35+).
+            // Identical controllers share their VID/PID: the game then takes the first one it enumerates.
+            string vidPid = string.Format("0x{0:X4}/0x{1:X4}", sdl3Controller.VendorId, sdl3Controller.ProductId);
+            _environmentVariables["SDL_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT"] = vidPid;
+            SimpleLogger.Instance.Info("[INFO] vkQuake: only controllers " + vidPid + " are visible to the game.");
+        }
+        #endregion
+
         #region general tools
         /// <summary>
         /// Method to retrieve SDL button information

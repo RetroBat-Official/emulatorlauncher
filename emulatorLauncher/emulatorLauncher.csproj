@@ -591,6 +591,22 @@
       <DependentUpon>Simple64.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Singe2.Generator.cs" />
+    <Compile Include="Generators\Sm2Emu.Generator.cs" />
+    <Compile Include="Generators\Sm2Emu.Controllers.cs">
+      <DependentUpon>Sm2Emu.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Sm2Emu.Guns.cs">
+      <DependentUpon>Sm2Emu.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Sm2Emu.Hotkeys.cs">
+      <DependentUpon>Sm2Emu.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Sm2Emu.SaveStatesMonitor.cs">
+      <DependentUpon>Sm2Emu.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Sm2Emu.Wheels.cs">
+      <DependentUpon>Sm2Emu.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Snes9x.Generator.cs" />
     <Compile Include="Generators\Snes9x.Controllers.cs">
       <DependentUpon>Snes9x.Generator.cs</DependentUpon>
