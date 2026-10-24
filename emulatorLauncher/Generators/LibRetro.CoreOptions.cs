@@ -181,6 +181,7 @@ namespace EmulatorLauncher.Libretro
                 { "mess2015", "MESS 2015 (0.160)" },
                 { "meteor", "Meteor" },
                 { "mgba", "mGBA" },
+                { "mgba_splitscreen", "mGBA Splitscreen" },
                 { "minivmac", "MinivmacII" },
                 { "moonlight", "Moonlight" },
                 { "mpv", "MPV" },
@@ -444,6 +445,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDSds(retroarchConfig, coreSettings, system, core);
             ConfiguremGBA(retroarchConfig, coreSettings, system, core);
+            ConfiguremGBASplit(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
             ConfigureNeocd(retroarchConfig, coreSettings, system, core);
             ConfigureNestopia(retroarchConfig, coreSettings, system, core);
@@ -4784,6 +4786,19 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["mgba_audio_low_pass_range"] = "60";
                 }
             }
+        }
+
+        private void ConfiguremGBASplit(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mgba_splitscreen")
+                return;
+
+            BindFeature(coreSettings, "splitscreen_players", "splitscreen_players", "2");
+            BindFeature(coreSettings, "splitscreen_audio", "splitscreen_audio", "player 1");
+            BindFeature(coreSettings, "splitscreen_focus_player", "splitscreen_focus_player", "1");
+            BindBoolFeature(coreSettings, "splitscreen_fs_assist", "splitscreen_fs_assist", "on", "off");
+            BindBoolFeatureOn(coreSettings, "splitscreen_overlays", "splitscreen_overlays", "on", "off");
+            BindFeature(coreSettings, "splitscreen_layout", "splitscreen_layout", "auto");
         }
 
         private void ConfigureMrBoom(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
