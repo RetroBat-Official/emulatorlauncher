@@ -31,7 +31,6 @@ namespace EmulatorLauncher
 
             bool autodetect = false;
             string romFile = null;
-            bool testRootPath = FileTools.IsRootPath(rom);
             
             if (Directory.Exists(rom))
             {
@@ -63,16 +62,19 @@ namespace EmulatorLauncher
                 commandArray.Add("--fullscreen");
 
             commandArray.Add("--no-console");
-            commandArray.Add("--config=\"" + iniPath + "\"");
+
+            // No --config: scummvm.ini is next to scummvm.exe, so ScummVM runs in portable mode (nothing written in %APPDATA%)
             commandArray.Add("--logfile=\"" + Path.ChangeExtension(iniPath, ".log") + "\"");
 
-            if (File.Exists(rom) && !testRootPath)
-                commandArray.Add("-p\"" + Path.GetDirectoryName(rom) + "\"");
-            else
-                commandArray.Add("-p\"" + rom + "\"");
+            // Game path must be a folder; double a trailing backslash (mounted drive "Z:\") so it does not escape the closing quote
+            string gamePath = File.Exists(rom) ? Path.GetDirectoryName(rom) : rom;
+            if (gamePath.EndsWith("\\"))
+                gamePath += "\\";
+
+            commandArray.Add("-p\"" + gamePath + "\"");
 
             string gameName = null;
-            
+
             if (File.Exists(rom))
                 gameName = FileTools.ReadFirstValidLine(rom);
 
@@ -275,6 +277,16 @@ namespace EmulatorLauncher
                     ini.WriteValue("scummvm", "extrapath", extraPath);
                 }
 
+                // Screenshots in the RetroBat screenshots folder
+                string screenshotPath = AppConfig.GetFullPath("screenshots");
+                if (!string.IsNullOrEmpty(screenshotPath) && Directory.Exists(screenshotPath))
+                    ini.WriteValue("scummvm", "screenshotpath", screenshotPath);
+                else
+                    ini.Remove("scummvm", "screenshotpath");
+
+                // Music driver, AdLib/MIDI mixing and soundfont (shared with the libretro core)
+                SetupAudio(ini, biosPath);
+
                 if (Features.IsSupported("unsupported_games") && SystemConfig.getOptBoolean("unsupported_games"))
                     ini.WriteValue("scummvm", "enable_unsupported_game_warning", "false");
                 else
@@ -284,6 +296,50 @@ namespace EmulatorLauncher
 
                 ini.Save();
             }
+        }
+
+        /// <summary>
+        /// Music driver, AdLib/MIDI mixing and soundfont: same ini keys for the standalone emulator and the libretro core.
+        /// </summary>
+        internal static void SetupAudio(IniFile ini, string biosPath)
+        {
+            var config = Program.SystemConfig;
+
+            // music_driver, opl_driver, gm_device, mt32_device, native_mt32
+            string[] audio;
+            switch (config["SoundMode"])
+            {
+                case "fluidsynth": audio = new[] { "fluidsynth", "auto", "fluidsynth", "auto", "false" }; break;
+                case "emulated_mt32": audio = new[] { "mt32", "auto", "auto", "mt32", "false" }; break;
+                case "true_mt32": audio = new[] { "mt32", "auto", "auto", "mt32", "true" }; break;
+                case "adlib_mame": audio = new[] { "adlib", "mame", "auto", "auto", "false" }; break;
+                case "adlib_dosbox": audio = new[] { "adlib", "db", "auto", "auto", "false" }; break;
+                case "adlib_nuked": audio = new[] { "adlib", "nuked", "auto", "auto", "false" }; break;
+                case "pcspeaker": audio = new[] { "pcspk", "auto", "auto", "auto", "false" }; break;
+                case "pcjr": audio = new[] { "pcjr", "auto", "auto", "auto", "false" }; break;
+                case "cms": audio = new[] { "cms", "auto", "auto", "auto", "false" }; break;
+                case "disabled": audio = new[] { "null", "auto", "auto", "auto", "false" }; break;
+                default: audio = new[] { "auto", "auto", "auto", "auto", "false" }; break;
+            }
+
+            ini.WriteValue("scummvm", "music_driver", audio[0]);
+            ini.WriteValue("scummvm", "opl_driver", audio[1]);
+            ini.WriteValue("scummvm", "gm_device", audio[2]);
+            ini.WriteValue("scummvm", "mt32_device", audio[3]);
+            ini.WriteValue("scummvm", "native_mt32", audio[4]);
+
+            // Mixed AdLib/MIDI
+            if (config.isOptSet("multi_midi"))
+                ini.WriteValue("scummvm", "multi_midi", config["multi_midi"]);
+            else
+                ini.WriteValue("scummvm", "multi_midi", "true");
+
+            // FluidSynth soundfont: Roland SC-55 (shipped in bios\scummvm\extra) by default
+            string soundfont = Path.Combine(biosPath, "scummvm", "extra", config.isOptSet("soundfont") ? config["soundfont"] : "Roland_SC-55.sf2");
+            if (File.Exists(soundfont))
+                ini.WriteValue("scummvm", "soundfont", soundfont);
+            else
+                ini.Remove("scummvm", "soundfont");
         }
 
         /*private void SetupGameSettings(IniFile ini, string rom)

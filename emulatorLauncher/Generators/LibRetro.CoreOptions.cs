@@ -5715,153 +5715,47 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "scummvm_analog_response", "scummvm_analog_response", "linear");
+            BindFeature(coreSettings, "scummvm_analog_deadzone", "scummvm_analog_deadzone", "15");
+            BindFeature(coreSettings, "scummvm_gamepad_cursor_speed", "scummvm_gamepad_cursor_speed", "1.0");
             BindFeature(coreSettings, "scummvm_pointer_device", "scummvm_pointer_device", "mouse");
 
             try
             {
-                // use scummvm.ini for options not available in retroarch-core-options.cfg
-                string iniPath = Path.Combine(AppConfig.GetFullPath("bios"), "scummvm.ini");
-                if (File.Exists(iniPath))
+                // Use scummvm.ini for options not available in retroarch-core-options.cfg
+                // The core reads it from the system folder: create it if missing so that options apply from the first launch
+                string biosPath = AppConfig.GetFullPath("bios");
+                string iniPath = Path.Combine(biosPath, "scummvm.ini");
+
+                using (var ini = new IniFile(iniPath))
                 {
-                    using (var ini = new IniFile(iniPath))
+                    ini.WriteValue("scummvm", "extrapath", Path.Combine(biosPath, "scummvm", "extra"));
+                    ini.WriteValue("scummvm", "themepath", Path.Combine(biosPath, "scummvm", "theme"));
+
+                    // The core falls back to the system folder when the save folder does not exist
+                    string savePath = Path.Combine(AppConfig.GetFullPath("saves"), "scummvm");
+                    if (!Directory.Exists(savePath)) try { Directory.CreateDirectory(savePath); }
+                        catch { }
+
+                    ini.WriteValue("scummvm", "savepath", savePath);
+
+                    // Music driver, AdLib/MIDI mixing and soundfont (shared with the standalone emulator)
+                    ScummVmGenerator.SetupAudio(ini, biosPath);
+
+                    // Text and Speech (enable subtitles, speech or both)
+                    if (SystemConfig["TextSpeech"] == "Speech")
                     {
-
-                        ini.WriteValue("scummvm", "extrapath", Path.Combine(AppConfig.GetFullPath("bios"), "scummvm", "extra"));
-                        ini.WriteValue("scummvm", "themepath", Path.Combine(AppConfig.GetFullPath("bios"), "scummvm", "theme"));
-                        ini.WriteValue("scummvm", "savepath", Path.Combine(AppConfig.GetFullPath("saves"), "scummvm"));
-
-                        if (SystemConfig.isOptSet("ratio"))
-                            ini.WriteValue("scummvm", "aspect_ratio", "true");
-
-                        // Sound Mode
-                        if (SystemConfig.isOptSet("SoundMode"))
-                        {
-                            if (SystemConfig["SoundMode"] == "fluidsynth")
-                            {
-                                ini.WriteValue("scummvm", "music_driver", "fluidsynth");
-                                ini.WriteValue("scummvm", "opl_driver", "auto");
-                                ini.WriteValue("scummvm", "gm_device", "fluidsynth");
-                                ini.WriteValue("scummvm", "mt32_device", "auto");
-                                ini.WriteValue("scummvm", "native_mt32", "false");
-                            }
-                            else if (SystemConfig["SoundMode"] == "emulated_mt32")
-                            {
-                                ini.WriteValue("scummvm", "music_driver", "mt32");
-                                ini.WriteValue("scummvm", "opl_driver", "auto");
-                                ini.WriteValue("scummvm", "gm_device", "auto");
-                                ini.WriteValue("scummvm", "mt32_device", "mt32");
-                                ini.WriteValue("scummvm", "native_mt32", "false");
-                            }
-                            else if (SystemConfig["SoundMode"] == "true_mt32")
-                            {
-                                ini.WriteValue("scummvm", "music_driver", "mt32");
-                                ini.WriteValue("scummvm", "opl_driver", "auto");
-                                ini.WriteValue("scummvm", "gm_device", "auto");
-                                ini.WriteValue("scummvm", "mt32_device", "mt32");
-                                ini.WriteValue("scummvm", "native_mt32", "true");
-                            }
-                            else if (SystemConfig["SoundMode"] == "adlib_mame")
-                            {
-                                ini.WriteValue("scummvm", "music_driver", "adlib");
-                                ini.WriteValue("scummvm", "opl_driver", "mame");
-                                ini.WriteValue("scummvm", "gm_device", "auto");
-                                ini.WriteValue("scummvm", "mt32_device", "auto");
-                                ini.WriteValue("scummvm", "native_mt32", "false");
-                            }
-                            else if (SystemConfig["SoundMode"] == "adlib_dosbox")
-                            {
-                                ini.WriteValue("scummvm", "music_driver", "adlib");
-                                ini.WriteValue("scummvm", "opl_driver", "db");
-                                ini.WriteValue("scummvm", "gm_device", "auto");
-                                ini.WriteValue("scummvm", "mt32_device", "auto");
-                                ini.WriteValue("scummvm", "native_mt32", "false");
-                            }
-                            else if (SystemConfig["SoundMode"] == "adlib_nuked")
-                            {
-                                ini.WriteValue("scummvm", "music_driver", "adlib");
-                                ini.WriteValue("scummvm", "opl_driver", "nuked");
-                                ini.WriteValue("scummvm", "gm_device", "auto");
-                                ini.WriteValue("scummvm", "mt32_device", "auto");
-                                ini.WriteValue("scummvm", "native_mt32", "false");
-                            }
-                            else if (SystemConfig["SoundMode"] == "pcspeaker")
-                            {
-                                ini.WriteValue("scummvm", "music_driver", "pcspk");
-                                ini.WriteValue("scummvm", "opl_driver", "auto");
-                                ini.WriteValue("scummvm", "gm_device", "auto");
-                                ini.WriteValue("scummvm", "mt32_device", "auto");
-                                ini.WriteValue("scummvm", "native_mt32", "false");
-                            }
-                            else if (SystemConfig["SoundMode"] == "pcjr")
-                            {
-                                ini.WriteValue("scummvm", "music_driver", "pcjr");
-                                ini.WriteValue("scummvm", "opl_driver", "auto");
-                                ini.WriteValue("scummvm", "gm_device", "auto");
-                                ini.WriteValue("scummvm", "mt32_device", "auto");
-                                ini.WriteValue("scummvm", "native_mt32", "false");
-                            }
-                            else if (SystemConfig["SoundMode"] == "cms")
-                            {
-                                ini.WriteValue("scummvm", "music_driver", "cms");
-                                ini.WriteValue("scummvm", "opl_driver", "auto");
-                                ini.WriteValue("scummvm", "gm_device", "auto");
-                                ini.WriteValue("scummvm", "mt32_device", "auto");
-                                ini.WriteValue("scummvm", "native_mt32", "false");
-                            }
-                            else if (SystemConfig["SoundMode"] == "disabled")
-                            {
-                                ini.WriteValue("scummvm", "music_driver", "null");
-                                ini.WriteValue("scummvm", "opl_driver", "auto");
-                                ini.WriteValue("scummvm", "gm_device", "auto");
-                                ini.WriteValue("scummvm", "mt32_device", "auto");
-                                ini.WriteValue("scummvm", "native_mt32", "false");
-                            }
-
-                        }
-                        else
-                        {
-                            ini.WriteValue("scummvm", "music_driver", "auto");
-                            ini.WriteValue("scummvm", "opl_driver", "auto");
-                            ini.WriteValue("scummvm", "gm_device", "auto");
-                            ini.WriteValue("scummvm", "mt32_device", "auto");
-                            ini.WriteValue("scummvm", "native_mt32", "false");
-                        }
-
-                        // Mixed Adlib/Midi
-                        if (SystemConfig.isOptSet("multi_midi"))
-                            ini.WriteValue("scummvm", "multi_midi", SystemConfig["multi_midi"]);
-                        else
-                            ini.WriteValue("scummvm", "multi_midi", "true");
-
-                        // Sound Font
-                        if (SystemConfig.isOptSet("soundfont"))
-                            ini.WriteValue("scummvm", "soundfont", Path.Combine(AppConfig.GetFullPath("bios"), "scummvm", "extra", SystemConfig["soundfont"]));
-
-                        // Text and Speech (enable subtitles, speech or both)
-                        if (SystemConfig.isOptSet("TextSpeech"))
-                        {
-                            if (SystemConfig["TextSpeech"] == "Speech")
-                            {
-                                ini.WriteValue("scummvm", "speech_mute", "false");
-                                ini.WriteValue("scummvm", "subtitles", "false");
-                            }
-                            else if (SystemConfig["TextSpeech"] == "Subtitles")
-                            {
-                                ini.WriteValue("scummvm", "speech_mute", "true");
-                                ini.WriteValue("scummvm", "subtitles", "true");
-                            }
-                            else if (SystemConfig["TextSpeech"] == "Both")
-                            {
-                                ini.WriteValue("scummvm", "speech_mute", "false");
-                                ini.WriteValue("scummvm", "subtitles", "true");
-                            }
-
-                        }
-                        else
-                        {
-                            ini.WriteValue("scummvm", "speech_mute", "false");
-                            ini.WriteValue("scummvm", "subtitles", "true");
-                        }
+                        ini.WriteValue("scummvm", "speech_mute", "false");
+                        ini.WriteValue("scummvm", "subtitles", "false");
+                    }
+                    else if (SystemConfig["TextSpeech"] == "Subtitles")
+                    {
+                        ini.WriteValue("scummvm", "speech_mute", "true");
+                        ini.WriteValue("scummvm", "subtitles", "true");
+                    }
+                    else
+                    {
+                        ini.WriteValue("scummvm", "speech_mute", "false");
+                        ini.WriteValue("scummvm", "subtitles", "true");
                     }
                 }
             }
