@@ -49,6 +49,8 @@ namespace EmulatorLauncher
         }
 
         #region ports
+
+        #region bstone
         private void ConfigureBStone(List<string> commandArray, string rom)
         {
             if (_emulator != "bstone")
@@ -243,7 +245,9 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Warning("[WARNING] BStone: unable to write key bindings : " + ex.Message);
             }
         }
+        #endregion
 
+        #region bsyndrome
         private void ConfigureBSyndrome(List<string> commandArray, string rom)
         {
             if (_emulator != "bsyndrome")
@@ -280,7 +284,9 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("bsyndrome_aspect") && !string.IsNullOrEmpty(SystemConfig["bsyndrome_aspect"]))
                 commandArray.Add("--widescreen=" + SystemConfig["bsyndrome_aspect"]);
         }
+        #endregion
 
+        #region cdogs
         private void ConfigureCDogs(List<string> commandArray, string rom)
         {
             if (_emulator != "cdogs")
@@ -363,6 +369,9 @@ namespace EmulatorLauncher
 
             settings.Save();
         }
+        #endregion
+
+        #region cgenius
         private void Configurecgenius(List<string> commandArray, string rom)
         {
             if (_emulator != "cgenius")
@@ -499,7 +508,9 @@ namespace EmulatorLauncher
             // Start the game directly (path relative to the search path, as listed by the game launcher)
             commandArray.Add("dir=" + "\"" + relativeGamePath + "\"");
         }
+        #endregion
 
+        #region corsixth
         private void Configurecorsixth(List<string> commandArray, string rom)
         {
             if (_emulator != "corsixth")
@@ -667,7 +678,9 @@ namespace EmulatorLauncher
 
             return "English";
         }
+        #endregion
 
+        #region dhewm3
         private void Configuredhewm3(List<string> commandArray, string rom)
         {
             if (_emulator != "dhewm3")
@@ -863,7 +876,9 @@ namespace EmulatorLauncher
             { "s_maxSoundsPerShader", new[] { "1", "0", "0", "0" } },
             { "r_useSoftParticles", new[] { "0", "0", "0", "1" } }
         };
+        #endregion
 
+        #region dusklight
         private void Configuredusklight(List<string> commandArray, string rom)
         {
             if (_emulator != "dusklight")
@@ -973,219 +988,9 @@ namespace EmulatorLauncher
             "game.autoSave",
             "game.enhancedMapMenus"
         };
+        #endregion
 
-        // Extracts one entry of a Ship o2r archive (zip) and returns its bytes. Returns null if unavailable.
-        private static byte[] ReadShipArchiveEntry(string archivePath, string entryName)
-        {
-            if (!File.Exists(archivePath))
-                return null;
-
-            string tmpPath = Path.Combine(Path.GetTempPath(), "rb_o2r_" + Guid.NewGuid().ToString("N"));
-            try
-            {
-                using (var archive = Zip.Open(archivePath))
-                {
-                    if (archive == null)
-                        return null;
-
-                    archive.Extract(tmpPath, entryName);
-                }
-
-                string entryFile = Path.Combine(tmpPath, entryName);
-                return File.Exists(entryFile) ? File.ReadAllBytes(entryFile) : null;
-            }
-            catch { return null; }
-            finally
-            {
-                try { if (Directory.Exists(tmpPath)) Directory.Delete(tmpPath, true); } catch { }
-            }
-        }
-
-        // Ghostship "portVersion" = 3 x uint16 big-endian (major, minor, patch), no endianness byte. Returns null if unknown.
-        private static int[] GetGhostshipArchiveVersion(string archivePath)
-        {
-            byte[] data = ReadShipArchiveEntry(archivePath, "portVersion");
-            if (data == null || data.Length < 4)
-                return null;
-
-            return new int[] { (data[0] << 8) | data[1], (data[2] << 8) | data[3] };
-        }
-
-        private void ConfigureGhostship(List<string> commandArray, string rom, string exe)
-        {
-            if (_emulator != "ghostship")
-                return;
-
-            // Game archive is sm64.o2r, generated in the emulator folder (portable mode)
-            string gameArchive = Path.Combine(_path, "sm64.o2r");
-
-            // Ghostship rejects an archive whose major.minor differs from the exe version: delete it so it is regenerated silently
-            if (File.Exists(gameArchive))
-            {
-                try
-                {
-                    int[] archiveVersion = GetGhostshipArchiveVersion(gameArchive);
-                    var exeVersion = FileVersionInfo.GetVersionInfo(exe);
-
-                    // 0.0.x archives (dev builds) are accepted by Ghostship, keep the same rule
-                    bool devArchive = archiveVersion != null && archiveVersion[0] == 0 && archiveVersion[1] == 0;
-
-                    if (archiveVersion != null && !devArchive && exeVersion.FileMajorPart > 0 &&
-                        (archiveVersion[0] != exeVersion.FileMajorPart || archiveVersion[1] != exeVersion.FileMinorPart))
-                    {
-                        SimpleLogger.Instance.Info("[INFO] Ghostship: sm64.o2r generated by version " + archiveVersion[0] + "." + archiveVersion[1] + ", regenerating for version " + exeVersion.FileMajorPart + "." + exeVersion.FileMinorPart);
-                        File.Delete(gameArchive);
-                    }
-                }
-                catch { }
-            }
-
-            if (!File.Exists(gameArchive))
-            {
-                // Ghostship extracts the ROM without any prompt when its path is passed as argument (only .z64 is supported)
-                if (Path.GetExtension(rom).Equals(".z64", StringComparison.OrdinalIgnoreCase))
-                    commandArray.Add("\"" + rom + "\"");
-                else
-                {
-                    // Fallback: copy the ROM next to the exe so Ghostship's own ROM search can find it
-                    string emulatorRom = Path.Combine(_path, Path.GetFileName(rom));
-                    if (!File.Exists(emulatorRom))
-                        try { File.Copy(rom, emulatorRom); } catch { SimpleLogger.Instance.Warning("[WARNING] Impossible to copy game file to Ghostship folder."); }
-                }
-            }
-
-            // Settings
-            string settingsFile = Path.Combine(_path, "ghostship.cfg.json");
-
-            JObject jsonObj = null;
-            if (File.Exists(settingsFile))
-            {
-                try { jsonObj = JObject.Parse(File.ReadAllText(settingsFile)); } catch { }
-            }
-            if (jsonObj == null)
-                jsonObj = new JObject();
-
-            // LUS saves empty objects as null, so containers must be type-checked, not only null-checked
-            JObject cvars = GetOrCreateJObject(jsonObj, "CVars");
-            JObject advancedRes = GetOrCreateJObject(cvars, "gAdvancedResolution");
-            JObject intScale = GetOrCreateJObject(advancedRes, "IntegerScale");
-            JObject controllers = GetOrCreateJObject(cvars, "gControllers");
-            JObject settings = GetOrCreateJObject(cvars, "gSettings");
-            JObject window = GetOrCreateJObject(jsonObj, "Window");
-            JObject backend = GetOrCreateJObject(window, "Backend");
-            JObject fs = GetOrCreateJObject(window, "Fullscreen");
-
-            // Ensure config windows are not opened
-            settings.Remove("Menu");
-            cvars.Remove("gOpenWindows");
-
-            // Aspect ratio
-            if (SystemConfig.isOptSet("ghostship_ratio") && !string.IsNullOrEmpty(SystemConfig["ghostship_ratio"]))
-            {
-                string ghostshipRatio = SystemConfig["ghostship_ratio"];
-                switch (ghostshipRatio)
-                {
-                    case "off":
-                        advancedRes["AspectRatioX"] = 0.0;
-                        advancedRes["AspectRatioY"] = 0.0;
-                        break;
-                    case "native":
-                        advancedRes["AspectRatioX"] = 4.0;
-                        advancedRes["AspectRatioY"] = 3.0;
-                        break;
-                    case "widescreen":
-                        advancedRes["AspectRatioX"] = 16.0;
-                        advancedRes["AspectRatioY"] = 9.0;
-                        break;
-                    case "3ds":
-                        advancedRes["AspectRatioX"] = 5.0;
-                        advancedRes["AspectRatioY"] = 3.0;
-                        break;
-                    case "16:10":
-                        advancedRes["AspectRatioX"] = 16.0;
-                        advancedRes["AspectRatioY"] = 10.0;
-                        break;
-                    case "ultrawide":
-                        advancedRes["AspectRatioX"] = 21.0;
-                        advancedRes["AspectRatioY"] = 9.0;
-                        break;
-                }
-            }
-            else
-            {
-                advancedRes["AspectRatioX"] = 0.0;
-                advancedRes["AspectRatioY"] = 0.0;
-            }
-
-            advancedRes["Enabled"] = 1;
-
-            if (SystemConfig.isOptSet("integerscale") && SystemConfig.getOptBoolean("integerscale"))
-            {
-                intScale["Factor"] = 0;
-                intScale["FitAutomatically"] = 1;
-                intScale["NeverExceedBounds"] = 1;
-                advancedRes["PixelPerfectMode"] = 1;
-            }
-            else
-            {
-                intScale["Factor"] = 0;
-                intScale["FitAutomatically"] = 0;
-                intScale["NeverExceedBounds"] = 1;
-                advancedRes["PixelPerfectMode"] = 0;
-            }
-
-            BindFeatureInt(advancedRes, "VerticalPixelCount", "ghostship_resolution", "720");
-
-            advancedRes["VerticalResolutionToggle"] = 1;
-            cvars["gControlNav"] = 1;
-
-            ConfigureShipControls(controllers);
-
-            cvars["gEnableMultiViewports"] = 1;
-            cvars["gInternalResolution"] = 1.0;
-
-            if (SystemConfig.isOptSet("ghostship_fps") && !string.IsNullOrEmpty(SystemConfig["ghostship_fps"]))
-            {
-                int ghostshipFPS = SystemConfig["ghostship_fps"].ToIntegerString().ToInteger();
-                settings["InterpolationFPS"] = ghostshipFPS;
-                settings["MatchRefreshRate"] = 0;
-            }
-            else
-            {
-                settings["InterpolationFPS"] = 60;
-                settings["MatchRefreshRate"] = 1;
-            }
-
-            BindFeatureSliderInt(cvars, "gMSAAValue", "ghostship_msaa", "1");
-
-            cvars["gSdlWindowedFullscreen"] = _exclusivefs ? 0 : 1;
-            BindFeatureInt(cvars, "gTextureFilter", "ghostship_texturefilter", "1");
-            BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "ghostship_vsync", "1", "0");
-            BindFeature(window, "AudioBackend", "ghostship_audioapi", "wasapi");
-
-            // LUS window backend IDs (Ghostship 3.x): 1 = DirectX 11, 2 = OpenGL, 4 = Vulkan (0 is no longer valid)
-            string ghostshipRenderer = SystemConfig["ghostship_renderer"] ?? "";
-            if (ghostshipRenderer.IndexOf("directx", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                backend["Id"] = 1;
-                backend["Name"] = "DirectX 11";
-            }
-            else if (ghostshipRenderer.IndexOf("vulkan", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                backend["Id"] = 4;
-                backend["Name"] = "Vulkan";
-            }
-            else
-            {
-                backend["Id"] = 2;
-                backend["Name"] = "OpenGL";
-            }
-
-            fs["Enabled"] = _fullscreen ? true : false;
-
-            File.WriteAllText(settingsFile, jsonObj.ToString(Formatting.Indented));
-        }
-
+        #region opengoal
         // PC_KERNEL_VERSION, as written by the game in pc-settings.gc
         private static readonly Dictionary<string, string> _openGoalSettingsHeader = new Dictionary<string, string>
         {
@@ -1488,7 +1293,9 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] OpenGOAL: " + gameName + " extracted successfully, starting the game.");
         }
+        #endregion
 
+        #region openjazz
         private void ConfigureOpenJazz(List<string> commandArray, string rom)
         {
             if (_emulator != "openjazz")
@@ -1502,32 +1309,48 @@ namespace EmulatorLauncher
 
             commandArray.Add("\"" + _romPath + "\"");
 
-            // Configuration
+            // Configuration (stored in the working directory, i.e. the emulator folder)
             string configFile = Path.Combine(_path, "openjazz.cfg");
 
-            if (!File.Exists(configFile))
+            byte[] configBytes = null;
+            if (File.Exists(configFile))
+                try { configBytes = File.ReadAllBytes(configFile); } catch { }
+
+            // No config yet (or empty file): start from the OpenJazz default settings so RetroBat options apply on first launch
+            if (configBytes == null || configBytes.Length == 0)
+                configBytes = CreateOpenJazzDefaultConfig();
+
+            // Config written by OpenJazz 20240919 or older (v6): convert it to v7 to keep the user settings
+            // v6 header: version, width, height, video options (fullscreen | scale << 1) / v7 header: version, width, height, fullscreen, scale, scale method
+            if (configBytes.Length > 6 && configBytes[0] == 6)
             {
-                string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "openjazz", "openjazz.cfg");
-                if (File.Exists(templateFile))
-                    try { File.Copy(templateFile, configFile); } catch { }
+                byte videoOptions = configBytes[5];
+                var converted = new List<byte>();
+                converted.Add(7);
+                converted.AddRange(configBytes.Skip(1).Take(4));
+                converted.Add((byte)(videoOptions & 1));
+                converted.Add((byte)Math.Max(1, videoOptions >> 1));
+                converted.Add(0);
+                converted.AddRange(configBytes.Skip(6));
+                configBytes = converted.ToArray();
+                SimpleLogger.Instance.Info("[INFO] OpenJazz: openjazz.cfg converted to version 7.");
             }
 
-            if (!File.Exists(configFile))
+            if (configBytes.Length < 8 || configBytes[0] != 7)
+            {
+                SimpleLogger.Instance.Warning("[WARNING] OpenJazz: unknown openjazz.cfg version, file left unchanged.");
                 return;
+            }
 
-            byte[] configBytes = File.ReadAllBytes(configFile);
-
-            // resolution
+            // Internal resolution
             string resolution = "320x200";
 
             if (SystemConfig.isOptSet("openjazz_resolution") && !string.IsNullOrEmpty(SystemConfig["openjazz_resolution"]))
                 resolution = SystemConfig["openjazz_resolution"];
 
             string[] size = resolution.Split('x');
-            string width = size[0];
-            string height = size[1];
 
-            if (int.TryParse(width, out int widthint) && int.TryParse(height, out int heightint))
+            if (size.Length == 2 && int.TryParse(size[0], out int widthint) && int.TryParse(size[1], out int heightint))
             {
                 byte[] widthBytes = BitConverter.GetBytes((short)widthint);
                 byte[] heightBytes = BitConverter.GetBytes((short)heightint);
@@ -1538,9 +1361,93 @@ namespace EmulatorLauncher
                 configBytes[4] = heightBytes[1];
             }
 
-            File.WriteAllBytes(configFile, configBytes);
+            // Fullscreen (also forced by the command line)
+            configBytes[5] = (byte)(_fullscreen ? 1 : 0);
+
+            // Scale factor: the internal resolution is divided by this factor (only applied if it stays at least 320x200)
+            int scale = 1;
+            if (SystemConfig.isOptSet("openjazz_scale") && int.TryParse(SystemConfig["openjazz_scale"], out int s))
+                scale = Math.Max(1, Math.Min(4, s));
+            configBytes[6] = (byte)scale;
+
+            // Scale method: 0 = none, 1 = bilinear, 2 = scale2x (3 = hqx is not implemented in 20260301)
+            int filter = 0;
+            if (SystemConfig.isOptSet("openjazz_filter") && int.TryParse(SystemConfig["openjazz_filter"], out int f))
+                filter = Math.Max(0, Math.Min(2, f));
+            configBytes[7] = (byte)filter;
+
+            ConfigureOpenJazzControls(configBytes);
+
+            try { File.WriteAllBytes(configFile, configBytes); }
+            catch { SimpleLogger.Instance.Warning("[WARNING] OpenJazz: unable to write " + configFile); }
         }
 
+        // Default openjazz.cfg (version 7, OpenJazz 20260301) with the engine default settings for Windows
+        private static byte[] CreateOpenJazzDefaultConfig()
+        {
+            var data = new List<byte>();
+            Action<int> addInt = v => data.AddRange(BitConverter.GetBytes(v));
+
+            // Header: version, width, height, fullscreen, scale, scale method
+            data.Add(7);
+            data.AddRange(BitConverter.GetBytes((short)320));
+            data.AddRange(BitConverter.GetBytes((short)200));
+            data.Add(0);
+            data.Add(1);
+            data.Add(0);
+
+            // Keys (SDL2 key codes): up, down, left, right, jump, swim, fire, change weapon, enter, escape, blaster, toaster, missile, bouncer, TNT
+            int[] keys = { 1073741906, 1073741905, 1073741904, 1073741903, 1073742054, 1073742054, 32, 1073742052, 13, 27, 49, 50, 51, 52, 53 };
+            foreach (int k in keys)
+                addInt(k);
+
+            // Joystick buttons (19 controls)
+            int[] buttons = { -1, -1, -1, -1, 1, 1, 0, 3, 0, 5, -1, -1, -1, -1, -1, -1, 4, -1, -1 };
+            foreach (int b in buttons)
+                addInt(b);
+
+            // Joystick axes (axis, positive direction): up/down on axis 1, left/right on axis 0
+            for (int i = 0; i < 19; i++)
+            {
+                switch (i)
+                {
+                    case 0: addInt(1); addInt(0); break;
+                    case 1: addInt(1); addInt(1); break;
+                    case 2: addInt(0); addInt(0); break;
+                    case 3: addInt(0); addInt(1); break;
+                    default: addInt(-1); addInt(0); break;
+                }
+            }
+
+            // Joystick hats (hat, direction): hat 0 up = 1, down = 4, left = 8, right = 2
+            for (int i = 0; i < 19; i++)
+            {
+                switch (i)
+                {
+                    case 0: addInt(0); addInt(1); break;
+                    case 1: addInt(0); addInt(4); break;
+                    case 2: addInt(0); addInt(8); break;
+                    case 3: addInt(0); addInt(2); break;
+                    default: addInt(-1); addInt(0); break;
+                }
+            }
+
+            // Player name (32 chars)
+            byte[] name = new byte[32];
+            Encoding.ASCII.GetBytes("jazz").CopyTo(name, 0);
+            data.AddRange(name);
+
+            // Player colours, music and sound volume, gameplay options (leave unneeded)
+            data.AddRange(new byte[] { 4, 3, 2, 8 });
+            data.Add(50);
+            data.Add(25);
+            data.Add(2);
+
+            return data.ToArray();
+        }
+        #endregion
+
+        #region pdark
         private void ConfigurePDark(List<string> commandArray, string rom)
         {
             if (_emulator != "pdark")
@@ -1707,7 +1614,9 @@ namespace EmulatorLauncher
 
             return false;
         }
+        #endregion
 
+        #region powerbomberman
         private void ConfigurePowerBomberman(string rom, string exe)
         {
             if (_emulator != "powerbomberman")
@@ -1745,7 +1654,9 @@ namespace EmulatorLauncher
                 ini.Save();
             }
         }
+        #endregion
 
+        #region rtcw
         private void ConfigureRTCW(List<string> commandArray, string rom)
         {
             if (_emulator != "rtcw")
@@ -1890,6 +1801,220 @@ namespace EmulatorLauncher
 
             ConfigEditorDhewm3.ChangeConfigValues(cfgFile, changes);
         }
+        #endregion
+
+        #region ultraship
+        // Extracts one entry of a Ship o2r archive (zip) and returns its bytes. Returns null if unavailable.
+        private static byte[] ReadShipArchiveEntry(string archivePath, string entryName)
+        {
+            if (!File.Exists(archivePath))
+                return null;
+
+            string tmpPath = Path.Combine(Path.GetTempPath(), "rb_o2r_" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                using (var archive = Zip.Open(archivePath))
+                {
+                    if (archive == null)
+                        return null;
+
+                    archive.Extract(tmpPath, entryName);
+                }
+
+                string entryFile = Path.Combine(tmpPath, entryName);
+                return File.Exists(entryFile) ? File.ReadAllBytes(entryFile) : null;
+            }
+            catch { return null; }
+            finally
+            {
+                try { if (Directory.Exists(tmpPath)) Directory.Delete(tmpPath, true); } catch { }
+            }
+        }
+
+        // Ghostship "portVersion" = 3 x uint16 big-endian (major, minor, patch), no endianness byte. Returns null if unknown.
+        private static int[] GetGhostshipArchiveVersion(string archivePath)
+        {
+            byte[] data = ReadShipArchiveEntry(archivePath, "portVersion");
+            if (data == null || data.Length < 4)
+                return null;
+
+            return new int[] { (data[0] << 8) | data[1], (data[2] << 8) | data[3] };
+        }
+
+        private void ConfigureGhostship(List<string> commandArray, string rom, string exe)
+        {
+            if (_emulator != "ghostship")
+                return;
+
+            // Game archive is sm64.o2r, generated in the emulator folder (portable mode)
+            string gameArchive = Path.Combine(_path, "sm64.o2r");
+
+            // Ghostship rejects an archive whose major.minor differs from the exe version: delete it so it is regenerated silently
+            if (File.Exists(gameArchive))
+            {
+                try
+                {
+                    int[] archiveVersion = GetGhostshipArchiveVersion(gameArchive);
+                    var exeVersion = FileVersionInfo.GetVersionInfo(exe);
+
+                    // 0.0.x archives (dev builds) are accepted by Ghostship, keep the same rule
+                    bool devArchive = archiveVersion != null && archiveVersion[0] == 0 && archiveVersion[1] == 0;
+
+                    if (archiveVersion != null && !devArchive && exeVersion.FileMajorPart > 0 &&
+                        (archiveVersion[0] != exeVersion.FileMajorPart || archiveVersion[1] != exeVersion.FileMinorPart))
+                    {
+                        SimpleLogger.Instance.Info("[INFO] Ghostship: sm64.o2r generated by version " + archiveVersion[0] + "." + archiveVersion[1] + ", regenerating for version " + exeVersion.FileMajorPart + "." + exeVersion.FileMinorPart);
+                        File.Delete(gameArchive);
+                    }
+                }
+                catch { }
+            }
+
+            if (!File.Exists(gameArchive))
+            {
+                // Ghostship extracts the ROM without any prompt when its path is passed as argument (only .z64 is supported)
+                if (Path.GetExtension(rom).Equals(".z64", StringComparison.OrdinalIgnoreCase))
+                    commandArray.Add("\"" + rom + "\"");
+                else
+                {
+                    // Fallback: copy the ROM next to the exe so Ghostship's own ROM search can find it
+                    string emulatorRom = Path.Combine(_path, Path.GetFileName(rom));
+                    if (!File.Exists(emulatorRom))
+                        try { File.Copy(rom, emulatorRom); } catch { SimpleLogger.Instance.Warning("[WARNING] Impossible to copy game file to Ghostship folder."); }
+                }
+            }
+
+            // Settings
+            string settingsFile = Path.Combine(_path, "ghostship.cfg.json");
+
+            JObject jsonObj = null;
+            if (File.Exists(settingsFile))
+            {
+                try { jsonObj = JObject.Parse(File.ReadAllText(settingsFile)); } catch { }
+            }
+            if (jsonObj == null)
+                jsonObj = new JObject();
+
+            // LUS saves empty objects as null, so containers must be type-checked, not only null-checked
+            JObject cvars = GetOrCreateJObject(jsonObj, "CVars");
+            JObject advancedRes = GetOrCreateJObject(cvars, "gAdvancedResolution");
+            JObject intScale = GetOrCreateJObject(advancedRes, "IntegerScale");
+            JObject controllers = GetOrCreateJObject(cvars, "gControllers");
+            JObject settings = GetOrCreateJObject(cvars, "gSettings");
+            JObject window = GetOrCreateJObject(jsonObj, "Window");
+            JObject backend = GetOrCreateJObject(window, "Backend");
+            JObject fs = GetOrCreateJObject(window, "Fullscreen");
+
+            // Ensure config windows are not opened
+            settings.Remove("Menu");
+            cvars.Remove("gOpenWindows");
+
+            // Aspect ratio
+            if (SystemConfig.isOptSet("ghostship_ratio") && !string.IsNullOrEmpty(SystemConfig["ghostship_ratio"]))
+            {
+                string ghostshipRatio = SystemConfig["ghostship_ratio"];
+                switch (ghostshipRatio)
+                {
+                    case "off":
+                        advancedRes["AspectRatioX"] = 0.0;
+                        advancedRes["AspectRatioY"] = 0.0;
+                        break;
+                    case "native":
+                        advancedRes["AspectRatioX"] = 4.0;
+                        advancedRes["AspectRatioY"] = 3.0;
+                        break;
+                    case "widescreen":
+                        advancedRes["AspectRatioX"] = 16.0;
+                        advancedRes["AspectRatioY"] = 9.0;
+                        break;
+                    case "3ds":
+                        advancedRes["AspectRatioX"] = 5.0;
+                        advancedRes["AspectRatioY"] = 3.0;
+                        break;
+                    case "16:10":
+                        advancedRes["AspectRatioX"] = 16.0;
+                        advancedRes["AspectRatioY"] = 10.0;
+                        break;
+                    case "ultrawide":
+                        advancedRes["AspectRatioX"] = 21.0;
+                        advancedRes["AspectRatioY"] = 9.0;
+                        break;
+                }
+            }
+            else
+            {
+                advancedRes["AspectRatioX"] = 0.0;
+                advancedRes["AspectRatioY"] = 0.0;
+            }
+
+            advancedRes["Enabled"] = 1;
+
+            if (SystemConfig.isOptSet("integerscale") && SystemConfig.getOptBoolean("integerscale"))
+            {
+                intScale["Factor"] = 0;
+                intScale["FitAutomatically"] = 1;
+                intScale["NeverExceedBounds"] = 1;
+                advancedRes["PixelPerfectMode"] = 1;
+            }
+            else
+            {
+                intScale["Factor"] = 0;
+                intScale["FitAutomatically"] = 0;
+                intScale["NeverExceedBounds"] = 1;
+                advancedRes["PixelPerfectMode"] = 0;
+            }
+
+            BindFeatureInt(advancedRes, "VerticalPixelCount", "ghostship_resolution", "720");
+
+            advancedRes["VerticalResolutionToggle"] = 1;
+            cvars["gControlNav"] = 1;
+
+            ConfigureShipControls(controllers);
+
+            cvars["gEnableMultiViewports"] = 1;
+            cvars["gInternalResolution"] = 1.0;
+
+            if (SystemConfig.isOptSet("ghostship_fps") && !string.IsNullOrEmpty(SystemConfig["ghostship_fps"]))
+            {
+                int ghostshipFPS = SystemConfig["ghostship_fps"].ToIntegerString().ToInteger();
+                settings["InterpolationFPS"] = ghostshipFPS;
+                settings["MatchRefreshRate"] = 0;
+            }
+            else
+            {
+                settings["InterpolationFPS"] = 60;
+                settings["MatchRefreshRate"] = 1;
+            }
+
+            BindFeatureSliderInt(cvars, "gMSAAValue", "ghostship_msaa", "1");
+
+            cvars["gSdlWindowedFullscreen"] = _exclusivefs ? 0 : 1;
+            BindFeatureInt(cvars, "gTextureFilter", "ghostship_texturefilter", "1");
+            BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "ghostship_vsync", "1", "0");
+            BindFeature(window, "AudioBackend", "ghostship_audioapi", "wasapi");
+
+            // LUS window backend IDs (Ghostship 3.x): 1 = DirectX 11, 2 = OpenGL, 4 = Vulkan (0 is no longer valid)
+            string ghostshipRenderer = SystemConfig["ghostship_renderer"] ?? "";
+            if (ghostshipRenderer.IndexOf("directx", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                backend["Id"] = 1;
+                backend["Name"] = "DirectX 11";
+            }
+            else if (ghostshipRenderer.IndexOf("vulkan", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                backend["Id"] = 4;
+                backend["Name"] = "Vulkan";
+            }
+            else
+            {
+                backend["Id"] = 2;
+                backend["Name"] = "OpenGL";
+            }
+
+            fs["Enabled"] = _fullscreen ? true : false;
+
+            File.WriteAllText(settingsFile, jsonObj.ToString(Formatting.Indented));
+        }
 
         // 2Ship "portVersion" = endianness byte (1 = big, 0 = little) followed by uint16 major. Returns -1 if unknown.
         private static int GetShipArchiveMajorVersion(string archivePath)
@@ -1899,17 +2024,6 @@ namespace EmulatorLauncher
                 return -1;
 
             return data[0] == 1 ? (data[1] << 8) | data[2] : (data[2] << 8) | data[1];
-        }
-
-        private static JObject GetOrCreateJObject(JObject parent, string key)
-        {
-            JObject obj = parent[key] as JObject;
-            if (obj == null)
-            {
-                obj = new JObject();
-                parent[key] = obj;
-            }
-            return obj;
         }
 
         private void ConfigureShip2(List<string> commandArray, string rom, string exe)
@@ -2248,6 +2362,215 @@ namespace EmulatorLauncher
             File.WriteAllText(settingsFile, jsonObj.ToString(Formatting.Indented));
         }
 
+        private void ConfigureStarship(string rom, string exe)
+        {
+            if (_emulator != "starship")
+                return;
+
+            var otrFiles = Directory.GetFiles(_path, "*.o2r");
+            var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("starship.o2r", StringComparison.OrdinalIgnoreCase));
+
+            if (!gameOtrFiles.Any())
+            {
+                string emulatorRom = Path.Combine(_path, Path.GetFileName(rom));
+                try { File.Copy(rom, emulatorRom); } catch { SimpleLogger.Instance.Warning("[WARNING] Impossible to copy game file to Starship folder."); }
+            }
+
+            // Settings
+            JObject jsonObj;
+            JObject cvars;
+            JObject advancedRes;
+            JObject intScale;
+            JObject controllers;
+            JObject window;
+            JObject backend;
+            JObject fs;
+
+            string settingsFile = Path.Combine(_path, "starship.cfg.json");
+            if (File.Exists(settingsFile))
+            {
+                string jsonString = File.ReadAllText(settingsFile);
+                try { jsonObj = JObject.Parse(jsonString); } catch { jsonObj = new JObject(); }
+            }
+            else
+                jsonObj = new JObject();
+
+            if (jsonObj["CVars"] == null)
+            {
+                cvars = new JObject();
+                jsonObj["CVars"] = cvars;
+            }
+            else
+                cvars = (JObject)jsonObj["CVars"];
+
+            if (cvars["gAdvancedResolution"] == null)
+            {
+                advancedRes = new JObject();
+                cvars["gAdvancedResolution"] = advancedRes;
+            }
+            else
+                advancedRes = (JObject)cvars["gAdvancedResolution"];
+
+            if (advancedRes["IntegerScale"] == null)
+            {
+                intScale = new JObject();
+                advancedRes["IntegerScale"] = intScale;
+            }
+            else
+                intScale = (JObject)advancedRes["IntegerScale"];
+
+            if (cvars["gControllers"] == null)
+            {
+                controllers = new JObject();
+                cvars["gControllers"] = controllers;
+            }
+            else
+                controllers = (JObject)cvars["gControllers"];
+
+            if (jsonObj["Window"] == null)
+            {
+                window = new JObject();
+                jsonObj["Window"] = window;
+            }
+            else
+                window = (JObject)jsonObj["Window"];
+
+            if (window["Backend"] == null)
+            {
+                backend = new JObject();
+                window["Backend"] = backend;
+            }
+            else
+                backend = (JObject)window["Backend"];
+
+            if (window["Fullscreen"] == null)
+            {
+                fs = new JObject();
+                window["Fullscreen"] = fs;
+            }
+            else
+                fs = (JObject)window["Fullscreen"];
+
+            // Ensure config windows are not opened
+            cvars["gAdvancedResolutionEditorEnabled"] = 0;
+            cvars["gAudioChannelsSetting"] = 0;
+            cvars["gConsoleEnabled"] = 0;
+            cvars["gControllerConfigurationEnabled"] = 0;
+
+            // Aspect ratio
+            if (SystemConfig.isOptSet("starship_ratio") && !string.IsNullOrEmpty(SystemConfig["starship_ratio"]))
+            {
+                string starshipRatio = SystemConfig["starship_ratio"];
+                switch (starshipRatio)
+                {
+                    case "off":
+                        advancedRes["AspectRatioX"] = 0.0;
+                        advancedRes["AspectRatioY"] = 0.0;
+                        break;
+                    case "native":
+                        advancedRes["AspectRatioX"] = 4.0;
+                        advancedRes["AspectRatioY"] = 3.0;
+                        break;
+                    case "widescreen":
+                        advancedRes["AspectRatioX"] = 16.0;
+                        advancedRes["AspectRatioY"] = 9.0;
+                        break;
+                    case "3ds":
+                        advancedRes["AspectRatioX"] = 5.0;
+                        advancedRes["AspectRatioY"] = 3.0;
+                        break;
+                    case "16:10":
+                        advancedRes["AspectRatioX"] = 16.0;
+                        advancedRes["AspectRatioY"] = 10.0;
+                        break;
+                    case "ultrawide":
+                        advancedRes["AspectRatioX"] = 21.0;
+                        advancedRes["AspectRatioY"] = 9.0;
+                        break;
+                }
+            }
+            else
+            {
+                advancedRes["AspectRatioX"] = 0.0;
+                advancedRes["AspectRatioY"] = 0.0;
+            }
+
+            advancedRes["Enabled"] = 1;
+
+            if (SystemConfig.isOptSet("integerscale") && SystemConfig.getOptBoolean("integerscale"))
+            {
+                intScale["Factor"] = 0;
+                intScale["FitAutomatically"] = 1;
+                intScale["NeverExceedBounds"] = 1;
+                advancedRes["PixelPerfectMode"] = 1;
+            }
+            else
+            {
+                intScale["Factor"] = 0;
+                intScale["FitAutomatically"] = 0;
+                intScale["NeverExceedBounds"] = 1;
+                advancedRes["PixelPerfectMode"] = 0;
+            }
+
+            BindFeatureInt(advancedRes, "VerticalPixelCount", "starship_resolution", "720");
+
+            advancedRes["VerticalResolutionToggle"] = 1;
+
+            cvars["gAdvancedResolutionEditorEnabled"] = 0;
+            cvars["gControlNav"] = 1;
+
+            //ConfigureStarshipControls(controllers);
+
+            cvars["gEnableMultiViewports"] = 1;
+            cvars["gInternalResolution"] = 1.0;
+
+            if (SystemConfig.isOptSet("starship_fps") && !string.IsNullOrEmpty(SystemConfig["starship_fps"]))
+            {
+                int starshipFPS = SystemConfig["starship_fps"].ToIntegerString().ToInteger();
+                cvars["gInterpolationFPS"] = starshipFPS;
+                cvars["gMatchRefreshRate"] = 0;
+            }
+            else
+            {
+                cvars["gInterpolationFPS"] = 60;
+                cvars["gMatchRefreshRate"] = 1;
+            }
+
+            BindFeatureSliderInt(cvars, "gMSAAValue", "starship_msaa", "1");
+            cvars["gOpenMenuBar"] = 0;
+            cvars["gSdlWindowedFullscreen"] = _exclusivefs ? 0 : 1;
+            BindFeatureInt(cvars, "gTextureFilter", "starship_texturefilter", "1");
+            BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "starship_vsync", "1", "0");
+            BindFeature(window, "AudioBackend", "starship_audioapi", "wasapi");
+
+            if (SystemConfig.isOptSet("starship_renderer") && !string.IsNullOrEmpty(SystemConfig["starship_renderer"]))
+            {
+                string starshipRenderer = SystemConfig["starship_renderer"];
+                switch (starshipRenderer)
+                {
+                    case "OpenGL":
+                        backend["Id"] = 1;
+                        backend["Name"] = "OpenGL";
+                        break;
+                    case "DirectX":
+                        backend["Id"] = 0;
+                        backend["Name"] = "DirectX";
+                        break;
+                }
+            }
+            else
+            {
+                backend["Id"] = 1;
+                backend["Name"] = "OpenGL";
+            }
+
+            fs["Enabled"] = _fullscreen ? true : false;
+
+            File.WriteAllText(settingsFile, jsonObj.ToString(Formatting.Indented));
+        }
+        #endregion
+
+        #region sonic
         private void ConfigureSonic3air(string rom, string exe)
         {
             if (_emulator != "sonic3air")
@@ -2531,214 +2854,9 @@ namespace EmulatorLauncher
                 ini.Save();
             }
         }
+        #endregion
 
-        private void ConfigureStarship(string rom, string exe)
-        {
-            if (_emulator != "starship")
-                return;
-
-            var otrFiles = Directory.GetFiles(_path, "*.o2r");
-            var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("starship.o2r", StringComparison.OrdinalIgnoreCase));
-
-            if (!gameOtrFiles.Any())
-            {
-                string emulatorRom = Path.Combine(_path, Path.GetFileName(rom));
-                try { File.Copy(rom, emulatorRom); } catch { SimpleLogger.Instance.Warning("[WARNING] Impossible to copy game file to Starship folder."); }
-            }
-
-            // Settings
-            JObject jsonObj;
-            JObject cvars;
-            JObject advancedRes;
-            JObject intScale;
-            JObject controllers;
-            JObject window;
-            JObject backend;
-            JObject fs;
-            
-            string settingsFile = Path.Combine(_path, "starship.cfg.json");
-            if (File.Exists(settingsFile))
-            {
-                string jsonString = File.ReadAllText(settingsFile);
-                try { jsonObj = JObject.Parse(jsonString); } catch { jsonObj = new JObject(); }
-            }
-            else
-                jsonObj = new JObject();
-
-            if (jsonObj["CVars"] == null)
-            {
-                cvars = new JObject();
-                jsonObj["CVars"] = cvars;
-            }
-            else
-                cvars = (JObject)jsonObj["CVars"];
-
-            if (cvars["gAdvancedResolution"] == null)
-            {
-                advancedRes = new JObject();
-                cvars["gAdvancedResolution"] = advancedRes;
-            }
-            else
-                advancedRes = (JObject)cvars["gAdvancedResolution"];
-
-            if (advancedRes["IntegerScale"] == null)
-            {
-                intScale = new JObject();
-                advancedRes["IntegerScale"] = intScale;
-            }
-            else
-                intScale = (JObject)advancedRes["IntegerScale"];
-
-            if (cvars["gControllers"] == null)
-            {
-                controllers = new JObject();
-                cvars["gControllers"] = controllers;
-            }
-            else
-                controllers = (JObject)cvars["gControllers"];
-
-            if (jsonObj["Window"] == null)
-            {
-                window = new JObject();
-                jsonObj["Window"] = window;
-            }
-            else
-                window = (JObject)jsonObj["Window"];
-
-            if (window["Backend"] == null)
-            {
-                backend = new JObject();
-                window["Backend"] = backend;
-            }
-            else
-                backend = (JObject)window["Backend"];
-
-            if (window["Fullscreen"] == null)
-            {
-                fs = new JObject();
-                window["Fullscreen"] = fs;
-            }
-            else
-                fs = (JObject)window["Fullscreen"];
-
-            // Ensure config windows are not opened
-            cvars["gAdvancedResolutionEditorEnabled"] = 0;
-            cvars["gAudioChannelsSetting"] = 0;
-            cvars["gConsoleEnabled"] = 0;
-            cvars["gControllerConfigurationEnabled"] = 0;
-
-            // Aspect ratio
-            if (SystemConfig.isOptSet("starship_ratio") && !string.IsNullOrEmpty(SystemConfig["starship_ratio"]))
-            {
-                string starshipRatio = SystemConfig["starship_ratio"];
-                switch (starshipRatio)
-                {
-                    case "off":
-                        advancedRes["AspectRatioX"] = 0.0;
-                        advancedRes["AspectRatioY"] = 0.0;
-                        break;
-                    case "native":
-                        advancedRes["AspectRatioX"] = 4.0;
-                        advancedRes["AspectRatioY"] = 3.0;
-                        break;
-                    case "widescreen":
-                        advancedRes["AspectRatioX"] = 16.0;
-                        advancedRes["AspectRatioY"] = 9.0;
-                        break;
-                    case "3ds":
-                        advancedRes["AspectRatioX"] = 5.0;
-                        advancedRes["AspectRatioY"] = 3.0;
-                        break;
-                    case "16:10":
-                        advancedRes["AspectRatioX"] = 16.0;
-                        advancedRes["AspectRatioY"] = 10.0;
-                        break;
-                    case "ultrawide":
-                        advancedRes["AspectRatioX"] = 21.0;
-                        advancedRes["AspectRatioY"] = 9.0;
-                        break;
-                }
-            }
-            else
-            {
-                advancedRes["AspectRatioX"] = 0.0;
-                advancedRes["AspectRatioY"] = 0.0;
-            }
-
-            advancedRes["Enabled"] = 1;
-
-            if (SystemConfig.isOptSet("integerscale") && SystemConfig.getOptBoolean("integerscale"))
-            {
-                intScale["Factor"] = 0;
-                intScale["FitAutomatically"] = 1;
-                intScale["NeverExceedBounds"] = 1;
-                advancedRes["PixelPerfectMode"] = 1;
-            }
-            else
-            {
-                intScale["Factor"] = 0;
-                intScale["FitAutomatically"] = 0;
-                intScale["NeverExceedBounds"] = 1;
-                advancedRes["PixelPerfectMode"] = 0;
-            }
-
-            BindFeatureInt(advancedRes, "VerticalPixelCount", "starship_resolution", "720");
-
-            advancedRes["VerticalResolutionToggle"] = 1;
-
-            cvars["gAdvancedResolutionEditorEnabled"] = 0;
-            cvars["gControlNav"] = 1;
-
-            //ConfigureStarshipControls(controllers);
-
-            cvars["gEnableMultiViewports"] = 1;
-            cvars["gInternalResolution"] = 1.0;
-
-            if (SystemConfig.isOptSet("starship_fps") && !string.IsNullOrEmpty(SystemConfig["starship_fps"]))
-            {
-                int starshipFPS = SystemConfig["starship_fps"].ToIntegerString().ToInteger();
-                cvars["gInterpolationFPS"] = starshipFPS;
-                cvars["gMatchRefreshRate"] = 0;
-            }
-            else
-            {
-                cvars["gInterpolationFPS"] = 60;
-                cvars["gMatchRefreshRate"] = 1;
-            }
-
-            BindFeatureSliderInt(cvars, "gMSAAValue", "starship_msaa", "1");
-            cvars["gOpenMenuBar"] = 0;
-            cvars["gSdlWindowedFullscreen"] = _exclusivefs ? 0 : 1;
-            BindFeatureInt(cvars, "gTextureFilter", "starship_texturefilter", "1");
-            BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "starship_vsync", "1", "0");
-            BindFeature(window, "AudioBackend", "starship_audioapi", "wasapi");
-
-            if (SystemConfig.isOptSet("starship_renderer") && !string.IsNullOrEmpty(SystemConfig["starship_renderer"]))
-            {
-                string starshipRenderer = SystemConfig["starship_renderer"];
-                switch (starshipRenderer) 
-                {
-                    case "OpenGL":
-                        backend["Id"] = 1;
-                        backend["Name"] = "OpenGL";
-                        break;
-                    case "DirectX":
-                        backend["Id"] = 0;
-                        backend["Name"] = "DirectX";
-                        break;
-                }
-            }
-            else
-            {
-                backend["Id"] = 1;
-                backend["Name"] = "OpenGL";
-            }
-
-            fs["Enabled"] = _fullscreen ? true : false;
-
-            File.WriteAllText(settingsFile, jsonObj.ToString(Formatting.Indented));
-        }
-
+        #region quake
         private void ConfigurevkQuake(List<string> commandArray, string rom)
         {
             if (_emulator != "vkquake")
@@ -3027,7 +3145,9 @@ namespace EmulatorLauncher
             commandArray.Add("+" + cvar);
             commandArray.Add(value);
         }
+        #endregion
 
+        #region xash3d
         private void ConfigureXash3d(List<string> commandArray, string rom)
         {
             List<string> args = new List<string>();
@@ -3121,6 +3241,9 @@ namespace EmulatorLauncher
         }
         #endregion
 
+        #endregion
+
+        #region tools
         private static void CopyFolderContent(string sourceDir, string destDir)
         {
             try { Directory.CreateDirectory(destDir); } catch { }
@@ -3155,6 +3278,17 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info($"[INFO] Copy Complete");
         }
+        private static JObject GetOrCreateJObject(JObject parent, string key)
+        {
+            JObject obj = parent[key] as JObject;
+            if (obj == null)
+            {
+                obj = new JObject();
+                parent[key] = obj;
+            }
+            return obj;
+        }
+        #endregion
     }
 
     #region dhew3 config class

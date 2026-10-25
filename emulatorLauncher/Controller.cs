@@ -29,6 +29,204 @@ namespace EmulatorLauncher
 
         public bool IsKeyboard { get { return "Keyboard".Equals(Name, StringComparison.InvariantCultureIgnoreCase); } }
 
+        #region Arcade stick detection
+        /// <summary>
+        /// Best-effort arcade stick detection, used by the "arcadesticks_last" option.
+        /// 1. XInput subtype ARCADE_STICK declared by the firmware.
+        /// 2. USB id and name rules from system\tools\arcade_sticks.txt
+        ///    (exclusion rules only cancel name rules, field by field).
+        /// ARCADE_PAD (6-button fight pads) is deliberately not treated as a stick.
+        /// </summary>
+        public bool IsArcadeStick
+        {
+            get
+            {
+                if (IsKeyboard || Guid == null)
+                    return false;
+
+                // XInput driver guid: last byte is the XInput subtype
+                if (Guid.WrappedTechID == SdlWrappedTechId.XInput && Guid.SubControllerType == (int)XINPUT_DEVSUBTYPE.ARCADE_STICK)
+                    return true;
+
+                // XInput device seen through RawInput/HID: read the subtype from the device itself.
+                // Only trusted when VID/PID match, as the XInput slot may come from a fallback assignment.
+                if (IsXInputDevice)
+                {
+                    var xinput = XInput;
+                    if (xinput != null && xinput.Connected && xinput.SubType == XINPUT_DEVSUBTYPE.ARCADE_STICK &&
+                        xinput.VendorId == VendorID && xinput.ProductId == ProductID)
+                        return true;
+                }
+
+                return ArcadeStickRules.Matches((int)VendorID, (int)ProductID, Name, BusReportedName, HidManufacturer, HidProduct);
+            }
+        }
+
+        /// <summary>
+        /// HID device path usable with Windows device APIs (SDL XInput driver paths are not HID paths).
+        /// </summary>
+        private string GetHidDevicePath()
+        {
+            string path = DevicePath;
+            if ((string.IsNullOrEmpty(path) || !path.StartsWith(@"\\?\")) && IsXInputDevice && XInput != null)
+                path = XInput.Path;
+
+            return (!string.IsNullOrEmpty(path) && path.StartsWith(@"\\?\")) ? path : null;
+        }
+
+        private string _busReportedName;
+
+        /// <summary>
+        /// Product name reported by the device hardware (USB iProduct), as shown in Device Manager
+        /// "Bus reported device description". Empty when unavailable. Cached.
+        /// </summary>
+        public string BusReportedName
+        {
+            get
+            {
+                if (_busReportedName != null)
+                    return _busReportedName;
+
+                _busReportedName = string.Empty;
+                if (IsKeyboard)
+                    return _busReportedName;
+
+                try
+                {
+                    string path = GetHidDevicePath();
+                    if (path != null)
+                        _busReportedName = DeviceHelper.GetBusReportedDeviceName(path) ?? string.Empty;
+                }
+                catch { }
+
+                return _busReportedName;
+            }
+        }
+
+        private bool _hidStringsKnown;
+        private string _hidManufacturer = string.Empty;
+        private string _hidProduct = string.Empty;
+
+        private void EnsureHidStrings()
+        {
+            if (_hidStringsKnown)
+                return;
+
+            _hidStringsKnown = true;
+            if (IsKeyboard)
+                return;
+
+            try
+            {
+                string path = GetHidDevicePath();
+                if (path != null)
+                    DeviceHelper.GetHidStrings(path, out _hidManufacturer, out _hidProduct);
+            }
+            catch { }
+        }
+
+        /// <summary>USB manufacturer string (iManufacturer) read from the HID device. Cached.</summary>
+        public string HidManufacturer { get { EnsureHidStrings(); return _hidManufacturer ?? string.Empty; } }
+
+        /// <summary>USB product string (iProduct) read from the HID device. Cached.</summary>
+        public string HidProduct { get { EnsureHidStrings(); return _hidProduct ?? string.Empty; } }
+
+        /// <summary>
+        /// Rules loaded once from system\tools\arcade_sticks.txt (see the file header for the syntax).
+        /// </summary>
+        private static class ArcadeStickRules
+        {
+            private static List<string> _names;
+            private static List<string> _exclusions;
+            private static List<KeyValuePair<int, int>> _usbIds; // Value = -1 means any product id
+
+            private static void Load()
+            {
+                if (_names != null)
+                    return;
+
+                _names = new List<string>();
+                _exclusions = new List<string>();
+                _usbIds = new List<KeyValuePair<int, int>>();
+
+                string file = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "arcade_sticks.txt");
+                if (!File.Exists(file))
+                {
+                    SimpleLogger.Instance.Info("[Controller] Arcade stick list not found: " + file);
+                    return;
+                }
+
+                try
+                {
+                    foreach (var raw in File.ReadAllLines(file))
+                    {
+                        string line = raw.Trim();
+                        if (line.Length == 0 || line.StartsWith("#"))
+                            continue;
+
+                        if (line.StartsWith("!"))
+                        {
+                            string text = line.Substring(1).Trim().ToLowerInvariant();
+                            if (text.Length > 0)
+                                _exclusions.Add(text);
+                            continue;
+                        }
+
+                        if (line.StartsWith("usb:", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            var parts = line.Substring(4).Split(':');
+
+                            int vid;
+                            if (!int.TryParse(parts[0].Trim(), System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out vid))
+                                continue;
+
+                            int pid = -1;
+                            if (parts.Length > 1 && parts[1].Trim() != "*" &&
+                                !int.TryParse(parts[1].Trim(), System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out pid))
+                                continue;
+
+                            _usbIds.Add(new KeyValuePair<int, int>(vid, pid));
+                            continue;
+                        }
+
+                        _names.Add(line.ToLowerInvariant());
+                    }
+
+                    SimpleLogger.Instance.Info("[Controller] Arcade stick list loaded: " + _names.Count + " names, " + _usbIds.Count + " usb ids, " + _exclusions.Count + " exclusions.");
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Error("[Controller] Failed to read arcade stick list: " + ex.Message, ex);
+                }
+            }
+
+            public static bool Matches(int vid, int pid, params string[] names)
+            {
+                Load();
+
+                // USB ids are not affected by exclusions
+                if (vid != 0 && _usbIds.Any(u => u.Key == vid && (u.Value == -1 || u.Value == pid)))
+                    return true;
+
+                // Name rules, evaluated field by field: an exclusion only cancels the field it is found in
+                foreach (var n in names)
+                {
+                    if (string.IsNullOrEmpty(n))
+                        continue;
+
+                    string name = n.ToLowerInvariant();
+                    if (_exclusions.Any(e => name.Contains(e)))
+                        continue;
+
+                    if (_names.Any(r => name.Contains(r)))
+                        return true;
+                }
+
+                return false;
+            }
+        }
+        #endregion
+
         /// <summary>
         /// True when another player is bound to the very same device path. This happens with arcade
         /// boards exposing one joystick per HID collection (Xin-Mo / Xinmotek dual encoders,

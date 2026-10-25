@@ -488,6 +488,132 @@ namespace EmulatorLauncher
         }
         #endregion
 
+        #region openjazz
+        // OpenJazz only opens the first SDL joystick (index 0) and stores raw SDL2 button, axis and hat numbers in its binary config
+        private void ConfigureOpenJazzControls(byte[] configBytes)
+        {
+            if (_emulator != "openjazz")
+                return;
+
+            if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
+            {
+                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                return;
+            }
+
+            // Header (v7): version, width, height, fullscreen, scale, scale method (8 bytes)
+            if (configBytes[0] != 7)
+                return;
+
+            const int keysOffset = 8;
+            const int controls = 19;
+            int buttonsOffset = keysOffset + (controls - 4) * 4;
+            int axesOffset = buttonsOffset + controls * 4;
+            int hatsOffset = axesOffset + controls * 8;
+
+            if (configBytes.Length < hatsOffset + controls * 8)
+                return;
+
+            var ctrl = this.Controllers.Where(c => !c.IsKeyboard && c.Config != null).OrderBy(c => c.PlayerIndex).FirstOrDefault();
+            var sdl = ctrl == null ? null : ctrl.SdlController;
+            if (sdl == null || sdl.Mapping == null || sdl.Mapping.Length == 0)
+            {
+                SimpleLogger.Instance.Info("[INFO] OpenJazz: no SDL mapping for player 1, controls left to the game.");
+                return;
+            }
+
+            // The game always uses joystick 0: hide the other devices when player 1 is not the first one
+            // Note: SDL2 applies this list to DirectInput, XInput, WGI and HIDAPI devices, not to RawInput ones
+            if (sdl.Index != 0)
+            {
+                ushort vid = (ushort)ctrl.VendorID;
+                ushort pid = (ushort)ctrl.ProductID;
+                if (vid != 0 && pid != 0)
+                {
+                    string vidPid = string.Format("0x{0:X4}/0x{1:X4}", vid, pid);
+                    _environmentVariables["SDL_GAMECONTROLLER_IGNORE_DEVICES_EXCEPT"] = vidPid;
+                    SimpleLogger.Instance.Info("[INFO] OpenJazz: player 1 is SDL joystick " + sdl.Index + ", only " + vidPid + " is visible to the game.");
+                }
+                else
+                    SimpleLogger.Instance.Warning("[WARNING] OpenJazz: player 1 is SDL joystick " + sdl.Index + ", the game will use joystick 0.");
+            }
+
+            // Clear every joystick binding
+            for (int i = 0; i < controls; i++)
+            {
+                OpenJazzWriteInt(configBytes, buttonsOffset + i * 4, -1);
+                OpenJazzWriteInt(configBytes, axesOffset + i * 8, -1);
+                OpenJazzWriteInt(configBytes, axesOffset + i * 8 + 4, 0);
+                OpenJazzWriteInt(configBytes, hatsOffset + i * 8, -1);
+                OpenJazzWriteInt(configBytes, hatsOffset + i * 8 + 4, 0);
+            }
+
+            foreach (var bind in openjazzMapping)
+            {
+                var map = sdl.Mapping.FirstOrDefault(m => m.Button == bind.Key && m.Input != null);
+                if (map == null)
+                    continue;
+
+                foreach (int control in bind.Value)
+                {
+                    if (map.Input.Type == "button")
+                        OpenJazzWriteInt(configBytes, buttonsOffset + control * 4, (int)map.Input.Id);
+                    else if (map.Input.Type == "hat")
+                    {
+                        OpenJazzWriteInt(configBytes, hatsOffset + control * 8, (int)map.Input.Id);
+                        OpenJazzWriteInt(configBytes, hatsOffset + control * 8 + 4, (int)map.Input.Value);
+                    }
+                    else if (map.Input.Type == "axis")
+                    {
+                        OpenJazzWriteInt(configBytes, axesOffset + control * 8, (int)map.Input.Id);
+                        OpenJazzWriteInt(configBytes, axesOffset + control * 8 + 4, map.Input.Value < 0 ? 0 : 1);
+                    }
+                }
+            }
+
+            // Left stick: control index, SDL axis, positive direction
+            var stick = new[]
+            {
+                new { Control = 0, Axis = SDL_CONTROLLER_AXIS.LEFTY, Positive = false }, // up
+                new { Control = 1, Axis = SDL_CONTROLLER_AXIS.LEFTY, Positive = true },  // down
+                new { Control = 2, Axis = SDL_CONTROLLER_AXIS.LEFTX, Positive = false }, // left
+                new { Control = 3, Axis = SDL_CONTROLLER_AXIS.LEFTX, Positive = true }   // right
+            };
+
+            foreach (var s in stick)
+            {
+                var map = sdl.Mapping.FirstOrDefault(m => m.Axis == s.Axis && m.Input != null && m.Input.Type == "axis");
+                if (map == null)
+                    continue;
+
+                OpenJazzWriteInt(configBytes, axesOffset + s.Control * 8, (int)map.Input.Id);
+                OpenJazzWriteInt(configBytes, axesOffset + s.Control * 8 + 4, s.Positive ? 1 : 0);
+            }
+        }
+
+        private static void OpenJazzWriteInt(byte[] data, int offset, int value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            Array.Copy(bytes, 0, data, offset, 4);
+        }
+
+        // SDL button => OpenJazz controls (0 up, 1 down, 2 left, 3 right, 4 jump, 5 swim, 6 fire, 7 change weapon, 8 enter, 9 escape, 15 stats, 16 pause, 17 yes, 18 no)
+        private static readonly Dictionary<SDL_CONTROLLER_BUTTON, int[]> openjazzMapping = new Dictionary<SDL_CONTROLLER_BUTTON, int[]>
+        {
+            { SDL_CONTROLLER_BUTTON.DPAD_UP,       new[] { 0 } },
+            { SDL_CONTROLLER_BUTTON.DPAD_DOWN,     new[] { 1 } },
+            { SDL_CONTROLLER_BUTTON.DPAD_LEFT,     new[] { 2 } },
+            { SDL_CONTROLLER_BUTTON.DPAD_RIGHT,    new[] { 3 } },
+            { SDL_CONTROLLER_BUTTON.A,             new[] { 4, 5, 8, 17 } },
+            { SDL_CONTROLLER_BUTTON.X,             new[] { 6 } },
+            { SDL_CONTROLLER_BUTTON.Y,             new[] { 7 } },
+            { SDL_CONTROLLER_BUTTON.B,             new[] { 18 } },
+            { SDL_CONTROLLER_BUTTON.START,         new[] { 9 } },
+            { SDL_CONTROLLER_BUTTON.RIGHTSHOULDER, new[] { 16 } },
+            { SDL_CONTROLLER_BUTTON.LEFTSHOULDER,  new[] { 15 } }
+        };
+        #endregion
+
         #region pdark
         private void ConfigurePDarkControls(IniFile ini)
         {
@@ -892,7 +1018,7 @@ namespace EmulatorLauncher
         }
         #endregion
 
-        #region ship
+        #region ultraship
         private Dictionary<string, InputKey> shipLayout = new Dictionary<string, InputKey>()
         {
             { "ls_d0", InputKey.leftanalogleft },       // stick left

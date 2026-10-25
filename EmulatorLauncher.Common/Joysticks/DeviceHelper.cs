@@ -146,5 +146,102 @@ namespace EmulatorLauncher.Common.Joysticks
 
             return Encoding.Unicode.GetString(buffer).TrimEnd('\0');
         }
+
+        /// <summary>
+        /// Returns the name reported by the device hardware (USB iProduct / Bluetooth name), as shown in
+        /// Device Manager > Details > "Bus reported device description".
+        /// Starts from the HID node and walks up to its parents, as composite and XInput devices
+        /// report it on the USB node. Limited to 2 levels to avoid reaching the USB hub.
+        /// </summary>
+        public static string GetBusReportedDeviceName(string devicePath, int maxParentLevels = 2)
+        {
+            string deviceId = ConvertToDeviceId(devicePath);
+            if (string.IsNullOrEmpty(deviceId))
+                return "";
+
+            uint devInst;
+            if (CM_Locate_DevNode(out devInst, deviceId, CM_LOCATE_DEVNODE_NORMAL) != CR_SUCCESS)
+                return "";
+
+            for (int level = 0; level <= maxParentLevels; level++)
+            {
+                string name = GetDevNodeStringProperty(devInst, DEVPKEY_Device_BusReportedDeviceDesc);
+                if (!string.IsNullOrEmpty(name))
+                    return name;
+
+                uint parentInst;
+                if (CM_Get_Parent(out parentInst, devInst, 0) != CR_SUCCESS)
+                    break;
+
+                devInst = parentInst;
+            }
+
+            return "";
+        }
+
+        private static string GetDevNodeStringProperty(uint devInst, DEVPROPKEY key)
+        {
+            uint size = 0;
+            uint propType;
+
+            int ret = CM_Get_DevNode_PropertyW(devInst, ref key, out propType, null, ref size, 0);
+            if (ret != CR_BUFFER_SMALL || size == 0)
+                return "";
+
+            byte[] buffer = new byte[size];
+            ret = CM_Get_DevNode_PropertyW(devInst, ref key, out propType, buffer, ref size, 0);
+            if (ret != CR_SUCCESS || propType != DEVPROP_TYPE_STRING)
+                return "";
+
+            return Encoding.Unicode.GetString(buffer).TrimEnd('\0');
+        }
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr CreateFileW(string lpFileName, uint dwDesiredAccess, uint dwShareMode, IntPtr lpSecurityAttributes, uint dwCreationDisposition, uint dwFlagsAndAttributes, IntPtr hTemplateFile);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool CloseHandle(IntPtr hObject);
+
+        [DllImport("hid.dll", CharSet = CharSet.Unicode)]
+        private static extern bool HidD_GetManufacturerString(IntPtr HidDeviceObject, StringBuilder Buffer, uint BufferLength);
+
+        [DllImport("hid.dll", CharSet = CharSet.Unicode)]
+        private static extern bool HidD_GetProductString(IntPtr HidDeviceObject, StringBuilder Buffer, uint BufferLength);
+
+        /// <summary>
+        /// Reads the USB manufacturer (iManufacturer) and product (iProduct) strings of a HID device.
+        /// The device is opened without read/write access, so it works even when another process owns it.
+        /// </summary>
+        public static bool GetHidStrings(string devicePath, out string manufacturer, out string product)
+        {
+            manufacturer = "";
+            product = "";
+
+            if (string.IsNullOrEmpty(devicePath))
+                return false;
+
+            // dwDesiredAccess = 0 (query only), FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_EXISTING
+            IntPtr handle = CreateFileW(devicePath, 0, 3, IntPtr.Zero, 3, 0, IntPtr.Zero);
+            if (handle == IntPtr.Zero || handle == new IntPtr(-1))
+                return false;
+
+            try
+            {
+                // BufferLength is in bytes
+                var buf = new StringBuilder(256);
+                if (HidD_GetManufacturerString(handle, buf, (uint)(buf.Capacity * 2)))
+                    manufacturer = buf.ToString().Trim();
+
+                buf.Clear();
+                if (HidD_GetProductString(handle, buf, (uint)(buf.Capacity * 2)))
+                    product = buf.ToString().Trim();
+
+                return true;
+            }
+            finally
+            {
+                CloseHandle(handle);
+            }
+        }
     }
 }
