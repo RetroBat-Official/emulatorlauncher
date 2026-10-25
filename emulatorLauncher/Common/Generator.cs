@@ -676,7 +676,7 @@ namespace EmulatorLauncher
             return (rect.right - rect.left) > 100 && (rect.bottom - rect.top) > 100;
         }
 
-        protected void ApplyScreenPlacement(Process process)
+        protected virtual void ApplyScreenPlacement(Process process)
         {
             if (!UseGenericScreenPlacement || process == null)
                 return;

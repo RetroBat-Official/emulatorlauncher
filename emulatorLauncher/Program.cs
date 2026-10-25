@@ -1316,6 +1316,9 @@ namespace EmulatorLauncher
 
                     Controllers.RemoveAll(c => c.Config == null);
 
+                    // Optionally give gamepads priority over arcade sticks (sticks become the last players)
+                    MoveArcadeSticksLast();
+
                     if (!Controllers.Any() || SystemConfig.getOptBoolean("use_guns") || Misc.HasWiimoteGun())
                     {
                         var keyb = new Controller() { PlayerIndex = Controllers.Count + 1 };
@@ -1338,7 +1341,62 @@ namespace EmulatorLauncher
 
             return null;
         }
-        
+
+        // Systems where arcade sticks keep their ES order when "arcadesticks_last" = 1 (consoles only)
+        private static readonly HashSet<string> _arcadeStickSystems = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
+        {
+            "arcade", "atomiswave", "cave", "chihiro", "cps1", "cps2", "cps3", "daphne", "dice", "fbneo", "gaelco", "hbmame", "hikaru", "lindbergh", "mame", "model2", "model3",
+            "namco2x6", "namco3xx", "naomi", "naomi2", "neogeo", "neogeo64", "psxarcade", "segastv", "singe", "teknoparrot", "triforce", "zinc"
+        };
+
+        /// <summary>
+        /// Moves arcade sticks after the other controllers, so that gamepads get the first player slots.
+        /// The controller list itself is unchanged: only PlayerIndex values are reassigned.
+        /// </summary>
+        private static void MoveArcadeSticksLast()
+        {
+            string mode = SystemConfig["arcadesticks_last"];
+            if (string.IsNullOrEmpty(mode) || mode == "0")
+                return;
+
+            if (mode == "1" && _arcadeStickSystems.Contains(SystemConfig["system"] ?? string.Empty))
+                return;
+
+            // Diagnostic: gives the values to add in system\tools\arcade_sticks.txt for undetected sticks.
+            // Also resolves XInput slots while PlayerIndex still has its ES value (used as fallback order).
+            foreach (var c in Controllers.Where(c => !c.IsKeyboard))
+            {
+                string subType = (c.IsXInputDevice && c.XInput != null) ? c.XInput.SubType.ToString() : "n/a";
+                SimpleLogger.Instance.Info("[Controller] Arcade stick check: " + c.Name +
+                    " | usb:" + ((int)c.VendorID).ToString("X4") + ":" + ((int)c.ProductID).ToString("X4") +
+                    " | bus name: " + c.BusReportedName +
+                    " | manufacturer: " + c.HidManufacturer +
+                    " | product: " + c.HidProduct +
+                    " | xinput subtype: " + subType +
+                    " | arcade stick: " + c.IsArcadeStick);
+            }
+
+            var pads = Controllers.Where(c => !c.IsKeyboard).ToList();
+            var sticks = pads.Where(c => c.IsArcadeStick).OrderBy(c => c.PlayerIndex).ToList();
+
+            // Nothing to do when there is no stick, or only sticks
+            if (sticks.Count == 0 || sticks.Count == pads.Count)
+                return;
+
+            var ordered = Controllers.Where(c => !sticks.Contains(c)).OrderBy(c => c.PlayerIndex)
+                .Concat(sticks)
+                .ToList();
+
+            int playerIndex = 1;
+            foreach (var c in ordered)
+                c.PlayerIndex = playerIndex++;
+
+            Controllers = ordered;
+
+            foreach (var stick in sticks)
+                SimpleLogger.Instance.Info("[Controller] Arcade stick moved after gamepads: " + stick.ToShortString());
+        }
+
         private static void ImportShaderOverrides()
         {
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shaderset") && SystemConfig["shaderset"] != "none")

@@ -80,6 +80,9 @@ namespace EmulatorLauncher
         private bool _pad2Keyoverride = false;
         private readonly Dictionary<string, string> _environmentVariables = new Dictionary<string, string>();
         private string _cgeniusUserCfg = null;
+        private string _pdarkRomId = null;
+        private bool _pdarkRomIsZ64 = false;
+        private bool _borderlessOnScreen = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -107,32 +110,19 @@ namespace EmulatorLauncher
             _exeName = exeDictionnary[emulator];
             if (emulator == "pdark")
             {
-                if (SystemConfig.isOptSet("pdark_region") && !string.IsNullOrEmpty(SystemConfig["pdark_region"]))
-                {
-                    string pdarkRegion = SystemConfig["pdark_region"];
-                    switch (pdarkRegion)
-                    {
-                        case "EUR":
-                            _exeName = "pd.pal.x86_64.exe";
-                            break;
-                        case "JPN":
-                            _exeName = "pd.jpn.x86_64.exe";
-                            break;
-                        case "USA":
-                            _exeName = "pd.x86_64.exe";
-                            break;
-                    }
-                }
+                // Each executable only accepts one rom region: read it from the rom header
+                _pdarkRomId = GetPDarkRomId(rom, out _pdarkRomIsZ64);
+                if (_pdarkRomId == null)
+                    throw new ApplicationException("Unsupported rom: Perfect Dark requires a 32 MB N64 rom (NTSC 1.1, PAL or JPN final).");
+
+                if (_pdarkRomId == "pal-final")
+                    _exeName = "pd.pal.x86_64.exe";
+                else if (_pdarkRomId == "jpn-final")
+                    _exeName = "pd.jpn.x86_64.exe";
                 else
-                {
-                    string romName = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
-                    if (rom.Contains("eur") || rom.Contains("pal") || rom.Contains("fr"))
-                        _exeName = "pd.pal.x86_64.exe";
-                    else if (rom.Contains("jap") || rom.Contains("jp") || rom.Contains("japan"))
-                        _exeName = "pd.jpn.x86_64.exe";
-                }
+                    _exeName = "pd.x86_64.exe";
             }
-            
+
             string exe = Path.Combine(_path, _exeName);
             if (!File.Exists(exe))
                 return null;
@@ -198,9 +188,14 @@ namespace EmulatorLauncher
                 UseShellExecute = false
             };
 
-            // Environment variables for the port process only (e.g. SDL hints)
+            // Environment variables for the port process only (e.g. SDL hints), a null value removes the variable
             foreach (var env in _environmentVariables)
-                psi.EnvironmentVariables[env.Key] = env.Value;
+            {
+                if (env.Value == null)
+                    psi.EnvironmentVariables.Remove(env.Key);
+                else
+                    psi.EnvironmentVariables[env.Key] = env.Value;
+            }
 
             return psi;
         }
@@ -282,6 +277,45 @@ namespace EmulatorLauncher
             }
 
             return mapping;
+        }
+
+        // Screen placement override
+        // Ports whose fullscreen is locked on the primary display run windowed on another screen, made borderless here
+        protected override void ApplyScreenPlacement(Process process)
+        {
+            if (!_borderlessOnScreen)
+            {
+                base.ApplyScreenPlacement(process);
+                return;
+            }
+
+            var target = Program.TargetScreen;
+            if (process == null || target == null)
+                return;
+
+            try
+            {
+                IntPtr hWnd = ScreenTools.WaitForReadyWindow(process, IsScreenPlacementWindow, false);
+                if (hWnd == IntPtr.Zero)
+                    return;
+
+                // Remove the frame, then move and resize in a single call so the game keeps its client size (no graphics reinit)
+                const int WS_POPUP = unchecked((int)0x80000000);
+                const int WS_FRAME = 0x00C00000 | 0x00040000 | 0x00080000 | 0x00020000 | 0x00010000; // caption, thickframe, sysmenu, minimize, maximize
+
+                int style = User32.GetWindowLong(hWnd, GWL.STYLE);
+                User32.SetWindowLong(hWnd, GWL.STYLE, new IntPtr((style & ~WS_FRAME) | WS_POPUP));
+
+                var b = target.Bounds;
+                User32.SetWindowPos(hWnd, IntPtr.Zero, b.Left, b.Top, b.Width, b.Height, SWP.NOZORDER | SWP.FRAMECHANGED | SWP.SHOWWINDOW);
+                User32.SetForegroundWindow(hWnd);
+
+                SimpleLogger.Instance.Info("[SCREENMOVER] Borderless window placed on " + target.DeviceName);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[SCREENMOVER] Borderless placement failed : " + ex.Message);
+            }
         }
 
         // RunAnd Wait override
