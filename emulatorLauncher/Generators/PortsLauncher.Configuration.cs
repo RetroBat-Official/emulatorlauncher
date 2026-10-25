@@ -60,39 +60,90 @@ namespace EmulatorLauncher
             // Settings file update
             string configFile = Path.Combine(_path, "bstone_config.txt");
 
-            var height = _resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height;
-            var width = _resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width;
-
             commandArray.Add("--data_dir");
             commandArray.Add("\"" + dataDir + "\"");
             commandArray.Add("--profile_dir");
             commandArray.Add("\"" + _path + "\"");
 
+            // Force the game found in the rom folder
+            // Otherwise BStone also scans GOG/Steam installs and shows a mouse-only selection dialog when several games are found
+            string game = GetBStoneGame(dataDir, rom);
+            if (game != null)
+                commandArray.Add("--" + game);
+
+            // BStone fullscreen always uses the primary display
+            // On another screen: windowed at the target screen size, made borderless and placed after launch (see ApplyScreenPlacement)
+            var targetScreen = Program.IsMonitorIndexSet ? Program.TargetScreen : null;
+            _borderlessOnScreen = _fullscreen && targetScreen != null && !targetScreen.Primary;
+
             var cfg = new QuakeConfig(configFile);
-            if (_fullscreen)
+            cfg.AppendIfMissing = true;
+
+            if (_borderlessOnScreen)
             {
-                cfg["vid_window_mode"] = _exclusivefs ? "fullscreen" : "fake_fullscreen";
+                cfg["vid_window_mode"] = "windowed";
+                cfg["vid_width"] = targetScreen.Bounds.Width.ToString();
+                cfg["vid_height"] = targetScreen.Bounds.Height.ToString();
+
+                // BStone clamps negative coordinates to 0: in that case the window is only moved after launch
+                bool canPosition = targetScreen.Bounds.Left >= 0 && targetScreen.Bounds.Top >= 0;
+                cfg["vid_is_positioned"] = canPosition ? "1" : "0";
+                if (canPosition)
+                {
+                    cfg["vid_x"] = targetScreen.Bounds.Left.ToString();
+                    cfg["vid_y"] = targetScreen.Bounds.Top.ToString();
+                }
             }
             else
-                cfg["vid_window_mode"] = "windowed";
+            {
+                cfg["vid_is_positioned"] = "0";
 
+                if (_fullscreen)
+                {
+                    cfg["vid_window_mode"] = _exclusivefs ? "fullscreen" : "fake_fullscreen";
 
-            cfg.AppendIfMissing = true;
-            
+                    // Display mode only used by exclusive fullscreen, borderless fullscreen always uses the desktop resolution
+                    if (_exclusivefs)
+                    {
+                        cfg["vid_width"] = (_resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width).ToString();
+                        cfg["vid_height"] = (_resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height).ToString();
+                    }
+                }
+                else
+                {
+                    cfg["vid_window_mode"] = "windowed";
+
+                    // Keep the window size saved by the game unless a video mode is set
+                    if (_resolution != null)
+                    {
+                        cfg["vid_width"] = _resolution.Width.ToString();
+                        cfg["vid_height"] = _resolution.Height.ToString();
+                    }
+                }
+            }
+
+            // Renderer: auto-detect tries Vulkan, OpenGL 3.2, OpenGL 2.0, OpenGL ES 2.0, then falls back to software
             if (SystemConfig.isOptSet("bstone_renderer") && !string.IsNullOrEmpty(SystemConfig["bstone_renderer"]))
                 cfg["vid_renderer"] = SystemConfig["bstone_renderer"];
             else
-                cfg["vid_renderer"] = "gles_2_0";
+                cfg["vid_renderer"] = "auto-detect";
 
-            cfg["vid_is_vsync"] = SystemConfig.getOptBoolean("bstone_vsync") ? "1" : "0";
-            cfg["vid_is_widescreen"] = SystemConfig.getOptBoolean("bstone_widescreen") ? "1" : "0";
-            cfg["vid_width"] = width.ToString();
-            cfg["vid_height"] = height.ToString();
+            cfg["vid_is_vsync"] = (!SystemConfig.isOptSet("bstone_vsync") || SystemConfig.getOptBoolean("bstone_vsync")) ? "1" : "0";
+            cfg["vid_is_widescreen"] = (!SystemConfig.isOptSet("bstone_widescreen") || SystemConfig.getOptBoolean("bstone_widescreen")) ? "1" : "0";
+            cfg["vid_is_ui_stretched"] = SystemConfig.getOptBoolean("bstone_stretchui") ? "1" : "0";
 
-            if (SystemConfig.isOptSet("bstone_antialiasing") && !string.IsNullOrEmpty(SystemConfig["bstone_antialiasing"]))
-                cfg["vid_aa_degree"] = SystemConfig["bstone_antialiasing"];
+            // MSAA requires both the type and the degree
+            int aaDegree;
+            if (int.TryParse(SystemConfig["bstone_antialiasing"], out aaDegree) && aaDegree >= 2)
+            {
+                cfg["vid_aa_type"] = "msaa";
+                cfg["vid_aa_degree"] = aaDegree.ToString();
+            }
             else
-                cfg["vid_aa_degree"] = "2";
+            {
+                cfg["vid_aa_type"] = "none";
+                cfg["vid_aa_degree"] = "1";
+            }
 
             if (SystemConfig.isOptSet("bstone_upscale_filter") && !string.IsNullOrEmpty(SystemConfig["bstone_upscale_filter"]))
             {
@@ -125,7 +176,72 @@ namespace EmulatorLauncher
                 cfg["vid_3d_texture_mipmap_filter"] = "nearest";
             }
 
+            cfg["gp_no_intro_outro"] = SystemConfig.getOptBoolean("bstone_skipintro") ? "1" : "0";
+            cfg["snd_opl3_type"] = SystemConfig.isOptSet("bstone_opl3") && SystemConfig["bstone_opl3"] == "nuked" ? "nuked" : "dbopl";
+
             cfg.Save();
+
+            ConfigureBStoneBindings(configFile);
+        }
+
+        // Game forced on the command line from the data files found in the rom folder (null = let BStone search)
+        private static string GetBStoneGame(string dataDir, string rom)
+        {
+            bool ps = File.Exists(Path.Combine(dataDir, "VSWAP.VSI"));
+            bool aog = File.Exists(Path.Combine(dataDir, "VSWAP.BS6"));
+            bool aogSw = File.Exists(Path.Combine(dataDir, "VSWAP.BS1"));
+
+            // Several games in the same folder: use the rom name (aog.bstone, ps.bstone)
+            string romName = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
+            if ((aog || aogSw) && (romName.Contains("aog") || romName.Contains("alien")))
+                return aog ? "aog" : "aog_sw";
+            if (ps && (romName.Contains("ps") || romName.Contains("planet")))
+                return "ps";
+
+            if (aog)
+                return "aog";
+            if (aogSw)
+                return "aog_sw";
+            if (ps)
+                return "ps";
+
+            return null;
+        }
+
+        // Key bindings appended at the end of the config: in_bind is executed after the saved bindings and removes the key from any other action
+        // BStone rewrites the whole file on exit, so these lines do not accumulate
+        private void ConfigureBStoneBindings(string configFile)
+        {
+            var bindings = new List<string>
+            {
+                // RetroBat default hotkeys
+                "in_bind \"f2\" \"quick_save\" \"0\"",
+                "in_bind \"f4\" \"quick_load\" \"0\"",
+                "in_bind \"f8\" \"screenshot\" \"0\""
+            };
+
+            // Layout independent keys used by the gamepad mapping (system\padtokey\bstone.keys), BStone reads layout dependent key codes
+            if (!SystemConfig.getOptBoolean("disableautocontrollers"))
+            {
+                bindings.Add("in_bind \"up_arrow\" \"forward\" \"1\"");
+                bindings.Add("in_bind \"down_arrow\" \"backward\" \"1\"");
+                bindings.Add("in_bind \"delete\" \"strafe_left\" \"1\"");
+                bindings.Add("in_bind \"end\" \"strafe_right\" \"1\"");
+                bindings.Add("in_bind \"page_up\" \"previous_weapon\" \"0\"");
+                bindings.Add("in_bind \"page_down\" \"next_weapon\" \"0\"");
+            }
+
+            try
+            {
+                var lines = File.Exists(configFile) ? File.ReadAllLines(configFile).ToList() : new List<string>();
+                lines.RemoveAll(l => bindings.Contains(l.Trim()));
+                lines.AddRange(bindings);
+                File.WriteAllLines(configFile, lines, new UTF8Encoding(false));
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[WARNING] BStone: unable to write key bindings : " + ex.Message);
+            }
         }
 
         private void ConfigureBSyndrome(List<string> commandArray, string rom)
@@ -170,11 +286,24 @@ namespace EmulatorLauncher
             if (_emulator != "cdogs")
                 return;
 
-            // Write environment variable
-            string envConfigPath = AppConfig.GetFullPath(_emulator) + "\\";
-            Environment.SetEnvironmentVariable("CDOGS_CONFIG_DIR", envConfigPath, EnvironmentVariableTarget.User);
+            string cdogsRoot = AppConfig.GetFullPath(_emulator).TrimEnd('\\', '/');
 
-            string configPath = Path.Combine(AppConfig.GetFullPath(_emulator), "C-Dogs SDL");
+            // Portable config: C-Dogs appends "C-Dogs SDL\" to CDOGS_CONFIG_DIR (falls back to %APPDATA% otherwise)
+            // Passed to the game process only: a User-level variable is not visible to a process started in the same session
+            _environmentVariables["CDOGS_CONFIG_DIR"] = cdogsRoot;
+
+            // XDG_CONFIG_HOME has priority over CDOGS_CONFIG_DIR in C-Dogs, remove it in case a third-party tool set it
+            _environmentVariables["XDG_CONFIG_HOME"] = null;
+
+            // Remove the User-level variable written by previous RetroBat versions
+            try
+            {
+                if (Environment.GetEnvironmentVariable("CDOGS_CONFIG_DIR", EnvironmentVariableTarget.User) != null)
+                    Environment.SetEnvironmentVariable("CDOGS_CONFIG_DIR", null, EnvironmentVariableTarget.User);
+            }
+            catch { }
+
+            string configPath = Path.Combine(cdogsRoot, "C-Dogs SDL");
             if (!Directory.Exists(configPath))
                 try { Directory.CreateDirectory(configPath); } catch { }
 
@@ -191,19 +320,39 @@ namespace EmulatorLauncher
             }
 
             // Settings file update
-            var height = _resolution == null ? ScreenResolution.CurrentResolution.Height : _resolution.Height;
-            var width = _resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width;
-            
             var settings = DynamicJson.Load(configJSON);
             var graphics = settings.GetOrCreateContainer("Graphics");
             var jsoninterface = settings.GetOrCreateContainer("Interface");
-            
-            graphics["Fullscreen"] = _fullscreen? "true" : "false";
-            graphics["WindowWidth"] = width.ToString();
-            graphics["WindowHeight"] = height.ToString();
+
+            // C-Dogs fullscreen always uses the primary display (display 0)
+            // On another screen: windowed at the target screen size, made borderless and placed after launch (see ApplyScreenPlacement)
+            var targetScreen = Program.IsMonitorIndexSet ? Program.TargetScreen : null;
+            _borderlessOnScreen = _fullscreen && targetScreen != null && !targetScreen.Primary;
+
+            graphics["Fullscreen"] = (_fullscreen && !_borderlessOnScreen) ? "true" : "false";
+
+            if (_borderlessOnScreen)
+            {
+                graphics["WindowWidth"] = targetScreen.Bounds.Width.ToString();
+                graphics["WindowHeight"] = targetScreen.Bounds.Height.ToString();
+
+                // Physical pixel coordinates when the target screen uses Windows scaling (SDL 2.24+, ignored by older SDL)
+                _environmentVariables["SDL_WINDOWS_DPI_AWARENESS"] = "permonitorv2";
+            }
+            // In fullscreen C-Dogs always uses the desktop resolution, the window size only matters in windowed mode
+            // Keep the window size saved by the game unless a video mode is set
+            else if (_resolution != null)
+            {
+                graphics["WindowWidth"] = _resolution.Width.ToString();
+                graphics["WindowHeight"] = _resolution.Height.ToString();
+            }
+
             BindBoolFeatureOn(graphics, "ShowHUD", "cdogs_hud", "true", "false");
             BindFeature(graphics, "ScaleMode", "cdogs_scalemode", "Nearest neighbor");
             BindBoolFeatureOn(graphics, "Shadows", "cdogs_shadows", "true", "false");
+            BindFeature(graphics, "ScaleFactor", "cdogs_scalefactor", "2");
+            BindBoolFeatureOn(graphics, "DOSPAR", "cdogs_dospar", "true", "false");
+            BindFeature(graphics, "Gore", "cdogs_gore", "Trickle");
 
             BindBoolFeature(jsoninterface, "ShowFPS", "cdogs_fps", "true", "false");
             BindBoolFeature(jsoninterface, "ShowTime", "cdogs_time", "true", "false");
@@ -1397,66 +1546,166 @@ namespace EmulatorLauncher
             if (_emulator != "pdark")
                 return;
 
-            string targetRom = Path.Combine(_path, "data", "pd.ntsc-final.z64");
-            if (SystemConfig.isOptSet("pdark_region") && !string.IsNullOrEmpty(SystemConfig["pdark_region"]))
+            // Rom file: big endian roms are loaded in place, byte-swapped roms are converted in the data folder
+            string romFile = rom;
+            if (!_pdarkRomIsZ64)
             {
-                string pdarkRegion = SystemConfig["pdark_region"];
-                switch (pdarkRegion)
+                string dataPath = Path.Combine(_path, "data");
+                romFile = Path.Combine(dataPath, "pd." + _pdarkRomId + ".z64");
+
+                try
                 {
-                    case "EUR":
-                        targetRom = Path.Combine(_path, "data", "pd.pal-final.z64");
-                        break;
-                    case "JPN":
-                        targetRom = Path.Combine(_path, "data", "pd.jpn-final.z64");
-                        break;
-                    case "USA":
-                        targetRom = Path.Combine(_path, "data", "pd.ntsc-final.z64");
-                        break;
+                    if (!PDarkRomHeaderMatches(rom, romFile))
+                    {
+                        if (!Directory.Exists(dataPath))
+                            Directory.CreateDirectory(dataPath);
+
+                        byte[] data = File.ReadAllBytes(rom);
+                        SwapN64ToBigEndian(data);
+                        File.WriteAllBytes(romFile, data);
+                        SimpleLogger.Instance.Info("[INFO] Perfect Dark: rom converted to " + romFile);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] Perfect Dark: unable to convert the rom : " + ex.Message);
                 }
             }
-            else
-            {
-                string romName = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
-                if (rom.Contains("eur") || rom.Contains("pal") || rom.Contains("fr"))
-                    targetRom = Path.Combine(_path, "data", "pd.pal-final.z64");
-                else if (rom.Contains("jap") || rom.Contains("jp") || rom.Contains("japan"))
-                    targetRom = Path.Combine(_path, "data", "pd.jpn-final.z64");
-            }
 
-            if (!File.Exists(targetRom))
-            {
-                try { File.Copy(rom, targetRom, true); }
-                catch { }
-            }
+            commandArray.Add("--rom-file");
+            commandArray.Add("\"" + romFile + "\"");
 
             string cfgFile = Path.Combine(_path, "pd.ini");
             using (var ini = IniFile.FromFile(cfgFile))
             {
                 try
                 {
-                    ini.WriteValue("video", "DefaultFullscreen", _fullscreen ? "1" : "0");
-                    ini.WriteValue("video", "DefaultMaximize", "1");
-                    ini.WriteValue("video", "ExclusiveFullscreen", _exclusivefs ? "1" : "0");
+                    // Exclusive fullscreen always stays on the primary display: use borderless fullscreen on another screen so the window can be moved
+                    bool otherScreen = Program.IsMonitorIndexSet && Program.TargetScreen != null && !Program.TargetScreen.Primary;
+                    bool exclusive = _exclusivefs && !otherScreen;
+
+                    ini.WriteValue("Video", "DefaultFullscreen", _fullscreen ? "1" : "0");
+                    ini.WriteValue("Video", "ExclusiveFullscreen", exclusive ? "1" : "0");
+
+                    // Maximized window unless a video mode is chosen
+                    ini.WriteValue("Video", "DefaultMaximize", _resolution == null ? "1" : "0");
 
                     if (_resolution != null)
                     {
-                        ini.WriteValue("video", "DefaultWidth", _resolution.Width.ToString());
-                        ini.WriteValue("video", "DefaultHeight", _resolution.Height.ToString());
+                        ini.WriteValue("Video", "DefaultWidth", _resolution.Width.ToString());
+                        ini.WriteValue("Video", "DefaultHeight", _resolution.Height.ToString());
                     }
-                    else
+                    else if (exclusive)
                     {
-                        ini.WriteValue("video", "DefaultWidth", ScreenResolution.CurrentResolution.Width.ToString());
-                        ini.WriteValue("video", "DefaultHeight", ScreenResolution.CurrentResolution.Height.ToString());
+                        ini.WriteValue("Video", "DefaultWidth", ScreenResolution.CurrentResolution.Width.ToString());
+                        ini.WriteValue("Video", "DefaultHeight", ScreenResolution.CurrentResolution.Height.ToString());
                     }
 
-                    BindBoolIniFeatureOn(ini, "video", "VSync", "pdark_vsync", "1", "0");
-                    BindBoolIniFeatureOn(ini, "video", "DetailTextures", "pdark_detailtexture", "1", "0");
-                    BindIniFeature(ini, "video", "TextureFilter", "pdark_texturefilter", "1");
+                    BindBoolIniFeatureOn(ini, "Video", "VSync", "pdark_vsync", "1", "0");
+                    BindBoolIniFeatureOn(ini, "Video", "DetailTextures", "pdark_detailtexture", "1", "0");
+                    BindIniFeature(ini, "Video", "TextureFilter", "pdark_texturefilter", "1");
+                    BindIniFeature(ini, "Video", "MSAA", "pdark_msaa", "1");
+                    BindBoolIniFeature(ini, "Game", "SkipIntro", "pdark_skipintro", "1", "0");
 
                     ConfigurePDarkControls(ini);
                 }
                 catch { }
             }
+        }
+
+        // Reads the rom id of a Perfect Dark rom from its header, whatever its byte order
+        // Returns "ntsc-final", "pal-final", "jpn-final" or null when the file is not a supported Perfect Dark rom
+        private static string GetPDarkRomId(string rom, out bool isBigEndian)
+        {
+            isBigEndian = false;
+
+            try
+            {
+                byte[] header = new byte[0x40];
+                using (var fs = File.OpenRead(rom))
+                {
+                    if (fs.Length != 33554432 || fs.Read(header, 0, header.Length) != header.Length)
+                        return null;
+                }
+
+                isBigEndian = header[0] == 0x80 && header[1] == 0x37;
+                if (!SwapN64ToBigEndian(header))
+                    return null;
+
+                // Game code at 0x3B: N PD + region
+                if (header[0x3B] != 'N' || header[0x3C] != 'P' || header[0x3D] != 'D')
+                    return null;
+
+                switch ((char)header[0x3E])
+                {
+                    case 'E': return "ntsc-final";
+                    case 'P': return "pal-final";
+                    case 'J': return "jpn-final";
+                }
+            }
+            catch { }
+
+            return null;
+        }
+
+        // True when the converted rom already exists and comes from the same dump (header includes the rom checksums)
+        private static bool PDarkRomHeaderMatches(string sourceRom, string targetRom)
+        {
+            if (!File.Exists(targetRom))
+                return false;
+
+            byte[] src = new byte[0x40];
+            byte[] dst = new byte[0x40];
+
+            using (var fs = File.OpenRead(sourceRom))
+                fs.Read(src, 0, src.Length);
+
+            using (var fs = File.OpenRead(targetRom))
+            {
+                if (fs.Length != 33554432)
+                    return false;
+                fs.Read(dst, 0, dst.Length);
+            }
+
+            SwapN64ToBigEndian(src);
+            return src.SequenceEqual(dst);
+        }
+
+        // Converts a .v64 (byte-swapped) or .n64 (little endian) N64 image to .z64 (big endian), in place
+        private static bool SwapN64ToBigEndian(byte[] data)
+        {
+            if (data == null || data.Length < 4)
+                return false;
+
+            if (data[0] == 0x80 && data[1] == 0x37)
+                return true;
+
+            if (data[0] == 0x37 && data[1] == 0x80)
+            {
+                for (int i = 0; i + 1 < data.Length; i += 2)
+                {
+                    byte t = data[i];
+                    data[i] = data[i + 1];
+                    data[i + 1] = t;
+                }
+                return true;
+            }
+
+            if (data[0] == 0x40 && data[1] == 0x12)
+            {
+                for (int i = 0; i + 3 < data.Length; i += 4)
+                {
+                    byte t0 = data[i];
+                    byte t1 = data[i + 1];
+                    data[i] = data[i + 3];
+                    data[i + 1] = data[i + 2];
+                    data[i + 2] = t1;
+                    data[i + 3] = t0;
+                }
+                return true;
+            }
+
+            return false;
         }
 
         private void ConfigurePowerBomberman(string rom, string exe)

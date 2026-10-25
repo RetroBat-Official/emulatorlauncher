@@ -533,7 +533,8 @@ namespace EmulatorLauncher
                 }
             }
 
-            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
+            // Keyboard is always handled by player 1 bindings, only pads get a controller index
+            foreach (var controller in this.Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).Take(4))
                 ConfigurePDarkInput(ini, controller, controller.PlayerIndex);
         }
 
@@ -562,7 +563,7 @@ namespace EmulatorLauncher
                 ini.WriteValue(bindingSection, "Y_BUTTON", "MOUSE_WHEEL_DN, JOY1_Y");
                 ini.WriteValue(bindingSection, "L_JPAD", "MOUSE_WHEEL_UP, JOY1_B");
                 ini.WriteValue(bindingSection, "D_JPAD", "Q, MOUSE_MIDDLE, JOY1_LSHOULDER");
-                ini.WriteValue(bindingSection, "START_BUTTON", "RETURN, TAB, JOY1_START");
+                ini.WriteValue(bindingSection, "START_BUTTON", "TAB, JOY1_START");
                 ini.WriteValue(bindingSection, "Z_TRIG", "MOUSE_LEFT, SPACE, JOY1_RTRIGGER");
                 ini.WriteValue(bindingSection, "B_BUTTON", "E");
                 ini.WriteValue(bindingSection, "A_BUTTON", "JOY1_A");
@@ -570,8 +571,8 @@ namespace EmulatorLauncher
                 ini.WriteValue(bindingSection, "STICK_XPOS", "RIGHT");
                 ini.WriteValue(bindingSection, "STICK_YNEG", "DOWN");
                 ini.WriteValue(bindingSection, "STICK_YPOS", "UP");
-                ini.WriteValue(bindingSection, "ACCEPT_BUTTON", "JOY1_A");
-                ini.WriteValue(bindingSection, "CANCEL_BUTTON", "JOY1_B");
+                ini.WriteValue(bindingSection, "ACCEPT_BUTTON", "RETURN, E, JOY1_A");
+                ini.WriteValue(bindingSection, "CANCEL_BUTTON", "MOUSE_RIGHT, JOY1_B");
                 ini.WriteValue(bindingSection, "CK_2000", "LEFT_CTRL");
                 ini.WriteValue(bindingSection, "CK_4000", "LEFT_SHIFT");
                 ini.WriteValue(bindingSection, "CK_8000", "JOY1_LSTICK");
