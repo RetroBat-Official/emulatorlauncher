@@ -73,21 +73,64 @@ namespace EmulatorLauncher
                     ini.WriteValue("KEYBOARD", "KEY_PAUSE", "SDLK_p 0 0");
                     ini.WriteValue("KEYBOARD", "KEY_CONSOLE", "SDLK_BACKSLASH 0 0");
                     ini.WriteValue("KEYBOARD", "KEY_TILT", "SDLK_t 0 0");
+
+                    foreach (string key in new[] { "SCREEN", "FULLSCREEN", "MANYMOUSE", "LINEARSCALE", "GRAPHICAPI" })
+                        ini.Remove("GLOBAL", key);
+                    ini.WriteValue("GLOBAL", "GAMEPAD", "FALSE");
+
                     ini.Save();
                 }
                 catch { }
             }
 
-            string lastLine = File.ReadLines(iniFile).LastOrDefault();
+            EnsureSectionEndMarkers(iniFile);
+        }
 
-            if (lastLine != null && lastLine.Trim().Equals("END"))
-                return;
-
-            using (StreamWriter sw = File.AppendText(iniFile))
+        // Hypseus reads [KEYBOARD], [MOUSE] and [GLOBAL] up to an "END" line. IniFile drops these value-less
+        // lines on save: restore one after the last entry of every section, otherwise Hypseus 3.x aborts
+        // the [KEYBOARD] parsing on the next section header ("Corrupt config file").
+        private static void EnsureSectionEndMarkers(string iniFile)
+        {
+            try
             {
-                sw.WriteLine("END");
-            }
+                var lines = File.ReadAllLines(iniFile)
+                    .Where(l => !l.Trim().Equals("END", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
 
+                bool inSection = false;
+                int lastContent = -1;
+
+                for (int i = 0; i <= lines.Count; i++)
+                {
+                    // A virtual header after the last line closes the last section
+                    string trimmed = i < lines.Count ? lines[i].Trim() : "[";
+
+                    if (trimmed.StartsWith("["))
+                    {
+                        if (inSection)
+                        {
+                            lines.Insert(lastContent + 1, "END");
+                            i++;
+                        }
+
+                        if (i >= lines.Count)
+                            break;
+
+                        inSection = true;
+                        lastContent = i;
+                        continue;
+                    }
+
+                    if (trimmed.Length > 0 && !trimmed.StartsWith("#") && !trimmed.StartsWith(";"))
+                        lastContent = i;
+                }
+
+                File.WriteAllLines(iniFile, lines);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[Generator] Unable to write END markers in hypinput.ini: " + ex.Message);
+            }
         }
 
         // The d-pad direction as a Hypseus joystick-button code, or "0" when the pad reports

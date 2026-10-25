@@ -40,8 +40,16 @@ namespace EmulatorLauncher
             // hypseus
             if (_executableName == "hypseus")
             {
-                if (SystemConfig.isOptSet("smooth") && !SystemConfig.getOptBoolean("smooth"))
-                    commandArray.Add("-nolinear_scale");
+                // -nolinear_scale is an unknown argument in Hypseus 3.x (no launch). Nearest is the upstream default.
+                if (SystemConfig.getOptBoolean("smooth"))
+                    commandArray.Add("-linear_scale");
+
+                // Hypseus 3.x (SDL3) ignores the d-pad hat with a single joystick, and only reads the first one otherwise
+                commandArray.Add("-openhat");
+
+                // hypinput.ini only swaps keys, buttons and axes: invert the d-pad hat too
+                if (SystemConfig.getOptBoolean("hypseus_flight"))
+                    commandArray.Add("-tiphat");
 
                 if (SystemConfig.getOptBoolean("ignore_ratio"))
                     commandArray.Add("-ignore_aspect_ratio");
@@ -347,7 +355,7 @@ namespace EmulatorLauncher
                             continue;
                         }
 
-                        if (s == romName || s == "singe" || s == "vdlp" || s == "-fullscreen" ||
+                        if (s == romName || s == "singe" || s == "vldp" || s == "vdlp" || s == "-fullscreen" ||
                             s == "-opengl" || s == "-vulkan" || s == "-fastboot" || s == "-retropath" || s == "-manymouse" 
                             || s == "-ignore_aspect_ratio")
                             continue;
@@ -369,13 +377,13 @@ namespace EmulatorLauncher
                             continue;
                         }
 
-                        if (s == romName || s == "singe" || s == "vdlp" || s == "-fullscreen" ||
-                            s == "-opengl" || s == "-vulkan" || s == "-fastboot" || s == "-retropath" || s == "-manymouse" || s == "force_aspect_ratio" || 
-                            s == "-ignore_aspect_ratio" || s == " - novsync" || s == "-nolinear_scale" || s == "-nocrosshair")
+                        if (s == romName || s == "singe" || s == "vldp" || s == "vdlp" || s == "-fullscreen" ||
+                            s == "-opengl" || s == "-vulkan" || s == "-fastboot" || s == "-retropath" || s == "-manymouse" || s == "-force_aspect_ratio" ||
+                            s == "-ignore_aspect_ratio" || s == "-novsync" || s == "-nolinear_scale" || s == "-nocrosshair")
                             continue;
 
                         if (s == "-framefile" || s == "-script" || s == "script" || s == "-useoverlaysb" || s == "-homedir" ||
-                            s == "-datadir" || s == "-scalefactor" || s == "singedir" || s == "-bezel")
+                            s == "-datadir" || s == "-scalefactor" || s == "-singedir" || s == "singedir" || s == "-bezel" || s == "-sound_buffer")
                         {
                             i++;
                             continue;

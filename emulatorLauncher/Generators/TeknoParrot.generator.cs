@@ -377,7 +377,11 @@ namespace EmulatorLauncher
             }
             else if (windowed != null)
             {
-                if (fullscreen)
+                // Keep TeknoParrot default when the game profile ships windowed (some games only display in windowed mode, black screen in exclusive fullscreen)
+                var profileWindowed = profile.ConfigValues != null ? profile.ConfigValues.FirstOrDefault(c => c.FieldName == "Windowed") : null;
+                bool shippedWindowed = profileWindowed != null && profileWindowed.FieldValue == "1";
+
+                if (fullscreen && !shippedWindowed)
                     windowed.FieldValue = "0";
                 else
                     windowed.FieldValue = "1";
@@ -398,11 +402,15 @@ namespace EmulatorLauncher
                 string fsMode = SystemConfig.isOptSet("tp_fsmode") ? SystemConfig["tp_fsmode"] : null;
                 string targetMode;
 
+                // Keep TeknoParrot default when the game profile ships windowed (some games do not display in fullscreen)
+                var profileDisplayMode = profile.ConfigValues != null ? profile.ConfigValues.FirstOrDefault(c => c.FieldName == "DisplayMode") : null;
+                bool shippedWindowedMode = profileDisplayMode != null && profileDisplayMode.FieldValue == "Windowed";
+
                 if (fsMode == "0")
                     targetMode = "Windowed";
                 else if (fsMode == "2")
                     targetMode = "Fullscreen";
-                else if (fsMode == "1" || fullscreen)
+                else if (fsMode == "1" || (fullscreen && !shippedWindowedMode))
                     // Borderless when the game offers it (most compatible on Windows), exclusive fullscreen otherwise
                     targetMode = displaymode.FieldOptions.Contains("Fullscreen Windowed") ? "Fullscreen Windowed" : "Fullscreen";
                 else
