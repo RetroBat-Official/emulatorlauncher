@@ -36,7 +36,7 @@ namespace EmulatorLauncher
             if (!SystemConfig.getOptBoolean("use_wheel"))
                 return;
 
-            BindBoolIniFeatureOn(ini, "", "wheel_ffb", "sm2emu_wheel_ffb", "true", "false");
+            BindBoolIniFeatureOn(ini, "wheel", "wheel_ffb", "sm2emu_wheel_ffb", "true", "false");
 
             var wheels = Wheel.GetConnectedWheels(Controllers);
             if (wheels.Count < 1)
@@ -86,7 +86,7 @@ namespace EmulatorLauncher
                 if (!buttons.TryGetValue(role.Key, out button) || (noShifter && _sm2ShifterRoles.Contains(role.Key)))
                     button = -1;
 
-                ini.WriteValue("", role.Value, button.ToString());
+                ini.WriteValue("wheel", role.Value, button.ToString());
             }
 
             SimpleLogger.Instance.Info("[WHEELS] Wheel buttons for " + wheelType + " loaded from " + ymlFile);
