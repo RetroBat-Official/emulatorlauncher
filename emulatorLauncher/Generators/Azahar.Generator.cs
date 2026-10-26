@@ -195,6 +195,17 @@ namespace EmulatorLauncher
                     ini.WriteValue("Renderer", "use_vsync", "true");
                 }
 
+                if (SystemConfig.isOptSet("azahar_async_shader_compilation") && !SystemConfig.getOptBoolean("azahar_async_shader_compilation"))
+                {
+                    ini.WriteValue("Renderer", "async_shader_compilation\\default", "true");
+                    ini.WriteValue("Renderer", "async_shader_compilation", "false");
+                }
+                else
+                {
+                    ini.WriteValue("Renderer", "async_shader_compilation\\default", "false");
+                    ini.WriteValue("Renderer", "async_shader_compilation", "true");
+                }
+
                 if (Features.IsSupported("azahar_resolution_factor"))
                 {
                     if (SystemConfig.isOptSet("azahar_resolution_factor"))

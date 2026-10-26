@@ -1,5 +1,8 @@
 ﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
+using EmulatorLauncher.PadToKeyboard;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,6 +19,7 @@ namespace EmulatorLauncher
         private string _romSet;     // Set selected with --game, null when the archive name is not a set of games.xml
         private string _family;     // Parent set (or the set itself), used to search the controller mappings
         private SaveStatesWatcher _saveStatesWatcher;
+        private bool _pad2Keyoverride = false;
 
         // Catalogs shipped in the sm2-emu 'lang' folder ("en" is the built-in language)
         private static readonly string[] _sm2Languages = new string[] { "ar", "bg", "bn", "ca", "cs", "da", "de", "el", "es", "et", "fa", "fi", "fr",
@@ -40,6 +44,8 @@ namespace EmulatorLauncher
             string exe = Path.Combine(path, "sm2-emu.exe");
             if (!File.Exists(exe))
                 return null;
+
+            Sdl3GameController.SetEnumerationHints(Sdl3GameController.Sdl3HintProfile.NoHidapi);
 
             _path = path;
 
@@ -140,62 +146,63 @@ namespace EmulatorLauncher
                 // Paths: everything stays in the RetroBat folders
                 string nvramPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "sm2-emu");
                 FileTools.TryCreateDirectory(nvramPath);
-                ini.WriteValue("", "nvram_dir", nvramPath);
+                ini.WriteValue("paths", "nvram_dir", nvramPath);
 
                 string screenshotsPath = Path.Combine(AppConfig.GetFullPath("screenshots"), "sm2-emu");
                 FileTools.TryCreateDirectory(screenshotsPath);
-                ini.WriteValue("", "screenshot_dir", screenshotsPath);
+                ini.WriteValue("paths", "screenshot_dir", screenshotsPath);
 
                 // No rom_dir: without a game picker to return to, Escape quits the emulator
-                ini.Remove("", "rom_dir");
+                ini.Remove("paths", "rom_dir");
 
                 // Front-end behavior
-                ini.WriteValue("", "fullscreen", fullscreen ? "true" : "false");
-                ini.WriteValue("", "throttle", "true");
-                ini.WriteValue("", "scrape_artwork", "false");
-                ini.WriteValue("", "language", GetSm2Language());
+                ini.WriteValue("video", "fullscreen", fullscreen ? "true" : "false");
+                ini.WriteValue("video", "throttle", "true");
+                ini.WriteValue("paths", "scrape_artwork", "false");
+                ini.WriteValue("system", "language", GetSm2Language());
 
                 // RetroBat manages the controller hotkeys (Guide + L3/R3 for Service/Test stay active)
-                ini.WriteValue("", "pad_shortcuts", "false");
+                ini.WriteValue("gamepad", "pad_shortcuts", "false");
 
                 // Video
-                BindIniFeature(ini, "", "graphics_backend", "sm2emu_renderer", "opengl");
-                BindIniFeature(ini, "", "render_scale", "sm2emu_resolution", "1");
-                BindBoolIniFeature(ini, "", "vsync", "sm2emu_vsync", "true", "false");
-                BindIniFeature(ini, "", "scaling_method", "sm2emu_scaling", "sharp");
-                ini.WriteValue("", "aspect_mode", GetAspectMode());
-                BindBoolIniFeature(ini, "", "crt_enabled", "sm2emu_crt", "true", "false");
+                BindIniFeature(ini, "video", "graphics_backend", "sm2emu_renderer", "opengl");
+                BindIniFeature(ini, "video", "render_scale", "sm2emu_resolution", "1");
+                BindBoolIniFeature(ini, "video", "vsync", "sm2emu_vsync", "true", "false");
+                BindIniFeature(ini, "video", "scaling_method", "sm2emu_scaling", "sharp");
+                ini.WriteValue("video", "aspect_mode", GetAspectMode());
+                BindBoolIniFeature(ini, "video", "crt_enabled", "sm2emu_crt", "true", "false");
 
                 if (SystemConfig.isOptSet("sm2emu_anisotropy") && !string.IsNullOrEmpty(SystemConfig["sm2emu_anisotropy"]))
                 {
-                    ini.WriteValue("", "texture_filter", "anisotropic");
-                    ini.WriteValue("", "anisotropy", SystemConfig["sm2emu_anisotropy"]);
+                    ini.WriteValue("video", "texture_filter", "anisotropic");
+                    ini.WriteValue("video", "anisotropy", SystemConfig["sm2emu_anisotropy"]);
                 }
                 else
-                    ini.WriteValue("", "texture_filter", "faithful");
+                    ini.WriteValue("video", "texture_filter", "faithful");
 
-                BindIniFeature(ini, "", "upscale_2d", "sm2emu_upscale2d", "faithful");
-                BindIniFeature(ini, "", "translucency", "sm2emu_translucency", "stipple");
-                BindBoolIniFeature(ini, "", "extended_draw_distance", "sm2emu_draw_distance", "true", "false");
+                BindIniFeature(ini, "video", "upscale_2d", "sm2emu_upscale2d", "faithful");
+                BindIniFeature(ini, "video", "translucency", "sm2emu_translucency", "stipple");
+                BindBoolIniFeature(ini, "video", "extended_draw_distance", "sm2emu_draw_distance", "true", "false");
 
                 SetupBezel(ini, path);
 
                 // On-screen information
                 string perf = SystemConfig["performance_overlay"];
-                ini.WriteValue("", "show_fps", (perf == "simple" || perf == "detailed") ? "true" : "false");
-                BindBoolIniFeatureOn(ini, "", "show_notifications", "sm2emu_notifications", "true", "false");
+                ini.WriteValue("video", "show_fps", (perf == "simple" || perf == "detailed") ? "true" : "false");
+                BindBoolIniFeatureOn(ini, "video", "show_notifications", "sm2emu_notifications", "true", "false");
 
                 // Emulation
-                ini.WriteValue("", "rewind", SystemConfig.getOptBoolean("rewind") ? "true" : "false");
+                ini.WriteValue("system", "rewind", SystemConfig.getOptBoolean("rewind") ? "true" : "false");
 
                 // Lamps and drive board outputs for MAMEHooker-like tools
-                BindBoolIniFeature(ini, "", "outputs_windows", "sm2emu_outputs", "true", "false");
+                BindBoolIniFeature(ini, "network", "outputs_windows", "sm2emu_outputs", "true", "false");
 
-                // Light guns, wheel and gamepads
+                // Hotkeys, Light guns, wheel and gamepads
+                WriteKeyboardHotkeys(ini);
                 SetupGuns(ini);
                 SetupWheel(ini);
                 CreateControllerConfiguration(ini);
-
+                
                 ini.Save();
             }
         }
@@ -216,15 +223,15 @@ namespace EmulatorLauncher
                     FileTools.TryCreateDirectory(bezelPath);
                     File.Copy(_bezelFileInfo.PngFile, bezelFile, true);
 
-                    ini.WriteValue("", "bezel", "true");
-                    ini.WriteValue("", "bezel_dir", bezelPath);
+                    ini.WriteValue("video", "bezel", "true");
+                    ini.WriteValue("paths", "bezel_dir", bezelPath);
                     return;
                 }
                 catch (Exception ex) { SimpleLogger.Instance.Warning("[Sm2Emu] Unable to copy the bezel : " + ex.Message); }
             }
 
-            ini.WriteValue("", "bezel", "false");
-            ini.Remove("", "bezel_dir");
+            ini.WriteValue("video", "bezel", "false");
+            ini.Remove("paths", "bezel_dir");
 
             if (File.Exists(bezelFile))
                 try { File.Delete(bezelFile); } catch { }
@@ -245,6 +252,17 @@ namespace EmulatorLauncher
 
             _saveStatesWatcher = new Sm2EmuSaveStatesMonitor(rom, emulatorPath, localPath, icon);
             SimpleLogger.Instance.Info("[INFO] SavesStatesWatcher enabled.");
+        }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_pad2Keyoverride && File.Exists(Path.Combine(Path.GetTempPath(), "padToKey.xml")))
+            {
+                mapping = PadToKey.Load(Path.Combine(Path.GetTempPath(), "padToKey.xml"));
+                PadToKey.AddOrUpdateKeyMapping(mapping, "melonDS", InputKey.hotkey | InputKey.start, "(%{CLOSE})");
+            }
+
+            return mapping;
         }
 
         public override void Cleanup()

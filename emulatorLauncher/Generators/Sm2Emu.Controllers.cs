@@ -54,10 +54,12 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for sm2-emu");
 
+            string[] iniSections = { "video", "audio", "paths", "wheel", "lightgun", "network", "system", "gamepad", "ROOT" };
+
             // Per-game layouts saved from the sm2-emu menu ([<family>] sections) would replace the RetroBat mapping
             foreach (string section in ini.EnumerateSections())
             {
-                if (string.IsNullOrEmpty(section) || section == "ROOT" || section.Equals("gamepad", StringComparison.InvariantCultureIgnoreCase))
+                if (string.IsNullOrEmpty(section) || iniSections.Contains(section))
                     continue;
 
                 ini.ClearSection(section);
@@ -93,9 +95,9 @@ namespace EmulatorLauncher
                 }
             }
 
-            BindIniFeatureSlider(ini, "", "pad_stick_deadzone", "sm2emu_stickdeadzone", "5");
-            BindBoolIniFeatureOn(ini, "", "pad_rumble", "sm2emu_pad_rumble", "true", "false");
-            BindBoolIniFeature(ini, "", "wheel_rumble", "sm2emu_wheel_rumble", "true", "false");
+            BindIniFeatureSlider(ini, "gamepad", "pad_stick_deadzone", "sm2emu_stickdeadzone", "5");
+            BindBoolIniFeatureOn(ini, "gamepad", "pad_rumble", "sm2emu_pad_rumble", "true", "false");
+            BindBoolIniFeature(ini, "wheel", "wheel_rumble", "sm2emu_wheel_rumble", "true", "false");
         }
 
         /// <summary>
@@ -221,9 +223,9 @@ namespace EmulatorLauncher
             string path = GetPadPath(pad);
 
             if (path != null)
-                ini.WriteValue("", iniKey, path);
+                ini.WriteValue("gamepad", iniKey, path);
             else
-                ini.Remove("", iniKey);
+                ini.Remove("gamepad", iniKey);
         }
 
         string GetPadPath(Controller pad)
@@ -247,63 +249,30 @@ namespace EmulatorLauncher
         }
 
         #region Hotkeys
-        // sm2-emu keyboard shortcuts are fixed (main.cpp, SDL_EVENT_KEY_DOWN): RetroBat sends them with the controller hotkeys.
-        // Keys are the 'Code' values of HotkeysDictionaries.cs ("sm2-emu" entry), values are the default RetroBat combinations.
-        private static readonly Dictionary<string, string> _defaultPadHotkeys = new Dictionary<string, string>()
+        private void WriteKeyboardHotkeys(IniFile ini)
         {
-            { "KEY_F10", "a" },             // settings menu
-            { "KEY_F7", "x" },              // quick load
-            { "KEY_F6", "y" },              // quick save
-            { "KEY_BACKSPACE", "left" },    // rewind (held)
-            { "KEY_TAB", "right" },         // fast forward (held)
-            { "KEY_P", "l3" },              // pause
-            { "KEY_F12", "r3" },            // screenshot
-        };
+            ini.WriteValue("system", "key_exit", "Tab");
 
-        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
-        {
-            if (!Controllers.Any(c => c.Config != null && !c.IsKeyboard))
-                return mapping;
-
-            // User controller hotkeys from sm2-emu_controller_hotkeys.yml / controller_hotkeys.yml, otherwise RetroBat defaults
-            Dictionary<string, string> padHotkeys;
-            if (!Hotkeys.GetPadHKFromFile("sm2-emu", "", out padHotkeys) || padHotkeys.Count == 0)
-                padHotkeys = new Dictionary<string, string>(_defaultPadHotkeys) { { "CLOSE", "start" } };
-
-            if (mapping == null)
-                mapping = new PadToKey();
-
-            var app = mapping["sm2-emu"];
-            if (app == null)
+            if (Hotkeys.GetHotKeysFromFile("sm2-emu", "", out Dictionary<string, HotkeyResult> custoHotkeys) && custoHotkeys.Count > 0)
             {
-                app = new PadToKeyApp() { Name = "sm2-emu" };
-                mapping.Applications.Add(app);
+                foreach (var hotkey in custoHotkeys)
+                    ini.WriteValue("system", hotkey.Value.EmulatorKey, hotkey.Value.EmulatorValue);
+
+                _pad2Keyoverride = true;
+
+                return;
             }
 
-            // The inputs of a game / system .keys file (padtokey folders) are kept: only the hotkey combinations are replaced
-            foreach (var hotkey in padHotkeys)
-            {
-                InputKey button;
-                if (!Enum.TryParse(hotkey.Value, true, out button))
-                    continue;
-
-                if (hotkey.Key == "CLOSE")
-                    SetPadToKeyInput(app, new PadToKeyInput() { Name = InputKey.hotkey | button, Key = "(%{CLOSE})" });
-                else
-                    SetPadToKeyInput(app, new PadToKeyInput() { Name = InputKey.hotkey | button, Code = hotkey.Key });
-            }
-
-            // Always keep a way to quit
-            if (!app.Input.Any(i => i.Key == "(%{CLOSE})"))
-                SetPadToKeyInput(app, new PadToKeyInput() { Name = InputKey.hotkey | InputKey.start, Key = "(%{CLOSE})" });
-
-            return mapping;
-        }
-
-        private static void SetPadToKeyInput(PadToKeyApp app, PadToKeyInput input)
-        {
-            app.Input.RemoveAll(i => i.Name == input.Name);
-            app.Input.Add(input);
+            // RetroBat defaults, sm2-emu
+            ini.WriteValue("system", "key_quit", "Escape");
+            ini.WriteValue("system", "key_overlay", "F1");
+            ini.WriteValue("system", "key_fullscreen", "F");
+            ini.WriteValue("system", "key_screenshot", "F8");
+            ini.WriteValue("system", "key_pause", "P");
+            ini.WriteValue("system", "key_quick_save", "F2");
+            ini.WriteValue("system", "key_quick_load", "F4");
+            ini.WriteValue("system", "key_fast_forward", "L");
+            ini.WriteValue("system", "key_rewind", "Backspace");
         }
         #endregion
     }
