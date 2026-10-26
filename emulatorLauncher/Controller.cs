@@ -208,7 +208,7 @@ namespace EmulatorLauncher
                 if (vid != 0 && _usbIds.Any(u => u.Key == vid && (u.Value == -1 || u.Value == pid)))
                     return true;
 
-                // Name rules, evaluated field by field: an exclusion only cancels the field it is found in
+                // Name rules, evaluated field by field: an exclusion only cancels the field it is found
                 foreach (var n in names)
                 {
                     if (string.IsNullOrEmpty(n))
