@@ -2671,7 +2671,7 @@ namespace EmulatorLauncher.Libretro
         // Cores using a dedicated subfolder of the bios folder as system directory
         static List<string> coreSystemSubfolder = new List<string>() { "amiberry" };
 
-        static readonly List<string> capsimgCore = new List<string>() { "amiberry", "hatari", "hatarib", "puae" };
+        static readonly List<string> capsimgCore = new List<string>() { "amiberry", "hatari", "hatari2014", "hatarib", "puae" };
         static readonly List<string> hdrCompatibleVideoDrivers = new List<string>() { "d3d12", "d3d11", "vulkan" };
         static List<string> coreNoGL = new List<string>() { "azahar", "citra", "dolphin", "kronos", "melonds", "melondsds", "mupen64plus_next",
             "pcsx2", "play", "supermodel", "swanstation", "vecx", "vircon32" };
@@ -2712,7 +2712,7 @@ namespace EmulatorLauncher.Libretro
         static List<string> coreNoRunahead = new List<string>() { "81", "anybor", "applewin", "arduous", "azahar", "b2", "bennugd", "blastem", "bluemsx", "boom3", "boom3_xp", "bsnes", "bsnes-jg", 
             "bsnes2014_accuracy", "bsnes2014_balanced", "bsnes2014_performance", "bsnes_hd_beta", "bsnes_mercury_accuracy", "bsnes_mercury_balanced", "cannonball", "cap32", "cemu", "citra", 
             "crocods", "desmume", "desmume2015", "dice", "dinothawr", "dolphin", "dosbox_pure", "doukutsu_rs", "duckstation", "easyrpg", "ecwolf", "emux_gb", "emux_nes", "emux_sms", "ep128emu_core", 
-            "fake08", "fbalpha", "fbalpha2012", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "fbalpha2012_neogeo", "flycast", "freej2me", "frodo", "gw", "handy", "hatari", "hatarib", 
+            "fake08", "fbalpha", "fbalpha2012", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "fbalpha2012_neogeo", "flycast", "freej2me", "frodo", "gw", "handy", "hatari", "hatari2014", "hatarib", 
             "holani", "kronos", "lowresnx", "lutro", "m2000", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", "mame2010", "mame2014", "mame2016", "mednafen_snes", "melondsds", 
             "mupen64plus_next", "mupen64plus_next_gles3", "nekop2", "noods", "np2kai", "nxengine", "o2em", "openlara", "opera", "parallel_n64", "pcsx2", "pd777", "play", "pocketcdg", "ppsspp", 
             "prboom", "prosystem", "puae", "race", "reminiscence", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", "supermodel", "swanstation", "theodore", "tic80", "tyrquake", "uzem", 
