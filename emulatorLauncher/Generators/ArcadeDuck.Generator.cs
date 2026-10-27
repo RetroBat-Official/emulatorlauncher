@@ -24,19 +24,12 @@ namespace EmulatorLauncher
 
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
-
-            string path = AppConfig.GetFullPath("arcadeduck");
-            if (!Directory.Exists(path))
-                return null;
-
-            string exe = Path.Combine(path, "ArcadeDuck.exe");
-            if (!File.Exists(exe))
+            if (!GetEmulatorPathAndExe(emulator, out string path, out string exe, "ArcadeDuck.exe"))
                 return null;
 
             _path = path;
 
-            // Disable padtokey
+            // Disable zinc padtokey
             string padtokeyFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "padtokey", "zinc.keys");
             if (File.Exists(padtokeyFile))
             {
@@ -44,7 +37,6 @@ namespace EmulatorLauncher
                 try { File.Delete(padtokeyFile); } catch { }
             }
 
-            // ArcadeDuck only boots MAME-style non-merged .zip sets, identified by their file name.
             if (!Path.GetExtension(rom).Equals(".zip", StringComparison.InvariantCultureIgnoreCase))
                 throw new ApplicationException("ArcadeDuck only supports MAME .zip sets (non-merged).");
 

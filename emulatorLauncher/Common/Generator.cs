@@ -30,7 +30,7 @@ namespace EmulatorLauncher
         protected System.Windows.Forms.Screen TargetScreen { get { return Program.TargetScreen; } }
         protected List<Controller> Controllers { get { return Program.Controllers; } }
         
-        #region Custom game unzip
+        #region unzip
 
         private static string GetUnCompressedFolderPath()
         {
@@ -134,130 +134,6 @@ namespace EmulatorLauncher
                 _unzip.SilentDelete = false;
         }
 
-        public virtual void Cleanup()
-        {
-            SimpleLogger.Instance.Info("[Generator] Cleanup.");
-
-            // Close the Sinden software if it was started for this game (and "sindenKill" option is set)
-            Guns.KillSindenSoftware();
-
-            if (_mountFile != null)
-            {
-                // Delete overlay path if it's empty
-                try { Directory.Delete(_mountFile.OverlayPath); }
-                catch { }
-
-                string extractionPath = _mountFile.ExtractionPath;
-
-                _mountFile.Dispose();
-                _mountFile = null;
-
-                string uncompressedFolderPath = GetUnCompressedFolderPath();
-
-                if (SystemConfig.isOptSet("decompressedpath") && !string.IsNullOrEmpty(SystemConfig["decompressedpath"]))
-                {
-                    extractionPath = SystemConfig["decompressedpath"].Replace('/', '\\');
-                    extractionPath = Path.Combine(extractionPath, ".uncompressed");
-                }
-
-                else if (Program.SystemConfig["decompressedfolders"] != "keep")
-                    uncompressedFolderPath = Path.Combine(Path.GetTempPath(), ".uncompressed");
-
-                bool deleteExtractedFiles = Program.SystemConfig["decompressedfolders"] != "keep"; // Program.SystemConfig["decompressedfolders"] == "delete";
-                /*
-                if (Program.SystemConfig["decompressedfolders"] != "keep" && Program.SystemConfig["decompressedfolders"] != "delete")
-                {
-                    using (var frm = new InstallerFrm())
-                    {
-                        frm.SetLabel(Properties.Resources.KeepUncompressedFile);
-                        if (frm.ShowDialog() != System.Windows.Forms.DialogResult.OK)
-                            deleteExtractedFiles = true;
-                    }
-                }
-                */
-                // Delete Extraction path if required
-                if (deleteExtractedFiles)
-                {
-                    SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + extractionPath + ", true)");
-
-                    try { Directory.Delete(extractionPath, true); }
-                    catch(Exception ex) { SimpleLogger.Instance.Error("Can't delete " + extractionPath + " : " + ex.Message); }
-                    
-                    try 
-                    {
-                        string parent = Path.GetDirectoryName(extractionPath);
-                        if (Directory.Exists(parent) && !Directory.EnumerateFileSystemEntries(parent).Any())
-                        {
-                            SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + parent + ", false)");
-                            Directory.Delete(parent);
-                        }
-                    }
-                    catch (Exception ex) 
-                    { 
-                        SimpleLogger.Instance.Error("Can't delete " + extractionPath + " : " + ex.Message); 
-                    }
-
-                    try
-                    {
-                        if (Directory.Exists(uncompressedFolderPath) && !Directory.EnumerateFileSystemEntries(uncompressedFolderPath).Any())
-                        {
-                            SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + uncompressedFolderPath + ", false)");
-                            Directory.Delete(uncompressedFolderPath);
-                        }
-                    }
-                    catch { }                
-                }
-            }
-
-            if (_mountedIso != null)
-            {
-
-                _mountedIso.Dispose();
-                _mountedIso = null;
-            }
-
-            if (_unzip != null)
-            {
-                if (!_unzip.SilentDelete && Program.SystemConfig["decompressedfolders"] == "keep")
-                    return;
-
-                if (_unzip.SilentDelete || Program.SystemConfig["decompressedfolders"] == "delete")
-                {
-                    try { Directory.Delete(_unzip.UncompressedPath, true); }
-                    catch { }
-
-                    try { Directory.Delete(_unzip.ExtractionPath); }
-                    catch { }
-                }
-                else
-                {
-                    using (var frm = new InstallerFrm())
-                    {
-                        frm.SetLabel(EmulatorLauncher.Properties.Resources.KeepUncompressedFile);
-                        if (frm.ShowDialog() != System.Windows.Forms.DialogResult.OK)
-                        {
-                            try { Directory.Delete(_unzip.UncompressedPath, true); }
-                            catch { }
-
-                            try { Directory.Delete(_unzip.ExtractionPath); }
-                            catch { }
-                        }
-                    }
-                }
-
-                try { Directory.Delete(GetUnCompressedFolderPath()); }
-                catch { }
-
-                _unzip = null;
-            }
-
-            if (File.Exists(Path.Combine(Path.GetTempPath(), "padToKey.xml")))
-            {
-                try { File.Delete(Path.Combine(Path.GetTempPath(), "padToKey.xml")); }
-                catch { }
-            }
-        }
-        
         private class GameUnzip
         {
             public static GameUnzip UnZipGame(string system, string filename, bool silent = false)
@@ -403,10 +279,135 @@ namespace EmulatorLauncher
                 ValidateUncompressedGame();
                 return rom;
             }
-            
+
             return null;
         }
+        #endregion
 
+        #region cleanup
+        public virtual void Cleanup()
+        {
+            SimpleLogger.Instance.Info("[Generator] Cleanup.");
+
+            // Close the Sinden software if it was started for this game (and "sindenKill" option is set)
+            Guns.KillSindenSoftware();
+
+            if (_mountFile != null)
+            {
+                // Delete overlay path if it's empty
+                try { Directory.Delete(_mountFile.OverlayPath); }
+                catch { }
+
+                string extractionPath = _mountFile.ExtractionPath;
+
+                _mountFile.Dispose();
+                _mountFile = null;
+
+                string uncompressedFolderPath = GetUnCompressedFolderPath();
+
+                if (SystemConfig.isOptSet("decompressedpath") && !string.IsNullOrEmpty(SystemConfig["decompressedpath"]))
+                {
+                    extractionPath = SystemConfig["decompressedpath"].Replace('/', '\\');
+                    extractionPath = Path.Combine(extractionPath, ".uncompressed");
+                }
+
+                else if (Program.SystemConfig["decompressedfolders"] != "keep")
+                    uncompressedFolderPath = Path.Combine(Path.GetTempPath(), ".uncompressed");
+
+                bool deleteExtractedFiles = Program.SystemConfig["decompressedfolders"] != "keep"; // Program.SystemConfig["decompressedfolders"] == "delete";
+                /*
+                if (Program.SystemConfig["decompressedfolders"] != "keep" && Program.SystemConfig["decompressedfolders"] != "delete")
+                {
+                    using (var frm = new InstallerFrm())
+                    {
+                        frm.SetLabel(Properties.Resources.KeepUncompressedFile);
+                        if (frm.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                            deleteExtractedFiles = true;
+                    }
+                }
+                */
+                // Delete Extraction path if required
+                if (deleteExtractedFiles)
+                {
+                    SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + extractionPath + ", true)");
+
+                    try { Directory.Delete(extractionPath, true); }
+                    catch(Exception ex) { SimpleLogger.Instance.Error("Can't delete " + extractionPath + " : " + ex.Message); }
+                    
+                    try 
+                    {
+                        string parent = Path.GetDirectoryName(extractionPath);
+                        if (Directory.Exists(parent) && !Directory.EnumerateFileSystemEntries(parent).Any())
+                        {
+                            SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + parent + ", false)");
+                            Directory.Delete(parent);
+                        }
+                    }
+                    catch (Exception ex) 
+                    { 
+                        SimpleLogger.Instance.Error("Can't delete " + extractionPath + " : " + ex.Message); 
+                    }
+
+                    try
+                    {
+                        if (Directory.Exists(uncompressedFolderPath) && !Directory.EnumerateFileSystemEntries(uncompressedFolderPath).Any())
+                        {
+                            SimpleLogger.Instance.Info("[Generator] Directory.Delete(" + uncompressedFolderPath + ", false)");
+                            Directory.Delete(uncompressedFolderPath);
+                        }
+                    }
+                    catch { }                
+                }
+            }
+
+            if (_mountedIso != null)
+            {
+
+                _mountedIso.Dispose();
+                _mountedIso = null;
+            }
+
+            if (_unzip != null)
+            {
+                if (!_unzip.SilentDelete && Program.SystemConfig["decompressedfolders"] == "keep")
+                    return;
+
+                if (_unzip.SilentDelete || Program.SystemConfig["decompressedfolders"] == "delete")
+                {
+                    try { Directory.Delete(_unzip.UncompressedPath, true); }
+                    catch { }
+
+                    try { Directory.Delete(_unzip.ExtractionPath); }
+                    catch { }
+                }
+                else
+                {
+                    using (var frm = new InstallerFrm())
+                    {
+                        frm.SetLabel(EmulatorLauncher.Properties.Resources.KeepUncompressedFile);
+                        if (frm.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                        {
+                            try { Directory.Delete(_unzip.UncompressedPath, true); }
+                            catch { }
+
+                            try { Directory.Delete(_unzip.ExtractionPath); }
+                            catch { }
+                        }
+                    }
+                }
+
+                try { Directory.Delete(GetUnCompressedFolderPath()); }
+                catch { }
+
+                _unzip = null;
+            }
+
+            if (File.Exists(Path.Combine(Path.GetTempPath(), "padToKey.xml")))
+            {
+                try { File.Delete(Path.Combine(Path.GetTempPath(), "padToKey.xml")); }
+                catch { }
+            }
+        }
         #endregion
 
         #region Error
@@ -425,9 +426,67 @@ namespace EmulatorLauncher
 
         public ExitCodes ExitCode { get; protected set; }
         public int RawExitCode { get; protected set; }
+
+        /// <summary>
+        /// Records the real exit code and turns a known Windows failure status into a user message.
+        /// Returns the exit code unchanged, so the caller keeps deciding what to do with it.
+        /// </summary>
+        protected int ReportExitCode(Process process, ProcessStartInfo path)
+        {
+            try { RawExitCode = process.ExitCode; }
+            catch (Exception ex) { SimpleLogger.Instance.Warning("[Generator] Unable to read exit code : " + ex.Message); }
+
+            SimpleLogger.Instance.Info("[Generator] Process exited with code " + RawExitCode + " (0x" + RawExitCode.ToString("X8") + ")");
+
+            string diagnostic = LaunchDiagnostics.FromExitCode(RawExitCode, path);
+            if (diagnostic != null)
+                SetCustomError(diagnostic);
+
+            return RawExitCode;
+        }
         #endregion
 
+        #region run
         public abstract ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution);
+
+        public static bool GetEmulatorPathAndExe(string emulator, out string path, out string exe, params string[] exeNames)
+        {
+            path = null;
+            exe = null;
+
+            if (string.IsNullOrEmpty(emulator) || exeNames == null || exeNames.Length == 0)
+                return false;
+
+            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+
+            path = Program.AppConfig.GetFullPath(emulator);
+
+            if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+            {
+                SimpleLogger.Instance.Error("[Generator] Problem with " + emulator + " path.");
+                path = null;
+                return false;
+            }
+
+            foreach (string exeName in exeNames)
+            {
+                if (string.IsNullOrEmpty(exeName))
+                    continue;
+
+                string candidate = Path.Combine(path, exeName);
+
+                if (File.Exists(candidate))
+                {
+                    exe = candidate;
+                    return true;
+                }
+            }
+
+            SimpleLogger.Instance.Error("[Generator] Executable not found for " + emulator +" in " + path + ". Tried: " + string.Join(", ", exeNames));
+
+            path = null;
+            return false;
+        }
 
         public virtual int RunAndWait(ProcessStartInfo path)
         {
@@ -501,33 +560,19 @@ namespace EmulatorLauncher
             }
         }
 
-        /// <summary>
-        /// Records the real exit code and turns a known Windows failure status into a user message.
-        /// Returns the exit code unchanged, so the caller keeps deciding what to do with it.
-        /// </summary>
-        protected int ReportExitCode(Process process, ProcessStartInfo path)
-        {
-            try { RawExitCode = process.ExitCode; }
-            catch (Exception ex) { SimpleLogger.Instance.Warning("[Generator] Unable to read exit code : " + ex.Message); }
-
-            SimpleLogger.Instance.Info("[Generator] Process exited with code " + RawExitCode + " (0x" + RawExitCode.ToString("X8") + ")");
-
-            string diagnostic = LaunchDiagnostics.FromExitCode(RawExitCode, path);
-            if (diagnostic != null)
-                SetCustomError(diagnostic);
-
-            return RawExitCode;
-        }
-
         public bool DependsOnDesktopResolution { get; protected set; }
+        #endregion
+
+        #region padtokey
         public bool UseEsPadToKey { get; protected set; }
 
         public virtual PadToKey SetupCustomPadToKeyMapping(PadToKeyboard.PadToKey mapping)
         {
             return mapping;
         }
+        #endregion
 
-
+        #region file restoration
         private Dictionary<string, byte[]> _filesToRestore;
 
         protected void AddFileForRestoration(string file)
@@ -573,8 +618,9 @@ namespace EmulatorLauncher
                 }
             }
         }
+        #endregion
 
-        #region IsEmulationStationWindowed
+        #region screen placement
         static Process GetParentProcess(Process process)
         {
             if (process == null)
@@ -660,7 +706,20 @@ namespace EmulatorLauncher
 
             return isWindowed && bounds.Width > 0 && bounds.Height > 0;
         }
-        #endregion
+
+        public static bool ShouldRunFullscreen()
+        {
+            if (Program.SystemConfig.getOptBoolean("forcefullscreen"))
+                return true;
+
+            if (Program.SystemConfig.isOptSet("forcefullscreen") && !Program.SystemConfig.getOptBoolean("forcefullscreen"))
+                return false;
+
+            if (IsEmulationStationWindowed())
+                return false;
+
+            return true;
+        }
 
         /// <summary>
         /// Enable moving the emulator window to the target screen after launch (only when MonitorIndex is set, fullscreen only).
@@ -704,20 +763,35 @@ namespace EmulatorLauncher
             }
         }
 
-        public static bool ShouldRunFullscreen()
+        [DllImport("user32.dll")]
+        static extern IntPtr GetDC(IntPtr hWnd);
+
+        [DllImport("gdi32.dll")]
+        static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
+
+        const int LOGPIXELSX = 88;
+        const int LOGPIXELSY = 90;
+
+        public static float GetDpiScaleFactor()
         {
-            if (Program.SystemConfig.getOptBoolean("forcefullscreen"))
-                return true;
-
-            if (Program.SystemConfig.isOptSet("forcefullscreen") && !Program.SystemConfig.getOptBoolean("forcefullscreen"))
-                return false;
-
-            if (IsEmulationStationWindowed())
-                return false;
-
-            return true;
+            IntPtr hdc = GetDC(IntPtr.Zero);
+            int dpiX = GetDeviceCaps(hdc, LOGPIXELSX);
+            return dpiX / 96.0f; // 96 is the default (100%) DPI
         }
 
+        /// <summary>
+        /// Current display mode of the screen where the game is displayed (Program.TargetScreen).
+        /// Falls back to the primary screen.
+        /// </summary>
+        public static ScreenResolution GetTargetScreenResolution()
+        {
+            var screen = Program.TargetScreen;
+            var res = screen != null ? ScreenResolution.GetCurrentResolution(screen.DeviceName) : null;
+            return res ?? ScreenResolution.CurrentResolution;
+        }
+        #endregion
+
+        #region language
         protected static string GetCurrentLanguage()
         {
             if (!Program.SystemConfig.isOptSet("Language") || string.IsNullOrEmpty(Program.SystemConfig["Language"]))
@@ -731,7 +805,9 @@ namespace EmulatorLauncher
 
             return s;
         }
+        #endregion
 
+        #region sdl3
         /// <summary>
         /// Mirror the SDL3 generation linked by the emulator when RetroBat enumerates SDL3 controllers
         /// (SDL 3.2 / 3.4 / 3.5 drivers give different GUIDs and paths for some devices).
@@ -742,7 +818,9 @@ namespace EmulatorLauncher
             // The SDL3 version is only read from the executable if SDL3 controllers get enumerated
             EmulatorLauncher.Common.Joysticks.Sdl3GameController.SetEmulatorExecutable(exe);
         }
+        #endregion
 
+        #region bindfeatures
         // xml bindfeatures
         protected void BindFeature(System.Xml.Linq.XElement cfg, string settingName, string featureName, string defaultValue, bool force = false)
         {
@@ -861,7 +939,6 @@ namespace EmulatorLauncher
             }
         }
 
-        // BmL bindfeatures
         protected void BindBoolFeature(BmlContainer cfg, string settingName, string featureName, string trueValue, string falseValue, bool force = false)
         {
             if (force || Features.IsSupported(featureName))
@@ -1313,38 +1390,7 @@ namespace EmulatorLauncher
             }
         }
 
-        protected void BindIniFeatureSlider(IniTomlFile ini, string section, string settingName, string featureName, string defaultValue, int decimalPlaces = 0, bool force = false)
-        {
-            if (force || Features.IsSupported(featureName))
-            {
-                if (decimalPlaces > 0 && decimalPlaces < 7)
-                {
-                    int toRemove = 6 - decimalPlaces;
-                    string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
-                    if (value != defaultValue)
-                        ini.WriteValue(section, settingName, value.Substring(0, value.Length - toRemove));
-                    else
-                        ini.WriteValue(section, settingName, value);
-                }
-                else
-                    ini.WriteValue(section, settingName, SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue));
-            }
-        }
-
         protected void BindBoolIniFeatureAuto(IniFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, string autoValue, bool force = false) // use when there is an "auto" value !
-        {
-            if (force || Features.IsSupported(featureName))
-            {
-                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
-                    ini.WriteValue(section, settingName, trueValue);
-                else if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
-                    ini.WriteValue(section, settingName, falseValue);
-                else
-                    ini.WriteValue(section, settingName, autoValue);
-            }
-        }
-
-        protected void BindBoolIniFeatureAuto(IniTomlFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, string autoValue, bool force = false) // use when there is an "auto" value !
         {
             if (force || Features.IsSupported(featureName))
             {
@@ -1365,6 +1411,38 @@ namespace EmulatorLauncher
 
             if (!string.IsNullOrEmpty(pathName))
                 ini.WriteValue(section, settingName, pathName);
+        }
+
+        // toml bindfeatures
+        protected void BindIniFeatureSlider(IniTomlFile ini, string section, string settingName, string featureName, string defaultValue, int decimalPlaces = 0, bool force = false)
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (decimalPlaces > 0 && decimalPlaces < 7)
+                {
+                    int toRemove = 6 - decimalPlaces;
+                    string value = SystemConfig.GetValueOrDefault(featureName, defaultValue);
+                    if (value != defaultValue)
+                        ini.WriteValue(section, settingName, value.Substring(0, value.Length - toRemove));
+                    else
+                        ini.WriteValue(section, settingName, value);
+                }
+                else
+                    ini.WriteValue(section, settingName, SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue));
+            }
+        }
+
+        protected void BindBoolIniFeatureAuto(IniTomlFile ini, string section, string settingName, string featureName, string trueValue, string falseValue, string autoValue, bool force = false) // use when there is an "auto" value !
+        {
+            if (force || Features.IsSupported(featureName))
+            {
+                if (SystemConfig.isOptSet(featureName) && SystemConfig.getOptBoolean(featureName))
+                    ini.WriteValue(section, settingName, trueValue);
+                else if (SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName))
+                    ini.WriteValue(section, settingName, falseValue);
+                else
+                    ini.WriteValue(section, settingName, autoValue);
+            }
         }
 
         // Blastem config file
@@ -1476,33 +1554,7 @@ namespace EmulatorLauncher
                     cfg[settingName] = SystemConfig.GetValueOrDefaultSlider(featureName, defaultValue);
             }
         }
-
-        [DllImport("user32.dll")]
-        static extern IntPtr GetDC(IntPtr hWnd);
-
-        [DllImport("gdi32.dll")]
-        static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
-
-        const int LOGPIXELSX = 88;
-        const int LOGPIXELSY = 90;
-
-        public static float GetDpiScaleFactor()
-        {
-            IntPtr hdc = GetDC(IntPtr.Zero);
-            int dpiX = GetDeviceCaps(hdc, LOGPIXELSX);
-            return dpiX / 96.0f; // 96 is the default (100%) DPI
-        }
-
-        /// <summary>
-        /// Current display mode of the screen where the game is displayed (Program.TargetScreen).
-        /// Falls back to the primary screen.
-        /// </summary>
-        public static ScreenResolution GetTargetScreenResolution()
-        {
-            var screen = Program.TargetScreen;
-            var res = screen != null ? ScreenResolution.GetCurrentResolution(screen.DeviceName) : null;
-            return res ?? ScreenResolution.CurrentResolution;
-        }
+        #endregion
     }
 
     enum ExitCodes : int
@@ -1517,6 +1569,4 @@ namespace EmulatorLauncher
 
         CustomError = 299
     }
-
-
 }
