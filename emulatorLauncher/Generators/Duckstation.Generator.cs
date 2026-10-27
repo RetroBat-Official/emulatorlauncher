@@ -45,19 +45,12 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
-
-            string path = AppConfig.GetFullPath("duckstation");
-            if (!Directory.Exists(path))
+            if (!GetEmulatorPathAndExe(emulator, out string path, out string exe, "duckstation-qt-x64-ReleaseLTCG.exe", "duckstation.exe"))
                 return null;
 
             _path = path;
 
             bool fullscreen = ShouldRunFullscreen() && !SystemConfig.getOptBoolean("disable_fullscreen");
-
-            string exe = Path.Combine(path, "duckstation-qt-x64-ReleaseLTCG.exe");
-            if (!File.Exists(exe))
-                return null;
 
             SetSdl3EmulatorVersion(exe);
 

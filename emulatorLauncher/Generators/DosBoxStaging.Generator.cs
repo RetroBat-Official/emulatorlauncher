@@ -24,17 +24,10 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
+            if (!GetEmulatorPathAndExe(emulator, out string path, out string exe, "dosbox.exe"))
+                return null;
+
             bool fullscreen = ShouldRunFullscreen();
-
-            string path = AppConfig.GetFullPath("dosbox-staging");
-            if (string.IsNullOrEmpty(path))
-                return null;
-
-            string exe = Path.Combine(path, "dosbox.exe");
-            if (!File.Exists(exe))
-                return null;
-
             if (fullscreen)
             {
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);

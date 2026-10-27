@@ -182,22 +182,10 @@ namespace EmulatorLauncher
 
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
-
+            if (!GetEmulatorPathAndExe(emulator, out string path, out string exe, "Amiberry.exe", "amiberry.exe"))
+                return null;
+            
             rom = PathHelper.ResolvePath(rom);
-
-            string path = AppConfig.GetFullPath("amiberry");
-            if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
-                return null;
-
-            string exe = Path.Combine(path, "Amiberry.exe");
-            if (!File.Exists(exe))
-                exe = Path.Combine(path, "amiberry.exe");
-            if (!File.Exists(exe))
-            {
-                SimpleLogger.Instance.Error("[Generator] Amiberry executable not found in " + path);
-                return null;
-            }
 
             SetSdl3EmulatorVersion(exe);
 

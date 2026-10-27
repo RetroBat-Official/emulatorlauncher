@@ -251,28 +251,29 @@ namespace EmulatorLauncher
         #region Hotkeys
         private void WriteKeyboardHotkeys(IniFile ini)
         {
-            ini.WriteValue("system", "key_exit", "Tab");
+            // Escape quits (key_quit): no second exit key
+            ini.WriteValue("system", "key_exit", "");
 
+            // RetroBat defaults, the keys sent by the controller hotkeys of es_padtokey.cfg.
+            // F1..F5 shift gears on the keyboard in some driving games: the sm2-emu keys are kept there.
+            ini.WriteValue("system", "key_quit", "Escape");
+            ini.WriteValue("system", "key_overlay", _keyboardGears ? "F10" : "F1");
+            ini.WriteValue("system", "key_fullscreen", "F");
+            ini.WriteValue("system", "key_screenshot", "F8");
+            ini.WriteValue("system", "key_pause", "P");
+            ini.WriteValue("system", "key_quick_save", _keyboardGears ? "F6" : "F2");
+            ini.WriteValue("system", "key_quick_load", _keyboardGears ? "F7" : "F4");
+            ini.WriteValue("system", "key_fast_forward", "L");
+            ini.WriteValue("system", "key_rewind", "Backspace");
+
+            // User keyboard hotkeys from sm2-emu_kb_hotkeys.yml / kb_hotkeys.yml, the controller hotkeys follow them (padToKey.xml)
             if (Hotkeys.GetHotKeysFromFile("sm2-emu", "", out Dictionary<string, HotkeyResult> custoHotkeys) && custoHotkeys.Count > 0)
             {
                 foreach (var hotkey in custoHotkeys)
                     ini.WriteValue("system", hotkey.Value.EmulatorKey, hotkey.Value.EmulatorValue);
 
                 _pad2Keyoverride = true;
-
-                return;
             }
-
-            // RetroBat defaults, sm2-emu
-            ini.WriteValue("system", "key_quit", "Escape");
-            ini.WriteValue("system", "key_overlay", "F1");
-            ini.WriteValue("system", "key_fullscreen", "F");
-            ini.WriteValue("system", "key_screenshot", "F8");
-            ini.WriteValue("system", "key_pause", "P");
-            ini.WriteValue("system", "key_quick_save", "F2");
-            ini.WriteValue("system", "key_quick_load", "F4");
-            ini.WriteValue("system", "key_fast_forward", "L");
-            ini.WriteValue("system", "key_rewind", "Backspace");
         }
         #endregion
     }

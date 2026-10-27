@@ -20,6 +20,7 @@ namespace EmulatorLauncher
         private string _family;     // Parent set (or the set itself), used to search the controller mappings
         private SaveStatesWatcher _saveStatesWatcher;
         private bool _pad2Keyoverride = false;
+        private bool _keyboardGears;  // The game shifts gears with F1..F5 on the keyboard (games.xml gearbox / shift_buttons)
 
         // Catalogs shipped in the sm2-emu 'lang' folder ("en" is the built-in language)
         private static readonly string[] _sm2Languages = new string[] { "ar", "bg", "bn", "ca", "cs", "da", "de", "el", "es", "et", "fa", "fi", "fr",
@@ -123,6 +124,11 @@ namespace EmulatorLauncher
                 string parent = (string)game.Attribute("parent");
                 _family = string.IsNullOrEmpty(parent) ? _romSet : parent;
 
+                // Clones inherit the gear flags of their parent
+                var parentGame = string.IsNullOrEmpty(parent) ? null : game.Parent.Elements("game").FirstOrDefault(g => parent.Equals((string)g.Attribute("name"), StringComparison.InvariantCultureIgnoreCase));
+                _keyboardGears = new[] { game, parentGame }.Where(g => g != null)
+                    .Any(g => (string)g.Attribute("gearbox") == "true" || (string)g.Attribute("shift_buttons") == "true");
+
                 SimpleLogger.Instance.Info("[Sm2Emu] Set '" + _romSet + "', family '" + _family + "'.");
             }
             catch (Exception ex)
@@ -140,7 +146,6 @@ namespace EmulatorLauncher
         {
             string iniFile = Path.Combine(path, "sm2-emu.ini");
 
-            // Settings are root keys, gamepad layouts are [gamepad] and [<family>] sections
             using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
             {
                 // Paths: everything stays in the RetroBat folders
@@ -259,7 +264,20 @@ namespace EmulatorLauncher
             if (_pad2Keyoverride && File.Exists(Path.Combine(Path.GetTempPath(), "padToKey.xml")))
             {
                 mapping = PadToKey.Load(Path.Combine(Path.GetTempPath(), "padToKey.xml"));
-                PadToKey.AddOrUpdateKeyMapping(mapping, "melonDS", InputKey.hotkey | InputKey.start, "(%{CLOSE})");
+                PadToKey.AddOrUpdateKeyMapping(mapping, "sm2-emu", InputKey.hotkey | InputKey.start, "(%{CLOSE})");
+            }
+            else if (_keyboardGears && mapping != null && mapping["sm2-emu"] != null)
+            {
+                // F1 / F2 / F4 shift gears in these games: the controller hotkeys send the sm2-emu keys written in [system]
+                foreach (var input in mapping["sm2-emu"].Input)
+                {
+                    if (input.Code == "KEY_F1")
+                        input.Code = "KEY_F10";
+                    else if (input.Code == "KEY_F2")
+                        input.Code = "KEY_F6";
+                    else if (input.Code == "KEY_F4")
+                        input.Code = "KEY_F7";
+                }
             }
 
             return mapping;

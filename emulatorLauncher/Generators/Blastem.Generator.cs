@@ -39,14 +39,7 @@ namespace EmulatorLauncher
 
         public override ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
-
-            string path = AppConfig.GetFullPath(emulator);
-            if (string.IsNullOrEmpty(path))
-                path = AppConfig.GetFullPath("blastem");
-
-            string exe = Path.Combine(path, "blastem.exe");
-            if (!File.Exists(exe))
+            if (!GetEmulatorPathAndExe(emulator, out string path, out string exe, "blastem.exe"))
                 return null;
 
             _resolution = resolution;

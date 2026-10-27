@@ -135,6 +135,7 @@ namespace EmulatorLauncher.Libretro
                 { "gw", "Game & Watch" },
                 { "handy", "Handy" },
                 { "hatari", "Hatari" },
+                { "hatari2014", "Hatari2014" },
                 { "hatarib", "hatariB" },
                 { "hbmame", "HBMAME (Git)" },
                 { "higan_sfc_balanced", "nSide (Super Famicom Balanced)" },
@@ -418,7 +419,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureGong(retroarchConfig, coreSettings, system, core);
             Configuregpsp(retroarchConfig, coreSettings, system, core);
             ConfigureHandy(retroarchConfig, coreSettings, system, core);
-            ConfigureHatari(retroarchConfig, coreSettings, system, core);
+            ConfigureHatari2014(retroarchConfig, coreSettings, system, core);
             ConfigureHatariB(retroarchConfig, coreSettings, system, core);
             ConfigureJollyCV(retroarchConfig, coreSettings, system, core);
             ConfigureKronos(retroarchConfig, coreSettings, system, core);
@@ -3231,13 +3232,15 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "handy_lcd_ghosting", "handy_lcd_ghosting", "disabled");
         }
 
-        private void ConfigureHatari(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        private void ConfigureHatari2014(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
-            if (core != "hatari")
+            if (core != "hatari2014")
                 return;
 
-            if (SystemConfig.isOptSet("hatari_tos") && !string.IsNullOrEmpty(SystemConfig["hatari_tos"]))
-                coreSettings["hatari_tosimage"] = SystemConfig["hatari_tos"];
+            // Old libretro Hatari core (1.8) : TOS files are read from bios\tos.img ("default") or bios\hatari\tos\
+            string tos = SystemConfig["hatari2014_tos"];
+            if (!string.IsNullOrEmpty(tos) && tos != "default" && File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "hatari", "tos", tos)))
+                coreSettings["hatari_tosimage"] = tos;
             else
                 coreSettings["hatari_tosimage"] = "default";
 
@@ -3255,35 +3258,76 @@ namespace EmulatorLauncher.Libretro
             if (core != "hatarib")
                 return;
 
-            if (SystemConfig.isOptSet("hatarib_tos") && !string.IsNullOrEmpty(SystemConfig["hatarib_tos"]))
+            string biosPath = AppConfig.GetFullPath("bios");
+            string tosImg = Path.Combine(biosPath, "tos.img");
+            string hatariBPath = Path.Combine(biosPath, "hatarib");
+
+            // Game content : floppies, hard disks and autostart (hatariB m3u format)
+            bool hasFloppy, hasHardDiskImage, hasGemdos, hasAutoRun;
+            GetHatariBContent(SystemConfig["rom"], out hasFloppy, out hasHardDiskImage, out hasGemdos, out hasAutoRun);
+
+            // TOS
+            string tosValue = null;
+            string tos = SystemConfig["hatarib_tos"];
+
+            if (SystemConfig.isOptSet("hatarib_tos") && !string.IsNullOrEmpty(tos))
             {
-                if (SystemConfig["hatarib_tos"] == "tosimg")
+                if (tos == "tosimg")
                 {
-                    string tosImg = Path.Combine(AppConfig.GetFullPath("bios"));
                     if (File.Exists(tosImg))
-                        coreSettings["hatarib_tos"] = "<tos.img>";
+                        tosValue = "<tos.img>";
                 }
-
-                else if (SystemConfig["hatarib_tos"].StartsWith("etos"))
-                {
-                    coreSettings["hatarib_tos"] = "<" + SystemConfig["hatarib_tos"] + ">";
-                }
-
+                else if (tos.StartsWith("etos"))
+                    tosValue = "<" + tos + ">";
                 else
                 {
-                    string tosFile = "hatarib/" + SystemConfig["hatarib_tos"];
-                    string tosPath = Path.Combine(AppConfig.GetFullPath("bios"), "hatarib", SystemConfig["hatarib_tos"]);
+                    // hatariB only lists TOS files from bios\hatarib : copy the file shared with Hatari standalone (bios\hatari\tos) if needed
+                    string tosPath = Path.Combine(hatariBPath, tos);
+                    string sharedTosPath = Path.Combine(biosPath, "hatari", "tos", tos);
+
+                    if (!File.Exists(tosPath) && File.Exists(sharedTosPath))
+                    {
+                        try
+                        {
+                            if (!Directory.Exists(hatariBPath))
+                                Directory.CreateDirectory(hatariBPath);
+
+                            File.Copy(sharedTosPath, tosPath);
+                            SimpleLogger.Instance.Info("[Generator] hatariB: " + tos + " copied to bios\\hatarib.");
+                        }
+                        catch { }
+                    }
 
                     if (File.Exists(tosPath))
-                        coreSettings["hatarib_tos"] = tosFile;
+                        tosValue = "hatarib/" + tos;
+                }
+
+                if (tosValue == null)
+                    SimpleLogger.Instance.Warning("[Generator] hatariB: TOS " + tos + " not found, using default TOS.");
+            }
+
+            if (tosValue == null)
+            {
+                tosValue = "<etos1024k>";
+
+                if (File.Exists(tosImg))
+                {
+                    tosValue = "<tos.img>";
+
+                    // Original TOS needs a driver inside hard disk images, autostart and GEMDOS hard disk need TOS 1.04 or later
+                    bool isEmuTos;
+                    int tosVersion = HatariGenerator.GetTosVersion(tosImg, out isEmuTos);
+                    bool oldTos = !isEmuTos && tosVersion > 0 && tosVersion < 0x0104;
+
+                    if ((hasHardDiskImage && !isEmuTos) || ((hasGemdos || hasAutoRun) && oldTos))
+                    {
+                        tosValue = "<etos1024k>";
+                        SimpleLogger.Instance.Info("[Generator] hatariB: hard disk or autostart detected, using EmuTOS.");
+                    }
                 }
             }
 
-            else if (File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "tos.img")))
-                coreSettings["hatarib_tos"] = "<tos.img>";
-
-            else
-                coreSettings["hatarib_tos"] = "<etos1024k>";
+            coreSettings["hatarib_tos"] = tosValue;
 
             BindFeature(coreSettings, "hatarib_aspect", "hatarib_aspect", "0");
             BindFeature(coreSettings, "hatarib_monitor", "hatarib_monitor", "1");
@@ -3296,19 +3340,66 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "hatarib_cycle_exact", "hatarib_cycle_exact", "1", "0");
             BindBoolFeatureOn(coreSettings, "hatarib_mouse_port", "hatarib_mouse_port", "1", "0");
             BindFeature(coreSettings, "hatarib_statusbar", "hatarib_statusbar", "1");
+            BindFeature(coreSettings, "hatarib_borders", "hatarib_borders", "2");
             BindFeature(coreSettings, "hatarib_emutos_framerate", "hatarib_emutos_framerate", "-1");
             BindFeature(coreSettings, "hatarib_emutos_region", "hatarib_emutos_region", "-1");
 
-            // Manage gemdos images
-            string rom = SystemConfig["rom"];
-            if (Path.GetExtension(rom) == ".m3u" && Directory.Exists(Path.GetFullPath(rom).Substring(0,rom.Length - 4)))
+            // No 5 seconds welcome message at each launch
+            coreSettings["hatarib_show_welcome"] = "0";
+
+            // Boot from hard disk when the game has a hard disk and no floppy
+            if (SystemConfig.isOptSet("hatarib_hardboot") && !string.IsNullOrEmpty(SystemConfig["hatarib_hardboot"]))
+                coreSettings["hatarib_hardboot"] = SystemConfig["hatarib_hardboot"];
+            else
+                coreSettings["hatarib_hardboot"] = ((hasHardDiskImage || hasGemdos) && !hasFloppy) ? "1" : "0";
+        }
+
+        /// <summary>
+        /// Content of a game for hatariB : single file or m3u playlist (one image per line, #AUTO: directive).
+        /// Also supports the RetroBat GEMDOS convention : m3u next to a folder with the same name.
+        /// </summary>
+        private static void GetHatariBContent(string rom, out bool hasFloppy, out bool hasHardDiskImage, out bool hasGemdos, out bool hasAutoRun)
+        {
+            hasFloppy = hasHardDiskImage = hasGemdos = hasAutoRun = false;
+
+            if (string.IsNullOrEmpty(rom))
+                return;
+
+            string[] hardDiskExtensions = new string[] { ".acsi", ".ahd", ".vhd", ".scsi", ".shd", ".ide" };
+            var files = new List<string>();
+
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
             {
-                coreSettings["hatarib_hardboot"] = "1";
-                coreSettings["hatarib_hardtype"] = "0";
+                string m3uFolder = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom));
+                if (Directory.Exists(m3uFolder))
+                    hasGemdos = true;
+
+                try
+                {
+                    foreach (var line in File.ReadAllLines(rom))
+                    {
+                        string entry = line.Trim();
+                        if (entry.StartsWith("#AUTO:", StringComparison.OrdinalIgnoreCase))
+                            hasAutoRun = true;
+                        else if (!string.IsNullOrEmpty(entry) && !entry.StartsWith("#"))
+                            files.Add(entry);
+                    }
+                }
+                catch { }
             }
             else
+                files.Add(rom);
+
+            foreach (var file in files)
             {
-                coreSettings["hatarib_hardboot"] = "0";
+                string ext = Path.GetExtension(file).ToLowerInvariant();
+
+                if (hardDiskExtensions.Contains(ext))
+                    hasHardDiskImage = true;
+                else if (ext == ".gem")
+                    hasGemdos = true;
+                else
+                    hasFloppy = true;
             }
         }
 

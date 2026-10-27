@@ -28,16 +28,7 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
-
-            string path = AppConfig.GetFullPath(emulator);
-            if (string.IsNullOrEmpty(path))
-                return null;
-
-            string exe = Path.Combine(path, "Caprice.exe");
-            if (!File.Exists(exe))
-                exe = Path.Combine(path, "Caprice64.exe");
-            if (!File.Exists(exe))
+            if (!GetEmulatorPathAndExe(emulator, out string path, out string exe, "Caprice.exe", "Caprice64.exe"))
                 return null;
 
             _gx4000 = system == "gx4000";
