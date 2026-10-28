@@ -1,6 +1,7 @@
 ﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Lightguns;
+using System;
 using System.Linq;
 
 namespace EmulatorLauncher
@@ -25,6 +26,8 @@ namespace EmulatorLauncher
             if (!useGuns)
             {
                 ini.WriteValue("lightgun", "sinden_border", "false");
+                ini.WriteValue("lightgun", "gun1_device", "");
+                ini.WriteValue("lightgun", "gun2_device", "");
                 return;
             }
 
@@ -59,6 +62,50 @@ namespace EmulatorLauncher
                     ini.WriteValue("lightgun", prefix + role, code.ToString());
                 }
             }
+
+            WriteGunDevices(ini, guns);
+        }
+
+        /// <summary>
+        /// gun1_device / gun2_device : the RetroBat player 1 and 2 guns. sm2-emu uses a pinned device as a gun
+        /// even when its product name does not contain "gun" (DolphinBar, Blamcon...).
+        /// </summary>
+        private void WriteGunDevices(IniFile ini, RawLightgun[] guns)
+        {
+            // Plain mice are not pinned: without a gun, sm2-emu aims with the system mouse
+            //var realGuns = guns.Where(g => g.Type != RawLighGunType.Mouse && !string.IsNullOrEmpty(g.DevicePath)).ToList();
+
+            int count = SystemConfig.getOptBoolean("one_gun") ? 1 : 2;
+
+            for (int player = 1; player <= 2; player++)
+            {
+                string device = "";
+                if (player <= count && player <= guns.Length)
+                {
+                    device = GetGunDeviceId(guns[player - 1].DevicePath);
+                    SimpleLogger.Instance.Info("[GUNS] Gun " + player + " : " + guns[player - 1].Name + " (" + guns[player - 1].Type + ")");
+                }
+
+                ini.WriteValue("lightgun", "gun" + player + "_device", device);
+            }
+        }
+
+        /// <summary>
+        /// \\?\HID#VID_16C0&PID_0F38&MI_00#8&2a8f...&0&0000#{378de44c-...} gives HID#VID_16C0&PID_0F38&MI_00#8&2a8f...&0&0000,
+        /// a part of the Raw Input path unique to the device (sm2-emu searches it in the path, ignoring case).
+        /// </summary>
+        private static string GetGunDeviceId(string devicePath)
+        {
+            string id = devicePath;
+
+            if (id.StartsWith(@"\\?\") || id.StartsWith(@"\??\"))
+                id = id.Substring(4);
+
+            int guid = id.LastIndexOf("#{", StringComparison.Ordinal);
+            if (guid > 0)
+                id = id.Substring(0, guid);
+
+            return id;
         }
     }
 }

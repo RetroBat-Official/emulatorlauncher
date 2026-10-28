@@ -1,19 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.VPinballLauncher;
-using System.Xml;
-using System.Xml.Linq;
-using System.Drawing;
-using Microsoft.Win32;
-using System.Windows.Forms;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.PadToKeyboard;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.PadToKeyboard;
+using EmulatorLauncher.VPinballLauncher;
+using Microsoft.Win32;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
+using System.Windows.Forms;
+using System.Windows.Media.Imaging;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace EmulatorLauncher
 {
@@ -31,6 +32,11 @@ namespace EmulatorLauncher
         private string _gamePath;
         private bool _remapexit = false;
         private bool _exclusiveFullscreen = false;
+        private ScreenOrientation _rotation = ScreenOrientation.Angle0;
+        private ScreenOrientation _previousOrientation = ScreenOrientation.Angle0;
+        private string _rotationDevice;
+        private bool _rotated = false;
+        private bool _swapBounds = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -57,6 +63,12 @@ namespace EmulatorLauncher
             _exclusiveFullscreen = _version >= new Version(10, 8, 0, 0) && resolution != null && SystemConfig.getOptBoolean("vp_exclusivefullscreen");
             if (_exclusiveFullscreen)
                 DependsOnDesktopResolution = false;
+
+            // Windows screen rotation : applied in RunAndWait, restored when VPX exits
+            _rotationDevice = Program.IsMonitorIndexSet && Program.TargetScreen != null ? Program.TargetScreen.DeviceName : null;
+            _rotation = GetRequestedRotation();
+            _swapBounds = _rotation != ScreenOrientation.Angle0 &&
+                ScreenResolution.IsPortrait(ScreenResolution.GetOrientation(_rotationDevice)) != ScreenResolution.IsPortrait(_rotation);
 
             rom = this.TryUnZipGameIfNeeded(system, rom, true, false);
             if (Directory.Exists(rom))
@@ -101,15 +113,22 @@ namespace EmulatorLauncher
 
                 if (sr != null)
                 {
+                    // Playfield screen : same rule as VPinballX.ini (MonitorIndex target, else primary)
+                    Screen playfieldScreen = Program.IsMonitorIndexSet && Program.TargetScreen != null ? Program.TargetScreen : Screen.PrimaryScreen;
+
+                    Size playfield = GetRotatedSize(
+                        resolution == null ? playfieldScreen.Bounds.Width : resolution.Width,
+                        resolution == null ? playfieldScreen.Bounds.Height : resolution.Height);
+
                     if (SystemConfig.isOptSet("ScreenResX") && !string.IsNullOrEmpty(SystemConfig["ScreenResX"]))
                         sr.ScreenResX = SystemConfig["ScreenResX"].ToInteger();
                     else
-                        sr.ScreenResX = resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width;
+                        sr.ScreenResX = playfield.Width;
 
                     if (SystemConfig.isOptSet("ScreenResY") && !string.IsNullOrEmpty(SystemConfig["ScreenResY"]))
                         sr.ScreenResY = SystemConfig["ScreenResY"].ToInteger();
                     else
-                        sr.ScreenResY = resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height;
+                        sr.ScreenResY = playfield.Height;
 
                     if (SystemConfig.isOptSet("Screen2ResX") && !string.IsNullOrEmpty(SystemConfig["Screen2ResX"]) && SystemConfig.isOptSet("Screen2ResY") && !string.IsNullOrEmpty(SystemConfig["Screen2ResY"]))
                     {
@@ -288,8 +307,9 @@ namespace EmulatorLauncher
                 // Target screen : only when the user chose one (MonitorIndex is 0-based, SDL order)
                 Screen vpScreen = Program.IsMonitorIndexSet ? Program.TargetScreen : null;
 
-                // Get bounds based on screen or resolution
+                // Get bounds based on screen or resolution, swapped if the screen rotation changes portrait/landscape
                 Size bounds = resolution == null ? (vpScreen ?? Screen.PrimaryScreen).Bounds.Size : new Size(resolution.Width, resolution.Height);
+                bounds = GetRotatedSize(bounds.Width, bounds.Height);
 
                 // Resolution and fullscreen
                 ini.WriteValue("Player", "Width", bounds.Width.ToString());
@@ -329,8 +349,9 @@ namespace EmulatorLauncher
                 ini.WriteValue("Player", "AAFactor", SystemConfig.GetValueOrDefault("vp_supersampling", "1.000000"));
                 ini.WriteValue("Player", "FXAA", SystemConfig.GetValueOrDefault("vp_antialiasing", "0"));
                 ini.WriteValue("Player", "Sharpen", SystemConfig.GetValueOrDefault("vp_sharpen", "0"));
-                
-                ini.WriteValue("Player", "BGSet", SystemConfig.getOptBoolean("arcademode") ? "1" : "0");
+
+                // View setup : 0 = desktop, 1 = cabinet, 2 = full single screen (FSS)
+                BindIniFeature(ini, "Player", "BGSet", "vp_viewmode", "0");
 
                 bool aniFilter = !SystemConfig.isOptSet("vp_anisotropic_filtering") || SystemConfig.getOptBoolean("vp_anisotropic_filtering");
                 ini.WriteValue("Player", "ForceAnisotropicFiltering", aniFilter ? "1" : "0");
@@ -596,6 +617,9 @@ namespace EmulatorLauncher
         {
             try
             {
+                // Rotate after the desktop resolution has been applied, restore before it is reverted
+                ApplyRotation();
+
                 var px = Process.Start(path);
                 Job.Current.AddProcess(px);
 
@@ -648,8 +672,55 @@ namespace EmulatorLauncher
             {
 
             }
+            finally
+            {
+                RestoreRotation();
+            }
 
             return -1;
+        }
+
+        private ScreenOrientation GetRequestedRotation()
+        {
+            switch (SystemConfig["vp_rotatescreen"])
+            {
+                case "90": return ScreenOrientation.Angle90;
+                case "180": return ScreenOrientation.Angle180;
+                case "270": return ScreenOrientation.Angle270;
+            }
+
+            return ScreenOrientation.Angle0;
+        }
+
+        private Size GetRotatedSize(int width, int height)
+        {
+            return _swapBounds ? new Size(height, width) : new Size(width, height);
+        }
+
+        private void ApplyRotation()
+        {
+            if (_rotation == ScreenOrientation.Angle0)
+                return;
+
+            _rotated = ScreenResolution.SetOrientation(_rotationDevice, _rotation, out _previousOrientation);
+
+            // Desktop size changed : move the cursor out of the playfield again (Screen bounds are cached, use live metrics)
+            if (_rotated && !SystemConfig.getOptBoolean("use_guns"))
+            {
+                Size primary = SystemInformation.PrimaryMonitorSize;
+                Cursor.Position = new Point(primary.Width - 1, primary.Height / 2);
+            }
+        }
+
+        private void RestoreRotation()
+        {
+            if (!_rotated)
+                return;
+
+            _rotated = false;
+
+            ScreenOrientation dummy;
+            ScreenResolution.SetOrientation(_rotationDevice, _previousOrientation, out dummy);
         }
 
         static void GracefulKill(Process p, int waitMs = 2000)
