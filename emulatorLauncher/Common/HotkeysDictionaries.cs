@@ -58,6 +58,7 @@ namespace EmulatorLauncher
             { "mednafen", "mednafen" },
             { "melonds", "melonDS" },
             { "mesen", "Mesen" },
+            { "model3-vulkan", "Model3-Vulkan" },
             { "pcsx2", "pcsx2-qt" },
             { "ppsspp", "PPSSPPWindows64" },
             { "project64", "Project64" },
@@ -293,6 +294,18 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_save_state", "SaveState", "91"),
                     new EmulatorHotkeyInfo("input_load_state", "LoadState", "93"),
                     new EmulatorHotkeyInfo("input_exit_emulator", "Exit", "13"),
+                }),
+
+            new EmulatorHotkey("model3-vulkan", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_menu_toggle", "InputUIToggleOverlay", "KEY_F1"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "InputUIFullScreen", "KEY_ALT+KEY_RETURN"),
+                    new EmulatorHotkeyInfo("input_screenshot", "InputUIScreenShot", "KEY_F8"),
+                    new EmulatorHotkeyInfo("input_save_state", "InputUISaveState", "KEY_F2"),
+                    new EmulatorHotkeyInfo("input_load_state", "InputUILoadState", "KEY_F4"),
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "InputUIChangeSlot", "KEY_F7"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "InputUIPause", "KEY_P"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "InputUIExit", "KEY_ESCAPE")
                 }),
 
             new EmulatorHotkey("pcsx2", new EmulatorHotkeyInfo[]

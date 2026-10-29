@@ -9,7 +9,7 @@ namespace EmulatorLauncher
 {
     partial class MameHooker
     {
-        public static class Model3
+        public static class Supermodel
         {
             private static readonly HashSet<string> SupportedGames = new HashSet<string>
             {
@@ -17,12 +17,12 @@ namespace EmulatorLauncher
                 "lamachin"   // LA Machine Guns
             };
 
-            public static bool ConfigureModel3(string romName)
+            public static bool ConfigureSupermodel(string romName)
             {
                 // Check if this is a supported lightgun game
                 if (!SupportedGames.Contains(romName))
                 {
-                    SimpleLogger.Instance.Info("[INFO] Not a supported Model3 lightgun game, skipping MHS configuration");
+                    SimpleLogger.Instance.Info("[INFO] Not a supported Supermodel lightgun game, skipping MHS configuration");
                     return false;
                 }
 

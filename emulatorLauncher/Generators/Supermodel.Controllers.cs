@@ -11,7 +11,7 @@ using DI = SharpDX.DirectInput;
 
 namespace EmulatorLauncher
 {
-    partial class Model3Generator : Generator
+    partial class SupermodelGenerator : Generator
     {
         // Gun configuration variables
         private string _mouse1 = "MOUSE1";
