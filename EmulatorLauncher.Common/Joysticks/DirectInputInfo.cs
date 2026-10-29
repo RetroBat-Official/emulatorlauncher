@@ -116,6 +116,36 @@ namespace EmulatorLauncher.Common.Joysticks
             }
         }
 
+        /// <summary>
+        /// Presence of each DirectInput axis slot on the device, in the order X, Y, Z, Rx, Ry, Rz, Slider 1, Slider 2.
+        /// </summary>
+        public bool[] GetAxisSlots()
+        {
+            var present = new bool[8];
+
+            using (var directInput = new DirectInput())
+            using (var joystick = new Joystick(directInput, InstanceGuid))
+            {
+                int sliders = 0;
+                foreach (var obj in joystick.GetObjects(DeviceObjectTypeFlags.Axis))
+                {
+                    int slot = -1;
+                    if (obj.ObjectType == ObjectGuid.XAxis) slot = 0;
+                    else if (obj.ObjectType == ObjectGuid.YAxis) slot = 1;
+                    else if (obj.ObjectType == ObjectGuid.ZAxis) slot = 2;
+                    else if (obj.ObjectType == ObjectGuid.RxAxis) slot = 3;
+                    else if (obj.ObjectType == ObjectGuid.RyAxis) slot = 4;
+                    else if (obj.ObjectType == ObjectGuid.RzAxis) slot = 5;
+                    else if (obj.ObjectType == ObjectGuid.Slider && sliders < 2) slot = 6 + sliders++;
+
+                    if (slot >= 0)
+                        present[slot] = true;
+                }
+            }
+
+            return present;
+        }
+
         public bool TestDirectInputDevice(string deviceGuid)
         {
             if (deviceGuid == null || deviceGuid.Length < 32)

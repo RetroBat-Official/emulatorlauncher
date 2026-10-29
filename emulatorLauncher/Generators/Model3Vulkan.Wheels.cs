@@ -3,7 +3,6 @@ using EmulatorLauncher.Common.FileFormats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using DI = SharpDX.DirectInput;
 
 namespace EmulatorLauncher
 {
@@ -204,28 +203,9 @@ namespace EmulatorLauncher
             {
                 if (wheel.DirectInput != null)
                 {
-                    using (var directInput = new DI.DirectInput())
-                    using (var joystick = new DI.Joystick(directInput, wheel.DirectInput.InstanceGuid))
-                    {
-                        int sliders = 0;
-                        foreach (var obj in joystick.GetObjects(DI.DeviceObjectTypeFlags.Axis))
-                        {
-                            int slot = -1;
-                            if (obj.ObjectType == DI.ObjectGuid.XAxis) slot = 0;
-                            else if (obj.ObjectType == DI.ObjectGuid.YAxis) slot = 1;
-                            else if (obj.ObjectType == DI.ObjectGuid.ZAxis) slot = 2;
-                            else if (obj.ObjectType == DI.ObjectGuid.RxAxis) slot = 3;
-                            else if (obj.ObjectType == DI.ObjectGuid.RyAxis) slot = 4;
-                            else if (obj.ObjectType == DI.ObjectGuid.RzAxis) slot = 5;
-                            else if (obj.ObjectType == DI.ObjectGuid.Slider && sliders < 2) slot = 6 + sliders++;
-
-                            if (slot >= 0)
-                            {
-                                present[slot] = true;
-                                found = true;
-                            }
-                        }
-                    }
+                    // DirectInput objects are read in EmulatorLauncher.Common (SharpDX is merged there, direct use here is ambiguous)
+                    present = wheel.DirectInput.GetAxisSlots();
+                    found = present.Any(p => p);
                 }
             }
             catch (Exception ex) { SimpleLogger.Instance.Warning("[WHEELS] Unable to read the DirectInput axes : " + ex.Message); }
