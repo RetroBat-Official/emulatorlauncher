@@ -15,6 +15,9 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
+        private BezelFiles _bezelFileInfo;
+        private ScreenResolution _resolution;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             string path = AppConfig.GetFullPath("mednafen");
@@ -68,15 +71,25 @@ namespace EmulatorLauncher
             
             if (mednafenCore == "pce" && system == "pcenginecd")
                 commandArray.Add("-pce.cdbios \"" + Path.Combine(AppConfig.GetFullPath("bios"), "syscard3.pce") + "\"");
-         
-            commandArray.Add("-" + mednafenCore + ".shader none");
+
             commandArray.Add("-" + mednafenCore + ".xres 0");
             commandArray.Add("-" + mednafenCore + ".yres 0");
-            commandArray.Add("-" + mednafenCore + ".shader.goat.fprog 0");
-            commandArray.Add("-" + mednafenCore + ".shader.goat.slen 0");
-            commandArray.Add("-" + mednafenCore + ".shader.goat.tp 0.25");
-            commandArray.Add("-" + mednafenCore + ".shader.goat.hdiv 1");
-            commandArray.Add("-" + mednafenCore + ".shader.goat.vdiv 1");
+
+            string shader = SystemConfig.GetValueOrDefault("mednafen_shader", "none");
+            commandArray.Add("-" + mednafenCore + ".shader " + shader);
+
+            if (shader == "goat")
+            {
+                // Mednafen's own defaults. They are written explicitly because Mednafen saves its
+                // settings back to mednafen.cfg, and earlier RetroBat releases left other values
+                // behind that would otherwise survive.
+                commandArray.Add("-" + mednafenCore + ".shader.goat.pat " + SystemConfig.GetValueOrDefault("mednafen_goat_pat", "goatron"));
+                commandArray.Add("-" + mednafenCore + ".shader.goat.slen 1");
+                commandArray.Add("-" + mednafenCore + ".shader.goat.tp 0.50");
+                commandArray.Add("-" + mednafenCore + ".shader.goat.hdiv 0.50");
+                commandArray.Add("-" + mednafenCore + ".shader.goat.vdiv 0.50");
+                commandArray.Add("-" + mednafenCore + ".shader.goat.fprog 0");
+            }
 
             // Bilinear filtering
             if (Features.IsSupported("smooth") && SystemConfig.isOptSet("smooth") && SystemConfig.getOptBoolean("smooth"))
@@ -105,12 +118,11 @@ namespace EmulatorLauncher
             // Shader & Bezel
             if (!fullscreen)
                 SystemConfig["bezel"] = "none";
-            var bezels = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-            var platform = ReshadeManager.GetPlatformFromFile(exe);
 
-            if (ReshadeManager.Setup(ReshadeBezelType.opengl, platform, system, rom, path, resolution, emulator, bezels != null) && bezels != null)
-                commandArray.Add("-" + mednafenCore + ".stretch full");
-            else if (SystemConfig.isOptSet("mednafen_ratio") && !string.IsNullOrEmpty(SystemConfig["mednafen_ratio"]))
+            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            _resolution = resolution;
+
+            if (_bezelFileInfo == null && SystemConfig.isOptSet("mednafen_ratio") && !string.IsNullOrEmpty(SystemConfig["mednafen_ratio"]))
                 commandArray.Add("-" + mednafenCore + ".stretch " + SystemConfig["mednafen_ratio"]);
             else
                 commandArray.Add("-" + mednafenCore + ".stretch aspect");
@@ -118,18 +130,29 @@ namespace EmulatorLauncher
             commandArray.Add("\"" + rom + "\"");
 
             string args = string.Join(" ", commandArray);
-            return new ProcessStartInfo()
+            
+            var ret =  new ProcessStartInfo()
             {
                 FileName = exe,
                 WorkingDirectory = path,
                 Arguments = args,
                 WindowStyle = ProcessWindowStyle.Hidden,
+                // Required to set an environment variable on the child process.
+                UseShellExecute = false,
             };
+
+            if (_bezelFileInfo != null)
+                ret.EnvironmentVariables["SDL_ALLOW_TOPMOST"] = "0";
+
+            return ret;
         }
 
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
+
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
 
             int ret = base.RunAndWait(path);
 
@@ -137,10 +160,8 @@ namespace EmulatorLauncher
 
             if (ret == 1)
             {
-                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
                 return 0;
             }
-            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
 
             return ret;
         }
