@@ -134,8 +134,9 @@ namespace EmulatorLauncher
                         switch (key)
                         {
                             case "archive":
+                                // ArcadeDuck matches the archive by file title, so 'sfex.7z' also matches 'sfex.zip' (GetArchiveLookupKey)
                                 currentGame.Archive = value;
-                                _gamesByArchive[value] = currentGame;
+                                _gamesByArchive[Path.GetFileNameWithoutExtension(value)] = currentGame;
                                 break;
                             case "system": currentGame.System = value; break;
                             case "parent": currentGame.Parent = value; break;
@@ -191,7 +192,7 @@ namespace EmulatorLauncher
         public Game FindGameByArchive(string archiveFileName)
         {
             Game game;
-            if (_gamesByArchive.TryGetValue(archiveFileName, out game))
+            if (!string.IsNullOrEmpty(archiveFileName) && _gamesByArchive.TryGetValue(Path.GetFileNameWithoutExtension(archiveFileName), out game))
                 return game;
 
             return null;
