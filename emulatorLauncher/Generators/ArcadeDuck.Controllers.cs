@@ -646,12 +646,6 @@ namespace EmulatorLauncher
             append("Left", InputKey.left);
             append("Right", InputKey.right);
 
-            if (port.Type == "lightgun")
-            {
-                append("Reload", InputKey.b);
-                return;
-            }
-
             if (port.Type == "tokimeki")
             {
                 append("Button1", InputKey.a);

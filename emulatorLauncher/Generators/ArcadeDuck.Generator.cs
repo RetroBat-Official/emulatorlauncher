@@ -16,6 +16,9 @@ namespace EmulatorLauncher
         private string _path;
         private SaveStatesWatcher _saveStatesWatcher;
 
+        // SETTINGS_VERSION in ArcadeDuck qthost.cpp (3 in 0.5.3)
+        private const string ArcadeDuckSettingsVersion = "3";
+
         public ArcadeDuckGenerator()
         {
             DependsOnDesktopResolution = true;
@@ -37,8 +40,10 @@ namespace EmulatorLauncher
                 try { File.Delete(padtokeyFile); } catch { }
             }
 
-            if (!Path.GetExtension(rom).Equals(".zip", StringComparison.InvariantCultureIgnoreCase))
-                throw new ApplicationException("ArcadeDuck only supports MAME .zip sets (non-merged).");
+            // ArcadeDuck boots MAME .zip or .7z sets (non-merged, split or merged), identified by their file name
+            string romExtension = Path.GetExtension(rom);
+            if (!romExtension.Equals(".zip", StringComparison.InvariantCultureIgnoreCase) && !romExtension.Equals(".7z", StringComparison.InvariantCultureIgnoreCase))
+                throw new ApplicationException("ArcadeDuck only supports MAME .zip or .7z sets.");
 
             _db = ArcadeDuckDatabase.Load(path);
             string biosPath = AppConfig.GetFullPath("bios");
@@ -57,14 +62,15 @@ namespace EmulatorLauncher
 
             bool fullscreen = ShouldRunFullscreen() && !SystemConfig.getOptBoolean("disable_fullscreen");
 
-            if (fullscreen)
+            string ratio = SystemConfig["arcadeduck_ratio"];
+            if (fullscreen && ratio != "Stretch To Fill" && ratio != "16:9")
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             SetupSettings(path, rom, system, biosPath, fullscreen);
 
             var commandArray = new List<string>
             {
-                "-batch"
+                "-nogui"
             };
 
             if (fullscreen)
@@ -197,6 +203,9 @@ namespace EmulatorLauncher
             // AllowDuplicateValues : ArcadeDuck stores multiple bindings of a same control as repeated keys
             using (var ini = new IniFile(iniFile, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues))
             {
+                if (string.IsNullOrEmpty(ini.GetValue("Main", "SettingsVersion")))
+                    ini.WriteValue("Main", "SettingsVersion", ArcadeDuckSettingsVersion);
+
                 ini.WriteValue("Main", "SetupWizardIncomplete", "false");
                 ini.WriteValue("Main", "ConfirmPowerOff", "false");
                 ini.WriteValue("Main", "StartFullscreen", fullscreen ? "true" : "false");
@@ -205,6 +214,9 @@ namespace EmulatorLauncher
                 ini.WriteValue("Main", "Language", GetDefaultLanguage());
 
                 ini.WriteValue("AutoUpdater", "CheckAtStartup", "false");
+
+                // With -nogui, launch errors are only written to stderr and to the log file : the log is read on exit to report them
+                ini.WriteValue("Logging", "LogToFile", "true");
 
                 // Folders
                 if (!string.IsNullOrEmpty(biosPath))
@@ -221,10 +233,11 @@ namespace EmulatorLauncher
                 ini.WriteValue("Cheevos", "ChallengeMode", "false");
 
                 // Bezel : ArcadeDuck draws a full window overlay image (Display.BezelEnabled / BezelPath)
-                if (_bezelFileInfo != null && !string.IsNullOrEmpty(_bezelFileInfo.PngFile))
+                // The path is normalized with backslashes : ArcadeDuck opens files with an extended length path (\\?\) where '/' is not a separator
+                if (_bezelFileInfo != null && !string.IsNullOrEmpty(_bezelFileInfo.PngFile) && File.Exists(_bezelFileInfo.PngFile))
                 {
                     ini.WriteValue("Display", "BezelEnabled", "true");
-                    ini.WriteValue("Display", "BezelPath", _bezelFileInfo.PngFile);
+                    ini.WriteValue("Display", "BezelPath", Path.GetFullPath(_bezelFileInfo.PngFile));
                 }
                 else
                 {
@@ -278,6 +291,55 @@ namespace EmulatorLauncher
 
                 ini.Save();
             }
+        }
+
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            int ret = base.RunAndWait(path);
+
+            if (RawExitCode != 0 && ExitCode != ExitCodes.CustomError)
+            {
+                string error = GetLaunchError();
+                if (!string.IsNullOrEmpty(error))
+                {
+                    SimpleLogger.Instance.Error("[ArcadeDuck] " + error);
+                    SetCustomError("ArcadeDuck : " + error);
+                }
+            }
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Last boot error written by ArcadeDuck in arcadeduck.log (EmuThread::bootSystem : "Failed to boot system: ..." or the save state message).
+        /// Command line errors are written before the log file is opened, the generator checks the set, BIOS and CHD before launching instead.
+        /// </summary>
+        private string GetLaunchError()
+        {
+            try
+            {
+                string logFile = Path.Combine(_path, "arcadeduck.log");
+                if (!File.Exists(logFile))
+                    return null;
+
+                string[] markers = { "Failed to boot system: ", "Save states are not yet implemented" };
+
+                foreach (var line in File.ReadAllLines(logFile).Reverse())
+                {
+                    foreach (var marker in markers)
+                    {
+                        int idx = line.IndexOf(marker, StringComparison.Ordinal);
+                        if (idx < 0)
+                            continue;
+
+                        // Keep the marker text for the save state message, which has no prefix
+                        return marker.EndsWith(": ") ? line.Substring(idx + marker.Length).Trim() : line.Substring(idx).Trim();
+                    }
+                }
+            }
+            catch { }
+
+            return null;
         }
 
         public override void Cleanup()
