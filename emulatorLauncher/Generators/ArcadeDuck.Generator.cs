@@ -62,7 +62,8 @@ namespace EmulatorLauncher
 
             bool fullscreen = ShouldRunFullscreen() && !SystemConfig.getOptBoolean("disable_fullscreen");
 
-            if (fullscreen)
+            string ratio = SystemConfig["arcadeduck_ratio"];
+            if (fullscreen && ratio != "Stretch To Fill" && ratio != "16:9")
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             SetupSettings(path, rom, system, biosPath, fullscreen);

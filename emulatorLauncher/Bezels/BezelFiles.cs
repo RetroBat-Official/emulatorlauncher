@@ -185,11 +185,11 @@ namespace EmulatorLauncher
             {
                 if (!string.IsNullOrEmpty(Program.CurrentGame.Bezel) && File.Exists(Program.CurrentGame.Bezel))
                 {
-                    var customBz = new BezelFiles() { PngFile = Program.CurrentGame.Bezel };
+                    var customBz = new BezelFiles() { PngFile = Path.GetFullPath(Program.CurrentGame.Bezel) };
 
                     if (Program.SystemConfig.getOptBoolean("tattoo"))
                     {
-                        string newPngFile = Program.CurrentGame.Bezel.Replace(".png", "_tattoo.png");
+                        string newPngFile = customBz.PngFile.Replace(".png", "_tattoo.png");
                         //if (!Program.SystemConfig.isOptSet("disableautocontrollers") || Program.SystemConfig["disableautocontrollers"] != "1")
                         customBz.PngFile = GetTattooImage(customBz.PngFile, newPngFile, emulator);
                     }
