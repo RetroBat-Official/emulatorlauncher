@@ -577,12 +577,16 @@ namespace EmulatorLauncher
             { "bigbuckhunterultimatetrophy", new ExeLauncherGame { RomName = "bbhut", Architecture = "x64", Target = "windows" } },
             { "blockking", new ExeLauncherGame { RomName = "bkbs", Architecture = "x32", Target = "ttx" } },
             { "castlevaniaarcade", new ExeLauncherGame { RomName = "hcv", Architecture = "x32", Target = "konami" } },
+            { "coltswildwestshootout", new ExeLauncherGame { RomName = "bugbust", Architecture = "x32", Target = "windows" } },
+            { "dinoinvasion", new ExeLauncherGame { RomName = "dino", Architecture = "x64", Target = "arcadepc " } },
             { "dcop", new ExeLauncherGame { RomName = "dcop", Architecture = "x64", Target = "windows" } },
+            { "drakonrealmkeepers", new ExeLauncherGame { RomName = "drk", Architecture = "x64", Target = "arcadepc " } },
             { "eadp", new ExeLauncherGame { RomName = "eadp", Architecture = "x32", Target = "ttx" } },
             { "elevatoractioninvasion", new ExeLauncherGame { RomName = "eai", Architecture = "x64", Target = "arcadepc" } },
             { "fearland", new ExeLauncherGame { RomName = "fearland", Architecture = "x32", Target = "globalvr" } },
             { "friction", new ExeLauncherGame { RomName = "friction", Architecture = "x32", Target = "windows" } },
             { "gaiaattack4", new ExeLauncherGame { RomName = "gattack4", Architecture = "x32", Target = "ttx" } },
+            { "gashaaaanrefills", new ExeLauncherGame { RomName = "gashn2", Architecture = "x32", Target = "konami" } },
             { "gundamspiritsofzeon", new ExeLauncherGame { RomName = "gsoz", Architecture = "x32", Target = "ttx" } },
             { "gundamspiritsofzeon2p", new ExeLauncherGame { RomName = "gsoz2p", Architecture = "x32", Target = "ttx" } },
             { "hauntedmuseum", new ExeLauncherGame { RomName = "hmuseum", Architecture = "x32", Target = "ttx" } },
@@ -591,6 +595,7 @@ namespace EmulatorLauncher
             { "heavyfireafghanistan2p", new ExeLauncherGame { RomName = "hfa2p", Architecture = "x32", Target = "windows" } },
             { "heavyfireshaterredspear", new ExeLauncherGame { RomName = "hfss", Architecture = "x32", Target = "windows" } },
             { "heavyfireshaterredspear2p", new ExeLauncherGame { RomName = "hfss2p", Architecture = "x32", Target = "windows" } },
+            { "hotshotsfirerescue", new ExeLauncherGame { RomName = "hsfr", Architecture = "x32", Target = "arcadepc" } },
             { "laststand", new ExeLauncherGame { RomName = "pvz", Architecture = "x32", Target = "arcadepc" } },
             { "lethalenforcers3", new ExeLauncherGame { RomName = "le3", Architecture = "x32", Target = "konami" } },
             { "letsgoisland", new ExeLauncherGame { RomName = "lgi", Architecture = "x32", Target = "ringwide" } },
@@ -599,6 +604,8 @@ namespace EmulatorLauncher
             { "madbullets", new ExeLauncherGame { RomName = "madbul", Architecture = "x32", Target = "windows" } },
             { "marssortie", new ExeLauncherGame { RomName = "marss", Architecture = "x32", Target = "arcadepc" } },
             { "medalofvalormedalofhonorarcade", new ExeLauncherGame { RomName = "mng", Architecture = "x32", Target = "ringwide" } },
+            { "mechatornadoarcade", new ExeLauncherGame { RomName = "mecht", Architecture = "x32", Target = "arcadepc" } },
+            { "mechanicaldinosaur", new ExeLauncherGame { RomName = "mechd", Architecture = "x32", Target = "arcadepc" } },
             { "meninblack", new ExeLauncherGame { RomName = "mib", Architecture = "x64", Target = "arcadepc" } },
             { "missionimpossiblearcade", new ExeLauncherGame { RomName = "misimp", Architecture = "x64", Target = "arcadepc" } },
             { "musicgungun2", new ExeLauncherGame { RomName = "mgungun2", Architecture = "x32", Target = "ttx" } },
@@ -613,6 +620,7 @@ namespace EmulatorLauncher
             { "robinhood", new ExeLauncherGame { RomName = "rhood", Architecture = "x32", Target = "arcadepc" } },
             { "segadreamraiders", new ExeLauncherGame { RomName = "sdr", Architecture = "x32", Target = "ringwide" } },
             { "silenthillthearcade", new ExeLauncherGame { RomName = "sha", Architecture = "x32", Target = "ttx" } },
+            { "skullofshadow", new ExeLauncherGame { RomName = "skullos", Architecture = "x64", Target = "arcadepc" } },
             { "targetbravo", new ExeLauncherGame { RomName = "tb", Architecture = "x32", Target = "ringwide" } },
             { "thehouseofthedead2", new ExeLauncherGame { RomName = "hod2pc", Architecture = "x32", Target = "windows" } },
             { "thehouseofthedead3", new ExeLauncherGame { RomName = "hod3pc", Architecture = "x32", Target = "windows" } },
@@ -624,7 +632,9 @@ namespace EmulatorLauncher
             { "transformershumanalliance", new ExeLauncherGame { RomName = "tha", Architecture = "x32", Target = "ringwide" } },
             { "transformershumanalliancetc5", new ExeLauncherGame { RomName = "tc5", Architecture = "x64", Target = "es3" } },
             { "transformersshadowsrising", new ExeLauncherGame { RomName = "tsr", Architecture = "x32", Target = "ringedge2" } },
-            { "wildwestshootout", new ExeLauncherGame { RomName = "wws", Architecture = "x32", Target = "arcadepc" } }
+            { "dalkingdead", new ExeLauncherGame { RomName = "wd", Architecture = "x32", Target = "rawthrill" } },
+            { "wildwestshootout", new ExeLauncherGame { RomName = "wws", Architecture = "x32", Target = "arcadepc" } },
+            { "wisdomzombies", new ExeLauncherGame { RomName = "wzombies", Architecture = "x64", Target = "arcadepc" } }
         };
     }
 }
