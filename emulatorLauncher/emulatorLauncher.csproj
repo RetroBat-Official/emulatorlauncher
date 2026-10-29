@@ -184,7 +184,7 @@
     <Compile Include="Demulshooter\Demulshooter.cs" />
     <Compile Include="MameHooker\MameHooker.cs" />
     <Compile Include="MameHooker\MameHooker.Model2.cs" />
-    <Compile Include="MameHooker\MameHooker.Model3.cs" />
+    <Compile Include="MameHooker\MameHooker.Supermodel.cs" />
     <Compile Include="MameHooker\MameHooker.Teknoparrot.cs" />
     <Compile Include="MameHooker\MameHooker.ExeLauncher.cs" />
     <Compile Include="MameHooker\MameHooker.Demul.cs" />
@@ -489,9 +489,18 @@
     <Compile Include="Generators\Model2.Guns.cs">
       <DependentUpon>Model2.Generator.cs</DependentUpon>
     </Compile>
-    <Compile Include="Generators\Model3.Generator.cs" />
-    <Compile Include="Generators\Model3.Controllers.cs">
-      <DependentUpon>Model3.Generator.cs</DependentUpon>
+    <Compile Include="Generators\Model3Vulkan.Generator.cs" />
+    <Compile Include="Generators\Model3Vulkan.Controllers.cs">
+      <DependentUpon>Model3Vulkan.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Model3Vulkan.Guns.cs">
+      <DependentUpon>Model3Vulkan.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Model3Vulkan.Wheels.cs">
+      <DependentUpon>Model3Vulkan.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Model3Vulkan.SaveStatesMonitor.cs">
+      <DependentUpon>Model3Vulkan.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\Mupen64.Generator.cs" />
     <Compile Include="Generators\Mupen64.Controllers.cs">
@@ -625,6 +634,10 @@
     <Compile Include="Generators\Sudachi.Controllers.cs">
       <DependentUpon>Sudachi.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Supermodel.Generator.cs" />
+    <Compile Include="Generators\Supermodel.Controllers.cs">
+      <DependentUpon>Supermodel.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Suyu.Generator.cs" />
     <Compile Include="Generators\Suyu.Controllers.cs">
       <DependentUpon>Suyu.Generator.cs</DependentUpon>
@@ -656,6 +669,9 @@
       <DependentUpon>VPinball.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\VPinball.RomNameReader.cs">
+      <DependentUpon>VPinball.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\VPinball.ScreenLayout.cs">
       <DependentUpon>VPinball.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\WinArcadia.Generator.cs" />

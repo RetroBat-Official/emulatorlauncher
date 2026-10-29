@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using Microsoft.Win32;
 using System.Windows.Forms;
 using EmulatorLauncher.Common;
@@ -52,13 +51,9 @@ namespace EmulatorLauncher
             {
                 SetOption(regKeyc, "DisableESC", 1);
 
-                // Resolution and fullscreen, swapped if the screen rotation changes portrait/landscape
-                Size bounds = GetRotatedSize(
-                    resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width,
-                    resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
-
-                SetOption(regKeyc, "Width", bounds.Width);
-                SetOption(regKeyc, "Height", bounds.Height);
+                // Resolution and fullscreen
+                SetOption(regKeyc, "Width", resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
+                SetOption(regKeyc, "Height", resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
                 SetOption(regKeyc, "FullScreen", resolution == null ? 0 : 1);
 
                 // Vertical sync

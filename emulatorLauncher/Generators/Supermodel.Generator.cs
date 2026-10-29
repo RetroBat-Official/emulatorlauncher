@@ -10,7 +10,7 @@ using static EmulatorLauncher.Common.KeyboardInterceptor;
 
 namespace EmulatorLauncher
 {
-    partial class Model3Generator : Generator
+    partial class SupermodelGenerator : Generator
     {
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
@@ -33,7 +33,7 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info($"[INFO] ROM Name: {romName}");
 
             // Configure Model3 specific MameHooker settings
-            if (!MameHooker.Model3.ConfigureModel3(romName))
+            if (!MameHooker.Supermodel.ConfigureSupermodel(romName))
                 return;
 
             // Start MameHooker process after config update

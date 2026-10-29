@@ -25,18 +25,22 @@ namespace EmulatorLauncher
             DependsOnDesktopResolution = true;
         }
 
-        private LoadingForm _splash;       
+        private LoadingForm _splash;
         private Version _version;
         private string _processName;
         private string _exe;
         private string _gamePath;
         private bool _remapexit = false;
         private bool _exclusiveFullscreen = false;
-        private ScreenOrientation _rotation = ScreenOrientation.Angle0;
-        private ScreenOrientation _previousOrientation = ScreenOrientation.Angle0;
-        private string _rotationDevice;
-        private bool _rotated = false;
-        private bool _swapBounds = false;
+        private ScreenResolution _rotationMode;                  // rotation without video mode, restored at the end of RunAndWait
+        private ScreenResolution _appliedResolution;             // video mode applied in Generate (owned and disposed by Program)
+        private ScreenResolution.LayoutSnapshot _displayLayout;  // screen positions before any change, restored in Cleanup
+        private bool _displayChanged = false;
+        private VPinballScreenLayout _layout;                    // 10.8+ only, null for older versions
+
+        private const string DisabledResSuffix = ".retrobat";
+        private string _tableResFile;
+        private bool _tableResDisabled = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -64,18 +68,21 @@ namespace EmulatorLauncher
             if (_exclusiveFullscreen)
                 DependsOnDesktopResolution = false;
 
-            // Windows screen rotation : applied in RunAndWait, restored when VPX exits
-            _rotationDevice = Program.IsMonitorIndexSet && Program.TargetScreen != null ? Program.TargetScreen.DeviceName : null;
-            _rotation = GetRequestedRotation();
-            _swapBounds = _rotation != ScreenOrientation.Angle0 &&
-                ScreenResolution.IsPortrait(ScreenResolution.GetOrientation(_rotationDevice)) != ScreenResolution.IsPortrait(_rotation);
-
             rom = this.TryUnZipGameIfNeeded(system, rom, true, false);
             if (Directory.Exists(rom))
             {
                 rom = Directory.GetFiles(rom, "*.vpx").FirstOrDefault();
                 if (string.IsNullOrEmpty(rom))
                     return null;
+            }
+
+            SetupTableResFile(rom);
+
+            // 10.8+ : video mode and rotation are applied now, so that the screen layout is computed on the final geometry
+            if (_version >= new Version(10, 8, 0, 0))
+            {
+                ApplyDisplayMode(resolution);
+                _layout = VPinballScreenLayout.Build();
             }
 
             _splash = ShowSplash(rom);
@@ -106,67 +113,17 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] using rompath: " + romPath);
 
-            
+
             if (!SystemConfig.getOptBoolean("noscreenres"))
             {
                 ScreenRes sr = ScreenRes.Load(Path.GetDirectoryName(rom));
 
                 if (sr != null)
                 {
-                    // Playfield screen : same rule as VPinballX.ini (MonitorIndex target, else primary)
-                    Screen playfieldScreen = Program.IsMonitorIndexSet && Program.TargetScreen != null ? Program.TargetScreen : Screen.PrimaryScreen;
-
-                    Size playfield = GetRotatedSize(
-                        resolution == null ? playfieldScreen.Bounds.Width : resolution.Width,
-                        resolution == null ? playfieldScreen.Bounds.Height : resolution.Height);
-
-                    if (SystemConfig.isOptSet("ScreenResX") && !string.IsNullOrEmpty(SystemConfig["ScreenResX"]))
-                        sr.ScreenResX = SystemConfig["ScreenResX"].ToInteger();
+                    if (_layout != null && !_layout.IsManual)
+                        SetupScreenResFromLayout(sr);
                     else
-                        sr.ScreenResX = playfield.Width;
-
-                    if (SystemConfig.isOptSet("ScreenResY") && !string.IsNullOrEmpty(SystemConfig["ScreenResY"]))
-                        sr.ScreenResY = SystemConfig["ScreenResY"].ToInteger();
-                    else
-                        sr.ScreenResY = playfield.Height;
-
-                    if (SystemConfig.isOptSet("Screen2ResX") && !string.IsNullOrEmpty(SystemConfig["Screen2ResX"]) && SystemConfig.isOptSet("Screen2ResY") && !string.IsNullOrEmpty(SystemConfig["Screen2ResY"]))
-                    {
-                        sr.Screen2ResX = SystemConfig["Screen2ResX"].ToInteger();
-                        sr.Screen2ResY = SystemConfig["Screen2ResY"].ToInteger();
-                    }
-                    else
-                    {
-                        Screen secondary = Screen.AllScreens.FirstOrDefault(s => !s.Primary);
-                        if (secondary != null)
-                        {
-                            sr.Screen2ResX = secondary.Bounds.Width;
-                            sr.Screen2ResY = secondary.Bounds.Height;
-                        }
-                    }
-
-                    if (SystemConfig.isOptSet("Monitor") && !string.IsNullOrEmpty(SystemConfig["Monitor"]))
-                        sr.Monitor = SystemConfig["Monitor"].ToInteger();
-                    else
-                        sr.Monitor = Screen.AllScreens.Length == 1 ? 1 : 2;
-
-                    if (SystemConfig.isOptSet("Screen2posX") && !string.IsNullOrEmpty(SystemConfig["Screen2posX"]) && SystemConfig.isOptSet("Screen2posY") && !string.IsNullOrEmpty(SystemConfig["Screen2posY"]))
-                    {
-                        sr.Screen2posX = SystemConfig["Screen2posX"].ToInteger();
-                        sr.Screen2posY = SystemConfig["Screen2posY"].ToInteger();
-                    }
-
-                    if (SystemConfig.isOptSet("DmdResX") && !string.IsNullOrEmpty(SystemConfig["DmdResX"]) && SystemConfig.isOptSet("DmdResY") && !string.IsNullOrEmpty(SystemConfig["DmdResY"]))
-                    {
-                        sr.DmdResX = SystemConfig["DmdResX"].ToInteger();
-                        sr.DmdResY = SystemConfig["DmdResY"].ToInteger();
-                    }
-
-                    if (SystemConfig.isOptSet("DmdposX") && !string.IsNullOrEmpty(SystemConfig["DmdposX"]) && SystemConfig.isOptSet("DmdposY") && !string.IsNullOrEmpty(SystemConfig["DmdposY"]))
-                    {
-                        sr.DmdPosX = SystemConfig["DmdposX"].ToInteger();
-                        sr.DmdPosY = SystemConfig["DmdposY"].ToInteger();
-                    }
+                        SetupScreenResManual(sr, resolution);
 
                     if (SystemConfig.isOptSet("FlipLedDisplay") && SystemConfig.getOptBoolean("FlipLedDisplay"))
                         sr.DmdFlipY = 1;
@@ -245,20 +202,20 @@ namespace EmulatorLauncher
                     Image = data.RenderBackglass(index)
                 };
                 frm.Timer += (a, b) =>
+                {
+                    int now = Environment.TickCount;
+                    if (now - last > 1000)
                     {
-                        int now = Environment.TickCount;
-                        if (now - last > 1000)
-                        {
-                            index++;
-                            if (index >= 4)
-                                index = 0;
+                        index++;
+                        if (index >= 4)
+                            index = 0;
 
-                            frm.Image = data.RenderBackglass(index);
-                            frm.Invalidate();
-                            last = now;
-                        }
+                        frm.Image = data.RenderBackglass(index);
+                        frm.Invalidate();
+                        last = now;
+                    }
 
-                    };
+                };
                 frm.Show();
 
                 return frm;
@@ -286,10 +243,14 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("[Generator] Writing config to VPinballX.ini file.");
 
-                if (SystemConfig.isOptSet("enableb2s") && !SystemConfig.getOptBoolean("enableb2s"))
-                    ini.WriteValue("Controller", "ForceDisableB2S", "1");
+                // Backglass : forced by ENABLE BACKGLASS, else follows the screen layout (screen setup not set : enabled as before)
+                bool b2s;
+                if (SystemConfig.isOptSet("enableb2s") && !string.IsNullOrEmpty(SystemConfig["enableb2s"]))
+                    b2s = SystemConfig.getOptBoolean("enableb2s");
                 else
-                    ini.WriteValue("Controller", "ForceDisableB2S", "0");
+                    b2s = _layout == null || _layout.IsManual || _layout.HasBackglass;
+
+                ini.WriteValue("Controller", "ForceDisableB2S", b2s ? "0" : "1");
 
                 BindIniFeature(ini, "Controller", "DOFContactors", "vpdof_contractors", "2");
                 BindIniFeature(ini, "Controller", "DOFKnocker", "vpdof_knocker", "2");
@@ -307,9 +268,22 @@ namespace EmulatorLauncher
                 // Target screen : only when the user chose one (MonitorIndex is 0-based, SDL order)
                 Screen vpScreen = Program.IsMonitorIndexSet ? Program.TargetScreen : null;
 
-                // Get bounds based on screen or resolution, swapped if the screen rotation changes portrait/landscape
-                Size bounds = resolution == null ? (vpScreen ?? Screen.PrimaryScreen).Bounds.Size : new Size(resolution.Width, resolution.Height);
-                bounds = GetRotatedSize(bounds.Width, bounds.Height);
+                // Playfield size : screen holding the video mode, else target screen, else primary (same rules as before).
+                // Live geometry : the video mode and the rotation are already applied
+                Screen playfieldScreen = resolution != null && !_exclusiveFullscreen ? Displays.FromDeviceName(resolution.DeviceName) : (vpScreen ?? Screen.PrimaryScreen);
+                Rectangle playfieldBounds = VPinballScreenLayout.GetBounds(playfieldScreen);
+                if (playfieldBounds.IsEmpty)
+                    playfieldBounds = resolution == null ? (vpScreen ?? Screen.PrimaryScreen).Bounds : new Rectangle(0, 0, resolution.Width, resolution.Height);
+
+                Size bounds = playfieldBounds.Size;
+
+                if (_exclusiveFullscreen)
+                {
+                    // VPX switches the video mode itself : selected mode, oriented like the (possibly rotated) desktop
+                    bounds = new Size(resolution.Width, resolution.Height);
+                    if ((bounds.Height > bounds.Width) != (playfieldBounds.Height > playfieldBounds.Width))
+                        bounds = new Size(bounds.Height, bounds.Width);
+                }
 
                 // Resolution and fullscreen
                 ini.WriteValue("Player", "Width", bounds.Width.ToString());
@@ -350,8 +324,11 @@ namespace EmulatorLauncher
                 ini.WriteValue("Player", "FXAA", SystemConfig.GetValueOrDefault("vp_antialiasing", "0"));
                 ini.WriteValue("Player", "Sharpen", SystemConfig.GetValueOrDefault("vp_sharpen", "0"));
 
-                // View setup : 0 = desktop, 1 = cabinet, 2 = full single screen (FSS)
-                BindIniFeature(ini, "Player", "BGSet", "vp_viewmode", "0");
+                // View setup : 0 = desktop, 1 = cabinet, 2 = full single screen (FSS). AUTO follows the screen layout
+                if (SystemConfig.isOptSet("vp_viewmode") && !string.IsNullOrEmpty(SystemConfig["vp_viewmode"]))
+                    ini.WriteValue("Player", "BGSet", SystemConfig["vp_viewmode"]);
+                else
+                    ini.WriteValue("Player", "BGSet", _layout != null && !_layout.IsManual ? _layout.DefaultViewMode.ToString() : "0");
 
                 bool aniFilter = !SystemConfig.isOptSet("vp_anisotropic_filtering") || SystemConfig.getOptBoolean("vp_anisotropic_filtering");
                 ini.WriteValue("Player", "ForceAnisotropicFiltering", aniFilter ? "1" : "0");
@@ -404,7 +381,7 @@ namespace EmulatorLauncher
             }
         }
 
-        private static void SetupVPinMameOptions(string path, string romPath, string vpxFile)
+        private void SetupVPinMameOptions(string path, string romPath, string vpxFile)
         {
             var softwareKey = Registry.CurrentUser.OpenSubKey(@"Software", true);
             if (softwareKey == null)
@@ -414,6 +391,10 @@ namespace EmulatorLauncher
             if (visualPinMame != null)
             {
                 SimpleLogger.Instance.Info("[Generator] Writing VPinMame config to Registry.");
+
+                // PinMAME may not handle windows at negative coordinates (screen on the left of / above the primary screen)
+                if (_layout != null && !_layout.IsManual && _layout.DmdLocation != VPinballDmdLocation.None && (_layout.DmdWindow.X < 0 || _layout.DmdWindow.Y < 0))
+                    SimpleLogger.Instance.Warning("[Generator] PinMAME DMD window at negative position (" + _layout.DmdWindow.X + "," + _layout.DmdWindow.Y + ") : if it shows up at the wrong place, move the DMD screen to the right of / below the primary screen in Windows, or use the external DMD (VPINMAME > DMD = EXTERNAL).");
 
                 DisableVPinMameLicenceDialogs(romPath, visualPinMame);
 
@@ -496,7 +477,7 @@ namespace EmulatorLauncher
         }
 
         // Per-rom VPinMAME settings, shared by the 'default' key and the rom keys
-        private static void SetupVPinMameRomKey(RegistryKey key)
+        private void SetupVPinMameRomKey(RegistryKey key)
         {
             SetOption(key, "cheat", 1);
 
@@ -528,6 +509,25 @@ namespace EmulatorLauncher
 
             BindBoolRegistryFeature(key, "cabinet_mode", "vpmame_cabinet", 1, 0, true);
             BindBoolRegistryFeature(key, "dmd_colorize", "vpmame_colordmd", 1, 0, false);
+
+            // DMD window from the screen layout (screen setup not set : left untouched)
+            if (_layout != null && !_layout.IsManual)
+            {
+                if (_layout.DmdLocation == VPinballDmdLocation.None)
+                {
+                    // Hardware DMD only : external DMD driver (ZeDMD, PIN2DMD...) without the PinMAME window
+                    SetOption(key, "showpindmd", 1);
+                    SetOption(key, "showwindmd", 0);
+                }
+                else
+                {
+                    Rectangle dmd = _layout.DmdWindow;
+                    SetOption(key, "dmd_pos_x", dmd.X);
+                    SetOption(key, "dmd_pos_y", dmd.Y);
+                    SetOption(key, "dmd_width", dmd.Width);
+                    SetOption(key, "dmd_height", dmd.Height);
+                }
+            }
         }
 
         private void SetupDmdDevice(string path)
@@ -540,6 +540,31 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "zedmd", "enabled", "vpmame_zedmd", "true", "false");
                 BindBoolIniFeature(ini, "zedmdhd", "enabled", "vpmame_zedmdhd", "true", "false");
                 BindBoolIniFeature(ini, "pin2dmd", "enabled", "vpmame_pin2dmd", "true", "false");
+
+                // Virtual DMD position from the screen layout (screen setup not set : left untouched)
+                if (_layout != null && !_layout.IsManual)
+                {
+                    if (_layout.DmdLocation == VPinballDmdLocation.None)
+                    {
+                        // Hardware DMD only : no window on screen
+                        ini.WriteValue("virtualdmd", "enabled", "false");
+                    }
+                    else
+                    {
+                        Rectangle dmd = _layout.DmdWindow;
+
+                        // Position written here, not read from the VPinMAME registry
+                        ini.WriteValue("virtualdmd", "useregistry", "false");
+                        ini.WriteValue("virtualdmd", "left", dmd.X.ToString());
+                        ini.WriteValue("virtualdmd", "top", dmd.Y.ToString());
+                        ini.WriteValue("virtualdmd", "width", dmd.Width.ToString());
+                        ini.WriteValue("virtualdmd", "height", dmd.Height.ToString());
+
+                        // On the playfield screen, the DMD must stay over the fullscreen VPX window
+                        if (_layout.DmdLocation == VPinballDmdLocation.Playfield)
+                            ini.WriteValue("virtualdmd", "stayontop", "true");
+                    }
+                }
 
                 ini.Save();
             }
@@ -609,7 +634,7 @@ namespace EmulatorLauncher
                     else
                         SimpleLogger.Instance.Warning("[WARNING] File B2STableSettings.xml is corrupted.");
                 }
-                catch {}
+                catch { }
             }
         }
 
@@ -617,8 +642,12 @@ namespace EmulatorLauncher
         {
             try
             {
-                // Rotate after the desktop resolution has been applied, restore before it is reverted
-                ApplyRotation();
+                // Desktop geometry changed in Generate : move the cursor out of the playfield again (Screen bounds may be cached, use live metrics)
+                if (_displayChanged && !SystemConfig.getOptBoolean("use_guns"))
+                {
+                    Size primary = SystemInformation.PrimaryMonitorSize;
+                    Cursor.Position = new Point(primary.Width - 1, primary.Height / 2);
+                }
 
                 var px = Process.Start(path);
                 Job.Current.AddProcess(px);
@@ -674,53 +703,11 @@ namespace EmulatorLauncher
             }
             finally
             {
-                RestoreRotation();
+                // Rotation without video mode : restore as soon as VPX and its companions are closed
+                RestoreRotationMode();
             }
 
             return -1;
-        }
-
-        private ScreenOrientation GetRequestedRotation()
-        {
-            switch (SystemConfig["vp_rotatescreen"])
-            {
-                case "90": return ScreenOrientation.Angle90;
-                case "180": return ScreenOrientation.Angle180;
-                case "270": return ScreenOrientation.Angle270;
-            }
-
-            return ScreenOrientation.Angle0;
-        }
-
-        private Size GetRotatedSize(int width, int height)
-        {
-            return _swapBounds ? new Size(height, width) : new Size(width, height);
-        }
-
-        private void ApplyRotation()
-        {
-            if (_rotation == ScreenOrientation.Angle0)
-                return;
-
-            _rotated = ScreenResolution.SetOrientation(_rotationDevice, _rotation, out _previousOrientation);
-
-            // Desktop size changed : move the cursor out of the playfield again (Screen bounds are cached, use live metrics)
-            if (_rotated && !SystemConfig.getOptBoolean("use_guns"))
-            {
-                Size primary = SystemInformation.PrimaryMonitorSize;
-                Cursor.Position = new Point(primary.Width - 1, primary.Height / 2);
-            }
-        }
-
-        private void RestoreRotation()
-        {
-            if (!_rotated)
-                return;
-
-            _rotated = false;
-
-            ScreenOrientation dummy;
-            ScreenResolution.SetOrientation(_rotationDevice, _previousOrientation, out dummy);
         }
 
         static void GracefulKill(Process p, int waitMs = 2000)
@@ -801,6 +788,21 @@ namespace EmulatorLauncher
 
         public override void Cleanup()
         {
+            // Display restore order : playfield mode first, then the position of the other screens.
+            // Normal exit : already done by Program (video mode) and RunAndWait (rotation), these calls do nothing.
+            // Exception in Generate : Program calls Cleanup before disposing its ScreenResolution, the mode is restored here first.
+            if (_appliedResolution != null)
+            {
+                _appliedResolution.Dispose();
+                _appliedResolution = null;
+            }
+
+            RestoreRotationMode();
+            RestoreDisplayLayout();
+
+            // B2S server has been closed in RunAndWait, the .res file is no longer in use
+            RestoreTableResFile();
+
             if (_splash != null)
             {
                 _splash.Dispose();
@@ -819,6 +821,264 @@ namespace EmulatorLauncher
             }
 
             base.Cleanup();
+        }
+
+        /// <summary>
+        /// IGNORE TABLE .RES FILE : the table specific B2S settings file is renamed during the game and restored on exit.
+        /// A file left renamed by a previous crash is always restored first, whatever the option.
+        /// </summary>
+        private void SetupTableResFile(string rom)
+        {
+            if (string.IsNullOrEmpty(rom))
+                return;
+
+            _tableResFile = Path.ChangeExtension(rom, ".res");
+            string disabled = _tableResFile + DisabledResSuffix;
+
+            // Crash recovery
+            if (File.Exists(disabled))
+            {
+                if (File.Exists(_tableResFile))
+                {
+                    // The user created a new .res file meanwhile : never overwrite or delete any of them
+                    SimpleLogger.Instance.Warning("[Generator] Both " + _tableResFile + " and " + disabled + " exist, table .res file left untouched.");
+                    return;
+                }
+
+                try
+                {
+                    File.Move(disabled, _tableResFile);
+                    SimpleLogger.Instance.Info("[Generator] Restored table .res file left disabled by a previous session : " + _tableResFile);
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Warning("[Generator] Unable to restore " + disabled + " : " + ex.Message);
+                    return;
+                }
+            }
+
+            if (!SystemConfig.getOptBoolean("vp_ignoreres") || !File.Exists(_tableResFile))
+                return;
+
+            try
+            {
+                File.Move(_tableResFile, disabled);
+                _tableResDisabled = true;
+                SimpleLogger.Instance.Info("[Generator] Table .res file ignored for this game : " + _tableResFile);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[Generator] Unable to disable " + _tableResFile + " : " + ex.Message);
+            }
+        }
+
+        private void RestoreTableResFile()
+        {
+            if (!_tableResDisabled)
+                return;
+
+            _tableResDisabled = false;
+
+            string disabled = _tableResFile + DisabledResSuffix;
+
+            try
+            {
+                if (File.Exists(disabled) && !File.Exists(_tableResFile))
+                {
+                    File.Move(disabled, _tableResFile);
+                    SimpleLogger.Instance.Info("[Generator] Table .res file restored : " + _tableResFile);
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[Generator] Unable to restore " + disabled + " : " + ex.Message);
+            }
+        }
+
+        private ScreenOrientation? GetRequestedRotation()
+        {
+            switch (SystemConfig["vp_rotatescreen"])
+            {
+                case "90": return ScreenOrientation.Angle90;
+                case "180": return ScreenOrientation.Angle180;
+                case "270": return ScreenOrientation.Angle270;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 10.8+ : applies the video mode and the playfield rotation before the configuration files are written.
+        /// Video mode (with or without rotation) : applied on the ScreenResolution owned by Program, restored when Program disposes it.
+        /// Rotation only (no video mode, or exclusive fullscreen) : own ScreenResolution, restored in RunAndWait / Cleanup.
+        /// The position of every screen is captured first, and restored in Cleanup.
+        /// </summary>
+        private void ApplyDisplayMode(ScreenResolution resolution)
+        {
+            ScreenOrientation? rotation = GetRequestedRotation();
+            Screen playfield = VPinballScreenLayout.GetPlayfieldScreen();
+
+            // Before any change (also needed for exclusive fullscreen : VPX changes the mode itself)
+            _displayLayout = ScreenResolution.LayoutSnapshot.Capture();
+
+            if (resolution != null && !_exclusiveFullscreen)
+            {
+                if (rotation.HasValue && playfield != null)
+                {
+                    // Video mode and rotation in a single change, on the playfield screen
+                    resolution.SetTargetScreen(playfield);
+                    resolution.Orientation = rotation;
+                }
+
+                resolution.Apply();
+                _appliedResolution = resolution;
+                _displayChanged = resolution.HasChanged;
+
+                // Already applied : Program must not apply it again after Generate
+                DependsOnDesktopResolution = false;
+                return;
+            }
+
+            if (!rotation.HasValue || playfield == null)
+                return;
+
+            _rotationMode = ScreenResolution.GetCurrentResolution(playfield.DeviceName);
+            if (_rotationMode == null)
+            {
+                SimpleLogger.Instance.Warning("[Generator] Unable to read the current mode of " + playfield.DeviceName + ", screen not rotated.");
+                return;
+            }
+
+            _rotationMode.Orientation = rotation;
+            _rotationMode.Apply();
+            _displayChanged = _rotationMode.HasChanged;
+        }
+
+        private void RestoreRotationMode()
+        {
+            if (_rotationMode != null)
+            {
+                _rotationMode.Dispose();
+                _rotationMode = null;
+            }
+        }
+
+        /// <summary>Puts back the screens moved by Windows. Must run after the playfield mode has been restored.</summary>
+        private void RestoreDisplayLayout()
+        {
+            if (_displayLayout == null)
+                return;
+
+            var snapshot = _displayLayout;
+            _displayLayout = null;
+
+            if (_displayChanged || _exclusiveFullscreen)
+                snapshot.Restore();
+        }
+
+        /// <summary>
+        /// ScreenRes.txt from the computed screen layout.
+        /// The backglass screen is given by its X coordinate (@x) : independent of the Windows / B2S screen numbering.
+        /// Backglass position is relative to the selected screen, DMD position is relative to the backglass window.
+        /// </summary>
+        private void SetupScreenResFromLayout(ScreenRes sr)
+        {
+            var layout = _layout;
+
+            sr.ScreenResX = layout.Playfield.Width;
+            sr.ScreenResY = layout.Playfield.Height;
+
+            // No backglass screen : B2S is disabled in VPinballX.ini, values matching the playfield screen are written
+            Rectangle screen = layout.HasBackglass ? layout.BackglassScreenBounds : layout.Playfield;
+            Rectangle backglass = layout.HasBackglass ? layout.Backglass : layout.Playfield;
+
+            sr.Monitor = "@" + screen.X;
+            sr.Screen2ResX = backglass.Width;
+            sr.Screen2ResY = backglass.Height;
+
+            Point backglassPos = VPinballScreenLayout.RelativeTo(backglass, screen);
+            sr.Screen2posX = backglassPos.X;
+            sr.Screen2posY = backglassPos.Y;
+
+            // B2S DMD area (B2S DMD / full DMD), relative to the backglass window
+            if (layout.DmdLocation == VPinballDmdLocation.None)
+            {
+                sr.DmdResX = 0;
+                sr.DmdResY = 0;
+                sr.DmdPosX = 0;
+                sr.DmdPosY = 0;
+            }
+            else
+            {
+                Point dmdPos = VPinballScreenLayout.RelativeTo(layout.DmdArea, backglass);
+                sr.DmdResX = layout.DmdArea.Width;
+                sr.DmdResY = layout.DmdArea.Height;
+                sr.DmdPosX = dmdPos.X;
+                sr.DmdPosY = dmdPos.Y;
+            }
+        }
+
+        /// <summary>Screen setup not set (or VPX before 10.8) : SCREENRES values, defaults as before.</summary>
+        private void SetupScreenResManual(ScreenRes sr, ScreenResolution resolution)
+        {
+            // Legacy default : video mode, else primary screen
+            Size playfield = resolution == null ? Screen.PrimaryScreen.Bounds.Size : new Size(resolution.Width, resolution.Height);
+
+            // Screen rotation (10.8+) : live size of the rotated playfield screen
+            if (_version >= new Version(10, 8, 0, 0) && GetRequestedRotation().HasValue)
+            {
+                Rectangle live = VPinballScreenLayout.GetBounds(VPinballScreenLayout.GetPlayfieldScreen());
+                if (!live.IsEmpty)
+                    playfield = live.Size;
+            }
+
+            if (SystemConfig.isOptSet("ScreenResX") && !string.IsNullOrEmpty(SystemConfig["ScreenResX"]))
+                sr.ScreenResX = SystemConfig["ScreenResX"].ToInteger();
+            else
+                sr.ScreenResX = playfield.Width;
+
+            if (SystemConfig.isOptSet("ScreenResY") && !string.IsNullOrEmpty(SystemConfig["ScreenResY"]))
+                sr.ScreenResY = SystemConfig["ScreenResY"].ToInteger();
+            else
+                sr.ScreenResY = playfield.Height;
+
+            if (SystemConfig.isOptSet("Screen2ResX") && !string.IsNullOrEmpty(SystemConfig["Screen2ResX"]) && SystemConfig.isOptSet("Screen2ResY") && !string.IsNullOrEmpty(SystemConfig["Screen2ResY"]))
+            {
+                sr.Screen2ResX = SystemConfig["Screen2ResX"].ToInteger();
+                sr.Screen2ResY = SystemConfig["Screen2ResY"].ToInteger();
+            }
+            else
+            {
+                Screen secondary = Screen.AllScreens.FirstOrDefault(s => !s.Primary);
+                if (secondary != null)
+                {
+                    sr.Screen2ResX = secondary.Bounds.Width;
+                    sr.Screen2ResY = secondary.Bounds.Height;
+                }
+            }
+
+            if (SystemConfig.isOptSet("Monitor") && !string.IsNullOrEmpty(SystemConfig["Monitor"]))
+                sr.Monitor = SystemConfig["Monitor"].ToInteger();
+            else
+                sr.Monitor = Screen.AllScreens.Length == 1 ? 1 : 2;
+
+            if (SystemConfig.isOptSet("Screen2posX") && !string.IsNullOrEmpty(SystemConfig["Screen2posX"]) && SystemConfig.isOptSet("Screen2posY") && !string.IsNullOrEmpty(SystemConfig["Screen2posY"]))
+            {
+                sr.Screen2posX = SystemConfig["Screen2posX"].ToInteger();
+                sr.Screen2posY = SystemConfig["Screen2posY"].ToInteger();
+            }
+
+            if (SystemConfig.isOptSet("DmdResX") && !string.IsNullOrEmpty(SystemConfig["DmdResX"]) && SystemConfig.isOptSet("DmdResY") && !string.IsNullOrEmpty(SystemConfig["DmdResY"]))
+            {
+                sr.DmdResX = SystemConfig["DmdResX"].ToInteger();
+                sr.DmdResY = SystemConfig["DmdResY"].ToInteger();
+            }
+
+            if (SystemConfig.isOptSet("DmdposX") && !string.IsNullOrEmpty(SystemConfig["DmdposX"]) && SystemConfig.isOptSet("DmdposY") && !string.IsNullOrEmpty(SystemConfig["DmdposY"]))
+            {
+                sr.DmdPosX = SystemConfig["DmdposX"].ToInteger();
+                sr.DmdPosY = SystemConfig["DmdposY"].ToInteger();
+            }
         }
 
         class DirectB2sData
@@ -934,7 +1194,7 @@ namespace EmulatorLauncher
 
             public Bulb[] Bulbs { get; private set; }
             public Image Image { get; private set; }
-            
+
             public class Bulb
             {
                 public int ID { get; set; }
