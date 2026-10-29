@@ -42,6 +42,12 @@ namespace EmulatorLauncher
 
             bool fullscreen = ShouldRunFullscreen();
 
+            // For appleII Mednafen never writes to the disk image : the modified media is saved to
+            // '<game>.<N>.afd.gz' (floppies) and '<game>.0.ahd.gz' (hard disk) in filesys.path_sav,
+            // which SetupConfig points at 'saves\<system>'.
+            if (core == "apple2")
+                ResetDiskSaveFiles(Path.Combine(AppConfig.GetFullPath("saves"), system), rom, "*.afd.gz", "*.ahd.gz");
+
             // Configure cfg file
             SetupConfig(cfg, mednafenCore, system, rom);
 
