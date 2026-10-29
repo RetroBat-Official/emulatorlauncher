@@ -52,15 +52,11 @@ namespace EmulatorLauncher
 
             if (Path.GetExtension(rom) == ".chd")
                 throw new ApplicationException("Extension CHD not compatible with Bizhawk");
-            
-            /*if (Path.GetExtension(rom) == ".m3u")
-            {
-                string tempRom = File.ReadAllLines(rom).FirstOrDefault();
-                if (File.Exists(tempRom))
-                    rom = tempRom;
-                else
-                    rom = Path.Combine(Path.GetDirectoryName(rom), tempRom);
-            }*/
+
+            // BizHawk never writes to the disk image : AppleII.ISaveRam.cs stores a binary delta
+            // against the original in '<rom>.SaveRAM'. Only the shared 'reset' action applies.
+            if (core == "AppleII")
+                ResetDiskSaveFiles(Path.Combine(AppConfig.GetFullPath("saves"), system, emulator), rom, "*.SaveRAM");
 
             if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
             {

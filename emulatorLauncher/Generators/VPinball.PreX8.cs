@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using Microsoft.Win32;
 using System.Windows.Forms;
 using EmulatorLauncher.Common;
@@ -51,11 +52,15 @@ namespace EmulatorLauncher
             {
                 SetOption(regKeyc, "DisableESC", 1);
 
-                // Resolution and fullscreen
-                SetOption(regKeyc, "Width", resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width);
-                SetOption(regKeyc, "Height", resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
+                // Resolution and fullscreen, swapped if the screen rotation changes portrait/landscape
+                Size bounds = GetRotatedSize(
+                    resolution == null ? Screen.PrimaryScreen.Bounds.Width : resolution.Width,
+                    resolution == null ? Screen.PrimaryScreen.Bounds.Height : resolution.Height);
+
+                SetOption(regKeyc, "Width", bounds.Width);
+                SetOption(regKeyc, "Height", bounds.Height);
                 SetOption(regKeyc, "FullScreen", resolution == null ? 0 : 1);
-                
+
                 // Vertical sync
                 if (SystemConfig.isOptSet("video_vsync") && SystemConfig["video_vsync"] == "adaptative")
                     SetOption(regKeyc, "AdaptiveVSync", 2);
@@ -99,7 +104,8 @@ namespace EmulatorLauncher
                 else
                     SetOption(regKeyc, "FXAA", 0);
 
-                SetOption(regKeyc, "BGSet", SystemConfig.getOptBoolean("arcademode") ? 1 : 0);
+                // View setup : 0 = desktop, 1 = cabinet, 2 = full single screen (FSS)
+                SetOption(regKeyc, "BGSet", SystemConfig.GetValueOrDefault("vp_viewmode", "0").ToInteger());
 
                 bool aniFilter = !SystemConfig.isOptSet("vp_anisotropic_filtering") || SystemConfig.getOptBoolean("vp_anisotropic_filtering");
                 SetOption(regKeyc, "ForceAnisotropicFiltering", aniFilter ? 1 : 0);

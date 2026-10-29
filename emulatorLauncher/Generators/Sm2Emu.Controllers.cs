@@ -260,6 +260,7 @@ namespace EmulatorLauncher
             ini.WriteValue("system", "key_overlay", _keyboardGears ? "F10" : "F1");
             ini.WriteValue("system", "key_fullscreen", "F");
             ini.WriteValue("system", "key_screenshot", "F8");
+            ini.WriteValue("system", "key_fps", "");
             ini.WriteValue("system", "key_pause", "P");
             ini.WriteValue("system", "key_quick_save", _keyboardGears ? "F6" : "F2");
             ini.WriteValue("system", "key_quick_load", _keyboardGears ? "F7" : "F4");

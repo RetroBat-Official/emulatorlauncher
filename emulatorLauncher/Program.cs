@@ -144,6 +144,7 @@ namespace EmulatorLauncher
             { "pico8", () => new Pico8Generator() },
             { "pinballfx", () => new PinballFXGenerator() },
             { "play", () => new PlayGenerator() },
+            { "pom2", () => new Pom2Generator() },
             { "powerbomberman", () => new PortsLauncherGenerator() },
             { "ppsspp", () => new PpssppGenerator() },
             { "project64", () => new Project64Generator() },

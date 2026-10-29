@@ -284,6 +284,165 @@ namespace EmulatorLauncher
         }
         #endregion
 
+        #region disk working copy
+        /// <summary>
+        /// Shared 'disk_write' policy for systems whose games save onto the disk image itself.
+        ///   "0"     - read only (default)
+        ///   "1"     - writable, through a working copy in 'saves\&lt;system&gt;\&lt;emulator&gt;'
+        ///   "reset" - same, after moving the previous working copy aside as '.bak'
+        /// </summary>
+        protected string GetDiskWriteMode()
+        {
+            return SystemConfig.GetValueOrDefault("disk_write", "0");
+        }
+
+        /// <summary>
+        /// Lists the disk images a game is made of : the rom itself, or every entry of a .m3u.
+        /// </summary>
+        protected static List<string> GetGameDiskFiles(string rom)
+        {
+            var disks = new List<string>();
+
+            if (string.IsNullOrEmpty(rom))
+                return disks;
+
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
+            {
+                string m3uPath = Path.GetDirectoryName(rom);
+
+                foreach (var line in File.ReadAllLines(rom))
+                {
+                    string entry = line.Trim();
+                    if (entry.Length == 0 || entry.StartsWith("#"))
+                        continue;
+
+                    disks.Add(Path.IsPathRooted(entry) ? entry : Path.Combine(m3uPath, entry));
+                }
+            }
+            else
+                disks.Add(rom);
+
+            return disks;
+        }
+
+        /// <summary>
+        /// Returns the disk image to mount. The original image in the roms folder is never written
+        /// to : when writing is allowed the game runs off a working copy in the saves folder, created
+        /// from the original on first launch and reused afterwards.
+        ///
+        /// If the copy cannot be made, the original is returned and writeEnabled comes back false :
+        /// a failure must never end up writing to the romset.
+        /// </summary>
+        /// <param name="alwaysCopy">
+        /// True for emulators whose only write protection is the file's read-only attribute
+        /// (AppleWin : Disk.cpp m_bWriteProtected = dwAttributes &amp; FILE_ATTRIBUTE_READONLY,
+        /// POM2 : MediaNotch.h opens the file read-write to probe it). They get a copy even in
+        /// read-only mode, so the attribute is set on the copy and never on the user's own file.
+        /// </param>
+        protected string ResolveDiskWorkingCopy(string system, string emulator, string rom, out bool writeEnabled, bool alwaysCopy = false)
+        {
+            writeEnabled = false;
+
+            if (string.IsNullOrEmpty(rom) || !File.Exists(rom))
+                return rom;
+
+            string mode = GetDiskWriteMode();
+            bool wantWrite = (mode == "1" || mode == "reset");
+
+            string savesDir = Path.Combine(AppConfig.GetFullPath("saves"), system, emulator);
+            string copy = Path.Combine(savesDir, Path.GetFileName(rom));
+
+            if (!wantWrite && !alwaysCopy)
+                return File.Exists(copy) ? copy : rom;
+
+            try
+            {
+                if (!Directory.Exists(savesDir))
+                    Directory.CreateDirectory(savesDir);
+
+                if (mode == "reset" && File.Exists(copy))
+                    MoveDiskFileAside(copy);
+
+                if (!File.Exists(copy))
+                {
+                    File.Copy(rom, copy);
+                    SimpleLogger.Instance.Info("[Generator] Created disk working copy : " + copy);
+                }
+
+                var attributes = File.GetAttributes(copy);
+                if (wantWrite)
+                    File.SetAttributes(copy, attributes & ~FileAttributes.ReadOnly);
+                else
+                    File.SetAttributes(copy, attributes | FileAttributes.ReadOnly);
+
+                writeEnabled = wantWrite;
+                return copy;
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[Generator] Cannot create disk working copy : " + ex.Message + " - mounting the original read-only.");
+                writeEnabled = false;
+                return rom;
+            }
+        }
+
+        /// <summary>
+        /// 'YES AND RESET THE DISK' for the emulators that keep the game's disk changes in their own
+        /// save files instead of a copy of the image. Each suffix is a search pattern appended to the
+        /// disk's base name ("*.SaveRAM", "*.afd.gz"...). Passing no suffix looks for a copy of the
+        /// disk file itself, which is what the AppleWin libretro core writes.
+        ///
+        /// Files are moved aside as '.bak' rather than deleted : what is being dropped is the user's
+        /// game progress, so a mis-set option must stay recoverable.
+        /// </summary>
+        protected void ResetDiskSaveFiles(string folder, string rom, params string[] suffixes)
+        {
+            if (GetDiskWriteMode() != "reset")
+                return;
+
+            try
+            {
+                if (!Directory.Exists(folder))
+                    return;
+
+                foreach (string disk in GetGameDiskFiles(rom))
+                {
+                    var patterns = new List<string>();
+
+                    if (suffixes == null || suffixes.Length == 0)
+                        patterns.Add(Path.GetFileName(disk));
+                    else
+                        foreach (string suffix in suffixes)
+                            patterns.Add(Path.GetFileNameWithoutExtension(disk) + suffix);
+
+                    foreach (string pattern in patterns)
+                        foreach (string file in Directory.GetFiles(folder, pattern))
+                            MoveDiskFileAside(file);
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[Generator] Cannot reset disk save files : " + ex.Message);
+            }
+        }
+
+        private static void MoveDiskFileAside(string file)
+        {
+            string backup = file + ".bak";
+
+            if (File.Exists(backup))
+            {
+                File.SetAttributes(backup, FileAttributes.Normal);
+                File.Delete(backup);
+            }
+
+            File.SetAttributes(file, FileAttributes.Normal);
+            File.Move(file, backup);
+
+            SimpleLogger.Instance.Info("[Generator] Disk reset : " + Path.GetFileName(file) + " kept as " + Path.GetFileName(backup));
+        }
+        #endregion
+
         #region cleanup
         public virtual void Cleanup()
         {

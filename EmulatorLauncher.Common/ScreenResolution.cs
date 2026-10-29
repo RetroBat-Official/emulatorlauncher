@@ -189,6 +189,71 @@ namespace EmulatorLauncher.Common
             changed = false;
         }
 
+        /// <summary>Returns the current Windows orientation of a display (null = primary display).</summary>
+        public static ScreenOrientation GetOrientation(string deviceName)
+        {
+            DEVMODE mode = new DEVMODE();
+            mode.dmSize = (short)Marshal.SizeOf(typeof(DEVMODE));
+
+            if (!EnumDisplaySettings(deviceName, ENUM_CURRENT_SETTINGS, ref mode))
+                return ScreenOrientation.Angle0;
+
+            return mode.dmDisplayOrientation;
+        }
+
+        public static bool IsPortrait(ScreenOrientation orientation)
+        {
+            return orientation == ScreenOrientation.Angle90 || orientation == ScreenOrientation.Angle270;
+        }
+
+        /// <summary>
+        /// Changes the Windows orientation of a display, swapping width and height when needed.
+        /// Dynamic change only (registry untouched) : a reboot restores the user setting if the launcher crashes.
+        /// Returns true if the orientation was changed. previous receives the orientation to restore.
+        /// </summary>
+        public static bool SetOrientation(string deviceName, ScreenOrientation orientation, out ScreenOrientation previous)
+        {
+            previous = ScreenOrientation.Angle0;
+
+            DEVMODE mode = new DEVMODE();
+            mode.dmSize = (short)Marshal.SizeOf(typeof(DEVMODE));
+
+            if (!EnumDisplaySettings(deviceName, ENUM_CURRENT_SETTINGS, ref mode))
+            {
+                SimpleLogger.Instance.Warning("[ScreenResolution] EnumDisplaySettings failed for " + (deviceName ?? "current display"));
+                return false;
+            }
+
+            previous = mode.dmDisplayOrientation;
+            if (previous == orientation)
+                return false;
+
+            if (IsPortrait(previous) != IsPortrait(orientation))
+            {
+                int width = mode.dmPelsWidth;
+                mode.dmPelsWidth = mode.dmPelsHeight;
+                mode.dmPelsHeight = width;
+            }
+
+            mode.dmDisplayOrientation = orientation;
+            mode.dmFields |= DM_DISPLAYORIENTATION | DM_PELSWIDTH | DM_PELSHEIGHT;
+
+            SimpleLogger.Instance.Info("[ScreenResolution] Rotating " + (deviceName ?? "current display") + " from " + previous + " to " + orientation);
+
+            var result = ChangeDisplaySettingsEx(deviceName, ref mode, IntPtr.Zero, ChangeDisplaySettingsFlags.CDS_NONE, IntPtr.Zero);
+            if (result != DISP_CHANGE.Successful)
+            {
+                SimpleLogger.Instance.Warning("[ScreenResolution] Rotation failed : " + result);
+                return false;
+            }
+
+            return true;
+        }
+
+        const int DM_DISPLAYORIENTATION = 0x00000080;
+        const int DM_PELSWIDTH = 0x00080000;
+        const int DM_PELSHEIGHT = 0x00100000;
+
         const int ENUM_CURRENT_SETTINGS = -1;
         const int ENUM_REGISTRY_SETTINGS = -2;
         const int DISP_CHANGE_SUCCESSFUL = 0;

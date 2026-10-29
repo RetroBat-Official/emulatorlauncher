@@ -906,6 +906,16 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "applewin_playlist_start", "applewin_playlist_start", "First");
             BindBoolFeature(coreSettings, "applewin_floppy_multidrive", "applewin_floppy_multidrive", "enabled", "disabled");
 
+            // Shared 'disk_write' option. The core option means the opposite : it asks for write
+            // PROTECTION. With protection off the core copies the image into its save directory and
+            // runs the game from that copy, so the romset is never modified either way
+            string diskWrite = GetDiskWriteMode();
+            coreSettings["applewin_floppy_write_protect"] = (diskWrite == "1" || diskWrite == "reset") ? "disabled" : "enabled";
+
+            // The core's working copies in save directory, which LibRetro.Generator
+            // sets to 'saves\<system>' for every core (except mame and amiberry).
+            ResetDiskSaveFiles(Path.Combine(AppConfig.GetFullPath("saves"), system), SystemConfig["rom"]);
+
             // Input
             BindFeature(coreSettings, "applewin_keyboard_type", "applewin_keyboard_type", "ASCII");
             BindFeatureSlider(coreSettings, "applewin_mouse_speed", "applewin_mouse_speed", "1.00", 2);

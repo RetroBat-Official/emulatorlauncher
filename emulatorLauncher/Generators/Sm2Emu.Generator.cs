@@ -146,7 +146,7 @@ namespace EmulatorLauncher
         {
             string iniFile = Path.Combine(path, "sm2-emu.ini");
 
-            using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
+            using (var ini = new IniFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues))
             {
                 // Paths: everything stays in the RetroBat folders
                 string nvramPath = Path.Combine(AppConfig.GetFullPath("saves"), system, "sm2-emu");

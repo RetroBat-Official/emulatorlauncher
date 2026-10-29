@@ -108,6 +108,7 @@ namespace EmulatorLauncher
             { new Installer("pdark", "pdark", "pd.x86_64.exe") },
             { new Installer("phoenix", "phoenix", "PhoenixEmuProject.exe") },
             { new Installer("play", "play", "Play.exe") },
+            { new Installer("pom2", "pom2", "POM2.exe") },
             { new Installer("powerbomberman", "powerbomberman", "Power Bomberman.exe", "700MO") },
             { new Installer("ppsspp", "ppsspp", "PPSSPPWindows64.exe") },
             { new Installer("project64", "project64") },

@@ -100,25 +100,26 @@ namespace EmulatorLauncher
 
                 if (disks.Count == 0)
                     throw new ApplicationException("m3u file does not contain any game file.");
-
-                else if (disks.Count == 1)
-                {
-                    commandArray.Add("-d1");
-                    commandArray.Add("\"" + disks[0] + "\"");
-                }
-
-                else
-                {
-                    commandArray.Add("-d1");
-                    commandArray.Add("\"" + disks[0] + "\"");
-                    commandArray.Add("-d2");
-                    commandArray.Add("\"" + disks[1] + "\"");
-                }
             }
             else
+                disks.Add(rom);
+
+            // AppleWin has no command line switch for write protection : CmdLine.cpp only knows
+            // -d1 / -d2 / -sNdM, and Disk.cpp reads the file's Windows read-only attribute. Always
+            // mount a working copy, so that attribute is set on the copy and never on the romset.
+            for (int i = 0; i < disks.Count; i++)
             {
-                commandArray.Add("-d1");
-                commandArray.Add("\"" + rom + "\"");
+                bool diskWritable;
+                disks[i] = ResolveDiskWorkingCopy(system, emulator, disks[i], out diskWritable, true);
+            }
+
+            commandArray.Add("-d1");
+            commandArray.Add("\"" + disks[0] + "\"");
+
+            if (disks.Count > 1)
+            {
+                commandArray.Add("-d2");
+                commandArray.Add("\"" + disks[1] + "\"");
             }
 
             string args = string.Join(" ", commandArray);
