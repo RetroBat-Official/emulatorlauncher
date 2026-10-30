@@ -632,7 +632,7 @@ namespace EmulatorLauncher
             { "transformershumanalliance", new ExeLauncherGame { RomName = "tha", Architecture = "x32", Target = "ringwide" } },
             { "transformershumanalliancetc5", new ExeLauncherGame { RomName = "tc5", Architecture = "x64", Target = "es3" } },
             { "transformersshadowsrising", new ExeLauncherGame { RomName = "tsr", Architecture = "x32", Target = "ringedge2" } },
-            { "dalkingdead", new ExeLauncherGame { RomName = "wd", Architecture = "x32", Target = "rawthrill" } },
+            { "walkingdead", new ExeLauncherGame { RomName = "wd", Architecture = "x32", Target = "rawthrill" } },
             { "wildwestshootout", new ExeLauncherGame { RomName = "wws", Architecture = "x32", Target = "arcadepc" } },
             { "wisdomzombies", new ExeLauncherGame { RomName = "wzombies", Architecture = "x64", Target = "arcadepc" } }
         };
