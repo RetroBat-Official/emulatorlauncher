@@ -42,22 +42,50 @@ namespace EmulatorLauncher
 
             // ArcadeDuck boots MAME .zip or .7z sets (non-merged, split or merged), identified by their file name
             string romExtension = Path.GetExtension(rom);
-            if (!romExtension.Equals(".zip", StringComparison.InvariantCultureIgnoreCase) && !romExtension.Equals(".7z", StringComparison.InvariantCultureIgnoreCase))
-                throw new ApplicationException("ArcadeDuck only supports MAME .zip or .7z sets.");
+            bool isChd = romExtension.Equals(".chd", StringComparison.InvariantCultureIgnoreCase);
+            if (!isChd && !romExtension.Equals(".zip", StringComparison.InvariantCultureIgnoreCase) && !romExtension.Equals(".7z", StringComparison.InvariantCultureIgnoreCase))
+                throw new ApplicationException("ArcadeDuck only supports MAME .zip or .7z sets, or Taito G-Net .chd files.");
 
             _db = ArcadeDuckDatabase.Load(path);
             string biosPath = AppConfig.GetFullPath("bios");
 
             if (_db != null)
             {
-                _game = _db.FindGameByArchive(Path.GetFileName(rom));
+                if (isChd)
+                {
+                    _game = _db.FindGameByChd(rom);
+
+                    // Companion CHD of another game (listed by EmulationStation because of the .chd extension) : launch its set archive instead
+                    if (_game == null)
+                    {
+                        string archive = GetCompanionChdSetArchive(rom);
+                        if (archive != null)
+                        {
+                            SimpleLogger.Instance.Info("[ArcadeDuck] '" + Path.GetFileName(rom) + "' is a companion CHD, launching the set : " + archive);
+                            rom = archive;
+                            isChd = false;
+                            _game = _db.FindGameByArchive(Path.GetFileName(rom));
+                        }
+                    }
+                }
+                else
+                    _game = _db.FindGameByArchive(Path.GetFileName(rom));
+
                 if (_game == null)
+                {
+                    if (isChd)
+                        throw new ApplicationException("'" + Path.GetFileName(rom) + "' is not a CHD supported by ArcadeDuck (check the MAME CHD version).");
+
                     throw new ApplicationException("'" + Path.GetFileName(rom) + "' is not a set supported by ArcadeDuck (check the MAME set name).");
+                }
 
                 SimpleLogger.Instance.Info("[ArcadeDuck] Game '" + _game.Id + "' (" + _game.System + "), status : " + _game.Status);
 
-                biosPath = GetBiosPath(rom, biosPath);
-                CheckCompanionMedia(rom);
+                biosPath = GetBiosPath(rom, biosPath, isChd);
+
+                // A G-Net CHD launched directly is the game media itself
+                if (!isChd)
+                    CheckCompanionMedia(rom);
             }
 
             bool fullscreen = ShouldRunFullscreen() && !SystemConfig.getOptBoolean("disable_fullscreen");
@@ -94,16 +122,46 @@ namespace EmulatorLauncher
         }
 
         /// <summary>
+        /// Set archive of a companion CHD (MAME layout : '<roms>\<set>\<disk>.chd' and '<roms>\<set>.zip'), null when the CHD belongs to no game.
+        /// </summary>
+        private string GetCompanionChdSetArchive(string chd)
+        {
+            var game = _db.FindGameByCompanionChd(chd);
+            if (game == null || string.IsNullOrEmpty(game.Archive))
+                return null;
+
+            string title = Path.GetFileNameWithoutExtension(game.Archive);
+            var romsDir = Directory.GetParent(Path.GetDirectoryName(Path.GetFullPath(chd)));
+            if (romsDir != null)
+            {
+                foreach (var extension in new[] { ".zip", ".7z" })
+                {
+                    string archive = Path.Combine(romsDir.FullName, title + extension);
+                    if (File.Exists(archive))
+                        return archive;
+                }
+            }
+
+            throw new ApplicationException("'" + Path.GetFileName(chd) + "' belongs to '" + title + "' : '" + title + ".zip' (or .7z) not found" + (romsDir != null ? " in '" + romsDir.FullName + "'." : "."));
+        }
+
+        /// <summary>
         /// ArcadeDuck searches the BIOS archive in a single folder ([BIOS] SearchDirectory).
         /// MAME users usually keep BIOS archives next to the games, RetroBat MAME also reads them from the bios root: check both.
         /// </summary>
-        private string GetBiosPath(string rom, string biosRoot)
+        private string GetBiosPath(string rom, string biosRoot, bool isChd)
         {
             string biosArchive = _db.GetBiosArchive(_game.System);
             if (string.IsNullOrEmpty(biosArchive))
                 return biosRoot;
 
-            var candidates = new List<string> { Path.GetDirectoryName(Path.GetFullPath(rom)) };
+            string romDir = Path.GetDirectoryName(Path.GetFullPath(rom));
+            var candidates = new List<string> { romDir };
+
+            // MAME layout for a CHD only set : <roms>\<set>\<disk>.chd, the BIOS archive is in <roms>
+            if (isChd && Directory.GetParent(romDir) != null)
+                candidates.Add(Directory.GetParent(romDir).FullName);
+
             if (!string.IsNullOrEmpty(biosRoot))
                 candidates.Add(biosRoot);
 

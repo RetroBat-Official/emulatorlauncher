@@ -10,8 +10,8 @@ namespace EmulatorLauncher
 {
     partial class Model3VulkanGenerator
     {
-        // "sdlgamepad" : SDL gamepad API, standard button numbering, devices SDL does not know as gamepads are skipped by the emulator.
-        // "sdl" : raw SDL joysticks (every device, native numbering), needed for wheels and arcade encoders.
+        // "sdlgamepad" (default) : devices SDL knows as gamepads use the standard layout, the others (wheels, shifters, arcade encoders) their raw buttons and axes.
+        // "sdl" : raw SDL joysticks for every device, native numbering.
         private bool _rawInputSystem = false;
 
         static readonly string[] mappingPaths =
@@ -127,10 +127,8 @@ namespace EmulatorLauncher
             if (c2 != null && c2.IsKeyboard)
                 c2 = null;
 
-            // Input system : the gamepad API when SDL knows the pads, otherwise the raw joysticks
-            _rawInputSystem = wheel != null || !IsSdlGamepad(c1) || !IsSdlGamepad(c2);
-            if (SystemConfig.isOptSet("m3v_inputdriver") && !string.IsNullOrEmpty(SystemConfig["m3v_inputdriver"]) && wheel == null)
-                _rawInputSystem = SystemConfig["m3v_inputdriver"] == "sdl";
+            // Input system : "sdlgamepad" reads each device in its own way (standard layout for gamepads, raw for the others)
+            _rawInputSystem = SystemConfig.isOptSet("m3v_inputdriver") && SystemConfig["m3v_inputdriver"] == "sdl";
 
             ini.WriteValue(GlobalSection, "InputSystem", _rawInputSystem ? "sdl" : "sdlgamepad");
             foreach (var section in ini.EnumerateSections().Where(s => s != GlobalSection).ToList())
@@ -225,7 +223,7 @@ namespace EmulatorLauncher
                     if (invert)
                         part = part.Substring(0, part.Length - 4);
 
-                    string binding = _rawInputSystem ? GetRawBinding(ctrl, part) : GetGamepadBinding(part);
+                    string binding = (_rawInputSystem || !IsSdlGamepad(ctrl)) ? GetRawBinding(ctrl, part) : GetGamepadBinding(part);
                     if (binding == null)
                     {
                         if (!_gamepadPositions.ContainsKey(part))
@@ -296,7 +294,7 @@ namespace EmulatorLauncher
         private int GetJoyNumber(Controller ctrl, int player)
         {
             string forced = player == 1 ? SystemConfig["model3_p1index"] : SystemConfig["model3_p2index"];
-            if (player == 1 && _rawInputSystem && GetWheelController() != null && SystemConfig.isOptSet("wheel_index") && !string.IsNullOrEmpty(SystemConfig["wheel_index"]))
+            if (player == 1 && GetWheelController() != null && SystemConfig.isOptSet("wheel_index") && !string.IsNullOrEmpty(SystemConfig["wheel_index"]))
                 forced = SystemConfig["wheel_index"];
 
             if (!string.IsNullOrEmpty(forced) && forced.ToInteger() > 0)
@@ -310,12 +308,7 @@ namespace EmulatorLauncher
 
             var sdl3 = ctrl.Sdl3Controller;
             if (sdl3 != null)
-            {
-                if (_rawInputSystem)
-                    return sdl3.EnumerationIndex + 1;
-
-                return Sdl3GameController.GetControllers().Count(s => s.IsGamepad && s.EnumerationIndex < sdl3.EnumerationIndex) + 1;
-            }
+                return sdl3.EnumerationIndex + 1;
 
             // SDL3.dll missing : the SDL2 order is the closest one
             SimpleLogger.Instance.Warning("[WARNING] No SDL3 device found for " + ctrl.Name + ", using the SDL2 index.");
@@ -590,7 +583,7 @@ namespace EmulatorLauncher
         /// RetroBat keyboard hotkeys (keys sent by the controller hotkeys of es_padtokey.cfg) : F1 menu, F2 save, F4 load, F7 next slot, F8 screenshot, P pause.
         /// The Model3-Vulkan keys using F4 / F8 (HD textures, VRR cadence) are moved to Alt combinations.
         /// </summary>
-        /*private void WriteKeyboardHotkeys(IniFile ini)
+        private void WriteKeyboardHotkeys(IniFile ini)
         {
             var hotkeys = new Dictionary<string, string>
             {
@@ -624,7 +617,7 @@ namespace EmulatorLauncher
                 foreach (var key in ini.EnumerateKeys(section).Where(k => k.StartsWith("InputUI", StringComparison.InvariantCultureIgnoreCase)).ToList())
                     ini.Remove(section, key);
             }
-        }*/
+        }
         #endregion
 
         private static readonly List<string> inputValues = new List<string>

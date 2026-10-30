@@ -153,7 +153,7 @@ namespace EmulatorLauncher
                     // Inputs
                     ini.WriteValue(GlobalSection, "ControlPreset", "custom");
 
-                    //WriteKeyboardHotkeys(ini);
+                    WriteKeyboardHotkeys(ini);
                     CreateControllerConfiguration(ini);
 
                     ini.Save();
@@ -234,7 +234,7 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] SavesStatesWatcher enabled.");
         }
 
-        /*public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
         {
             if (_pad2Keyoverride && File.Exists(Path.Combine(Path.GetTempPath(), "padToKey.xml")))
             {
@@ -243,7 +243,7 @@ namespace EmulatorLauncher
             }
 
             return mapping;
-        }*/
+        }
 
         public override void Cleanup()
         {
