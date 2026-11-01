@@ -654,7 +654,7 @@ namespace EmulatorLauncher
 
                 XElement xdoc = XElement.Load(parrotData);
 
-                xdoc.SetElementValue("SilentMode", true);
+                xdoc.SetElementValue("SilentMode", Program.SystemConfig.getOptBoolean("tp_notsilent") ? false : true);
                 xdoc.SetElementValue("ConfirmExit", false);
                 xdoc.SetElementValue("HideVanguardWarning", true);
                 xdoc.SetElementValue("DisableAnalytics", true);
