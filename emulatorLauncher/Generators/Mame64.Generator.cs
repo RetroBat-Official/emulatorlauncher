@@ -18,6 +18,7 @@ namespace EmulatorLauncher
 
         private bool _separatecfg = false;
         private bool _groovy = false;
+        private bool _fullscreen;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -27,6 +28,7 @@ namespace EmulatorLauncher
 
             bool hbmame = emulator == "hbmame";
             _groovy = emulator == "groovymame";
+            _fullscreen = ShouldRunFullscreen();
 
             _separatecfg = SystemConfig.getOptBoolean("mame_separate_cfg");
 
@@ -75,7 +77,7 @@ namespace EmulatorLauncher
             // Then configure MAME
             ConfigureBezels(Path.Combine(AppConfig.GetFullPath("bios"), "mame", "artwork"), system, rom, resolution, emulator);
             ConfigureUIini(iniPath);
-            ConfigureMameini(iniPath);
+            ConfigureMameini(iniPath, hbmame);
 
             string args;
 
@@ -315,6 +317,9 @@ namespace EmulatorLauncher
                     retList.Add("-ka");
             }
 
+            if (_fullscreen)
+                retList.Add("-nowindow");
+
             // Monitor index
             if (Program.IsMonitorIndexSet)
             {
@@ -468,6 +473,12 @@ namespace EmulatorLauncher
                 retList.Add("-lightgun_device");
                 retList.Add("lightgun");
                 retList.Add("-gun");
+            }
+            else if (SystemConfig["mame_mouse"] == "none")
+            {
+                // Mouse explicitly disabled by the user: do not re-enable it through the lightgun fallback
+                retList.Add("-lightgun_device");
+                retList.Add("none");
             }
             else
             {
@@ -646,10 +657,10 @@ namespace EmulatorLauncher
             catch { }
         }
 
-        private void ConfigureMameini(string path)
+        private void ConfigureMameini(string path, bool hbmame = false)
         {
-            // MAME.ini
-            var ini = MameIniFile.FromFile(Path.Combine(path, "mame.ini"));
+            // Core ini: HBMAME reads hbmame.ini, MAME/GroovyMAME read mame.ini
+            var ini = MameIniFile.FromFile(Path.Combine(path, hbmame ? "hbmame.ini" : "mame.ini"));
 
             if (ini["writeconfig"] != "0")
             {
