@@ -41,7 +41,6 @@ namespace EmulatorLauncher.Libretro
 
             FileTools.TryDeleteFile(LogFile);
         }
-
         const string RetroArchNetPlayPatchedName = "RETROBAT";
         private LibRetroStateFileManager _stateFileManager;
         private ScreenShotsWatcher _screenShotWatcher;
@@ -2010,6 +2009,59 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["netplay_custom_mitm_server"] = SystemConfig["netplay.customserver"];
                 else
                     retroarchConfig["netplay_custom_mitm_server"] = "";
+
+                // request device
+                if (SystemConfig.isOptSet("netplay_device_layout") && !string.IsNullOrEmpty(SystemConfig["netplay_device_layout"]))
+                {
+                    string layout = SystemConfig["netplay_device_layout"];
+                    bool isHost = SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator";
+                    bool isClient = SystemConfig["netplaymode"] == "client" || SystemConfig["netplaymode"] == "spectator";
+
+                    for (int i=1; i <= 8; i++)
+                        retroarchConfig["netplay_request_device_p" + i] = "false";
+
+                    if (layout == "1_player")
+                    {
+                        int targetPort = isHost ? 1 : 2;
+                        retroarchConfig["netplay_request_device_p" + targetPort] = "true";
+                    }
+                    else if (layout == "2_followed")
+                    {
+                        int startPort = isHost ? 1 : 3;
+                        retroarchConfig["netplay_request_device_p" + startPort] = "true";
+                        retroarchConfig["netplay_request_device_p" + (startPort + 1)] = "true";
+                    }
+                    else if (layout == "2_alternate")
+                    {
+                        if (isHost)
+                        {
+                            retroarchConfig["netplay_request_device_p1"] = "true";
+                            retroarchConfig["netplay_request_device_p3"] = "true";
+                        }
+                        else if (isClient)
+                        {
+                            retroarchConfig["netplay_request_device_p2"] = "true";
+                            retroarchConfig["netplay_request_device_p4"] = "true";
+                        }
+                    }
+                    else if (layout == "3_player")
+                    {
+                        int startPort = isHost ? 1 : 4;
+                        for (int i = startPort; i < (startPort + 3); i++)
+                            retroarchConfig["netplay_request_device_p" + i] = "true";
+                    }
+                    else if (layout == "4_player")
+                    {
+                        int startPort = isHost ? 1 : 5;
+                        for (int i = startPort; i < (startPort + 4); i++)
+                            retroarchConfig["netplay_request_device_p" + i] = "true";
+                    }
+                }
+                else
+                {
+                    for (int i = 1; i <= 16; i++)
+                        retroarchConfig["netplay_request_device_p" + i] = "false";
+                }
             }
         }
 

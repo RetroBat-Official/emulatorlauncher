@@ -220,7 +220,7 @@ namespace EmulatorLauncher
             if (!_groovy && SystemConfig.isOptSet("noread_ini") && SystemConfig.getOptBoolean("noread_ini"))
                 retList.Add("-norc");
 
-            string sstatePath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "states");
+            string sstatePath = hbmame? Path.Combine(AppConfig.GetFullPath("saves"), "hbmame", "states") : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "states");
             if (!Directory.Exists(sstatePath)) try { Directory.CreateDirectory(sstatePath); }
                 catch { }
             if (!string.IsNullOrEmpty(sstatePath) && Directory.Exists(sstatePath))
@@ -229,7 +229,7 @@ namespace EmulatorLauncher
                 retList.Add(sstatePath);
             }
 
-            string nvramPath = Path.Combine(AppConfig.GetFullPath("saves"), "mame", "nvram");
+            string nvramPath = hbmame ? Path.Combine(AppConfig.GetFullPath("saves"), "hbmame", "nvram") : Path.Combine(AppConfig.GetFullPath("saves"), "mame", "nvram");
             if (!Directory.Exists(nvramPath)) try { Directory.CreateDirectory(nvramPath); }
                 catch { }
             if (Directory.Exists(nvramPath))
@@ -332,7 +332,7 @@ namespace EmulatorLauncher
                 retList.Add("-" + SystemConfig["mame_rotate"]);
 
             // Other video options
-            if (SystemConfig.isOptSet("triplebuffer") && SystemConfig.getOptBoolean("triplebuffer") && SystemConfig["mame_video_driver"] != "gdi")
+            if (SystemConfig.isOptSet("triplebuffer") && SystemConfig.getOptBoolean("triplebuffer") && SystemConfig["mame_video_driver"] != "gdi" && SystemConfig["mame_video_driver"] != "bgfx")
                 retList.Add("-tb");
 
             if ((SystemConfig.getOptBoolean("vsync")) && SystemConfig["mame_video_driver"] != "gdi")
