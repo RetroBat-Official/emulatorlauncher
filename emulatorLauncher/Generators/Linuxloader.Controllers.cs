@@ -82,13 +82,13 @@ namespace EmulatorLauncher
                 return;
 
             // Common section
-            ini.WriteValue("Common", "Test", "KEY_9");
+            ini.WriteValue("Common", "Test", "KEY_0");
             ini.WriteValue("Common", "ExitGame", "KEY_Escape");
             ini.WriteValue("Common", "P1_Coin", "KEY_5");
             ini.WriteValue("Common", "P2_Coin", "KEY_6");
             ini.WriteValue("Common", "P1_Start", "KEY_1");
             ini.WriteValue("Common", "P2_Start", "KEY_2");
-            ini.WriteValue("Common", "P1_Service", "KEY_0");
+            ini.WriteValue("Common", "P1_Service", "KEY_9");
 
             // Digital section
             ini.WriteValue("Digital", "P1_Up", "KEY_Up");
@@ -333,13 +333,13 @@ namespace EmulatorLauncher
 
                 if (playerindex == 1)
                 {
-                    ini.WriteValue("Common", "Test", testService ? "KEY_9, " + gcIndex + "BUTTON_RIGHTSTICK" : "KEY_9");
+                    ini.WriteValue("Common", "Test", testService ? "KEY_0, " + gcIndex + "BUTTON_RIGHTSTICK" : "KEY_0");
                     ini.WriteValue("Common", "ExitGame", "KEY_Escape, " + gcIndex + "BUTTON_START + " + gcIndex + "BUTTON_BACK");
                     ini.WriteValue("Common", "P1_Coin", "KEY_5, " + gcIndex + "BUTTON_BACK");
                     ini.WriteValue("Common", "P2_Coin", "KEY_6");
                     ini.WriteValue("Common", "P1_Start", "KEY_1, " + gcIndex + "BUTTON_START");
                     ini.WriteValue("Common", "P2_Start", "KEY_2");
-                    ini.WriteValue("Common", "P1_Service", testService ? "KEY_0, " + gcIndex + "BUTTON_LEFTSTICK" : "KEY_0");
+                    ini.WriteValue("Common", "P1_Service", testService ? "KEY_9, " + gcIndex + "BUTTON_LEFTSTICK" : "KEY_9");
                 }
                 if (playerindex == 2)
                 {
@@ -567,13 +567,13 @@ namespace EmulatorLauncher
                     {
                         if (playerindex == 1)
                         {
-                            ini.WriteValue("Common", "Test", testService ? "KEY_9, " + GetDinputMapping(gcIndex, dinputController, "rightstick", isXinput) : "KEY_9");
+                            ini.WriteValue("Common", "Test", testService ? "KEY_0, " + GetDinputMapping(gcIndex, dinputController, "rightstick", isXinput) : "KEY_0");
                             ini.WriteValue("Common", "ExitGame", "KEY_Escape, " + GetDinputMapping(gcIndex, dinputController, "start", isXinput) + " + " + GetDinputMapping(gcIndex, dinputController, "back", isXinput));
                             ini.WriteValue("Common", "P1_Coin", "KEY_5, " + GetDinputMapping(gcIndex, dinputController, "back", isXinput));
                             ini.WriteValue("Common", "P2_Coin", "KEY_6");
                             ini.WriteValue("Common", "P1_Start", "KEY_1, " + GetDinputMapping(gcIndex, dinputController, "start", isXinput));
                             ini.WriteValue("Common", "P2_Start", "KEY_2");
-                            ini.WriteValue("Common", "P1_Service", testService ? "KEY_0, " + GetDinputMapping(gcIndex, dinputController, "leftstick", isXinput) : "KEY_0");
+                            ini.WriteValue("Common", "P1_Service", testService ? "KEY_9, " + GetDinputMapping(gcIndex, dinputController, "leftstick", isXinput) : "KEY_9");
                         }
                         if (playerindex == 2)
                         {

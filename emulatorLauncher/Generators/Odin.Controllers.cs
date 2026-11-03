@@ -59,7 +59,7 @@ namespace EmulatorLauncher
         private static readonly Dictionary<string, string> _keyboardInputs = new Dictionary<string, string>()
         {
             // Every game
-            { "coin1", "key:5, key:Keypad 5" }, { "coin2", "key:6, key:Keypad 6" }, { "test", "key:9, key:Keypad 9" }, { "1p_service", "key:0, key:Keypad 0" },
+            { "coin1", "key:5, key:Keypad 5" }, { "coin2", "key:6, key:Keypad 6" }, { "test", "key:0, key:Keypad 0" }, { "1p_service", "key:9, key:Keypad 9" },
             { "start", "key:1, key:Keypad 1" },
             // airtrix, airtrixo
             { "left", "key:X" }, { "right", "key:C" }, { "up", "key:Up" }, { "down", "key:Down" }, { "yaw", "" }, { "roll", "" },

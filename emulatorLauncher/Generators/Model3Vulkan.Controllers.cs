@@ -432,8 +432,8 @@ namespace EmulatorLauncher
                 { "InputCoin1", "KEY_5,JOY_select" },
                 { "InputStart2", "KEY_2,JOY_start" },
                 { "InputCoin2", "KEY_6,JOY_select" },
-                { "InputServiceA", service ? "KEY_0,JOY_leftstick" : "KEY_0" },
-                { "InputTestA", service ? "KEY_9,JOY_rightstick" : "KEY_9" },
+                { "InputServiceA", service ? "KEY_9,JOY_leftstick" : "KEY_0" },
+                { "InputTestA", service ? "KEY_0,JOY_rightstick" : "KEY_9" },
 
                 // 4-way digital joysticks
                 { "InputJoyUp", "JOY_lefty-up,JOY_dpup" },
@@ -563,7 +563,7 @@ namespace EmulatorLauncher
             var map = new Dictionary<string, string>
             {
                 { "InputStart1", "KEY_1" }, { "InputStart2", "KEY_2" }, { "InputCoin1", "KEY_5" }, { "InputCoin2", "KEY_6" },
-                { "InputServiceA", "KEY_0" }, { "InputTestA", "KEY_9" },
+                { "InputServiceA", "KEY_9" }, { "InputTestA", "KEY_0" },
                 { "InputJoyUp", "KEY_UP" }, { "InputJoyDown", "KEY_DOWN" }, { "InputJoyLeft", "KEY_LEFT" }, { "InputJoyRight", "KEY_RIGHT" },
                 { "InputPunch", "KEY_A" }, { "InputKick", "KEY_S" }, { "InputGuard", "KEY_D" }, { "InputEscape", "KEY_F" },
                 { "InputShift", "KEY_A" }, { "InputBeat", "KEY_S" }, { "InputCharge", "KEY_D" }, { "InputJump", "KEY_F" },

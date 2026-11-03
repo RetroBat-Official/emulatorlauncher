@@ -104,8 +104,8 @@ namespace EmulatorLauncher
             mice.Finish(ini);
 
             // Operator panel (test / service)
-            ini.AppendValue("ArcadeOperator", "Test", "Keyboard/9");
-            ini.AppendValue("ArcadeOperator", "Service", "Keyboard/0");
+            ini.AppendValue("ArcadeOperator", "Test", "Keyboard/0");
+            ini.AppendValue("ArcadeOperator", "Service", "Keyboard/9");
         }
 
         #region SDL player slots

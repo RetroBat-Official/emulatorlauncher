@@ -537,6 +537,10 @@ namespace EmulatorLauncher.Libretro
                                         continue;
                                     }
 
+                                    // hotkey + b opens the control center, unless disabled
+                                    if (hotkey.Name == "b" && !Program.SystemConfig.getOptBoolean("disable_controlcenter"))
+                                        continue;
+
                                     if (Program.SystemConfig.getOptBoolean("fastforward_toggle") && hotkey.Value == "hold_fast_forward")
                                         value = "toggle_fast_forward";
                                     
