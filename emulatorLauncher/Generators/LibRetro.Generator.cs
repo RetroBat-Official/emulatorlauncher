@@ -2017,10 +2017,25 @@ namespace EmulatorLauncher.Libretro
                     bool isHost = SystemConfig["netplaymode"] == "host" || SystemConfig["netplaymode"] == "host-spectator";
                     bool isClient = SystemConfig["netplaymode"] == "client" || SystemConfig["netplaymode"] == "spectator";
 
-                    for (int i=1; i <= 8; i++)
+                    // cleanup
+                    for (int i = 1; i <= 8; i++)
+                    {
                         retroarchConfig["netplay_request_device_p" + i] = "false";
+                    }
+                    
+                    // set value based on features
+                    if (layout == "custom_slot" && SystemConfig.isOptSet("netplay_custom_slot") && !string.IsNullOrEmpty(SystemConfig["netplay_custom_slot"]))
+                    {
+                        string targetPorts = SystemConfig["netplay_custom_slot"];
+                        string [] slots = targetPorts.Split('_');
 
-                    if (layout == "1_player")
+                        foreach (string slot in slots)
+                        {
+                            if (int.TryParse(slot, out int port) && port >= 1 && port <= 16)
+                                retroarchConfig["netplay_request_device_p" + port] = "true";
+                        }
+                    }
+                    else if (layout == "1_player" || layout == "custom_slot")
                     {
                         int targetPort = isHost ? 1 : 2;
                         retroarchConfig["netplay_request_device_p" + targetPort] = "true";
