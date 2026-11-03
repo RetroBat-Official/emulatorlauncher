@@ -223,7 +223,8 @@ namespace EmulatorLauncher
                     if (invert)
                         part = part.Substring(0, part.Length - 4);
 
-                    string binding = (_rawInputSystem || !IsSdlGamepad(ctrl)) ? GetRawBinding(ctrl, part) : GetGamepadBinding(part);
+                    bool sdlGamepad = IsSdlGamepad(ctrl);
+                    string binding = (_rawInputSystem || !sdlGamepad) ? GetRawBinding(ctrl, part, !sdlGamepad) : GetGamepadBinding(part);
                     if (binding == null)
                     {
                         if (!_gamepadPositions.ContainsKey(part))
@@ -252,17 +253,45 @@ namespace EmulatorLauncher
         }
 
         /// <summary>
-        /// Raw SDL joystick binding of a controller position, from es_input.cfg (SDL joystick numbering).
+        /// Raw SDL3 joystick binding of a controller position.
+        /// Gamepads : raw input of the SDL3 driver of the device, from its SDL3 mapping (XInput, HIDAPI and RawInput number them differently).
+        /// directInput : device SDL3 does not know as a gamepad, read by its DirectInput driver. The es_input.cfg inputs (SDL2 numbering,
+        /// or gamecontroller numbering for the pads known by EmulationStation) are converted to the DirectInput numbering (GetDirectInputMapping).
+        /// SDL3 missing : es_input.cfg inputs.
         /// </summary>
-        private static string GetRawBinding(Controller ctrl, string position)
+        private static string GetRawBinding(Controller ctrl, string position, bool directInput)
         {
             KeyValuePair<InputKey, bool> pos;
             if (ctrl == null || ctrl.Config == null || !_rawPositions.TryGetValue(position, out pos))
                 return null;
 
-            var input = ctrl.Config[pos.Key];
+            Input input = null;
+
+            // The SDL3 mapping gives the wanted half of a stick : no opposite side to apply
+            bool sideResolved = false;
+
+            if (!directInput && ctrl.Sdl3Controller != null)
+            {
+                input = ctrl.Sdl3Controller.GetRawInput(position);
+                sideResolved = input != null;
+            }
+
+            if (input == null && directInput)
+            {
+                input = ctrl.GetDirectInputMapping(pos.Key);
+
+                // _rawPositions uses the es_input.cfg names (x = north, y = west), gamecontrollerdb.txt the SDL names (x = west, y = north)
+                if (input != null && ctrl.dinputCtrl != null && ctrl.dinputCtrl.ButtonMappings != null && (pos.Key == InputKey.x || pos.Key == InputKey.y))
+                    input = ctrl.GetDirectInputMapping(pos.Key == InputKey.x ? InputKey.y : InputKey.x);
+            }
+
+            if (input == null)
+                input = ctrl.Config[pos.Key];
+
             if (input == null)
                 return null;
+
+            bool opposite = pos.Value && !sideResolved;
 
             switch (input.Type)
             {
@@ -273,7 +302,7 @@ namespace EmulatorLauncher
                     string dir = input.Value == 1 ? "UP" : input.Value == 2 ? "RIGHT" : input.Value == 4 ? "DOWN" : input.Value == 8 ? "LEFT" : null;
                     if (dir == null)
                         return null;
-                    if (pos.Value)
+                    if (opposite)
                         dir = dir == "UP" ? "DOWN" : dir == "DOWN" ? "UP" : dir == "LEFT" ? "RIGHT" : "LEFT";
                     return "POV" + (input.Id + 1) + "_" + dir;
 
@@ -283,7 +312,7 @@ namespace EmulatorLauncher
                         return input.Value > 0 ? axis + "_INV" : axis;     // left / up are configured as the negative side
 
                     bool positive = input.Value > 0;
-                    if (pos.Value)
+                    if (opposite)
                         positive = !positive;
                     return axis + (positive ? "_POS" : "_NEG");
             }

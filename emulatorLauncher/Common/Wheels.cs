@@ -1,4 +1,5 @@
 ﻿using EmulatorLauncher.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -173,6 +174,79 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[WHEELS] Found " + usableWheels.Count + " usable wheels.");
             return usableWheels;
         }
+
+        #region DirectInput axes in SDL
+        // DirectInput axes in the order SDL sorts them (SDL_dinputjoystick.c : data format offset, then SortDevObjects)
+        public static readonly string[] DirectInputAxisNames = { "XAXIS", "YAXIS", "ZAXIS", "RXAXIS", "RYAXIS", "RZAXIS", "SLIDER1", "SLIDER2" };
+
+        /// <summary>
+        /// SDL axis index of each DirectInput axis slot (X, Y, Z, Rx, Ry, Rz, Slider 1, Slider 2), -1 when the device does not have it.
+        /// SDL opens wheels with its DirectInput driver and numbers the axes present on the device without gap.
+        /// </summary>
+        internal static int[] GetSdlAxisIndexes(Controller wheel)
+        {
+            var present = new bool[DirectInputAxisNames.Length];
+            bool found = false;
+
+            try
+            {
+                if (wheel.DirectInput != null)
+                {
+                    // DirectInput objects are read in EmulatorLauncher.Common (SharpDX is merged there, direct use here is ambiguous)
+                    present = wheel.DirectInput.GetAxisSlots();
+                    found = present.Any(p => p);
+                }
+            }
+            catch (Exception ex) { SimpleLogger.Instance.Warning("[WHEELS] Unable to read the DirectInput axes : " + ex.Message); }
+
+            if (!found)
+            {
+                SimpleLogger.Instance.Warning("[WHEELS] DirectInput axes of " + wheel.Name + " unknown, DirectInput names used as SDL indexes.");
+                present = new bool[DirectInputAxisNames.Length];
+                for (int i = 0; i < present.Length; i++)
+                    present[i] = true;
+            }
+
+            var ret = new int[present.Length];
+            int index = 0;
+            for (int i = 0; i < present.Length; i++)
+                ret[i] = present[i] ? index++ : -1;
+
+            SimpleLogger.Instance.Info("[WHEELS] SDL axes : " + string.Join(", ", DirectInputAxisNames.Select((n, i) => n + "=" + (ret[i] < 0 ? "-" : "AXIS" + (ret[i] + 1)))));
+            return ret;
+        }
+
+        /// <summary>
+        /// SDL axis index (from 0) of a DirectInput axis name : XAXIS, RZAXIS_NEG, SLIDER1_INV, AXIS3 (slot from 1). -1 when the device does not have it.
+        /// </summary>
+        public static int GetSdlAxisIndex(string dinputName, int[] axes)
+        {
+            if (string.IsNullOrEmpty(dinputName) || axes == null)
+                return -1;
+
+            string name = dinputName.Trim().ToUpperInvariant();
+            foreach (string s in new[] { "_POS", "_NEG", "_INV" })
+            {
+                if (name.EndsWith(s))
+                {
+                    name = name.Substring(0, name.Length - s.Length);
+                    break;
+                }
+            }
+
+            int slot = Array.IndexOf(DirectInputAxisNames, name);
+            if (slot < 0 && name.StartsWith("AXIS"))
+                slot = name.Substring(4).ToInteger() - 1;
+
+            if (slot < 0 || slot >= axes.Length || axes[slot] < 0)
+            {
+                SimpleLogger.Instance.Warning("[WHEELS] Axis " + dinputName + " not found on the wheel.");
+                return -1;
+            }
+
+            return axes[slot];
+        }
+        #endregion
     }
 
     public enum WheelType

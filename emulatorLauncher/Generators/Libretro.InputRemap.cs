@@ -95,10 +95,23 @@ namespace EmulatorLauncher.Libretro
                 string defaultctrlFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame", "default.cfg");
 
                 // default.cfg carries the UI ports (hotkeys) : always managed by RetroBat, even under mame_user_cfg
+                if (!File.Exists(defaultcfgFile) && File.Exists(defaultctrlFile) && !mameAuto)
+                {
+                    // Minimal file, UI ports of the selected layout are injected below
+                    try
+                    {
+                        new XDocument(
+                        new XDeclaration("1.0", "utf-8", null),
+                        new XElement("mameconfig",
+                        new XAttribute("version", "10"),
+                        new XElement("system", new XAttribute("name", "default"))))
+                        .Save(defaultcfgFile);
+                    }
+                    catch { }
+                }
+
                 if (File.Exists(defaultcfgFile))
                     DeleteDefaultInputincfgFile(defaultcfgFile, defaultctrlFile);
-                else if (File.Exists(defaultctrlFile) && !mameAuto)
-                    try { File.Copy(defaultctrlFile, defaultcfgFile); } catch { }
                 else
                     SimpleLogger.Instance.Info("[INFO] No default.cfg to write.");
 
@@ -112,11 +125,12 @@ namespace EmulatorLauncher.Libretro
                 if (!File.Exists(ctrlFile))
                 {
                     string cfgDir = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "lr-mame");
-                    if (Directory.Exists(cfgDir))
-                    {
-                        string[] cfgFiles = Directory.GetFiles(cfgDir, "*.cfg", SearchOption.TopDirectoryOnly);
-                        ctrlFile = cfgFiles.Where(c => cfgName.StartsWith(Path.GetFileNameWithoutExtension(c))).OrderByDescending(c => Path.GetFileNameWithoutExtension(c).Length).FirstOrDefault();
-                    }
+
+                    // Clone without its own file: use the parent set file
+                    string parent = GetMameParentRom(cfgName);
+                    string parentFile = string.IsNullOrEmpty(parent) ? null : Path.Combine(cfgDir, parent + ".cfg");
+
+                    ctrlFile = parentFile != null && File.Exists(parentFile) ? parentFile : null;
                 }
 
                 SimpleLogger.Instance.Info("[INFO] MAME cfg file : " + cfgFile);
@@ -857,16 +871,12 @@ namespace EmulatorLauncher.Libretro
 
             string searchYml = romName;
 
-            // Loop through yml elements
-            // example for mame sf2:
-            // sf2_gamepad, sf2_8button...
-            // If option is set in ES to use 8button layout for mame, search for:
-            // 1) sf2_8button
+            // Loop through yml elements, example for mame sf2 with modern8 layout:
+            // 1) sf2_modern8
             // 2) sf2
-            // 3) Any container beginning with s or sf and ending with 8button
-            // 4) Any container beginning with s or sf
-            // 5) default_8button
-            // 6) default
+            // 3) parent set (cloneof in arcaderoms.xml): <parent>_modern8, then <parent>
+            // 4) default_modern8
+            // 5) default
             YmlContainer gameLayout = null;
             game = ymlFile.Elements.Where(c => c.Name == searchYml).FirstOrDefault() as YmlContainer;
             if (game != null)
@@ -877,15 +887,20 @@ namespace EmulatorLauncher.Libretro
                     game = gameLayout;
             }
 
-            else if (game == null)
+            // Clone without its own entry: use the parent set entry (arcade cores only)
+            if (game == null && (core == "mame" || mameArcade.Contains(system) || system == "naomi" || system == "naomi2" || system == "atomiswave"))
             {
-                game = ymlFile.Elements.Where(c => romName.StartsWith(c.Name)).OrderByDescending(c => c.Name.Length).FirstOrDefault() as YmlContainer;
-                if (game != null)
+                string parent = GetMameParentRom(romName);
+                if (!string.IsNullOrEmpty(parent))
                 {
-                    string searchYmlLayout = game.Name + "_" + controLayout;
-                    gameLayout = ymlFile.Elements.Where(c => c.Name == searchYmlLayout).FirstOrDefault() as YmlContainer;
-                    if (gameLayout != null)
-                        game = gameLayout;
+                    game = ymlFile.Elements.Where(c => c.Name == parent).FirstOrDefault() as YmlContainer;
+                    if (game != null)
+                    {
+                        string searchYmlLayout = parent + "_" + controLayout;
+                        gameLayout = ymlFile.Elements.Where(c => c.Name == searchYmlLayout).FirstOrDefault() as YmlContainer;
+                        if (gameLayout != null)
+                            game = gameLayout;
+                    }
                 }
             }
 
@@ -999,10 +1014,7 @@ namespace EmulatorLauncher.Libretro
                 catch { }
             }
 
-            string controLayout = "";
-            if (Program.SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))
-                controLayout = Program.SystemConfig["controller_layout"];
-
+            string controLayout = GetMameControllerLayout();
             string searchPattern = "_" + controLayout;
 
             try
@@ -1116,11 +1128,11 @@ namespace EmulatorLauncher.Libretro
         {
             // Backup cfgfile
             string backupDefault = cfgFile + ".backup";
-            try 
-            { 
+            try
+            {
                 File.Copy(cfgFile, backupDefault, true);
                 _cfgFilesToRestore.Add(cfgFile);
-            } 
+            }
             catch { }
 
             // Modify cfgfile
@@ -1136,9 +1148,19 @@ namespace EmulatorLauncher.Libretro
                 {
                     XDocument ctrldoc = XDocument.Load(ctrlFile);
 
-                    XElement ctrlinputElement = ctrldoc.Root?
-                    .Element("system")?
-                    .Element("input");
+                    // Pick the block matching the controller layout (default_modern8...), else the first one
+                    XElement ctrlSystemElement = null;
+                    string layout = GetMameControllerLayout();
+                    if (ctrldoc.Root != null)
+                    {
+                        if (!string.IsNullOrEmpty(layout))
+                            ctrlSystemElement = ctrldoc.Root.Elements("system").FirstOrDefault(s => ((string)s.Attribute("name") ?? "").EndsWith("_" + layout));
+
+                        if (ctrlSystemElement == null)
+                            ctrlSystemElement = ctrldoc.Root.Element("system");
+                    }
+
+                    XElement ctrlinputElement = ctrlSystemElement?.Element("input");
 
                     if (ctrlinputElement != null && gameSystemElement != null)
                     {
@@ -1157,6 +1179,34 @@ namespace EmulatorLauncher.Libretro
                 doc.Save(cfgFile);
             }
             catch { }
+        }
+
+        private static string GetMameControllerLayout()
+        {
+            string layout = Program.SystemConfig["controller_layout"];
+            if (string.IsNullOrEmpty(layout))
+                return "";
+
+            // classic8 shares the 6 buttons mapping
+            return layout == "classic8" ? "6alternative" : layout;
+        }
+
+        private static string _mameParentFor = null;
+        private static string _mameParentRom = null;
+
+        // Parent set from arcaderoms.xml (cloneof), null if none. Cached: the file is scanned once per rom
+        private static string GetMameParentRom(string romName)
+        {
+            if (string.IsNullOrEmpty(romName))
+                return null;
+
+            if (_mameParentFor != romName)
+            {
+                _mameParentFor = romName;
+                _mameParentRom = Mame64Generator.MameGameInfo.GetGameInfo(romName)?.CloneOf;
+            }
+
+            return _mameParentRom;
         }
 
         private static bool HasInputPorts(string cfgFile)
