@@ -183,6 +183,9 @@ Install now ?</value>
   <data name="Ok" xml:space="preserve">
     <value>Ok</value>
   </data>
+  <data name="Box" xml:space="preserve">
+    <value>Box</value>
+  </data>
   <data name="ErrorOccured" xml:space="preserve">
     <value>An error occured :
 {0}</value>
@@ -230,6 +233,6 @@ Install now ?</value>
     <value>Map</value>
   </data>
   <data name="Tatoo" xml:space="preserve">
-    <value>Tatoo</value>
+    <value>Tattoo</value>
   </data>
 </root>

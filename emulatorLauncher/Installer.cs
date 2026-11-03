@@ -99,6 +99,7 @@ namespace EmulatorLauncher
             { new Installer("nosgba", "nosgba", "no$gba.exe") },
             { new Installer("odin", "odin", "odin.exe") },
             { new Installer("openbor") },
+            { new Installer("opencdi", "opencdi", "opencdi.exe") },
             { new Installer("opengoal", "opengoal", "gk.exe") },
             { new Installer("openjazz", "openjazz", "OpenJazz.exe") },
             { new Installer("openmsx", "openmsx", "openmsx.exe") },

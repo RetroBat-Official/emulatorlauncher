@@ -476,10 +476,12 @@ namespace EmulatorLauncher
             AddPort(input, "UI_FAST_FORWARD", $"{joy}{mapping["select"]} {joy}{mapping["right"]} OR KEYCODE_SPACE");
             AddPort(input, "UI_SAVE_STATE", $"{joy}{mapping["select"]} {joy}{mapping["west"]} OR KEYCODE_F2");
             AddPort(input, "UI_LOAD_STATE", $"{joy}{mapping["select"]} {joy}{mapping["north"]} OR KEYCODE_F4");
-            AddPort(input, "SERVICE", $"{joy}{mapping["l3"]} {joy}{mapping["r3"]} OR KEYCODE_0");
-            AddPort(input, "SERVICE1", $"{joy}{mapping["l3"]} {joy}{mapping["r3"]} OR KEYCODE_9");
+
+            // Test (service mode) on R3, service credit on L3, unless disabled
+            bool testService = !SystemConfig.isOptSet("mame_test_service") || SystemConfig.getOptBoolean("mame_test_service");
+            AddPort(input, "SERVICE", (testService ? $"{joy}{mapping["r3"]} OR " : "") + "KEYCODE_9");
+            AddPort(input, "SERVICE1", (testService ? $"{joy}{mapping["l3"]} OR " : "") + "KEYCODE_0");
             AddPort(input, "TILT", $"{joy}{mapping["select"]} {joy}{mapping["r1"]} OR KEYCODE_T");
-            AddPort(input, "TILT1", $"{joy}{mapping["select"]} {joy}{mapping["r1"]} OR KEYCODE_T");
 
             // Start & coin
             if (!ignoreStart1)
@@ -682,8 +684,11 @@ namespace EmulatorLauncher
             AddPort(input, "UI_FAST_FORWARD", joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "dpright", xinputCtrl) + " OR KEYCODE_SPACE");
             AddPort(input, "UI_SAVE_STATE", joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "x", xinputCtrl) + " OR KEYCODE_F2");
             AddPort(input, "UI_LOAD_STATE", joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "y", xinputCtrl) + " OR KEYCODE_F4");
-            AddPort(input, "SERVICE", joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightstick", xinputCtrl) + " OR KEYCODE_0");
-            AddPort(input, "SERVICE1", joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightstick", xinputCtrl) + " OR KEYCODE_9");
+
+            // Test (service mode) on R3, service credit on L3, unless disabled
+            bool testService = !SystemConfig.isOptSet("mame_test_service") || SystemConfig.getOptBoolean("mame_test_service");
+            AddPort(input, "SERVICE", (testService ? joy + GetDinputMapping(ctrlr, "rightstick", xinputCtrl) + " OR " : "") + "KEYCODE_9");
+            AddPort(input, "SERVICE1", (testService ? joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl) + " OR " : "") + "KEYCODE_0");
             AddPort(input, "TILT", joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_T");
             AddPort(input, "TILT1", joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_T");
 
@@ -1398,12 +1403,11 @@ namespace EmulatorLauncher
         private string GetSpecificMappingX(string joy, string mouseindex, string mapping, int player)
         {
             string ret = "";
-            bool reverse = false;
-
             string[] parts = mapping.Split(new string[] { "OR" }, StringSplitOptions.None);
 
             foreach (string part in parts)
             {
+                bool reverse = false;
                 string value = part.Trim();
 
                 if (value.StartsWith("JOY") || value.StartsWith("joy"))
@@ -1462,12 +1466,11 @@ namespace EmulatorLauncher
         private string GetSpecificMappingD(SdlToDirectInput c, string joy, string mouseindex, string mapping, int player, bool isXinput)
         {
             string ret = "";
-            bool reverse = false;
-
             string[] parts = mapping.Split(new string[] { "OR" }, StringSplitOptions.None);
 
             foreach (string part in parts)
             {
+                bool reverse = false;
                 string value = part.Trim();
 
                 if (value.StartsWith("JOY"))

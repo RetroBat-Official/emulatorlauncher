@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using EmulatorLauncher.Common.Joysticks;
 
 namespace EmulatorLauncher
 {
@@ -27,6 +28,11 @@ namespace EmulatorLauncher
 
             if (!File.Exists(exe))
                 return null;
+
+            // The joystick GUIDs depend on the SDL2 version of Raine (SDL2.dll beside the exe, else linked in it)
+            string sdl2 = Path.Combine(_path, "SDL2.dll");
+            _sdlVersion = File.Exists(sdl2) ? SdlJoystickGuidManager.GetSdlVersion(sdl2) : SdlJoystickGuidManager.GetSdlVersionFromStaticBinary(exe);
+            SimpleLogger.Instance.Info("[Generator] Raine SDL version : " + _sdlVersion);
 
             string romPath = Path.GetDirectoryName(rom);
 

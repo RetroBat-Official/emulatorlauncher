@@ -2504,7 +2504,6 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["fbneo-allow-depth-32"] = "enabled";
             coreSettings["fbneo-memcard-mode"] = "per-game";
-            coreSettings["fbneo-load-subsystem-from-parent"] = "enabled";
             coreSettings["fbneo-fm-interpolation"] = "4-point 3rd order";
             coreSettings["fbneo-sample-interpolation"] = "4-point 3rd order";
 
@@ -2520,6 +2519,13 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "fbneo-samplerate", "fbneo_samplerate", "44100");
             BindBoolFeature(coreSettings, "fbneo-lowpass-filter", "fbneo_lowpass_filter", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "fbneo-hiscores", "fbneo_hiscore", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "fbneo-force-60hz", "fbneo_force60hz", "enabled", "disabled");
+            BindFeature(coreSettings, "fbneo-resolution", "fbneo_resolution", "640x480");
+
+            if (SystemConfig.isOptSet("fbneo_analog_speed") && !string.IsNullOrEmpty(SystemConfig["fbneo_analog_speed"]))
+                coreSettings["fbneo-analog-speed"] = SystemConfig["fbneo_analog_speed"].ToIntegerString() + "%";
+            else
+                coreSettings["fbneo-analog-speed"] = "100%";
 
             // Frameskip
             if (SystemConfig.isOptSet("fbneo_frameskip") && SystemConfig["fbneo_frameskip"] == "auto")
@@ -2559,7 +2565,7 @@ namespace EmulatorLauncher.Libretro
             if (romInfo != null && romInfo.Vertical && !SystemConfig.isOptSet("ratio"))
             {
                 retroarchConfig["aspect_ratio_index"] = ratioIndexes.IndexOf("core").ToString();
-                retroarchConfig["video_allow_rotate "] = "true";
+                retroarchConfig["video_allow_rotate"] = "true";
             }
             
             // Controls

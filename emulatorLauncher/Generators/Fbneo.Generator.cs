@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.PadToKeyboard;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using EmulatorLauncher.Common;
-using System;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -20,6 +21,7 @@ namespace EmulatorLauncher
         private string _ipsOriginalFile = null;
         private string _ipsIniFile = null;
         private bool _restoreIpsFile = false;
+        private bool _pad2Keyoverride = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -32,14 +34,25 @@ namespace EmulatorLauncher
             _romName = Path.GetFileNameWithoutExtension(rom);
             bool fullscreen = ShouldRunFullscreen();
 
-            //Applying bezels
+            // Applying bezels : ReShade only hooks DirectX9 (3, 4) and Direct3D 11 (5) renderers
+            string renderer = SystemConfig.isOptSet("fbneo_renderer") && !string.IsNullOrEmpty(SystemConfig["fbneo_renderer"]) ? SystemConfig["fbneo_renderer"] : "3";
             if (fullscreen)
             {
-                if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                bool reshade = false;
+
+                if (renderer == "3" || renderer == "4")
+                    reshade = ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, path, resolution, emulator);
+                else if (renderer == "5")
+                    reshade = ReshadeManager.Setup(ReshadeBezelType.dxgi, ReshadePlatform.x64, system, rom, path, resolution, emulator);
+
+                if (!reshade)
                     _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             }
 
             _resolution = resolution;
+
+            // Input plugin must be known before writing the main config
+            _useXInput = UseXInputPlugin();
 
             // Configure cfg file
             SetupConfig(path, rom);
@@ -63,8 +76,9 @@ namespace EmulatorLauncher
                     string ipsFile = SystemConfig["fbneo_patch"];
                     if (File.Exists(ipsFile))
                     {
+                        // FBNeo only strips double quotes from the -ips argument
                         string ipsFileName = Path.GetFileName(ipsFile);
-                        commandArray.Add(ipsFileName);
+                        commandArray.Add("\"" + ipsFileName + "\"");
                     }
 
                     _ipsIniFile = Path.Combine(path, "config", "ips", _romName + ".ini");
@@ -173,14 +187,86 @@ namespace EmulatorLauncher
                     cfg["nAudSelect"] = "0";
 
                 cfg["bSaveInputs"] = "1";
+
+                // Input plugin must match the codes written by the controller configuration (0 = DirectInput, 1 = XInput + DirectInput)
+                if (!SystemConfig.getOptBoolean("disableautocontrollers"))
+                    cfg["nInputSelect"] = _useXInput ? "1" : "0";
+
                 BindBoolFeature(cfg, "bForce60Hz", "fbneo_force60hz", "1", "0");
                 BindBoolFeature(cfg, "bVidIntegerScale", "integerscale", "1", "0");
                 BindBoolFeature(cfg, "bRunAhead", "fbneo_runahead", "1", "0");
                 BindBoolFeatureOn(cfg, "EnableHiscores", "fbneo_hiscore", "1", "0");
 
+                SetupHotkeys(cfg);
+
                 cfg.Save();
             }
         }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_pad2Keyoverride && File.Exists(Path.Combine(Path.GetTempPath(), "padToKey.xml")))
+                mapping = PadToKey.Load(Path.Combine(Path.GetTempPath(), "padToKey.xml"));
+
+            return mapping;
+        }
+
+        // RetroBat keyboard hotkeys, FBNeo format 0xMMVV (MM = modifiers, VV = Windows virtual-key code)
+        private void SetupHotkeys(FbneoConfigFile cfg)
+        {
+            var hotkeys = new Dictionary<string, string>()
+            {
+                { "ToggleMenu", "0x0070" },          // F1
+                { "FullScreen", "0x0046" },          // F
+                { "FastForward", "0x004C" },         // L
+                { "Rewind", "0x0008" },              // Backspace
+                { "FastForwardToggle", "0x0020" },   // Space
+                { "SaveSnapshot", "0x0077" },        // F8
+                { "StateSaveSlot", "0x0071" },       // F2
+                { "StateLoadSlot", "0x0073" },       // F4
+                { "StatePrevSlot", "0x0075" },       // F6
+                { "StateNextSlot", "0x0076" },       // F7
+                { "Pause", "0x0050" },               // P
+                { "ExitFullScreen", "0x001B" }       // Escape
+            };
+
+            // Overrides from kb_hotkeys.yml (also generates the matching padToKey.xml)
+            if (Hotkeys.GetHotKeysFromFile("fbneo", "", out Dictionary<string, HotkeyResult> customHotkeys))
+            {
+                foreach (var h in customHotkeys)
+                    hotkeys[h.Value.EmulatorKey] = h.Value.EmulatorValue;
+
+                _pad2Keyoverride = true;
+            }
+
+            // Free FBNeo default keys now used by RetroBat hotkeys
+            foreach (var def in fbneoDefaultHotkeys)
+            {
+                if (!hotkeys.ContainsKey(def.Key) && hotkeys.Values.Contains(def.Value))
+                    hotkeys[def.Key] = "0x0000";
+            }
+
+            foreach (var hk in hotkeys)
+                cfg["Hotkey " + hk.Key] = hk.Value + " 0x0000";
+        }
+
+        // FBNeo default hotkeys without modifier (hotkeys.cpp)
+        private static readonly Dictionary<string, string> fbneoDefaultHotkeys = new Dictionary<string, string>()
+        {
+            { "LoadGame", "0x0075" },        // F6
+            { "Pause", "0x0013" },           // Pause
+            { "FastForward", "0x0070" },     // F1
+            { "Rewind", "0x0021" },          // Page up
+            { "MapInputs", "0x0074" },       // F5
+            { "StateLoadSlot", "0x0078" },   // F9
+            { "StateSaveSlot", "0x0079" },   // F10
+            { "StatePrevSlot", "0x0077" },   // F8
+            { "StateNextSlot", "0x007A" },   // F11
+            { "MemcardToggle", "0x0076" },   // F7
+            { "ExitFullScreen", "0x001B" },  // Escape
+            { "ToggleFPS", "0x0008" },       // Backspace
+            { "SaveSnapshot", "0x007B" }     // F12
+        };
 
         public override int RunAndWait(ProcessStartInfo path)
         {
@@ -193,12 +279,12 @@ namespace EmulatorLauncher
 
             bezel?.Dispose();
 
-            if (ret == 1)
-            {
-                ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, path.WorkingDirectory);
-                return 0;
-            }
             ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, path.WorkingDirectory);
+            ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path.WorkingDirectory);
+
+            if (ret == 1)
+                return 0;
+
             return ret;
         }
 

@@ -11,6 +11,7 @@ namespace EmulatorLauncher
     partial class FbneoGenerator : Generator
     {
         private bool _noPlayer = false;
+        private bool _useXInput = false;
         private int _nbGamepads;
         private int _players = 2;
 
@@ -55,32 +56,31 @@ namespace EmulatorLauncher
                 if (layout == "classic8")
                     layout = "6alternative";
 
+                string searchName = _romName;
                 if (decocassGames.Contains(_romName))
-                    game = ymlFile.Elements.Where(g => g.Name == "decocass").FirstOrDefault() as YmlContainer;
+                    searchName = "decocass";
                 else if (decomlcGames.Contains(_romName))
-                    game = ymlFile.Elements.Where(g => g.Name == "decomlc").FirstOrDefault() as YmlContainer;
-                else if (!string.IsNullOrEmpty(layout))
+                    searchName = "decomlc";
+
+                // Search order: game, parent (fbneo_parents.txt), longest prefix, default
+                game = FindGameMapping(ymlFile, searchName, layout);
+
+                if (game == null)
                 {
-                    string searchYml = _romName + "_" + layout;
-                    game = ymlFile.Elements.Where(g => g.Name == searchYml).FirstOrDefault() as YmlContainer;
-                }
-                else
-                {
-                    game = ymlFile.Elements.Where(g => g.Name == _romName).FirstOrDefault() as YmlContainer;
+                    string parent = GetFbneoParent(searchName);
+                    if (!string.IsNullOrEmpty(parent))
+                    {
+                        game = FindGameMapping(ymlFile, parent, layout);
+                        if (game != null)
+                            SimpleLogger.Instance.Info("[INFO] FBNeo mapping: using parent " + parent + " for " + _romName);
+                    }
                 }
 
                 if (game == null)
                 {
-                    game = ymlFile.Elements.Where(g => _romName.StartsWith(g.Name) && g.Name != "").OrderByDescending(g => g.Name.Length).FirstOrDefault() as YmlContainer;
-                    YmlContainer newGame = null;
-                    if (game != null && !string.IsNullOrEmpty(layout))
-                    {
-                        string searchYml = game.Name + "_" + layout;
-                        newGame = ymlFile.Elements.Where(g => g.Name == searchYml).FirstOrDefault() as YmlContainer;
-
-                        if (newGame != null)
-                            game = newGame;
-                    }
+                    var prefix = ymlFile.Elements.Where(g => g.Name != "" && searchName.StartsWith(g.Name)).OrderByDescending(g => g.Name.Length).FirstOrDefault();
+                    if (prefix != null)
+                        game = FindGameMapping(ymlFile, prefix.Name, layout);
                 }
 
                 if (game == null)
@@ -159,33 +159,42 @@ namespace EmulatorLauncher
             if (ctrlrCfg == null)
                 return;
 
-            // Fbneo uses dinput plugin
-            if (controller.DirectInput == null)
-                return;
-
-            // Get gamecontrollerdb buttonmapping for the controller
-            string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-            string guid1 = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
             SdlToDirectInput dinputCtrl = null;
+            int index;
 
-            SimpleLogger.Instance.Info("[INFO] Player " + controller.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + guid1);
+            if (_useXInput)
+            {
+                // XInput plugin: pads are numbered by XInput slot (0-3)
+                index = controller.XInput.DeviceIndex;
+            }
+            else
+            {
+                if (controller.DirectInput == null)
+                    return;
 
-            try { dinputCtrl = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid1); }
-            catch { }
+                // Get gamecontrollerdb buttonmapping for the controller
+                string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
+                string guid1 = (controller.Guid.ToString()).Substring(0, 24) + "00000000";
 
-            if (dinputCtrl == null)
-                return;
+                SimpleLogger.Instance.Info("[INFO] Player " + controller.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + guid1);
 
-            // Define index
-            int dinputIndex = controller.DirectInput != null ? controller.DirectInput.DeviceIndex : controller.DeviceIndex;
-            int index = dinputIndex;
+                try { dinputCtrl = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid1); }
+                catch { }
 
-            if (SystemConfig.isOptSet("fbneo_dinput_index") && SystemConfig.getOptBoolean("fbneo_dinput_index") && dinputIndex > 0)
-                index = dinputIndex - 1;
-            
-            SimpleLogger.Instance.Info("[INFO] index for player " + controller.PlayerIndex + ": " + index);
+                if (dinputCtrl == null)
+                    return;
 
-            string joy = "0x4" + index.ToString();
+                int dinputIndex = controller.DirectInput.DeviceIndex;
+                index = dinputIndex;
+
+                if (SystemConfig.isOptSet("fbneo_dinput_index") && SystemConfig.getOptBoolean("fbneo_dinput_index") && dinputIndex > 0)
+                    index = dinputIndex - 1;
+            }
+
+            SimpleLogger.Instance.Info("[INFO] " + (_useXInput ? "XInput" : "DirectInput") + " index for player " + controller.PlayerIndex + ": " + index);
+
+            // Joystick number is one hex digit in FBNeo input codes (0x4J..)
+            string joy = "0x4" + index.ToString("X");
 
             cfg["version"] = "0x100003";
             cfg["analog"] = "0x0100";
@@ -221,7 +230,7 @@ namespace EmulatorLauncher
                         if (controller.PlayerIndex == 1)
                             cfg["input  " + "\"Coin\""] = GetDinputMapping(dinputCtrl, updatedValue ?? button.Value, joy, index);
                     }
-                    if (button.Key == "Ryu Start")
+                    else if (button.Key == "Ryu Start")
                     {
                         if (controller.PlayerIndex == 1)
                             cfg["input  " + "\"Ryu Start\""] = GetDinputMapping(dinputCtrl, updatedValue ?? button.Value, joy, index);
@@ -379,8 +388,95 @@ namespace EmulatorLauncher
             }
         }
 
+        // Returns "<name>_<layout>" if it exists, otherwise "<name>"
+        private static YmlContainer FindGameMapping(YmlFile ymlFile, string name, string layout)
+        {
+            YmlContainer ret = null;
+
+            if (!string.IsNullOrEmpty(layout))
+                ret = ymlFile.Elements.FirstOrDefault(g => g.Name == name + "_" + layout) as YmlContainer;
+
+            if (ret == null)
+                ret = ymlFile.Elements.FirstOrDefault(g => g.Name == name) as YmlContainer;
+
+            return ret;
+        }
+
+        // Parent of a FBNeo clone, read from system\tools\fbneo_parents.txt (clone=parent)
+        private static string GetFbneoParent(string romName)
+        {
+            string parentsFile = Path.Combine(Program.AppConfig.GetFullPath("tools"), "fbneo_parents.txt");
+            if (!File.Exists(parentsFile))
+                return null;
+
+            try
+            {
+                string search = romName + "=";
+                foreach (var line in File.ReadLines(parentsFile))
+                {
+                    if (line.StartsWith(search, System.StringComparison.OrdinalIgnoreCase))
+                        return line.Substring(search.Length).Trim();
+                }
+            }
+            catch { }
+
+            return null;
+        }
+
+        // XInput plugin only if every assigned pad is XInput: FBNeo numbers DirectInput pads after the 4 XInput slots,
+        // which cannot be computed reliably from the assigned controllers only
+        private bool UseXInputPlugin()
+        {
+            if (SystemConfig.getOptBoolean("disableautocontrollers") || SystemConfig["fbneo_inputdriver"] == "dinput")
+                return false;
+
+            var pads = this.Controllers.Where(c => !c.IsKeyboard).ToList();
+            return pads.Count > 0 && pads.All(c => c.XInput != null && c.XInput.DeviceIndex > -1);
+        }
+
+        // FBNeo XInput plugin codes (inp_xinput.cpp)
+        private static string GetXInputMapping(string buttonkey, string joy, int index)
+        {
+            // Full axis: steering, trackball, analog pedals
+            if (buttonkey.EndsWith("_axis"))
+            {
+                int axis;
+                if (xinputAxes.TryGetValue(buttonkey.Substring(0, buttonkey.Length - 5), out axis))
+                    return "joyaxis " + index.ToString() + " " + axis.ToString();
+            }
+            else
+            {
+                string code;
+                if (xinputCodes.TryGetValue(buttonkey, out code))
+                    return "switch " + joy + code;
+            }
+
+            SimpleLogger.Instance.Info("[INFO] No XInput mapping for " + buttonkey);
+            return "undefined";
+        }
+
+        private static readonly Dictionary<string, string> xinputCodes = new Dictionary<string, string>()
+        {
+            { "leftx_left", "00" }, { "leftx_right", "01" }, { "lefty_up", "02" }, { "lefty_down", "03" },
+            { "rightx_left", "04" }, { "rightx_right", "05" }, { "righty_up", "06" }, { "righty_down", "07" },
+            { "lefttrigger", "09" }, { "righttrigger", "0B" },
+            { "dpleft", "10" }, { "dpright", "11" }, { "dpup", "12" }, { "dpdown", "13" },
+            { "a", "80" }, { "b", "81" }, { "x", "82" }, { "y", "83" },
+            { "leftshoulder", "84" }, { "rightshoulder", "85" }, { "back", "86" }, { "start", "87" },
+            { "leftstick", "88" }, { "rightstick", "89" }
+        };
+
+        private static readonly Dictionary<string, int> xinputAxes = new Dictionary<string, int>()
+        {
+            { "leftx", 0 }, { "lefty", 1 }, { "rightx", 2 }, { "righty", 3 }, { "lefttrigger", 4 }, { "righttrigger", 5 }
+        };
+
         private string GetDinputMapping(SdlToDirectInput c, string buttonkey, string joy, int index)
         {
+            // XInput plugin: fixed FBNeo codes, gamecontrollerdb not needed
+            if (_useXInput)
+                return GetXInputMapping(buttonkey, joy, index);
+
             int direction = 1;
 
             if (c == null)
@@ -405,20 +501,14 @@ namespace EmulatorLauncher
                     direction = 0;
             }
 
+            // DirectInput triggers share or offset an axis: analog pedals stay digital
+            if (direction == 0 && (buttonkey == "lefttrigger" || buttonkey == "righttrigger"))
+                direction = 1;
+
             if (!c.ButtonMappings.ContainsKey(buttonkey))
             {
                 SimpleLogger.Instance.Info("[INFO] No mapping found for " + buttonkey + " in gamecontrollerdb file");
                 return "undefined";
-            }
-
-            if (buttonkey.StartsWith("-"))
-            {
-                buttonkey = buttonkey.Substring(1);
-                direction = -1;
-            }
-            else if (buttonkey.StartsWith("+"))
-            {
-                buttonkey = buttonkey.Substring(1);
             }
 
             string button = c.ButtonMappings[buttonkey];
@@ -444,7 +534,6 @@ namespace EmulatorLauncher
                     default:
                         return "switch " + joy + "8" + buttonID;
                 }
-                
             }
 
             else if (button.StartsWith("h"))
@@ -466,43 +555,35 @@ namespace EmulatorLauncher
 
             else if (button.StartsWith("a") || button.StartsWith("-a") || button.StartsWith("+a"))
             {
-                int axisID = button.Substring(1).ToInteger();
-
-                if (button.StartsWith("-a"))
-                {
-                    axisID = button.Substring(2).ToInteger();
-                }
-
-                else if (button.StartsWith("+a"))
-                {
-                    axisID = button.Substring(2).ToInteger();
-                }
-
-                else if (button.StartsWith("a"))
-                {
-                    axisID = button.Substring(1).ToInteger();
-                }
+                // gamecontrollerdb axis syntax: "-a2" / "+a2" = half axis, "a2~" = inverted axis
+                bool inverted = button.EndsWith("~");
+                string axis = button.TrimEnd('~');
+                bool negativeHalf = axis.StartsWith("-");
+                int axisID = axis.TrimStart('-', '+').Substring(1).ToInteger();
 
                 if (direction == 0)
                     return "joyaxis " + index.ToString() + " " + axisID.ToString();
 
-                else
+                // e.g. Xbox pads in DirectInput: lefttrigger:+a2, righttrigger:-a2
+                if (negativeHalf)
+                    direction = -direction;
+                if (inverted)
+                    direction = -direction;
+
+                switch (axisID)
                 {
-                    switch (axisID)
-                    {
-                        case 0:
-                            return "switch " + joy + "0" + (direction == 1 ? "1" : "0");
-                        case 1:
-                            return "switch " + joy + "0" + (direction == 1 ? "3" : "2");
-                        case 2:
-                            return "switch " + joy + "0" + (direction == 1 ? "5" : "4");
-                        case 3:
-                            return "switch " + joy + "0" + (direction == 1 ? "7" : "6");
-                        case 4:
-                            return "switch " + joy + "0" + (direction == 1 ? "9" : "8");
-                        case 5:
-                            return "switch " + joy + "0" + (direction == 1 ? "B" : "A");
-                    }
+                    case 0:
+                        return "switch " + joy + "0" + (direction == 1 ? "1" : "0");
+                    case 1:
+                        return "switch " + joy + "0" + (direction == 1 ? "3" : "2");
+                    case 2:
+                        return "switch " + joy + "0" + (direction == 1 ? "5" : "4");
+                    case 3:
+                        return "switch " + joy + "0" + (direction == 1 ? "7" : "6");
+                    case 4:
+                        return "switch " + joy + "0" + (direction == 1 ? "9" : "8");
+                    case 5:
+                        return "switch " + joy + "0" + (direction == 1 ? "B" : "A");
                 }
             }
 

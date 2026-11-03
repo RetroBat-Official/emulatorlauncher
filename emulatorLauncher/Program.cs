@@ -132,6 +132,7 @@ namespace EmulatorLauncher
             { "n-gage", () => new Eka2l1Generator() },
             { "odin", () => new OdinGenerator() },
             { "openbor", () => new OpenBorGenerator() },
+            { "opencdi", () => new OpenCdiGenerator() },
             { "opengoal", () => new OpenGoalGenerator() },
             { "openjazz", () => new OpenJazzGenerator() },
             { "openmsx", () => new OpenMSXGenerator() },
@@ -970,7 +971,8 @@ namespace EmulatorLauncher
                         else
                             SimpleLogger.Instance.Info("[Running]  " + path.FileName);
 
-                        mapping = PadToKey.AddOrUpdateKeyMapping(mapping, "*", InputKey.hotkey | InputKey.b, ShowControlCenter);
+                        if (!SystemConfig.getOptBoolean("disable_controlcenter"))
+                            mapping = PadToKey.AddOrUpdateKeyMapping(mapping, "*", InputKey.hotkey | InputKey.b, ShowControlCenter);
 
                         if (mapping != null)
                         {
@@ -993,8 +995,8 @@ namespace EmulatorLauncher
                             app.Input.Add(new PadToKeyInput() { Name = InputKey.right, Code = "KEY_RIGHT" });
                             app.Input.Add(new PadToKeyInput() { Name = InputKey.down, Code = "KEY_DOWN" });
                             app.Input.Add(new PadToKeyInput() { Name = InputKey.up, Code = "KEY_UP" });
-                            app.Input.Add(new PadToKeyInput() { Name = InputKey.pagedown, Key = "{PGUP}" });
-                            app.Input.Add(new PadToKeyInput() { Name = InputKey.pageup, Key = "{PGDN}" });
+                            app.Input.Add(new PadToKeyInput() { Name = InputKey.pagedown, Key = "{PGDN}" });
+                            app.Input.Add(new PadToKeyInput() { Name = InputKey.pageup, Key = "{PGUP}" });
                             mapping.Applications.Add(app);
                         }                        
 

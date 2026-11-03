@@ -529,6 +529,10 @@
     <Compile Include="Generators\OpenBor.Controllers.cs">
       <DependentUpon>OpenBor.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\OpenCdi.Generator.cs" />
+    <Compile Include="Generators\OpenCdi.SaveStatesMonitor.cs">
+      <DependentUpon>OpenCdi.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\OpenMSX.Generator.cs" />
     <Compile Include="Generators\OpenMSX.Controllers.cs">
       <DependentUpon>OpenMSX.Generator.cs</DependentUpon>
