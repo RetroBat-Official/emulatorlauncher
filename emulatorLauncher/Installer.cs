@@ -97,6 +97,7 @@ namespace EmulatorLauncher
             { new Installer("mupen64", "mupen64", "RMG.exe") },
             { new Installer("n64recomplauncher", "n64recomplauncher", "N64RecompLauncher.exe") },
             { new Installer("nosgba", "nosgba", "no$gba.exe") },
+            { new Installer("odin", "odin", "odin.exe") },
             { new Installer("openbor") },
             { new Installer("opengoal", "opengoal", "gk.exe") },
             { new Installer("openjazz", "openjazz", "OpenJazz.exe") },

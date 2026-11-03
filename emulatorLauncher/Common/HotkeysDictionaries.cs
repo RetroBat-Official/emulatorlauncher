@@ -59,6 +59,7 @@ namespace EmulatorLauncher
             { "melonds", "melonDS" },
             { "mesen", "Mesen" },
             { "model3-vulkan", "Model3-Vulkan" },
+            { "odin", "odin" },
             { "pcsx2", "pcsx2-qt" },
             { "ppsspp", "PPSSPPWindows64" },
             { "project64", "Project64" },
@@ -306,6 +307,16 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_state_slot_increase", "InputUIChangeSlot", "KEY_F7"),
                     new EmulatorHotkeyInfo("input_pause_toggle", "InputUIPause", "KEY_P"),
                     new EmulatorHotkeyInfo("input_exit_emulator", "InputUIExit", "KEY_ESCAPE")
+                }),
+
+            new EmulatorHotkey("odin", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_menu_toggle", "menu", "F10"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "fullscreen", "F11"),
+                    new EmulatorHotkeyInfo("input_save_state", "save_state", "F2"),
+                    new EmulatorHotkeyInfo("input_load_state", "load_state", "F4"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "pause", "P"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "quit", "Escape")
                 }),
 
             new EmulatorHotkey("pcsx2", new EmulatorHotkeyInfo[]

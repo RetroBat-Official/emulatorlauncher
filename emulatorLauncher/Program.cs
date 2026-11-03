@@ -130,6 +130,7 @@ namespace EmulatorLauncher
             { "nosgba", () => new NosGbaGenerator() },
             { "no$gba", () => new NosGbaGenerator() },
             { "n-gage", () => new Eka2l1Generator() },
+            { "odin", () => new OdinGenerator() },
             { "openbor", () => new OpenBorGenerator() },
             { "opengoal", () => new OpenGoalGenerator() },
             { "openjazz", () => new OpenJazzGenerator() },

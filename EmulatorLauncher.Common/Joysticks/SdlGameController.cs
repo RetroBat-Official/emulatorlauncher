@@ -488,6 +488,10 @@ namespace EmulatorLauncher.Common.Joysticks
         [return: MarshalAs(UnmanagedType.I1)]
         private static extern bool SDL_IsGamepad(int instance_id);
 
+        // The returned string is freed with SDL_free
+        [DllImport(SDL3_DLL, CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr SDL_GetGamepadMappingForID(int instance_id);
+
         private static List<Sdl3GameController> _controllers;
         private static bool _standardHints = false;
         private static Sdl3HintProfile _hintProfile = Sdl3HintProfile.RetroBat;
@@ -544,6 +548,146 @@ namespace EmulatorLauncher.Common.Joysticks
                 return sb.ToString();
             }
         }
+
+        #region Raw inputs
+        // RetroBat controller positions (yml) and SDL names to SDL gamepad elements, with the half of a stick axis (-1 left / up, +1 right / down, 0 whole)
+        private static readonly Dictionary<string, KeyValuePair<string, int>> _gamepadElements = new Dictionary<string, KeyValuePair<string, int>>(StringComparer.InvariantCultureIgnoreCase)
+        {
+            { "south", Element("a") }, { "east", Element("b") }, { "west", Element("x") }, { "north", Element("y") },
+            { "l1", Element("leftshoulder") }, { "r1", Element("rightshoulder") }, { "l2", Element("lefttrigger") }, { "r2", Element("righttrigger") },
+            { "l3", Element("leftstick") }, { "r3", Element("rightstick") }, { "select", Element("back") }, { "start", Element("start") }, { "guide", Element("guide") },
+            { "leftshoulder", Element("leftshoulder") }, { "rightshoulder", Element("rightshoulder") },
+            { "lefttrigger", Element("lefttrigger") }, { "righttrigger", Element("righttrigger") },
+            { "leftstick", Element("leftstick") }, { "rightstick", Element("rightstick") }, { "back", Element("back") },
+            { "up", Element("dpup") }, { "down", Element("dpdown") }, { "left", Element("dpleft") }, { "right", Element("dpright") },
+            { "dpup", Element("dpup") }, { "dpdown", Element("dpdown") }, { "dpleft", Element("dpleft") }, { "dpright", Element("dpright") },
+            { "leftx", Element("leftx") }, { "lefty", Element("lefty") }, { "rightx", Element("rightx") }, { "righty", Element("righty") },
+            { "leftx-left", Element("leftx", -1) }, { "leftx-right", Element("leftx", 1) }, { "lefty-up", Element("lefty", -1) }, { "lefty-down", Element("lefty", 1) },
+            { "rightx-left", Element("rightx", -1) }, { "rightx-right", Element("rightx", 1) }, { "righty-up", Element("righty", -1) }, { "righty-down", Element("righty", 1) }
+        };
+
+        private static KeyValuePair<string, int> Element(string name, int half = 0)
+        {
+            return new KeyValuePair<string, int>(name, half);
+        }
+
+        /// <summary>
+        /// SDL3 mapping of the gamepad, without its GUID and name ("a:b0,b:b1,leftx:a0,dpup:h0.1..."). Null for a joystick.
+        /// </summary>
+        public string Mapping { get; set; }
+
+        private Dictionary<string, string> _bindings;
+
+        private Dictionary<string, string> GetBindings()
+        {
+            if (_bindings != null || string.IsNullOrEmpty(Mapping))
+                return _bindings;
+
+            _bindings = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+
+            // "<guid>,<name>,a:b0,b:b1,...,platform:Windows,"
+            foreach (string item in Mapping.Split(',').Skip(2))
+            {
+                int sep = item.IndexOf(':');
+                if (sep > 0 && sep < item.Length - 1)
+                    _bindings[item.Substring(0, sep).Trim()] = item.Substring(sep + 1).Trim();
+            }
+
+            return _bindings;
+        }
+
+        /// <summary>
+        /// Raw joystick input of a controller position (south, l2, leftx, lefty-up...) for the SDL3 driver of this gamepad, read from its SDL3 mapping.
+        /// Same conventions as es_input.cfg : button Id from 0, hat Id + direction mask (1 up, 2 right, 4 down, 8 left),
+        /// axis Id + the side that is pressed (whole stick axes : -1 when left / up is the negative side, +1 when inverted).
+        /// Null when the position is unknown, not mapped, or for a joystick (no SDL3 mapping).
+        /// </summary>
+        public Input GetRawInput(string position)
+        {
+            KeyValuePair<string, int> element;
+            if (string.IsNullOrEmpty(position) || !_gamepadElements.TryGetValue(position, out element))
+                return null;
+
+            var bindings = GetBindings();
+            if (bindings == null)
+                return null;
+
+            int half = element.Value;
+            string raw;
+
+            // A half of a stick can be mapped on its own ("-leftx:b13"), the raw input is then the pressed one
+            if (half != 0 && bindings.TryGetValue((half < 0 ? "-" : "+") + element.Key, out raw))
+                half = 0;
+            else if (!bindings.TryGetValue(element.Key, out raw))
+                return null;
+
+            return ParseRawInput(raw, element.Key, half);
+        }
+
+        private static Input ParseRawInput(string raw, string element, int half)
+        {
+            if (string.IsNullOrEmpty(raw))
+                return null;
+
+            bool inverted = raw.EndsWith("~");
+            if (inverted)
+                raw = raw.Substring(0, raw.Length - 1);
+
+            int sign = 0;
+            if (raw.StartsWith("+"))
+            {
+                sign = 1;
+                raw = raw.Substring(1);
+            }
+            else if (raw.StartsWith("-"))
+            {
+                sign = -1;
+                raw = raw.Substring(1);
+            }
+
+            if (raw.Length < 2)
+                return null;
+
+            int id;
+
+            switch (raw[0])
+            {
+                case 'b':
+                    if (!int.TryParse(raw.Substring(1), out id))
+                        return null;
+                    return new Input() { Type = "button", Id = id, Value = 1 };
+
+                case 'h':
+                    // h<hat>.<mask>
+                    int dot = raw.IndexOf('.');
+                    int mask;
+                    if (dot < 2 || !int.TryParse(raw.Substring(1, dot - 1), out id) || !int.TryParse(raw.Substring(dot + 1), out mask))
+                        return null;
+                    return new Input() { Type = "hat", Id = id, Value = mask };
+
+                case 'a':
+                    if (!int.TryParse(raw.Substring(1), out id))
+                        return null;
+
+                    int side;
+                    if (sign != 0)
+                        side = sign;                    // half of the raw axis
+                    else if (half != 0)
+                        side = half;                    // half of a stick
+                    else if (element.EndsWith("trigger"))
+                        side = 1;                       // a trigger is pressed toward the positive side
+                    else
+                        side = -1;                      // whole stick : left / up on the negative side
+
+                    if (inverted)
+                        side = -side;
+
+                    return new Input() { Type = "axis", Id = id, Value = side };
+            }
+
+            return null;
+        }
+        #endregion
 
         /// <summary>
         /// SDL 3.4 moved some controllers to new backends (HIDAPI 8BitDo, Flydigi, SInput, ZUIKI, Switch 2, GIP, GameInput raw instruments),
@@ -649,6 +793,17 @@ namespace EmulatorLauncher.Common.Joysticks
                             ushort vendorID = SDL_GetJoystickVendorForID(instance_id);
                             ushort productID = SDL_GetJoystickProductForID(instance_id);
                             bool isGamepad = SDL_IsGamepad(instance_id);
+                            // Raw inputs of the gamepad elements for the SDL3 driver of the device ("a:b0,leftx:a0,dpup:h0.1...")
+                            string mapping = null;
+                            if (isGamepad)
+                            {
+                                IntPtr mappingPtr = SDL_GetGamepadMappingForID(instance_id);
+                                if (mappingPtr != IntPtr.Zero)
+                                {
+                                    mapping = Marshal.PtrToStringAnsi(mappingPtr);
+                                    SDL_free(mappingPtr);
+                                }
+                            }
 
                             string serial = "Unknown";
                             IntPtr pad = SDL_OpenGamepad(instance_id);
@@ -682,6 +837,7 @@ namespace EmulatorLauncher.Common.Joysticks
                                     VendorId = vendorID,
                                     ProductId = productID,
                                     GamePadIndex = gamePadIndex,
+                                    Mapping = mapping,
                                 });
                             }
                             catch
@@ -698,6 +854,7 @@ namespace EmulatorLauncher.Common.Joysticks
                                     VendorId = vendorID,
                                     ProductId = productID,
                                     GamePadIndex = gamePadIndex,
+                                    Mapping = mapping,
                                 });
                             }
                         }

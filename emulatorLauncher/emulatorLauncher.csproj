@@ -512,6 +512,19 @@
     <Compile Include="Generators\N64Recomp.Generator.cs" />
     <Compile Include="Generators\Nes3d.Generator.cs" />
     <Compile Include="Generators\NosGba.Generator.cs" />
+    <Compile Include="Generators\Odin.Generator.cs" />
+    <Compile Include="Generators\Odin.Controllers.cs">
+      <DependentUpon>Odin.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Odin.Guns.cs">
+      <DependentUpon>Odin.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Odin.Wheels.cs">
+      <DependentUpon>Odin.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Odin.SaveStatesMonitor.cs">
+      <DependentUpon>Odin.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\OpenBor.Generator.cs" />
     <Compile Include="Generators\OpenBor.Controllers.cs">
       <DependentUpon>OpenBor.Generator.cs</DependentUpon>

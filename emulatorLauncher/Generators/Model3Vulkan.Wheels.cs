@@ -16,9 +16,6 @@ namespace EmulatorLauncher
             "{systempath}\\resources\\inputmapping\\wheels\\model3_wheels.yml"
         };
 
-        // DirectInput axes in the order SDL sorts them (SDL_dinputjoystick.c : data format offset, then SortDevObjects)
-        private static readonly string[] _dinputAxisNames = new string[] { "XAXIS", "YAXIS", "ZAXIS", "RXAXIS", "RYAXIS", "RZAXIS", "SLIDER1", "SLIDER2" };
-
         // Wheel inputs of model3_wheels.yml (DirectInput names) written for player 1
         private static readonly string[] _wheelInputs = new string[]
         {
@@ -91,7 +88,7 @@ namespace EmulatorLauncher
                 .Where(e => !string.IsNullOrEmpty(e.Name))
                 .ToDictionary(e => e.Name, e => (e.Value ?? "").Trim(), StringComparer.InvariantCultureIgnoreCase);
 
-            int[] axes = GetSdlAxisIndexes(wheel);
+            int[] axes = Wheel.GetSdlAxisIndexes(wheel);
 
             // Gear stick on another device (some Thrustmaster) : FORCE GEARSTICK DEVICE ID is the SDL3 joystick number, starting from 0
             int shifterNumber = -1;
@@ -173,57 +170,12 @@ namespace EmulatorLauncher
                 if (name.EndsWith(s))
                 {
                     suffix = s;
-                    name = name.Substring(0, name.Length - s.Length);
                     break;
                 }
             }
 
-            int slot = Array.IndexOf(_dinputAxisNames, name);
-            if (slot < 0 && name.StartsWith("AXIS"))
-                slot = name.Substring(4).ToInteger() - 1;
-
-            if (slot < 0 || slot >= axes.Length || axes[slot] < 0)
-            {
-                SimpleLogger.Instance.Warning("[WHEELS] Axis " + dinputName + " not found on the wheel.");
-                return null;
-            }
-
-            return "AXIS" + (axes[slot] + 1) + suffix;
-        }
-
-        /// <summary>
-        /// SDL axis index of each DirectInput axis slot (X, Y, Z, Rx, Ry, Rz, Slider 1, Slider 2), -1 when the device does not have it.
-        /// </summary>
-        private static int[] GetSdlAxisIndexes(Controller wheel)
-        {
-            var present = new bool[_dinputAxisNames.Length];
-            bool found = false;
-
-            try
-            {
-                if (wheel.DirectInput != null)
-                {
-                    // DirectInput objects are read in EmulatorLauncher.Common (SharpDX is merged there, direct use here is ambiguous)
-                    present = wheel.DirectInput.GetAxisSlots();
-                    found = present.Any(p => p);
-                }
-            }
-            catch (Exception ex) { SimpleLogger.Instance.Warning("[WHEELS] Unable to read the DirectInput axes : " + ex.Message); }
-
-            if (!found)
-            {
-                SimpleLogger.Instance.Warning("[WHEELS] DirectInput axes of " + wheel.Name + " unknown, DirectInput names used as SDL indexes.");
-                for (int i = 0; i < present.Length; i++)
-                    present[i] = true;
-            }
-
-            var ret = new int[present.Length];
-            int index = 0;
-            for (int i = 0; i < present.Length; i++)
-                ret[i] = present[i] ? index++ : -1;
-
-            SimpleLogger.Instance.Info("[WHEELS] SDL axes : " + string.Join(", ", _dinputAxisNames.Select((n, i) => n + "=" + (ret[i] < 0 ? "-" : "AXIS" + (ret[i] + 1)))));
-            return ret;
+            int index = Wheel.GetSdlAxisIndex(name, axes);
+            return index < 0 ? null : "AXIS" + (index + 1) + suffix;
         }
     }
 }
