@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
@@ -24,6 +25,11 @@ namespace EmulatorLauncher
         }*/
 
         private bool _pad2Keyoverride = false;
+        private SdlVersion _sdlVersion = SdlVersion.SDL2_0_X;
+
+        // SDL2 game controller buttons and axes (SDL_GameControllerButton / SDL_GameControllerAxis), read by Raine for the game controllers
+        private const int GC_A = 0, GC_B = 1, GC_X = 2, GC_Y = 3, GC_BACK = 4, GC_START = 6, GC_LEFTSTICK = 7, GC_RIGHTSTICK = 8, GC_LEFTSHOULDER = 9, GC_RIGHTSHOULDER = 10;
+        private const int GC_AXIS_LEFTX = 0, GC_AXIS_LEFTY = 1, GC_AXIS_TRIGGERLEFT = 4, GC_AXIS_TRIGGERRIGHT = 5;
 
         private void CreateControllerConfiguration(IniFile ini)
         {
@@ -36,8 +42,6 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Raine");
 
-            //UpdateSdlControllersWithHints();
-
             // clear existing pad sections of ini file
             ClearJoystickSection(ini);
 
@@ -45,80 +49,122 @@ namespace EmulatorLauncher
             SetKeyboardHotKeys(ini);
 
             // Inject controllers
-            foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
-                ConfigureInput(ini, controller);
-        }
+            var pads = this.Controllers.Where(c => !c.IsKeyboard && c.Config != null).OrderBy(c => c.PlayerIndex).ToList();
+            bool pinned = PinJoysticks(ini, pads);
 
-        private void ConfigureInput(IniFile ini, Controller controller)
-        {
-            if (controller == null || controller.Config == null)
-                return;
-
-            if (controller.IsKeyboard)
-                return;
-            else
-                ConfigureJoystick(ini, controller, controller.PlayerIndex);
+            for (int i = 0; i < pads.Count && i < 4; i++)
+                ConfigureJoystick(ini, pads[i], pads[i].PlayerIndex, pinned ? i + 1 : pads[i].DeviceIndex + 1);
         }
 
         /// <summary>
-        /// Gamepad configuration
+        /// [emulator_joy_config] : Raine gives each joystick the index stored for its SDL GUID (control.c, get_joy_index), else its SDL player index.
+        /// Identical controllers share their GUID : they cannot be pinned, Raine order is used.
         /// </summary>
-        /// <param name="ini"></param>
-        /// <param name="ctrl"></param>
-        /// <param name="playerIndex"></param>
-        private void ConfigureJoystick(IniFile ini, Controller ctrl, int playerIndex)
+        private bool PinJoysticks(IniFile ini, List<Controller> pads)
         {
-            if (ctrl == null)
-                return;
+            var guids = pads.Select(c => c.GetSdlGuid(_sdlVersion, true).ToLowerInvariant()).ToList();
 
-            InputConfig joy = ctrl.Config;
-            if (joy == null)
-                return;
+            if (guids.Distinct().Count() != guids.Count)
+            {
+                SimpleLogger.Instance.Warning("[Raine] Several controllers share the same SDL GUID, they are not pinned : player order may differ.");
+                return false;
+            }
 
-            //var guid = ctrl.GetSdlGuid(SdlVersion.SDL2_26, true).ToLowerInvariant();
+            for (int i = 0; i < pads.Count; i++)
+                ini.WriteValue("emulator_joy_config", guids[i], i.ToString());
+
+            return true;
+        }
+
+        /// <summary>
+        /// Gamepad configuration. Raine reads the SDL game controllers with the standard layout,
+        /// the other devices (arcade encoders, joysticks) with their SDL numbering, the one of es_input.cfg.
+        /// </summary>
+        private void ConfigureJoystick(IniFile ini, Controller ctrl, int playerIndex, int joy)
+        {
+            // Raine has 4 players
+            if (playerIndex > 4)
+                return;
 
             string iniSection = "default_game_key_config_sdl2";
-            int index = ctrl.DeviceIndex + 1;
+            string player = "Def_P" + playerIndex + "_";
+
+            bool gameController = ctrl.SdlController != null || ctrl.IsXInputDevice;
             bool isNintendo = ctrl.VendorID == USB_VENDOR.NINTENDO;
-            int buttonStart = 65536;
-            int axisStart = 512;
-            int axisIncrement = 256;
+
+            // Game controller button, or es_input.cfg input of the device
+            Func<InputKey, int, string> button = (key, gcButton) => (gameController ? RaineJoy(joy, 0, gcButton + 1, 0) : GetRawCode(ctrl, key, joy)).ToString();
+            Func<InputKey, int, bool, string> axis = (key, gcAxis, positive) => (gameController ? RaineJoy(joy, AxisCode(gcAxis, positive), 0, 0) : GetRawCode(ctrl, key, joy)).ToString();
 
             // Coin, service, test and flippers
             if (playerIndex == 1)
             {
-                ini.WriteValue(iniSection, "Def_Coin_A_joystick", (buttonStart * 5 + index).ToString());
-                ini.WriteValue(iniSection, "Def_Service_joystick", (buttonStart * 8 + index).ToString());
-                ini.WriteValue(iniSection, "Def_Test_joystick", (buttonStart * 9 + index).ToString());
-                ini.WriteValue(iniSection, "Def_Flipper_1_Left_joystick", (buttonStart * 10 + index).ToString());
-                ini.WriteValue(iniSection, "Def_Flipper_1_Right_joystick", (buttonStart * 11 + index).ToString());
-                ini.WriteValue(iniSection, "Def_Tilt_Left_joystick", ((axisStart + (axisIncrement * 9) + index)).ToString());
-                ini.WriteValue(iniSection, "Def_Tilt_Right_joystick", ((axisStart + (axisIncrement * 11) + index)).ToString());
+                ini.WriteValue(iniSection, "Def_Coin_A_joystick", button(InputKey.select, GC_BACK));
+
+                // Test opens the test menu : R3, never L3 which is pressed while playing with the stick
+                ini.WriteValue(iniSection, "Def_Service_joystick", button(InputKey.l3, GC_LEFTSTICK));
+                ini.WriteValue(iniSection, "Def_Test_joystick", button(InputKey.r3, GC_RIGHTSTICK));
+
+                ini.WriteValue(iniSection, "Def_Flipper_1_Left_joystick", button(InputKey.pageup, GC_LEFTSHOULDER));
+                ini.WriteValue(iniSection, "Def_Flipper_1_Right_joystick", button(InputKey.pagedown, GC_RIGHTSHOULDER));
+                ini.WriteValue(iniSection, "Def_Tilt_Left_joystick", axis(InputKey.l2, GC_AXIS_TRIGGERLEFT, true));
+                ini.WriteValue(iniSection, "Def_Tilt_Right_joystick", axis(InputKey.r2, GC_AXIS_TRIGGERRIGHT, true));
             }
-            else if (playerIndex == 2)
-                ini.WriteValue(iniSection, "Def_Coin_B_joystick", (buttonStart * 5 + index).ToString());
-            else if (playerIndex == 3)
-                ini.WriteValue(iniSection, "Def_Coin_C_joystick", (buttonStart * 5 + index).ToString());
-            else if (playerIndex == 4)
-                ini.WriteValue(iniSection, "Def_Coin_D_joystick", (buttonStart * 5 + index).ToString());
+            else
+                ini.WriteValue(iniSection, "Def_Coin_" + (char)('A' + playerIndex - 1) + "_joystick", button(InputKey.select, GC_BACK));
 
-            // Buttons
-            ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Start_joystick", (buttonStart * 7 + index).ToString());
-            ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Up_joystick", ((axisStart + (axisIncrement * 2) + index)).ToString());
-            ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Down_joystick", ((axisStart + (axisIncrement * 3) + index)).ToString());
-            ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Left_joystick", ((axisStart + (axisIncrement * 0) + index)).ToString());
-            ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Right_joystick", ((axisStart + (axisIncrement * 1) + index)).ToString());
-            ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Button_1_joystick", isNintendo ? (buttonStart * 2 + index).ToString() : (buttonStart * 1 + index).ToString());
-            ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Button_2_joystick", isNintendo ? (buttonStart * 1 + index).ToString() : (buttonStart * 2 + index).ToString());
-            ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Button_3_joystick", isNintendo ? (buttonStart * 4 + index).ToString() : (buttonStart * 3 + index).ToString());
-            ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Button_4_joystick", isNintendo ? (buttonStart * 3 + index).ToString() : (buttonStart * 4 + index).ToString());
-            ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Button_5_joystick", (buttonStart * 10 + index).ToString());
-            ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Button_6_joystick", (buttonStart * 11 + index).ToString());
-            ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Button_7_joystick", ((axisStart + (axisIncrement * 9) + index)).ToString());
-            ini.WriteValue(iniSection, "Def_P" + playerIndex + "_Button_8_joystick", ((axisStart + (axisIncrement * 11) + index)).ToString());
-            ini.WriteValue(iniSection, "Def_Coin_D_joystick", (buttonStart * 5 + index).ToString());
+            // Directions : left stick for the game controllers (Raine moves the d-pad on it, USE HAT AND STICK)
+            ini.WriteValue(iniSection, player + "Start_joystick", button(InputKey.start, GC_START));
+            ini.WriteValue(iniSection, player + "Up_joystick", axis(InputKey.up, GC_AXIS_LEFTY, false));
+            ini.WriteValue(iniSection, player + "Down_joystick", axis(InputKey.down, GC_AXIS_LEFTY, true));
+            ini.WriteValue(iniSection, player + "Left_joystick", axis(InputKey.left, GC_AXIS_LEFTX, false));
+            ini.WriteValue(iniSection, player + "Right_joystick", axis(InputKey.right, GC_AXIS_LEFTX, true));
 
-            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
+            // Buttons 1-4 by position : south, east, west, north (Nintendo game controllers give the button labels)
+            ini.WriteValue(iniSection, player + "Button_1_joystick", button(InputKey.a, isNintendo ? GC_B : GC_A));
+            ini.WriteValue(iniSection, player + "Button_2_joystick", button(InputKey.b, isNintendo ? GC_A : GC_B));
+            ini.WriteValue(iniSection, player + "Button_3_joystick", button(InputKey.y, isNintendo ? GC_Y : GC_X));
+            ini.WriteValue(iniSection, player + "Button_4_joystick", button(InputKey.x, isNintendo ? GC_X : GC_Y));
+            ini.WriteValue(iniSection, player + "Button_5_joystick", button(InputKey.pageup, GC_LEFTSHOULDER));
+            ini.WriteValue(iniSection, player + "Button_6_joystick", button(InputKey.pagedown, GC_RIGHTSHOULDER));
+            ini.WriteValue(iniSection, player + "Button_7_joystick", axis(InputKey.l2, GC_AXIS_TRIGGERLEFT, true));
+            ini.WriteValue(iniSection, player + "Button_8_joystick", axis(InputKey.r2, GC_AXIS_TRIGGERRIGHT, true));
+
+            SimpleLogger.Instance.Info("[Raine] Player " + playerIndex + " : " + ctrl.Name + " => joystick " + joy + (gameController ? " (game controller)" : " (joystick)"));
+        }
+
+        // Raine joystick code (control_internal.h, JOY macro) : joystick | axis << 8 | button << 16 | hat << 24, each one counted from 1
+        private static int RaineJoy(int joy, int axis, int button, int hat)
+        {
+            return joy | (axis << 8) | (button << 16) | (hat << 24);
+        }
+
+        // AXIS_LEFT / AXIS_RIGHT of Raine : negative or positive side of an axis
+        private static int AxisCode(int axis, bool positive)
+        {
+            return (axis + 1) * 2 + (positive ? 1 : 0);
+        }
+
+        /// <summary>
+        /// Raw SDL input of es_input.cfg (button, axis side or hat direction) as a Raine joystick code, 0 when not configured.
+        /// </summary>
+        private static int GetRawCode(Controller ctrl, InputKey key, int joy)
+        {
+            var input = ctrl.Config[key];
+            if (input == null)
+                return 0;
+
+            switch (input.Type)
+            {
+                case "button":
+                    return RaineJoy(joy, 0, (int)input.Id + 1, 0);
+                case "axis":
+                    return RaineJoy(joy, AxisCode((int)input.Id, input.Value > 0), 0, 0);
+                case "hat":
+                    return RaineJoy(joy, 0, 0, (((int)input.Id + 1) << 4) | (int)input.Value);
+            }
+
+            return 0;
         }
 
         static readonly List<string> genericControls = new List<string>() { "Def_Coin_A_joystick", "Def_Coin_B_joystick", "Def_Coin_C_joystick", "Def_Coin_D_joystick", "Def_Service_joystick", "Def_Test_joystick", "Def_Service_A_joystick", "Def_Service_B_joystick", "Def_Service_C_joystick", "Next_Game_joystick", "Prev_Game_joystick" };
@@ -172,10 +218,11 @@ namespace EmulatorLauncher
                 ini.WriteValue(iniSection, key, "0");
             }
 
+            // Joystick indexes saved by Raine (SDL GUID = index), whatever the bus (USB 0300, Bluetooth 0500...)
             var guidSection = ini.EnumerateKeys(joyConfigSection);
             foreach (var key in guidSection)
             {
-                if (key.StartsWith("0300"))
+                if (key.Length == 32 && key.All(Uri.IsHexDigit))
                     ini.Remove(joyConfigSection, key);
             }
 
@@ -188,6 +235,10 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "Def_Coin_B", "35");
             ini.WriteValue(iniSection, "Def_Coin_C", "36");
             ini.WriteValue(iniSection, "Def_Coin_D", "37");
+
+            // Test 0, Service 9 (SDL scancodes)
+            ini.WriteValue(iniSection, "Def_Test", "39");
+            ini.WriteValue(iniSection, "Def_Service", "38");
         }
 
         private void SetKeyboardHotKeys(IniFile ini)
