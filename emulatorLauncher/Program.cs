@@ -132,6 +132,7 @@ namespace EmulatorLauncher
             { "n-gage", () => new Eka2l1Generator() },
             { "odin", () => new OdinGenerator() },
             { "openbor", () => new OpenBorGenerator() },
+            { "opencdi", () => new OpenCdiGenerator() },
             { "opengoal", () => new OpenGoalGenerator() },
             { "openjazz", () => new OpenJazzGenerator() },
             { "openmsx", () => new OpenMSXGenerator() },
