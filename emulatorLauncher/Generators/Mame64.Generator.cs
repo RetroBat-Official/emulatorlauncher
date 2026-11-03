@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace EmulatorLauncher
@@ -871,6 +872,61 @@ namespace EmulatorLauncher
             {
                 // Filet de sécurité : ne jamais laisser le fichier à moitié écrit
                 try { File.Copy(backupFile, liveFile, true); } catch { }
+            }
+        }
+
+        public class MameGameInfo
+        {
+            public static MameGameInfo GetGameInfo(string rom)
+            {
+                var file = Path.Combine(Program.SystemConfig.GetFullPath("resources"), "arcaderoms.xml");
+                if (!File.Exists(file))
+                    return null;
+
+                try
+                {
+                    using (XmlReader reader = XmlReader.Create(file))
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.IsStartElement("rom"))
+                            {
+                                string id = reader.GetAttribute("id");
+                                if (id == rom)
+                                {
+                                    string name = reader.GetAttribute("name");
+                                    string vert = reader.GetAttribute("vert");
+
+                                    var game = new MameGameInfo();
+                                    {
+                                        game.RomName = id;
+                                        game.DisplayName = name;
+                                        game.Vertical = vert != null && vert.Equals("true", StringComparison.OrdinalIgnoreCase);
+                                        game.CloneOf = reader.GetAttribute("cloneof");
+                                    }
+                                    ;
+
+                                    return game;
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (XmlException ex) { SimpleLogger.Instance.Error("[MameGameInfo] Failed to parse arcaderoms.xml: " + ex.Message); }
+
+                return null;
+            }
+
+            private MameGameInfo() { }
+
+            public string RomName { get; set; }
+            public string DisplayName { get; set; }
+            public bool Vertical { get; set; }
+            public string CloneOf { get; set; }
+
+            public override string ToString()
+            {
+                return DisplayName;
             }
         }
 

@@ -100,6 +100,21 @@ namespace EmulatorLauncher
             if (!File.Exists(specificMappingPath))
                 specificMappingPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mame", MappingFileName);
 
+            // Clone without its own mapping: use the parent set mapping
+            if (!File.Exists(specificMappingPath) && !messFiles.ContainsKey(messSystem))
+            {
+                string parent = MameGameInfo.GetGameInfo(Path.GetFileNameWithoutExtension(rom))?.CloneOf;
+                if (!string.IsNullOrEmpty(parent))
+                {
+                    specificMappingPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "user", "inputmapping", "mame", parent + ".xml");
+                    if (!File.Exists(specificMappingPath))
+                        specificMappingPath = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mame", parent + ".xml");
+
+                    if (File.Exists(specificMappingPath))
+                        SimpleLogger.Instance.Info("[INFO] MAME: using parent mapping " + parent + ".xml");
+                }
+            }
+
             if (File.Exists(specificMappingPath))
             {
                 var gameMapping = GameMapping.LoadGameFromXml(specificMappingPath);
