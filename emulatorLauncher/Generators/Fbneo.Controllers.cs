@@ -55,32 +55,31 @@ namespace EmulatorLauncher
                 if (layout == "classic8")
                     layout = "6alternative";
 
+                string searchName = _romName;
                 if (decocassGames.Contains(_romName))
-                    game = ymlFile.Elements.Where(g => g.Name == "decocass").FirstOrDefault() as YmlContainer;
+                    searchName = "decocass";
                 else if (decomlcGames.Contains(_romName))
-                    game = ymlFile.Elements.Where(g => g.Name == "decomlc").FirstOrDefault() as YmlContainer;
-                else if (!string.IsNullOrEmpty(layout))
+                    searchName = "decomlc";
+
+                // Search order: game, parent (fbneo_parents.txt), longest prefix, default
+                game = FindGameMapping(ymlFile, searchName, layout);
+
+                if (game == null)
                 {
-                    string searchYml = _romName + "_" + layout;
-                    game = ymlFile.Elements.Where(g => g.Name == searchYml).FirstOrDefault() as YmlContainer;
-                }
-                else
-                {
-                    game = ymlFile.Elements.Where(g => g.Name == _romName).FirstOrDefault() as YmlContainer;
+                    string parent = GetFbneoParent(searchName);
+                    if (!string.IsNullOrEmpty(parent))
+                    {
+                        game = FindGameMapping(ymlFile, parent, layout);
+                        if (game != null)
+                            SimpleLogger.Instance.Info("[INFO] FBNeo mapping: using parent " + parent + " for " + _romName);
+                    }
                 }
 
                 if (game == null)
                 {
-                    game = ymlFile.Elements.Where(g => _romName.StartsWith(g.Name) && g.Name != "").OrderByDescending(g => g.Name.Length).FirstOrDefault() as YmlContainer;
-                    YmlContainer newGame = null;
-                    if (game != null && !string.IsNullOrEmpty(layout))
-                    {
-                        string searchYml = game.Name + "_" + layout;
-                        newGame = ymlFile.Elements.Where(g => g.Name == searchYml).FirstOrDefault() as YmlContainer;
-
-                        if (newGame != null)
-                            game = newGame;
-                    }
+                    var prefix = ymlFile.Elements.Where(g => g.Name != "" && searchName.StartsWith(g.Name)).OrderByDescending(g => g.Name.Length).FirstOrDefault();
+                    if (prefix != null)
+                        game = FindGameMapping(ymlFile, prefix.Name, layout);
                 }
 
                 if (game == null)
@@ -221,7 +220,7 @@ namespace EmulatorLauncher
                         if (controller.PlayerIndex == 1)
                             cfg["input  " + "\"Coin\""] = GetDinputMapping(dinputCtrl, updatedValue ?? button.Value, joy, index);
                     }
-                    if (button.Key == "Ryu Start")
+                    else if (button.Key == "Ryu Start")
                     {
                         if (controller.PlayerIndex == 1)
                             cfg["input  " + "\"Ryu Start\""] = GetDinputMapping(dinputCtrl, updatedValue ?? button.Value, joy, index);
@@ -377,6 +376,41 @@ namespace EmulatorLauncher
                 }
                 catch { }
             }
+        }
+
+        // Returns "<name>_<layout>" if it exists, otherwise "<name>"
+        private static YmlContainer FindGameMapping(YmlFile ymlFile, string name, string layout)
+        {
+            YmlContainer ret = null;
+
+            if (!string.IsNullOrEmpty(layout))
+                ret = ymlFile.Elements.FirstOrDefault(g => g.Name == name + "_" + layout) as YmlContainer;
+
+            if (ret == null)
+                ret = ymlFile.Elements.FirstOrDefault(g => g.Name == name) as YmlContainer;
+
+            return ret;
+        }
+
+        // Parent of a FBNeo clone, read from system\tools\fbneo_parents.txt (clone=parent)
+        private static string GetFbneoParent(string romName)
+        {
+            string parentsFile = Path.Combine(Program.AppConfig.GetFullPath("tools"), "fbneo_parents.txt");
+            if (!File.Exists(parentsFile))
+                return null;
+
+            try
+            {
+                string search = romName + "=";
+                foreach (var line in File.ReadLines(parentsFile))
+                {
+                    if (line.StartsWith(search, System.StringComparison.OrdinalIgnoreCase))
+                        return line.Substring(search.Length).Trim();
+                }
+            }
+            catch { }
+
+            return null;
         }
 
         private string GetDinputMapping(SdlToDirectInput c, string buttonkey, string joy, int index)

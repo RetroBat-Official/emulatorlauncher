@@ -326,8 +326,20 @@ namespace EmulatorLauncher
 
                 // "'<game>': <file> (<size> bytes, CRC <crc>) is missing; MAME keeps it in <set>.zip"
                 var missing = errors.Where(e => e.Contains(" is missing; ")).ToList();
-                if (missing.Count > 0)
-                    return missing.Count == 1 ? missing[0] : missing[0] + " (+" + (missing.Count - 1) + " other missing files)";
+                if (missing.Count == 1)
+                    return missing[0];
+
+                if (missing.Count > 1)
+                {
+                    // "missing files : 93c46.ic115 (hikaru.zip), x76f100.ic85 (hikaru.zip)"
+                    var files = missing.Select(e =>
+                    {
+                        var m = System.Text.RegularExpressions.Regex.Match(e, @"^'[^']+': (.+?) \(.*MAME keeps it in (.+)$");
+                        return m.Success ? m.Groups[1].Value + " (" + m.Groups[2].Value + ")" : e;
+                    });
+
+                    return "missing files : " + string.Join(", ", files);
+                }
 
                 return errors.Last();
             }

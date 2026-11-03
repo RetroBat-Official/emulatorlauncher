@@ -59,14 +59,14 @@ namespace EmulatorLauncher
         private static readonly Dictionary<string, string> _keyboardInputs = new Dictionary<string, string>()
         {
             // Every game
-            { "coin1", "key:5" }, { "coin2", "key:6" }, { "test", "key:9" }, { "1p_service", "key:0" },
-            { "start", "key:1" },
+            { "coin1", "key:5, key:Keypad 5" }, { "coin2", "key:6, key:Keypad 6" }, { "test", "key:9, key:Keypad 9" }, { "1p_service", "key:0, key:Keypad 0" },
+            { "start", "key:1, key:Keypad 1" },
             // airtrix, airtrixo
             { "left", "key:X" }, { "right", "key:C" }, { "up", "key:Up" }, { "down", "key:Down" }, { "yaw", "" }, { "roll", "" },
             // braveff
-            { "1p_water", "key:Left Ctrl, mouse:left" }, { "1p_fog", "key:Left Alt, mouse:right" }, { "1p_start", "key:1, mouse:middle" },
+            { "1p_water", "key:Left Ctrl, mouse:left" }, { "1p_fog", "key:Left Alt, mouse:right" }, { "1p_start", "key:1, key:Keypad 1, mouse:middle" },
             { "1p_sight_x", "mouse:x" }, { "1p_sight_y", "mouse:y" },
-            { "2p_water", "key:A, mouse:left" }, { "2p_fog", "key:S, mouse:right" }, { "2p_start", "key:2, mouse:middle" },
+            { "2p_water", "key:A, mouse:left" }, { "2p_fog", "key:S, mouse:right" }, { "2p_start", "key:2, key:Keypad 2, mouse:middle" },
             { "2p_sight_x", "mouse:x" }, { "2p_sight_y", "mouse:y" },
             // pharrier
             { "bullet", "key:Left Ctrl" }, { "missile", "key:Left Alt" }, { "bomb", "key:Left Shift" },
@@ -150,9 +150,9 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Test : RetroBat key, hotkey + R3 (es_padtokey.cfg) and Guide + R3 (Odin shortcut).
-            // Service : RetroBat key only, Guide + L3 is not kept (with Guide as RetroBat hotkey, L3 pauses).
-            AddLineInput(lines, "test", "pad:guide+rightstick");
+            // Test and Service keep their RetroBat keys without controller (R3 / L3 are set by the yml)
+            if (!lines.ContainsKey("test"))
+                lines["test"] = new List<string>();
             if (!lines.ContainsKey("1p_service"))
                 lines["1p_service"] = new List<string>();
 
@@ -184,8 +184,9 @@ namespace EmulatorLauncher
                     ini.WriteValue(controlsSection, line.Key, string.Join(", ", inputs));
             }
 
-            // No input for the service of player 2 (Odin default : Guide + L3)
-            ini.WriteValue(controlsSection, "2p_service", "");
+            // No service for player 2 without controller (Odin default : Guide + L3)
+            if (!lines.ContainsKey("2p_service"))
+                ini.WriteValue(controlsSection, "2p_service", "");
 
             WriteGunKeyboardLines(ini, controlsSection);
         }

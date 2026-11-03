@@ -464,7 +464,8 @@ namespace EmulatorLauncher
                     else if (value == "y")
                         value = "x";
 
-                    if (Enum.TryParse(value, true, out InputKey inputKey))
+                    // L3 / R3 alone are Service / Test
+                    if (Enum.TryParse(value, true, out InputKey inputKey) && inputKey != InputKey.l3 && inputKey != InputKey.r3)
                         padHotkeys.Add(new KeyValuePair<InputKey, string>(inputKey, hotkey.Key));
                 }
             }
@@ -495,8 +496,6 @@ namespace EmulatorLauncher
             { InputKey.down, "SelectPreviousSaveStateSlot" },
             { InputKey.left, "Rewind" },
             { InputKey.right, "FastForward" },
-            { InputKey.l3, "TogglePause" },
-            { InputKey.r3, "Screenshot" },
         };
 
         private void ResetHotkeysToDefault(IniFile ini)

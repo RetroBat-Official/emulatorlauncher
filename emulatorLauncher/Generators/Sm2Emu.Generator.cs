@@ -166,7 +166,7 @@ namespace EmulatorLauncher
                 ini.WriteValue("paths", "scrape_artwork", "false");
                 ini.WriteValue("system", "language", GetSm2Language());
 
-                // RetroBat manages the controller hotkeys (Guide + L3/R3 for Service/Test stay active)
+                // RetroBat manages the controller hotkeys (Guide + L3/R3 for Service/Test stay active, L3/R3 alone are sent by padtokey)
                 ini.WriteValue("gamepad", "pad_shortcuts", "false");
 
                 // Video
@@ -278,6 +278,24 @@ namespace EmulatorLauncher
                     else if (input.Code == "KEY_F4")
                         input.Code = "KEY_F7";
                 }
+            }
+
+            return AddOperatorButtons(mapping);
+        }
+
+        /// <summary>
+        /// Test / Service on R3 / L3 alone, as on the other arcade systems. sm2-emu has no pad binding for them (Guide chord only),
+        /// so the controller sends the sm2-emu keys, read by scancode : 0 = Test, 9 = Service.
+        /// </summary>
+        private static PadToKey AddOperatorButtons(PadToKey mapping)
+        {
+            foreach (var button in new[] { new { Key = InputKey.r3, Code = "KEY_0" }, new { Key = InputKey.l3, Code = "KEY_9" } })
+            {
+                mapping = PadToKey.AddOrUpdateKeyMapping(mapping, "sm2-emu", button.Key, (string)null);
+
+                var input = mapping?["sm2-emu"]?[button.Key];
+                if (input != null)
+                    input.Code = button.Code;
             }
 
             return mapping;
