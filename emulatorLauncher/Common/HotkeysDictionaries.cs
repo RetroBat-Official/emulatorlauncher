@@ -53,6 +53,7 @@ namespace EmulatorLauncher
             { "desmume", "DeSmuME-VS2022-x64-Release" },
             { "dolphin", "Dolphin" },
             { "duckstation", "duckstation-qt-x64-ReleaseLTCG" },
+            { "fbneo", "fbneo64" },
             { "flycast", "flycast" },
             { "jgenesis", "jgenesis-gui" },
             { "mednafen", "mednafen" },
@@ -228,6 +229,22 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_disk_prev", "SwitchToPreviousDisc", "f9"),
                     new EmulatorHotkeyInfo("input_disk_next", "SwitchToNextDisc", "f10"),
                     new EmulatorHotkeyInfo("input_disk_eject_toggle", "ChangeDisc", "f11")
+                }),
+
+            new EmulatorHotkey("fbneo", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_menu_toggle", "ToggleMenu", "0x0070"),           // F1
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "FullScreen", "0x0046"),     // F
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "FastForward", "0x004C"),    // L
+                    new EmulatorHotkeyInfo("input_rewind", "Rewind", "0x0008"),                    // Backspace
+                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "FastForwardToggle", "0x0020"), // Space
+                    new EmulatorHotkeyInfo("input_screenshot", "SaveSnapshot", "0x0077"),          // F8
+                    new EmulatorHotkeyInfo("input_save_state", "StateSaveSlot", "0x0071"),         // F2
+                    new EmulatorHotkeyInfo("input_load_state", "StateLoadSlot", "0x0073"),         // F4
+                    new EmulatorHotkeyInfo("input_state_slot_decrease", "StatePrevSlot", "0x0075"), // F6
+                    new EmulatorHotkeyInfo("input_state_slot_increase", "StateNextSlot", "0x0076"), // F7
+                    new EmulatorHotkeyInfo("input_pause_toggle", "Pause", "0x0050"),               // P
+                    new EmulatorHotkeyInfo("input_exit_emulator", "ExitFullScreen", "0x001B")      // Escape
                 }),
 
             new EmulatorHotkey("flycast", new EmulatorHotkeyInfo[]
