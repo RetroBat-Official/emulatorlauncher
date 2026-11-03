@@ -390,12 +390,12 @@ namespace EmulatorLauncher.ControlCenter
 
             if (_tatoo)
             {
-                btnTatoo.Text = "Box";
+                btnTatoo.Text = Properties.Resources.Box;
                 pictureBox1.ImageLocation = BezelFiles.GetDefaultTatoo();
             }
             else
             {
-                btnTatoo.Text = "Tatoo";
+                btnTatoo.Text = Properties.Resources.Tatoo;
                 pictureBox1.ImageLocation = GetMediaPath(Program.CurrentGame.Thumbnail);
             }
         }

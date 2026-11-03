@@ -167,8 +167,8 @@ namespace EmulatorLauncher
                                     if (hotkey.Name == "noHotkey")
                                         continue;
 
-                                    // b is used for control center, so cannot be mapped as hotkey anymore
-                                    if (hotkey.Name == "b")
+                                    // hotkey + b opens the control center, unless disabled
+                                    if (hotkey.Name == "b" && !Program.SystemConfig.getOptBoolean("disable_controlcenter"))
                                         continue;
 
                                     // Replace menu_toggle by input_pause_toggle if menu_toggle is not supported by the emulator
@@ -330,6 +330,10 @@ namespace EmulatorLauncher
                                 {
                                     YmlElement hotkey = cHotkey as YmlElement;
                                     if (hotkey.Name == "noHotkey")
+                                        continue;
+
+                                    // hotkey + b opens the control center, unless disabled
+                                    if (hotkey.Name == "b" && !Program.SystemConfig.getOptBoolean("disable_controlcenter"))
                                         continue;
 
                                     string key = hotkey.Value;
