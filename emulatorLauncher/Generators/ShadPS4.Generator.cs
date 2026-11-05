@@ -84,7 +84,13 @@ namespace EmulatorLauncher
             bool fullscreen = ShouldRunFullscreen();
 
             //settings
-            SetupConfigurationJSON(path, rom, fullscreen, resolution);
+            // KeepUserConfig: config.json is left untouched (shadPS4 controller autoconfiguration is currently disabled in RetroBat)
+            if (KeepUserConfig)
+                LogKeepUserConfig("shadPS4");
+            else
+                SetupConfigurationJSON(path, rom, fullscreen, resolution);
+
+            // Launcher / version selection is always maintained, it is needed to start the right executable
             SetupUI(path);
 
             var commandArray = new List<string>();

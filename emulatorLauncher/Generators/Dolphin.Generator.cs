@@ -82,7 +82,10 @@ namespace EmulatorLauncher
             if (!File.Exists(portableFile))
                 File.WriteAllText(portableFile, "");
 
-            if ((system == "gamecube" && SystemConfig["ratio"] == "") || SystemConfig["ratio"] == "4/3")
+            // KeepUserConfig (not for Triforce, which needs per-game settings): no bezels, no Wii SYSCONF changes
+            bool keepUserConfig = KeepUserConfig && !_triforce;
+
+            if (!keepUserConfig && ((system == "gamecube" && SystemConfig["ratio"] == "") || SystemConfig["ratio"] == "4/3"))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             
             if (SystemConfig.getOptBoolean("dolphin_gui") && _bezelFileInfo != null)
@@ -93,7 +96,7 @@ namespace EmulatorLauncher
 
             _resolution = resolution;
 
-            if (system == "wii")
+            if (system == "wii" && !keepUserConfig)
             {
                 string sysconf = Path.Combine(AppConfig.GetFullPath("saves"), "wii", "dolphin-emu", "User", "Wii", "shared2", "sys", "SYSCONF");
                 if (File.Exists(sysconf))
@@ -104,10 +107,20 @@ namespace EmulatorLauncher
 
             _runWiiMenu = SystemConfig.getOptBoolean("dolphin_wiimenu");
 
-            SetupGeneralConfig(path, system, emulator, core, rom);
-            SetupGfxConfig(path);
-            SetupStateSlotConfig(path);
-            SetupCheevos(path, system);
+            if (keepUserConfig)
+            {
+                // KeepUserConfig: only controllers (and the RetroBat save state slot) are configured
+                LogKeepUserConfig("Dolphin");
+                SetupControllersOnly(path, system, emulator, rom);
+                SetupStateSlotConfig(path);
+            }
+            else
+            {
+                SetupGeneralConfig(path, system, emulator, core, rom);
+                SetupGfxConfig(path);
+                SetupStateSlotConfig(path);
+                SetupCheevos(path, system);
+            }
 
             if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
                 rom = rom.Replace("\\", "/");
@@ -147,6 +160,37 @@ namespace EmulatorLauncher
                 WorkingDirectory = path,
                 WindowStyle = (_bezelFileInfo == null ? ProcessWindowStyle.Normal : ProcessWindowStyle.Maximized)
             };
+        }
+
+        /// <summary>
+        /// KeepUserConfig: writes only the controller configuration, Dolphin.ini settings are left as the user set them.
+        /// </summary>
+        private void SetupControllersOnly(string path, string system, string emulator, string rom)
+        {
+            string iniFile = Path.Combine(path, "User", "Config", "Dolphin.ini");
+
+            try
+            {
+                using (var ini = new IniFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues))
+                {
+                    _fullscreen = ini.GetValue("Display", "Fullscreen") == "True";
+
+                    string gameID = "";
+                    string gameName = "";
+                    string region = "";
+                    GetGameInformation(rom, path, out gameID, out gameName, out region);
+
+                    var triforceGame = TriforceGame.GetByGameId(gameID, _triforce);
+
+                    DolphinControllers.WriteControllersConfig(path, ini, system, emulator, rom, _triforce, _crediar, triforceGame, region);
+
+                    ini.Save();
+                }
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[KeepUserConfig] Dolphin: controller configuration failed: " + ex.Message);
+            }
         }
 
         /// <summary>

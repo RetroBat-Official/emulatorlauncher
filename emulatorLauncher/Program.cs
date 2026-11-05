@@ -922,6 +922,17 @@ namespace EmulatorLauncher
 
                     ProcessStartInfo path = null;
 
+                    // KeepUserControls: per-emulator switch that turns off RetroBat controller autoconfiguration
+                    // (same effect as "Autoconfigure controllers = OFF", but selectable per emulator)
+                    string kucEmulator = (SystemConfig["emulator"] ?? "").ToLowerInvariant();
+                    if (Generator.IsEmulatorOptionEnabled("keepusercontrols"))
+                    {
+                        SystemConfig["disableautocontrollers"] = "1";
+                        SimpleLogger.Instance.Info("[KeepUserControls] " + kucEmulator + ": controller autoconfiguration disabled, user controls preserved.");
+                    }
+                    else
+                        SimpleLogger.Instance.Info("[KeepUserControls] " + kucEmulator + ": not enabled, RetroBat controller configuration applies.");
+
                     try
                     {
                         path = generator.Generate(SystemConfig["system"], SystemConfig["emulator"], SystemConfig["core"], SystemConfig["rom"], null, screenResolution);

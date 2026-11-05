@@ -79,7 +79,11 @@ namespace EmulatorLauncher
             if (SystemConfig.isOptSet("duckstation_internalBezel") && !SystemConfig.getOptBoolean("duckstation_internalBezel"))
                 _internalBezel = false;
 
-            if (fullscreen && _internalBezel)
+            if (KeepUserConfig)
+            {
+                // KeepUserConfig: no bezel / ReShade injection into the emulator folder
+            }
+            else if (fullscreen && _internalBezel)
             {
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             }
@@ -186,6 +190,17 @@ namespace EmulatorLauncher
             {
                 using (var ini = new IniFile(iniFile, IniOptions.UseSpaces))
                 {
+                    // KeepUserConfig: only controllers, guns and mouse are configured
+                    if (KeepUserConfig)
+                    {
+                        LogKeepUserConfig("DuckStation");
+                        CreateControllerConfiguration(ini);
+                        CreateGunConfiguration(ini);
+                        SetupMouse(ini);
+                        ini.Save();
+                        return;
+                    }
+
                     ini.WriteValue("Main", "SetupWizardIncomplete", "false");
 
                     string biosPath = AppConfig.GetFullPath("bios");
@@ -547,27 +562,32 @@ namespace EmulatorLauncher
                     CreateGunConfiguration(ini);
 
                     // Manage mouse
-                    for (int i = 1; i < 3; i++)
-                    {
-                        string cType = "duck_controller" + i;
-                        if (SystemConfig[cType] == "PlayStationMouse" && !(SystemConfig.isOptSet("disableautocontrollers") && SystemConfig["disableautocontrollers"] == "1"))
-                        {
-                            ini.WriteValue("UI", "EnableMouseMapping", "true");
-
-                            string section = "Pad" + i;
-                            ini.ClearSection(section);
-                            ini.WriteValue(section, "Type", "PlayStationMouse");
-                            ini.WriteValue(section, "Pointer", "Pointer-0");
-                            ini.WriteValue(section, "Left", "Pointer-0/LeftButton");
-                            ini.WriteValue(section, "Right", "Pointer-0/RightButton");
-                        }
-                    }
+                    SetupMouse(ini);
 
                     ini.Save();
                 }
                 
             }
             catch { }
+        }
+
+        private void SetupMouse(IniFile ini)
+        {
+            for (int i = 1; i < 3; i++)
+            {
+                string cType = "duck_controller" + i;
+                if (SystemConfig[cType] == "PlayStationMouse" && !(SystemConfig.isOptSet("disableautocontrollers") && SystemConfig["disableautocontrollers"] == "1"))
+                {
+                    ini.WriteValue("UI", "EnableMouseMapping", "true");
+
+                    string section = "Pad" + i;
+                    ini.ClearSection(section);
+                    ini.WriteValue(section, "Type", "PlayStationMouse");
+                    ini.WriteValue(section, "Pointer", "Pointer-0");
+                    ini.WriteValue(section, "Left", "Pointer-0/LeftButton");
+                    ini.WriteValue(section, "Right", "Pointer-0/RightButton");
+                }
+            }
         }
 
         private static void AddPathToRecursivePaths(string romPath, IniFile ini)

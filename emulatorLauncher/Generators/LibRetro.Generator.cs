@@ -132,7 +132,7 @@ namespace EmulatorLauncher.Libretro
             AddNetplayArguments(commandArray, core);
 
             // RetroArch since 1.7.8 requires the shaders to be passed as command line argument
-            if (GetVideoShader(emulator, core, rom, out string videoShader))
+            if (!KeepUserConfig && GetVideoShader(emulator, core, rom, out string videoShader))
             {
                 commandArray.Add("--set-shader");
                 commandArray.Add("\"" + videoShader + "\"");
@@ -1107,6 +1107,24 @@ namespace EmulatorLauncher.Libretro
         {
             var retroarchConfig = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"), new ConfigFileOptions() { CaseSensitive = true });
 
+            // KeepUserConfig: only controller bindings are written, every other retroarch.cfg setting
+            // (video, shaders, latency, core options, bezels...) is left as the user configured it
+            if (KeepUserConfig)
+            {
+                LogKeepUserConfig("RetroArch");
+                ConfigureControllersOnly(retroarchConfig, system, core);
+
+                // Explicit per-key overrides from es_settings.cfg (e.g. snes.retroarch.xxx) are still honoured
+                foreach (var user_config in SystemConfig)
+                    if (user_config.Name.StartsWith("retroarch."))
+                        retroarchConfig[user_config.Name.Substring("retroarch.".Length)] = user_config.Value;
+
+                if (retroarchConfig.IsDirty)
+                    retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
+
+                return;
+            }
+
             retroarchConfig["global_core_options"] = "true";
             retroarchConfig["core_options_path"] = ""; //',             '"/userdata/system/configs/retroarch/cores/retroarch-core-options.cfg"')          
             retroarchConfig["menu_driver"] = "ozone";
@@ -1626,6 +1644,33 @@ namespace EmulatorLauncher.Libretro
 
             if (retroarchConfig.IsDirty)
                 retroarchConfig.Save(Path.Combine(RetroarchPath, "retroarch.cfg"), true);
+        }
+
+        /// <summary>
+        /// KeepUserConfig: same controller logic as Configure(), without any other setting.
+        /// </summary>
+        private void ConfigureControllersOnly(ConfigFile retroarchConfig, string system, string core)
+        {
+            // Default controllers
+            retroarchConfig.DisableAll("input_libretro_device_p");
+
+            retroarchConfig["input_libretro_device_p1"] = coreToP1Device.ContainsKey(core) ? coreToP1Device[core] : "1";
+            retroarchConfig["input_libretro_device_p2"] = coreToP2Device.ContainsKey(core) ? coreToP2Device[core] : "1";
+
+            if (LibretroControllers.WriteControllersConfig(retroarchConfig, system, core, out bool kbPad))
+            {
+                UseEsPadToKey = false;
+
+                if (kbPad)
+                    _noCoreRemap = true;
+            }
+
+            // If no hotkey if configured, add pad2key to exit retroarch
+            if (retroarchConfig["input_enable_hotkey"] == "nul" && retroarchConfig["input_enable_hotkey_btn"] == "nul" && retroarchConfig["input_enable_hotkey_axis"] == "nul" && retroarchConfig["input_enable_hotkey_mbtn"] == "nul")
+            {
+                if (Controllers.Any(c => !c.IsKeyboard))
+                    _noHotkey = true;
+            }
         }
 
         private void ConfigureLatencyAndSavestates(string core, string subSystem, ConfigFile retroarchConfig)

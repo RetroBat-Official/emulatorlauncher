@@ -979,6 +979,73 @@ namespace EmulatorLauncher
         }
         #endregion
 
+        #region keepuserconfig
+        /// <summary>
+        /// Reads an on/off option that can be set per game, per system, per emulator or globally.
+        /// Precedence (most specific wins):
+        ///   1. game    : &lt;system&gt;["&lt;rom&gt;"].&lt;option&gt;   (RetroBat ADVANCED GAME OPTIONS)
+        ///   2. system  : &lt;system&gt;.&lt;option&gt;             (RetroBat ADVANCED SYSTEM OPTIONS, e.g. ps2.keepuserconfig)
+        ///   3. emulator: global.&lt;option&gt;.&lt;emulator&gt;   (manual entry, e.g. global.keepuserconfig.pcsx2)
+        ///   4. global  : global.&lt;option&gt;
+        /// RetroArch ("libretro", "angle", "lr-*") always uses the "libretro" emulator name.
+        /// </summary>
+        public static bool IsEmulatorOptionEnabled(string option)
+        {
+            var config = Program.SystemConfig;
+            if (config == null || string.IsNullOrEmpty(option))
+                return false;
+
+            string system = config["system"];
+            if (!string.IsNullOrEmpty(system))
+            {
+                string rom = config["rom"];
+                if (!string.IsNullOrEmpty(rom))
+                {
+                    string gameKey = system + "[\"" + Path.GetFileName(rom).Replace("=", "").Replace("#", "") + "\"]." + option;
+                    if (config.isOptSet(gameKey) && !string.IsNullOrEmpty(config[gameKey]))
+                        return config.getOptBoolean(gameKey);
+                }
+
+                string systemKey = system + "." + option;
+                if (config.isOptSet(systemKey) && !string.IsNullOrEmpty(config[systemKey]))
+                    return config.getOptBoolean(systemKey);
+            }
+
+            string emulator = config["emulator"];
+            if (!string.IsNullOrEmpty(emulator))
+            {
+                emulator = emulator.ToLowerInvariant();
+
+                if (emulator == "angle" || emulator.StartsWith("lr-"))
+                    emulator = "libretro";
+
+                string emulatorKey = "global." + option + "." + emulator;
+                if (config.isOptSet(emulatorKey) && !string.IsNullOrEmpty(config[emulatorKey]))
+                    return config.getOptBoolean(emulatorKey);
+            }
+
+            string globalKey = "global." + option;
+            return config.isOptSet(globalKey) && config.getOptBoolean(globalKey);
+        }
+
+        /// <summary>
+        /// "keepuserconfig" mode: generators that support it only write the controller configuration
+        /// and leave every other emulator setting untouched.
+        /// </summary>
+        protected bool KeepUserConfig
+        {
+            get { return IsEmulatorOptionEnabled("keepuserconfig"); }
+        }
+
+        protected void LogKeepUserConfig(string emulatorName)
+        {
+            bool controlsKept = SystemConfig.isOptSet("disableautocontrollers") && SystemConfig["disableautocontrollers"] == "1";
+
+            SimpleLogger.Instance.Info("[KeepUserConfig] " + emulatorName + ": user configuration preserved, " +
+                (controlsKept ? "controllers are not configured either (autoconfiguration disabled)." : "only controllers are configured."));
+        }
+        #endregion
+
         #region bindfeatures
         // xml bindfeatures
         protected void BindFeature(System.Xml.Linq.XElement cfg, string settingName, string featureName, string defaultValue, bool force = false)

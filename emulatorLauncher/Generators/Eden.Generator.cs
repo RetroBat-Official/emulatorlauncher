@@ -64,6 +64,14 @@ namespace EmulatorLauncher
 
             using (var ini = new IniFile(conf, IniOptions.KeepEmptyValues))
             {
+                // KeepUserConfig: only controllers are configured
+                if (KeepUserConfig)
+                {
+                    LogKeepUserConfig("Eden");
+                    CreateControllerConfiguration(ini);
+                    return;
+                }
+
                 ini.WriteValue("UI", "check_for_updates\\default", "false");
                 ini.WriteValue("UI", "check_for_updates", "false");
 

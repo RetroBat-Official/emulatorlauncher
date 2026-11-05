@@ -162,6 +162,11 @@ namespace EmulatorLauncher
                 }
             }
 
+            // KeepUserConfig: keep the user's per-game custom configs active
+            bool keepUserConfig = KeepUserConfig;
+            if (keepUserConfig && !SystemConfig.isOptSet("rpcs3_custom_config"))
+                _noGameOverride = false;
+
             if (_noGameOverride)
             {
                 string gameConfigPath = Path.Combine(path, "config", "custom_configs");
@@ -186,9 +191,18 @@ namespace EmulatorLauncher
             ValidateUncompressedGame();
             
             // Configuration
-            SetupGuiConfiguration(path);
-            SetupConfiguration(path, fullscreen);
-            SetupVFSConfiguration(path, savesPath);
+            if (keepUserConfig)
+            {
+                // KeepUserConfig: only controllers are configured
+                LogKeepUserConfig("RPCS3");
+            }
+            else
+            {
+                SetupGuiConfiguration(path);
+                SetupConfiguration(path, fullscreen);
+                SetupVFSConfiguration(path, savesPath);
+            }
+
             CreateControllerConfiguration(path);
 
             // Check if firmware is installed in emulator, if not and if firmware is available in \bios path then install it instead of running the game

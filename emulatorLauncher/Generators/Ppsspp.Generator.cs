@@ -72,7 +72,13 @@ namespace EmulatorLauncher
             bool fullscreen = ShouldRunFullscreen();
 
             WriteInstalledFile(path, memPath);
-            SetupConfig(memPath, rom, fullscreen);
+
+            // KeepUserConfig: only controllers are configured (ppsspp.ini is left untouched)
+            if (KeepUserConfig)
+                LogKeepUserConfig("PPSSPP");
+            else
+                SetupConfig(memPath, rom, fullscreen);
+
             CreateControllerConfiguration(memPath);
 
             var commandArray = new List<string>();

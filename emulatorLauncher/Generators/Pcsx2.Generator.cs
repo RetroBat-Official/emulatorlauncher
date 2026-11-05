@@ -595,6 +595,19 @@ namespace EmulatorLauncher
 
             using (var ini = IniFile.FromFile(conf, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues))
             {
+                // KeepUserConfig: only controllers, guns and wheels are configured (not for namco2x6 arcade, which needs per-game settings)
+                if (KeepUserConfig && !_isArcade)
+                {
+                    LogKeepUserConfig("PCSX2");
+                    CreateControllerConfiguration(ini, system);
+                    SetupGunQT(ini, path);
+
+                    if (!SystemConfig.isOptSet("pcsx2_emulatedwheel"))
+                        SetupWheelQT(ini);
+
+                    return;
+                }
+
                 ini.WriteValue("UI", "HideMouseCursor", "true");
                 ini.WriteValue("UI", "StartPaused", "false");
                 ini.WriteValue("UI", "PauseOnFocusLoss", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true");
