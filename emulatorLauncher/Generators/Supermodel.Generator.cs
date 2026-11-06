@@ -230,10 +230,11 @@ namespace EmulatorLauncher
                     BindBoolIniFeatureOn(ini, " Global ", "Throttle", "throttle", "1", "0");          //throttle - default on
                     BindBoolIniFeatureOn(ini, " Global ", "New3DEngine", "new3Dengine", "1", "0");    //New3DEngine - setting to OFF will use legacy 3D engine, fixes OpenGL error on older GPUs
                     BindBoolIniFeature(ini, " Global ", "MultiThreaded", "m3_thread", "0", "1");
-                    BindIniFeatureSlider(ini, " Global ", "PowerPCFrequency", "m3_ppc_frequency", "50");
+                    BindBoolIniFeatureOn(ini, " Global ", "HighLevelGeometrizer", "supermodel_hlgeometrizer", "1", "0");
+                    BindIniFeatureSlider(ini, " Global ", "PowerPCFrequency", "m3_ppc_frequency", "0");
                     BindBoolIniFeature(ini, " Global ", "ShowFrameRate", "m3_fps", "1", "0");
                     BindBoolIniFeature(ini, " Global ", "WideBackground", "widescreen", "1", "0");
-                    BindBoolIniFeature(ini, " Global ", "QuadRendering", "quadRendering", "1", "0");
+                    BindBoolIniFeatureOn(ini, " Global ", "QuadRendering", "quadRendering", "1", "0");
                     BindBoolIniFeatureOn(ini, " Global ", "VSync", "m3_vsync", "1", "0");
 
                     if (SystemConfig.isOptSet("supermodel_output") && !string.IsNullOrEmpty(SystemConfig["supermodel_output"]))
@@ -241,10 +242,10 @@ namespace EmulatorLauncher
                     else
                         ini.Remove(" Global ", "Outputs");
 
-                    //force rompath in GUI
+                    // ROM folder of the GUI
                     string rompath = Path.Combine(AppConfig.GetFullPath("roms"), "model3");
-                    ini.WriteValue(" Supermodel3 UI ", "Dir", rompath);
-                        
+                    ini.WriteValue(" Global ", "ROMDirectory", rompath);
+
                     //Create controller configuration
                     CreateControllerConfiguration(ini);
 

@@ -92,7 +92,7 @@ namespace EmulatorLauncher
             if (_demulshooter)
             {
                 SimpleLogger.Instance.Info("[GUNS] Configuring DemulShooter for Model2.");
-                Demulshooter.StartDemulshooter("m2emulator", "model2", _rom, gun1, gun2);
+                Demulshooter.StartDemulshooter("m2emulator", "model2", parentRom, gun1, gun2);
             }
 
             // Crosshairs
@@ -100,7 +100,7 @@ namespace EmulatorLauncher
             if (!Directory.Exists(crosshairCfgPath)) { try { Directory.CreateDirectory(crosshairCfgPath); } catch { } }
             string crosshairCfgFile = Path.Combine(_path, "artwork", "crosshairs", Path.GetFileNameWithoutExtension(_rom) + ".cfg");
 
-            if (_demulshooter && SystemConfig.isOptSet("m2_crosshair") && !string.IsNullOrEmpty(SystemConfig["m2_crosshair"]) && CrossGames.Contains(Path.GetFileNameWithoutExtension(_rom)))
+            if (_demulshooter && SystemConfig.isOptSet("m2_crosshair") && !string.IsNullOrEmpty(SystemConfig["m2_crosshair"]) && CrossGames.Contains(parentRom))
             {
                 SimpleLogger.Instance.Info("[GUNS] Configuring DemulShooter Crosshairs for Model2.");
 
@@ -124,7 +124,7 @@ namespace EmulatorLauncher
             }
             else
             {
-                using (StreamWriter writer = new StreamWriter(crosshairCfgFile, true))
+                using (StreamWriter writer = new StreamWriter(crosshairCfgFile, false))
                 {
                     writer.WriteLine("1");
                     writer.WriteLine("1");

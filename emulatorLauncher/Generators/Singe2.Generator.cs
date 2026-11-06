@@ -187,7 +187,7 @@ namespace EmulatorLauncher
                     "INPUT_SKILL_MEDIUM = { SCANCODE.KP_MULTIPLY }",
                     "INPUT_SKILL_HARD   = { SCANCODE.KP_MINUS }",
                     "INPUT_SERVICE      = { SCANCODE.MAIN_9 }",
-                    "INPUT_TEST_MODE    = { SCANCODE.F2 }",
+                    "INPUT_TEST_MODE    = { SCANCODE.MAIN_0 }",
                     "INPUT_RESET_CPU    = { SCANCODE.F3 }",
                     "INPUT_SCREENSHOT   = { SCANCODE.F12, SCANCODE.F11 }",
                     "INPUT_QUIT         = { SCANCODE.ESCAPE, SCANCODE.Q }",

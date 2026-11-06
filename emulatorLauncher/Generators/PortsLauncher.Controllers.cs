@@ -1097,7 +1097,7 @@ namespace EmulatorLauncher
             controllers.Remove("RumbleMappings");
 
             string n64guid = controller.Guid.ToLowerInvariant();
-            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            string n64json = Generator.GetSpecialControllersJson("n64Controllers.json");
             bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
             N64Controller n64Gamepad = null;
 

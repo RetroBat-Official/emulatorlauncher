@@ -15,12 +15,13 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private string _path;
         private string _game;
+        private string _section;    // Game of the odin.ini sections : the parent for a version
         private bool _pad2Keyoverride = false;
         private string _statesPath;
         private SaveStatesWatcher _saveStatesWatcher;
 
-        // Games with an optional sound board
-        private static readonly string[] _optionSoundGames = { "pharrier", "sgnascar", "sgnascaro", "swracer" };
+        // Games with an optional sound board, Gaelco games with a woofer ([sound.<game>] mode)
+        private static readonly string[] _optionSoundGames = { "pharrier", "sgnascar", "swracer", "atvtrack", "gfootbal", "smashdrv" };
 
         public OdinGenerator()
         {
@@ -38,6 +39,9 @@ namespace EmulatorLauncher
             // Odin boots MAME sets, identified by their name (airtrix, braveff...)
             _game = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
 
+            // A version of a game (airtrixo, smashdrvb...) shares the odin.ini sections of its parent
+            _section = _parents.TryGetValue(_game, out string parent) ? parent : _game;
+
             bool fullscreen = ShouldRunFullscreen() && !SystemConfig.getOptBoolean("disable_fullscreen");
 
             if (fullscreen && !SystemConfig.getOptBoolean("odin_emulator_bezels"))
@@ -46,7 +50,7 @@ namespace EmulatorLauncher
             SetupSettings(path, system, fullscreen);
             SetupSaveStates(system, rom);
 
-            // Odin looks for the shared sets (hikaru, mie...) in the BIOS folder, then in the games folder
+            // Odin looks for the shared sets of the Hikaru games (hikaru, mie...) in the BIOS folder, then in the games folder (Gaelco games need none)
             var commandArray = new List<string>
             {
                 "-R", "\"" + Path.GetDirectoryName(rom) + "\"",
@@ -117,9 +121,16 @@ namespace EmulatorLauncher
 
                 SetupBezel(ini);
 
+                // The sections of a version itself (written by an older RetroBat) would be read after the parent's ones
+                if (_section != _game)
+                {
+                    foreach (string kind in new[] { "controls.", "players.", "sound." })
+                        ini.ClearSection(kind + _game);
+                }
+
                 // Sound : mode of the games with an optional sound board ([sound.<game>] in OPTIONS), Odin default when not set
-                string soundSection = "sound." + _game;
-                if (_optionSoundGames.Contains(_game) && SystemConfig.isOptSet("odin_soundmode") && !string.IsNullOrEmpty(SystemConfig["odin_soundmode"]))
+                string soundSection = "sound." + _section;
+                if (_optionSoundGames.Contains(_section) && SystemConfig.isOptSet("odin_soundmode") && !string.IsNullOrEmpty(SystemConfig["odin_soundmode"]))
                     ini.WriteValue(soundSection, "mode", SystemConfig["odin_soundmode"]);
                 else
                     ini.Remove(soundSection, "mode");
@@ -132,9 +143,9 @@ namespace EmulatorLauncher
 
                 // The pad shakes as the cabinet (vibration device, drive board, nozzle), on by default
                 if (SystemConfig.isOptSet("odin_rumble") && !SystemConfig.getOptBoolean("odin_rumble"))
-                    ini.WriteValue("players." + _game, "vibration", "off");
+                    ini.WriteValue("players." + _section, "vibration", "off");
                 else
-                    ini.Remove("players." + _game, "vibration");
+                    ini.Remove("players." + _section, "vibration");
 
                 // Lamps, nozzle vibration, drive board : MAME network outputs (port 8000) for Hook Of The Reaper, QMamehook...
                 BindBoolIniFeature(ini, "outputs", "network", "odin_outputs", "on", "off");

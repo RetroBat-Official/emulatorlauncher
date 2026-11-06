@@ -177,8 +177,8 @@ namespace EmulatorLauncher
                 if (SystemConfig.isOptSet("pcsx2_servicemode") && !string.IsNullOrEmpty(SystemConfig["pcsx2_servicemode"]))
                 {
                     pcsx2ini.WriteValue("JVS", "TestMode", "true");
-                    pcsx2ini.AppendValue("JVS", "ToggleTestMode", azerty ? "Keyboard/Ccedilla" : "Keyboard/9");
-                    pcsx2ini.AppendValue("JVS", "P1_Service", azerty ? "Keyboard/Agrave" : "Keyboard/0");
+                    pcsx2ini.AppendValue("JVS", "ToggleTestMode", azerty ? "Keyboard/Agrave" : "Keyboard/0");
+                    pcsx2ini.AppendValue("JVS", "P1_Service", azerty ? "Keyboard/Ccedilla" : "Keyboard/9");
                     pcsx2ini.AppendValue("JVS", "P1_Up", "Keyboard/Up");
                     pcsx2ini.AppendValue("JVS", "P1_Right", "Keyboard/Right");
                     pcsx2ini.AppendValue("JVS", "P1_Down", "Keyboard/Down");

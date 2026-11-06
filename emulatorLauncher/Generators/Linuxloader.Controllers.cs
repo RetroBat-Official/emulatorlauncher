@@ -13,6 +13,106 @@ namespace EmulatorLauncher
     {
         private readonly Dictionary<int, string> _padGuids = new Dictionary<int, string>();
 
+        static readonly string[] mappingPaths =
+        {
+            "{userpath}\\inputmapping\\linuxloader.yml",
+            "{systempath}\\resources\\inputmapping\\linuxloader.yml"
+        };
+
+        // Sections of controls.ini mapped from linuxloader.yml (yml container = section name in lower case)
+        private static readonly string[] _padSections = { "Digital", "Driving", "Flying" };
+
+        // Keyboard bindings, also the list of the controls written in each section (a control without binding is emptied)
+        private static readonly Dictionary<string, Dictionary<string, string>> _keyboardP1 = new Dictionary<string, Dictionary<string, string>>()
+        {
+            { "Digital", new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
+                {
+                    { "P1_Up", "KEY_Up" }, { "P1_Down", "KEY_Down" }, { "P1_Left", "KEY_Left" }, { "P1_Right", "KEY_Right" },
+                    { "P1_Button1", "KEY_Left Ctrl" }, { "P1_Button2", "KEY_Left Alt" }, { "P1_Button3", "KEY_Space" }, { "P1_Card1Insert", "KEY_F7" }
+                }
+            },
+            { "Driving", new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
+                {
+                    { "P1_Steer_Left", "KEY_Left" }, { "P1_Steer_Right", "KEY_Right" }, { "P1_Gas_Digital", "KEY_Up" }, { "P1_Brake_Digital", "KEY_Down" },
+                    { "ViewChange", "KEY_Left Shift" }, { "Boost", "KEY_Left Ctrl" }, { "BoostRight", "KEY_Left Alt" },
+                    { "GearUp", "KEY_X" }, { "GearDown", "KEY_Z" }, { "MusicChange", "KEY_Space" },
+                    { "Up", "KEY_R" }, { "Down", "KEY_F" }, { "Left", "KEY_D" }, { "Right", "KEY_G" }, { "CardInsert", "KEY_F7" },
+                    { "P1_Steer", "" }, { "P1_Gas", "" }, { "P1_Brake", "" }
+                }
+            },
+            { "Flying", new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
+                {
+                    { "Flying_Left", "KEY_Left" }, { "Flying_Right", "KEY_Right" }, { "Flying_Up", "KEY_Up" }, { "Flying_Down", "KEY_Down" },
+                    { "Throttle_Accelerate", "KEY_X" }, { "Throttle_Slowdown", "KEY_Z" },
+                    { "GunTrigger", "KEY_Left Ctrl" }, { "MissileTrigger", "KEY_Left Alt" }, { "ClimaxSwitch", "KEY_Left Shift" },
+                    { "Flying_X", "" }, { "Flying_Y", "" }, { "Throttle", "" }
+                }
+            },
+        };
+
+        // Player 2 only plays digital games
+        private static readonly Dictionary<string, string> _keyboardDigitalP2 = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
+        {
+            { "P2_Up", "KEY_R" }, { "P2_Down", "KEY_F" }, { "P2_Left", "KEY_D" }, { "P2_Right", "KEY_G" },
+            { "P2_Button1", "KEY_A" }, { "P2_Button2", "KEY_S" }, { "P2_Button3", "KEY_Q" }, { "P2_Card2Insert", "KEY_F8" }
+        };
+
+        // Analog controls : a stick or a trigger is bound as a whole axis
+        private static readonly HashSet<string> _analogControls = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
+        {
+            "P1_Steer", "P1_Gas", "P1_Brake", "Flying_X", "Flying_Y", "Throttle"
+        };
+
+        private class PadInput
+        {
+            public string Gamepad;  // SDL gamepad input (GCx_)
+            public string DbKey;    // gamecontrollerdb key, for joysticks (JOYx_)
+            public bool IsAxis;
+            public int Direction;   // -1 / 1 : half axis used as a button
+
+            public PadInput(string gamepad, string dbKey, bool isAxis = false, int direction = 0)
+            {
+                Gamepad = gamepad;
+                DbKey = dbKey;
+                IsAxis = isAxis;
+                Direction = direction;
+            }
+        }
+
+        // Controller positions of linuxloader.yml
+        private static readonly Dictionary<string, PadInput> _padInputs = new Dictionary<string, PadInput>(StringComparer.InvariantCultureIgnoreCase)
+        {
+            { "south", new PadInput("BUTTON_A", "a") },
+            { "east", new PadInput("BUTTON_B", "b") },
+            { "west", new PadInput("BUTTON_X", "x") },
+            { "north", new PadInput("BUTTON_Y", "y") },
+            { "l1", new PadInput("BUTTON_LEFTSHOULDER", "leftshoulder") },
+            { "r1", new PadInput("BUTTON_RIGHTSHOULDER", "rightshoulder") },
+            { "l2", new PadInput("AXIS_LEFTTRIGGER", "lefttrigger", true) },
+            { "r2", new PadInput("AXIS_RIGHTTRIGGER", "righttrigger", true) },
+            { "l3", new PadInput("BUTTON_LEFTSTICK", "leftstick") },
+            { "r3", new PadInput("BUTTON_RIGHTSTICK", "rightstick") },
+            { "select", new PadInput("BUTTON_BACK", "back") },
+            { "start", new PadInput("BUTTON_START", "start") },
+            { "guide", new PadInput("BUTTON_GUIDE", "guide") },
+            { "up", new PadInput("BUTTON_DPUP", "dpup") },
+            { "down", new PadInput("BUTTON_DPDOWN", "dpdown") },
+            { "left", new PadInput("BUTTON_DPLEFT", "dpleft") },
+            { "right", new PadInput("BUTTON_DPRIGHT", "dpright") },
+            { "leftx", new PadInput("AXIS_LEFTX", "leftx", true) },
+            { "lefty", new PadInput("AXIS_LEFTY", "lefty", true) },
+            { "rightx", new PadInput("AXIS_RIGHTX", "rightx", true) },
+            { "righty", new PadInput("AXIS_RIGHTY", "righty", true) },
+            { "leftx-left", new PadInput("AXIS_LEFTX", "leftx", true, -1) },
+            { "leftx-right", new PadInput("AXIS_LEFTX", "leftx", true, 1) },
+            { "lefty-up", new PadInput("AXIS_LEFTY", "lefty", true, -1) },
+            { "lefty-down", new PadInput("AXIS_LEFTY", "lefty", true, 1) },
+            { "rightx-left", new PadInput("AXIS_RIGHTX", "rightx", true, -1) },
+            { "rightx-right", new PadInput("AXIS_RIGHTX", "rightx", true, 1) },
+            { "righty-up", new PadInput("AXIS_RIGHTY", "righty", true, -1) },
+            { "righty-down", new PadInput("AXIS_RIGHTY", "righty", true, 1) },
+        };
+
         private void CreateControllerConfiguration(string cfgPath, string gamePath)
         {
             try
@@ -50,6 +150,8 @@ namespace EmulatorLauncher
                     foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(2))
                         ConfigureInput(ini, controller, samePad);
 
+                    ConfigureWheel(ini);
+
                     // Purge : avoid P3_GUID/P4_GUID added by the loader to stay
                     for (int p = 1; p <= 4; p++)
                         ini.Remove("ControllerGUIDs", "P" + p + "_GUID");
@@ -59,6 +161,12 @@ namespace EmulatorLauncher
                 }
 
                 ConfigureLindberghGuns(ini, "lindbergh", !autoConfig);
+
+                // Gun axis auto-centering (gamepad aiming)
+                string centering = SystemConfig.getOptBoolean("ll_gun_centering") ? "1" : "0";
+                ini.WriteValue("Config", "GunX_Centering", centering);
+                ini.WriteValue("Config", "GunY_Centering", centering);
+
                 EnsureMahjongSection(ini);
 
                 ini.Save();
@@ -90,90 +198,12 @@ namespace EmulatorLauncher
             ini.WriteValue("Common", "P2_Start", "KEY_2");
             ini.WriteValue("Common", "P1_Service", "KEY_9");
 
-            // Digital section
-            ini.WriteValue("Digital", "P1_Up", "KEY_Up");
-            ini.WriteValue("Digital", "P1_Down", "KEY_Down");
-            ini.WriteValue("Digital", "P1_Left", "KEY_Left");
-            ini.WriteValue("Digital", "P1_Right", "KEY_Right");
-            ini.WriteValue("Digital", "P1_Button1", "KEY_Left Ctrl");
-            ini.WriteValue("Digital", "P1_Button2", "KEY_Left Alt");
-            ini.WriteValue("Digital", "P1_Button3", "KEY_Space");
-            ini.WriteValue("Digital", "P1_Card1Insert", "KEY_F7");
-            ini.WriteValue("Digital", "P2_Up", "KEY_R");
-            ini.WriteValue("Digital", "P2_Down", "KEY_F");
-            ini.WriteValue("Digital", "P2_Left", "KEY_D");
-            ini.WriteValue("Digital", "P2_Right", "KEY_G");
-            ini.WriteValue("Digital", "P2_Button1", "KEY_A");
-            ini.WriteValue("Digital", "P2_Button2", "KEY_S");
-            ini.WriteValue("Digital", "P2_Button3", "KEY_Q");
-            ini.WriteValue("Digital", "P2_Card2Insert", "KEY_F8");
+            foreach (string section in _padSections)
+                WritePadSection(ini, section, _keyboardP1[section], 1, null, null, false);
 
-            // Driving section
-            ini.WriteValue("Driving", "P1_Steer_Left", "KEY_Left");
-            ini.WriteValue("Driving", "P1_Steer_Right", "KEY_Right");
-            ini.WriteValue("Driving", "P1_Gas_Digital", "KEY_Up");
-            ini.WriteValue("Driving", "P1_Brake_Digital", "KEY_Down");
-            ini.WriteValue("Driving", "ViewChange", "KEY_Left Shift");
-            ini.WriteValue("Driving", "Boost", "KEY_Left Ctrl");
-            ini.WriteValue("Driving", "BoostRight", "KEY_Left Alt");
-            ini.WriteValue("Driving", "GearUp", "KEY_X");
-            ini.WriteValue("Driving", "GearDown", "KEY_Z");
-            ini.WriteValue("Driving", "MusicChange", "KEY_Space");
-            ini.WriteValue("Driving", "Up", "KEY_R");
-            ini.WriteValue("Driving", "Down", "KEY_F");
-            ini.WriteValue("Driving", "Left", "KEY_D");
-            ini.WriteValue("Driving", "Right", "KEY_G");
-            ini.WriteValue("Driving", "CardInsert", "KEY_F7");
-            ini.WriteValue("Driving", "P1_Steer","");
-            ini.WriteValue("Driving", "P1_Gas", "");
-            ini.WriteValue("Driving", "P1_Brake", "");
+            WritePadSection(ini, "Digital", _keyboardDigitalP2, 2, null, null, false);
 
-            // Flying section
-            ini.WriteValue("Flying", "Flying_Left", "KEY_Left");
-            ini.WriteValue("Flying", "Flying_Right", "KEY_Right");
-            ini.WriteValue("Flying", "Flying_Up", "KEY_Up");
-            ini.WriteValue("Flying", "Flying_Down", "KEY_Down");
-            ini.WriteValue("Flying", "Throttle_Accelerate", "KEY_X");
-            ini.WriteValue("Flying", "Throttle_Slowdown", "KEY_Z");
-            ini.WriteValue("Flying", "GunTrigger", "KEY_Left Ctrl");
-            ini.WriteValue("Flying", "MissileTrigger", "KEY_Left Alt");
-            ini.WriteValue("Flying", "ClimaxSwitch", "KEY_Left Shift");
-            ini.WriteValue("Flying", "Flying_X", "");
-            ini.WriteValue("Flying", "Flying_Y", "");
-            ini.WriteValue("Flying", "Throttle", "");
-
-            // Shooting section
-            if (SystemConfig.isOptSet("ll_gunaxis_invert") && !string.IsNullOrEmpty(SystemConfig["ll_gunaxis_invert"]))
-            {
-                string invertAxis = SystemConfig["ll_gunaxis_invert"].ToLower();
-                if (invertAxis == "x")
-                {
-                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X_INVERTED");
-                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
-                }
-                else if (invertAxis == "y")
-                {
-                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
-                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y_INVERTED");
-                }
-                else if (invertAxis == "both")
-                {
-                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X_INVERTED");
-                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y_INVERTED");
-                }
-            }
-            else
-            {
-                ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
-                ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
-            }
-
-            ini.WriteValue("Shooting", "P1_Trigger", "MOUSE_LEFT_BUTTON");
-            ini.WriteValue("Shooting", "P1_Reload", "MOUSE_RIGHT_BUTTON");
-            ini.WriteValue("Shooting", "P1_GunButton", "MOUSE_MIDDLE_BUTTON");
-            ini.WriteValue("Shooting", "P1_ActionButton", "KEY_R");
-            ini.WriteValue("Shooting", "P1_PedalLeft", "KEY_Left");
-            ini.WriteValue("Shooting", "P1_PedalRight", "KEY_Right");
+            WriteShootingSection(ini);
         }
 
         private void ConfigureJoystick(IniFile ini, Controller ctrl, int playerindex, bool samePad)
@@ -182,7 +212,6 @@ namespace EmulatorLauncher
                 return;
 
             bool testService = SystemConfig.getOptBoolean("ll_testmode");
-            bool standardJoy = false;
             bool isXinput = ctrl.IsXInputDevice;
 
             int cIndex = playerindex - 1;
@@ -220,6 +249,9 @@ namespace EmulatorLauncher
                 }
             }
 
+            // GUID pinning keeps the real pad order, only the binding index is swapped
+            int guidSlot = cIndex;
+
             if (SystemConfig.getOptBoolean("ll_reversepadindex"))
             {
                 if (cIndex == 0)
@@ -228,604 +260,264 @@ namespace EmulatorLauncher
                     cIndex = 0;
             }
 
-            string gcIndex = "GC" + cIndex + "_";
+            // Gamepads use the SDL gamepad names (GCx_), other joysticks their raw inputs (JOYx_) read from gamecontrollerdb.txt
+            bool standardJoy = sdl3Controller != null && !sdl3Controller.IsGamepad;
+            string gcIndex = (standardJoy ? "JOY" : "GC") + cIndex + "_";
 
-            if (sdl3Controller != null && !sdl3Controller.IsGamepad)
+            SdlToDirectInput dinputController = null;
+            if (standardJoy)
             {
-                standardJoy = true;
-                gcIndex = "JOY" + cIndex + "_";
-            }
-
-            string b1 = "BUTTON_A";
-            string b2 = "BUTTON_B";
-            string b3 = "BUTTON_X";
-            string b4 = "BUTTON_Y";
-            string card = "BUTTON_GUIDE";
-            string b6 = "BUTTON_RIGHTSHOULDER";
-            string b5 = "BUTTON_LEFTSHOULDER";
-            string b8 = "AXIS_RIGHTTRIGGER_POSITIVE";
-            string b7 = "AXIS_LEFTTRIGGER_POSITIVE";
-            bool panel = false;
-            bool panel6 = false;
-
-            if (SystemConfig.isOptSet("ll_steer_deadzone") && !string.IsNullOrEmpty(SystemConfig["ll_steer_deadzone"]))
-            {
-                string steerDdeadzone = SystemConfig["ll_steer_deadzone"];
-                ini.WriteValue("Config", "Steer_DeadZone", steerDdeadzone);
-            }
-
-            if (SystemConfig.isOptSet("ll_gasbrake_deadzone") && !string.IsNullOrEmpty(SystemConfig["ll_gasbrake_deadzone"]))
-            {
-                string gasBrakeDeadzone = SystemConfig["ll_gasbrake_deadzone"];
-                ini.WriteValue("Config", "Gas_DeadZone", gasBrakeDeadzone);
-                ini.WriteValue("Config", "Brake_DeadZone", gasBrakeDeadzone);
-            }
-
-            if (SystemConfig.isOptSet("ll_flying_deadzone") && !string.IsNullOrEmpty(SystemConfig["ll_flying_deadzone"]))
-            {
-                string flyingDeadzone = SystemConfig["ll_flying_deadzone"];
-                ini.WriteValue("Config", "FLYING_X_DeadZone", flyingDeadzone);
-                ini.WriteValue("Config", "FLYING_Y_DeadZone", flyingDeadzone);
-                ini.WriteValue("Config", "Throttle_DeadZone", flyingDeadzone);
-            }
-
-            // Common section
-            if (!standardJoy)
-            {
-                if (SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(SystemConfig["controller_layout"]))
-                {
-                    string layout = SystemConfig["controller_layout"];
-                    switch (layout)
-                    {
-                        case "modern8":
-                            panel = true;
-                            b1 = "BUTTON_X";
-                            b2 = "BUTTON_Y";
-                            b3 = "BUTTON_RIGHTSHOULDER";
-                            b4 = "BUTTON_A";
-                            b5 = "BUTTON_B";
-                            b6 = "AXIS_RIGHTTRIGGER_POSITIVE";
-                            b7 = "BUTTON_LEFTSHOULDER";
-                            b8 = "AXIS_LEFTTRIGGER_POSITIVE";
-                            card = "BUTTON_GUIDE";
-                            break;
-                        case "classic8":
-                            panel = true;
-                            b1 = "BUTTON_X";
-                            b2 = "BUTTON_Y";
-                            b3 = "BUTTON_LEFTSHOULDER";
-                            b4 = "BUTTON_A";
-                            b5 = "BUTTON_B";
-                            b6 = "BUTTON_RIGHTSHOULDER";
-                            b7 = "AXIS_LEFTTRIGGER_POSITIVE";
-                            b8 = "AXIS_RIGHTTRIGGER_POSITIVE";
-                            card = "BUTTON_GUIDE";
-                            break;
-                        case "8alternative":
-                            panel = true;
-                            b1 = "BUTTON_A";
-                            b2 = "BUTTON_X";
-                            b3 = "BUTTON_Y";
-                            b4 = "BUTTON_RIGHTSHOULDER";
-                            b5 = "BUTTON_LEFTSHOULDER";
-                            b6 = "BUTTON_B";
-                            b7 = "AXIS_RIGHTTRIGGER_POSITIVE";
-                            b8 = "AXIS_LEFTTRIGGER_POSITIVE";
-                            card = "BUTTON_GUIDE";
-                            break;
-                        case "6alternative":
-                            panel = true;
-                            panel6 = true;
-                            b1 = "BUTTON_X";
-                            b2 = "BUTTON_Y";
-                            b3 = "BUTTON_LEFTSHOULDER";
-                            b4 = "BUTTON_A";
-                            b5 = "BUTTON_B";
-                            b6 = "BUTTON_RIGHTSHOULDER";
-                            b7 = "AXIS_LEFTTRIGGER_POSITIVE";
-                            b8 = "AXIS_RIGHTTRIGGER_POSITIVE";
-                            card = "BUTTON_GUIDE";
-                            break;
-                        case "default":
-                            break;
-                    }
-                }
-
-                if (playerindex == 1)
-                {
-                    ini.WriteValue("Common", "Test", testService ? "KEY_0, " + gcIndex + "BUTTON_RIGHTSTICK" : "KEY_0");
-                    ini.WriteValue("Common", "ExitGame", "KEY_Escape, " + gcIndex + "BUTTON_START + " + gcIndex + "BUTTON_BACK");
-                    ini.WriteValue("Common", "P1_Coin", "KEY_5, " + gcIndex + "BUTTON_BACK");
-                    ini.WriteValue("Common", "P2_Coin", "KEY_6");
-                    ini.WriteValue("Common", "P1_Start", "KEY_1, " + gcIndex + "BUTTON_START");
-                    ini.WriteValue("Common", "P2_Start", "KEY_2");
-                    ini.WriteValue("Common", "P1_Service", testService ? "KEY_9, " + gcIndex + "BUTTON_LEFTSTICK" : "KEY_9");
-                }
-                if (playerindex == 2)
-                {
-                    ini.WriteValue("Common", "P2_Coin", "KEY_6, " + gcIndex + "BUTTON_BACK");
-                    ini.WriteValue("Common", "P2_Start", "KEY_2, " + gcIndex + "BUTTON_START");
-                }
-
-                // Digital section
-                if (playerindex == 1)
-                {
-                    ini.WriteValue("Digital", "P1_Up", "KEY_Up, " + gcIndex + "BUTTON_DPUP, " + gcIndex + "AXIS_LEFTY_NEGATIVE");
-                    ini.WriteValue("Digital", "P1_Down", "KEY_Down, " + gcIndex + "BUTTON_DPDOWN, " + gcIndex + "AXIS_LEFTY_POSITIVE");
-                    ini.WriteValue("Digital", "P1_Left", "KEY_Left, " + gcIndex + "BUTTON_DPLEFT, " + gcIndex + "AXIS_LEFTX_NEGATIVE");
-                    ini.WriteValue("Digital", "P1_Right", "KEY_Right, " + gcIndex + "BUTTON_DPRIGHT, " + gcIndex + "AXIS_LEFTX_POSITIVE");
-                    ini.WriteValue("Digital", "P1_Button1", "KEY_Left Ctrl, " + gcIndex + b1);
-                    ini.WriteValue("Digital", "P1_Button2", "KEY_Left Alt, " + gcIndex + b2);
-                    ini.WriteValue("Digital", "P1_Button3", "KEY_Space, " + gcIndex + b3);
-                    ini.WriteValue("Digital", "P1_Card1Insert", "KEY_F7, " + gcIndex + card);
-                    ini.WriteValue("Digital", "P2_Up", "KEY_R");
-                    ini.WriteValue("Digital", "P2_Down", "KEY_F");
-                    ini.WriteValue("Digital", "P2_Left", "KEY_D");
-                    ini.WriteValue("Digital", "P2_Right", "KEY_G");
-                    ini.WriteValue("Digital", "P2_Button1", "KEY_A");
-                    ini.WriteValue("Digital", "P2_Button2", "KEY_S");
-                    ini.WriteValue("Digital", "P2_Button3", "KEY_Q");
-                    ini.WriteValue("Digital", "P2_Card2Insert", "KEY_F8");
-                }
-                if (playerindex == 2)
-                {
-                    ini.WriteValue("Digital", "P2_Up", "KEY_R, " + gcIndex + "BUTTON_DPUP, " + gcIndex + "AXIS_LEFTY_NEGATIVE");
-                    ini.WriteValue("Digital", "P2_Down", "KEY_F, " + gcIndex + "BUTTON_DPDOWN, " + gcIndex + "AXIS_LEFTY_POSITIVE");
-                    ini.WriteValue("Digital", "P2_Left", "KEY_D, " + gcIndex + "BUTTON_DPLEFT, " + gcIndex + "AXIS_LEFTX_NEGATIVE");
-                    ini.WriteValue("Digital", "P2_Right", "KEY_G, " + gcIndex + "BUTTON_DPRIGHT, " + gcIndex + "AXIS_LEFTX_POSITIVE");
-                    ini.WriteValue("Digital", "P2_Button1", "KEY_A, " + gcIndex + b1);
-                    ini.WriteValue("Digital", "P2_Button2", "KEY_S, " + gcIndex + b2);
-                    ini.WriteValue("Digital", "P2_Button3", "KEY_Q, " + gcIndex + b3);
-                    ini.WriteValue("Digital", "P2_Card2Insert", "KEY_F8, " + gcIndex + card);
-                }
-
-                // Driving section
-                if (playerindex == 1)
-                {
-                    if (panel)
-                    {
-                        ini.WriteValue("Driving", "P1_Steer_Left", "KEY_Left, " + gcIndex + "BUTTON_DPLEFT");
-                        ini.WriteValue("Driving", "P1_Steer_Right", "KEY_Right, " + gcIndex + "BUTTON_DPRIGHT");
-                        ini.WriteValue("Driving", "P1_Gas_Digital", "KEY_Up, " + gcIndex + b5);
-                        ini.WriteValue("Driving", "P1_Brake_Digital", "KEY_Down, " + gcIndex + b4);
-
-                        if (panel6)
-                            ini.WriteValue("Driving", "ViewChange", "KEY_Left Shift, " + gcIndex + "BUTTON_DPUP");
-                        else
-                            ini.WriteValue("Driving", "ViewChange", "KEY_Left Shift, " + gcIndex + b7);
-
-                        ini.WriteValue("Driving", "Boost", "KEY_Left Ctrl, " + gcIndex + b6);
-                        ini.WriteValue("Driving", "BoostRight", "KEY_Left Alt, " + gcIndex + b3);
-                        ini.WriteValue("Driving", "GearUp", "KEY_X, " + gcIndex + b2);
-                        ini.WriteValue("Driving", "GearDown", "KEY_Z, " + gcIndex + b1);
-
-                        if (panel6)
-                            ini.WriteValue("Driving", "MusicChange", "KEY_Space, " + gcIndex + "BUTTON_DPDOWN");
-                        else
-                            ini.WriteValue("Driving", "MusicChange", "KEY_Space, " + gcIndex + b8);
-                    }
-                    else
-                    {
-                        ini.WriteValue("Driving", "P1_Steer_Left", "KEY_Left");
-                        ini.WriteValue("Driving", "P1_Steer_Right", "KEY_Right");
-                        ini.WriteValue("Driving", "P1_Gas_Digital", "KEY_Up");
-                        ini.WriteValue("Driving", "P1_Brake_Digital", "KEY_Down");
-                        ini.WriteValue("Driving", "ViewChange", "KEY_Left Shift, " + gcIndex + "BUTTON_Y");
-                        ini.WriteValue("Driving", "Boost", "KEY_Left Ctrl, " + gcIndex + "BUTTON_A");
-                        ini.WriteValue("Driving", "BoostRight", "KEY_Left Alt, " + gcIndex + "BUTTON_B");
-                        ini.WriteValue("Driving", "GearUp", "KEY_X, " + gcIndex + "BUTTON_RIGHTSHOULDER");
-                        ini.WriteValue("Driving", "GearDown", "KEY_Z, " + gcIndex + "BUTTON_LEFTSHOULDER");
-                        ini.WriteValue("Driving", "MusicChange", "KEY_Space, " + gcIndex + "BUTTON_X");
-                    }
-
-                    ini.WriteValue("Driving", "Up", "KEY_R, " + gcIndex + "BUTTON_DPUP");
-                    ini.WriteValue("Driving", "Down", "KEY_F, " + gcIndex + "BUTTON_DPDOWN");
-                    ini.WriteValue("Driving", "Left", "KEY_D, " + gcIndex + "BUTTON_DPLEFT");
-                    ini.WriteValue("Driving", "Right", "KEY_G, " + gcIndex + "BUTTON_DPRIGHT");
-                    ini.WriteValue("Driving", "CardInsert", "KEY_F7, " + gcIndex + card);
-
-                    if (panel)
-                    {
-                        ini.WriteValue("Driving", "P1_Steer", "");
-                        ini.WriteValue("Driving", "P1_Gas", "");
-                        ini.WriteValue("Driving", "P1_Brake", "");
-                    }
-                    else
-                    {
-                        ini.WriteValue("Driving", "P1_Steer", gcIndex + "AXIS_LEFTX");
-                        ini.WriteValue("Driving", "P1_Gas", gcIndex + "AXIS_RIGHTTRIGGER");
-                        ini.WriteValue("Driving", "P1_Brake", gcIndex + "AXIS_LEFTTRIGGER");
-                    }
-                }
-
-                // Flying section
-                if (playerindex == 1)
-                {
-                    ini.WriteValue("Flying", "Flying_Left", "KEY_Left, " + gcIndex + "BUTTON_DPLEFT");
-                    ini.WriteValue("Flying", "Flying_Right", "KEY_Right, " + gcIndex + "BUTTON_DPRIGHT");
-                    ini.WriteValue("Flying", "Flying_Up", "KEY_Up, " + gcIndex + "BUTTON_DPUP");
-                    ini.WriteValue("Flying", "Flying_Down", "KEY_Down, " + gcIndex + "BUTTON_DPDOWN");
-
-                    if (panel)
-                    {
-                        ini.WriteValue("Flying", "Throttle_Accelerate", "KEY_X, " + gcIndex + b5);
-                        ini.WriteValue("Flying", "Throttle_Slowdown", "KEY_Z, " + gcIndex + b4);
-                        ini.WriteValue("Flying", "GunTrigger", "KEY_Left Ctrl, " + gcIndex + b1);
-                        ini.WriteValue("Flying", "MissileTrigger", "KEY_Left Alt, " + gcIndex + b2);
-                        ini.WriteValue("Flying", "ClimaxSwitch", "KEY_Left Shift, " + gcIndex + b6);
-                    }
-                    else
-                    {
-                        ini.WriteValue("Flying", "Throttle_Accelerate", "KEY_X, " + gcIndex + "BUTTON_RIGHTSHOULDER");
-                        ini.WriteValue("Flying", "Throttle_Slowdown", "KEY_Z, " + gcIndex + "BUTTON_LEFTSHOULDER");
-                        ini.WriteValue("Flying", "GunTrigger", "KEY_Left Ctrl, " + gcIndex + "BUTTON_A");
-                        ini.WriteValue("Flying", "MissileTrigger", "KEY_Left Alt, " + gcIndex + "BUTTON_B");
-                        ini.WriteValue("Flying", "ClimaxSwitch", "KEY_Left Shift, " + gcIndex + "BUTTON_Y");
-                    }
-
-                    if (panel)
-                    {
-                        ini.WriteValue("Flying", "Flying_X", "");
-                        ini.WriteValue("Flying", "Flying_Y", "");
-                        ini.WriteValue("Flying", "Throttle", "");
-                    }
-                    else
-                    {
-                        ini.WriteValue("Flying", "Flying_X", gcIndex + "AXIS_LEFTX");
-                        ini.WriteValue("Flying", "Flying_Y", gcIndex + "AXIS_LEFTY");
-                        ini.WriteValue("Flying", "Throttle", gcIndex + "AXIS_RIGHTY_INVERTED, " + gcIndex + "AXIS_RIGHTTRIGGER_POSITIVE_HALF, " + gcIndex + "AXIS_LEFTTRIGGER_NEGATIVE_HALF");
-                    }
-                }
-            }
-
-            else
-            {
-                b1 = "a";
-                b2 = "b";
-                b3 = "x";
-                b4 = "y";
-                card = "guide";
-                b6 = "rightshoulder";
-                b5 = "leftshoulder";
-                b8 = "righttrigger";
-                b7 = "lefttrigger";
-
-                if (SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(SystemConfig["controller_layout"]))
-                {
-                    string layout = SystemConfig["controller_layout"];
-                    switch (layout)
-                    {
-                        case "modern8":
-                            panel = true;
-                            b1 = "x";
-                            b2 = "y";
-                            b3 = "rightshoulder";
-                            b4 = "a";
-                            b5 = "b";
-                            b6 = "righttrigger";
-                            b7 = "leftshoulder";
-                            b8 = "lefttrigger";
-                            card = "guide";
-                            break;
-                        case "classic8":
-                            panel = true;
-                            b1 = "x";
-                            b2 = "y";
-                            b3 = "leftshoulder";
-                            b4 = "a";
-                            b5 = "b";
-                            b6 = "rightshoulder";
-                            b7 = "lefttrigger";
-                            b8 = "righttrigger";
-                            card = "guide";
-                            break;
-                        case "8alternative":
-                            panel = true;
-                            b1 = "a";
-                            b2 = "x";
-                            b3 = "y";
-                            b4 = "rightshoulder";
-                            b5 = "leftshoulder";
-                            b6 = "b";
-                            b7 = "righttrigger";
-                            b8 = "lefttrigger";
-                            card = "guide";
-                            break;
-                        case "6alternative":
-                            panel = true;
-                            panel6 = true;
-                            b1 = "x";
-                            b2 = "y";
-                            b3 = "leftshoulder";
-                            b4 = "a";
-                            b5 = "b";
-                            b6 = "rightshoulder";
-                            b7 = "lefttrigger";
-                            b8 = "righttrigger";
-                            card = "guide";
-                            break;
-                        case "default":
-                            break;
-                    }
-                }
-
-                SdlToDirectInput dinputController = null;
                 string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
                 string dguid = guid.ToString().Substring(0, 24) + "00000000";
-                bool dinputOk = false;
 
                 if (File.Exists(gamecontrollerDB))
-                {
                     dinputController = GameControllerDBParser.ParseByGuid(gamecontrollerDB, dguid);
-                    
-                    if (dinputController != null && dinputController.ButtonMappings != null)
-                        dinputOk = true;
-                    else
-                        SimpleLogger.Instance.Info("[WARNING] gamecontrollerdb.txt does not contain mapping for the controller " + guid + ". Controller mapping will not be available");
-
-                    if (dinputOk)
-                    {
-                        if (playerindex == 1)
-                        {
-                            ini.WriteValue("Common", "Test", testService ? "KEY_0, " + GetDinputMapping(gcIndex, dinputController, "rightstick", isXinput) : "KEY_0");
-                            ini.WriteValue("Common", "ExitGame", "KEY_Escape, " + GetDinputMapping(gcIndex, dinputController, "start", isXinput) + " + " + GetDinputMapping(gcIndex, dinputController, "back", isXinput));
-                            ini.WriteValue("Common", "P1_Coin", "KEY_5, " + GetDinputMapping(gcIndex, dinputController, "back", isXinput));
-                            ini.WriteValue("Common", "P2_Coin", "KEY_6");
-                            ini.WriteValue("Common", "P1_Start", "KEY_1, " + GetDinputMapping(gcIndex, dinputController, "start", isXinput));
-                            ini.WriteValue("Common", "P2_Start", "KEY_2");
-                            ini.WriteValue("Common", "P1_Service", testService ? "KEY_9, " + GetDinputMapping(gcIndex, dinputController, "leftstick", isXinput) : "KEY_9");
-                        }
-                        if (playerindex == 2)
-                        {
-                            ini.WriteValue("Common", "P2_Coin", "KEY_6, " + GetDinputMapping(gcIndex, dinputController, "back", isXinput));
-                            ini.WriteValue("Common", "P2_Start", "KEY_2, " + GetDinputMapping(gcIndex, dinputController, "start", isXinput));
-                        }
-
-                        // Digital section
-                        if (playerindex == 1)
-                        {
-                            ini.WriteValue("Digital", "P1_Up", "KEY_Up, " + GetDinputMapping(gcIndex, dinputController, "dpup", isXinput) + ", " + GetDinputMapping(gcIndex, dinputController, "lefty", isXinput, -1));
-                            ini.WriteValue("Digital", "P1_Down", "KEY_Down, " + GetDinputMapping(gcIndex, dinputController, "dpdown", isXinput) + ", " + GetDinputMapping(gcIndex, dinputController, "lefty", isXinput, 1));
-                            ini.WriteValue("Digital", "P1_Left", "KEY_Left, " + GetDinputMapping(gcIndex, dinputController, "dpleft", isXinput) + ", " + GetDinputMapping(gcIndex, dinputController, "leftx", isXinput, -1));
-                            ini.WriteValue("Digital", "P1_Right", "KEY_Right, " + GetDinputMapping(gcIndex, dinputController, "dpright", isXinput) + ", " + GetDinputMapping(gcIndex, dinputController, "leftx", isXinput, 1));
-                            ini.WriteValue("Digital", "P1_Button1", "KEY_Left Ctrl, " + GetDinputMapping(gcIndex, dinputController, b1, isXinput));
-                            ini.WriteValue("Digital", "P1_Button2", "KEY_Left Alt, " + GetDinputMapping(gcIndex, dinputController, b2, isXinput));
-                            ini.WriteValue("Digital", "P1_Button3", "KEY_Space, " + GetDinputMapping(gcIndex, dinputController, b3, isXinput));
-                            ini.WriteValue("Digital", "P1_Card1Insert", "KEY_F7, " + GetDinputMapping(gcIndex, dinputController, card, isXinput));
-                            ini.WriteValue("Digital", "P2_Up", "KEY_R");
-                            ini.WriteValue("Digital", "P2_Down", "KEY_F");
-                            ini.WriteValue("Digital", "P2_Left", "KEY_D");
-                            ini.WriteValue("Digital", "P2_Right", "KEY_G");
-                            ini.WriteValue("Digital", "P2_Button1", "KEY_A");
-                            ini.WriteValue("Digital", "P2_Button2", "KEY_S");
-                            ini.WriteValue("Digital", "P2_Button3", "KEY_Q");
-                            ini.WriteValue("Digital", "P2_Card2Insert", "KEY_F8");
-                        }
-                        if (playerindex == 2)
-                        {
-                            ini.WriteValue("Digital", "P2_Up", "KEY_R, " + GetDinputMapping(gcIndex, dinputController, "dpup", isXinput) + ", " + GetDinputMapping(gcIndex, dinputController, "lefty", isXinput, -1));
-                            ini.WriteValue("Digital", "P2_Down", "KEY_F, " + GetDinputMapping(gcIndex, dinputController, "dpdown", isXinput) + ", " + GetDinputMapping(gcIndex, dinputController, "lefty", isXinput, 1));
-                            ini.WriteValue("Digital", "P2_Left", "KEY_D, " + GetDinputMapping(gcIndex, dinputController, "dpleft", isXinput) + ", " + GetDinputMapping(gcIndex, dinputController, "leftx", isXinput, -1));
-                            ini.WriteValue("Digital", "P2_Right", "KEY_G, " + GetDinputMapping(gcIndex, dinputController, "dpright", isXinput) + ", " + GetDinputMapping(gcIndex, dinputController, "leftx", isXinput, 1));
-                            ini.WriteValue("Digital", "P2_Button1", "KEY_A, " + GetDinputMapping(gcIndex, dinputController, b1, isXinput));
-                            ini.WriteValue("Digital", "P2_Button2", "KEY_S, " + GetDinputMapping(gcIndex, dinputController, b2, isXinput));
-                            ini.WriteValue("Digital", "P2_Button3", "KEY_Q, " + GetDinputMapping(gcIndex, dinputController, b3, isXinput));
-                            ini.WriteValue("Digital", "P2_Card2Insert", "KEY_F8, " + GetDinputMapping(gcIndex, dinputController, card, isXinput));
-                        }
-
-                        // Driving section
-                        if (playerindex == 1)
-                        {
-                            if (panel)
-                            {
-                                ini.WriteValue("Driving", "P1_Steer_Left", "KEY_Left, " + GetDinputMapping(gcIndex, dinputController, "dpleft", isXinput));
-                                ini.WriteValue("Driving", "P1_Steer_Right", "KEY_Right, " + GetDinputMapping(gcIndex, dinputController, "dpright", isXinput));
-                                ini.WriteValue("Driving", "P1_Gas_Digital", "KEY_Up, " + GetDinputMapping(gcIndex, dinputController, b5, isXinput));
-                                ini.WriteValue("Driving", "P1_Brake_Digital", "KEY_Down, " + GetDinputMapping(gcIndex, dinputController, b4, isXinput));
-
-                                if (panel6)
-                                    ini.WriteValue("Driving", "ViewChange", "KEY_Left Shift, " + GetDinputMapping(gcIndex, dinputController, "dpup", isXinput));
-                                else
-                                    ini.WriteValue("Driving", "ViewChange", "KEY_Left Shift, " + GetDinputMapping(gcIndex, dinputController, b7, isXinput, 1));
-
-                                ini.WriteValue("Driving", "Boost", "KEY_Left Ctrl, " + GetDinputMapping(gcIndex, dinputController, b6, isXinput, 1));
-                                ini.WriteValue("Driving", "BoostRight", "KEY_Left Alt, " + GetDinputMapping(gcIndex, dinputController, b3, isXinput));
-                                ini.WriteValue("Driving", "GearUp", "KEY_X, " + GetDinputMapping(gcIndex, dinputController, b2, isXinput));
-                                ini.WriteValue("Driving", "GearDown", "KEY_Z, " + GetDinputMapping(gcIndex, dinputController, b1, isXinput));
-
-                                if (panel6)
-                                    ini.WriteValue("Driving", "MusicChange", "KEY_Space, " + GetDinputMapping(gcIndex, dinputController, "dpdown", isXinput));
-                                else
-                                    ini.WriteValue("Driving", "MusicChange", "KEY_Space, " + GetDinputMapping(gcIndex, dinputController, b8, isXinput, 1));
-                            }
-                            else
-                            {
-                                ini.WriteValue("Driving", "P1_Steer_Left", "KEY_Left");
-                                ini.WriteValue("Driving", "P1_Steer_Right", "KEY_Right");
-                                ini.WriteValue("Driving", "P1_Gas_Digital", "KEY_Up");
-                                ini.WriteValue("Driving", "P1_Brake_Digital", "KEY_Down");
-                                ini.WriteValue("Driving", "ViewChange", "KEY_Left Shift, " + GetDinputMapping(gcIndex, dinputController, "y", isXinput));
-                                ini.WriteValue("Driving", "Boost", "KEY_Left Ctrl, " + GetDinputMapping(gcIndex, dinputController, "x", isXinput));
-                                ini.WriteValue("Driving", "BoostRight", "KEY_Left Alt, " + GetDinputMapping(gcIndex, dinputController, "a", isXinput));
-                                ini.WriteValue("Driving", "GearUp", "KEY_X, " + GetDinputMapping(gcIndex, dinputController, "rightshoulder", isXinput));
-                                ini.WriteValue("Driving", "GearDown", "KEY_Z, " + GetDinputMapping(gcIndex, dinputController, "leftshoulder", isXinput));
-                                ini.WriteValue("Driving", "MusicChange", "KEY_Space, " + GetDinputMapping(gcIndex, dinputController, "b", isXinput));
-                            }
-
-                            ini.WriteValue("Driving", "Up", "KEY_R, " + GetDinputMapping(gcIndex, dinputController, "dpup", isXinput));
-                            ini.WriteValue("Driving", "Down", "KEY_F, " + GetDinputMapping(gcIndex, dinputController, "dpdown", isXinput));
-                            ini.WriteValue("Driving", "Left", "KEY_D, " + GetDinputMapping(gcIndex, dinputController, "dpleft", isXinput));
-                            ini.WriteValue("Driving", "Right", "KEY_G, " + GetDinputMapping(gcIndex, dinputController, "dpright", isXinput));
-                            ini.WriteValue("Driving", "CardInsert", "KEY_F7, " + GetDinputMapping(gcIndex, dinputController, card, isXinput));
-
-                            if (panel)
-                            {
-                                ini.WriteValue("Driving", "P1_Steer", "");
-                                ini.WriteValue("Driving", "P1_Gas", "");
-                                ini.WriteValue("Driving", "P1_Brake", "");
-                            }
-                            else
-                            {
-                                ini.WriteValue("Driving", "P1_Steer", GetDinputMapping(gcIndex, dinputController, "leftx", isXinput, 0));
-                                ini.WriteValue("Driving", "P1_Gas", GetDinputMapping(gcIndex, dinputController, "righttrigger", isXinput, 0));
-                                ini.WriteValue("Driving", "P1_Brake", GetDinputMapping(gcIndex, dinputController, "lefttrigger", isXinput, 0));
-                            }
-                        }
-
-                        // Flying section
-                        if (playerindex == 1)
-                        {
-                            ini.WriteValue("Flying", "Flying_Left", "KEY_Left, " + GetDinputMapping(gcIndex, dinputController, "dpleft", isXinput));
-                            ini.WriteValue("Flying", "Flying_Right", "KEY_Right, " + GetDinputMapping(gcIndex, dinputController, "dpright", isXinput));
-                            ini.WriteValue("Flying", "Flying_Up", "KEY_Up, " + GetDinputMapping(gcIndex, dinputController, "dpup", isXinput));
-                            ini.WriteValue("Flying", "Flying_Down", "KEY_Down, " + GetDinputMapping(gcIndex, dinputController, "dpdown", isXinput));
-
-                            if (panel)
-                            {
-                                ini.WriteValue("Flying", "Throttle_Accelerate", "KEY_X, " + GetDinputMapping(gcIndex, dinputController, b5, isXinput));
-                                ini.WriteValue("Flying", "Throttle_Slowdown", "KEY_Z, " + GetDinputMapping(gcIndex, dinputController, b4, isXinput));
-                                ini.WriteValue("Flying", "GunTrigger", "KEY_Left Ctrl, " + GetDinputMapping(gcIndex, dinputController, b1, isXinput));
-                                ini.WriteValue("Flying", "MissileTrigger", "KEY_Left Alt, " + GetDinputMapping(gcIndex, dinputController, b2, isXinput));
-                                ini.WriteValue("Flying", "ClimaxSwitch", "KEY_Left Shift, " + GetDinputMapping(gcIndex, dinputController, b6, isXinput, 1));
-                            }
-                            else
-                            {
-                                ini.WriteValue("Flying", "Throttle_Accelerate", "KEY_X, " + GetDinputMapping(gcIndex, dinputController, "rightshoulder", isXinput));
-                                ini.WriteValue("Flying", "Throttle_Slowdown", "KEY_Z, " + GetDinputMapping(gcIndex, dinputController, "leftshoulder", isXinput));
-                                ini.WriteValue("Flying", "GunTrigger", "KEY_Left Ctrl, " + GetDinputMapping(gcIndex, dinputController, "x", isXinput));
-                                ini.WriteValue("Flying", "MissileTrigger", "KEY_Left Alt, " + GetDinputMapping(gcIndex, dinputController, "a", isXinput));
-                                ini.WriteValue("Flying", "ClimaxSwitch", "KEY_Left Shift, " + GetDinputMapping(gcIndex, dinputController, "b", isXinput));
-                            }
-
-                            if (panel)
-                            {
-                                ini.WriteValue("Flying", "Flying_X", "");
-                                ini.WriteValue("Flying", "Flying_Y", "");
-                                ini.WriteValue("Flying", "Throttle", "");
-                            }
-                            else
-                            {
-                                ini.WriteValue("Flying", "Flying_X", GetDinputMapping(gcIndex, dinputController, "leftx", isXinput, 0));
-                                ini.WriteValue("Flying", "Flying_Y", GetDinputMapping(gcIndex, dinputController, "lefty", isXinput, 0));
-                                ini.WriteValue("Flying", "Throttle", GetDinputMapping(gcIndex, dinputController, "triggers_inverted", isXinput, 0));
-                            }
-                        }
-                    }
-                }
                 else
-                {
                     SimpleLogger.Instance.Warning("[CONTROLS] gamecontrollerdb.txt not found, mapping won't be available");
+
+                if (dinputController == null || dinputController.ButtonMappings == null)
+                {
+                    SimpleLogger.Instance.Info("[WARNING] gamecontrollerdb.txt does not contain mapping for the controller " + guid + ". Only keyboard is mapped for P" + playerindex + ".");
+                    dinputController = null;
                 }
             }
 
-            // Shooting section
+            bool padMapped = !standardJoy || dinputController != null;
+
+            // Deadzones : loader internal defaults when not set (8000 for sticks, 500 for pedals)
+            string steerDeadzone = SystemConfig.isOptSet("ll_steer_deadzone") && !string.IsNullOrEmpty(SystemConfig["ll_steer_deadzone"]) ? SystemConfig["ll_steer_deadzone"] : "8000";
+            ini.WriteValue("Config", "Steer_DeadZone", steerDeadzone);
+
+            string gasBrakeDeadzone = SystemConfig.isOptSet("ll_gasbrake_deadzone") && !string.IsNullOrEmpty(SystemConfig["ll_gasbrake_deadzone"]) ? SystemConfig["ll_gasbrake_deadzone"] : "500";
+            ini.WriteValue("Config", "Gas_DeadZone", gasBrakeDeadzone);
+            ini.WriteValue("Config", "Brake_DeadZone", gasBrakeDeadzone);
+
+            string flyingDeadzone = SystemConfig.isOptSet("ll_flying_deadzone") && !string.IsNullOrEmpty(SystemConfig["ll_flying_deadzone"]) ? SystemConfig["ll_flying_deadzone"] : "8000";
+            ini.WriteValue("Config", "FLYING_X_DeadZone", flyingDeadzone);
+            ini.WriteValue("Config", "FLYING_Y_DeadZone", flyingDeadzone);
+            ini.WriteValue("Config", "Throttle_DeadZone", flyingDeadzone);
+
+            // Common section : RetroBat standard (select = coin, start = start, R3 / L3 = test / service in test mode)
+            string start = padMapped ? GetPadInput("start", null, false, gcIndex, dinputController, isXinput) : null;
+            string select = padMapped ? GetPadInput("select", null, false, gcIndex, dinputController, isXinput) : null;
+
             if (playerindex == 1)
             {
-                if (SystemConfig.isOptSet("ll_gunaxis_invert") && !string.IsNullOrEmpty(SystemConfig["ll_gunaxis_invert"]))
-                {
-                    string invertAxis = SystemConfig["ll_gunaxis_invert"].ToLower();
-                    if (invertAxis == "x")
-                    {
-                        ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X_INVERTED");
-                        ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
-                    }
-                    else if (invertAxis == "y")
-                    {
-                        ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
-                        ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y_INVERTED");
-                    }
-                    else if (invertAxis == "both")
-                    {
-                        ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X_INVERTED");
-                        ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y_INVERTED");
-                    }
-                }
-                else
-                {
-                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
-                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
-                }
+                string test = testService && padMapped ? GetPadInput("r3", null, false, gcIndex, dinputController, isXinput) : null;
+                string service = testService && padMapped ? GetPadInput("l3", null, false, gcIndex, dinputController, isXinput) : null;
 
-                ini.WriteValue("Shooting", "P1_Trigger", "MOUSE_LEFT_BUTTON");
-                ini.WriteValue("Shooting", "P1_Reload", "MOUSE_RIGHT_BUTTON");
-                ini.WriteValue("Shooting", "P1_GunButton", "MOUSE_MIDDLE_BUTTON");
-                ini.WriteValue("Shooting", "P1_ActionButton", "KEY_R");
-                ini.WriteValue("Shooting", "P1_PedalLeft", "KEY_Left");
-                ini.WriteValue("Shooting", "P1_PedalRight", "KEY_Right");
+                ini.WriteValue("Common", "Test", JoinInputs("KEY_0", test));
+                ini.WriteValue("Common", "ExitGame", JoinInputs("KEY_Escape", start != null && select != null ? start + " + " + select : null));
+                ini.WriteValue("Common", "P1_Coin", JoinInputs("KEY_5", select));
+                ini.WriteValue("Common", "P2_Coin", "KEY_6");
+                ini.WriteValue("Common", "P1_Start", JoinInputs("KEY_1", start));
+                ini.WriteValue("Common", "P2_Start", "KEY_2");
+                ini.WriteValue("Common", "P1_Service", JoinInputs("KEY_9", service));
+
+                foreach (string section in _padSections)
+                    WritePadSection(ini, section, _keyboardP1[section], 1, gcIndex, dinputController, padMapped, isXinput);
+
+                // Player 2 keyboard only, completed below if a second controller is plugged
+                WritePadSection(ini, "Digital", _keyboardDigitalP2, 2, null, null, false);
+
+                WriteShootingSection(ini);
+            }
+            else if (playerindex == 2)
+            {
+                ini.WriteValue("Common", "P2_Coin", JoinInputs("KEY_6", select));
+                ini.WriteValue("Common", "P2_Start", JoinInputs("KEY_2", start));
+
+                WritePadSection(ini, "Digital", _keyboardDigitalP2, 2, gcIndex, dinputController, padMapped, isXinput);
             }
 
             if (sdl3Controller != null && !string.IsNullOrEmpty(guidString))
-                _padGuids[cIndex + 1] = guidString;
+            {
+                _padGuids[guidSlot + 1] = guidString;
+                _padSlots[ctrl] = guidSlot;
+            }
             else
                 SimpleLogger.Instance.Warning("[CONTROLS] No SDL3 GUID for P" + playerindex + " - GUID pinning unavailable for this pad, other players are unaffected.");
         }
 
+        /// <summary>
+        /// Writes all the controls of a section : keyboard first, then the controller inputs of linuxloader.yml.
+        /// The yml values are the player 1 controls, converted for player 2 (P1_ to P2_, Card1Insert to Card2Insert).
+        /// </summary>
+        private void WritePadSection(IniFile ini, string section, Dictionary<string, string> keyboard, int player, string gcIndex, SdlToDirectInput dinput, bool withPad, bool isXinput = false)
+        {
+            var bindings = keyboard.ToDictionary(k => k.Key, k => new List<string>(), StringComparer.InvariantCultureIgnoreCase);
+            foreach (var kv in keyboard.Where(k => !string.IsNullOrEmpty(k.Value)))
+                bindings[kv.Key].Add(kv.Value);
+
+            if (withPad)
+            {
+                foreach (var entry in GetYmlMapping(section))
+                {
+                    foreach (string value in entry.Value)
+                    {
+                        // Optional axis mode : "Throttle:inverted"
+                        string[] parts = value.Split(':');
+                        string control = parts[0].Trim();
+                        string mode = parts.Length > 1 ? parts[1].Trim() : null;
+
+                        if (player == 2)
+                            control = control.Replace("P1_", "P2_").Replace("Card1Insert", "Card2Insert");
+
+                        List<string> list;
+                        if (!bindings.TryGetValue(control, out list))
+                        {
+                            SimpleLogger.Instance.Warning("[CONTROLS] Unknown control '" + control + "' in linuxloader.yml [" + section.ToLowerInvariant() + "].");
+                            continue;
+                        }
+
+                        string input = GetPadInput(entry.Key, mode, _analogControls.Contains(control), gcIndex, dinput, isXinput);
+                        if (!string.IsNullOrEmpty(input) && !list.Contains(input))
+                            list.Add(input);
+                    }
+                }
+            }
+
+            foreach (var kv in bindings)
+                ini.WriteValue(section, kv.Key, string.Join(", ", kv.Value));
+        }
+
+        /// <summary>
+        /// Converts a controller position of linuxloader.yml to a linuxloader input (GCx_ for gamepads, JOYx_ through gamecontrollerdb for joysticks).
+        /// A trigger or a stick used by a button control is bound as a half axis.
+        /// </summary>
+        private string GetPadInput(string position, string mode, bool analogControl, string gcIndex, SdlToDirectInput dinput, bool isXinput)
+        {
+            PadInput input;
+            if (!_padInputs.TryGetValue(position, out input))
+            {
+                SimpleLogger.Instance.Warning("[CONTROLS] Unknown controller position '" + position + "' in linuxloader.yml.");
+                return null;
+            }
+
+            int direction = input.Direction;
+            if (input.IsAxis && direction == 0 && !analogControl && string.IsNullOrEmpty(mode))
+                direction = 1;
+
+            string ret;
+            if (dinput != null)
+                ret = GetDinputMapping(gcIndex, dinput, input.DbKey, isXinput, direction);
+            else
+            {
+                ret = gcIndex + input.Gamepad;
+                if (direction > 0)
+                    ret += "_POSITIVE";
+                else if (direction < 0)
+                    ret += "_NEGATIVE";
+            }
+
+            if (string.IsNullOrEmpty(ret) || ret == "Unassigned")
+                return null;
+
+            // Whole axis modes
+            if (input.IsAxis && direction == 0 && !string.IsNullOrEmpty(mode))
+            {
+                switch (mode.ToLowerInvariant())
+                {
+                    case "inverted": ret += "_INVERTED"; break;
+                    case "positive_half": ret += "_POSITIVE_HALF"; break;
+                    case "negative_half": ret += "_NEGATIVE_HALF"; break;
+                }
+            }
+
+            return ret;
+        }
+
+        private Dictionary<string, Dictionary<string, List<string>>> _ymlMapping;
+
+        /// <summary>
+        /// Container of linuxloader.yml for a section : <section>_<layout>, then <section>.
+        /// Key : controller position. Value : controls of player 1, separated by commas.
+        /// </summary>
+        private Dictionary<string, List<string>> GetYmlMapping(string section)
+        {
+            if (_ymlMapping == null)
+                _ymlMapping = LoadYmlMapping();
+
+            Dictionary<string, List<string>> ret;
+            if (_ymlMapping.TryGetValue(section.ToLowerInvariant(), out ret))
+                return ret;
+
+            return new Dictionary<string, List<string>>();
+        }
+
+        private Dictionary<string, Dictionary<string, List<string>>> LoadYmlMapping()
+        {
+            var ret = new Dictionary<string, Dictionary<string, List<string>>>(StringComparer.InvariantCultureIgnoreCase);
+
+            string ymlFile = Controller.GetSystemYmlMappingFile("linuxloader", "", "lindbergh", mappingPaths);
+            if (string.IsNullOrEmpty(ymlFile))
+            {
+                SimpleLogger.Instance.Warning("[CONTROLS] linuxloader.yml not found, only the keyboard is mapped.");
+                return ret;
+            }
+
+            YmlFile yml;
+            try { yml = YmlFile.Load(ymlFile); }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[CONTROLS] Unable to read " + ymlFile + " : " + ex.Message);
+                return ret;
+            }
+
+            string layout = SystemConfig.isOptSet("controller_layout") ? SystemConfig["controller_layout"] : null;
+            if (layout == "default")
+                layout = null;
+
+            foreach (string section in _padSections)
+            {
+                string baseName = section.ToLowerInvariant();
+
+                foreach (string name in string.IsNullOrEmpty(layout) ? new[] { baseName } : new[] { baseName + "_" + layout, baseName })
+                {
+                    var container = yml.Elements.FirstOrDefault(e => e.Name == name) as YmlContainer;
+                    if (container == null)
+                        continue;
+
+                    // A controller position can drive several controls : "left: P1_Steer_Left, Left"
+                    ret[baseName] = container.Elements.OfType<YmlElement>()
+                        .Where(e => !string.IsNullOrEmpty(e.Name) && !string.IsNullOrEmpty(e.Value))
+                        .ToDictionary(e => e.Name, e => e.Value.Split(',').Select(v => v.Trim()).Where(v => v.Length > 0).ToList(), StringComparer.InvariantCultureIgnoreCase);
+
+                    SimpleLogger.Instance.Info("[CONTROLS] Controls '" + name + "' loaded from " + ymlFile);
+                    break;
+                }
+            }
+
+            return ret;
+        }
+
+        private static string JoinInputs(string key, string pad)
+        {
+            return string.IsNullOrEmpty(pad) ? key : key + ", " + pad;
+        }
+
+        /// <summary>
+        /// Shooting section : mouse / lightgun (overwritten by the gun options when guns are used).
+        /// </summary>
+        private void WriteShootingSection(IniFile ini)
+        {
+            WriteGunAxes(ini);
+
+            ini.WriteValue("Shooting", "P1_Trigger", "MOUSE_LEFT_BUTTON");
+            ini.WriteValue("Shooting", "P1_Reload", "MOUSE_RIGHT_BUTTON");
+            ini.WriteValue("Shooting", "P1_GunButton", "MOUSE_MIDDLE_BUTTON");
+            ini.WriteValue("Shooting", "P1_ActionButton", "KEY_R");
+            ini.WriteValue("Shooting", "P1_PedalLeft", "KEY_Left");
+            ini.WriteValue("Shooting", "P1_PedalRight", "KEY_Right");
+        }
+
         private string GetDinputMapping(string index, SdlToDirectInput c, string buttonkey, bool isxinput, int plus = 0)
         {
-            if (c == null)
-                return "";
-
-            if (!c.ButtonMappings.ContainsKey(buttonkey) && buttonkey != "triggers_inverted")
+            if (c == null || !c.ButtonMappings.ContainsKey(buttonkey))
             {
                 SimpleLogger.Instance.Info("[INFO] No mapping found for " + buttonkey + " in gamecontrollerdb file");
                 return "";
             }
-
-            if (buttonkey == "triggers_inverted")
-            {
-                string ret = "";
-                string rightvert = "righty";
-
-                if (c.ButtonMappings.ContainsKey(rightvert) && c.ButtonMappings[rightvert].Contains("a"))
-                {
-                    string val = c.ButtonMappings[rightvert];
-                    string axisIDspec;
-
-                    if (val.StartsWith("-a") || val.StartsWith("+a"))
-                        axisIDspec = val.Substring(2);
-
-                    else
-                        axisIDspec = val.Substring(1);
-                    
-                    ret += index + "AXIS_" + axisIDspec + "_INVERTED";
-                }
-
-                string righttrig = "righttrigger";
-                string lefttrig = "lefttrigger";
-
-                if (c.ButtonMappings.ContainsKey(righttrig) && c.ButtonMappings[righttrig].Contains("a") && c.ButtonMappings.ContainsKey(lefttrig) && c.ButtonMappings[lefttrig].Contains("a"))
-                {
-                    string valLT = c.ButtonMappings[lefttrig];
-                    string valRT = c.ButtonMappings[righttrig];
-                    string axisIDspecLT;
-                    string axisIDspecRT;
-
-                    if (isxinput && valRT == "a5")
-                        valRT = "a2";
-
-                    if (valLT.StartsWith("-a") || valLT.StartsWith("+a"))
-                        axisIDspecLT = valLT.Substring(2);
-
-                    else
-                        axisIDspecLT = valLT.Substring(1);
-
-                    if (valRT.StartsWith("-a") || valRT.StartsWith("+a"))
-                        axisIDspecRT = valRT.Substring(2);
-
-                    else
-                        axisIDspecRT = valRT.Substring(1);
-
-                    if (string.IsNullOrEmpty(ret))
-                        ret = index + "AXIS_" + axisIDspecRT + "_POSITIVE_HALF" + ", " + index + "AXIS_" + axisIDspecLT + "_NEGATIVE_HALF";
-                    else
-                        ret += ", " + index + "AXIS_" + axisIDspecRT + "_POSITIVE_HALF" + ", " + index + "AXIS_" + axisIDspecLT + "_NEGATIVE_HALF";
-                }
-
-                return ret;
-            }
-
-            if (!c.ButtonMappings.ContainsKey(buttonkey))
-                return "";
 
             string button = c.ButtonMappings[buttonkey];
 
@@ -866,13 +558,7 @@ namespace EmulatorLauncher
 
             else if (button.StartsWith("a") || button.StartsWith("-a") || button.StartsWith("+a"))
             {
-                int axisID = button.Substring(1).ToInteger();
-
-                if (button.StartsWith("-a") || button.StartsWith("+a"))
-                    axisID = button.Substring(2).ToInteger();
-
-                else if (button.StartsWith("a"))
-                    axisID = button.Substring(1).ToInteger();
+                int axisID = button.StartsWith("a") ? button.Substring(1).ToInteger() : button.Substring(2).ToInteger();
 
                 if (plus == 1) return index + "AXIS_" + axisID + "_POSITIVE";
                 else if (plus == -1) return index + "AXIS_" + axisID + "_NEGATIVE";
@@ -888,6 +574,19 @@ namespace EmulatorLauncher
                 return guid;
 
             return guid.Substring(0, 4) + "0000" + guid.Substring(8);
+        }
+
+        /// <summary>
+        /// P1 gun axes (mouse), optionally inverted.
+        /// </summary>
+        private void WriteGunAxes(IniFile ini)
+        {
+            string invertAxis = SystemConfig.isOptSet("ll_gunaxis_invert") && !string.IsNullOrEmpty(SystemConfig["ll_gunaxis_invert"]) ? SystemConfig["ll_gunaxis_invert"].ToLowerInvariant() : "none";
+            bool invertX = invertAxis == "x" || invertAxis == "both";
+            bool invertY = invertAxis == "y" || invertAxis == "both";
+
+            ini.WriteValue("Shooting", "P1_GunX", invertX ? "MOUSE_AXIS_X_INVERTED" : "MOUSE_AXIS_X");
+            ini.WriteValue("Shooting", "P1_GunY", invertY ? "MOUSE_AXIS_Y_INVERTED" : "MOUSE_AXIS_Y");
         }
 
         private void EnsureMahjongSection(IniFile ini)

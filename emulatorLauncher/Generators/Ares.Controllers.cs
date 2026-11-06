@@ -131,7 +131,7 @@ namespace EmulatorLauncher
 
             #region specialControllers
             // Special treatment for N64 controllers
-            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            string n64json = Generator.GetSpecialControllersJson("n64Controllers.json");
             bool needn64ActivationSwitch = false;
             bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
 
@@ -191,7 +191,7 @@ namespace EmulatorLauncher
 
             Bypassn64Controllers:
 
-            string mdjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
+            string mdjson = Generator.GetSpecialControllersJson("mdControllers.json");
             bool needMDActivationSwitch = false;
             bool md_pad = Program.SystemConfig.getOptBoolean("md_pad");
             

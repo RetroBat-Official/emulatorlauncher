@@ -966,6 +966,22 @@ namespace EmulatorLauncher
         }
         #endregion
 
+        #region special controllers
+        /// <summary>
+        /// Returns the special controllers json path, user\inputmapping first.
+        /// </summary>
+        public static string GetSpecialControllersJson(string fileName)
+        {
+            string retrobatPath = Program.AppConfig.GetFullPath("retrobat");
+
+            string userFile = Path.Combine(retrobatPath, "user", "inputmapping", fileName);
+            if (File.Exists(userFile))
+                return userFile;
+
+            return Path.Combine(retrobatPath, "system", "resources", "inputmapping", fileName);
+        }
+        #endregion
+
         #region sdl3
         /// <summary>
         /// Mirror the SDL3 generation linked by the emulator when RetroBat enumerates SDL3 controllers

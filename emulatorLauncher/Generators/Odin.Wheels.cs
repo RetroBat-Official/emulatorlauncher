@@ -8,8 +8,22 @@ namespace EmulatorLauncher
 {
     partial class OdinGenerator
     {
-        // Games played with a wheel
-        private static readonly string[] _wheelGames = { "sgnascar", "sgnascaro" };
+        /// <summary>
+        /// Odin controls driven by the wheel in a game (odin-games.json), null when the game has none.
+        /// </summary>
+        private class WheelControls
+        {
+            public string Steering, Gas, Brake, GearUp, GearDown, View, Start;
+            public bool BrakeIsButton;
+        }
+
+        // Games played with a wheel (parent sets, the versions share their controls)
+        private static readonly Dictionary<string, WheelControls> _wheelControls = new Dictionary<string, WheelControls>()
+        {
+            { "sgnascar", new WheelControls { Steering = "steering_wheel", Gas = "gas_pedal", Brake = "brake_pedal", GearUp = "gear_up", GearDown = "gear_down", View = "view_change", Start = "start" } },
+            { "atvtrack", new WheelControls { Steering = "handlebar", Gas = "throttle", Brake = "right_brake", BrakeIsButton = true, GearUp = "right_brake", GearDown = "left_brake", Start = "start" } },
+            { "smashdrv", new WheelControls { Steering = "wheel", Gas = "gas_pedal", Brake = "brake_pedal", Start = "horn" } },
+        };
 
         // The Model 3 wheel mapping (DirectInput names) has the same controls as NASCAR Arcade
         static readonly string[] wheelMappingPaths =
@@ -33,7 +47,7 @@ namespace EmulatorLauncher
 
             _wheelSearched = true;
 
-            if (!_wheelGames.Contains(_game) || !SystemConfig.getOptBoolean("use_wheel"))
+            if (!_wheelControls.ContainsKey(_section) || !SystemConfig.getOptBoolean("use_wheel"))
                 return null;
 
             var wheels = Wheel.GetConnectedWheels(Controllers);
@@ -55,9 +69,9 @@ namespace EmulatorLauncher
         /// </summary>
         private void SetupWheelOptions(IniFile ini)
         {
-            string section = "players." + _game;
+            string section = "players." + _section;
 
-            if (!_wheelGames.Contains(_game))
+            if (!_wheelControls.ContainsKey(_section))
                 return;
 
             BindIniFeature(ini, section, "wheel_force", "odin_wheel_force", "100");
@@ -82,12 +96,13 @@ namespace EmulatorLauncher
         }
 
         /// <summary>
-        /// Wheel controls from odin_wheels.yml / model3_wheels.yml (container of the wheel type, else default).
+        /// Wheel controls from odin_wheels.yml / model3_wheels.yml (container of the wheel type, else default), on the controls of the game.
         /// SDL opens wheels with its DirectInput driver : buttons and POVs keep their DirectInput number, axes are numbered
         /// in the X, Y, Z, Rx, Ry, Rz, Slider order without gap. Without mapping, Odin steers with the first axis (joy:axis0).
         /// </summary>
         private void AddWheelLines(Dictionary<string, List<string>> lines, Controller wheel)
         {
+            var controls = _wheelControls[_section];
             var wheels = Wheel.GetConnectedWheels(Controllers);
             string wheelType = wheels.Count > 0 ? wheels[0].Type.ToString() : "default";
 
@@ -108,7 +123,7 @@ namespace EmulatorLauncher
             if (wheelMapping == null)
             {
                 SimpleLogger.Instance.Info("[WHEELS] No mapping for " + wheelType + ", Odin wheel defaults are used.");
-                AddLineInput(lines, "steering_wheel", "joy:axis0");
+                AddLineInput(lines, controls.Steering, "joy:axis0");
                 return;
             }
 
@@ -120,21 +135,23 @@ namespace EmulatorLauncher
 
             // Steering : left on the negative side of the axis, else turned over
             string steering = ConvertWheelAxis(GetWheelValue(buttons, "InputSteeringLeft"), axes, false);
-            AddLineInput(lines, "steering_wheel", steering ?? "joy:axis0");
+            AddLineInput(lines, controls.Steering, steering ?? "joy:axis0");
 
             // Pedals : whole axis, pressed toward its positive side (else turned over), halves when both pedals share one axis
             string accel = GetWheelValue(buttons, "InputAccelerator");
             string brake = GetWheelValue(buttons, "InputBrake");
             bool combined = !string.IsNullOrEmpty(accel) && AxisName(accel) == AxisName(brake);
 
-            AddWheelInput(lines, "gas_pedal", ConvertWheelAxis(accel, axes, true, combined));
-            AddWheelInput(lines, "brake_pedal", ConvertWheelAxis(brake, axes, true, combined));
+            AddWheelInput(lines, controls.Gas, ConvertWheelAxis(accel, axes, true, combined));
+
+            // A brake button of the game (ATV Track) is pressed from half the pedal's way
+            AddWheelInput(lines, controls.Brake, ConvertWheelAxis(brake, axes, true, combined || controls.BrakeIsButton));
 
             // Sequential gears (paddles), the buttons of a separate gear stick ("Shifter_") are not read
-            AddWheelInput(lines, "gear_up", ConvertWheelButton(GetWheelValue(buttons, "InputGearShiftUp")));
-            AddWheelInput(lines, "gear_down", ConvertWheelButton(GetWheelValue(buttons, "InputGearShiftDown")));
-            AddWheelInput(lines, "view_change", ConvertWheelButton(GetWheelValue(buttons, "InputViewChange")));
-            AddWheelInput(lines, "start", ConvertWheelButton(GetWheelValue(buttons, "Start")));
+            AddWheelInput(lines, controls.GearUp, ConvertWheelButton(GetWheelValue(buttons, "InputGearShiftUp")));
+            AddWheelInput(lines, controls.GearDown, ConvertWheelButton(GetWheelValue(buttons, "InputGearShiftDown")));
+            AddWheelInput(lines, controls.View, ConvertWheelButton(GetWheelValue(buttons, "InputViewChange")));
+            AddWheelInput(lines, controls.Start, ConvertWheelButton(GetWheelValue(buttons, "Start")));
             AddWheelInput(lines, "coin1", ConvertWheelButton(GetWheelValue(buttons, "Coin")));
 
             SimpleLogger.Instance.Info("[WHEELS] Wheel controls for " + wheelType + " loaded from " + ymlFile);
@@ -142,7 +159,8 @@ namespace EmulatorLauncher
 
         private static void AddWheelInput(Dictionary<string, List<string>> lines, string id, string input)
         {
-            if (!string.IsNullOrEmpty(input))
+            // id is null when the game has no such control
+            if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(input))
                 AddLineInput(lines, id, input);
         }
 

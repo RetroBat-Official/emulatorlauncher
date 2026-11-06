@@ -107,8 +107,8 @@ namespace EmulatorLauncher
             bool service = SystemConfig.getOptBoolean("m3_service");
             SetWheelInput(mapping, "InputStart1", "KEY_1", convert(GetWheelValue(buttons, "Start"), joyNumber));
             SetWheelInput(mapping, "InputCoin1", "KEY_5", convert(GetWheelValue(buttons, "Coin"), joyNumber));
-            SetWheelInput(mapping, "InputServiceA", "KEY_0", service ? convert(GetWheelValue(buttons, "Service"), joyNumber) : null);
-            SetWheelInput(mapping, "InputTestA", "KEY_9", service ? convert(GetWheelValue(buttons, "Test"), joyNumber) : null);
+            SetWheelInput(mapping, "InputServiceA", "KEY_9", service ? convert(GetWheelValue(buttons, "Service"), joyNumber) : null);
+            SetWheelInput(mapping, "InputTestA", "KEY_0", service ? convert(GetWheelValue(buttons, "Test"), joyNumber) : null);
 
             foreach (string input in _wheelInputs)
                 SetWheelInput(mapping, input, null, convert(GetWheelValue(buttons, input), joyNumber));

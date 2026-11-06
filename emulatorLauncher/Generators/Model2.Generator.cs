@@ -214,13 +214,19 @@ namespace EmulatorLauncher
                 if (!Directory.Exists(inputCFGpath)) try { Directory.CreateDirectory(inputCFGpath); }
                     catch { }
 
-                string inputFilename = Path.GetFileNameWithoutExtension(rom);
+                string inputFilename = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
                 string inputFile = Path.Combine(inputCFGpath, inputFilename + ".input");
 
                 string parentRom = parentRoms.ContainsKey(inputFilename) ? parentRoms[inputFilename] : inputFilename;
-                int hexLength = 107;
-                if (byteLength.ContainsKey(parentRom))
-                    hexLength = byteLength[parentRom];
+
+                // Unknown romset: do not create or modify the input file
+                if (!byteLength.ContainsKey(parentRom))
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] Model2: no input definition for " + parentRom + ", input file not modified.");
+                    return;
+                }
+
+                int hexLength = byteLength[parentRom];
 
                 byte[] bytes;
 

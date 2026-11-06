@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Xml.Serialization;
 using DI = SharpDX.DirectInput;
 
 namespace EmulatorLauncher
@@ -27,6 +28,13 @@ namespace EmulatorLauncher
                 return;
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Model2");
+
+            // Unknown romset: keep the existing input file
+            if (!serviceByte.ContainsKey(parentRom))
+            {
+                SimpleLogger.Instance.Warning("[WARNING] Model2: no input definition for " + parentRom + ", input file not modified.");
+                return;
+            }
 
             CleanupInputFile(bytes);
 
@@ -703,6 +711,8 @@ namespace EmulatorLauncher
             #region fighters
             else if (fighters.Contains(parentRom))
             {
+                var ymlMapping = model2Buttons.ContainsKey(parentRom) ? GetModel2YmlMapping(parentRom) : null;
+
                 bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = Convert.ToByte(j1index);
                 bytes[41] = bytes[45] = bytes[49] = bytes[53] = bytes[57] = bytes[61] = bytes[65] = bytes[69] = bytes[73] = bytes[77] = Convert.ToByte(j2index);
 
@@ -734,6 +744,10 @@ namespace EmulatorLauncher
                     bytes[28] = dinput1 ? GetInputCode(InputKey.a, c1, tech1, vendor1, ctrl1) : (byte)0x30;
                 else
                     bytes[28] = dinput1 ? GetInputCode(InputKey.b, c1, tech1, vendor1, ctrl1) : (byte)0x40;
+
+                // Override with model2.yml mapping
+                if (ymlMapping != null)
+                    WriteYmlButtons(bytes, ymlMapping, model2Buttons[parentRom], 16, j1index, c1, tech1, vendor1, ctrl1, dinput1);
 
                 bytes[32] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
                 bytes[36] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
@@ -783,6 +797,10 @@ namespace EmulatorLauncher
                     else
                         bytes[68] = dinput2 ? GetInputCode(InputKey.b, c2, tech2, vendor2, ctrl2) : (byte)0x40;
 
+                    // Override with model2.yml mapping
+                    if (ymlMapping != null)
+                        WriteYmlButtons(bytes, ymlMapping, model2Buttons[parentRom], 56, j2index, c2, tech2, vendor2, ctrl2, dinput2);
+
                     bytes[72] = dinput2 ? GetInputCode(InputKey.start, c2, tech2, vendor2, ctrl2) : (byte)0xB0;
                     bytes[76] = dinput2 ? GetInputCode(InputKey.select, c2, tech2, vendor2, ctrl2) : (byte)0xC0;
 
@@ -808,6 +826,8 @@ namespace EmulatorLauncher
             #region standard
             else if (standard.Contains(parentRom))
             {
+                var ymlMapping = model2Buttons.ContainsKey(parentRom) ? GetModel2YmlMapping(parentRom) : null;
+
                 bytes[1] = bytes[5] = bytes[9] = bytes[13] = bytes[17] = bytes[21] = bytes[25] = bytes[29] = bytes[33] = bytes[37] = Convert.ToByte(j1index);
                 bytes[41] = bytes[45] = bytes[49] = bytes[53] = bytes[57] = bytes[61] = bytes[65] = bytes[69] = bytes[73] = bytes[77] = Convert.ToByte(j2index);
 
@@ -845,6 +865,10 @@ namespace EmulatorLauncher
                     bytes[24] = dinput1 ? GetInputCode(InputKey.b, c1, tech1, vendor1, ctrl1) : (byte)0x40;
                     bytes[28] = dinput1 ? GetInputCode(InputKey.x, c1, tech1, vendor1, ctrl1) : (byte)0x20;
                 }
+
+                // Override with model2.yml mapping
+                if (ymlMapping != null)
+                    WriteYmlButtons(bytes, ymlMapping, model2Buttons[parentRom], 16, j1index, c1, tech1, vendor1, ctrl1, dinput1);
 
                 bytes[32] = dinput1 ? GetInputCode(InputKey.start, c1, tech1, vendor1, ctrl1) : (byte)0xB0;
                 bytes[36] = dinput1 ? GetInputCode(InputKey.select, c1, tech1, vendor1, ctrl1) : (byte)0xC0;
@@ -899,6 +923,10 @@ namespace EmulatorLauncher
                         bytes[64] = dinput2 ? GetInputCode(InputKey.b, c2, tech2, vendor2, ctrl2) : (byte)0x40;
                         bytes[68] = dinput2 ? GetInputCode(InputKey.x, c2, tech2, vendor2, ctrl2) : (byte)0x20;
                     }
+
+                    // Override with model2.yml mapping
+                    if (ymlMapping != null)
+                        WriteYmlButtons(bytes, ymlMapping, model2Buttons[parentRom], 56, j2index, c2, tech2, vendor2, ctrl2, dinput2);
 
                     bytes[72] = dinput2 ? GetInputCode(InputKey.start, c2, tech2, vendor2, ctrl2) : (byte)0xB0;
                     bytes[76] = dinput2 ? GetInputCode(InputKey.select, c2, tech2, vendor2, ctrl2) : (byte)0xC0;
@@ -1592,6 +1620,115 @@ namespace EmulatorLauncher
         static readonly List<string> drivingshiftlever = new List<string>() { "daytona", "srallyc" };
         static readonly List<string> sports = new List<string>() { "segawski", "skisuprg", "topskatr", "waverunr" };
         static readonly List<byte> axisBytes = new List<byte>() { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
+
+        // Fighting and standard games: button actions in .input slot order (P1 slots from offset 16, P2 from offset 56)
+        static readonly Dictionary<string, string[]> model2Buttons = new Dictionary<string, string[]>()
+        {
+            // Fighting games
+            { "doa",      new[] { "Hold", "Punch", "Kick" } },
+            { "fvipers",  new[] { "Punch", "Kick", "Guard", "Guard 2" } },
+            { "lastbrnx", new[] { "Punch", "Kick", "Guard" } },
+            { "schamp",   new[] { "Punch", "Kick", "Barrier" } },
+            { "vf2",      new[] { "Punch", "Kick", "Guard" } },
+            // Standard games
+            { "dynamcop", new[] { "Punch", "Kick", "Jump" } },
+            { "pltkids",  new[] { "Shot", "Bomb" } },
+            { "vstriker", new[] { "Long Pass", "Shoot", "Short Pass" } },
+            { "zerogun",  new[] { "Shot", "Bomb" } },
+        };
+
+        // yml button name => ES key (dinput) and Model2 xinput code
+        class Model2Button
+        {
+            public InputKey Key;
+            public byte XInputCode;
+
+            public Model2Button(InputKey key, byte xinputCode)
+            {
+                Key = key;
+                XInputCode = xinputCode;
+            }
+        }
+
+        static readonly Dictionary<string, Model2Button> model2YmlButtons = new Dictionary<string, Model2Button>()
+        {
+            { "a", new Model2Button(InputKey.a, 0x30) },
+            { "b", new Model2Button(InputKey.b, 0x40) },
+            { "x", new Model2Button(InputKey.y, 0x10) },
+            { "y", new Model2Button(InputKey.x, 0x20) },
+            { "leftshoulder", new Model2Button(InputKey.pageup, 0x50) },
+            { "rightshoulder", new Model2Button(InputKey.pagedown, 0x60) },
+            { "leftstick", new Model2Button(InputKey.l3, 0x90) },
+            { "rightstick", new Model2Button(InputKey.r3, 0xA0) },
+            { "back", new Model2Button(InputKey.select, 0xC0) },
+            { "start", new Model2Button(InputKey.start, 0xB0) },
+        };
+
+        static readonly string[] model2MappingPaths =
+        {
+            "{userpath}\\inputmapping\\model2.yml",
+            "{systempath}\\resources\\inputmapping\\model2.yml",
+        };
+
+        // Returns game actions => button names from model2.yml (layout container first), null if not found
+        private Dictionary<string, string> GetModel2YmlMapping(string parentRom)
+        {
+            string ymlPath = Controller.GetSystemYmlMappingFile("m2emulator", "", "model2", model2MappingPaths);
+            if (ymlPath == null)
+                return null;
+
+            YmlFile yml;
+            try { yml = YmlFile.Load(ymlPath); }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[Model2] Unable to read " + ymlPath + " : " + ex.Message);
+                return null;
+            }
+
+            string layout = SystemConfig["controller_layout"];
+            if (layout == "classic8")
+                layout = "6alternative";
+
+            YmlContainer game = null;
+            if (!string.IsNullOrEmpty(layout))
+                game = yml.Elements.FirstOrDefault(e => e.Name == parentRom + "_" + layout) as YmlContainer;
+            if (game == null)
+                game = yml.Elements.FirstOrDefault(e => e.Name == parentRom) as YmlContainer;
+            if (game == null)
+                return null;
+
+            var mapping = new Dictionary<string, string>();
+            foreach (var element in game.Elements.OfType<YmlElement>())
+                mapping[element.Name] = element.Value;
+
+            SimpleLogger.Instance.Info("[INFO] Model2 mapping found in yml file: " + game.Name);
+            return mapping;
+        }
+
+        // Writes yml mapping into the 4 button slots starting at offset, unmapped slots are cleared
+        private void WriteYmlButtons(byte[] bytes, Dictionary<string, string> mapping, string[] actions, int offset, int joyIndex, Controller c, string tech, string brand, SdlToDirectInput ctrl, bool dinput)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                int slot = offset + i * 4;
+                bytes[slot] = 0x00;
+                bytes[slot + 1] = 0x00;
+
+                string button;
+                if (i >= actions.Length || !mapping.TryGetValue(actions[i], out button) || string.IsNullOrEmpty(button))
+                    continue;
+
+                Model2Button target;
+                if (!model2YmlButtons.TryGetValue(button.ToLowerInvariant(), out target))
+                {
+                    SimpleLogger.Instance.Warning("[Model2] Unknown button in yml file: " + button);
+                    continue;
+                }
+
+                bytes[slot] = dinput ? GetInputCode(target.Key, c, tech, brand, ctrl) : target.XInputCode;
+                bytes[slot + 1] = Convert.ToByte(joyIndex);
+            }
+        }
 
         private static readonly Dictionary<string, string> esToDinput = new Dictionary<string, string>()
         {

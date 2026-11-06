@@ -27,6 +27,10 @@ namespace EmulatorLauncher
         private string _installPath = null;
         private long _installSize = 0;
 
+        // Vita3K per-game config disabled for the session, restored at exit
+        private string _customConfigFile = null;
+        private string _customConfigBackup = null;
+
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
             SimpleLogger.Instance.Info("[Generator] Getting " + emulator + " path and executable name.");
@@ -95,12 +99,12 @@ namespace EmulatorLauncher
             CheckFirmware();
 
             /*
-             * .m3u    : title ID of a game already installed in Vita3K
-             * .psvita : game folder, installed the first time it is launched
-             * .vpk    : game package, installed the first time it is launched
+             * .m3u      : title ID of a game already installed in Vita3K
+             * .psvita   : game folder, installed the first time it is launched
+             * .vpk/.zip : game package, installed the first time it is launched
              */
             string ext = Path.GetExtension(rom).ToLowerInvariant();
-            bool isPackage = ext == ".vpk" || ext == ".psvita";
+            bool isPackage = ext == ".vpk" || ext == ".zip" || ext == ".psvita";
 
             string gameID = GetGameTitleId(rom, ext);
             if (string.IsNullOrEmpty(gameID))
@@ -125,7 +129,7 @@ namespace EmulatorLauncher
 
             List<string> commandArray = new List<string>();
 
-            // -F is ignored by Qt builds (fullscreen is driven by boot-apps-full-screen), kept for older builds
+            // -F: fullscreen
             // -w: do not let Vita3K rewrite config.yml at startup
             // -f -c: load the config.yml file generated below
             if (_fullscreen)
@@ -148,6 +152,7 @@ namespace EmulatorLauncher
 
             SetupConfiguration(configfile);
             SetupGUIConfiguration(configPath);
+            SetupCustomConfig(configPath, gameID);
 
             return new ProcessStartInfo()
             {
@@ -203,6 +208,19 @@ namespace EmulatorLauncher
             BindFeature(yml, "high-accuracy", "vita3k_high_accuracy", "true");
             BindBoolFeature(yml, "fps-hack", "vita3k_fpshack", "true", "false");
             BindBoolFeature(yml, "show-compile-shaders", "vita3k_showShaderCompile", "true", "false");
+
+            // Display: keys use underscores in Vita3K
+            BindBoolFeature(yml, "stretch_the_display_area", "vita3k_stretch", "true", "false");
+            BindBoolFeature(yml, "fullscreen_hd_res_pixel_perfect", "vita3k_pixel_perfect", "true", "false");
+
+            // Vulkan memory mapping (falls back automatically if not supported by the GPU), OpenGL mask bit (AMD iGPU black screen)
+            BindFeature(yml, "memory-mapping", "vita3k_memory_mapping", "double-buffer");
+            BindBoolFeature(yml, "disable-mask-bit", "vita3k_disable_mask_bit", "true", "false");
+
+            // Audio
+            BindFeature(yml, "audio-backend", "vita3k_audio_backend", "SDL");
+            BindBoolFeatureOn(yml, "ngs-enable", "vita3k_ngs", "true", "false");
+
             yml["check-for-updates-mode"] = "0";
 
             // The missing firmware dialog blocks the launch (default button = Cancel): firmware is checked in the generator log instead
@@ -216,6 +234,9 @@ namespace EmulatorLauncher
             }
             else
                 yml["performance-overlay"] = "false";
+
+            // 0 = top left ... 5 = bottom right
+            BindFeature(yml, "performance-overlay-position", "vita3k_overlay_position", "0");
 
             // Remove misspelled key written by previous versions of the generator
             yml.Remove("perfomance-overlay-detail");
@@ -234,6 +255,9 @@ namespace EmulatorLauncher
                 yml["import-textures"] = "true";
             else
                 yml["import-textures"] = "false";
+
+            // Cheats master switch (cheats are enabled one by one in the Vita3K interface)
+            BindBoolFeatureOn(yml, "enable-cheats", "vita3k_cheats", "true", "false");
 
             // Controls
             var buttonMap = yml.GetOrCreateContainer("controller-binds");
@@ -351,6 +375,65 @@ namespace EmulatorLauncher
                 return false;
         }
 
+        /// <summary>
+        /// Vita3K per-game config (config\config_[title ID].xml) overrides config.yml and RetroBat features.
+        /// Disabled for the session (renamed) unless 'vita3k_custom_config' is enabled, restored at exit.
+        /// </summary>
+        private void SetupCustomConfig(string configPath, string gameID)
+        {
+            if (string.IsNullOrEmpty(gameID))
+                return;
+
+            string file = Path.Combine(configPath, "config", "config_" + gameID + ".xml");
+            string backup = file + ".retrobat";
+
+            try
+            {
+                // Restore a file left disabled by a previous session (emulator crash), a newer config is kept
+                if (File.Exists(backup))
+                {
+                    if (File.Exists(file))
+                        File.Delete(backup);
+                    else
+                        File.Move(backup, file);
+                }
+
+                if (SystemConfig.getOptBoolean("vita3k_custom_config") || !File.Exists(file))
+                    return;
+
+                File.Move(file, backup);
+                _customConfigFile = file;
+                _customConfigBackup = backup;
+                SimpleLogger.Instance.Info("[Generator] Vita3K per-game config disabled for this session: " + file);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[WARNING] Unable to disable Vita3K per-game config '" + file + "': " + ex.Message);
+            }
+        }
+
+        private void RestoreCustomConfig()
+        {
+            if (string.IsNullOrEmpty(_customConfigBackup))
+                return;
+
+            try
+            {
+                // A per-game config saved in Vita3K during the session is kept
+                if (File.Exists(_customConfigFile))
+                    File.Delete(_customConfigBackup);
+                else if (File.Exists(_customConfigBackup))
+                    File.Move(_customConfigBackup, _customConfigFile);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[WARNING] Unable to restore Vita3K per-game config '" + _customConfigFile + "': " + ex.Message);
+            }
+
+            _customConfigFile = null;
+            _customConfigBackup = null;
+        }
+
         #region Vita3K windows
         private const int WM_CLOSE = 0x0010;
 
@@ -453,7 +536,7 @@ namespace EmulatorLauncher
 
         /// <summary>
         /// Get the title ID of the game (e.g. PCSE00000)
-        /// .m3u: first line of the file, folder: sce_sys\param.sfo, .vpk: [ID] in file name, then sce_sys/param.sfo inside the package
+        /// .m3u: first line of the file, folder: sce_sys\param.sfo, .vpk/.zip: [ID] in file name, then sce_sys/param.sfo inside the package
         /// </summary>
         private static string GetGameTitleId(string rom, string ext)
         {
@@ -488,7 +571,7 @@ namespace EmulatorLauncher
             }
 
             // Last resort for packages: read sce_sys/param.sfo inside the archive
-            if (string.IsNullOrEmpty(titleId) && ext == ".vpk" && File.Exists(rom))
+            if (string.IsNullOrEmpty(titleId) && (ext == ".vpk" || ext == ".zip") && File.Exists(rom))
                 titleId = GetTitleIdFromArchive(rom);
 
             return string.IsNullOrEmpty(titleId) ? null : titleId.Trim().ToUpperInvariant();
@@ -783,6 +866,10 @@ namespace EmulatorLauncher
                 }
             }
             catch { }
+            finally
+            {
+                RestoreCustomConfig();
+            }
 
             return 0;
         }

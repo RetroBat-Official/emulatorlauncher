@@ -5898,10 +5898,12 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "sm2_controller_profile_type", "sm2_test_service", "test_service", "normal");
             BindBoolFeatureOn(coreSettings, "sm2_gamepad_rumble", "sm2_gamepad_rumble", "enabled", "disabled");
             BindFeature(coreSettings, "sm2_four_speed_shifter", "sm2_four_speed_shifter", "h_gate");
+            BindFeature(coreSettings, "sm2_gun_stick_control", "sm2_gun_stick_control", "relative");
 
             // Guns: with real lightguns, only read the lightgun so a gamepad stick or the mouse cannot move the aim
             coreSettings["sm2_gun_input"] = SystemConfig.getOptBoolean("use_guns") ? "lightgun" : "hybrid";
             BindFeature(coreSettings, "sm2_crosshairs", "sm2_crosshairs", "auto");
+            BindFeature(coreSettings, "sm2_crosshair_timeout", "sm2_crosshair_timeout", "disabled");
             BindBoolFeature(coreSettings, "sm2_hide_shot_flash", "sm2_hide_shot_flash", "enabled", "disabled");
 
             SetupLightGuns(retroarchConfig, "1", core);

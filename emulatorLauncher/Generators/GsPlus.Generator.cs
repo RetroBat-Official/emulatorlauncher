@@ -93,7 +93,7 @@ namespace EmulatorLauncher
                 commandArray.Add(SystemConfig["gsplus_scanline"]);
             }
 
-            if (SystemConfig.getOptBoolean("gsplus_novsync"))
+            if (SystemConfig.isOptSet("gsplus_vsync") && !SystemConfig.getOptBoolean("gsplus_vsync"))
                 commandArray.Add("-novsync");
 
             if (SystemConfig.getOptBoolean("gsplus_noaspect") && _bezelFileInfo == null)

@@ -232,11 +232,15 @@ namespace EmulatorLauncher
                 {
                     ini.WriteValue("Display", "FULLSCREEN", fullscreen ? "true" : "false");
 
+                    // Screen : SDL display index (primary first), loader default when MonitorIndex is not set
+                    int displayIndex = Program.IsMonitorIndexSet ? Displays.IndexOf(Program.TargetScreen, MonitorOrder.SdlLike) : 0;
+                    ini.WriteValue("Display", "DISPLAY_INDEX", Math.Max(displayIndex, 0).ToString());
+
                     BindBoolIniFeatureOn(ini, "Display", "KEEP_ASPECT_RATIO", "ll_keepratio", "true", "false");
+                    ini.WriteValue("Display", "SCALING_FILTER", SystemConfig.isOptSet("smooth") && !SystemConfig.getOptBoolean("smooth") ? "NEAREST" : "LINEAR");
                     BindBoolIniFeatureOn(ini, "Display", "HIDE_CURSOR", "ll_hide_cursor", "true", "false");
                     BindBoolIniFeatureOn(ini, "Display", "FPS_LIMITER_ENABLED", "ll_fpsLimiter", "true", "false");
-                    if (SystemConfig.isOptSet("ll_fpstarget") && !string.IsNullOrEmpty(SystemConfig["ll_fpstarget"]))
-                        ini.WriteValue("Display", "FPS_TARGET", SystemConfig["ll_fpstarget"]);
+                    BindIniFeature(ini, "Display", "FPS_TARGET", "ll_fpstarget", "60.0");
                     BindBoolIniFeatureOn(ini, "Display", "BOOST_RENDER_RES", "ll_boostrender", "true", "false");
                     BindBoolIniFeature(ini, "Display", "FPS_OVERLAY_ENABLED", "ll_showfps", "true", "false");
                     
@@ -307,7 +311,6 @@ namespace EmulatorLauncher
                     // Game fixes
                     BindBoolIniFeature(ini, "Graphics", "HUMMER_FLICKER_FIX", "ll_hummer_flicker_fix", "true", "false");
                     BindIniFeature(ini, "GameSpecific", "PRIMEVAL_HUNT_SCREEN_MODE", "ll_primeval_hunt_screen_mode", "2");
-                    BindBoolIniFeatureOn(ini, "GameSpecific", "PRIMEVAL_HUNT_USE_ZINK", "ll_primeval_hunt_use_zink", "true", "false");
                     BindBoolIniFeature(ini, "GameSpecific", "SKIP_OUTRUN_CABINET_CHECK", "ll_skip_outrun_cabinet_check", "true", "false");
                     BindBoolIniFeature(ini, "GameSpecific", "RAMBO_GUNS_SWITCH", "ll_rambo_guns_switch", "true", "false");
                 }

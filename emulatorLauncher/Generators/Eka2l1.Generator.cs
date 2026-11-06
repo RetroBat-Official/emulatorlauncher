@@ -155,8 +155,8 @@ namespace EmulatorLauncher
             // Handle Core part of yml file
             yml["data-storage"] = dataFolder;
 
-            BindBoolFeature(yml, "enable-nearest-neighbor-filter", "eka2l1_nearest_neighbor_filter", "true", "false");
-            BindFeature(yml, "integer-scaling", "smooth", "false");
+            BindBoolFeature(yml, "enable-nearest-neighbor-filter", "smooth", "false", "true");
+            BindBoolFeatureOn(yml, "integer-scaling", "integerscale", "true", "false");
 
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 yml["current-keybind-profile"] = "default";

@@ -948,9 +948,9 @@ namespace EmulatorLauncher
                             pcsx2ini.Remove("JVS", "P1_Service");
                             pcsx2ini.WriteValue("JVS", "TestMode", "true");
                             pcsx2ini.WriteValue("JVS", "ToggleTestMode", techPadNumber + GetInputKeyName(ctrl, InputKey.r3, tech));
-                            pcsx2ini.AppendValue("JVS", "ToggleTestMode", azerty ? "Keyboard/Ccedilla" : "Keyboard/9");
+                            pcsx2ini.AppendValue("JVS", "ToggleTestMode", azerty ? "Keyboard/Agrave" : "Keyboard/0");
                             pcsx2ini.WriteValue("JVS", "P1_Service", techPadNumber + GetInputKeyName(ctrl, InputKey.l3, tech));
-                            pcsx2ini.AppendValue("JVS", "P1_Service", azerty ? "Keyboard/Agrave" : "Keyboard/0");
+                            pcsx2ini.AppendValue("JVS", "P1_Service", azerty ? "Keyboard/Ccedilla" : "Keyboard/9");
                         }
                         else
                         {

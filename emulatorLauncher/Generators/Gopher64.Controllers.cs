@@ -318,7 +318,7 @@ namespace EmulatorLauncher
         /// </summary>
         private N64Controller GetN64SpecificController(Controller controller)
         {
-            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            string n64json = Generator.GetSpecialControllersJson("n64Controllers.json");
             if (!File.Exists(n64json))
                 return null;
 

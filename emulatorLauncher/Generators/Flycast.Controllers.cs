@@ -185,8 +185,8 @@ namespace EmulatorLauncher
                     AddKeyboardMapping(InputKey.r2, "btn_trigger_right");
                     AddFixedMapping(34, "btn_d");                    // coin (5)
                     AddKeyboardMapping(InputKey.start, "btn_start");
-                    AddFixedMapping(97, "btn_dpad2_up");             // service (9)
-                    AddFixedMapping(98, "btn_dpad2_down");           // test (0)
+                    AddFixedMapping(38, "btn_dpad2_up");             // service (9)
+                    AddFixedMapping(39, "btn_dpad2_down");           // test (0)
                     AddKeyboardMapping(InputKey.right, "btn_dpad1_right");
                     AddKeyboardMapping(InputKey.left, "btn_dpad1_left");
                     AddKeyboardMapping(InputKey.down, "btn_dpad1_down");
@@ -593,13 +593,13 @@ namespace EmulatorLauncher
                         digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pageup, tech) + ":btn_z");
                         digitalBinds.Add(GetInputKeyName(ctrl, InputKey.pagedown, tech) + ":btn_y");
                         digitalBinds.Add(GetInputKeyName(ctrl, InputKey.start, tech) + ":btn_start");
-                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_d");                                          // coin
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.select, tech) + ":btn_d");                  // coin
                     }
 
                     if (serviceMenu)
                     {
-                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_dpad2_down");               // service menu
-                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.l3, tech) + ":btn_dpad2_up");                 // test
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.r3, tech) + ":btn_dpad2_down");               // test
+                        digitalBinds.Add(GetInputKeyName(ctrl, InputKey.l3, tech) + ":btn_dpad2_up");                 // service
                     }
                 }
                 

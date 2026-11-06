@@ -54,7 +54,7 @@ namespace EmulatorLauncher
 
         /// <summary>
         /// Keyboard and mouse inputs of each control, kept on the lines written by RetroBat (a line replaces all the inputs of a control).
-        /// Odin defaults of OPTIONS, with the RetroBat arcade keys : coins 5-6, starts 1-2, Test 9, Service 0.
+        /// Odin defaults of OPTIONS, with the RetroBat arcade keys : coins 5-6, starts 1-2, Test 0, Service 9.
         /// </summary>
         private static readonly Dictionary<string, string> _keyboardInputs = new Dictionary<string, string>()
         {
@@ -82,6 +82,17 @@ namespace EmulatorLauncher
             { "left_trigger", "key:Left Ctrl" }, { "left_turbo", "key:Left Alt" },
             { "right_lever_up", "key:I" }, { "right_lever_down", "key:K" }, { "right_lever_left", "key:J" }, { "right_lever_right", "key:L" },
             { "right_trigger", "key:Space" }, { "right_turbo", "key:Left Shift" }, { "pib", "key:Z" },
+            // atvtrack, atvtracka
+            { "handlebar", "" }, { "throttle", "key:Up" }, { "left_brake", "key:Z" }, { "right_brake", "key:X" },
+            // gfootbal
+            { "1p_up", "key:Up" }, { "1p_down", "key:Down" }, { "1p_left", "key:Left" }, { "1p_right", "key:Right" },
+            { "1p_button1", "key:Left Ctrl" }, { "1p_button2", "key:Left Alt" }, { "1p_button3", "key:Left Shift" },
+            { "1p_kick_x", "" }, { "1p_kick_y", "" },
+            { "2p_up", "key:R" }, { "2p_down", "key:F" }, { "2p_left", "key:D" }, { "2p_right", "key:G" },
+            { "2p_button1", "key:A" }, { "2p_button2", "key:S" }, { "2p_button3", "key:Q" },
+            { "2p_kick_x", "" }, { "2p_kick_y", "" },
+            // smashdrv, smashdrvb, smashdrvs
+            { "wheel", "" }, { "horn", "key:1, key:Keypad 1" }, { "volume_up", "key:=" }, { "volume_down", "key:-" },
         };
 
         private enum OdinDevice { None, Keyboard, Pad, Joystick }
@@ -101,16 +112,16 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Odin");
 
-            string playersSection = "players." + _game;
-            string controlsSection = "controls." + _game;
+            string playersSection = "players." + _section;
+            string controlsSection = "controls." + _section;
             ini.ClearSection(controlsSection);
 
             var mapping = LoadYmlMapping();
             var lines = new Dictionary<string, List<string>>();
             var wheel = GetWheelController();
 
-            // Only Brave Firefighters has two players on one cabinet, the other games are linked cabinets
-            int players = _game == "braveff" ? 2 : 1;
+            // Brave Firefighters and Gaelco Football have two players on one cabinet, the other games are linked cabinets
+            int players = _game == "braveff" || _game == "gfootbal" ? 2 : 1;
 
             for (int player = 1; player <= 2; player++)
             {
@@ -153,7 +164,7 @@ namespace EmulatorLauncher
             // Test and Service keep their RetroBat keys without controller (R3 / L3 are set by the yml)
             if (!lines.ContainsKey("test"))
                 lines["test"] = new List<string>();
-            if (!lines.ContainsKey("1p_service"))
+            if (!_gaelcoGames.Contains(_game) && !lines.ContainsKey("1p_service"))
                 lines["1p_service"] = new List<string>();
 
             // Light guns : coin and start of the Wiimotes, the guns aim and fire with the mouse inputs of the lines
@@ -184,8 +195,8 @@ namespace EmulatorLauncher
                     ini.WriteValue(controlsSection, line.Key, string.Join(", ", inputs));
             }
 
-            // No service for player 2 without controller (Odin default : Guide + L3)
-            if (!lines.ContainsKey("2p_service"))
+            // No service for player 2 without controller
+            if (!_gaelcoGames.Contains(_game) && !lines.ContainsKey("2p_service"))
                 ini.WriteValue(controlsSection, "2p_service", "");
 
             WriteGunKeyboardLines(ini, controlsSection);
@@ -378,11 +389,17 @@ namespace EmulatorLauncher
             return ret;
         }
 
-        // Versions of a game using the controls of their parent (odin-games.json)
+        // Parents
         private static readonly Dictionary<string, string> _parents = new Dictionary<string, string>()
         {
             { "airtrixo", "airtrix" },
             { "sgnascaro", "sgnascar" },
+            { "atvtracka", "atvtrack" },
+            { "smashdrvb", "smashdrv" },
+            { "smashdrvs", "smashdrv" },
         };
+
+        // Gaelco ATV
+        private static readonly string[] _gaelcoGames = { "atvtrack", "atvtracka", "gfootbal", "smashdrv", "smashdrvb", "smashdrvs" };
     }
 }

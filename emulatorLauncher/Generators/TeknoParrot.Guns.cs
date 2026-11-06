@@ -94,7 +94,7 @@ namespace EmulatorLauncher
                 if (Demulshooter.teknoParrotGames.ContainsKey(profileName))
                 {
                     SimpleLogger.Instance.Info("[GUNS] Game is compatible with DemulShooter, disabling native controls.");
-                    Demulshooter.StartDemulshooter("teknoparrot", "teknoparrot", rom, gun1, gun2, gun3, gun4);
+                    Demulshooter.StartDemulshooter("teknoparrot", "teknoparrot", profileName, gun1, gun2, gun3, gun4);
                 }
                 else
                     SimpleLogger.Instance.Info("[GUNS] Game not found in DemulShooter compatibility list: " + profileName);

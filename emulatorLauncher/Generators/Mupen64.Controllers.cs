@@ -142,7 +142,7 @@ namespace EmulatorLauncher
             ini.WriteValue(iniSection, "FilterEventsForAxis", "True");
 
             // Special mapping for n64 style controllers
-            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            string n64json = Generator.GetSpecialControllersJson("n64Controllers.json");
             bool needActivationSwitch = false;
             bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
 
