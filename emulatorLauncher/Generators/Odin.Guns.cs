@@ -22,7 +22,7 @@ namespace EmulatorLauncher
         /// </summary>
         private void SetupGuns(IniFile ini)
         {
-            string section = "players." + _game;
+            string section = "players." + _section;
 
             ini.Remove(section, "gun1");
             ini.Remove(section, "gun2");
