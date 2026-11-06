@@ -24,7 +24,7 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> mdSystems = new List<string>() { "megadrive", "genesis", "megadrive-msu", "genesis-msu", "segacd", "megacd", "sega32x", "mega32x" };
         static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "snes-msu1", "sattelaview", "sufami", "sfc" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
-        static readonly List<string> arcadeSystems = new List<string>() { "arcade", "mame", "hbmame", "fbneo", "cave", "cps1", "cps2", "cps3", "atomiswave", "naomi", "naomi2", "gaelco", "segastv", "neogeo64", "model3", "model2" };
+        static readonly List<string> arcadeSystems = new List<string>() { "arcade", "mame", "hbmame", "fbneo", "cave", "cps1", "cps2", "cps3", "atomiswave", "naomi", "naomi2", "gaelco", "segastv", "neogeo64", "model1", "model3", "model2" };
         private static Dictionary<int, int> _indexes = new Dictionary<int, int>();
         private static HashSet<int> _forcedIndexes = new HashSet<int>();
 

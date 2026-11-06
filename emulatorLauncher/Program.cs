@@ -1349,7 +1349,7 @@ namespace EmulatorLauncher
         // Systems where arcade sticks keep their ES order when "arcadesticks_last" = 1 (consoles only)
         private static readonly HashSet<string> _arcadeStickSystems = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase)
         {
-            "arcade", "atomiswave", "cave", "chihiro", "cps1", "cps2", "cps3", "daphne", "dice", "fbneo", "gaelco", "hbmame", "hikaru", "lindbergh", "mame", "model2", "model3",
+            "arcade", "atomiswave", "cave", "chihiro", "cps1", "cps2", "cps3", "daphne", "dice", "fbneo", "gaelco", "hbmame", "hikaru", "lindbergh", "mame", "model1", "model2", "model3",
             "namco2x6", "namco3xx", "naomi", "naomi2", "neogeo", "neogeo64", "psxarcade", "segastv", "singe", "teknoparrot", "triforce", "zinc"
         };
 

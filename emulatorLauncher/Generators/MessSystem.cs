@@ -30,7 +30,7 @@ namespace EmulatorLauncher
             { "vg5k_cass", "vg5k" }
         };
 
-        static readonly List<string> mame_arcade_systems = new List<string>() { "mame", "model2", "segastv", "zinc" };
+        static readonly List<string> mame_arcade_systems = new List<string>() { "mame", "model3", "model2", "model1", "segastv", "zinc" };
 
         static readonly MessSystem[] MessSystems = new MessSystem[]
         {
@@ -543,7 +543,9 @@ namespace EmulatorLauncher
             new MessSystem("mame"         ,"%romname%",""      ),
             new MessSystem("neogeo64"     ,"%romname%",""      ),
             new MessSystem("segastv"      ,"%romname%",""      ),
+            new MessSystem("model1"       ,"%romname%",""      ),
             new MessSystem("model2"       ,"%romname%",""      ),
+            new MessSystem("model3"       ,"%romname%",""      ),
             new MessSystem("zinc"         ,"%romname%",""      ),
             new MessSystem("hbmame"       ,"hbmame"   ,""      ),
             new MessSystem("cave"         ,"%romname%",""      ),

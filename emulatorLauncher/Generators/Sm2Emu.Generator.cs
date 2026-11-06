@@ -159,6 +159,7 @@ namespace EmulatorLauncher
 
                 // No rom_dir: without a game picker to return to, Escape quits the emulator
                 ini.Remove("paths", "rom_dir");
+                ini.Remove("paths", "model1_rom_dir");
 
                 // Front-end behavior
                 ini.WriteValue("video", "fullscreen", fullscreen ? "true" : "false");
@@ -175,6 +176,7 @@ namespace EmulatorLauncher
                 BindBoolIniFeature(ini, "video", "vsync", "sm2emu_vsync", "true", "false");
                 BindIniFeature(ini, "video", "scaling_method", "sm2emu_scaling", "sharp");
                 ini.WriteValue("video", "aspect_mode", GetAspectMode());
+                BindIniFeatureSlider(ini, "video", "brightness", "sm2emu_brightness", "50");
                 BindBoolIniFeature(ini, "video", "crt_enabled", "sm2emu_crt", "true", "false");
 
                 if (SystemConfig.isOptSet("sm2emu_anisotropy") && !string.IsNullOrEmpty(SystemConfig["sm2emu_anisotropy"]))
