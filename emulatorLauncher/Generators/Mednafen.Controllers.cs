@@ -268,7 +268,7 @@ namespace EmulatorLauncher
             if (mednafenCore == "md")
             {
                 string guid = controller.Guid.ToString().ToLowerInvariant();
-                string mdjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
+                string mdjson = Generator.GetSpecialControllersJson("mdControllers.json");
 
                 if (File.Exists(mdjson))
                 {
@@ -324,7 +324,7 @@ namespace EmulatorLauncher
             if (mednafenCore == "ss")
             {
                 string guid = controller.Guid.ToString().ToLowerInvariant();
-                string saturnjson = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
+                string saturnjson = Generator.GetSpecialControllersJson("saturnControllers.json");
 
                 if (File.Exists(saturnjson))
                 {
@@ -1181,41 +1181,9 @@ namespace EmulatorLauncher
                 else
                     cfg["command.insert_coin"] = "keyboard 0x0 6+ctrl"; // CTRL+C
 
-                var test = keyboard[InputKey.l3];
-                if (test != null)
-                {
-                    int id = (int)test.Id;
-
-                    SDL.SDL_Keycode keycode = (SDL.SDL_Keycode)id;
-
-                    List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
-                    if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId) && azertyLayoutMapping.ContainsKey(keycode))
-                        keycode = azertyLayoutMapping[keycode];
-
-                    int mednafenKey = mednafenKeyCodes[keycode];
-
-                    cfg["ss.input.builtin.builtin.stv_test"] = "keyboard 0x0 " + mednafenKey;
-                }
-                else
-                    cfg["ss.input.builtin.builtin.stv_test"] = "keyboard 0x0 23+ctrl"; // CTRL+T
-
-                var service = keyboard[InputKey.r3];
-                if (service != null)
-                {
-                    int id = (int)service.Id;
-
-                    SDL.SDL_Keycode keycode = (SDL.SDL_Keycode)id;
-
-                    List<int> azertyLayouts = new List<int>() { 1036, 2060, 3084, 5132, 4108 };
-                    if (azertyLayouts.Contains(CultureInfo.CurrentCulture.KeyboardLayoutId) && azertyLayoutMapping.ContainsKey(keycode))
-                        keycode = azertyLayoutMapping[keycode];
-
-                    int mednafenKey = mednafenKeyCodes[keycode];
-
-                    cfg["ss.input.builtin.builtin.stv_service"] = "keyboard 0x0 " + mednafenKey;
-                }
-                else
-                    cfg["ss.input.builtin.builtin.stv_service"] = "keyboard 0x0 22+ctrl"; // CTRL+S
+                // Test 0, Service 9 (mednafen key codes are scancodes, layout independent)
+                cfg["ss.input.builtin.builtin.stv_test"] = "keyboard 0x0 39";
+                cfg["ss.input.builtin.builtin.stv_service"] = "keyboard 0x0 38";
             }
         }
         #endregion

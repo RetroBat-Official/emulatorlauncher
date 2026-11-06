@@ -95,7 +95,7 @@ namespace EmulatorLauncher
             bool needSatActivationSwitch = false;
             bool sat_pad = Program.SystemConfig["saturn_pad_kronos"] == "1" || Program.SystemConfig["saturn_pad_kronos"] == "2";
 
-            string saturnjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
+            string saturnjson = Generator.GetSpecialControllersJson("saturnControllers.json");
             if (File.Exists(saturnjson))
             {
                 try

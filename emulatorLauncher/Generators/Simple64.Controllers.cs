@@ -101,7 +101,7 @@ namespace EmulatorLauncher
             // 3 = hat / 4 = button / 5 = axis / 1 or -1 = axis direction (if axis)
 
             // Special mapping for n64 style controllers
-            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            string n64json = Generator.GetSpecialControllersJson("n64Controllers.json");
             bool needActivationSwitch = false;
             bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
 

@@ -226,7 +226,7 @@ namespace EmulatorLauncher
             // Special treatment for N64 controllers
             N64Controller n64Gamepad = null;
             bool n64ControllerFound = false;
-            string n64json = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "n64Controllers.json");
+            string n64json = Generator.GetSpecialControllersJson("n64Controllers.json");
             bool needn64ActivationSwitch = false;
             bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");
 
@@ -296,7 +296,7 @@ namespace EmulatorLauncher
             // Special treatment for Megadrive controllers
             MegadriveController mdGamepad = null;
             bool mdControllerFound = false;
-            string mdjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
+            string mdjson = Generator.GetSpecialControllersJson("mdControllers.json");
             bool needMDActivationSwitch = false;
             bool md_pad = Program.SystemConfig.getOptBoolean("md_pad");
 
@@ -375,7 +375,7 @@ namespace EmulatorLauncher
             bool needSATActivationSwitch = false;
             bool sat_pad = Program.SystemConfig.getOptBoolean("saturn_pad");
 
-            string saturnjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "saturnControllers.json");
+            string saturnjson = Generator.GetSpecialControllersJson("saturnControllers.json");
             if (File.Exists(saturnjson) && system == "saturn")
             {
                 try

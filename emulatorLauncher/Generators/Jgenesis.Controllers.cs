@@ -80,7 +80,7 @@ namespace EmulatorLauncher
             bool md_pad = Program.SystemConfig.getOptBoolean("md_pad");
             if (_mdSystems.Contains(jgenSystem))
             {
-                string mdjson = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "mdControllers.json");
+                string mdjson = Generator.GetSpecialControllersJson("mdControllers.json");
                 try
                 {
                     var mdControllers = MegadriveController.LoadControllersFromJson(mdjson);
