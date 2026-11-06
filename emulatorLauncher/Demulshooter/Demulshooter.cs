@@ -36,7 +36,7 @@ namespace EmulatorLauncher
                 if (exeLauncherGames.TryGetValue(romName, out var game))
                     executable = game.Architecture == "x64" ? "DemulShooterX64.exe" : "DemulShooter.exe";
             }
-            else if (emulator == "flycast" || emulator == "rpcs3")
+            else if (emulator == "flycast")
                 executable = "DemulShooterX64.exe";
 
             return true;
@@ -50,21 +50,16 @@ namespace EmulatorLauncher
 
         private static readonly List<string> demulRoms = new List<string>
         {
-            "braveff", "claychal", "confmiss", "deathcox", "deathcoxo", "hotd2", "hotd2o", "hotd2p", "lupinsho", "manicpnc", "mok",
+            "braveff", "claychal", "confmiss", "deathcox", "hotd2", "hotd2o", "hotd2p", "lupinsho", "manicpnc", "mok",
             "ninjaslt", "ninjaslta", "ninjasltj", "ninjasltu", "pokasuka", "rangrmsn", "sprtshot", "xtrmhunt", "xtrmhnt2"
         };
 
         private static readonly List<string> lindberghRoms = new List<string>
         { "2spicy", "gsevo", "hotd4", "hotd4sp", "hotdex", "lgj", "lgjsp", "rambo" };
 
-        private readonly List<string> model2Roms = new List<string>
-        { "bel", "gunblade", "hotd", "rchase2", "vcop", "vcop2" };
-
         private static readonly List<string> flycastRoms = new List<string>
-        { "confmiss", "deathcox", "hotd2", "hotd2o", "hotd2p", "lupinsho", "mok", "ninjaslt", "ninjaslta", "ninjasltj", "ninjasltu" };
-
-        private readonly List<string> rpcs3Roms = new List<string>
-        { "de4d", "deadstorm", "sailorz" };
+        { "claychal", "confmiss", "deathcox", "deathcoxo", "hotd2", "hotd2o", "hotd2p", "lupinsho", "mok", "ninjaslt", "ninjaslta", "ninjasltj", "ninjasltu",
+          "rangrmsn", "sprtshot", "xtrmhunt", "xtrmhnt2" };
 
         public static void StartDemulshooter(string emulator, string system, string rom, RawLightgun gun1, RawLightgun gun2 = null, RawLightgun gun3 = null, RawLightgun gun4 = null)
         {
@@ -123,7 +118,7 @@ namespace EmulatorLauncher
             
             using (var ini = new IniFile(iniFile, IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
-                for (int i = 1; i <= 5; i++)
+                for (int i = 1; i <= 4; i++)
                 {
                     string mode = "P" + i + "Mode";
                     ini.WriteValue("", mode, "RAWINPUT");
@@ -158,8 +153,8 @@ namespace EmulatorLauncher
                             ini.WriteValue("", "WM_OutputsEnabled", "False");
                             break;
                         case "both":
-                            ini.WriteValue("", "Net_OutputsEnabled", "True");
                             ini.WriteValue("", "WM_OutputsEnabled", "True");
+                            ini.WriteValue("", "Net_OutputsEnabled", "False");
                             break;
                     }
                 }
@@ -204,21 +199,20 @@ namespace EmulatorLauncher
                     return;
                 }
 
-                if (emulator != "dolphin")
+                if (GetDemulshooterRom(rom, emulator, _dsVersion, out string dsRom))
+                    commandArray.Add("-rom=" + dsRom);
+                else
                 {
-                    if (GetDemulshooterRom(rom, emulator, _dsVersion, out string dsRom))
-                        commandArray.Add("-rom=" + dsRom);
-                    else
-                    {
-                        SimpleLogger.Instance.Warning("[WARNING] Failed to launch DemulShooter, no rom.");
-                        return;
-                    }
+                    SimpleLogger.Instance.Warning("[WARNING] Failed to launch DemulShooter, no rom.");
+                    return;
                 }
 
                 if (emulator == "teknoparrot")
                 {
                     if (target == "rpcs3")
                         commandArray.Add("-pname=rpcs3.exe");
+                    else if (target == "lindbergh")
+                        commandArray.Add("-pname=BudgieLoader");
 
                     string romName = Path.GetFileNameWithoutExtension(rom);
                     if (teknoParrotGames.TryGetValue(romName, out var game))
@@ -231,6 +225,9 @@ namespace EmulatorLauncher
                         // Add optional arguments based on configuration
                         if (Program.SystemConfig.getOptBoolean("tp_nocrosshair"))
                             commandArray.Add("-nocrosshair");
+
+                        if (Program.SystemConfig.getOptBoolean("ds_nogun"))
+                            commandArray.Add("-nogun");
                     }
                 }
                 else if (emulator == "demul")
@@ -238,10 +235,18 @@ namespace EmulatorLauncher
                     if (Program.SystemConfig.getOptBoolean("demul_noresize"))
                         commandArray.Add("-noresize");
                 }
-                else if (emulator == "windows" || emulator == "exelauncher" || emulator == "linuxloader")
+                else if (emulator == "linuxloader")
+                {
+                    // Explicit process name, so Lindbergh hooks do not depend on DemulShooter default
+                    commandArray.Add("-pname=linuxloader");
+                }
+                else if (emulator == "windows" || emulator == "exelauncher")
                 {
                     if (Program.SystemConfig.getOptBoolean("ds_nocrosshair"))
                         commandArray.Add("-nocrosshair");
+
+                    if (Program.SystemConfig.getOptBoolean("ds_nogun"))
+                        commandArray.Add("-nogun");
                 }
 
                 // Global verbose mode for all emulators
@@ -493,11 +498,11 @@ namespace EmulatorLauncher
             public string ExtraArgs { get; set; }
         }
 
-        internal static readonly Dictionary<string, TeknoParrotGame> teknoParrotGames = new Dictionary<string, TeknoParrotGame>
+        internal static readonly Dictionary<string, TeknoParrotGame> teknoParrotGames = new Dictionary<string, TeknoParrotGame>(StringComparer.OrdinalIgnoreCase)
         {
             { "2Spicy", new TeknoParrotGame { XmlName = "2Spicy", RomName = "2spicy", Architecture = "x32", Target = "lindbergh", ExtraArgs = "" } },
             { "AfterDark2", new TeknoParrotGame { XmlName = "AfterDark2", RomName = "nha", Architecture = "x64", Target = "arcadepc", ExtraArgs = "" } },
-            { "Akuma", new TeknoParrotGame { XmlName = "Akuma", RomName = "akuma", Architecture = "x64", Target = "gamewax", ExtraArgs = "" } },
+            { "Akuma", new TeknoParrotGame { XmlName = "Akuma", RomName = "akuma", Architecture = "x32", Target = "gamewax", ExtraArgs = "" } },
             { "AKB48", new TeknoParrotGame { XmlName = "AKB48", RomName = "sailorz", Architecture = "x64", Target = "rpcs3", ExtraArgs = "" } },
             { "AliensArmageddon", new TeknoParrotGame { XmlName = "AliensArmageddon", RomName = "aa", Architecture = "x32", Target = "rawthrill", ExtraArgs = "" } },
             { "AliensExtermination", new TeknoParrotGame { XmlName = "AliensExtermination", RomName = "aliens", Architecture = "x32", Target = "globalvr", ExtraArgs = "" } },
@@ -508,7 +513,7 @@ namespace EmulatorLauncher
             { "DarkEscape4D", new TeknoParrotGame { XmlName = "DarkEscape4D", RomName = "de4d", Architecture = "x64", Target = "rpcs3", ExtraArgs = "" } },
             { "Drakons", new TeknoParrotGame { XmlName = "Drakons", RomName = "drk", Architecture = "x64", Target = "arcadepc", ExtraArgs = "" } },
             { "DSPS", new TeknoParrotGame { XmlName = "DSPS", RomName = "deadstorm", Architecture = "x64", Target = "rpcs3", ExtraArgs = "" } },
-            { "EADP", new TeknoParrotGame { XmlName = "EADP", RomName = "eapd", Architecture = "x32", Target = "ttx", ExtraArgs = "" } },
+            { "EADP", new TeknoParrotGame { XmlName = "EADP", RomName = "eadp", Architecture = "x32", Target = "ttx", ExtraArgs = "" } },
             { "ElevatorActionInvasion", new TeknoParrotGame { XmlName = "ElevatorActionInvasion", RomName = "eai", Architecture = "x64", Target = "arcadepc", ExtraArgs = "" } },
             { "FarCryParadiseLost", new TeknoParrotGame { XmlName = "FarCryParadiseLost", RomName = "farcry", Architecture = "x32", Target = "globalvr", ExtraArgs = "" } },
             { "FearLand", new TeknoParrotGame { XmlName = "FearLand", RomName = "fearland", Architecture = "x32", Target = "globalvr", ExtraArgs = "" } },
@@ -516,8 +521,8 @@ namespace EmulatorLauncher
             { "GG", new TeknoParrotGame { XmlName = "GG", RomName = "sgg", Architecture = "x32", Target = "ringwide", ExtraArgs = "" } },
             { "GaiaAttack4", new TeknoParrotGame { XmlName = "GaiaAttack4", RomName = "gattack4", Architecture = "x32", Target = "ttx", ExtraArgs = "" } },
             { "GhostBusters", new TeknoParrotGame { XmlName = "GhostBusters", RomName = "gbusters", Architecture = "x32", Target = "arcadepc", ExtraArgs = "" } },
-            { "GSEVO", new TeknoParrotGame { XmlName = "GSEVO", RomName = "gsquad", Architecture = "x32", Target = "lindbergh", ExtraArgs = "" } },
-            { "GSEVOELF2", new TeknoParrotGame { XmlName = "GSEVOELF2", RomName = "gsquad", Architecture = "x32", Target = "lindbergh", ExtraArgs = "" } },
+            { "GSEVO", new TeknoParrotGame { XmlName = "GSEVO", RomName = "gsevo", Architecture = "x32", Target = "lindbergh", ExtraArgs = "" } },
+            { "GSEVOELF2", new TeknoParrotGame { XmlName = "GSEVOELF2", RomName = "gsevo", Architecture = "x32", Target = "lindbergh", ExtraArgs = "" } },
             { "GundamSpiritsOfZeon", new TeknoParrotGame { XmlName = "GundamSpiritsOfZeon", RomName = "gsoz", Architecture = "x32", Target = "ttx", ExtraArgs = "" } },
             { "GundamSpiritsOfZeon2p", new TeknoParrotGame { XmlName = "GundamSpiritsOfZeon2p", RomName = "gsoz2p", Architecture = "x32", Target = "ttx", ExtraArgs = "" } },
             { "HauntedMuseum", new TeknoParrotGame { XmlName = "HauntedMuseum", RomName = "hmuseum", Architecture = "x32", Target = "ttx", ExtraArgs = "" } },
@@ -527,7 +532,7 @@ namespace EmulatorLauncher
             { "HOTD4ELF2", new TeknoParrotGame { XmlName = "HOTD4ELF2", RomName = "hotd4", Architecture = "x32", Target = "lindbergh", ExtraArgs = "" } },
             { "HOTD4SPELF2", new TeknoParrotGame { XmlName = "HOTD4SPELF2", RomName = "hotd4sp", Architecture = "x32", Target = "lindbergh", ExtraArgs = "" } },
             { "HOTDEX", new TeknoParrotGame { XmlName = "HOTDEX", RomName = "hotdex", Architecture = "x32", Target = "lindbergh", ExtraArgs = "" } },
-            { "HOTDSD", new TeknoParrotGame { XmlName = "HOTDSD", RomName = "hodsd", Architecture = "x64", Target = "alls", ExtraArgs = "-noinput" } },
+            { "HOTDSD", new TeknoParrotGame { XmlName = "HOTDSD", RomName = "hodsd", Architecture = "x64", Target = "alls", ExtraArgs = "" } },
             { "JurassicPark", new TeknoParrotGame { XmlName = "JurassicPark", RomName = "jp", Architecture = "x32", Target = "rawthrill", ExtraArgs = "" } },
             { "LethalEnforcers3", new TeknoParrotGame { XmlName = "LethalEnforcers3", RomName = "le3", Architecture = "x32", Target = "konami", ExtraArgs = "" } },
             { "LGI", new TeknoParrotGame { XmlName = "LGI", RomName = "lgi", Architecture = "x32", Target = "ringwide", ExtraArgs = "" } },
@@ -570,17 +575,17 @@ namespace EmulatorLauncher
 
         internal static readonly Dictionary<string, ExeLauncherGame> exeLauncherGames = new Dictionary<string, ExeLauncherGame>
         {
-           	{ "akuma", new ExeLauncherGame { RomName = "akuma", Architecture = "x64", Target = "gamewax" } },
+            { "akuma", new ExeLauncherGame { RomName = "akuma", Architecture = "x32", Target = "gamewax" } },
             { "aliensextermination", new ExeLauncherGame { RomName = "aliens", Architecture = "x32", Target = "globalvr" } },
             { "aliendiscosafari", new ExeLauncherGame { RomName = "ads", Architecture = "x32", Target = "windows" } },
             { "artisdead", new ExeLauncherGame { RomName = "artdead", Architecture = "x32", Target = "windows" } },
             { "bigbuckhunterultimatetrophy", new ExeLauncherGame { RomName = "bbhut", Architecture = "x64", Target = "windows" } },
             { "blockking", new ExeLauncherGame { RomName = "bkbs", Architecture = "x32", Target = "ttx" } },
             { "castlevaniaarcade", new ExeLauncherGame { RomName = "hcv", Architecture = "x32", Target = "konami" } },
-            { "coltswildwestshootout", new ExeLauncherGame { RomName = "bugbust", Architecture = "x32", Target = "windows" } },
-            { "dinoinvasion", new ExeLauncherGame { RomName = "dino", Architecture = "x64", Target = "arcadepc " } },
+            { "coltswildwestshootout", new ExeLauncherGame { RomName = "coltwws", Architecture = "x32", Target = "windows" } },
+            { "dinoinvasion", new ExeLauncherGame { RomName = "dino", Architecture = "x64", Target = "arcadepc" } },
             { "dcop", new ExeLauncherGame { RomName = "dcop", Architecture = "x64", Target = "windows" } },
-            { "drakonrealmkeepers", new ExeLauncherGame { RomName = "drk", Architecture = "x64", Target = "arcadepc " } },
+            { "drakonrealmkeepers", new ExeLauncherGame { RomName = "drk", Architecture = "x64", Target = "arcadepc" } },
             { "eadp", new ExeLauncherGame { RomName = "eadp", Architecture = "x32", Target = "ttx" } },
             { "elevatoractioninvasion", new ExeLauncherGame { RomName = "eai", Architecture = "x64", Target = "arcadepc" } },
             { "fearland", new ExeLauncherGame { RomName = "fearland", Architecture = "x32", Target = "globalvr" } },
@@ -602,10 +607,10 @@ namespace EmulatorLauncher
             { "letsgoisland3d", new ExeLauncherGame { RomName = "lgi3D", Architecture = "x32", Target = "ringwide" } },
             { "luigismansionarcade", new ExeLauncherGame { RomName = "lma", Architecture = "x64", Target = "seganu" } },
             { "madbullets", new ExeLauncherGame { RomName = "madbul", Architecture = "x32", Target = "windows" } },
-            { "marssortie", new ExeLauncherGame { RomName = "marss", Architecture = "x32", Target = "arcadepc" } },
+            { "marssortie", new ExeLauncherGame { RomName = "marss", Architecture = "x64", Target = "arcadepc" } },
             { "medalofvalormedalofhonorarcade", new ExeLauncherGame { RomName = "mng", Architecture = "x32", Target = "ringwide" } },
             { "mechatornadoarcade", new ExeLauncherGame { RomName = "mecht", Architecture = "x32", Target = "arcadepc" } },
-            { "mechanicaldinosaur", new ExeLauncherGame { RomName = "mechd", Architecture = "x32", Target = "arcadepc" } },
+            { "mechanicaldinosaur", new ExeLauncherGame { RomName = "mechd", Architecture = "x64", Target = "arcadepc" } },
             { "meninblack", new ExeLauncherGame { RomName = "mib", Architecture = "x64", Target = "arcadepc" } },
             { "missionimpossiblearcade", new ExeLauncherGame { RomName = "misimp", Architecture = "x64", Target = "arcadepc" } },
             { "musicgungun2", new ExeLauncherGame { RomName = "mgungun2", Architecture = "x32", Target = "ttx" } },
