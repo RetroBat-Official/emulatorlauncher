@@ -1116,12 +1116,14 @@ namespace EmulatorLauncher.Libretro
 
             bool atari800 = (system == "atari800");
             bool atariXE = !atari800 && system.IndexOf("xe", StringComparison.InvariantCultureIgnoreCase) >= 0;
+            bool xegs = (system == "xegs");
 
             coreSettings["atari800_cfg"] = "enabled";
 
             BindFeature(coreSettings, "atari800_artifacting_mode", "atari800_artifacting", "none");
             BindFeature(coreSettings, "atari800_ntscpal", "atari800_ntscpal", "NTSC");
             BindFeature(coreSettings, "atari800_resolution", "atari800_resolution", "336x240");
+            BindBoolFeature(coreSettings, "atari800_internalbasic", "atari800_internalbasic", "enabled", "disabled");
 
             if (atari800)
             {
@@ -1142,7 +1144,11 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["atari800_cassboot"] = "disabled";
 
                 BindBoolFeature(coreSettings, "atari800_sioaccel", "atari800_sioaccel", "disabled", "enabled");
-
+            }
+            else if (xegs)
+            {
+                coreSettings["atari800_system"] = "XEGS";
+                BindBoolFeature(coreSettings, "atarixegs_keyboard_detached", "atarixegs_keyboard_detached", "attached", "detached");
             }
             else // Atari 5200
             {
@@ -1430,7 +1436,6 @@ namespace EmulatorLauncher.Libretro
             if (SystemConfig["SnesControllerP2"] == "2")
                 retroarchConfig["input_player2_mouse_index"] = "0";
 
-            // Gun configuration only for bsnes as bsnes_hd_beta does not have lightgun
             if (SystemConfig.getOptBoolean("use_guns"))
             {
                 string gunId = "260";
