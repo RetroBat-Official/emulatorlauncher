@@ -66,8 +66,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("KEYBOARD", "KEY_SKILL2", "SDLK_z 0 " + GetInputKeyName(ctrl, InputKey.x));
                     ini.WriteValue("KEYBOARD", "KEY_SKILL3", "SDLK_x 0 " + GetInputKeyName(ctrl, InputKey.pageup));
                     ini.WriteValue("KEYBOARD", "KEY_SERVICE", "SDLK_9 0 " + GetInputKeyName(ctrl, InputKey.l3));
-                    ini.WriteValue("KEYBOARD", "KEY_TEST", "SDLK_F2 SDLK_F4 " + GetInputKeyName(ctrl, InputKey.r3));
-                    ini.WriteValue("KEYBOARD", "KEY_RESET", "SDLK_0 0 0");
+                    ini.WriteValue("KEYBOARD", "KEY_TEST", "SDLK_0 0 " + GetInputKeyName(ctrl, InputKey.r3));
+                    ini.WriteValue("KEYBOARD", "KEY_RESET", "SDLK_F3 0 0");
                     ini.WriteValue("KEYBOARD", "KEY_SCREENSHOT", "SDLK_F12 0 0");
                     ini.WriteValue("KEYBOARD", "KEY_QUIT", "SDLK_ESCAPE 0 0");
                     ini.WriteValue("KEYBOARD", "KEY_PAUSE", "SDLK_p 0 0");

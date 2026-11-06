@@ -479,8 +479,8 @@ namespace EmulatorLauncher
 
             // Test (service mode) on R3, service credit on L3, unless disabled
             bool testService = !SystemConfig.isOptSet("mame_test_service") || SystemConfig.getOptBoolean("mame_test_service");
-            AddPort(input, "SERVICE", (testService ? $"{joy}{mapping["r3"]} OR " : "") + "KEYCODE_9");
-            AddPort(input, "SERVICE1", (testService ? $"{joy}{mapping["l3"]} OR " : "") + "KEYCODE_0");
+            AddPort(input, "SERVICE", (testService ? $"{joy}{mapping["r3"]} OR " : "") + "KEYCODE_0");
+            AddPort(input, "SERVICE1", (testService ? $"{joy}{mapping["l3"]} OR " : "") + "KEYCODE_9");
             AddPort(input, "TILT", $"{joy}{mapping["select"]} {joy}{mapping["r1"]} OR KEYCODE_T");
 
             // Start & coin
@@ -687,8 +687,8 @@ namespace EmulatorLauncher
 
             // Test (service mode) on R3, service credit on L3, unless disabled
             bool testService = !SystemConfig.isOptSet("mame_test_service") || SystemConfig.getOptBoolean("mame_test_service");
-            AddPort(input, "SERVICE", (testService ? joy + GetDinputMapping(ctrlr, "rightstick", xinputCtrl) + " OR " : "") + "KEYCODE_9");
-            AddPort(input, "SERVICE1", (testService ? joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl) + " OR " : "") + "KEYCODE_0");
+            AddPort(input, "SERVICE", (testService ? joy + GetDinputMapping(ctrlr, "rightstick", xinputCtrl) + " OR " : "") + "KEYCODE_0");
+            AddPort(input, "SERVICE1", (testService ? joy + GetDinputMapping(ctrlr, "leftstick", xinputCtrl) + " OR " : "") + "KEYCODE_9");
             AddPort(input, "TILT", joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_T");
             AddPort(input, "TILT1", joy + GetDinputMapping(ctrlr, "back", xinputCtrl) + " " + joy + GetDinputMapping(ctrlr, "rightshoulder", xinputCtrl) + " OR KEYCODE_T");
 

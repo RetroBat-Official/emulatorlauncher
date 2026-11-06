@@ -419,7 +419,7 @@ namespace EmulatorLauncher
 
         /// <summary>
         /// RetroBat gamepad layout (same as the supermodel emulator) : Start / Select = start / coin, L3 / R3 = service / test (option),
-        /// keys 1-2 start, 5-6 coin, 9 test, 0 service.
+        /// keys 1-2 start, 5-6 coin, 0 test, 9 service.
         /// </summary>
         private Dictionary<string, string> GetDefaultPadMapping()
         {
@@ -432,8 +432,8 @@ namespace EmulatorLauncher
                 { "InputCoin1", "KEY_5,JOY_select" },
                 { "InputStart2", "KEY_2,JOY_start" },
                 { "InputCoin2", "KEY_6,JOY_select" },
-                { "InputServiceA", service ? "KEY_9,JOY_leftstick" : "KEY_0" },
-                { "InputTestA", service ? "KEY_0,JOY_rightstick" : "KEY_9" },
+                { "InputServiceA", service ? "KEY_9,JOY_leftstick" : "KEY_9" },
+                { "InputTestA", service ? "KEY_0,JOY_rightstick" : "KEY_0" },
 
                 // 4-way digital joysticks
                 { "InputJoyUp", "JOY_lefty-up,JOY_dpup" },
