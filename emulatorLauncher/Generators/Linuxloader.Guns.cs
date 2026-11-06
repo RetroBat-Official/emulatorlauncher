@@ -153,38 +153,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Optional auto-centering of the gun aiming axis (useful when using a gamepad instead of a lightgun)
-            if (SystemConfig.isOptSet("ll_gun_centering") && !string.IsNullOrEmpty(SystemConfig["ll_gun_centering"]))
-            {
-                string centering = SystemConfig.getOptBoolean("ll_gun_centering") ? "1" : "0";
-                ini.WriteValue("Config", "GunX_Centering", centering);
-                ini.WriteValue("Config", "GunY_Centering", centering);
-            }
-
-            if (SystemConfig.isOptSet("ll_gunaxis_invert") && !string.IsNullOrEmpty(SystemConfig["ll_gunaxis_invert"]))
-            {
-                string invertAxis = SystemConfig["ll_gunaxis_invert"].ToLower();
-                if (invertAxis == "x")
-                {
-                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X_INVERTED");
-                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
-                }
-                else if (invertAxis == "y")
-                {
-                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
-                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y_INVERTED");
-                }
-                else if (invertAxis == "both")
-                {
-                    ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X_INVERTED");
-                    ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y_INVERTED");
-                }
-            }
-            else
-            {
-                ini.WriteValue("Shooting", "P1_GunX", "MOUSE_AXIS_X");
-                ini.WriteValue("Shooting", "P1_GunY", "MOUSE_AXIS_Y");
-            }
+            WriteGunAxes(ini);
 
             ini.WriteValue("Shooting", "P1_Trigger", triggerButton);
             ini.WriteValue("Shooting", "P1_Reload", reloadButton);

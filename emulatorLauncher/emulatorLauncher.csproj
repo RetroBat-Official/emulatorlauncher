@@ -446,6 +446,9 @@
     <Compile Include="Generators\Linuxloader.Guns.cs">
       <DependentUpon>Linuxloader.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Linuxloader.Wheels.cs">
+      <DependentUpon>Linuxloader.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Love.Generator.cs" />
     <Compile Include="Generators\MagicEngine.Generator.cs" />
     <Compile Include="Generators\MagicEngine.Controllers.cs">
