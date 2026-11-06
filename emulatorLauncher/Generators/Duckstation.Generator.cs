@@ -355,6 +355,7 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("Texture_Enhancement"))
                         ini.WriteValue("GPU", "TextureFilter", "Nearest");
 
+                    BindIniFeature(ini, "GPU", "SpriteTextureFilter", "duck_sprite_texturefilter", "Nearest");
                     BindBoolIniFeature(ini, "GPU", "WidescreenHack", "Widescreen_Hack", "true", "false");
                     BindIniFeature(ini, "GPU", "DitheringMode", "duck_ditheringmode", "TrueColor");
 
