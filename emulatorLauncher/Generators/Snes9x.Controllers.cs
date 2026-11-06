@@ -45,24 +45,29 @@ namespace EmulatorLauncher
                     Guns.StartSindenSoftware();
                 }
 
-                if (SystemConfig.isOptSet("snes9x_guntype"))
+                // Default: Super Scope, or Justifier when gamesdb.xml says so
+                string gunType = "superscope";
+                var gunInfo = Program.GunGames.FindGunGame(SystemConfig["system"], SystemConfig["rom"]);
+                if (gunInfo != null && gunInfo.GunType == "justifier")
+                    gunType = "justifier";
+
+                if (SystemConfig.isOptSet("snes9x_guntype") && !string.IsNullOrEmpty(SystemConfig["snes9x_guntype"]))
+                    gunType = SystemConfig["snes9x_guntype"];
+
+                switch (gunType)
                 {
-                    string gunType = SystemConfig["snes9x_guntype"];
-                    switch (gunType)
-                    {
-                        case "justifiers":
-                            _commandArray.Add("-port2");
-                            _commandArray.Add("two-justifiers");
-                            break;
-                        case "justifier":
-                            _commandArray.Add("-port2");
-                            _commandArray.Add("justifier");
-                            break;
-                        case "superscope":
-                            _commandArray.Add("-port2");
-                            _commandArray.Add("superscope");
-                            break;
-                    }
+                    case "justifiers":
+                        _commandArray.Add("-port2");
+                        _commandArray.Add("two-justifiers");
+                        break;
+                    case "justifier":
+                        _commandArray.Add("-port2");
+                        _commandArray.Add("justifier");
+                        break;
+                    case "superscope":
+                        _commandArray.Add("-port2");
+                        _commandArray.Add("superscope");
+                        break;
                 }
             }
             else if (SystemConfig.isOptSet("snes9x_mouse"))

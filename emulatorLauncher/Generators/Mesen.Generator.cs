@@ -463,7 +463,7 @@ namespace EmulatorLauncher
 
                 else if (SystemConfig.getOptBoolean("use_guns"))
                 {
-                    var portSection = GetOrCreateContainer(section, "Port1");
+                    var portSection = GetOrCreateContainer(section, "Port2");
                     var mapping = GetOrCreateContainer(portSection, "Mapping1");
                     List<int> mouseID = new List<int>
                     {
