@@ -2769,9 +2769,9 @@ namespace EmulatorLauncher.Libretro
             }
 
             SetupLightGuns(retroarchConfig, "4", core);
-            
+
             // Disable "enter" for player 2 in case of guns and 1 joystick connected (as this generate a conflict on ENTER key between player 2 and gun action)
-            if (Program.Controllers.Count > 1 && Program.Controllers[1].IsKeyboard && (SystemConfig.getOptBoolean("use_guns") || SystemConfig["flycast_controller1"] == "4") && SystemConfig["flycast_controller2"] != "4")
+            if (Program.Controllers.Count > 1 && Program.Controllers[1].IsKeyboard && SystemConfig.getOptBoolean("use_guns") && SystemConfig["flycast_controller"] != "4")
             {
                 retroarchConfig["input_player2_start"] = "";
             }
