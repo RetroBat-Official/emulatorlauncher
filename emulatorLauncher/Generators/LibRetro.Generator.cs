@@ -124,7 +124,7 @@ namespace EmulatorLauncher.Libretro
                 commandArray.Add(subSystem);
             }
 
-            // Add subsystem for sameboy core multiplayer
+            // Add subsystem for sameboy / gearboy multiplayer
             if (AddCoreSpecificArguments(core, system, rom, commandArray, out string newRom))
                 rom = newRom;
 
@@ -678,7 +678,7 @@ namespace EmulatorLauncher.Libretro
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
             {
                 string videoDriver = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"))["video_driver"];
-                bool isOpenGL = (emulator != "angle") && (!coreNoGL.Contains(core)) && videoDriver == "gl" && !(core == "parallel_n64" && SystemConfig["parallel_gfx_plugin"] == "parallel");
+                bool isOpenGL = (emulator != "angle") && (!coreNoGL.Contains(core)) && videoDriver == "gl" && !(core == "parallel_n64" && SystemConfig.GetValueOrDefault("parallel_gfx_plugin", "parallel") == "parallel");
                 bool dx12 = videoDriver == "d3d12";
 
                 string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
@@ -857,7 +857,8 @@ namespace EmulatorLauncher.Libretro
         {
             newRom = rom;
 
-            if (core == "sameboy")
+            // sameboy and gearboy share the gb_link_2p subsystem
+            if (core == "sameboy" || core == "gearboy")
             {
                 bool multiplayer = (system == "gb2players" || system == "gbc2players");
                 if (!multiplayer)
@@ -1776,6 +1777,14 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["video_driver"] = "vulkan";
                     return;
                 }
+            }
+
+            // ParaLLEl-RDP is the parallel_n64 default plugin
+            if (core == "parallel_n64" && SystemConfig.GetValueOrDefault("parallel_gfx_plugin", "parallel") == "parallel")
+            {
+                _video_driver = "vulkan";
+                retroarchConfig["video_driver"] = "vulkan";
+                return;
             }
 
             // Set default video driver per core
@@ -2783,7 +2792,7 @@ namespace EmulatorLauncher.Libretro
             "holani", "kronos", "lowresnx", "lutro", "m2000", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", "mame2010", "mame2014", "mame2016", "mednafen_snes", "melondsds", 
             "mupen64plus_next", "mupen64plus_next_gles3", "nekop2", "noods", "np2kai", "nxengine", "o2em", "openlara", "opera", "parallel_n64", "pcsx2", "pd777", "play", "pocketcdg", "ppsspp", 
             "prboom", "prosystem", "puae", "race", "reminiscence", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", "supermodel", "swanstation", "theodore", "tic80", "tyrquake", "uzem", 
-            "vecx", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "virtualjaguar", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", 
+            "vecx", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", 
             "yabasanshiro", "yabause", "zc255" };
         // Netplay shares the same requirement as run-ahead (core_info.c:3098-3107)
         static List<string> coreNoNetplay { get { return coreNoRunahead; } }

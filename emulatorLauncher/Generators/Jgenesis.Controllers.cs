@@ -527,8 +527,8 @@ namespace EmulatorLauncher
                             break;
                         case "lr_yz":
                             {
-                                newMapping["x"] = InputKey.pageup;
-                                newMapping["y"] = InputKey.x;
+                                newMapping["x"] = InputKey.x;
+                                newMapping["y"] = InputKey.pageup;
                             }
                             break;
                         case "lr_yb":

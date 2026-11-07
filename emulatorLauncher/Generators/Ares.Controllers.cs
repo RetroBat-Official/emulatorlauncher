@@ -11,8 +11,6 @@ namespace EmulatorLauncher
 {
     partial class AresGenerator : Generator
     {
-        private List<Sdl3GameController> _sdl3Controllers = new List<Sdl3GameController>();
-
         private void CreateControllerConfiguration(BmlFile bml)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -48,7 +46,14 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Inject controllers                
+            // Per-core and per-game mappings take precedence over the VirtualPad
+            foreach (var aresCore in bml.Elements.OfType<BmlContainer>().Where(e => e["Visible"] != null))
+            {
+                aresCore.Remove("Input");
+                aresCore.Remove("GameInputs");
+            }
+
+            // Inject controllers
             foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(5))
                 ConfigureInput(bml, controller); // ini has one section for each pad (from Pad1 to Pad5)
         }
@@ -106,28 +111,20 @@ namespace EmulatorLauncher
             if (joy == null)
                 return;
 
-            /* Check SDL3 dll Get list of SDL3 controllers
-            bool sdl3 = Controller.CheckSDL3dll();
-
-            if (sdl3 && Sdl3GameController.ListJoysticks(out List<Sdl3GameController> Sdl3Controllers))
-                _sdl3Controllers = Sdl3Controllers;*/
-
-            var input = bml.GetOrCreateContainer("Input");
-
             bool switchTriggers = (_system == "n64" || _system == "n64dd") && (!SystemConfig.isOptSet("ares64_inputprofile") || SystemConfig["ares64_inputprofile"] == "zl");
             bool xboxLayout = (_system == "n64" || _system == "n64dd") && (SystemConfig.isOptSet("ares64_inputprofile") && SystemConfig["ares64_inputprofile"] == "xbox");
 
             string guid = ctrl.Guid.ToLowerInvariant();
 
             var vpad = bml.GetOrCreateContainer("VirtualPad" + playerindex);
-            
-            string prodID = ctrl.DirectInput.ProductId.ToString("X4").ToLowerInvariant();
-            string vendorID = ctrl.DirectInput.VendorId.ToString("X4").ToLowerInvariant();
-            string padId = "0x";
-            
-            int index = ctrl.DeviceIndex + 1;
 
-            padId = padId + index + vendorID + prodID + "/";
+            // ares identifies joypads by SDL3 GUID and rank among identical devices
+            string padId = GetAresPadId(ctrl);
+            if (padId == null)
+            {
+                SimpleLogger.Instance.Warning("[WARNING] No SDL3 device found for " + ctrl.DevicePath + ", player " + playerindex + " not configured.");
+                return;
+            }
 
             #region specialControllers
             // Special treatment for N64 controllers
@@ -235,9 +232,6 @@ namespace EmulatorLauncher
                                         vpad[button.Key] = padId + button.Value + ";;";
                                 }
 
-                                if (mdGamepad.Driver != null)
-                                    input["Driver"] = mdGamepad.Driver;
-
                                 SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
                             }
 
@@ -291,7 +285,7 @@ namespace EmulatorLauncher
                 vpad["Select"] = GetInputKeyName(ctrl, InputKey.select, padId);
             
             vpad["Start"] = GetInputKeyName(ctrl, InputKey.start, padId);
-            if (_system == "mastersystem" && SystemConfig.getOptBoolean("rotate_buttons"))
+            if ((_system == "mastersystem" || _system == "gamegear") && SystemConfig.getOptBoolean("rotate_buttons"))
             {
                 vpad["A..South"] = GetInputKeyName(ctrl, InputKey.y, padId);
                 vpad["B..East"] = GetInputKeyName(ctrl, InputKey.a, padId);
@@ -351,11 +345,33 @@ namespace EmulatorLauncher
             vpad["R-Left"] = GetInputKeyName(ctrl, InputKey.rightanalogleft, padId);
             vpad["R-Right"] = GetInputKeyName(ctrl, InputKey.rightanalogright, padId);
 
+            // Button layouts matching the RetroBat tattoos
+            if (_mdSystems.Contains(_system) && !SystemConfig.getOptBoolean("md_3buttons") && SystemConfig.isOptSet("megadrive_control_layout") && mdLayouts.TryGetValue(SystemConfig["megadrive_control_layout"], out var mdLayout))
+            {
+                foreach (var button in mdLayout)
+                    vpad[button.Key] = GetInputKeyName(ctrl, button.Value, padId);
+            }
+            else if ((_system == "pcengine" || _system == "pcenginecd" || _system == "supergrafx") && SystemConfig.getOptBoolean(_system == "supergrafx" ? "sgx_6button" : "pce_6button"))
+            {
+                // Avenue Pad 6 : IV on North, V on L-Bumper
+                vpad["L-Bumper"] = GetInputKeyName(ctrl, InputKey.x, padId);
+                vpad["Y..North"] = GetInputKeyName(ctrl, InputKey.pageup, padId);
+            }
+
             SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
         }
 
         private static string GetInputKeyName(Controller c, InputKey key, string padId, bool isXinput = false)
         {
+            // SDL3 mapping gives the raw numbering read by ares (positional, no Nintendo swap)
+            string position;
+            if (c.Sdl3Controller != null && sdl3Positions.TryGetValue(key, out position))
+            {
+                var raw = c.Sdl3Controller.GetRawInput(position);
+                if (raw != null)
+                    return GetAresBinding(raw, padId);
+            }
+
             Int64 pid;
 
             // If controller is nintendo, A/B and X/Y are reversed
@@ -569,7 +585,78 @@ namespace EmulatorLauncher
             return ";;";
         }
 
-        static readonly List<string> virtualPadButtons = new List<string>() 
+        /// <summary>
+        /// ares joypad identifier "<SDL3 GUID>/<slot>/", slot = rank among the devices sharing the same identity (ruby/input/joypad/sdl.cpp).
+        /// </summary>
+        private static string GetAresPadId(Controller ctrl)
+        {
+            var sdl3 = ctrl.Sdl3Controller;
+            if (sdl3 == null)
+                return null;
+
+            string identity = GetAresIdentity(sdl3);
+            int slot = Sdl3GameController.GetControllers().Count(c => c.EnumerationIndex < sdl3.EnumerationIndex && GetAresIdentity(c) == identity);
+
+            return identity + "/" + slot + "/";
+        }
+
+        // ares falls back to vendor/product when SDL3 returns an empty GUID
+        private static string GetAresIdentity(Sdl3GameController c)
+        {
+            string guid = c.GuidString;
+            if (!string.IsNullOrEmpty(guid) && guid.Trim('0').Length > 0)
+                return guid;
+
+            return "VID:" + c.VendorId + "|PID:" + c.ProductId;
+        }
+
+        // ares groups : 0 axis, 1 hat (2n = X, 2n+1 = Y), 3 button
+        private static string GetAresBinding(Input input, string padId)
+        {
+            switch (input.Type)
+            {
+                case "button":
+                    return padId + "3/" + input.Id + ";;";
+
+                case "hat":
+                    long hat = input.Id * 2;
+                    switch (input.Value)
+                    {
+                        case 1: return padId + "1/" + (hat + 1) + "/Lo;;";
+                        case 2: return padId + "1/" + hat + "/Hi;;";
+                        case 4: return padId + "1/" + (hat + 1) + "/Hi;;";
+                        case 8: return padId + "1/" + hat + "/Lo;;";
+                    }
+                    break;
+
+                case "axis":
+                    return padId + "0/" + input.Id + (input.Value > 0 ? "/Hi;;" : "/Lo;;");
+            }
+
+            return ";;";
+        }
+
+        // EmulationStation inputs to the positions of the SDL3 mapping
+        static readonly Dictionary<InputKey, string> sdl3Positions = new Dictionary<InputKey, string>()
+        {
+            { InputKey.a, "south" }, { InputKey.b, "east" }, { InputKey.y, "west" }, { InputKey.x, "north" },
+            { InputKey.pageup, "l1" }, { InputKey.pagedown, "r1" }, { InputKey.l2, "l2" }, { InputKey.r2, "r2" },
+            { InputKey.l3, "l3" }, { InputKey.r3, "r3" }, { InputKey.select, "select" }, { InputKey.start, "start" },
+            { InputKey.up, "up" }, { InputKey.down, "down" }, { InputKey.left, "left" }, { InputKey.right, "right" },
+            { InputKey.leftanalogup, "lefty-up" }, { InputKey.leftanalogdown, "lefty-down" }, { InputKey.leftanalogleft, "leftx-left" }, { InputKey.leftanalogright, "leftx-right" },
+            { InputKey.rightanalogup, "righty-up" }, { InputKey.rightanalogdown, "righty-down" }, { InputKey.rightanalogleft, "rightx-left" }, { InputKey.rightanalogright, "rightx-right" }
+        };
+
+        // Mega Drive layouts : VirtualPad slot of each Fighting Pad button (A = West, B = South, C = East, X = L-Bumper, Y = North, Z = R-Bumper)
+        static readonly Dictionary<string, Dictionary<string, InputKey>> mdLayouts = new Dictionary<string, Dictionary<string, InputKey>>()
+        {
+            { "lr_zc", new Dictionary<string, InputKey>() { { "X..West", InputKey.a }, { "A..South", InputKey.b }, { "B..East", InputKey.pagedown }, { "L-Bumper", InputKey.y }, { "Y..North", InputKey.x }, { "R-Bumper", InputKey.pageup } } },
+            { "lr_yz", new Dictionary<string, InputKey>() { { "X..West", InputKey.y }, { "A..South", InputKey.a }, { "B..East", InputKey.b }, { "L-Bumper", InputKey.x }, { "Y..North", InputKey.pageup }, { "R-Bumper", InputKey.pagedown } } },
+            { "lr_yb", new Dictionary<string, InputKey>() { { "X..West", InputKey.a }, { "A..South", InputKey.pagedown }, { "B..East", InputKey.b }, { "L-Bumper", InputKey.y }, { "Y..North", InputKey.pageup }, { "R-Bumper", InputKey.x } } },
+            { "lr_by", new Dictionary<string, InputKey>() { { "X..West", InputKey.a }, { "A..South", InputKey.pageup }, { "B..East", InputKey.b }, { "L-Bumper", InputKey.y }, { "Y..North", InputKey.pagedown }, { "R-Bumper", InputKey.x } } }
+        };
+
+        static readonly List<string> virtualPadButtons = new List<string>()
         {
             "Pad.Up", "Pad.Down", "Pad.Left", "Pad.Right",
             "Select", "Start", "A..South", "B..East", "X..West", "Y..North",

@@ -203,7 +203,8 @@ namespace EmulatorLauncher
             Dictionary<string, string> gunMapping = new Dictionary<string, string>();
 
             // Manage guns
-            if (Program.SystemConfig.isOptSet("mednafen_gun") && Program.SystemConfig.getOptBoolean("mednafen_gun"))
+            bool mednafenGun = Program.SystemConfig.isOptSet("mednafen_gun") ? Program.SystemConfig.getOptBoolean("mednafen_gun") : Program.SystemConfig.getOptBoolean("use_guns");
+            if (mednafenGun)
             {
                 if (!gunPort.ContainsKey(mednafenCore))
                     return;
@@ -953,7 +954,8 @@ namespace EmulatorLauncher
             Dictionary<string, InputKey> newmapping = new Dictionary<string, InputKey>();
             Dictionary<string, string> gunMapping = new Dictionary<string, string>();
 
-            if (Program.SystemConfig.isOptSet("mednafen_gun") && Program.SystemConfig.getOptBoolean("mednafen_gun"))
+            bool mednafenGun = Program.SystemConfig.isOptSet("mednafen_gun") ? Program.SystemConfig.getOptBoolean("mednafen_gun") : Program.SystemConfig.getOptBoolean("use_guns");
+            if (mednafenGun)
             {
                 if (!gunPort.ContainsKey(mednafenCore))
                     return;

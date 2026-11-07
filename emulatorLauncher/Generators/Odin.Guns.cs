@@ -30,8 +30,9 @@ namespace EmulatorLauncher
             if (!_gunGames.Contains(_game))
                 return;
 
-            // The mouse or the gun aims in the game
+            // The mouse or the gun aims in the game, Odin hides the cursor
             ini.Remove(section, "light_gun_mode");
+            ini.Remove(section, "hide_cursor");
 
             var all = RawLightgun.GetRawLightguns();
 
@@ -119,6 +120,10 @@ namespace EmulatorLauncher
         /// </summary>
         private string GetGunInputs(string id, string keys)
         {
+            // Brave Firefighters : the middle button starts (Odin default), only there, a mouse control hides the cursor
+            if (_gunGames.Contains(_game) && (id == "1p_start" || id == "2p_start"))
+                keys = AddInput(keys, "mouse:middle");
+
             if (_gunInvert && keys != null)
             {
                 if (id.EndsWith("_water"))

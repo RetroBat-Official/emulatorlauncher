@@ -123,6 +123,7 @@ namespace EmulatorLauncher.Libretro
                 { "gearboy", "Gearboy" },
                 { "gearcoleco", "Gearcoleco" },
                 { "geargrafx", "Geargrafx" },
+                { "gearlynx", "Gearlynx" },
                 { "gearsystem", "Gearsystem" },
                 { "geartowns", "Geartowns" },
                 { "genesis_plus_gx", "Genesis Plus GX" },
@@ -306,6 +307,7 @@ namespace EmulatorLauncher.Libretro
                 { "yabause", "Yabause" },
                 { "ymir", "Emir" },
                 { "zc255", "Zelda Classic 2.55 Prototype" },
+                { "zcdi", "zcdi" },
             };
 
             if (coreNames.TryGetValue(core, out string ret))
@@ -409,8 +411,10 @@ namespace EmulatorLauncher.Libretro
             ConfigureFrodo(retroarchConfig, coreSettings, system, core);
             ConfigureFuse(retroarchConfig, coreSettings, system, core);
             ConfigureGambatte(retroarchConfig, coreSettings, system, core);
+            ConfigureGearboy(retroarchConfig, coreSettings, system, core);
             ConfigureGearColeco(retroarchConfig, coreSettings, system, core);
             ConfigureGearGrafx(retroarchConfig, coreSettings, system, core);
+            ConfigureGearlynx(retroarchConfig, coreSettings, system, core);
             ConfigureGearSystem(retroarchConfig, coreSettings, system, core);
             ConfigureGearTowns(retroarchConfig, coreSettings, system, core);
             ConfigureGenesisPlusGX(retroarchConfig, coreSettings, system, core);
@@ -493,6 +497,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureYabasanshiro(retroarchConfig, coreSettings, system, core);
             ConfigureYmir(retroarchConfig, coreSettings, system, core);
             ConfigureZc255(retroarchConfig, coreSettings, system, core);
+            ConfigureZcdi(retroarchConfig, coreSettings, system, core);
 
             if (coreSettings.IsDirty)
                 coreSettings.Save(Path.Combine(RetroarchPath, "retroarch-core-options.cfg"), true);
@@ -1115,13 +1120,15 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             bool atari800 = (system == "atari800");
-            bool atariXE = !atari800 && system.IndexOf("xe", StringComparison.InvariantCultureIgnoreCase) >= 0;
+            bool xegs = (system == "xegs");
 
             coreSettings["atari800_cfg"] = "enabled";
 
             BindFeature(coreSettings, "atari800_artifacting_mode", "atari800_artifacting", "none");
             BindFeature(coreSettings, "atari800_ntscpal", "atari800_ntscpal", "NTSC");
             BindFeature(coreSettings, "atari800_resolution", "atari800_resolution", "336x240");
+            BindFeature(coreSettings, "external_palette", "atari800_palette", "none");
+            BindBoolFeature(coreSettings, "atari800_internalbasic", "atari800_internalbasic", "enabled", "disabled");
 
             if (atari800)
             {
@@ -1134,31 +1141,30 @@ namespace EmulatorLauncher.Libretro
                 BindFeature(coreSettings, "atari800_system", "atari800_system", "800XL (64K)", true);
                 BindBoolFeature(coreSettings, "atari800_sioaccel", "atari800_sioaccel", "disabled", "enabled");
             }
-            else if (atariXE)
+            else if (xegs)
             {
-                coreSettings["atari800_system"] = "130XE (128K)";
+                coreSettings["atari800_system"] = "XEGS";
                 coreSettings["atari800_internalbasic"] = "disabled";
                 coreSettings["atari800_opt1"] = "enabled";
                 coreSettings["atari800_cassboot"] = "disabled";
 
                 BindBoolFeature(coreSettings, "atari800_sioaccel", "atari800_sioaccel", "disabled", "enabled");
-
+                BindBoolFeatureOn(coreSettings, "atarixegs_keyboard_detached", "atarixegs_keyboard_detached", "attached", "detached");
             }
             else // Atari 5200
             {
                 coreSettings["atari800_system"] = "5200";
                 coreSettings["atari800_opt1"] = "enabled"; // detect card type
                 coreSettings["atari800_cassboot"] = "disabled";
-
-                BindBoolFeature(coreSettings, "atari800_opt2", "atari800_opt2", "enabled", "disabled");    // Robotron joystick hack
             }
 
             if (SystemConfig.isOptSet("atari800_system") && !string.IsNullOrEmpty(SystemConfig["atari800_system"]))
                 coreSettings["atari800_system"] = SystemConfig["atari800_system"];
 
             // Controls
-            BindFeature(coreSettings, "a800_control_hacks", "a800_control_hacks", "none");
+            BindFeature(coreSettings, "atari800_opt2", "a800_control_hacks", "none");
             BindBoolFeature(coreSettings, "paddle_active", "a800_paddle", "enabled", "disabled");
+            BindFeatureSlider(coreSettings, "paddle_movement_speed", "a800_paddle_speed", "3");
 
             if (system == "atari5200")
             {
@@ -1178,14 +1184,24 @@ namespace EmulatorLauncher.Libretro
             if (!atariCfg.Any())
                 atariCfg.AppendLine("Atari 800 Emulator, Version 3.1.0");
 
+            // Only point to ROMs that exist: a missing file prevents the core from falling back to its built-in AltirraOS / Altirra BASIC
             string biosPath = AppConfig.GetFullPath("bios");
-            atariCfg["ROM_OS_A_PAL"] = Path.Combine(biosPath, "ATARIOSA.ROM");
-            atariCfg["ROM_OS_BB01R2"] = Path.Combine(biosPath, "ATARIXL.ROM");
-            atariCfg["ROM_BASIC_C"] = Path.Combine(biosPath, "ATARIBAS.ROM");
-            atariCfg["ROM_400/800_CUSTOM"] = Path.Combine(biosPath, "ATARIOSB.ROM");
-            atariCfg["ROM_XL/XE_CUSTOM"] = Path.Combine(biosPath, "ATARIXL.ROM");
-            atariCfg["ROM_5200"] = Path.Combine(biosPath, "5200.ROM");
-            atariCfg["ROM_5200_CUSTOM"] = Path.Combine(biosPath, "atari5200.ROM");
+            var systemRoms = new Dictionary<string, string>()
+            {
+                { "ROM_OS_A_PAL", "ATARIOSA.ROM" },
+                { "ROM_OS_BB01R2", "ATARIXL.ROM" },
+                { "ROM_BASIC_C", "ATARIBAS.ROM" },
+                { "ROM_400/800_CUSTOM", "ATARIOSB.ROM" },
+                { "ROM_XL/XE_CUSTOM", "ATARIXL.ROM" },
+                { "ROM_5200", "5200.ROM" },
+                { "ROM_5200_CUSTOM", "atari5200.ROM" }
+            };
+
+            foreach (var rom in systemRoms)
+            {
+                string romPath = Path.Combine(biosPath, rom.Value);
+                atariCfg[rom.Key] = File.Exists(romPath) ? romPath : "";
+            }
 
             atariCfg["OS_XL/XE_VERSION"] = "AUTO";
             atariCfg["OS_5200_VERSION"] = "AUTO";
@@ -1204,10 +1220,10 @@ namespace EmulatorLauncher.Libretro
                 atariCfg["RAM_SIZE"] = "64";
                 atariCfg["DISABLE_BASIC"] = "0";
             }
-            else if (atariXE)
+            else if (xegs)
             {
                 atariCfg["MACHINE_TYPE"] = "Atari XL/XE";
-                atariCfg["RAM_SIZE"] = "128";
+                atariCfg["RAM_SIZE"] = "64";
                 atariCfg["DISABLE_BASIC"] = "1";
 
                 var rom = Program.SystemConfig["rom"];
@@ -1430,7 +1446,6 @@ namespace EmulatorLauncher.Libretro
             if (SystemConfig["SnesControllerP2"] == "2")
                 retroarchConfig["input_player2_mouse_index"] = "0";
 
-            // Gun configuration only for bsnes as bsnes_hd_beta does not have lightgun
             if (SystemConfig.getOptBoolean("use_guns"))
             {
                 string gunId = "260";
@@ -2666,7 +2681,7 @@ namespace EmulatorLauncher.Libretro
                 FlycastGenerator.SyncVMUFiles();
 
             coreSettings["reicast_show_lightgun_settings"] = "enabled";
-            coreSettings["reicast_network_output"] = "enabled"; // Enable controller force feedback
+            BindBoolFeatureOn(coreSettings, "reicast_network_output", "reicast_network_output", "enabled", "disabled"); // Outputs on TCP 8000 (MameHooker...)
 
             BindBoolFeature(coreSettings, "reicast_widescreen_hack", "widescreen_hack", "enabled", "disabled");
             BindBoolFeature(coreSettings, "reicast_widescreen_cheats", "widescreen_cheats", "enabled", "disabled");
@@ -2699,6 +2714,22 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "reicast_fog", "reicast_fog", "disabled", "enabled");
             BindBoolFeature(coreSettings, "reicast_digital_triggers", "reicast_digital_triggers", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "reicast_threaded_rendering", "reicast_threaded_rendering", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "reicast_volume_modifier_enable", "reicast_volume_modifier_enable", "disabled", "enabled");
+            BindFeature(coreSettings, "reicast_texupscale_max_filtered_texture_size", "reicast_texupscale_max_filtered_texture_size", "256");
+            BindBoolFeature(coreSettings, "reicast_emulate_framebuffer", "reicast_emulate_framebuffer", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "reicast_native_depth_interpolation", "reicast_native_depth_interpolation", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "reicast_dc_32mb_mod", "reicast_dc_32mb_mod", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "reicast_gdrom_fast_loading", "reicast_gdrom_fast_loading", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "reicast_vmu_sound", "reicast_vmu_sound", "enabled", "disabled");
+
+            // Player 1 VMU screen overlay, the feature value is the position
+            if (SystemConfig.isOptSet("reicast_vmu1_screen") && !string.IsNullOrEmpty(SystemConfig["reicast_vmu1_screen"]))
+            {
+                coreSettings["reicast_vmu1_screen_display"] = "enabled";
+                coreSettings["reicast_vmu1_screen_position"] = SystemConfig["reicast_vmu1_screen"];
+            }
+            else
+                coreSettings["reicast_vmu1_screen_display"] = "disabled";
 
             if (SystemConfig.isOptSet("reicast_frame_skipping") && SystemConfig["reicast_frame_skipping"].ToIntegerString() != "0")
             {
@@ -2748,9 +2779,9 @@ namespace EmulatorLauncher.Libretro
             }
 
             SetupLightGuns(retroarchConfig, "4", core);
-            
+
             // Disable "enter" for player 2 in case of guns and 1 joystick connected (as this generate a conflict on ENTER key between player 2 and gun action)
-            if (Program.Controllers.Count > 1 && Program.Controllers[1].IsKeyboard && (SystemConfig.getOptBoolean("use_guns") || SystemConfig["flycast_controller1"] == "4") && SystemConfig["flycast_controller2"] != "4")
+            if (Program.Controllers.Count > 1 && Program.Controllers[1].IsKeyboard && SystemConfig.getOptBoolean("use_guns") && SystemConfig["flycast_controller"] != "4")
             {
                 retroarchConfig["input_player2_start"] = "";
             }
@@ -2880,6 +2911,55 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["gambatte_gb_colorization"] = "auto";
         }
 
+        private void ConfigureGearboy(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "gearboy")
+                return;
+
+            BindFeature(coreSettings, "gearboy_model", "gearboy_model", "Auto");
+            BindFeature(coreSettings, "gearboy_palette", "gearboy_palette", "Original");
+            BindBoolFeature(coreSettings, "gearboy_color_correction", "gearboy_color_correction", "Enabled", "Disabled");
+            BindBoolFeature(coreSettings, "gearboy_no_sprite_limit", "gearboy_no_sprite_limit", "Enabled", "Disabled");
+            BindFeature(coreSettings, "gearboy_tilt_source", "gearboy_tilt_source", "Analog Stick");
+
+            // Super Game Boy mode only in the sgb system, for every game (uses SGB1.sfc or SGB2.sfc when present)
+            bool sgb = (system == "sgb");
+            coreSettings["gearboy_sgb"] = sgb ? "Enabled" : "Disabled";
+            coreSettings["gearboy_sgb_all_games"] = sgb ? "Enabled" : "Disabled";
+            BindBoolFeatureOn(coreSettings, "gearboy_sgb_border", "gearboy_sgb_border", "Enabled", "Disabled");
+
+            // Boot ROMs: the core reads dmg_boot.bin / cgb_boot.bin, reuse gb_bios.bin / gbc_bios.bin when only those are present
+            bool bootrom = SystemConfig.getOptBoolean("gearboy_bootrom");
+            coreSettings["gearboy_bootrom_dmg"] = bootrom ? "Enabled" : "Disabled";
+            coreSettings["gearboy_bootrom_gbc"] = bootrom ? "Enabled" : "Disabled";
+
+            string biosPath = AppConfig.GetFullPath("bios");
+            if (bootrom && !string.IsNullOrEmpty(biosPath))
+            {
+                var bootRoms = new Dictionary<string, string>() { { "dmg_boot.bin", "gb_bios.bin" }, { "cgb_boot.bin", "gbc_bios.bin" } };
+                foreach (var boot in bootRoms)
+                {
+                    string target = Path.Combine(biosPath, boot.Key);
+                    string source = Path.Combine(biosPath, boot.Value);
+                    if (File.Exists(target) || !File.Exists(source))
+                        continue;
+
+                    try { File.Copy(source, target); }
+                    catch (Exception ex) { SimpleLogger.Instance.Error("[Gearboy] Failed to copy " + boot.Key + ": " + ex.Message); }
+                }
+            }
+
+            // 2 players systems: the gb_link_2p subsystem links both Game Boys, the link option stays off
+            coreSettings["gearboy_link_enable"] = "Disabled";
+            if (system == "gb2players" || system == "gbc2players")
+            {
+                BindFeature(coreSettings, "gearboy_link_placement", "gearboy_link_placement", "Horizontal");
+                BindFeature(coreSettings, "gearboy_link_audio", "gearboy_link_audio", "Screen 1");
+                coreSettings["gearboy_link_screen"] = "Both Screens";
+                coreSettings["gearboy_link_switch"] = "Disabled";
+            }
+        }
+
         private void ConfigureGearColeco(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "gearcoleco")
@@ -2926,12 +3006,47 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindFeature(coreSettings, "geargrafx_aspect_ratio", "geargrafx_aspect_ratio", "1:1 PAR");
+            BindFeature(coreSettings, "geargrafx_overscan", "geargrafx_overscan", "Disabled");
+            BindFeature(coreSettings, "geargrafx_palette", "geargrafx_palette", "Standard RGB");
 
             BindFeature(coreSettings, "geargrafx_console_type", "geargrafx_console_type", "Auto");
             BindFeature(coreSettings, "geargrafx_cdrom_type", "geargrafx_cdrom_type", "Auto");
-            BindFeature(coreSettings, "geargrafx_cdrom_bios", "geargrafx_cdrom_bios", "Auto");
+            BindFeature(coreSettings, "geargrafx_cdrom_bios", "geargrafx_cdrom_bios", "System Card 3");
 
             BindBoolFeature(coreSettings, "geargrafx_no_sprite_limit", "geargrafx_no_sprite_limit", "Enabled", "Disabled");
+            BindBoolFeature(coreSettings, "geargrafx_cdrom_fast_forward", "geargrafx_cdrom_fast_forward", "Enabled", "Disabled");
+
+            // Netplay needs deterministic power-on values
+            coreSettings["geargrafx_deterministic_netplay"] = string.IsNullOrEmpty(SystemConfig["netplaymode"]) ? "Disabled" : "Enabled";
+
+            if (system == "laseractive")
+            {
+                BindFeature(coreSettings, "geargrafx_laseractive_region", "geargrafx_laseractive_region", "Auto");
+                BindFeature(coreSettings, "geargrafx_laseractive_aspect_ratio", "geargrafx_laseractive_aspect_ratio", "4:3 DAR");
+
+                // NEC PAC firmware: reuse the files set up for ares (bios\laseractive) under the names the core expects
+                string biosPath = AppConfig.GetFullPath("bios");
+                if (!string.IsNullOrEmpty(biosPath))
+                {
+                    var pacBios = new Dictionary<string, string>()
+                    {
+                        { "pac-n10.bin", "[BIOS] LaserActive PAC-N10 (US) (v1.02).bin" },
+                        { "pac-n1.bin", "[BIOS] LaserActive PAC-N1 (Japan) (v1.02).bin" },
+                        { "pce-lp1.bin", "[BIOS] LaserActive PCE-LP1 (Japan) (v1.02).bin" }
+                    };
+
+                    foreach (var bios in pacBios)
+                    {
+                        string target = Path.Combine(biosPath, bios.Key);
+                        string source = Path.Combine(biosPath, "laseractive", bios.Value);
+                        if (File.Exists(target) || !File.Exists(source))
+                            continue;
+
+                        try { File.Copy(source, target); }
+                        catch (Exception ex) { SimpleLogger.Instance.Error("[Geargrafx] Failed to copy " + bios.Key + ": " + ex.Message); }
+                    }
+                }
+            }
 
             if (!SystemConfig.isOptSet("geargrafx_turbotap"))
             {
@@ -2951,6 +3066,29 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p5", "geargrafx_controller", "1");
         }
 
+        private void ConfigureGearlynx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "gearlynx")
+                return;
+
+            BindFeature(coreSettings, "gearlynx_aspect_ratio", "gearlynx_aspect_ratio", "1:1 PAR");
+            BindFeature(coreSettings, "gearlynx_rotation", "gearlynx_rotation", "Auto");
+
+            // ComLynx: 2 to 4 linked Lynx on one screen, one controller per screen
+            string players = SystemConfig["gearlynx_link_players"];
+            if (players == "2" || players == "3" || players == "4")
+            {
+                coreSettings["gearlynx_link_enable"] = "Enabled";
+                coreSettings["gearlynx_link_players"] = players;
+                BindFeature(coreSettings, "gearlynx_link_placement", "gearlynx_link_placement", "Grid");
+                coreSettings["gearlynx_link_screen"] = "All Screens";
+                coreSettings["gearlynx_link_switch"] = "Disabled";
+                SystemConfig["bezel"] = "none";
+            }
+            else
+                coreSettings["gearlynx_link_enable"] = "Disabled";
+        }
+
         private void ConfigureGearSystem(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "gearsystem")
@@ -2967,10 +3105,11 @@ namespace EmulatorLauncher.Libretro
                         break;
                     case "gamegear":
                     case "gg":
-                        coreSettings["gearsystem_system"] = "Game Gear";
+                        coreSettings["gearsystem_system"] = "Game Gear (2 ASIC)";
                         break;
                     case "sg1000":
                     case "sg-1000":
+                    case "multivision":
                         coreSettings["gearsystem_system"] = "SG-1000 / Multivision";
                         break;
                     default:
@@ -2989,10 +3128,22 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "gearsystem_bios_sms", "gearsystem_bios_sms", "Enabled", "Disabled");
             BindBoolFeature(coreSettings, "gearsystem_ym2413", "gearsystem_ym2413", "Disabled", "Auto");
             BindFeature(coreSettings, "gearsystem_overscan", "gearsystem_overscan", "Disabled");
+            BindBoolFeature(coreSettings, "gearsystem_no_sprite_limit", "gearsystem_no_sprite_limit", "Enabled", "Disabled");
+            BindFeature(coreSettings, "gearsystem_glasses", "gearsystem_glasses", "Both Eyes / OFF");
+
+            // Game Gear link cable: two systems side by side, the wide picture does not fit a bezel
+            BindBoolFeature(coreSettings, "gearsystem_link_enable", "gearsystem_link_enable", "Enabled", "Disabled");
+            BindFeature(coreSettings, "gearsystem_link_placement", "gearsystem_link_placement", "Horizontal");
+            if (SystemConfig.getOptBoolean("gearsystem_link_enable"))
+                SystemConfig["bezel"] = "none";
 
             // Controls
-            BindFeature(retroarchConfig, "input_libretro_device_p1", "gearsystem_controller", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "gearsystem_controller", "1");
+            if (Features.IsSupported("gearsystem_controller"))
+            {
+                string p1Device = SystemConfig.GetValueOrDefault("gearsystem_controller", "1");
+                retroarchConfig["input_libretro_device_p1"] = p1Device;
+                retroarchConfig["input_libretro_device_p2"] = (p1Device == "257" || p1Device == "517") ? p1Device : "1";
+            }
 
             // Guns
             BindBoolFeature(coreSettings, "gearsystem_lightgun_crosshair", "gearsystem_lightgun_crosshair", "Enabled", "Disabled");
@@ -3215,6 +3366,11 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "geolith_settingmode", "geolith_settingmode", "on", "off");
             BindFeature(coreSettings, "geolith_system_type", "geolith_system_type", "aes");
             BindFeature(coreSettings, "geolith_sprlimit", "geolith_sprlimit", "96");
+
+            // Neo Geo CD: needs neocd.zip and neocdz.zip (MAME BIOS)
+            BindFeature(coreSettings, "geolith_cd_system_type", "geolith_cd_system_type", "cdz");
+            BindBoolFeature(coreSettings, "geolith_cd_speed_hack", "geolith_cd_speed_hack", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "geolith_cd_skip_loading", "geolith_cd_skip_loading", "enabled", "disabled");
         }
 
         private void ConfigureGong(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -3427,6 +3583,7 @@ namespace EmulatorLauncher.Libretro
             coreSettings["jollycv_autoreset"] = "on";
             BindFeature(coreSettings, "jollycv_aspect", "jollycv_aspect", "Auto");
             BindFeature(coreSettings, "jollycv_tmspalette", "jollycv_tmspalette", "TeaTime");
+            BindBoolFeature(coreSettings, "jollycv_nosprlimit", "jollycv_nosprlimit", "on", "off");
         }
 
         private void ConfigureKronos(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -4300,18 +4457,39 @@ namespace EmulatorLauncher.Libretro
             if (core != "mednafen_saturn")
                 return;
 
+            bool stv = system == "segastv";
+
             coreSettings["beetle_saturn_autortc"] = "enabled";
+
+            // Core-managed .bkr saves: needed for previous saves, shared internal memory and Kronos "share save with mednafen"
+            coreSettings["beetle_saturn_save_method"] = "mednafen";
 
             BindBoolFeatureOn(coreSettings, "beetle_saturn_shared_ext", "beetle_saturn_shared_ext", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "beetle_saturn_shared_int", "beetle_saturn_shared_int", "enabled", "disabled");
 
             BindFeature(coreSettings, "beetle_saturn_autortc_lang", "beetle_saturn_autortc_lang", "english");
-            BindFeature(coreSettings, "beetle_saturn_cart", "beetle_saturn_cart", "Auto Detect");
+
+            // 4MB backup cartridge = backup memory cartridge + size option
+            if (SystemConfig["beetle_saturn_cart"] == "Backup Memory 4MB")
+            {
+                coreSettings["beetle_saturn_cart"] = "Backup Memory";
+                coreSettings["beetle_saturn_backup_memory_size"] = "4MB";
+            }
+            else
+            {
+                BindFeature(coreSettings, "beetle_saturn_cart", "beetle_saturn_cart", "Auto Detect");
+                coreSettings["beetle_saturn_backup_memory_size"] = "Default";
+            }
+
             BindBoolFeature(coreSettings, "beetle_saturn_cdimagecache", "beetle_saturn_cdimagecache", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "beetle_saturn_mpeg_card", "beetle_saturn_mpeg_card", "enabled", "disabled");
             BindBoolFeature(coreSettings, "beetle_saturn_midsync", "beetle_saturn_midsync", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "beetle_saturn_multitap_port1", "beetle_saturn_multitap_port1", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "beetle_saturn_multitap_port2", "beetle_saturn_multitap_port2", "enabled", "disabled");
             BindFeature(coreSettings, "beetle_saturn_region", "beetle_saturn_region", "Auto Detect");
+
+            // Video
+            BindFeature(coreSettings, "beetle_saturn_deinterlacer", "beetle_saturn_deinterlacer", "weave");
+            BindBoolFeature(coreSettings, "beetle_saturn_horizontal_blend", "beetle_saturn_horizontal_blend", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "beetle_saturn_mesh_transparency", "saturn_meshmode", "enabled", "disabled");
 
             // Controls
             BindFeature(coreSettings, "beetle_saturn_virtuagun_crosshair", "beetle_saturn_virtuagun_crosshair", "Cross", true);
@@ -4324,30 +4502,27 @@ namespace EmulatorLauncher.Libretro
             else
                 coreSettings["beetle_saturn_mouse_sensitivity"] = "100%";
 
-            // Controls
-            if (SystemConfig.isOptSet("mednafen_saturn_controller") && !string.IsNullOrEmpty(SystemConfig["mednafen_saturn_controller"]))
-            {
-                for (int i = 1; i < 9; i++)
-                {
-                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["mednafen_saturn_controller"];
-                }
-            }
-            else
-            {
-                for (int i = 1; i < 9; i++)
-                {
-                    retroarchConfig["input_libretro_device_p" + i] = "1";
-                }
-            }
+            // ST-V only reads the standard control pad
+            string deviceType = "1";
+            if (!stv && SystemConfig.isOptSet("mednafen_saturn_controller") && !string.IsNullOrEmpty(SystemConfig["mednafen_saturn_controller"]))
+                deviceType = SystemConfig["mednafen_saturn_controller"];
+
+            for (int i = 1; i < 9; i++)
+                retroarchConfig["input_libretro_device_p" + i] = deviceType;
 
             coreSettings["beetle_saturn_virtuagun_input"] = "Lightgun";
             SetupLightGuns(retroarchConfig, "260", core);
 
-            // Disable multitap if lightgun is enabled
-            if (SystemConfig.getOptBoolean("use_guns"))
+            // No multitap with guns or on ST-V (2 player ports)
+            if (stv || SystemConfig.getOptBoolean("use_guns"))
             {
                 coreSettings["beetle_saturn_multitap_port1"] = "disabled";
                 coreSettings["beetle_saturn_multitap_port2"] = "disabled";
+            }
+            else
+            {
+                BindBoolFeature(coreSettings, "beetle_saturn_multitap_port1", "beetle_saturn_multitap_port1", "enabled", "disabled");
+                BindBoolFeature(coreSettings, "beetle_saturn_multitap_port2", "beetle_saturn_multitap_port2", "enabled", "disabled");
             }
         }
 
@@ -4832,13 +5007,12 @@ namespace EmulatorLauncher.Libretro
 
             // Firmware
             BindFeature(coreSettings, "melonds_firmware_language", "melondsds_language", "auto");
-            BindFeature(coreSettings, "melonds_console_mode", "melondsds_console", "ds");
+            BindFeature(coreSettings, "melonds_console_mode", "melondsds_console", "auto");
             BindBoolFeature(coreSettings, "melonds_boot_mode", "melondsds_boot", "native", "direct");
 
-            if (SystemConfig["melondsds_console"] == "dsi")
-                coreSettings["melonds_firmware_dsi_path"] = "dsi_firmware.bin";
-            else
-                coreSettings["melonds_firmware_nds_path"] = "firmware.bin";
+            // Auto console mode can switch to DSi for DSi-exclusive games: both firmwares must be set
+            coreSettings["melonds_firmware_dsi_path"] = "dsi_firmware.bin";
+            coreSettings["melonds_firmware_nds_path"] = "firmware.bin";
 
             coreSettings["melonds_dsi_sdcard_readonly"] = "disabled";
             coreSettings["melonds_dsi_sdcard_sync_sdcard_to_host"] = "disabled";
@@ -4848,6 +5022,8 @@ namespace EmulatorLauncher.Libretro
 
             // VIDEO
             BindBoolFeatureOn(coreSettings, "melonds_render_mode", "melondsds_renderer", "opengl", "software");
+            if (coreSettings["melonds_render_mode"] == "opengl" && SystemConfig.getOptBoolean("melondsds_compute"))
+                coreSettings["melonds_render_mode"] = "compute";
             BindFeature(coreSettings, "melonds_opengl_resolution", "melondsds_resolution", "1");
             BindBoolFeature(coreSettings, "melonds_opengl_better_polygons", "melondsds_polygon", "enabled", "disabled");
             BindFeature(coreSettings, "melonds_opengl_filtering", "melondsds_filter", "nearest");
@@ -4981,13 +5157,22 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "nestopia_nospritelimit", "nestopia_nospritelimit", "enabled", "disabled");
             BindFeature(coreSettings, "nestopia_palette", "nestopia_palette", "consumer");
             BindFeature(coreSettings, "nestopia_blargg_ntsc_filter", "nestopia_blargg_ntsc_filter", "disabled");
-            BindFeature(coreSettings, "nestopia_overclock", "nestopia_overclock", "1x");
-            BindFeature(coreSettings, "nestopia_favored_system", "nestopia_favored_system", "auto");
+            BindFeature(coreSettings, "nestopia_aspect", "nestopia_aspect", "auto");
+            BindFeature(coreSettings, "nestopia_ram_power_state", "nestopia_ram_power_state", "0x00");
+
+            // Region: the REGION feature (nestopia_favored_system) forces the system, auto lets the game decide
+            coreSettings["nestopia_favored_system"] = "ntsc";
+            BindFeature(coreSettings, "nestopia_force_system", "nestopia_favored_system", "auto");
+
+            // Audio
+            BindBoolFeature(coreSettings, "nestopia_audio_filter", "nestopia_audio_filter", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "nestopia_dmc_pop_reducer", "nestopia_dmc_pop_reducer", "enabled", "disabled");
 
             // Controls
             BindBoolFeature(coreSettings, "nestopia_show_crosshair", "nestopia_show_crosshair", "enabled", "disabled");
             BindFeature(coreSettings, "nestopia_select_adapter", "nestopia_select_adapter", "auto");
             BindBoolFeature(coreSettings, "nestopia_button_shift", "rotate_buttons", "disabled", "enabled");
+            BindFeature(coreSettings, "nestopia_turbo_pulse", "nestopia_turbo_pulse", "2");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "nestopia_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "nestopia_controller2", "1");
 
@@ -5160,48 +5345,46 @@ namespace EmulatorLauncher.Libretro
             else
                 coreSettings["parallel-n64-64dd-hardware"] = "disabled";
 
+            // RDP plugin: ParaLLEl-RDP (Vulkan) by default, the core falls back to GLideN64 without Vulkan
+            string gfxPlugin = SystemConfig.GetValueOrDefault("parallel_gfx_plugin", "parallel");
+            coreSettings["parallel-n64-gfxplugin"] = gfxPlugin;
+
+            // RSP plugin: LLE (cxd4) for Angrylion, otherwise core choice (ParaLLEl RSP with Vulkan, HLE with OpenGL)
+            coreSettings["parallel-n64-rspplugin"] = gfxPlugin == "angrylion" ? "cxd4" : "auto";
+
+            BindFeature(coreSettings, "parallel-n64-cpucore", "parallel_cpucore", "dynamic_recompiler");
             BindFeature(coreSettings, "parallel-n64-screensize", "parallel_resolution", "640x480");
             BindBoolFeature(coreSettings, "parallel-n64-aspectratiohint", "parallel_aspect", "widescreen", "normal");
-            BindBoolFeature(coreSettings, "parallel-n64-framerate", "parallel_framerate", "fullspeed", "original");
-            BindFeature(coreSettings, "parallel-n64-cpucore", "parallel_cpucore", "dynamic_recompiler");
-            BindFeature(coreSettings, "parallel-n64-gfxplugin-accuracy", "parallel_gfx_accuracy", "veryhigh");
-            BindFeature(coreSettings, "parallel-n64-gfxplugin", "parallel_gfx_plugin", "auto");
-            coreSettings["parallel-n64-rspplugin"] = "auto";
 
-            // Set RSP plugin: HLE for Glide, LLE for Parallel and cxd4 for angrylion
-            if (SystemConfig.isOptSet("parallel_gfx_plugin") && SystemConfig["parallel_gfx_plugin"] == "parallel")
-                coreSettings["parallel-n64-rspplugin"] = "parallel";
-            else if (SystemConfig.isOptSet("parallel_gfx_plugin") && SystemConfig["parallel_gfx_plugin"] == "angrylion")
-                coreSettings["parallel-n64-rspplugin"] = "cxd4";
-            else if (SystemConfig.isOptSet("parallel_gfx_plugin"))
-                coreSettings["parallel-n64-rspplugin"] = "hle";
-            else
-                coreSettings["parallel-n64-rspplugin"] = "auto";
-
-            // Parallel options
+            // Parallel options (the upscaling factor also applies to Angrylion, 4x max)
+            BindFeature(coreSettings, "parallel-n64-upscaling", "parallel_upscaling", "1x");
             BindFeature(coreSettings, "parallel-n64-parallel-rdp-downscaling", "parallel_downsampling", "disable");
-            BindFeature(coreSettings, "parallel-n64-parallel-rdp-upscaling", "parallel_upscaling", "1x");
             BindBoolFeatureOn(coreSettings, "parallel-n64-parallel-rdp-gamma-dither", "parallel_gamma_dither", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "parallel-n64-parallel-rdp-divot-filter", "parallel_divot_filter", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "parallel-n64-parallel-rdp-vi-aa", "parallel_vi_aa", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "parallel-n64-parallel-rdp-vi-bilinear", "parallel_vi_bilinear", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "parallel-n64-parallel-rdp-dither-filter", "parallel_rdp_dither", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "parallel-n64-parallel-rdp-super-sampled-read-back", "parallel_ssaa_readback", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "parallel-n64-parallel-rdp-native-texture-lod", "parallel_native_lod", "enabled", "disabled");
+            BindFeatureSlider(coreSettings, "parallel-n64-parallel-rdp-overscan", "parallel_overscan", "0");
+
+            // GLideN64 options (same features as mupen64plus_next where possible)
+            BindFeature(coreSettings, "parallel-n64-gliden64-EnableNativeResFactor", "parallel_gliden64_nativeres", "0");
+            BindFeature(coreSettings, "parallel-n64-gliden64-BilinearMode", "BilinearMode", "3point");
+            BindFeature(coreSettings, "parallel-n64-gliden64-txFilterMode", "Texture_filter", "None");
+            BindFeature(coreSettings, "parallel-n64-gliden64-MultiSampling", "MultiSampling", "0");
+            BindFeature(coreSettings, "parallel-n64-gliden64-txEnhancementMode", "Texture_Enhancement", "None");
+            BindBoolFeature(coreSettings, "parallel-n64-gliden64-FXAA", "parallel_gliden64_fxaa", "1", "0");
 
             // Glide64 options
             BindFeature(coreSettings, "parallel-n64-filtering", "parallel_filtering", "automatic");
-
-            if (SystemConfig["parallel_gfx_plugin"] != "glide64")
-            {
-                coreSettings["parallel-n64-filtering"] = "automatic";
-            }
+            BindFeature(coreSettings, "parallel-n64-gfxplugin-accuracy", "parallel_gfx_accuracy", "veryhigh");
 
             // Angrylion options
             BindBoolFeatureOn(coreSettings, "parallel-n64-dithering", "parallel_dithering", "enabled", "disabled");
-
-            if (SystemConfig["parallel_gfx_plugin"] != "angrylion")
-            {
-                coreSettings["parallel-n64-dithering"] = "enabled";
-            }
+            BindFeature(coreSettings, "parallel-n64-angrylion-vioverlay", "parallel_angrylion_vioverlay", "Filtered");
+            BindFeature(coreSettings, "parallel-n64-angrylion-sync", "parallel_angrylion_sync", "Low");
+            BindBoolFeature(coreSettings, "parallel-n64-angrylion-overscan", "parallel_angrylion_overscan", "enabled", "disabled");
 
             // Controls
             BindFeatureSlider(coreSettings, "parallel-n64-astick-deadzone", "parallel_stick_deadzone", "15");
@@ -6365,9 +6548,20 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             BindBoolFeature(coreSettings, "virtualjaguar_usefastblitter", "usefastblitter", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "virtualjaguar_bios", "bios_vj", "enabled", "disabled");
-            //BindBoolFeature(coreSettings, "virtualjaguar_doom_res_hack", "doom_res_hack", "enabled", "disabled");
             BindBoolFeature(coreSettings, "virtualjaguar_pal", "vj_pal", "enabled", "disabled");
+            BindFeature(coreSettings, "virtualjaguar_internal_resolution", "virtualjaguar_internal_resolution", "1x");
+            BindBoolFeature(coreSettings, "virtualjaguar_true_color", "virtualjaguar_true_color", "enabled", "disabled");
+            BindFeature(coreSettings, "virtualjaguar_m68k_clock_scale", "virtualjaguar_m68k_clock_scale", "1x");
+            BindFeature(coreSettings, "virtualjaguar_risc_clock_scale", "virtualjaguar_risc_clock_scale", "1x");
+
+            // Real BIOS: cartridges use virtualjaguar_bios, CD content uses the CD boot mode
+            BindBoolFeature(coreSettings, "virtualjaguar_bios", "bios_vj", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "virtualjaguar_cd_boot_mode", "bios_vj", "bios", "hle");
+            BindFeature(coreSettings, "virtualjaguar_cd_read_speed", "virtualjaguar_cd_read_speed", "2x");
+
+            // Peripheral plugged in each port (auto = standard joypad)
+            BindFeature(coreSettings, "virtualjaguar_p1_device", "virtualjaguar_p1_device", "auto");
+            BindFeature(coreSettings, "virtualjaguar_p2_device", "virtualjaguar_p2_device", "auto");
 
             // Controls use core options for pro controller
             if (SystemConfig.isOptSet("virtualjaguar_procontroller") && SystemConfig.getOptBoolean("virtualjaguar_procontroller") && SystemConfig["disableautocontrollers"] != "1")
@@ -6558,6 +6752,46 @@ namespace EmulatorLauncher.Libretro
 
             // Cheat options (zc255_cheats_enabled, invulnerability, walls, R2 refills) are not bound:
             // they stay editable in RetroArch Quick Menu > Core Options and are kept between sessions
+        }
+
+        private void ConfigureZcdi(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "zcdi")
+                return;
+
+            BindFeature(coreSettings, "zcdi_preferred_bios", "zcdi_region", "ntsc");
+            BindBoolFeatureOn(coreSettings, "zcdi_auto_play", "zcdi_auto_play", "on", "off");
+            coreSettings["zcdi_dvc_enabled"] = "auto";      // DVC titles need vmpega.rom in the bios folder
+            coreSettings["zcdi_nvram_mode"] = "per_disc";
+
+            // The core loads cdi200.rom (NTSC) / cdi220b.rom (PAL) from the bios root: take them from MAME's cdimono1.zip when missing
+            string biosPath = AppConfig.GetFullPath("bios");
+            if (!string.IsNullOrEmpty(biosPath))
+            {
+                string mameBios = new[] { Path.Combine(biosPath, "cdimono1.zip"), Path.Combine(biosPath, "same_cdi", "bios", "cdimono1.zip") }.FirstOrDefault(File.Exists);
+                if (mameBios != null)
+                {
+                    foreach (string rom in new[] { "cdi200.rom", "cdi220b.rom" })
+                    {
+                        if (File.Exists(Path.Combine(biosPath, rom)))
+                            continue;
+
+                        try { EmulatorLauncher.Common.Compression.Zip.Extract(mameBios, biosPath, rom); }
+                        catch (Exception ex) { SimpleLogger.Instance.Error("[zcdi] Failed to extract " + rom + ": " + ex.Message); }
+                    }
+                }
+            }
+
+            // Controls: port 2 only reacts to its own device ids (257 gamepad, 258 mouse), the core default is no device
+            BindFeature(retroarchConfig, "input_libretro_device_p1", "zcdi_controller1", "1");
+            if (Features.IsSupported("zcdi_controller2"))
+            {
+                string p2Default = this.Controllers.Any(c => c.PlayerIndex == 2) ? "257" : "0";
+                retroarchConfig["input_libretro_device_p2"] = SystemConfig.GetValueOrDefault("zcdi_controller2", p2Default);
+            }
+
+            // Peacekeeper light gun, port 1 only
+            SetupLightGuns(retroarchConfig, "4", core);
         }
         #endregion
     }
