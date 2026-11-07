@@ -1,6 +1,7 @@
 ﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.PadToKeyboard;
 using System;
 using System.Collections.Generic;
@@ -34,6 +35,10 @@ namespace EmulatorLauncher
             _path = path;
             _system = system;
 
+            // ares links SDL3 : enumerate with the same SDL version and hints (SDL_JOYSTICK_RAWINPUT=1)
+            SetSdl3EmulatorVersion(exe);
+            Sdl3GameController.SetEnumerationHints(Sdl3GameController.Sdl3HintProfile.RetroBat);
+
             bool fullscreen = ShouldRunFullscreen();
 
             //Applying bezels
@@ -49,20 +54,15 @@ namespace EmulatorLauncher
 
                 switch (renderer)
                 {
-                    case "OpenGL 3.2":
-                        ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, path);
-                        if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
-                            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-                        break;
                     case "Direct3D 9.0":
                         ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
                         if (!ReshadeManager.Setup(ReshadeBezelType.d3d9, ReshadePlatform.x64, system, rom, path, resolution, emulator))
                             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                         break;
-                    case "GDI":
+                    default:
                         ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, path);
-                        ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
-                        SystemConfig["forceNoBezel"] = "1";
+                        if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                         break;
                 }
             }
@@ -130,8 +130,6 @@ namespace EmulatorLauncher
             if (fullscreen)
                 commandArray.Add("--fullscreen");
 
-            //AddSettingsCommand(commandArray);
-
             string args = string.Join(" ", commandArray);
 
             var bml = BmlFile.Load(Path.Combine(path, "settings.bml"));
@@ -156,9 +154,9 @@ namespace EmulatorLauncher
         /// <param name="path"></param>
         private void SetupConfiguration(BmlFile bml, string system, string core, string rom)
         {
-            // Set driver for input
+            // Input driver is always SDL
             var input = bml.GetOrCreateContainer("Input");
-            input["Driver"] = "SDL";
+            input.Remove("Driver");
             input["Defocus"] = SystemConfig.getOptBoolean("nopauseonlostfocus") ? "Block" : "Pause";
 
             // Video
@@ -181,7 +179,10 @@ namespace EmulatorLauncher
             }
 
             video["AdaptiveSizing"] = "true";
-            BindFeature(video, "Driver", "ares_renderer", "OpenGL 3.2");
+
+            // GDI does not exist in ares : fall back to OpenGL 3.2
+            string renderer = SystemConfig["ares_renderer"];
+            video["Driver"] = (renderer == "OpenGL 4.6" || renderer == "Direct3D 9.0") ? renderer : "OpenGL 3.2";
             BindFeature(video, "Output", "ares_aspect", "Scale");
             BindFeature(video, "AspectCorrectionMode", "ares_aspectcorrection", "Standard");
 
@@ -261,26 +262,20 @@ namespace EmulatorLauncher
             BindBoolFeatureOn(video, "InterframeBlending", "ares_interframe_blend", "true", "false");
             BindBoolFeature(video, "Overscan", "ares_overscan", "true", "false");
             BindBoolFeature(video, "PixelAccuracy", "ares_pixel_accurate", "true", "false");
-            BindFeature(video, "Quality", "ares_n64_quality", "SD");
+            BindFeature(video, "Deinterlacing", "ares_deinterlacing", "Weave");
             BindFeatureSlider(video, "Luminance", "ares_luminance", "1.0", 2);
             BindFeatureSlider(video, "Saturation", "ares_saturation", "1.0", 2);
             BindFeatureSlider(video, "Gamma", "ares_gamma", "1.0", 2);
 
-            if (!SystemConfig.isOptSet("ares_n64_quality") || SystemConfig["ares_n64_quality"] == "SD")
-                video["Supersampling"] = "false";
-            else
-                BindBoolFeature(video, "Supersampling", "ares_supersampling", "true", "false");
+            // Nintendo 64 settings moved to the Nintendo64 section
+            video.Remove("Quality");
+            video.Remove("Supersampling");
+            video.Remove("WeaveDeinterlacing");
+            video.Remove("DisableVideoInterfaceProcessing");
 
-            bool supersample = SystemConfig.getOptBoolean("ares_supersampling");
-
-            if (!supersample)
-                BindBoolFeatureOn(video, "WeaveDeinterlacing", "ares_weavedeinterlacing", "true", "false");
-            else
-                video["WeaveDeinterlacing"] = "false";
-
-            // Audio
+            // Audio (driver is always SDL)
             var audio = bml.GetOrCreateContainer("Audio");
-            BindFeature(audio, "Driver", "ares_audio_renderer", "WASAPI");
+            audio.Remove("Driver");
             BindBoolFeatureOn(audio, "Blocking", "ares_audiosync", "true", "false");
 
             // General Settings
@@ -314,9 +309,34 @@ namespace EmulatorLauncher
             var aresCore = bml.GetOrCreateContainer(core);
             aresCore["Path"] = Path.GetDirectoryName(rom).Replace("\\", "/") + "/";
 
-            // N64 expansion pak
+            // Controller type of both ports (ares keeps 3-button mode for incompatible Mega Drive games)
+            if (core == "MegaDrive" || core == "MegaCD")
+            {
+                string pad = SystemConfig.getOptBoolean("md_3buttons") ? "Control Pad" : "Fighting Pad";
+                aresCore["ControllerPort1"] = pad;
+                aresCore["ControllerPort2"] = pad;
+            }
+
+            // PC Engine pad type
+            if (core == "PCEngine" || core == "PCEngineCD" || core == "SuperGrafx")
+            {
+                bool sixButtons = SystemConfig.getOptBoolean(core == "SuperGrafx" ? "sgx_6button" : "pce_6button");
+                aresCore["ControllerPort"] = sixButtons ? "Avenue Pad 6" : "Gamepad";
+            }
+
+            // Nintendo 64
             var n64bml = bml.GetOrCreateContainer("Nintendo64");
             BindBoolFeatureOn(n64bml, "ExpansionPak", "ares_ExpansionPak", "true", "false");
+            BindFeature(n64bml, "Quality", "ares_n64_quality", "SD");
+
+            // Supersampling requires upscaling and is incompatible with weave deinterlacing
+            bool supersample = n64bml["Quality"] != "SD" && SystemConfig.getOptBoolean("ares_supersampling");
+            n64bml["Supersampling"] = supersample ? "true" : "false";
+
+            if (supersample)
+                n64bml["WeaveDeinterlacing"] = "false";
+            else
+                BindBoolFeatureOn(n64bml, "WeaveDeinterlacing", "ares_weavedeinterlacing", "true", "false");
         }
 
         private void WriteKeyboardHotkeys(BmlFile bml, string core)
@@ -629,55 +649,5 @@ namespace EmulatorLauncher
             { "ZXSpectrum", "ZX Spectrum" },
             { "ZXSpectrum128", "ZX Spectrum 128" }
         };
-
-        private void AddSettingsCommand(List<string> commandArray)
-        {
-            if (_system != null)
-            {
-                switch (_system)
-                {
-                    case "megadrive":
-                    case "genesis":
-                        {
-                            if (SystemConfig.isOptSet("ares_controller_type") && !string.IsNullOrEmpty(SystemConfig["ares_controller_type"]))
-                            {
-                                string value = SystemConfig["ares_controller_type"].Replace("_", " ");
-                                for (int i = 1; i < 3; i++)
-                                {
-                                    commandArray.Add("--setting Ports/MegaDrive/ControllerPort" + i + "=\"" + value + "\"");
-                                }
-                            }
-                            else
-                            {
-                                for (int i = 1; i < 3; i++)
-                                {
-                                    commandArray.Add("--setting Ports/MegaDrive/ControllerPort" + i + "=\"Fighting Pad\"");
-                                }
-                            }
-                        }
-                        break;
-                    case "megacd":
-                    case "segacd":
-                        {
-                            if (SystemConfig.isOptSet("ares_controller_type") && !string.IsNullOrEmpty(SystemConfig["ares_controller_type"]))
-                            {
-                                string value = SystemConfig["ares_controller_type"].Replace("_", " ");
-                                for (int i = 1; i < 3; i++)
-                                {
-                                    commandArray.Add("--setting Ports/MegaCD/ControllerPort" + i + "=\"" + value + "\"");
-                                }
-                            }
-                            else
-                            {
-                                for (int i = 1; i < 3; i++)
-                                {
-                                    commandArray.Add("--setting Ports/MegaCD/ControllerPort" + i + "=\"Fighting Pad\"");
-                                }
-                            }
-                        }
-                        break;
-                }
-            }
-        }
     }
 }

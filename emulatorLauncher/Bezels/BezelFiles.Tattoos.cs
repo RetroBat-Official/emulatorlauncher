@@ -406,6 +406,7 @@ namespace EmulatorLauncher
                         switch (core)
                         {
                             case "handy":
+                            case "gearlynx":
                                 ret = "lynx_lr_handy";
                                 break;
                         }
@@ -515,6 +516,7 @@ namespace EmulatorLauncher
                             }
                         }
                         break;
+                    case "ares":
                     case "blastem":
                     case "bizhawk":
                     case "jgenesis":
@@ -798,7 +800,7 @@ namespace EmulatorLauncher
                             ret = "pcengine_simple";
                         break;
                     case "ares":
-                        ret = "pcengine_simple";
+                        ret = Program.SystemConfig.getOptBoolean("pce_6button") ? "pcengine_simple_6buttons" : "pcengine_simple";
                         break;
                     case "bizhawk":
                         ret = "pcengine_bizhawk";
@@ -889,7 +891,7 @@ namespace EmulatorLauncher
                 if (invertButtons)
                     ret = "snes_invert";
             }
-            else if (system == "supegrafx")
+            else if (system == "supergrafx")
             {
                 switch (emulator)
                 {
@@ -923,7 +925,7 @@ namespace EmulatorLauncher
                             ret = "pcengine_simple";
                         break;
                     case "ares":
-                        ret = "pcengine_simple";
+                        ret = Program.SystemConfig.getOptBoolean("sgx_6button") ? "pcengine_simple_6buttons" : "pcengine_simple";
                         break;
                     case "bizhawk":
                         ret = "pcengine_bizhawk";
