@@ -2671,7 +2671,7 @@ namespace EmulatorLauncher.Libretro
                 FlycastGenerator.SyncVMUFiles();
 
             coreSettings["reicast_show_lightgun_settings"] = "enabled";
-            coreSettings["reicast_network_output"] = "enabled"; // Enable controller force feedback
+            BindBoolFeatureOn(coreSettings, "reicast_network_output", "reicast_network_output", "enabled", "disabled"); // Outputs on TCP 8000 (MameHooker...)
 
             BindBoolFeature(coreSettings, "reicast_widescreen_hack", "widescreen_hack", "enabled", "disabled");
             BindBoolFeature(coreSettings, "reicast_widescreen_cheats", "widescreen_cheats", "enabled", "disabled");
@@ -2704,6 +2704,22 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "reicast_fog", "reicast_fog", "disabled", "enabled");
             BindBoolFeature(coreSettings, "reicast_digital_triggers", "reicast_digital_triggers", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "reicast_threaded_rendering", "reicast_threaded_rendering", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "reicast_volume_modifier_enable", "reicast_volume_modifier_enable", "disabled", "enabled");
+            BindFeature(coreSettings, "reicast_texupscale_max_filtered_texture_size", "reicast_texupscale_max_filtered_texture_size", "256");
+            BindBoolFeature(coreSettings, "reicast_emulate_framebuffer", "reicast_emulate_framebuffer", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "reicast_native_depth_interpolation", "reicast_native_depth_interpolation", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "reicast_dc_32mb_mod", "reicast_dc_32mb_mod", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "reicast_gdrom_fast_loading", "reicast_gdrom_fast_loading", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "reicast_vmu_sound", "reicast_vmu_sound", "enabled", "disabled");
+
+            // Player 1 VMU screen overlay, the feature value is the position
+            if (SystemConfig.isOptSet("reicast_vmu1_screen") && !string.IsNullOrEmpty(SystemConfig["reicast_vmu1_screen"]))
+            {
+                coreSettings["reicast_vmu1_screen_display"] = "enabled";
+                coreSettings["reicast_vmu1_screen_position"] = SystemConfig["reicast_vmu1_screen"];
+            }
+            else
+                coreSettings["reicast_vmu1_screen_display"] = "disabled";
 
             if (SystemConfig.isOptSet("reicast_frame_skipping") && SystemConfig["reicast_frame_skipping"].ToIntegerString() != "0")
             {

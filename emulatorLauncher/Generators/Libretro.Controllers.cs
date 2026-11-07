@@ -365,10 +365,9 @@ namespace EmulatorLauncher.Libretro
             };
 
             // some input adaptations for some cores...
-            // MAME service menu
-            if (system == "mame")
+            // MAME service menu, Flycast arcade (core Test on L3): put Test on R3 and Service on L3
+            if (system == "mame" || (core == "flycast" && arcadeSystems.Contains(system)))
             {
-                // Invert Dip switches and set it on r3 instead ( less annoying )
                 retroarchbtns[InputKey.l3] = "r3";
                 retroarchbtns[InputKey.r3] = "l3";
             }
@@ -423,17 +422,13 @@ namespace EmulatorLauncher.Libretro
                                 break;
                         }
 
+                        // Test on 0, Service on 9: keyed on the physical R3/L3 so core specific swaps also apply to the keyboard
                         if (controller.PlayerIndex == 1)
                         {
-                            switch (value)
-                            {
-                                case "r3":  // Test
-                                    value = "num" + 0.ToString();
-                                    break;
-                                case "l3":  // Service
-                                    value = "num" + 9.ToString();
-                                    break;
-                            }
+                            if (btnkey.Key == InputKey.r3)
+                                value = "num0";
+                            else if (btnkey.Key == InputKey.l3)
+                                value = "num9";
                         }
 
                         config[string.Format("input_player{0}_{1}", controller.PlayerIndex, btnkey.Value)] = value;
