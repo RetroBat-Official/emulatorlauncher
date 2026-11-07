@@ -181,7 +181,7 @@ namespace EmulatorLauncher.Common
                     inblock = true;
                 else if (c == ']')
                     inblock = false;
-                else if (!inpar && !inblock && (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'))
+                else if (!inpar && !inblock && ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')))
                     ret.Append(c);
             }
 

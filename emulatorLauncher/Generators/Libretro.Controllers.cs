@@ -427,11 +427,11 @@ namespace EmulatorLauncher.Libretro
                         {
                             switch (value)
                             {
-                                case "r3":
-                                    value = "num" + 9.ToString();
-                                    break;
-                                case "l3":
+                                case "r3":  // Test
                                     value = "num" + 0.ToString();
+                                    break;
+                                case "l3":  // Service
+                                    value = "num" + 9.ToString();
                                     break;
                             }
                         }

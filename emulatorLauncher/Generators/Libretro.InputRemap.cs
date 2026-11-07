@@ -815,6 +815,24 @@ namespace EmulatorLauncher.Libretro
                 }
                 #endregion
 
+                #region segastv
+                if (system == "segastv" && core == "mednafen_saturn")
+                {
+                    // Buttons 1-6 on south, east, west, north, L1, R1 (core: Saturn A, B, C, X, Y, Z)
+                    inputremap["input_player" + i + "_btn_y"] = "11";
+                    inputremap["input_player" + i + "_btn_x"] = "1";
+                    inputremap["input_player" + i + "_btn_l"] = "9";
+                    inputremap["input_player" + i + "_btn_r"] = "10";
+
+                    // Test on R3, Service on L3 (core: L3 = Test, R3 = Service)
+                    if (i == 1)
+                    {
+                        inputremap["input_player1_btn_l3"] = "15";
+                        inputremap["input_player1_btn_r3"] = "14";
+                    }
+                }
+                #endregion
+
                 #region supergrafx
                 if (system == "supergrafx")
                 {
@@ -834,7 +852,7 @@ namespace EmulatorLauncher.Libretro
 
         private static bool SetupCoreGameRemaps(string system, string core, string romName, Dictionary<string, string> inputremap, ConfigFile coreSettings, bool mameAuto = false, MessSystem messSystem = null)
         {
-            List<string> mameArcade = new List<string> { "mame", "hbmame", "neogeo64", "model1", "model2", "model3", "zinc", "cave" };
+            List<string> mameArcade = new List<string> { "mame", "hbmame", "neogeo64", "model1", "model2", "model3", "zinc", "cave", "segastv" };
             if (core == null || system == null || romName == null || mameAuto)
                 return false;
 

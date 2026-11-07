@@ -4305,18 +4305,39 @@ namespace EmulatorLauncher.Libretro
             if (core != "mednafen_saturn")
                 return;
 
+            bool stv = system == "segastv";
+
             coreSettings["beetle_saturn_autortc"] = "enabled";
+
+            // Core-managed .bkr saves: needed for previous saves, shared internal memory and Kronos "share save with mednafen"
+            coreSettings["beetle_saturn_save_method"] = "mednafen";
 
             BindBoolFeatureOn(coreSettings, "beetle_saturn_shared_ext", "beetle_saturn_shared_ext", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "beetle_saturn_shared_int", "beetle_saturn_shared_int", "enabled", "disabled");
 
             BindFeature(coreSettings, "beetle_saturn_autortc_lang", "beetle_saturn_autortc_lang", "english");
-            BindFeature(coreSettings, "beetle_saturn_cart", "beetle_saturn_cart", "Auto Detect");
+
+            // 4MB backup cartridge = backup memory cartridge + size option
+            if (SystemConfig["beetle_saturn_cart"] == "Backup Memory 4MB")
+            {
+                coreSettings["beetle_saturn_cart"] = "Backup Memory";
+                coreSettings["beetle_saturn_backup_memory_size"] = "4MB";
+            }
+            else
+            {
+                BindFeature(coreSettings, "beetle_saturn_cart", "beetle_saturn_cart", "Auto Detect");
+                coreSettings["beetle_saturn_backup_memory_size"] = "Default";
+            }
+
             BindBoolFeature(coreSettings, "beetle_saturn_cdimagecache", "beetle_saturn_cdimagecache", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "beetle_saturn_mpeg_card", "beetle_saturn_mpeg_card", "enabled", "disabled");
             BindBoolFeature(coreSettings, "beetle_saturn_midsync", "beetle_saturn_midsync", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "beetle_saturn_multitap_port1", "beetle_saturn_multitap_port1", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "beetle_saturn_multitap_port2", "beetle_saturn_multitap_port2", "enabled", "disabled");
             BindFeature(coreSettings, "beetle_saturn_region", "beetle_saturn_region", "Auto Detect");
+
+            // Video
+            BindFeature(coreSettings, "beetle_saturn_deinterlacer", "beetle_saturn_deinterlacer", "weave");
+            BindBoolFeature(coreSettings, "beetle_saturn_horizontal_blend", "beetle_saturn_horizontal_blend", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "beetle_saturn_mesh_transparency", "saturn_meshmode", "enabled", "disabled");
 
             // Controls
             BindFeature(coreSettings, "beetle_saturn_virtuagun_crosshair", "beetle_saturn_virtuagun_crosshair", "Cross", true);
@@ -4329,30 +4350,27 @@ namespace EmulatorLauncher.Libretro
             else
                 coreSettings["beetle_saturn_mouse_sensitivity"] = "100%";
 
-            // Controls
-            if (SystemConfig.isOptSet("mednafen_saturn_controller") && !string.IsNullOrEmpty(SystemConfig["mednafen_saturn_controller"]))
-            {
-                for (int i = 1; i < 9; i++)
-                {
-                    retroarchConfig["input_libretro_device_p" + i] = SystemConfig["mednafen_saturn_controller"];
-                }
-            }
-            else
-            {
-                for (int i = 1; i < 9; i++)
-                {
-                    retroarchConfig["input_libretro_device_p" + i] = "1";
-                }
-            }
+            // ST-V only reads the standard control pad
+            string deviceType = "1";
+            if (!stv && SystemConfig.isOptSet("mednafen_saturn_controller") && !string.IsNullOrEmpty(SystemConfig["mednafen_saturn_controller"]))
+                deviceType = SystemConfig["mednafen_saturn_controller"];
+
+            for (int i = 1; i < 9; i++)
+                retroarchConfig["input_libretro_device_p" + i] = deviceType;
 
             coreSettings["beetle_saturn_virtuagun_input"] = "Lightgun";
             SetupLightGuns(retroarchConfig, "260", core);
 
-            // Disable multitap if lightgun is enabled
-            if (SystemConfig.getOptBoolean("use_guns"))
+            // No multitap with guns or on ST-V (2 player ports)
+            if (stv || SystemConfig.getOptBoolean("use_guns"))
             {
                 coreSettings["beetle_saturn_multitap_port1"] = "disabled";
                 coreSettings["beetle_saturn_multitap_port2"] = "disabled";
+            }
+            else
+            {
+                BindBoolFeature(coreSettings, "beetle_saturn_multitap_port1", "beetle_saturn_multitap_port1", "enabled", "disabled");
+                BindBoolFeature(coreSettings, "beetle_saturn_multitap_port2", "beetle_saturn_multitap_port2", "enabled", "disabled");
             }
         }
 
