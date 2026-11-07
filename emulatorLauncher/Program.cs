@@ -1101,7 +1101,8 @@ namespace EmulatorLauncher
                 }
 
                 string esPadToKeyPath = Path.Combine(Program.LocalPath, ".emulationstation", "padtokey");
-                string systemPadToKeyPath = Program.AppConfig.GetFullPath("padtokey");
+                // Profiles provided with RetroBat ("padtokey" in emulatorLauncher.cfg is the user folder, searched above)
+                string systemPadToKeyPath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "padtokey");
 
                 if (!string.IsNullOrEmpty(core))
                 {

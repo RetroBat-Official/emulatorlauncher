@@ -32,14 +32,6 @@ namespace EmulatorLauncher
 
             _path = path;
 
-            // Disable zinc padtokey
-            string padtokeyFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "padtokey", "zinc.keys");
-            if (File.Exists(padtokeyFile))
-            {
-                AddFileForRestoration(padtokeyFile);
-                try { File.Delete(padtokeyFile); } catch { }
-            }
-
             // ArcadeDuck boots MAME .zip or .7z sets (non-merged, split or merged), identified by their file name
             string romExtension = Path.GetExtension(rom);
             bool isChd = romExtension.Equals(".chd", StringComparison.InvariantCultureIgnoreCase);
