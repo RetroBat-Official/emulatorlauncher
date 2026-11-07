@@ -815,24 +815,6 @@ namespace EmulatorLauncher.Libretro
                 }
                 #endregion
 
-                #region segastv
-                if (system == "segastv" && core == "mednafen_saturn")
-                {
-                    // Buttons 1-6 on south, east, west, north, L1, R1 (core: Saturn A, B, C, X, Y, Z)
-                    inputremap["input_player" + i + "_btn_y"] = "11";
-                    inputremap["input_player" + i + "_btn_x"] = "1";
-                    inputremap["input_player" + i + "_btn_l"] = "9";
-                    inputremap["input_player" + i + "_btn_r"] = "10";
-
-                    // Test on R3, Service on L3 (core: L3 = Test, R3 = Service)
-                    if (i == 1)
-                    {
-                        inputremap["input_player1_btn_l3"] = "15";
-                        inputremap["input_player1_btn_r3"] = "14";
-                    }
-                }
-                #endregion
-
                 #region supergrafx
                 if (system == "supergrafx")
                 {

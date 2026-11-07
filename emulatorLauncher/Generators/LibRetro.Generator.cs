@@ -678,7 +678,7 @@ namespace EmulatorLauncher.Libretro
             if (AppConfig.isOptSet("shaders") && SystemConfig.isOptSet("shader") && SystemConfig["shader"] != "None")
             {
                 string videoDriver = ConfigFile.FromFile(Path.Combine(RetroarchPath, "retroarch.cfg"))["video_driver"];
-                bool isOpenGL = (emulator != "angle") && (!coreNoGL.Contains(core)) && videoDriver == "gl" && !(core == "parallel_n64" && SystemConfig["parallel_gfx_plugin"] == "parallel");
+                bool isOpenGL = (emulator != "angle") && (!coreNoGL.Contains(core)) && videoDriver == "gl" && !(core == "parallel_n64" && SystemConfig.GetValueOrDefault("parallel_gfx_plugin", "parallel") == "parallel");
                 bool dx12 = videoDriver == "d3d12";
 
                 string path = Path.Combine(AppConfig.GetFullPath("shaders"), "configs", SystemConfig["shaderset"], "rendering-defaults.yml");
@@ -1776,6 +1776,14 @@ namespace EmulatorLauncher.Libretro
                     retroarchConfig["video_driver"] = "vulkan";
                     return;
                 }
+            }
+
+            // ParaLLEl-RDP is the parallel_n64 default plugin
+            if (core == "parallel_n64" && SystemConfig.GetValueOrDefault("parallel_gfx_plugin", "parallel") == "parallel")
+            {
+                _video_driver = "vulkan";
+                retroarchConfig["video_driver"] = "vulkan";
+                return;
             }
 
             // Set default video driver per core

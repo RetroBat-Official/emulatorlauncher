@@ -5183,48 +5183,46 @@ namespace EmulatorLauncher.Libretro
             else
                 coreSettings["parallel-n64-64dd-hardware"] = "disabled";
 
+            // RDP plugin: ParaLLEl-RDP (Vulkan) by default, the core falls back to GLideN64 without Vulkan
+            string gfxPlugin = SystemConfig.GetValueOrDefault("parallel_gfx_plugin", "parallel");
+            coreSettings["parallel-n64-gfxplugin"] = gfxPlugin;
+
+            // RSP plugin: LLE (cxd4) for Angrylion, otherwise core choice (ParaLLEl RSP with Vulkan, HLE with OpenGL)
+            coreSettings["parallel-n64-rspplugin"] = gfxPlugin == "angrylion" ? "cxd4" : "auto";
+
+            BindFeature(coreSettings, "parallel-n64-cpucore", "parallel_cpucore", "dynamic_recompiler");
             BindFeature(coreSettings, "parallel-n64-screensize", "parallel_resolution", "640x480");
             BindBoolFeature(coreSettings, "parallel-n64-aspectratiohint", "parallel_aspect", "widescreen", "normal");
-            BindBoolFeature(coreSettings, "parallel-n64-framerate", "parallel_framerate", "fullspeed", "original");
-            BindFeature(coreSettings, "parallel-n64-cpucore", "parallel_cpucore", "dynamic_recompiler");
-            BindFeature(coreSettings, "parallel-n64-gfxplugin-accuracy", "parallel_gfx_accuracy", "veryhigh");
-            BindFeature(coreSettings, "parallel-n64-gfxplugin", "parallel_gfx_plugin", "auto");
-            coreSettings["parallel-n64-rspplugin"] = "auto";
 
-            // Set RSP plugin: HLE for Glide, LLE for Parallel and cxd4 for angrylion
-            if (SystemConfig.isOptSet("parallel_gfx_plugin") && SystemConfig["parallel_gfx_plugin"] == "parallel")
-                coreSettings["parallel-n64-rspplugin"] = "parallel";
-            else if (SystemConfig.isOptSet("parallel_gfx_plugin") && SystemConfig["parallel_gfx_plugin"] == "angrylion")
-                coreSettings["parallel-n64-rspplugin"] = "cxd4";
-            else if (SystemConfig.isOptSet("parallel_gfx_plugin"))
-                coreSettings["parallel-n64-rspplugin"] = "hle";
-            else
-                coreSettings["parallel-n64-rspplugin"] = "auto";
-
-            // Parallel options
+            // Parallel options (the upscaling factor also applies to Angrylion, 4x max)
+            BindFeature(coreSettings, "parallel-n64-upscaling", "parallel_upscaling", "1x");
             BindFeature(coreSettings, "parallel-n64-parallel-rdp-downscaling", "parallel_downsampling", "disable");
-            BindFeature(coreSettings, "parallel-n64-parallel-rdp-upscaling", "parallel_upscaling", "1x");
             BindBoolFeatureOn(coreSettings, "parallel-n64-parallel-rdp-gamma-dither", "parallel_gamma_dither", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "parallel-n64-parallel-rdp-divot-filter", "parallel_divot_filter", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "parallel-n64-parallel-rdp-vi-aa", "parallel_vi_aa", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "parallel-n64-parallel-rdp-vi-bilinear", "parallel_vi_bilinear", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "parallel-n64-parallel-rdp-dither-filter", "parallel_rdp_dither", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "parallel-n64-parallel-rdp-super-sampled-read-back", "parallel_ssaa_readback", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "parallel-n64-parallel-rdp-native-texture-lod", "parallel_native_lod", "enabled", "disabled");
+            BindFeatureSlider(coreSettings, "parallel-n64-parallel-rdp-overscan", "parallel_overscan", "0");
+
+            // GLideN64 options (same features as mupen64plus_next where possible)
+            BindFeature(coreSettings, "parallel-n64-gliden64-EnableNativeResFactor", "parallel_gliden64_nativeres", "0");
+            BindFeature(coreSettings, "parallel-n64-gliden64-BilinearMode", "BilinearMode", "3point");
+            BindFeature(coreSettings, "parallel-n64-gliden64-txFilterMode", "Texture_filter", "None");
+            BindFeature(coreSettings, "parallel-n64-gliden64-MultiSampling", "MultiSampling", "0");
+            BindFeature(coreSettings, "parallel-n64-gliden64-txEnhancementMode", "Texture_Enhancement", "None");
+            BindBoolFeature(coreSettings, "parallel-n64-gliden64-FXAA", "parallel_gliden64_fxaa", "1", "0");
 
             // Glide64 options
             BindFeature(coreSettings, "parallel-n64-filtering", "parallel_filtering", "automatic");
-
-            if (SystemConfig["parallel_gfx_plugin"] != "glide64")
-            {
-                coreSettings["parallel-n64-filtering"] = "automatic";
-            }
+            BindFeature(coreSettings, "parallel-n64-gfxplugin-accuracy", "parallel_gfx_accuracy", "veryhigh");
 
             // Angrylion options
             BindBoolFeatureOn(coreSettings, "parallel-n64-dithering", "parallel_dithering", "enabled", "disabled");
-
-            if (SystemConfig["parallel_gfx_plugin"] != "angrylion")
-            {
-                coreSettings["parallel-n64-dithering"] = "enabled";
-            }
+            BindFeature(coreSettings, "parallel-n64-angrylion-vioverlay", "parallel_angrylion_vioverlay", "Filtered");
+            BindFeature(coreSettings, "parallel-n64-angrylion-sync", "parallel_angrylion_sync", "Low");
+            BindBoolFeature(coreSettings, "parallel-n64-angrylion-overscan", "parallel_angrylion_overscan", "enabled", "disabled");
 
             // Controls
             BindFeatureSlider(coreSettings, "parallel-n64-astick-deadzone", "parallel_stick_deadzone", "15");
