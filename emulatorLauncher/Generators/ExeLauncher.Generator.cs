@@ -188,16 +188,26 @@ namespace EmulatorLauncher
             if (_isGameExePath || _gameExeFile)
             {
                 SimpleLogger.Instance.Info($"[PADTOKEY] Adding {_exename} to padtokey.");
-                return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
+                mapping = PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
             }
 
             else if (_gameLauncher != null)
-                return _gameLauncher.SetupCustomPadToKeyMapping(mapping);
+                mapping = _gameLauncher.SetupCustomPadToKeyMapping(mapping);
 
             else if ((_systemName != "mugen" && _systemName != "ikemen") && string.IsNullOrEmpty(_exename))
                 return mapping;
 
-            return PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
+            else
+                mapping = PadToKey.AddOrUpdateKeyMapping(mapping, _exename, InputKey.hotkey | InputKey.start, "(%{KILL})");
+
+            // Second process name from the .gameexe file
+            if (!string.IsNullOrEmpty(_exename2))
+            {
+                SimpleLogger.Instance.Info($"[PADTOKEY] Adding {_exename2} to padtokey.");
+                mapping = PadToKey.AddOrUpdateKeyMapping(mapping, _exename2, InputKey.hotkey | InputKey.start, "(%{KILL})");
+            }
+
+            return mapping;
         }
 
         #region mugen_ikemen
