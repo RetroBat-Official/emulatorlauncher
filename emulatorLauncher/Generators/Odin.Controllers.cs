@@ -59,14 +59,14 @@ namespace EmulatorLauncher
         private static readonly Dictionary<string, string> _keyboardInputs = new Dictionary<string, string>()
         {
             // Every game
-            { "coin1", "key:5, key:Keypad 5" }, { "coin2", "key:6, key:Keypad 6" }, { "test", "key:0, key:Keypad 0" }, { "1p_service", "key:9, key:Keypad 9" },
-            { "start", "key:1, key:Keypad 1" },
+            { "coin1", "key:5" }, { "coin2", "key:6" }, { "test", "key:0" }, { "1p_service", "key:9" },
+            { "start", "key:1" },
             // airtrix, airtrixo
             { "left", "key:X" }, { "right", "key:C" }, { "up", "key:Up" }, { "down", "key:Down" }, { "yaw", "" }, { "roll", "" },
-            // braveff
-            { "1p_water", "key:Left Ctrl, mouse:left" }, { "1p_fog", "key:Left Alt, mouse:right" }, { "1p_start", "key:1, key:Keypad 1, mouse:middle" },
+            // braveff (mouse middle button for the starts : GetGunInputs), gfootbal
+            { "1p_water", "key:Left Ctrl, mouse:left" }, { "1p_fog", "key:Left Alt, mouse:right" }, { "1p_start", "key:1" },
             { "1p_sight_x", "mouse:x" }, { "1p_sight_y", "mouse:y" },
-            { "2p_water", "key:A, mouse:left" }, { "2p_fog", "key:S, mouse:right" }, { "2p_start", "key:2, key:Keypad 2, mouse:middle" },
+            { "2p_water", "key:A, mouse:left" }, { "2p_fog", "key:S, mouse:right" }, { "2p_start", "key:2" },
             { "2p_sight_x", "mouse:x" }, { "2p_sight_y", "mouse:y" },
             // pharrier
             { "bullet", "key:Left Ctrl" }, { "missile", "key:Left Alt" }, { "bomb", "key:Left Shift" },
@@ -92,7 +92,7 @@ namespace EmulatorLauncher
             { "2p_button1", "key:A" }, { "2p_button2", "key:S" }, { "2p_button3", "key:Q" },
             { "2p_kick_x", "" }, { "2p_kick_y", "" },
             // smashdrv, smashdrvb, smashdrvs
-            { "wheel", "" }, { "horn", "key:1, key:Keypad 1" }, { "volume_up", "key:=" }, { "volume_down", "key:-" },
+            { "wheel", "" }, { "horn", "key:1" }, { "volume_up", "key:=" }, { "volume_down", "key:-" },
         };
 
         private enum OdinDevice { None, Keyboard, Pad, Joystick }
@@ -100,7 +100,7 @@ namespace EmulatorLauncher
         /// <summary>
         /// [players.<game>] : the gamepad (p1, p2) or joystick (joy1, joy2) of each player by its SDL3 GUID, and the device it plays with.
         /// [controls.<game>] : rewritten at each launch from odin.yml, by controller position for gamepads, by DirectInput number for joysticks.
-        /// The wheel of NASCAR Arcade is player 1, from the wheel mapping (Odin.Wheels.cs).
+        /// The wheel of NASCAR Arcade, ATV Track and Smashing Drive is player 1, from the wheel mapping (Odin.Wheels.cs).
         /// </summary>
         private void CreateControllerConfiguration(IniFile ini)
         {
@@ -164,7 +164,7 @@ namespace EmulatorLauncher
             // Test and Service keep their RetroBat keys without controller (R3 / L3 are set by the yml)
             if (!lines.ContainsKey("test"))
                 lines["test"] = new List<string>();
-            if (!_gaelcoGames.Contains(_game) && !lines.ContainsKey("1p_service"))
+            if (!lines.ContainsKey("1p_service"))
                 lines["1p_service"] = new List<string>();
 
             // Light guns : coin and start of the Wiimotes, the guns aim and fire with the mouse inputs of the lines
@@ -195,8 +195,8 @@ namespace EmulatorLauncher
                     ini.WriteValue(controlsSection, line.Key, string.Join(", ", inputs));
             }
 
-            // No service for player 2 without controller
-            if (!_gaelcoGames.Contains(_game) && !lines.ContainsKey("2p_service"))
+            // No service for player 2 without controller (Gaelco cabinets have no service of player 2 : the line goes nowhere)
+            if (!lines.ContainsKey("2p_service"))
                 ini.WriteValue(controlsSection, "2p_service", "");
 
             WriteGunKeyboardLines(ini, controlsSection);
@@ -234,6 +234,8 @@ namespace EmulatorLauncher
 
             ini.Remove(section, "p" + p);
             ini.Remove(section, "joy" + p);
+            ini.Remove(section, "p" + p + "_path");
+            ini.Remove(section, "joy" + p + "_path");
             ini.Remove(section, "device" + p);
 
             if (ctrl == null)
@@ -264,12 +266,12 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Warning("[Odin] No SDL3 device found for " + ctrl.Name + ", player " + p + " is not pinned.");
             }
 
-            // Two identical gamepads share their GUID : Odin seats them in its SDL3 order, not the RetroBat one
-            if (sdl3 != null && Controllers.Any(c => c != ctrl && c.Sdl3Controller != null && c.Sdl3Controller.GuidString == guid))
-                SimpleLogger.Instance.Warning("[Odin] Several devices share the GUID " + guid + " : player order follows the SDL3 order.");
-
             if (!string.IsNullOrEmpty(guid) && guid != new string('0', 32))
                 ini.WriteValue(section, (isPad ? "p" : "joy") + p, guid + " " + name);
+
+            // The SDL3 path tells two identical devices apart (same GUID), Odin goes back to the GUID when it does not find it
+            if (sdl3 != null && !string.IsNullOrEmpty(sdl3.Path))
+                ini.WriteValue(section, (isPad ? "p" : "joy") + p + "_path", sdl3.Path);
 
             ini.WriteValue(section, "device" + p, isPad ? "pad" : "joystick");
 
@@ -389,7 +391,7 @@ namespace EmulatorLauncher
             return ret;
         }
 
-        // Parents
+        // Versions of a game sharing the controls and the odin.ini sections of their parent (odin-games.json)
         private static readonly Dictionary<string, string> _parents = new Dictionary<string, string>()
         {
             { "airtrixo", "airtrix" },
@@ -398,8 +400,5 @@ namespace EmulatorLauncher
             { "smashdrvb", "smashdrv" },
             { "smashdrvs", "smashdrv" },
         };
-
-        // Gaelco ATV
-        private static readonly string[] _gaelcoGames = { "atvtrack", "atvtracka", "gfootbal", "smashdrv", "smashdrvb", "smashdrvs" };
     }
 }

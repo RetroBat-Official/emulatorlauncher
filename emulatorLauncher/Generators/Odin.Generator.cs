@@ -1,6 +1,7 @@
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.PadToKeyboard;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,10 @@ namespace EmulatorLauncher
         {
             if (!GetEmulatorPathAndExe(emulator, out string path, out string exe, "odin.exe"))
                 return null;
+
+            // Odin keeps the SDL3 defaults (no RawInput) : the same enumeration gives the GUIDs and paths it sees
+            Sdl3GameController.SetEnumerationHints(Sdl3GameController.Sdl3HintProfile.Sdl3Default);
+            SetSdl3EmulatorVersion(exe);
 
             _path = path;
 
@@ -147,6 +152,12 @@ namespace EmulatorLauncher
                 else
                     ini.Remove("players." + _section, "vibration");
 
+                // Planet Harriers : the cabinet climbs with the stick pulled back, push up to climb when inverted
+                if (_section == "pharrier" && SystemConfig.getOptBoolean("odin_invert_stick"))
+                    ini.WriteValue("players." + _section, "invert", "stick_v");
+                else
+                    ini.Remove("players." + _section, "invert");
+
                 // Lamps, nozzle vibration, drive board : MAME network outputs (port 8000) for Hook Of The Reaper, QMamehook...
                 BindBoolIniFeature(ini, "outputs", "network", "odin_outputs", "on", "off");
 
@@ -231,7 +242,7 @@ namespace EmulatorLauncher
                 { "reset", "Ctrl+R" },
                 { "fullscreen", "F11, Alt+Return" },
                 { "card", "F6" },
-                { "light_gun", "F7" },
+                { "light_gun", "F7" },          // hides or shows the cursor
                 { "quit", "Escape, Ctrl+Q" },
             };
 
@@ -255,6 +266,9 @@ namespace EmulatorLauncher
 
                 ini.WriteValue("hotkeys", key.Key, value);
             }
+
+            // Guide is the hotkey button of the pad shortcuts above, the RetroBat hotkeys (Select) come from es_padtokey.cfg
+            ini.WriteValue("hotkeys", "button", "guide");
 
             // Close game goes back to the Odin library : disabled, quit is used instead
             ini.WriteValue("hotkeys", "close_game", "none");

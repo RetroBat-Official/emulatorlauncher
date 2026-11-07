@@ -85,10 +85,17 @@ namespace EmulatorLauncher
         {
             ini.Remove(section, "p1");
             ini.Remove(section, "joy1");
+            ini.Remove(section, "p1_path");
+            ini.Remove(section, "joy1_path");
 
             var sdl3 = wheel.Sdl3Controller;
             if (sdl3 != null && !string.IsNullOrEmpty(sdl3.GuidString) && sdl3.GuidString != new string('0', 32))
+            {
                 ini.WriteValue(section, "joy1", sdl3.GuidString + " " + (string.IsNullOrEmpty(sdl3.Name) ? wheel.Name : sdl3.Name));
+
+                if (!string.IsNullOrEmpty(sdl3.Path))
+                    ini.WriteValue(section, "joy1_path", sdl3.Path);
+            }
             else
                 SimpleLogger.Instance.Warning("[WHEELS] No SDL3 device found for " + wheel.Name + ", the wheel is not pinned.");
 
@@ -137,15 +144,11 @@ namespace EmulatorLauncher
             string steering = ConvertWheelAxis(GetWheelValue(buttons, "InputSteeringLeft"), axes, false);
             AddLineInput(lines, controls.Steering, steering ?? "joy:axis0");
 
-            // Pedals : whole axis, pressed toward its positive side (else turned over), halves when both pedals share one axis
-            string accel = GetWheelValue(buttons, "InputAccelerator");
-            string brake = GetWheelValue(buttons, "InputBrake");
-            bool combined = !string.IsNullOrEmpty(accel) && AxisName(accel) == AxisName(brake);
-
-            AddWheelInput(lines, controls.Gas, ConvertWheelAxis(accel, axes, true, combined));
+            // Pedals : whole axis, Odin reads the side from where the pedal rests (:invert picks the low half when both pedals share one axis)
+            AddWheelInput(lines, controls.Gas, ConvertWheelAxis(GetWheelValue(buttons, "InputAccelerator"), axes, true));
 
             // A brake button of the game (ATV Track) is pressed from half the pedal's way
-            AddWheelInput(lines, controls.Brake, ConvertWheelAxis(brake, axes, true, combined || controls.BrakeIsButton));
+            AddWheelInput(lines, controls.Brake, ConvertWheelAxis(GetWheelValue(buttons, "InputBrake"), axes, true, controls.BrakeIsButton));
 
             // Sequential gears (paddles), the buttons of a separate gear stick ("Shifter_") are not read
             AddWheelInput(lines, controls.GearUp, ConvertWheelButton(GetWheelValue(buttons, "InputGearShiftUp")));
@@ -168,20 +171,6 @@ namespace EmulatorLauncher
         {
             string value;
             return buttons.TryGetValue(key, out value) && value != null && value != "nul" ? value : "";
-        }
-
-        private static string AxisName(string dinputName)
-        {
-            if (string.IsNullOrEmpty(dinputName))
-                return null;
-
-            string name = dinputName.Trim().ToUpperInvariant();
-            foreach (string s in new[] { "_POS", "_NEG", "_INV" })
-            {
-                if (name.EndsWith(s))
-                    return name.Substring(0, name.Length - s.Length);
-            }
-            return name;
         }
 
         /// <summary>
@@ -217,7 +206,7 @@ namespace EmulatorLauncher
         /// <summary>
         /// XAXIS_NEG, RZAXIS_POS (DirectInput names) to a whole SDL axis : joy:axis<n>, turned over (:invert) when the wanted side is negative.
         /// pedal : the side given is where the pedal is pressed. Otherwise the side given is the left of the steering.
-        /// half : both pedals on one axis, each one takes its half.
+        /// half : a pedal pressing a button of the game, from half its way (Odin reads no whole axis on a button).
         /// </summary>
         private static string ConvertWheelAxis(string dinputName, int[] axes, bool pedal, bool half = false)
         {
