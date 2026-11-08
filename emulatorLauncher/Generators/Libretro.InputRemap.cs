@@ -834,7 +834,7 @@ namespace EmulatorLauncher.Libretro
 
         private static bool SetupCoreGameRemaps(string system, string core, string romName, Dictionary<string, string> inputremap, ConfigFile coreSettings, bool mameAuto = false, MessSystem messSystem = null)
         {
-            List<string> mameArcade = new List<string> { "mame", "hbmame", "neogeo64", "model1", "model2", "model3", "zinc", "cave", "segastv" };
+            List<string> mameArcade = new List<string> { "mame", "hbmame", "neogeo64", "model1", "model2", "model3", "psxarcade", "cave", "segastv" };
             if (core == null || system == null || romName == null || mameAuto)
                 return false;
 

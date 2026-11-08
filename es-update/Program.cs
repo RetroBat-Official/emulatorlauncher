@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace RetrobatUpdater
 {
@@ -42,19 +43,41 @@ namespace RetrobatUpdater
                     return 1;
                 }
 
-                string remoteVersion = RetrobatVersion.GetRemoteVersion(branch, localVersion);
-                if (string.IsNullOrEmpty(remoteVersion) || remoteVersion == localVersion)
+                string remoteVersion;
+                string url = null;
+
+                if (!string.IsNullOrEmpty(localZipFile))
                 {
-                    ConsoleOutput("No update available");
-                    return 1;
+                    // Manual update: no internet needed, the version comes from the zip name (retrobat-v<version>.zip)
+                    if (!File.Exists(localZipFile))
+                    {
+                        ConsoleOutput("Update file not found: " + localZipFile);
+                        return 1;
+                    }
+
+                    remoteVersion = GetZipVersion(localZipFile);
+                    if (string.IsNullOrEmpty(remoteVersion))
+                    {
+                        ConsoleOutput("Invalid update file name, expected retrobat-v<version>.zip");
+                        return 1;
+                    }
                 }
+                else
+                {
+                    remoteVersion = RetrobatVersion.GetRemoteVersion(branch, localVersion);
+                    if (string.IsNullOrEmpty(remoteVersion) || remoteVersion == localVersion)
+                    {
+                        ConsoleOutput("No update available");
+                        return 1;
+                    }
 
-                string url = RetrobatVersion.GetInstallUrlNew(string.Format(UpdateRelativeUrl, branch, remoteVersion));
-                if (string.IsNullOrEmpty(url) || !UrlExists(url))
-                    url = RetrobatVersion.GetInstallUrl(string.Format(UpdateRelativeUrl, branch, remoteVersion));
+                    url = RetrobatVersion.GetInstallUrlNew(string.Format(UpdateRelativeUrl, branch, remoteVersion));
+                    if (string.IsNullOrEmpty(url) || !UrlExists(url))
+                        url = RetrobatVersion.GetInstallUrl(string.Format(UpdateRelativeUrl, branch, remoteVersion));
 
-                if (string.IsNullOrEmpty(url))
-                    return -1;
+                    if (string.IsNullOrEmpty(url))
+                        return -1;
+                }
 
                 /*
 #if DEBUG
@@ -90,15 +113,8 @@ namespace RetrobatUpdater
 
                 if (!string.IsNullOrEmpty(localZipFile))
                 {
-                    if (File.Exists(localZipFile))
-                    {
-                        SimpleLogger.Instance.Info("[INFO] Using local update file: " + localZipFile);
-                        file = localZipFile;
-                    }
-                    else
-                    {
-                        SimpleLogger.Instance.Error("[WARN] Local zip file not found: " + localZipFile + " — falling back to online download.");
-                    }
+                    SimpleLogger.Instance.Info("[INFO] Using local update file: " + localZipFile);
+                    file = localZipFile;
                 }
                 else
                 {
@@ -204,9 +220,12 @@ namespace RetrobatUpdater
                     }
                 }
 
-                // Delete zip file
-                try { File.Delete(file); }
-                catch { }
+                // Delete downloaded zip file (keep the user's local zip)
+                if (string.IsNullOrEmpty(localZipFile))
+                {
+                    try { File.Delete(file); }
+                    catch { }
+                }
 
                 // Update local version info
                 RetrobatVersion.SetLocalVersion(remoteVersion);
@@ -245,6 +264,14 @@ namespace RetrobatUpdater
 
 
         static bool _cursorTopSupported = true;
+
+        // retrobat-v8.3.0-stable-win64.zip -> 8.3.0-stable-win64 (same version string as the online update url)
+        // A renamed file (e.g. "retrobat-v8.3.0-stable-win64 (1).zip") is rejected to keep version.info valid
+        static string GetZipVersion(string zipFile)
+        {
+            var match = Regex.Match(Path.GetFileNameWithoutExtension(zipFile), @"^retrobat-v(\d+(?:\.\d+)+(?:-[a-z0-9]+)*)$", RegexOptions.IgnoreCase);
+            return match.Success ? match.Groups[1].Value : null;
+        }
 
         static void ConsoleOutput(string line)
         {

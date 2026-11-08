@@ -30,8 +30,6 @@ namespace EmulatorLauncher
             { "vg5k_cass", "vg5k" }
         };
 
-        static readonly List<string> mame_arcade_systems = new List<string>() { "mame", "model3", "model2", "model1", "segastv", "zinc" };
-
         static readonly MessSystem[] MessSystems = new MessSystem[]
         {
             // IN RETROBAT
@@ -547,6 +545,7 @@ namespace EmulatorLauncher
             new MessSystem("model2"       ,"%romname%",""      ),
             new MessSystem("model3"       ,"%romname%",""      ),
             new MessSystem("zinc"         ,"%romname%",""      ),
+            new MessSystem("psxarcade"    ,"%romname%",""      ),
             new MessSystem("hbmame"       ,"hbmame"   ,""      ),
             new MessSystem("cave"         ,"%romname%",""      ),
             new MessSystem("tvgames"      ,""         ,""      ),

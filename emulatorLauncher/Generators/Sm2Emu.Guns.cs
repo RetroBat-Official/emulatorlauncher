@@ -35,6 +35,8 @@ namespace EmulatorLauncher
 
             BindBoolIniFeatureOn(ini, "lightgun", "lightgun_crosshair", "sm2emu_crosshair", "true", "false");
             BindBoolIniFeature(ini, "lightgun", "lightgun_hide_flash", "sm2emu_hide_flash", "true", "false");
+            BindBoolIniFeatureOn(ini, "lightgun", "lightgun_recoil", "sm2emu_gun_recoil", "true", "false");
+            BindIniFeatureSlider(ini, "lightgun", "lightgun_recoil_strength", "sm2emu_gun_recoil_strength", "60");
 
             var guns = RawLightgun.GetRawLightguns();
 
