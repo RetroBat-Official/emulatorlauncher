@@ -97,6 +97,7 @@ namespace EmulatorLauncher
 
             BindIniFeatureSlider(ini, "gamepad", "pad_stick_deadzone", "sm2emu_stickdeadzone", "5");
             BindBoolIniFeatureOn(ini, "gamepad", "pad_rumble", "sm2emu_pad_rumble", "true", "false");
+            BindIniFeatureSlider(ini, "gamepad", "pad_rumble_strength", "sm2emu_pad_rumble_strength", "60");
             BindBoolIniFeature(ini, "wheel", "wheel_rumble", "sm2emu_wheel_rumble", "true", "false");
         }
 

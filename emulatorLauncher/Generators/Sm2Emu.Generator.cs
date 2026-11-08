@@ -167,6 +167,9 @@ namespace EmulatorLauncher
                 ini.WriteValue("paths", "scrape_artwork", "false");
                 ini.WriteValue("system", "language", GetSm2Language());
 
+                // Music volume of the games with an MPEG music board (Daytona USA, Sega Rally...)
+                BindIniFeatureSlider(ini, "audio", "music_volume", "sm2emu_musicvolume", "100");
+
                 // RetroBat manages the controller hotkeys (Guide + L3/R3 for Service/Test stay active, L3/R3 alone are sent by padtokey)
                 ini.WriteValue("gamepad", "pad_shortcuts", "false");
 

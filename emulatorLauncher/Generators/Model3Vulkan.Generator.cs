@@ -140,6 +140,12 @@ namespace EmulatorLauncher
                     // Emulation
                     BindIniFeatureSlider(ini, GlobalSection, "PowerPCFrequency", "m3_ppc_frequency", "0");
                     BindBoolIniFeature(ini, GlobalSection, "MultiThreaded", "m3_thread", "0", "1");
+                    BindBoolIniFeatureOn(ini, GlobalSection, "PowerPCMode", "m3v_jit", "1", "0");
+
+                    // Steering feel, gamepad only : the filters are bypassed when the steering is bound to a wheel axis
+                    BindIniFeature(ini, GlobalSection, "GamepadSteeringSmoothing", "m3v_steeringsmooth", "3");
+                    BindIniFeatureSlider(ini, GlobalSection, "GamepadSteeringSensitivity", "m3v_steeringsens", "66");
+                    BindIniFeature(ini, GlobalSection, "ChaseCameraStabilizer", "m3v_chasecamera", "3");
 
                     // Outputs for MameHooker (lamps, drive board, recoil)
                     if (SystemConfig.isOptSet("supermodel_output") && !string.IsNullOrEmpty(SystemConfig["supermodel_output"]))

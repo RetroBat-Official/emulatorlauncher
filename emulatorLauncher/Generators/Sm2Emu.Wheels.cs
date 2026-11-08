@@ -37,6 +37,7 @@ namespace EmulatorLauncher
                 return;
 
             BindBoolIniFeatureOn(ini, "wheel", "wheel_ffb", "sm2emu_wheel_ffb", "true", "false");
+            BindIniFeatureSlider(ini, "wheel", "wheel_ffb_strength", "sm2emu_wheel_ffb_strength", "30");
 
             var wheels = Wheel.GetConnectedWheels(Controllers);
             if (wheels.Count < 1)
