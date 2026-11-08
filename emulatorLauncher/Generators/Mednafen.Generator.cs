@@ -119,6 +119,8 @@ namespace EmulatorLauncher
             if (!fullscreen)
                 SystemConfig["bezel"] = "none";
 
+            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
+
             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             _resolution = resolution;
 

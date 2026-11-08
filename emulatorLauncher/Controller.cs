@@ -766,7 +766,8 @@ namespace EmulatorLauncher
 
         public static bool CheckSDL3dll()
         {
-            string sdl3Sourcepath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "SDL3.dll");
+            // SDL3 dll must match the EmulatorLauncher process architecture
+            string sdl3Sourcepath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", Environment.Is64BitProcess ? "SDL3_x64.dll" : "SDL3_x86.dll");
             string sdl3Targetpath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "emulationstation", "SDL3.dll");
             if (File.Exists(sdl3Sourcepath) && !File.Exists(sdl3Targetpath))
             {
