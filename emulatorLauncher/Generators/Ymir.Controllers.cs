@@ -119,6 +119,10 @@ namespace EmulatorLauncher
                     {
                         MegadriveController saturnGamepad = MegadriveController.GetMDController("ymir", guid, saturnControllers);
 
+                        // Entry flagged as not compatible with Ymir: use standard mapping
+                        if (saturnGamepad != null && saturnGamepad.ControllerInfo != null && saturnGamepad.ControllerInfo.ContainsKey("not_compatible") && saturnGamepad.ControllerInfo["not_compatible"] == "true")
+                            saturnGamepad = null;
+
                         if (saturnGamepad != null)
                         {
                             if (saturnGamepad.ControllerInfo != null)
@@ -189,8 +193,8 @@ namespace EmulatorLauncher
 
                 if (analogdpad)
                 {
-                    ini.WriteValue(inputMapSection, "AnalogL", "[ 'GamepadLeftTriggerButton@" + index + "' ]");
-                    ini.WriteValue(inputMapSection, "AnalogR", "[ 'GamepadRightTriggerButton@" + index + "' ]");
+                    ini.WriteValue(inputMapSection, "AnalogL", "[ 'GamepadLeftTrigger@" + index + "' ]");
+                    ini.WriteValue(inputMapSection, "AnalogR", "[ 'GamepadRightTrigger@" + index + "' ]");
                     ini.WriteValue(inputMapSection, "AnalogStick", "[ 'GamepadLeftStick@" + index + "' ]");
                 }
 

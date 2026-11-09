@@ -1873,27 +1873,33 @@
     "biosFiles": [
       {
         "md5": "85ec9ca47d8f6807718151cbcca8b964",
-        "file": "bios/sega_101.bin"
+        "file": "bios/sega_101.bin",
+        "group": "saturn"
       },
       {
         "md5": "3240872c70984b6cbfda1586cab68dbe",
-        "file": "bios/mpr-17933.bin"
+        "file": "bios/mpr-17933.bin",
+        "group": "saturn"
+      },
+      {
+        "md5": "af5828fdff51384f99b3c4926be27762",
+        "file": "bios/saturn_bios.bin",
+        "group": "saturn"
       },
       {
         "md5": "255113ba943c92a54facd25a10fd780c",
-        "file": "bios/mpr-18811-mx.ic1"
+        "file": "bios/mpr-18811-mx.ic1",
+        "optional": true
       },
       {
         "md5": "1cd19988d1d72a3e7caa0b73234c96b4",
-        "file": "bios/mpr-19367-mx.ic1"
+        "file": "bios/mpr-19367-mx.ic1",
+        "optional": true
       },
       {
-        "md5": "af5828fdff51384f99b3c4926be27762",
-        "file": "bios/saturn_bios.bin"
-      },
-      {
-        "md5": "af5828fdff51384f99b3c4926be27762",
-        "file": "bios/kronos/saturn_bios.bin"
+        "md5": "",
+        "file": "bios/mpeg_card.bin",
+        "optional": true
       }
     ]
   },
