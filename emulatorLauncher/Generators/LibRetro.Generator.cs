@@ -1029,76 +1029,46 @@ namespace EmulatorLauncher.Libretro
 
         private List<string> GetPatchArgs(string rom, string romName)
         {
-            // Manage patches
-            string ipsPattern = "*.ips";
-            string upsPattern = "*.ups";
-            string bpsPattern = "*.bps";
-            List<string> ipsFiles = new List<string>();
-            List<string> upsFiles = new List<string>();
-            List<string> bpsFiles = new List<string>();
+            var patchArgs = new List<string>();
 
-            List<string> patchArgs = new List<string>();
-            if (Features.IsSupported("softpatch") && SystemConfig.isOptSet("applyPatch") && !string.IsNullOrEmpty(SystemConfig["applyPatch"]))
+            if (!Features.IsSupported("applyPatch") || !SystemConfig.isOptSet("applyPatch") || string.IsNullOrEmpty(SystemConfig["applyPatch"]))
+                return patchArgs;
+
+            string patchMethod = SystemConfig["applyPatch"];
+            if (patchMethod == "none")
             {
-                string patchMethod = SystemConfig["applyPatch"];
-                switch (patchMethod)
+                patchArgs.Add("--no-patch");
+                return patchArgs;
+            }
+
+            string patchFolder;
+            if (patchMethod == "patchFolder")
+                patchFolder = Path.Combine(Path.GetDirectoryName(rom), "patches");
+            else if (patchMethod == "subFolder")
+                patchFolder = Path.Combine(Path.GetDirectoryName(rom), romName + "-patches");
+            else
+                return patchArgs;
+
+            if (!Directory.Exists(patchFolder))
+                return patchArgs;
+
+            // RetroArch accepts only one explicit patch, then applies the indexed ones itself (.ips1, .ips2...)
+            foreach (var ext in new[] { "ips", "ups", "bps", "xdelta" })
+            {
+                string patch = Directory.GetFiles(patchFolder, "*." + ext)
+                    .Where(f => Path.GetExtension(f).Equals("." + ext, StringComparison.OrdinalIgnoreCase))
+                    .Where(f => patchMethod == "subFolder" || Path.GetFileNameWithoutExtension(f).Equals(romName, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
+                    .FirstOrDefault();
+
+                if (patch != null)
                 {
-                    case "none":
-                        patchArgs.Add("--no-patch");
-                        break;
-                    case "patchFolder":
-                        string patchFolder = Path.Combine(Path.GetDirectoryName(rom), "patches");
-                        if (!Directory.Exists(patchFolder))
-                            break;
-                        ipsFiles = Directory.GetFiles(patchFolder, ipsPattern)
-                            .Where(file => Path.GetFileNameWithoutExtension(file).Equals(romName, StringComparison.OrdinalIgnoreCase)).ToList();
-                        upsFiles = Directory.GetFiles(patchFolder, upsPattern)
-                            .Where(file => Path.GetFileNameWithoutExtension(file).Equals(romName, StringComparison.OrdinalIgnoreCase)).ToList();
-                        bpsFiles = Directory.GetFiles(patchFolder, bpsPattern)
-                            .Where(file => Path.GetFileNameWithoutExtension(file).Equals(romName, StringComparison.OrdinalIgnoreCase)).ToList();
-
-                        if (ipsFiles.Count > 0)
-                        {
-                            patchArgs.Add("--ips");
-                            patchArgs.Add("\"" + ipsFiles.FirstOrDefault() + "\"");
-                        }
-                        if (upsFiles.Count > 0)
-                        {
-                            patchArgs.Add("--ups");
-                            patchArgs.Add("\"" + upsFiles.FirstOrDefault() + "\"");
-                        }
-                        if (bpsFiles.Count > 0)
-                        {
-                            patchArgs.Add("--bps");
-                            patchArgs.Add("\"" + bpsFiles.FirstOrDefault() + "\"");
-                        }
-                        break;
-                    case "subFolder":
-                        string subFolder = Path.Combine(Path.GetDirectoryName(rom), romName + "-patches");
-                        if (!Directory.Exists(subFolder))
-                            break;
-                        ipsFiles = Directory.GetFiles(subFolder, ipsPattern).ToList();
-                        upsFiles = Directory.GetFiles(subFolder, upsPattern).ToList();
-                        bpsFiles = Directory.GetFiles(subFolder, bpsPattern).ToList();
-
-                        if (ipsFiles.Count > 0)
-                        {
-                            patchArgs.Add("--ips");
-                            patchArgs.Add("\"" + ipsFiles.FirstOrDefault() + "\"");
-                        }
-                        if (upsFiles.Count > 0)
-                        {
-                            patchArgs.Add("--ups");
-                            patchArgs.Add("\"" + upsFiles.FirstOrDefault() + "\"");
-                        }
-                        if (bpsFiles.Count > 0)
-                        {
-                            patchArgs.Add("--bps");
-                            patchArgs.Add("\"" + bpsFiles.FirstOrDefault() + "\"");
-                        }
-                        break;
+                    patchArgs.Add("--" + ext);
+                    patchArgs.Add("\"" + patch + "\"");
+                    break;
                 }
             }
+
             return patchArgs;
         }
         #endregion
