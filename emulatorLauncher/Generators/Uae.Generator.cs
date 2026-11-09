@@ -197,20 +197,20 @@ namespace EmulatorLauncher
             AmigaBios.Candidate candidate;
             if (!AmigaBios.BySystem.TryGetValue(key, out candidate))
             {
-                SimpleLogger.Instance.Warning("[WinUAE] Système inconnu pour le Kickstart : " + system);
+                SimpleLogger.Instance.Warning("[WinUAE] Unknown system for Kickstart: " + system);
                 return;
             }
 
             string bios = AmigaBios.Find(candidate.Kickstart);
             if (bios == null || !File.Exists(bios))
-                throw new ApplicationException("Kickstart introuvable pour " + key + ". Placez l'un de ces fichiers dans \\bios : " + string.Join(", ", candidate.Kickstart));
+                throw new ApplicationException("Kickstart not found for " + key + ". Copy one of these files to \\bios: " + string.Join(", ", candidate.Kickstart));
             sb.AppendLine("kickstart_rom_file=" + bios);
 
             if (candidate.KickstartExt != null)
             {
                 string ext = AmigaBios.Find(candidate.KickstartExt);
                 if (ext == null || !File.Exists(ext))
-                    throw new ApplicationException("ROM étendu introuvable pour " + key + ". Placez l'un de ces fichiers dans \\bios : " + string.Join(", ", candidate.KickstartExt));
+                    throw new ApplicationException("Extended ROM not found for " + key + ". Copy one of these files to \\bios: " + string.Join(", ", candidate.KickstartExt));
                 sb.AppendLine("kickstart_ext_rom_file=" + ext);
             }
         }
@@ -690,7 +690,6 @@ namespace EmulatorLauncher
             sb.AppendLine("a3000mem_size=8");
             sb.AppendLine("bogomem_size=0");
             sb.AppendLine("chipmem_size=4");
-            sb.AppendLine("cpu_24bit_addressing=true");
 
             if (isWhdload)
                 return;
@@ -699,7 +698,10 @@ namespace EmulatorLauncher
             sb.AppendLine("cpu_type=" + cpu4000);
             sb.AppendLine("cpu_model=" + cpu4000);
 
-            if (SystemConfig.isOptSet("amiga_fpu") && SystemConfig.getOptBoolean("amiga_fpu"))
+            // AUTO: built-in FPU on the 68040 (cpu_model resets fpu_model), none on the stock A4000/030
+            bool fpu = SystemConfig.isOptSet("amiga_fpu") ? SystemConfig.getOptBoolean("amiga_fpu") : cpu4000 == "68040";
+
+            if (fpu)
             {
                 sb.AppendLine("fpu_model=" + (cpu4000 == "68030" ? "68882" : "68040"));
                 sb.AppendLine("fpu_strict=true");
@@ -730,7 +732,8 @@ namespace EmulatorLauncher
             }
             else
             {
-                sb.AppendLine("cpu_24bit_addressing=true");
+                // A4000 is 32-bit: 24-bit would hide the motherboard RAM (68030 is not auto-fixed by WinUAE)
+                sb.AppendLine("cpu_24bit_addressing=false");
                 sb.AppendLine("cachesize=0");
             }
 
@@ -911,7 +914,7 @@ namespace EmulatorLauncher
 
             if (mode == 1)
             {
-                // Géométrie "à l'ancienne" : 1 tête, 32 secteurs/piste.
+                // Legacy geometry: 1 head, 32 sectors per track.
                 head = 1;
                 spt = 32;
                 cyl = (int)(total / (head * spt));

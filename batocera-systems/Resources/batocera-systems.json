@@ -129,6 +129,11 @@
         "file": "bios/amiga-os-310-a1200.rom",
         "group": "ks31a1200",
         "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/rom.key",
+        "optional": true
       }
     ]
   },
@@ -168,6 +173,11 @@
         "md5": "",
         "file": "bios/amiga-os-310-a600.rom",
         "group": "ks31a600",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/rom.key",
         "optional": true
       }
     ]
@@ -209,6 +219,11 @@
         "file": "bios/amiga-os-310-a1200.rom",
         "group": "ks31a1200",
         "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/rom.key",
+        "optional": true
       }
     ]
   },
@@ -235,6 +250,11 @@
         "md5": "",
         "file": "bios/amiga-os-130-cdtv-ext.rom",
         "group": "cdtvext"
+      },
+      {
+        "md5": "",
+        "file": "bios/rom.key",
+        "optional": true
       }
     ]
   },
@@ -261,6 +281,11 @@
         "md5": "",
         "file": "bios/amiga-os-310-cd32-ext.rom",
         "group": "cd32ext"
+      },
+      {
+        "md5": "",
+        "file": "bios/rom.key",
+        "optional": true
       }
     ]
   },

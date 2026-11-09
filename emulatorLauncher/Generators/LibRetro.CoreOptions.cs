@@ -5770,18 +5770,23 @@ namespace EmulatorLauncher.Libretro
             // System options
             BindFeature(coreSettings, "puae_model", "model", "auto");
 
-            // 'Automatic' model: default machine per media type, matching the system
-            string modelFloppy = "A500", modelHd = "A1200", modelCd = "CD32";
-            if (system == "amiga1200")
-                modelFloppy = "A1200";
-            else if (system == "amiga4000")
-                modelFloppy = modelHd = "A4040";
-            else if (system == "amigacdtv")
-                modelCd = "CDTV";
-
-            coreSettings["puae_model_fd"] = modelFloppy;
-            coreSettings["puae_model_hd"] = modelHd;
-            coreSettings["puae_model_cd"] = modelCd;
+            // "auto" boots floppies with puae_model_fd (A500 by default) unless the path contains "AGA":
+            // force the matching machine for each system (shared core options file, so always written)
+            switch (system)
+            {
+                case "amiga1200":
+                    coreSettings["puae_model_fd"] = "A1200OG";
+                    coreSettings["puae_model_hd"] = "A1200";
+                    break;
+                case "amiga4000":
+                    coreSettings["puae_model_fd"] = "A4040";
+                    coreSettings["puae_model_hd"] = "A4040";
+                    break;
+                default:
+                    coreSettings["puae_model_fd"] = "A500";
+                    coreSettings["puae_model_hd"] = "A1200";
+                    break;
+            }
 
             BindFeature(coreSettings, "puae_cpu_compatibility", "cpu_compatibility", "exact");
             BindFeature(coreSettings, "puae_cpu_multiplier", "cpu_multiplier", "0");
