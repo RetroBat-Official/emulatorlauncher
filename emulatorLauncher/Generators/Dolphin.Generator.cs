@@ -12,6 +12,7 @@ using System.Linq;
 using System.Management;
 using System.Net;
 using System.Security.AccessControl;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Windows.Shell;
@@ -1226,6 +1227,10 @@ namespace EmulatorLauncher
         }
 
         #region rvzCheevos
+
+        // Hash written by ES when rcheevos can't read the image
+        private const string EmptyCheevosHash = "00000000000000000000000000000000";
+
         public static void RvzCheevosIndexer()
         {
             var consoleIds = new Dictionary<string, int>
@@ -1241,145 +1246,237 @@ namespace EmulatorLauncher
                 return;
             }
 
+            // ES keeps gamelists in memory and rewrites modified entries: never run while it is open
+            if (Process.GetProcessesByName("emulationstation").Length > 0)
+            {
+                SimpleLogger.Instance.Info("[RVZINDEXER] EmulationStation is running, aborting.");
+                return;
+            }
+
+            string dolphinTool = GetDolphinToolPath();
+            if (dolphinTool == null)
+            {
+                SimpleLogger.Instance.Info("[RVZINDEXER] DolphinTool.exe not found.");
+                return;
+            }
+
             foreach (var system in consoleIds)
             {
-                bool modified = false;
-                string romPath = Path.Combine(Program.AppConfig.GetFullPath("roms"), system.Key);
-                string gameListFile = Path.Combine(romPath, "gamelist.xml");
+                try
+                {
+                    IndexRvzSystem(system.Key, system.Value, dolphinTool);
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Error("[RVZINDEXER] Error indexing " + system.Key + " : " + ex.Message, ex);
+                }
+            }
+        }
 
-                var rvzFiles = Directory.GetFiles(romPath, "*.rvz", SearchOption.AllDirectories);
+        private static void IndexRvzSystem(string systemName, int consoleId, string dolphinTool)
+        {
+            string romPath = Path.Combine(Program.AppConfig.GetFullPath("roms"), systemName);
+            if (!Directory.Exists(romPath))
+                return;
 
-                if (rvzFiles.Length < 1)
+            var rvzFiles = Directory.GetFiles(romPath, "*.rvz", SearchOption.AllDirectories);
+            if (rvzFiles.Length < 1)
+                return;
+
+            var hashLib = LoadHashLibrary(consoleId);
+            if (hashLib.Count == 0)
+            {
+                SimpleLogger.Instance.Info("[RVZINDEXER] Hash library unavailable for " + systemName);
+                return;
+            }
+
+            string gameListFile = Path.Combine(romPath, "gamelist.xml");
+            XDocument doc = File.Exists(gameListFile)
+                ? XDocument.Load(gameListFile)
+                : new XDocument(new XDeclaration("1.0", null, null), new XElement("gameList"));
+
+            if (doc.Root == null)
+                doc.Add(new XElement("gameList"));
+
+            // Index existing entries by relative path (handles subfolders)
+            var games = new Dictionary<string, XElement>(StringComparer.OrdinalIgnoreCase);
+            foreach (var g in doc.Root.Elements("game"))
+            {
+                string p = NormalizeGamePath(g.Element("path")?.Value, romPath);
+                if (p != null && !games.ContainsKey(p))
+                    games[p] = g;
+            }
+
+            string userPath = Path.Combine(Program.AppConfig.GetFullPath("saves"), systemName, "dolphin-emu", "User");
+            bool modified = false;
+
+            foreach (var rvz in rvzFiles)
+            {
+                string relPath = rvz.Substring(romPath.Length + 1).Replace('\\', '/');
+
+                XElement game;
+                games.TryGetValue(relPath, out game);
+
+                if (!string.IsNullOrEmpty(game?.Element("cheevosId")?.Value))
                     continue;
 
-                var hashLib = LoadHashLibrary(system.Value);
-
-                XDocument doc = File.Exists(gameListFile)
-                ? XDocument.Load(gameListFile)
-                : new XDocument(
-                    new XDeclaration("1.0", null, null),
-                    new XElement("gameList")
-                );
-
-                if (doc.Root == null)
-                    doc.Add(new XElement("gameList"));
-
-                string tempPath = Path.Combine(Program.AppConfig.GetFullPath("saves"), system.Key, "dolphin-emu", "User");
-
-                foreach (var rvz in rvzFiles)
+                // Reuse stored hash to avoid running DolphinTool again (except the empty one from ES)
+                string hash = game?.Element("cheevosHash")?.Value;
+                if (string.IsNullOrEmpty(hash) || hash == EmptyCheevosHash)
                 {
-                    SimpleLogger.Instance.Info("[RVZINDEXER] Getting cheevos info for : " + rvz);
-
-                    string fileName = Path.GetFileName(rvz);
-
-                    var game = doc.Root.Elements("game").FirstOrDefault(g => string.Equals(Path.GetFileName(g.Element("path")?.Value?.TrimStart('.', '/')),fileName,StringComparison.OrdinalIgnoreCase));
-                    if (!string.IsNullOrEmpty(game?.Element("cheevosId")?.Value))
-                    {
-                        SimpleLogger.Instance.Info("[RVZINDEXER] File already has cheevosID : " + rvz);
-                        continue;
-                    }
-
-                    string hash;
-
-                    if (GetRvzHash(rvz, tempPath, out hash))
-                    {
-                        if (string.IsNullOrEmpty(hash))
-                        {
-                            SimpleLogger.Instance.Info("[RVZINDEXER] Hash empty for file : " + rvz);
-                            continue;
-                        }
-
-                        if (!hashLib.TryGetValue(hash, out int gameId))
-                        {
-                            SimpleLogger.Instance.Info("[RVZINDEXER] No cheevos match for : " + fileName + " (" + hash + ")");
-                            continue;
-                        }
-
-                        SimpleLogger.Instance.Info("[RVZINDEXER] Match found : " + fileName + " -> ID=" + gameId);
-
-                        if (game == null)
-                        {
-                            game = new XElement("game", new XElement("path", "./" + fileName));
-                            doc.Root.Add(game);
-                        }
-
-                        SetOrCreateElement(game, "cheevosHash", hash);
-                        SetOrCreateElement(game, "cheevosId", gameId.ToString());
-                        modified = true;
-                    }
-                    else
+                    SimpleLogger.Instance.Info("[RVZINDEXER] Hashing : " + rvz);
+                    hash = GetRvzHash(dolphinTool, rvz, userPath);
+                    if (hash == null)
                     {
                         SimpleLogger.Instance.Info("[RVZINDEXER] Failed to hash file : " + rvz);
                         continue;
                     }
                 }
 
-                if (modified)
-                    doc.Save(gameListFile);
+                if (game == null)
+                {
+                    game = new XElement("game", new XElement("path", "./" + relPath));
+                    doc.Root.Add(game);
+                    games[relPath] = game;
+                }
+
+                modified |= SetOrCreateElement(game, "cheevosHash", hash);
+
+                int gameId;
+                if (hashLib.TryGetValue(hash, out gameId))
+                {
+                    SimpleLogger.Instance.Info("[RVZINDEXER] Match found : " + relPath + " -> ID=" + gameId);
+                    modified |= SetOrCreateElement(game, "cheevosId", gameId.ToString());
+                }
+                else
+                    SimpleLogger.Instance.Info("[RVZINDEXER] No cheevos match for : " + relPath + " (" + hash + ")");
             }
+
+            if (modified)
+                doc.Save(gameListFile);
         }
 
-        private static void SetOrCreateElement(XElement game, string name, string value)
+        private static string NormalizeGamePath(string path, string romPath)
+        {
+            if (string.IsNullOrEmpty(path))
+                return null;
+
+            if (Path.IsPathRooted(path))
+            {
+                string full = Path.GetFullPath(path);
+                if (!full.StartsWith(romPath + "\\", StringComparison.OrdinalIgnoreCase))
+                    return null;
+
+                path = full.Substring(romPath.Length + 1);
+            }
+
+            path = path.Replace('\\', '/');
+            if (path.StartsWith("./"))
+                path = path.Substring(2);
+
+            return path;
+        }
+
+        private static bool SetOrCreateElement(XElement game, string name, string value)
         {
             var el = game.Element(name);
             if (el == null)
+            {
                 game.Add(new XElement(name, value));
-            else
-                el.Value = value;
+                return true;
+            }
+
+            if (el.Value == value)
+                return false;
+
+            el.Value = value;
+            return true;
         }
 
-        private static bool GetRvzHash(string rvzPath, string tempPath, out string hash)
+        private static string GetDolphinToolPath()
         {
-            hash = null;
-            string dolphinTool = Path.Combine(Program.AppConfig.GetFullPath("bios"), "dolphin-emu", "DolphinTool.exe");
+            string path = Path.Combine(Program.AppConfig.GetFullPath("bios"), "dolphin-emu", "DolphinTool.exe");
+            if (File.Exists(path))
+                return path;
 
-            if (!File.Exists(dolphinTool))
-                dolphinTool = Path.Combine(Program.AppConfig.GetFullPath("dolphin-emu"), "DolphinTool.exe");
-            if (!File.Exists(dolphinTool))
-                return false;
-            
+            path = Path.Combine(Program.AppConfig.GetFullPath("dolphin-emu"), "DolphinTool.exe");
+            return File.Exists(path) ? path : null;
+        }
+
+        private static string GetRvzHash(string dolphinTool, string rvzPath, string userPath)
+        {
             try
             {
-                if (!Directory.Exists(tempPath))
-                    Directory.CreateDirectory(tempPath);
+                if (!Directory.Exists(userPath))
+                    Directory.CreateDirectory(userPath);
 
                 var psi = new ProcessStartInfo
                 {
                     FileName = dolphinTool,
-                    Arguments = $"verify -u \"{tempPath}\" -i \"{rvzPath}\" -a rchash",
+                    Arguments = "verify -u \"" + userPath + "\" -i \"" + rvzPath + "\" -a rchash",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true
                 };
-                using (var p = Process.Start(psi))
+
+                var output = new StringBuilder();
+
+                using (var p = new Process { StartInfo = psi })
                 {
-                    string output = p.StandardOutput.ReadToEnd().Trim();
-                    p.StandardError.ReadToEnd();
-                    p.WaitForExit();
-                    if (output.Length == 32)
+                    // Async reads on both streams to avoid pipe deadlock
+                    p.OutputDataReceived += (s, e) => { if (e.Data != null) lock (output) output.AppendLine(e.Data); };
+                    p.ErrorDataReceived += (s, e) => { };
+
+                    p.Start();
+                    p.BeginOutputReadLine();
+                    p.BeginErrorReadLine();
+
+                    if (!p.WaitForExit(60000))
                     {
-                        hash = output.ToUpper();
-                        return true;
+                        try { p.Kill(); } catch { }
+                        SimpleLogger.Instance.Info("[RVZINDEXER] DolphinTool timeout : " + rvzPath);
+                        return null;
                     }
-                    return false;
+
+                    p.WaitForExit(); // flush async output
                 }
+
+                var m = Regex.Match(output.ToString(), @"\b[0-9a-fA-F]{32}\b");
+                return m.Success ? m.Value.ToUpperInvariant() : null;
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[RVZINDEXER] DolphinTool error : " + ex.Message, ex);
+                return null;
+            }
         }
 
         private static Dictionary<string, int> LoadHashLibrary(int consoleId)
         {
             var result = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            using (var client = new WebClient())
+            try
             {
-                string json = client.DownloadString($"https://retroachievements.org/dorequest.php?r=hashlibrary&c={consoleId}");
-                foreach (Match m in Regex.Matches(json, @"""([0-9a-fA-F]{32})""\s*:\s*(\d+)"))
+                // WebClient without user agent: RA rejects WebTools browser user agent (403)
+                using (var client = new WebClient())
                 {
-                    if (int.TryParse(m.Groups[2].Value, out int id))
-                        result[m.Groups[1].Value.ToUpper()] = id;
+                    string json = client.DownloadString("https://retroachievements.org/dorequest.php?r=hashlibrary&c=" + consoleId);
+                    if (string.IsNullOrEmpty(json))
+                        return result;
+
+                    foreach (Match m in Regex.Matches(json, @"""([0-9a-fA-F]{32})""\s*:\s*(\d+)"))
+                    {
+                        int id;
+                        if (int.TryParse(m.Groups[2].Value, out id))
+                            result[m.Groups[1].Value.ToUpperInvariant()] = id;
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[RVZINDEXER] Failed to load hash library for console " + consoleId + " : " + ex.Message, ex);
+            }
+
             return result;
         }
         #endregion
