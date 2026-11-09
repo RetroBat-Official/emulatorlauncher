@@ -287,7 +287,7 @@ namespace EmulatorLauncher
                 pcsx2ini.AppendValue("JVS", "P2_Start", azerty ? "Keyboard/Eacute" : "Keyboard/2");
                 pcsx2ini.AppendValue("JVS", "P1_Button1", "Keyboard/Return");
 
-                if (SystemConfig.isOptSet("pcsx2_servicemode") && !string.IsNullOrEmpty(SystemConfig["pcsx2_servicemode"]))
+                if (SystemConfig.getOptBoolean("pcsx2_servicemode"))
                 {
                     pcsx2ini.WriteValue("JVS", "TestMode", "true");
                     pcsx2ini.WriteValue("JVS", "ToggleTestMode", azerty ? "Keyboard/Agrave" : "Keyboard/0");
@@ -538,7 +538,7 @@ namespace EmulatorLauncher
                     {
                         pcsx2ini.WriteValue("JVS", "Coin1", techPadNumber + GetDInputKeyName(dinputController, "back"));
 
-                        if (SystemConfig.isOptSet("pcsx2_servicemode") && !string.IsNullOrEmpty(SystemConfig["pcsx2_servicemode"]))
+                        if (SystemConfig.getOptBoolean("pcsx2_servicemode"))
                         {
                             pcsx2ini.Remove("JVS", "ToggleTestMode");
                             pcsx2ini.Remove("JVS", "P1_Service");
@@ -942,7 +942,7 @@ namespace EmulatorLauncher
                     {
                         pcsx2ini.WriteValue("JVS", "Coin1", techPadNumber + GetInputKeyName(ctrl, InputKey.select, tech));
 
-                        if (SystemConfig.isOptSet("pcsx2_servicemode") && !string.IsNullOrEmpty(SystemConfig["pcsx2_servicemode"]))
+                        if (SystemConfig.getOptBoolean("pcsx2_servicemode"))
                         {
                             pcsx2ini.Remove("JVS", "ToggleTestMode");
                             pcsx2ini.Remove("JVS", "P1_Service");
@@ -1036,8 +1036,8 @@ namespace EmulatorLauncher
                         pcsx2ini.WriteValue("JVS", "BG3_View_P1", techPadNumber + GetInputKeyName(ctrl, InputKey.y, tech));
                         pcsx2ini.WriteValue("JVS", "BG3_Hazard_P1", techPadNumber + GetInputKeyName(ctrl, InputKey.b, tech));
 
-                        pcsx2ini.WriteValue("JVS", "P1_LLeverDown", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogup, tech));
-                        pcsx2ini.WriteValue("JVS", "P1_LLeverUp", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogdown, tech));
+                        pcsx2ini.WriteValue("JVS", "P1_LLeverDown", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogdown, tech));
+                        pcsx2ini.WriteValue("JVS", "P1_LLeverUp", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogup, tech));
                         pcsx2ini.WriteValue("JVS", "P1_LLeverRight", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogright, tech));
                         pcsx2ini.WriteValue("JVS", "P1_LLeverLeft", techPadNumber + GetInputKeyName(ctrl, InputKey.leftanalogleft, tech));
                         pcsx2ini.WriteValue("JVS", "P1_RLeverDown", techPadNumber + GetInputKeyName(ctrl, InputKey.rightanalogdown, tech));

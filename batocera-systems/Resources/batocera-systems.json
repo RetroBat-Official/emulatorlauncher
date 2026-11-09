@@ -1479,11 +1479,13 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "bios/pcsx2/bios/r27v1602f.7d"
+        "file": "bios/pcsx2/bios/r27v1602f.8g",
+        "group": "namco2x6"
       },
       {
         "md5": "",
-        "file": "bios/pcsx2/bios/r27v1602f.8g"
+        "file": "bios/pcsx2/bios/r27v1602f.7d",
+        "group": "namco2x6"
       }
     ]
   },
