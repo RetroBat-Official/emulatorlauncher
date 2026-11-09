@@ -91,6 +91,10 @@ namespace EmulatorLauncher.Common.Lightguns
                 if (xgunnerDeviceIds.Any(d => devicePath.Contains(d)))
                     return RawLighGunType.Xgunner;
 
+                string[] openFireDeviceIds = new string[] { "VID_F143&PID_0001", "VID_F143&PID_0002", "VID_F143&PID_0003", "VID_F143&PID_0004" };
+                if (openFireDeviceIds.Any(d => devicePath.Contains(d)))
+                    return RawLighGunType.OpenFire;
+
                 if (GetWiimote4GunsPlayer(devicePath) > 0)
                     return RawLighGunType.Wiimote4Guns;
             }
@@ -290,6 +294,19 @@ namespace EmulatorLauncher.Common.Lightguns
                         Priority = 164;
                     else
                         Priority = 166 + Index;
+                    break;
+
+                case RawLighGunType.OpenFire:
+                    if (DevicePath != null && DevicePath.Contains("VID_F143&PID_0001"))
+                        Priority = 170;
+                    else if (DevicePath != null && DevicePath.Contains("VID_F143&PID_0002"))
+                        Priority = 172;
+                    else if (DevicePath != null && DevicePath.Contains("VID_F143&PID_0003"))
+                        Priority = 174;
+                    else if (DevicePath != null && DevicePath.Contains("VID_F143&PID_0004"))
+                        Priority = 176;
+                    else
+                        Priority = 178 + Index;
                     break;
 
                 case RawLighGunType.Wiimote4Guns:
@@ -569,6 +586,7 @@ namespace EmulatorLauncher.Common.Lightguns
         Xenas,
         Wiimote4Guns, // using wiimote4guns plugin
         Xgunner,
+        OpenFire,
         Mouse
     }
 }
