@@ -32,7 +32,7 @@ namespace EmulatorLauncher
 
             string[] romExtensions = new string[] { ".m3u", ".cue", ".img", ".mdf", ".pbp", ".toc", ".cbn", ".ccd", ".iso", ".cso", ".pce", ".bin", ".mds" };
 
-            if ((Path.GetExtension(rom).ToLowerInvariant() == ".7z" || Path.GetExtension(rom).ToLowerInvariant() == ".squashfs") || (system == "psx" && Path.GetExtension(rom).ToLowerInvariant() == ".zip"))
+            if ((Path.GetExtension(rom).ToLowerInvariant() == ".7z" || Path.GetExtension(rom).ToLowerInvariant() == ".squashfs") || ((system == "psx" || system == "saturn") && Path.GetExtension(rom).ToLowerInvariant() == ".zip"))
             {
                 string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
                 if (Directory.Exists(uncompressedRomPath))

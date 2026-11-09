@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.Linq;
+using System.Windows.Forms;
+using System.IO;
 using System.Diagnostics;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
@@ -21,6 +24,20 @@ namespace EmulatorLauncher
 
             if (!SystemConfig.isOptSet("saturn_custom_setting") || !SystemConfig.getOptBoolean("saturn_custom_setting"))
                 SetupConfiguration(path);
+
+            // Archives are not read by the emulator: extract them first
+            string[] extensions = new string[] { ".m3u", ".chd", ".cue", ".ccd", ".mds", ".iso", ".toc" };
+            string romExt = Path.GetExtension(rom).ToLowerInvariant();
+            if (romExt == ".zip" || romExt == ".7z" || romExt == ".squashfs")
+            {
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+                if (Directory.Exists(uncompressedRomPath))
+                {
+                    string[] romFiles = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories).OrderBy(file => Array.IndexOf(extensions, Path.GetExtension(file).ToLowerInvariant())).ToArray();
+                    rom = romFiles.FirstOrDefault(file => extensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
+                    ValidateUncompressedGame();
+                }
+            }
 
             if (Path.GetExtension(rom) == ".m3u")
             {

@@ -5765,11 +5765,25 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["puae_video_options_display"] = "enabled";
             coreSettings["puae_audio_options_display"] = "enabled";
-            coreSettings["puae_use_whdload"] = "hdfs";
+            coreSettings["puae_use_whdload"] = "enabled";
 
             // System options
             BindFeature(coreSettings, "puae_model", "model", "auto");
-            BindFeature(coreSettings, "puae_cpu_compatibility", "cpu_compatibility", "normal");
+
+            // 'Automatic' model: default machine per media type, matching the system
+            string modelFloppy = "A500", modelHd = "A1200", modelCd = "CD32";
+            if (system == "amiga1200")
+                modelFloppy = "A1200";
+            else if (system == "amiga4000")
+                modelFloppy = modelHd = "A4040";
+            else if (system == "amigacdtv")
+                modelCd = "CDTV";
+
+            coreSettings["puae_model_fd"] = modelFloppy;
+            coreSettings["puae_model_hd"] = modelHd;
+            coreSettings["puae_model_cd"] = modelCd;
+
+            BindFeature(coreSettings, "puae_cpu_compatibility", "cpu_compatibility", "exact");
             BindFeature(coreSettings, "puae_cpu_multiplier", "cpu_multiplier", "0");
             BindFeature(coreSettings, "puae_kickstart", "puae_kickstart", "auto");
             BindFeature(coreSettings, "puae_use_whdload_prefs", "whdload", "config");
@@ -5988,6 +6002,24 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(coreSettings, "same_cdi_altres", "samecdi_resolution", "640x480");
             BindBoolFeature(coreSettings, "same_cdi_throttle", "same_cdi_throttle", "enabled", "disabled");
+
+            // The core only reads bios\same_cdi\bios: copy the MAME set of the bios folder when missing
+            string biosPath = AppConfig.GetFullPath("bios");
+            if (string.IsNullOrEmpty(biosPath))
+                return;
+
+            string sameCdiBios = Path.Combine(biosPath, "same_cdi", "bios", "cdimono1.zip");
+            string mameBios = Path.Combine(biosPath, "cdimono1.zip");
+
+            if (!File.Exists(sameCdiBios) && File.Exists(mameBios))
+            {
+                try
+                {
+                    FileTools.TryCreateDirectory(Path.GetDirectoryName(sameCdiBios));
+                    File.Copy(mameBios, sameCdiBios);
+                }
+                catch (Exception ex) { SimpleLogger.Instance.Error("[SAME_CDI] Failed to copy " + mameBios + ": " + ex.Message); }
+            }
         }
 
         private void ConfigureSameDuck(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

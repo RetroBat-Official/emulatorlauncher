@@ -40,6 +40,20 @@ namespace EmulatorLauncher
 
             var commandArray = new List<string>();
 
+            // Archives are not read by the emulator: extract them first
+            string[] extensions = new string[] { ".m3u", ".chd", ".cue", ".ccd", ".mds", ".iso", ".toc" };
+            string romExt = Path.GetExtension(rom).ToLowerInvariant();
+            if (romExt == ".zip" || romExt == ".7z" || romExt == ".squashfs")
+            {
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+                if (Directory.Exists(uncompressedRomPath))
+                {
+                    string[] romFiles = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories).OrderBy(file => Array.IndexOf(extensions, Path.GetExtension(file).ToLowerInvariant())).ToArray();
+                    rom = romFiles.FirstOrDefault(file => extensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
+                    ValidateUncompressedGame();
+                }
+            }
+
             // Manage .m3u files
             if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
@@ -56,7 +70,7 @@ namespace EmulatorLauncher
                     if (SystemConfig.isOptSet("saturn_discnumber") && !string.IsNullOrEmpty(SystemConfig["saturn_discnumber"]))
                     {
                         int discNumber = SystemConfig["saturn_discnumber"].ToInteger();
-                        if (discNumber >= 0 && discNumber <= fromm3u.Files.Length)
+                        if (discNumber >= 0 && discNumber < fromm3u.Files.Length)
                             rom = fromm3u.Files[discNumber];
                         else
                             rom = fromm3u.Files[0];
@@ -166,6 +180,10 @@ namespace EmulatorLauncher
                         else
                             hleBios = true;
                     }
+                    // Default file missing: fall back to the regional BIOS
+                    if (!hleBios && !File.Exists(bios))
+                        bios = new[] { "sega_101.bin", "mpr-17933.bin" }.Select(f => Path.Combine(AppConfig.GetFullPath("bios"), f)).FirstOrDefault(File.Exists) ?? bios;
+
                     if (File.Exists(bios))
                         ini.WriteValue("1.0", "General\\Bios", bios.Replace("\\", "/"));
 

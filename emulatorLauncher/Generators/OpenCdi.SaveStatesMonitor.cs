@@ -7,41 +7,34 @@ using EmulatorLauncher.Common;
 namespace EmulatorLauncher
 {
     /// <summary>
-    /// OpenCDi writes <game>_slot<n>.st in emulators\opencdi\savestates (F6 = slot 1, menu = slots 1 to 5).
-    /// The states have no screenshot: the RetroBat save state icon is used.
+    /// OpenCDi writes <game>.state (slot 0) and <game>.state<n> in emulators\opencdi\states,
+    /// through a .tmp file renamed at the end. The states have no screenshot: the RetroBat save state icon is used.
     /// </summary>
     class OpenCdiSaveStatesMonitor : SaveStatesWatcher
     {
-        private static readonly Regex _stateRegex = new Regex(@"^(.+)_slot([0-9]+)\.st$", RegexOptions.IgnoreCase);
-
-        // Changes of the same file reported within this delay belong to the same save
-        private static readonly TimeSpan _duplicateDelay = TimeSpan.FromSeconds(2);
+        private static readonly Regex _stateRegex = new Regex(@"^(.+)\.state([0-9]*)$", RegexOptions.IgnoreCase);
 
         private readonly string _iconPath;
         private readonly string _romStem;
 
-        private readonly object _lastChangeLock = new object();
-        private string _lastChangePath;
-        private DateTime _lastChangeTime;
-
         public OpenCdiSaveStatesMonitor(string romfile, string emulatorPath, string sharedPath, string iconPath)
-            : base(romfile, emulatorPath, sharedPath, SaveStatesWatcherMethod.Changed)
+            : base(romfile, emulatorPath, sharedPath, SaveStatesWatcherMethod.Rename)
         {
             _iconPath = iconPath;
             _romStem = Path.GetFileNameWithoutExtension(romfile);
         }
 
         /// <summary>
-        /// File name OpenCDi uses for a state
+        /// File name OpenCDi uses for a state (state_path in src/main.rs)
         /// </summary>
         public static string GetEmulatorStateFile(string emulatorPath, string rom, int slot)
         {
             string gameName = Path.GetFileNameWithoutExtension(rom);
-            string safeName = new string(gameName.Select(c => char.IsLetterOrDigit(c) || c == ' ' || c == '-' || c == '_' || c == '(' || c == ')' ? c : '_').ToArray()).Trim();
+            string safeName = new string(gameName.Select(c => char.IsLetterOrDigit(c) || " ()-_.,'&!".IndexOf(c) >= 0 ? c : '_').ToArray());
             if (string.IsNullOrEmpty(safeName))
-                safeName = "cdi_bios";
+                safeName = "opencdi";
 
-            return Path.Combine(emulatorPath, safeName + "_slot" + slot + ".st");
+            return Path.Combine(emulatorPath, safeName + ".state" + (slot == 0 ? "" : slot.ToString()));
         }
 
         protected override SaveStateFileInfo ParseSaveStateFilename(string filename)
@@ -49,22 +42,10 @@ namespace EmulatorLauncher
             if (string.IsNullOrEmpty(filename))
                 return null;
 
-            // Emulator side : <game>_slot<n>.st
+            // Emulator side : <game>.state / <game>.state<n>
             var match = _stateRegex.Match(Path.GetFileName(filename));
             if (match.Success && filename.StartsWith(EmulatorPath, StringComparison.InvariantCultureIgnoreCase))
             {
-                // One save gives several change notifications: keep the first one,
-                // the base class imports it 100 ms later, once OpenCDi has closed the file
-                lock (_lastChangeLock)
-                {
-                    DateTime now = DateTime.UtcNow;
-                    if (string.Equals(_lastChangePath, filename, StringComparison.InvariantCultureIgnoreCase) && now - _lastChangeTime < _duplicateDelay)
-                        return null;
-
-                    _lastChangePath = filename;
-                    _lastChangeTime = now;
-                }
-
                 return new SaveStateFileInfo()
                 {
                     FullPath = filename,

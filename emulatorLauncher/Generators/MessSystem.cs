@@ -661,12 +661,17 @@ namespace EmulatorLauncher
             commandArray.Add("-rp");
             if (!string.IsNullOrEmpty(AppConfig["bios"]) && Directory.Exists(AppConfig.GetFullPath("bios")))
             {
-                if (Directory.Exists(Path.Combine(bios, "mess")))
-                    commandArray.Add(Path.Combine(bios, "mess") + ";" + bios + ";" + Path.GetDirectoryName(rom));
-                else
-                    commandArray.Add(bios + ";" + Path.GetDirectoryName(rom));
-            }
+                string romPaths = bios + ";" + Path.GetDirectoryName(rom);
 
+                if (Directory.Exists(Path.Combine(bios, "mess")))
+                    romPaths = Path.Combine(bios, "mess") + ";" + romPaths;
+
+                // CD-i: cdimono1.zip can also be in the SAME_CDI bios folder
+                if (Name == "cdi" && Directory.Exists(Path.Combine(bios, "same_cdi", "bios")))
+                    romPaths += ";" + Path.Combine(bios, "same_cdi", "bios");
+
+                commandArray.Add(romPaths);
+            }
             else
                 commandArray.Add(Path.GetDirectoryName(rom));
 

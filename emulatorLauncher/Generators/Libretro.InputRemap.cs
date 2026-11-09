@@ -812,6 +812,14 @@ namespace EmulatorLauncher.Libretro
                             inputremap["input_player" + i + "_btn_r"] = "10";
                         }
                     }
+                    // Default layout (L/R as Z/C) on other cores: only swap triggers and shoulders
+                    else if (switchTriggers)
+                    {
+                        inputremap["input_player" + i + "_btn_l"] = "12";
+                        inputremap["input_player" + i + "_btn_l2"] = "10";
+                        inputremap["input_player" + i + "_btn_r"] = "13";
+                        inputremap["input_player" + i + "_btn_r2"] = "11";
+                    }
                 }
                 #endregion
 

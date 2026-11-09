@@ -36,8 +36,22 @@ namespace EmulatorLauncher
 
             if (fullscreen)
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-            
+
             _resolution = resolution;
+
+            // Archives are not read by the emulator: extract them first
+            string[] extensions = new string[] { ".m3u", ".chd", ".cue", ".ccd", ".mds", ".iso", ".toc" };
+            string romExt = Path.GetExtension(rom).ToLowerInvariant();
+            if (romExt == ".zip" || romExt == ".7z" || romExt == ".squashfs")
+            {
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+                if (Directory.Exists(uncompressedRomPath))
+                {
+                    string[] romFiles = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories).OrderBy(file => Array.IndexOf(extensions, Path.GetExtension(file).ToLowerInvariant())).ToArray();
+                    rom = romFiles.FirstOrDefault(file => extensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
+                    ValidateUncompressedGame();
+                }
+            }
 
             // Manage .m3u files
             if (Path.GetExtension(rom).ToLower() == ".m3u")
@@ -55,7 +69,7 @@ namespace EmulatorLauncher
                     if (SystemConfig.isOptSet("saturn_discnumber") && !string.IsNullOrEmpty(SystemConfig["saturn_discnumber"]))
                     {
                         int discNumber = SystemConfig["saturn_discnumber"].ToInteger();
-                        if (discNumber >= 0 && discNumber <= fromm3u.Files.Length)
+                        if (discNumber >= 0 && discNumber < fromm3u.Files.Length)
                             rom = fromm3u.Files[discNumber];
                         else
                             rom = fromm3u.Files[0];
@@ -101,28 +115,29 @@ namespace EmulatorLauncher
                 {
                     string backupRamPath = Path.Combine(AppConfig.GetFullPath("saves"), "saturn", "ymir", "state", "bup-int.bin");
                     ini.WriteValue("System", "InternalBackupRAMImagePath", "'" + backupRamPath + "'");
-                    ini.WriteValue("System.IPL", "Override", "true");
                     
                     BindBoolIniFeature(ini, "System", "EmulateSH2Cache", "ymir_sh2cache", "true", "false");
                     BindIniFeatureSlider(ini, "System", "SH2ClockFactor", "ymir_sh2clock", "100");
                     BindBoolIniFeatureOn(ini, "System", "AutoDetectRegion", "ymir_autoregion", "true", "false");
                     if (SystemConfig.isOptSet("ymir_region") && !string.IsNullOrEmpty(SystemConfig["ymir_region"]))
                     {
-                        // Ordre de préférence : la région choisie d'abord, les autres derrière dans l'ordre par défaut
+                        // Preferred order: selected region first, then the others in default order
                         var regions = new List<string> { "NorthAmerica", "Japan", "EuropePAL", "AsiaNTSC" };
                         regions.Remove(SystemConfig["ymir_region"]);
                         regions.Insert(0, SystemConfig["ymir_region"]);
                         ini.WriteValue("System", "PreferredRegionOrder", "[ '" + string.Join("', '", regions) + "' ]");
                     }
 
-                    string saturnBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), "saturn_bios.bin");
-
+                    // Forced BIOS is used as is, otherwise Ymir picks a known BIOS from the bios folder matching the game region
+                    string saturnBiosPath = null;
                     if (SystemConfig.isOptSet("ymir_force_bios") && !string.IsNullOrEmpty(SystemConfig["ymir_force_bios"]))
-                    {
                         saturnBiosPath = Path.Combine(AppConfig.GetFullPath("bios"), SystemConfig["ymir_force_bios"]);
-                    }
 
-                    ini.WriteValue("System.IPL", "Path", "'" + saturnBiosPath + "'");
+                    bool overrideIpl = saturnBiosPath != null && File.Exists(saturnBiosPath);
+                    ini.WriteValue("System.IPL", "Override", overrideIpl ? "true" : "false");
+                    if (overrideIpl)
+                        ini.WriteValue("System.IPL", "Path", "'" + saturnBiosPath + "'");
+
                     BindTomlString(ini, "System.IPL", "Variant", "ymir_ipl_variant", "Saturn");
 
                     BindBoolIniFeatureOn(ini, "System", "InternalBackupRAMPerGame", "saturn_pergame_backup", "true", "false");
@@ -148,6 +163,13 @@ namespace EmulatorLauncher
 
                     ini.WriteValue("General.PathOverrides", "BackupMemory", "'" + backupPath + "'");
                     ini.WriteValue("General.PathOverrides", "IPLROMImages", "'" + iplPath + "'");
+
+                    // KOF95/Ultraman ROM carts are auto-inserted from the bios folder, CD block ROM (LLE) from bios\cdb like the libretro core
+                    string cdbPath = Path.Combine(iplPath, "cdb");
+                    FileTools.TryCreateDirectory(cdbPath);
+                    ini.WriteValue("General.PathOverrides", "ROMCartImages", "'" + iplPath + "'");
+                    ini.WriteValue("General.PathOverrides", "CDBlockROMImages", "'" + cdbPath + "'");
+
                     ini.WriteValue("General.PathOverrides", "PersistentState", "'" + statePath + "'");
                     ini.WriteValue("General.PathOverrides", "SaveStates", "'" + savestatesPath + "'");
                     ini.WriteValue("General.PathOverrides", "Screenshots", "'" + screenshotPath + "'");
