@@ -283,6 +283,18 @@
         "group": "cd32ext"
       },
       {
+        "md5": "646773759326fbac3b2311fd8c8793ee",
+        "file": "bios/kick40068.A1200",
+        "group": "ks31a1200",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/amiga-os-310-a1200.rom",
+        "group": "ks31a1200",
+        "optional": true
+      },
+      {
         "md5": "",
         "file": "bios/rom.key",
         "optional": true
@@ -816,7 +828,18 @@
       },
       {
         "md5": "",
-        "file": "bios/chihiro/fpr21042_m29w160et.bin"
+        "file": "bios/chihiro/fpr21042_m29w160et.bin",
+        "group": "chihiromediaboard"
+      },
+      {
+        "md5": "",
+        "file": "bios/chihiro/fpr-23887_29lv160te.ic4",
+        "group": "chihiromediaboard"
+      },
+      {
+        "md5": "",
+        "file": "bios/chihiro/fpr-23887.bin",
+        "group": "chihiromediaboard"
       },
       {
         "md5": "",
@@ -1967,34 +1990,92 @@
     "name": "Sega 32X",
     "biosFiles": [
       {
-        "md5": "",
-        "file": "bios/32X_G_BIOS.BIN"
+        "md5": "6a5433f6a132a2b683635819a6dcf085",
+        "file": "bios/32X_G_BIOS.BIN",
+        "optional": true
       },
       {
-        "md5": "",
-        "file": "bios/32X_M_BIOS.BIN"
+        "md5": "f88354ec482be09aeccd76a97bb75868",
+        "file": "bios/32X_M_BIOS.BIN",
+        "optional": true
       },
       {
-        "md5": "",
-        "file": "bios/32X_S_BIOS.BIN"
+        "md5": "7f041b6a55cd7423a6c08a219335269e",
+        "file": "bios/32X_S_BIOS.BIN",
+        "optional": true
       }
     ]
   },
 
   "megacd": {
-    "name": "Sega CD",
+    "name": "Mega-CD",
     "biosFiles": [
       {
         "md5": "e66fa1dc5820d254611fdcdba0662372",
-        "file": "bios/bios_CD_E.bin"
+        "file": "bios/bios_CD_E.bin",
+        "group": "megacdbios"
       },
       {
         "md5": "854b9150240a198070150e4566ae1290",
-        "file": "bios/bios_CD_U.bin"
+        "file": "bios/bios_CD_U.bin",
+        "group": "megacdbios"
       },
       {
         "md5": "278a9397d192149e84e820ac621a8edd",
-        "file": "bios/bios_CD_J.bin"
+        "file": "bios/bios_CD_J.bin",
+        "group": "megacdbios"
+      }
+    ]
+  },
+
+  "megadrive": {
+    "name": "MegaDrive",
+    "biosFiles": [
+      {
+        "md5": "45e298905a08f9cfb38fd504cd6dbc84",
+        "file": "bios/bios_MD.bin",
+        "optional": true
+      },
+      {
+        "md5": "4ea493ea4e9f6c9ebfccbdb15110367e",
+        "file": "bios/sk.bin",
+        "optional": true
+      },
+      {
+        "md5": "b4e76e416b887f4e7413ba76fa735f16",
+        "file": "bios/sk2chip.bin",
+        "optional": true
+      },
+      {
+        "md5": "a0028b3043f9d59ceeb03da5b073b30d",
+        "file": "bios/areplay.bin",
+        "optional": true
+      },
+      {
+        "md5": "b5d5ff1147036b06944b4d2cac2dd1e7",
+        "file": "bios/ggenie.bin",
+        "optional": true
+      }
+    ]
+  },
+
+  "megadrive-msu": {
+    "name": "MSU-MD",
+    "biosFiles": [
+      {
+        "md5": "854b9150240a198070150e4566ae1290",
+        "file": "bios/bios_CD_U.bin",
+        "group": "megacdbios"
+      },
+      {
+        "md5": "e66fa1dc5820d254611fdcdba0662372",
+        "file": "bios/bios_CD_E.bin",
+        "group": "megacdbios"
+      },
+      {
+        "md5": "278a9397d192149e84e820ac621a8edd",
+        "file": "bios/bios_CD_J.bin",
+        "group": "megacdbios"
       }
     ]
   },

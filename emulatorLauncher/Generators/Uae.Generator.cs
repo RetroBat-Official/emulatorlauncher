@@ -404,7 +404,7 @@ namespace EmulatorLauncher
 
         private void WriteCd32Profile(StringBuilder sb, List<string> disks, bool isWhdload)
         {
-            sb.AppendLine("flash_file=.\\cd32.nvr");
+            sb.AppendLine("flash_file=" + GetNvramFile("amigacd32", "cd32.nvr"));
             sb.AppendLine("chipset=aga");
             sb.AppendLine("chipset_compatible=CD32");
             sb.AppendLine("rtc=none");
@@ -473,8 +473,6 @@ namespace EmulatorLauncher
             }
             else
             {
-                sb.AppendLine("cpu_24bit_addressing=true");
-
                 if (SystemConfig.isOptSet("amiga_fpu") && SystemConfig.getOptBoolean("amiga_fpu"))
                 {
                     sb.AppendLine("cpu_type=68ec020/68881");
@@ -487,6 +485,8 @@ namespace EmulatorLauncher
                     sb.AppendLine("fpu_strict=false");
                 }
 
+                // After cpu_type, which resets the address space to 32-bit
+                sb.AppendLine("cpu_24bit_addressing=true");
                 sb.AppendLine("cachesize=0");
             }
 
@@ -498,7 +498,7 @@ namespace EmulatorLauncher
         {
             sb.AppendLine("cdtvsram_rom_file=:ENABLED");
             sb.AppendLine("cdtvdmac_rom_file=:ENABLED");
-            sb.AppendLine("flash_file=.\\cdtv.nvr");
+            sb.AppendLine("flash_file=" + GetNvramFile("amigacdtv", "cdtv.nvr"));
             sb.AppendLine("chipset_compatible=CDTV");
             sb.AppendLine("chipset=ecs_agnus");
             sb.AppendLine("rtc=MSM6242B");
@@ -532,6 +532,23 @@ namespace EmulatorLauncher
 
             for (int i = 0; i < disks.Count; i++)
                 sb.AppendLine("cdimage" + i + "=" + disks[i]);
+        }
+
+        // CD32/CDTV game saves live in the console NVRAM: keep it in the saves folder
+        private string GetNvramFile(string system, string fileName)
+        {
+            string nvram = Path.Combine(AppConfig.GetFullPath("saves"), system, "winuae", "nvram", fileName);
+            FileTools.EnsureDirectoryExists(Path.GetDirectoryName(nvram));
+
+            // Copy (never move) the file written next to winuae64.exe by older versions
+            string legacy = Path.Combine(AppConfig.GetFullPath("winuae"), fileName);
+            if (!File.Exists(nvram) && File.Exists(legacy))
+            {
+                try { File.Copy(legacy, nvram); }
+                catch { }
+            }
+
+            return nvram;
         }
 
         private void WriteAmiga500Profile(StringBuilder sb, List<string> disks, bool isWhdload)
@@ -616,6 +633,9 @@ namespace EmulatorLauncher
             if (isWhdload)
                 return;
 
+            // Before cpu_type/fpu_model: cpu_model resets the FPU
+            sb.AppendLine("cpu_model=68020");
+
             if (SystemConfig.isOptSet("amiga_jit") && SystemConfig.getOptBoolean("amiga_jit"))
             {
                 sb.AppendLine("cpu_24bit_addressing=false");
@@ -650,8 +670,6 @@ namespace EmulatorLauncher
             }
             else
             {
-                sb.AppendLine("cpu_24bit_addressing=true");
-
                 if (SystemConfig.isOptSet("amiga_fpu") && SystemConfig.getOptBoolean("amiga_fpu"))
                 {
                     sb.AppendLine("cpu_type=68ec020/68881");
@@ -664,10 +682,11 @@ namespace EmulatorLauncher
                     sb.AppendLine("fpu_strict=false");
                 }
 
+                // After cpu_type, which resets the address space to 32-bit
+                sb.AppendLine("cpu_24bit_addressing=true");
                 sb.AppendLine("cachesize=0");
             }
 
-            sb.AppendLine("cpu_model=68020");
             sb.AppendLine("cpu_compatible=true");
             sb.AppendLine("cpu_multiplier=4");
 

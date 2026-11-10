@@ -359,7 +359,10 @@ namespace EmulatorLauncher.Libretro
                 #endregion
 
                 #region megadrive
-                if (systemMegadrive.Contains(system) && !megadrive3ButtonsList.Contains(Program.SystemConfig["genesis_plus_gx_controller"]))
+                // 3 button pads keep the default layout (GPGX controller type, PicoDrive 3 button option)
+                bool md3Buttons = core == "picodrive" ? Program.SystemConfig.getOptBoolean("md_3buttons") : megadrive3ButtonsList.Contains(Program.SystemConfig["genesis_plus_gx_controller"]);
+
+                if (systemMegadrive.Contains(system) && !md3Buttons)
                 {
                     switch (core)
                     {

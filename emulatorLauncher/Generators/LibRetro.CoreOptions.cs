@@ -5770,7 +5770,7 @@ namespace EmulatorLauncher.Libretro
             // System options
             BindFeature(coreSettings, "puae_model", "model", "auto");
 
-            // "auto" boots floppies with puae_model_fd (A500 by default) unless the path contains "AGA":
+            // "auto" picks the machine by media type (floppy, hard drive, CD) unless the path contains a tag:
             // force the matching machine for each system (shared core options file, so always written)
             switch (system)
             {
@@ -5787,6 +5787,9 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["puae_model_hd"] = "A1200";
                     break;
             }
+
+            // CDs boot as CD32 unless told otherwise
+            coreSettings["puae_model_cd"] = system == "amigacdtv" ? "CDTV" : "CD32";
 
             BindFeature(coreSettings, "puae_cpu_compatibility", "cpu_compatibility", "exact");
             BindFeature(coreSettings, "puae_cpu_multiplier", "cpu_multiplier", "0");

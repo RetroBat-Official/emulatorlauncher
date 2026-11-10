@@ -132,8 +132,9 @@ namespace EmulatorLauncher
                 WriteHotkeyFile(pad1);
             }
 
-            // Second port: mouse, or player 2
-            string secondPortDevice = SystemConfig.isOptSet("amiberry_port1") ? SystemConfig["amiberry_port1"] : (_model.IsCd == false ? "mouse" : "none");
+            // Second port: CD32 has no mouse (player 2 when a second pad is connected), every other model, CDTV included, gets the mouse
+            string defaultSecondPort = _model.IsCd32 ? (secondPad != null ? "joystick" : "none") : "mouse";
+            string secondPortDevice = SystemConfig.isOptSet("amiberry_port1") ? SystemConfig["amiberry_port1"] : defaultSecondPort;
 
             if (secondPortDevice == "joystick" && secondPad != null)
             {

@@ -139,8 +139,11 @@ namespace EmulatorLauncher
                 CpuModel = 68020, ChipMem = 4, BogoMem = 0, Floppies = 0,
                 Address24Bit = true, IsCd = true, IsCd32 = true,
                 Kickstart = new[] { "kick40060.CD32", "kick40060.CD32.rom", "amiga-os-310-cd32.rom",
+                    "Kickstart v3.1 r40.060 (1993-05)(Commodore)(CD32)[!].rom",
+                    "Kickstart v3.1 r40.60 (1993)(Commodore)(CD32).rom",
                     "Kickstart v3.1 rev 40.60 (1993)(Commodore)(CD32).rom" },
                 KickstartExt = new[] { "kick40060.CD32.ext", "kick40060.CD32.ext.rom", "amiga-os-310-cd32-ext.rom",
+                    "CD32 Extended-ROM r40.60 (1993)(Commodore)(CD32).rom",
                     "CD32 Extended-ROM rev 40.60 (1993)(Commodore)(CD32).rom" } } },
 
             { "CD32FR", new AmigaModel {
@@ -148,8 +151,11 @@ namespace EmulatorLauncher
                 CpuModel = 68020, ChipMem = 4, BogoMem = 0, FastMem = 8, Floppies = 0,
                 Address24Bit = true, IsCd = true, IsCd32 = true,
                 Kickstart = new[] { "kick40060.CD32", "kick40060.CD32.rom", "amiga-os-310-cd32.rom",
+                    "Kickstart v3.1 r40.060 (1993-05)(Commodore)(CD32)[!].rom",
+                    "Kickstart v3.1 r40.60 (1993)(Commodore)(CD32).rom",
                     "Kickstart v3.1 rev 40.60 (1993)(Commodore)(CD32).rom" },
                 KickstartExt = new[] { "kick40060.CD32.ext", "kick40060.CD32.ext.rom", "amiga-os-310-cd32-ext.rom",
+                    "CD32 Extended-ROM r40.60 (1993)(Commodore)(CD32).rom",
                     "CD32 Extended-ROM rev 40.60 (1993)(Commodore)(CD32).rom" } } },
 
             { "CDTV", new AmigaModel {
@@ -716,10 +722,14 @@ namespace EmulatorLauncher
         {
             string ext = Path.GetExtension(rom).ToLowerInvariant();
 
-            // CD based systems
-            if (HasExtension(rom, _cdExtensions))
+            // CD based systems (a .m3u of CD images boots its first disc)
+            string cdImage = rom;
+            if (ext == ".m3u")
+                cdImage = MultiDiskImageFile.FromFile(rom).Files.FirstOrDefault(File.Exists) ?? rom;
+
+            if (HasExtension(cdImage, _cdExtensions))
             {
-                Set("cdimage0", rom + ",image");
+                Set("cdimage0", cdImage + ",image");
                 Set("nr_floppies", "0");
                 Set("floppy0type", "-1");
                 Set("floppy1type", "-1");
