@@ -241,7 +241,7 @@ namespace EmulatorLauncher
 
         static readonly HashSet<string> megadrivePadSystems = new HashSet<string>()
         {
-            "megadrive", "megadrive-japan", "genesis", "sega32x", "segacd", "megacd", "md"
+            "megadrive", "megadrive-japan", "genesis", "megadrive-msu", "sega32x", "segacd", "megacd", "md", "md-msu"
         };
 
         private static void RedirectStartToSmsPause(BlastemConfigNode pad, string target)
@@ -284,7 +284,8 @@ namespace EmulatorLauncher
                 mapping = padLayoutRotate;
             else
             {
-                string layout = SystemConfig.isOptSet("megadrive_control_layout") ? SystemConfig["megadrive_control_layout"] : "lr_xz";
+                // 3 button pad: A, B and C stay on their default buttons
+                string layout = SystemConfig.isOptSet("megadrive_control_layout") && !SystemConfig.getOptBoolean("md_3buttons") ? SystemConfig["megadrive_control_layout"] : "lr_xz";
 
                 if (!padLayouts.TryGetValue(layout, out mapping))
                 {

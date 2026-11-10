@@ -61,6 +61,14 @@ namespace EmulatorLauncher
                 }
             }
 
+            // jgenesis does not read .m3u playlists: start the first disc
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
+            {
+                string firstDisc = MultiDiskImageFile.FromFile(rom).Files.FirstOrDefault(File.Exists);
+                if (firstDisc != null)
+                    rom = firstDisc;
+            }
+
             string savesSystem = GetSavesSystem(system);
 
             if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
