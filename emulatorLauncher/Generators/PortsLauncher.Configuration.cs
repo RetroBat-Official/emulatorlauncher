@@ -884,6 +884,9 @@ namespace EmulatorLauncher
             if (_emulator != "dusklight")
                 return;
 
+            // File launched from ES (m3u, iso or rvz), used to find the mods folder of the game
+            string launchedFile = rom;
+
             // Commandarray and romPath
             if (Path.GetExtension(rom).Equals(".m3u", StringComparison.OrdinalIgnoreCase))
             {
@@ -917,6 +920,21 @@ namespace EmulatorLauncher
             string dataPath = Path.Combine(_path, "data");
             if (!Directory.Exists(dataPath))
                 try { Directory.CreateDirectory(dataPath); } catch { }
+
+            // Mods: a folder named like the launched file, next to it, replaces Dusklight user mods folder (data\mods)
+            // Dusklight ignores a missing folder, this is used to start without user mods
+            string gameModsPath = Path.Combine(Path.GetDirectoryName(launchedFile), Path.GetFileNameWithoutExtension(launchedFile));
+
+            if (SystemConfig.isOptSet("dusklight_mods") && !SystemConfig.getOptBoolean("dusklight_mods"))
+            {
+                commandArray.Add("--mods");
+                commandArray.Add("\"" + Path.Combine(dataPath, "nomods") + "\"");
+            }
+            else if (Directory.Exists(gameModsPath))
+            {
+                commandArray.Add("--mods");
+                commandArray.Add("\"" + gameModsPath + "\"");
+            }
 
             string configJson = Path.Combine(dataPath, "config.json");
             if (!File.Exists(configJson))

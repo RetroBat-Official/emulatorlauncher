@@ -1092,6 +1092,27 @@
     ]
   },
 
+  "gamecube": {
+    "name": "GameCube",
+    "biosFiles": [
+      {
+        "md5": "0cdda509e2da83c85bfe423dd87346cc",
+        "file": "emulators/dolphin-emu/User/GC/EUR/IPL.bin",
+        "optional": true
+      },
+      {
+        "md5": "019e39822a9ca3029124f74dd4d55ac4",
+        "file": "emulators/dolphin-emu/User/GC/USA/IPL.bin",
+        "optional": true
+      },
+      {
+        "md5": "fc924a7c879b661abc37cec4f018fdf3",
+        "file": "emulators/dolphin-emu/User/GC/JAP/IPL.bin",
+        "optional": true
+      }
+    ]
+  },
+
   "gamepock": {
     "name": "Game Pocket",
     "biosFiles": [
@@ -2173,7 +2194,8 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "bios/triforce/segaboot.gcm"
+        "file": "bios/triforce/segaboot.gcm",
+        "optional": true
       }
     ]
   },

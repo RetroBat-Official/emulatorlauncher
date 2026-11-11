@@ -550,7 +550,7 @@ namespace EmulatorLauncher
                     var triforceGame = TriforceGame.GetByGameId(gameID, _triforce);
 
                     string gameSettingsPath = "";
-                    bool hasGameSettings = CheckGameSettings(path, gameID, system, triforceGame, out gameSettingsPath);
+                    bool hasGameSettings = CheckGameSettings(path, gameID, system, out gameSettingsPath);
 
                     // Discord
                     BindBoolIniFeature(ini, "General", "UseDiscordPresence", "discord", "True", "False");
@@ -985,10 +985,8 @@ namespace EmulatorLauncher
             }
         }
 
-        private bool CheckGameSettings(string path, string gameID, string system, TriforceGame triforceGame, out string GameSettingsPath)
+        private bool CheckGameSettings(string path, string gameID, string system, out string GameSettingsPath)
         {
-            var ret = false;
-
             GameSettingsPath = null;
 
             if (string.IsNullOrEmpty(gameID))
@@ -996,49 +994,36 @@ namespace EmulatorLauncher
 
             GameSettingsPath = Path.Combine(path, "User", "GameSettings", gameID + ".ini");
 
-            if (!File.Exists(GameSettingsPath) && _crediar && triforceGame != null && triforceGame.GameIDsCrediar != null && triforceGame.GameIDsCrediar.Count > 0)
-            {
-                string crediarID = triforceGame.GameIDsCrediar.FirstOrDefault();
-                GameSettingsPath = Path.Combine(path, "User", "GameSettings", crediarID + ".ini");
-            }
+            // Crediar build names its game settings after the boot.id code (GNLE82 => SBNL)
+            if (_crediar && gameID.Length == 6)
+                GameSettingsPath = Path.Combine(path, "User", "GameSettings", "SB" + gameID.Substring(1, 2).ToUpperInvariant() + ".ini");
 
-            if (File.Exists(GameSettingsPath))
-            {
-                ret = true;
+            bool ret = File.Exists(GameSettingsPath);
 
-                SimpleLogger.Instance.Warning("[WARNING] Game " + gameID + " has a dedicated Game Seetings file : " + GameSettingsPath + ", RetroBat settings might be ignored.");
-                using (var ini = new IniFile(GameSettingsPath, IniOptions.UseSpaces | IniOptions.AllowRawLines))
+            using (var ini = new IniFile(GameSettingsPath, IniOptions.UseSpaces | IniOptions.AllowRawLines))
+            {
+                if (ret && !_triforce)
                 {
-                    var sections = ini.EnumerateSections().ToList();
-                    if (sections.Contains("Controls"))
-                    {
-                        var controlLines = ini.EnumerateValues("Controls");
+                    SimpleLogger.Instance.Warning("[WARNING] Game " + gameID + " has a dedicated Game Settings file : " + GameSettingsPath + ", RetroBat settings might be ignored.");
 
-                        foreach (var c in controlLines)
+                    foreach (var c in ini.EnumerateValues("Controls"))
+                    {
+                        if (system == "wii" && c.Key.StartsWith("wiimote", StringComparison.OrdinalIgnoreCase))
                         {
-                            if (system == "wii" && c.Key.ToLowerInvariant().StartsWith("wiimote", StringComparison.OrdinalIgnoreCase))
-                            {
-                                SimpleLogger.Instance.Info("[INFO] Game " + gameID + " : spcific Wiimote profile applied : " + c.Key + " - " + c.Value);
-                                break;
-                            }
-                            else if (system == "gamecube" && c.Key.ToLowerInvariant().StartsWith("pad", StringComparison.OrdinalIgnoreCase))
-                            {
-                                SimpleLogger.Instance.Info("[INFO] Game " + gameID + " : spcific Pad profile applied : " + c.Key + " - " + c.Value);
-                                break;
-                            }
+                            SimpleLogger.Instance.Info("[INFO] Game " + gameID + " : specific Wiimote profile applied : " + c.Key + " - " + c.Value);
+                            break;
+                        }
+                        else if (system == "gamecube" && c.Key.StartsWith("pad", StringComparison.OrdinalIgnoreCase))
+                        {
+                            SimpleLogger.Instance.Info("[INFO] Game " + gameID + " : specific Pad profile applied : " + c.Key + " - " + c.Value);
+                            break;
                         }
                     }
-
-                    ApplyPatches(ini, Path.GetFileNameWithoutExtension(GameSettingsPath));
                 }
-            }
 
-            else
-            {
-                using (var ini = new IniFile(GameSettingsPath, IniOptions.UseSpaces | IniOptions.AllowRawLines))
-                {
-                    ApplyPatches(ini, Path.GetFileNameWithoutExtension(GameSettingsPath));
-                }
+                // Triforce game patches
+                if (_triforce)
+                    ApplyTriforcePatches(ini, gameID, _crediar);
             }
 
             return ret;
@@ -1083,8 +1068,12 @@ namespace EmulatorLauncher
             }
         }
 
-        private void ApplyPatches(IniFile ini, string gameID)
+        // Apply the Triforce game patches listed in system\tools\triforce_patches.json (shared with the libretro core)
+        public static void ApplyTriforcePatches(IniFile ini, string gameID, bool crediar)
         {
+            if (string.IsNullOrEmpty(gameID))
+                return;
+
             string patchFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "triforce_patches.json");
 
             if (!File.Exists(patchFile))
@@ -1092,66 +1081,77 @@ namespace EmulatorLauncher
 
             try
             {
-                string jsonText = File.ReadAllText(patchFile);
-                List<GamePatches> games = JsonConvert.DeserializeObject<List<GamePatches>>(jsonText);
+                List<GamePatches> games = JsonConvert.DeserializeObject<List<GamePatches>>(File.ReadAllText(patchFile));
+                if (games == null)
+                    return;
 
-                var game = games.FirstOrDefault(g => g.GameId.Split(',').Any(id => id.Trim().Equals(gameID, StringComparison.OrdinalIgnoreCase)));
-                if (game == null && _crediar)
-                {
-                    game = games.FirstOrDefault(g => g.GameIdCrediar.Split(',').Any(id => id.Trim().Equals(gameID, StringComparison.OrdinalIgnoreCase)));
-                }
-
+                var game = games.FirstOrDefault(g => HasGameId(g.GameId, gameID));
                 if (game == null)
+                    game = games.FirstOrDefault(g => HasGameId(g.GameIdCrediar, gameID));
+
+                if (game == null || game.Patches == null)
                     return;
 
-                var patches = game.Patches;
+                // Patch addresses depend on the game region: 4th character of the game ID
+                string region = gameID.Length == 6 ? gameID.Substring(3, 1) : null;
 
-                if (patches == null || patches.Count == 0)
-                    return;
-
-                foreach (var patch in patches)
+                foreach (var patch in game.Patches)
                 {
-                    if (patch.Lines.Count == 0)
+                    if (string.IsNullOrEmpty(patch.PatchName) || string.IsNullOrEmpty(patch.PatchFeature) || patch.Lines == null || patch.Lines.Count == 0)
                         continue;
 
-                    if (string.IsNullOrEmpty(patch.PatchName) || string.IsNullOrEmpty(patch.PatchFeature))
-                        continue;
-
-                    string featureName = patch.PatchFeature;
                     string patchSection = patch.isGecko ? "Gecko" : "OnFrame";
                     string enableSection = patch.isGecko ? "Gecko_Enabled" : "OnFrame_Enabled";
 
+                    // Former names of the patch must not stay enabled
+                    if (patch.Aliases != null)
+                    {
+                        foreach (string alias in patch.Aliases)
+                            ini.Remove(enableSection, alias);
+                    }
+
+                    bool applies = (crediar || !patch.CrediarOnly)
+                        && (string.IsNullOrEmpty(patch.Region) || patch.Region.Equals(region, StringComparison.OrdinalIgnoreCase));
+
+                    // AUTO: RetroBat default for the emulator, else user choice
+                    bool enable;
+                    if (!Program.SystemConfig.isOptSet(patch.PatchFeature))
+                        enable = patch.Default == "all" || (crediar && patch.Default == "crediar");
+                    else if (!string.IsNullOrEmpty(patch.FeatureValue))
+                        enable = Program.SystemConfig[patch.PatchFeature] == patch.FeatureValue;
+                    else
+                        enable = Program.SystemConfig.getOptBoolean(patch.PatchFeature);
+
+                    enable = enable && applies;
+
                     // Add patch to file if it does not exist
-                    if (!ini.EnumerateKeys(patchSection).Contains(patch.PatchName, StringComparer.InvariantCultureIgnoreCase))
+                    if (enable && !ini.EnumerateKeys(patchSection).Contains(patch.PatchName, StringComparer.InvariantCultureIgnoreCase))
                     {
                         ini.AppendRawLine(patchSection, patch.PatchName);
                         foreach (var line in patch.Lines)
-                        {
                             ini.AppendRawLine(patchSection, line);
-                        }
                     }
 
-                    // Disable patch if not enabled in features
-                    if ((SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName) || !SystemConfig.isOptSet(featureName)))
+                    bool enabled = ini.EnumerateKeys(enableSection).Contains(patch.PatchName, StringComparer.InvariantCultureIgnoreCase);
+
+                    if (enable && !enabled)
+                    {
+                        ini.AppendRawLine(enableSection, patch.PatchName);
+                        SimpleLogger.Instance.Info("[INFO] Patch " + patch.PatchName + " has been enabled for game " + gameID);
+                    }
+                    else if (!enable && enabled)
                     {
                         ini.Remove(enableSection, patch.PatchName);
-                        SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} has been disabled for game {gameID}");
-                    }
-                    else if (SystemConfig.getOptBoolean(featureName))
-                    {
-                        var keys = ini.EnumerateKeys(enableSection);
-
-                        if (!keys.Contains(patch.PatchName))
-                        {
-                            ini.AppendRawLine(enableSection, patch.PatchName);
-                            SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} has been enabled for game {gameID}");
-                        }
-                        else
-                            SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} already enabled for game {gameID}");
+                        SimpleLogger.Instance.Info("[INFO] Patch " + patch.PatchName + " has been disabled for game " + gameID);
                     }
                 }
             }
-            catch { SimpleLogger.Instance.Error($"[ERROR] Failed to load patch file : {gameID}"); }
+            catch (Exception ex) { SimpleLogger.Instance.Error("[ERROR] Failed to apply Triforce patches for " + gameID + ": " + ex.Message); }
+        }
+
+        private static bool HasGameId(string idList, string gameID)
+        {
+            return !string.IsNullOrEmpty(idList) && idList.Split(',').Any(id => id.Trim().Equals(gameID, StringComparison.OrdinalIgnoreCase));
         }
 
         private Screen GetTargetScreen()
@@ -1234,61 +1234,102 @@ namespace EmulatorLauncher
         public static void RvzCheevosIndexer()
         {
             var consoleIds = new Dictionary<string, int>
-            {
-                { "gamecube", 16 },
-                { "wii", 19 }
-            };
+    {
+        { "gamecube", 16 },
+        { "wii", 19 }
+    };
 
-            SimpleLogger.Instance.Info("[RVZINDEXER] Starting RvzCheevosIndexer.");
-            if (!Program.SystemConfig.getOptBoolean("retroachievements"))
-            {
-                SimpleLogger.Instance.Info("[RVZINDEXER] Retroachievements disabled.");
-                return;
-            }
+            // emulatorLauncher is a WinExe: attach to the calling console to display progress
+            Kernel32.AttachConsole(-1);
 
-            // ES keeps gamelists in memory and rewrites modified entries: never run while it is open
-            if (Process.GetProcessesByName("emulationstation").Length > 0)
+            try
             {
-                SimpleLogger.Instance.Info("[RVZINDEXER] EmulationStation is running, aborting.");
-                return;
-            }
+                SimpleLogger.Instance.Info("[RVZINDEXER] Starting RvzCheevosIndexer.");
+                WriteRvzConsole("RetroAchievements indexer for GameCube / Wii .rvz files");
+                WriteRvzConsole("");
 
-            string dolphinTool = GetDolphinToolPath();
-            if (dolphinTool == null)
-            {
-                SimpleLogger.Instance.Info("[RVZINDEXER] DolphinTool.exe not found.");
-                return;
-            }
-
-            foreach (var system in consoleIds)
-            {
-                try
+                if (!Program.SystemConfig.getOptBoolean("retroachievements"))
                 {
-                    IndexRvzSystem(system.Key, system.Value, dolphinTool);
+                    SimpleLogger.Instance.Info("[RVZINDEXER] Retroachievements disabled.");
+                    WriteRvzConsole("ERROR: RetroAchievements is disabled in RetroBat.");
+                    return;
                 }
-                catch (Exception ex)
+
+                // ES keeps gamelists in memory and rewrites modified entries: never run while it is open
+                if (Process.GetProcessesByName("emulationstation").Length > 0)
                 {
-                    SimpleLogger.Instance.Error("[RVZINDEXER] Error indexing " + system.Key + " : " + ex.Message, ex);
+                    SimpleLogger.Instance.Info("[RVZINDEXER] EmulationStation is running, aborting.");
+                    WriteRvzConsole("ERROR: EmulationStation is running. Close it and run the indexer again.");
+                    return;
                 }
+
+                string dolphinTool = GetDolphinToolPath();
+                if (dolphinTool == null)
+                {
+                    SimpleLogger.Instance.Info("[RVZINDEXER] DolphinTool.exe not found.");
+                    WriteRvzConsole("ERROR: DolphinTool.exe not found.");
+                    return;
+                }
+
+                bool anyMatch = false;
+
+                foreach (var system in consoleIds)
+                {
+                    try
+                    {
+                        var result = IndexRvzSystem(system.Key, system.Value, dolphinTool);
+                        if (result == null)
+                            continue;
+
+                        WriteRvzConsole("[" + system.Key + "] " + result.Total + " file(s): "
+                            + result.Matched + " found, "
+                            + result.NoMatch + " without match, "
+                            + result.Failed + " failed, "
+                            + result.AlreadyIndexed + " already indexed");
+
+                        anyMatch |= result.Matched > 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Instance.Error("[RVZINDEXER] Error indexing " + system.Key + " : " + ex.Message, ex);
+                        WriteRvzConsole("[" + system.Key + "] ERROR: " + ex.Message);
+                    }
+                }
+
+                if (anyMatch)
+                {
+                    WriteRvzConsole("");
+                    WriteRvzConsole("Start EmulationStation to see the achievement icons.");
+                }
+
+                WriteRvzConsole("Details: emulationstation\\emulatorLauncher.log ([RVZINDEXER] lines)");
+            }
+            finally
+            {
+                WaitForRvzKeyPress();
             }
         }
 
-        private static void IndexRvzSystem(string systemName, int consoleId, string dolphinTool)
+        private static RvzIndexResult IndexRvzSystem(string systemName, int consoleId, string dolphinTool)
         {
             string romPath = Path.Combine(Program.AppConfig.GetFullPath("roms"), systemName);
-            if (!Directory.Exists(romPath))
-                return;
+            string[] rvzFiles = Directory.Exists(romPath) ? Directory.GetFiles(romPath, "*.rvz", SearchOption.AllDirectories) : new string[0];
 
-            var rvzFiles = Directory.GetFiles(romPath, "*.rvz", SearchOption.AllDirectories);
             if (rvzFiles.Length < 1)
-                return;
+            {
+                WriteRvzConsole("[" + systemName + "] No .rvz file found.");
+                return null;
+            }
 
             var hashLib = LoadHashLibrary(consoleId);
             if (hashLib.Count == 0)
             {
                 SimpleLogger.Instance.Info("[RVZINDEXER] Hash library unavailable for " + systemName);
-                return;
+                WriteRvzConsole("[" + systemName + "] ERROR: unable to download the RetroAchievements hash library.");
+                return null;
             }
+
+            var result = new RvzIndexResult { Total = rvzFiles.Length };
 
             string gameListFile = Path.Combine(romPath, "gamelist.xml");
             XDocument doc = File.Exists(gameListFile)
@@ -1307,28 +1348,57 @@ namespace EmulatorLauncher
                     games[p] = g;
             }
 
-            string userPath = Path.Combine(Program.AppConfig.GetFullPath("saves"), systemName, "dolphin-emu", "User");
-            bool modified = false;
+            Func<string, string> relPathOf = f => f.Substring(romPath.Length + 1).Replace('\\', '/');
+
+            // Progress weight: Wii images are fully read by DolphinTool (size), GameCube ones are not (count)
+            bool weightBySize = consoleId == 19;
+            long totalWeight = 0;
+            int hashCount = 0;
 
             foreach (var rvz in rvzFiles)
             {
-                string relPath = rvz.Substring(romPath.Length + 1).Replace('\\', '/');
+                XElement g;
+                games.TryGetValue(relPathOf(rvz), out g);
+
+                if (NeedsDolphinHash(g))
+                {
+                    totalWeight += GetHashWeight(rvz, weightBySize);
+                    hashCount++;
+                }
+            }
+
+            string userPath = Path.Combine(Program.AppConfig.GetFullPath("saves"), systemName, "dolphin-emu", "User");
+            bool modified = false;
+            long doneWeight = 0;
+            int hashIndex = 0;
+
+            foreach (var rvz in rvzFiles)
+            {
+                string relPath = relPathOf(rvz);
 
                 XElement game;
                 games.TryGetValue(relPath, out game);
 
                 if (!string.IsNullOrEmpty(game?.Element("cheevosId")?.Value))
+                {
+                    result.AlreadyIndexed++;
                     continue;
+                }
 
                 // Reuse stored hash to avoid running DolphinTool again (except the empty one from ES)
                 string hash = game?.Element("cheevosHash")?.Value;
-                if (string.IsNullOrEmpty(hash) || hash == EmptyCheevosHash)
+                if (NeedsDolphinHash(game))
                 {
+                    ShowRvzProgress(systemName, ++hashIndex, hashCount, doneWeight, totalWeight, Path.GetFileNameWithoutExtension(rvz));
+
                     SimpleLogger.Instance.Info("[RVZINDEXER] Hashing : " + rvz);
                     hash = GetRvzHash(dolphinTool, rvz, userPath);
+                    doneWeight += GetHashWeight(rvz, weightBySize);
+
                     if (hash == null)
                     {
                         SimpleLogger.Instance.Info("[RVZINDEXER] Failed to hash file : " + rvz);
+                        result.Failed++;
                         continue;
                     }
                 }
@@ -1347,13 +1417,97 @@ namespace EmulatorLauncher
                 {
                     SimpleLogger.Instance.Info("[RVZINDEXER] Match found : " + relPath + " -> ID=" + gameId);
                     modified |= SetOrCreateElement(game, "cheevosId", gameId.ToString());
+                    result.Matched++;
                 }
                 else
+                {
                     SimpleLogger.Instance.Info("[RVZINDEXER] No cheevos match for : " + relPath + " (" + hash + ")");
+                    result.NoMatch++;
+                }
+            }
+
+            if (hashCount > 0)
+            {
+                ShowRvzProgress(systemName, hashCount, hashCount, totalWeight, totalWeight, "done");
+                try { Console.WriteLine(); } catch { }
             }
 
             if (modified)
                 doc.Save(gameListFile);
+
+            return result;
+        }
+
+        private class RvzIndexResult
+        {
+            public int Total;
+            public int AlreadyIndexed;
+            public int Matched;
+            public int NoMatch;
+            public int Failed;
+        }
+
+        private static void WriteRvzConsole(string text)
+        {
+            try { Console.WriteLine(text); } catch { }
+        }
+
+        // Keep the console open until a key is pressed (no-op without console)
+        private static void WaitForRvzKeyPress()
+        {
+            try
+            {
+                // Ignore keys pressed during indexing
+                while (Console.KeyAvailable)
+                    Console.ReadKey(true);
+
+                Console.WriteLine();
+                Console.WriteLine("Press any key to exit...");
+                Console.ReadKey(true);
+            }
+            catch { }
+        }
+
+        private static bool NeedsDolphinHash(XElement game)
+        {
+            if (game == null)
+                return true;
+
+            if (!string.IsNullOrEmpty(game.Element("cheevosId")?.Value))
+                return false;
+
+            string hash = game.Element("cheevosHash")?.Value;
+            return string.IsNullOrEmpty(hash) || hash == EmptyCheevosHash;
+        }
+
+        private static long GetHashWeight(string file, bool bySize)
+        {
+            if (!bySize)
+                return 1;
+
+            try { return Math.Max(1, new FileInfo(file).Length); }
+            catch { return 1; }
+        }
+
+        // Single updated line in the calling console (silently ignored when there is no console)
+        private static void ShowRvzProgress(string systemName, int index, int count, long done, long total, string name)
+        {
+            try
+            {
+                const int barSize = 30;
+                int percent = total > 0 ? (int)(done * 100 / total) : 100;
+                int filled = percent * barSize / 100;
+
+                string line = "[" + systemName + "] [" + new string('#', filled) + new string('-', barSize - filled) + "] "
+                    + percent.ToString().PadLeft(3) + "% " + index + "/" + count + " " + name;
+
+                int width = Console.WindowWidth - 1;
+                if (line.Length > width)
+                    line = line.Substring(0, width);
+
+                Console.Write("\r" + line.PadRight(width));
+            }
+            catch { }
         }
 
         private static string NormalizeGamePath(string path, string romPath)
@@ -1586,8 +1740,13 @@ namespace EmulatorLauncher
     public class Patch
     {
         public string PatchFeature { get; set; }
+        public string FeatureValue { get; set; }            // Feature value enabling the patch, empty = boolean feature
         public string PatchName { get; set; }
         public bool isGecko { get; set; } = false;
+        public string Region { get; set; }                  // 4th character of the game ID (E, J, P, W), empty = all regions
+        public bool CrediarOnly { get; set; } = false;      // Only needed by the dolphin-triforce (Crediar) build
+        public string Default { get; set; }                 // State on AUTO: "all", "crediar", empty = disabled
+        public List<string> Aliases { get; set; } = new List<string>();   // Former patch names, always disabled
         public List<string> Lines { get; set; } = new List<string>();
     }
 
