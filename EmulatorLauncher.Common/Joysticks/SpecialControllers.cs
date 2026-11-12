@@ -261,7 +261,7 @@ namespace EmulatorLauncher.Common.Joysticks
 
             var ret = controllers.FirstOrDefault(c =>
                 string.Equals(c.Emulator, emulator, StringComparison.InvariantCultureIgnoreCase) &&
-                string.Equals(c.Guid, guid, StringComparison.InvariantCultureIgnoreCase));
+                c.Guid.Split(',').Select(g => g.Trim()).Any(g => string.Equals(g, guid, StringComparison.InvariantCultureIgnoreCase)));
             return ret == null ? null : ret;
         }
 

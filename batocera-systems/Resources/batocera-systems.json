@@ -1228,7 +1228,8 @@
     "biosFiles": [
       {
         "md5": "bcfe348c565d9dedb173822ee6850dea",
-        "file": "bios/[BIOS] Atari Jaguar (World).j64"
+        "file": "bios/[BIOS] Atari Jaguar (World).j64",
+        "optional": true
       }
     ]
   },
@@ -1909,12 +1910,44 @@
     ]
   },
 
+  "ps3": {
+    "name": "Playstation 3",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/PS3UPDAT.PUP",
+        "optional": true
+      }
+    ]
+  },
+
   "psx": {
-    "name": "PSX",
+    "name": "Playstation",
     "biosFiles": [
       {
         "md5": "c53ca5908936d412331790f4426c6c33",
-        "file": "bios/psxonpsp660.bin"
+        "file": "bios/psxonpsp660.bin",
+        "group": "psx"
+      },
+      {
+        "md5": "81bbe60ba7a3d1cea1d48c14cbcc647b",
+        "file": "bios/ps1_rom.bin",
+        "group": "psx"
+      },
+      {
+        "md5": "8dd7d5296a650fac7319bce665a6a53c",
+        "file": "bios/scph5500.bin",
+        "group": "psx"
+      },
+      {
+        "md5": "490f666e1afb15b7362b406ed1cea246",
+        "file": "bios/scph5501.bin",
+        "group": "psx"
+      },
+      {
+        "md5": "32736f17079d0b2b7024407c39bd3050",
+        "file": "bios/scph5502.bin",
+        "group": "psx"
       }
     ]
   },
@@ -1980,11 +2013,13 @@
     "biosFiles": [
       {
         "md5": "5626206284b22c2734f3e9efefcd2675",
-        "file": "bios/scummvm/extra/MT32_CONTROL.ROM"
+        "file": "bios/scummvm/extra/MT32_CONTROL.ROM",
+        "optional": true
       },
       {
         "md5": "89e42e386e82e0cacb4a2704a03706ca",
-        "file": "bios/scummvm/extra/MT32_PCM.ROM"
+        "file": "bios/scummvm/extra/MT32_PCM.ROM",
+        "optional": true
       }
     ]
   },

@@ -535,7 +535,7 @@ namespace EmulatorLauncher
                 if (gcGamepad.ControllerInfo != null)
                 {
                     if (gcGamepad.ControllerInfo.ContainsKey("needActivationSwitch") && gcGamepad.ControllerInfo["needActivationSwitch"] == "true")
-                        needGCActivationSwitch = gcGamepad.ControllerInfo["needActivationSwitch"] == "true";
+                        needGCActivationSwitch = true;
 
                     if (needGCActivationSwitch && !gc_pad)
                     {
@@ -575,7 +575,7 @@ namespace EmulatorLauncher
                     foreach (var button in gcGamepad.Mapping)
                         ini.WriteValue(gcpad, button.Key, button.Value);
 
-                    if (gcpad.EndsWith("1"))
+                    if (gcpad.EndsWith("1") && gcGamepad.HotKeyMapping != null)
                     {
                         specialHK = gcGamepad.HotKeyMapping;
                         specialHK.Add("Device", device);

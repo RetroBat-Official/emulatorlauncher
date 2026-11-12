@@ -132,6 +132,10 @@ namespace EmulatorLauncher
                 }
             }
 
+            // Without a game mapping, 8alternative shares the 6 buttons default (same as lr-mame default_8alternative)
+            if (_gameLayout == null && layout == "8alternative")
+                layout = "6alternative";
+
             // Delete existing config file if any
             string inputConfig = Path.Combine(path, "retrobat_auto.cfg");
             if (File.Exists(inputConfig))

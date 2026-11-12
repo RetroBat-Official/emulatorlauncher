@@ -858,7 +858,7 @@ namespace EmulatorLauncher
                 var backupSystem = backupDoc.Root?.Element("system");
                 if (liveSystem == null || backupSystem == null)
                 {
-                    // Structure inattendue : on retombe sur l'ancien comportement (restore complet)
+                    // Unexpected structure: fall back to a full restore
                     File.Copy(backupFile, liveFile, true);
                     return;
                 }
@@ -870,7 +870,7 @@ namespace EmulatorLauncher
             }
             catch
             {
-                // Filet de sécurité : ne jamais laisser le fichier à moitié écrit
+                // Safety net: never leave a half-written file
                 try { File.Copy(backupFile, liveFile, true); } catch { }
             }
         }
