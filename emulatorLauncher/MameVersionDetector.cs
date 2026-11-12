@@ -50,10 +50,12 @@ namespace EmulatorLauncher
                 if (game == null)
                     return new CompatibleCore[] { };
 
-                if (!string.IsNullOrEmpty(game.CoreList))
-                    return game.Cores.Select(c => new CompatibleCore() { Name = c, Match = RomSetMatch.Exact}).ToArray(); 
-
                 HashSet<string> cores = supportedCores == null ? null : new HashSet<string>(supportedCores.Select(c => c.Replace("_", "-")));
+
+                // Same romset for all the cores of the list: no CRC to check, keep only the cores supported by the system
+                if (!string.IsNullOrEmpty(game.CoreList))
+                    return game.Cores.Where(c => cores == null || cores.Contains(c)).Select(c => new CompatibleCore() { Name = c, Match = RomSetMatch.Exact }).ToArray();
+                
                 var ret = new List<CompatibleCore>();
 
                 using (var zip = Zip.Open(rom))

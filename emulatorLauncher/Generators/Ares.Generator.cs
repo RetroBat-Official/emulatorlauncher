@@ -25,7 +25,7 @@ namespace EmulatorLauncher
         private bool _pad2Keyoverride = false;
         static List<string> _mdSystems = new List<string>() { "genesis", "megadrive", "mega32x", "megacd", "segacd", "sega32x" };
         static List<string> _n64Systems = new List<string>() { "n64", "n64dd" };
-        static List<string> _m3uSystems = new List<string>() { "PCEngineCD" };
+        static List<string> _m3uSystems = new List<string>() { "PCEngineCD", "MegaCD", "MegaCD32X" };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -82,7 +82,7 @@ namespace EmulatorLauncher
             // m3u management in some cases
             if (Path.GetExtension(rom).ToLower() == ".m3u")
             {
-                if (_m3uSystems.Contains(aresSystem))
+                if (_m3uSystems.Contains(core))
                 {
                     string tempRom = File.ReadLines(rom).FirstOrDefault();
                     if (File.Exists(tempRom))

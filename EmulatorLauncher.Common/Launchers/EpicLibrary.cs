@@ -20,58 +20,33 @@ namespace EmulatorLauncher.Common.Launchers
 
         public static string GetEpicGameExecutableName(Uri uri)
         {
-            string shorturl = Regex.Replace(uri.LocalPath, @"[^a-zA-Z0-9]", "");
+            if (GetMetadataPath() == null)
+                throw new ApplicationException("There is a problem: Epic Launcher is not installed");
 
-            var modSdkMetadataDir = GetMetadataPath();
-            if (modSdkMetadataDir != null)
+            // URL is apps/<AppName> or apps/<Namespace>:<CatalogItemId>:<AppName>
+            string urlPath = Uri.UnescapeDataString(uri.LocalPath);
+            string appName = urlPath.Split(new char[] { '/', ':' }, StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
+            string shorturl = Regex.Replace(urlPath, @"[^a-zA-Z0-9]", "");
+
+            var manifests = GetInstalledManifests()
+                .Where(m => !string.IsNullOrEmpty(m.AppName) && !string.IsNullOrEmpty(m.LaunchExecutable))
+                .ToList();
+
+            // Exact match on the application name
+            var game = manifests.FirstOrDefault(m => m.AppName.Equals(appName, StringComparison.OrdinalIgnoreCase));
+
+            // Else wider search, DLC manifests excluded (they are linked to the main game but are not the game)
+            if (game == null)
             {
-                string manifestPath = modSdkMetadataDir.ToString();
-
-                string gameExecutable = null;
-
-                if (Directory.Exists(manifestPath))
-                {
-                    
-                    foreach (var manifest in GetInstalledManifests())
-                    {
-                        string searchstring = manifest.CatalogNamespace + manifest.CatalogItemId + manifest.AppName;
-                        string Mainsearchstring = manifest.CatalogNamespace + manifest.CatalogItemId + manifest.AppName;
-
-                        if (!string.IsNullOrEmpty(searchstring) && shorturl.Equals(searchstring))
-                        {
-                            gameExecutable = manifest.LaunchExecutable;
-                            break;
-                        }
-                        else if (shorturl.StartsWith(manifest.CatalogNamespace) && shorturl.EndsWith(manifest.AppName))
-                        {
-                            gameExecutable = manifest.LaunchExecutable;
-                            break;
-                        }
-                        else if (shorturl.EndsWith(manifest.AppName))
-                        {
-                            gameExecutable = manifest.LaunchExecutable;
-                            break;
-                        }
-                        else if (!string.IsNullOrEmpty(searchstring) && shorturl.Equals(Mainsearchstring))
-                        {
-                            gameExecutable = manifest.LaunchExecutable;
-                            break;
-                        }
-                        else if (shorturl.EndsWith(manifest.MainGameAppName))
-                        {
-                            gameExecutable = manifest.LaunchExecutable;
-                            break;
-                        }
-                    }
-                }
-
-                if (gameExecutable == null)
-                    throw new ApplicationException("There is a problem: The Game is not installed");
-
-                return Path.GetFileNameWithoutExtension(gameExecutable);
+                game = manifests
+                    .Where(m => string.IsNullOrEmpty(m.MainGameAppName) || m.MainGameAppName == m.AppName)
+                    .FirstOrDefault(m => shorturl.EndsWith(Regex.Replace(m.AppName, @"[^a-zA-Z0-9]", ""), StringComparison.OrdinalIgnoreCase));
             }
 
-            throw new ApplicationException("There is a problem: Epic Launcher is not installed");
+            if (game == null)
+                throw new ApplicationException("There is a problem: The Game is not installed");
+
+            return Path.GetFileNameWithoutExtension(game.LaunchExecutable);
         }
 
         public static LauncherGameInfo[] GetInstalledGames()

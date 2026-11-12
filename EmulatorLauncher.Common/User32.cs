@@ -329,8 +329,11 @@ namespace EmulatorLauncher.Common
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle, uint processId);
 
-        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]        
+        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
         public static extern bool CloseHandle(IntPtr hObject);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool QueryFullProcessImageName(IntPtr hProcess, int dwFlags, StringBuilder lpExeName, ref int lpdwSize);
 
         [DllImport("ntdll.dll", SetLastError = false)]
         public static extern IntPtr NtSuspendProcess(IntPtr processHandle);

@@ -1527,7 +1527,7 @@ namespace EmulatorLauncher.Libretro
 
             //  Auto Select Model
             if (system == "gx4000")
-                coreSettings["cap32_model"] = "6128+ (experimental)";
+                coreSettings["cap32_model"] = "6128+";
             else
                 BindFeature(coreSettings, "cap32_model", "cap32_model", "6128");
 
@@ -1913,77 +1913,6 @@ namespace EmulatorLauncher.Libretro
             return found;
         }
 
-        private void ApplyDolphinPatches(IniFile ini, string gameID)
-        {
-            string patchFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "triforce_patches.json");
-
-            if (!File.Exists(patchFile))
-                return;
-
-            try
-            {
-                string jsonText = File.ReadAllText(patchFile);
-                List<GamePatches> games = JsonConvert.DeserializeObject<List<GamePatches>>(jsonText);
-
-                var game = games.FirstOrDefault(g => g.GameId.Split(',').Any(id => id.Trim().Equals(gameID, StringComparison.OrdinalIgnoreCase)));
-                if (game == null)
-                {
-                    game = games.FirstOrDefault(g => g.GameIdCrediar.Split(',').Any(id => id.Trim().Equals(gameID, StringComparison.OrdinalIgnoreCase)));
-                }
-
-                if (game == null)
-                    return;
-
-                var patches = game.Patches;
-
-                if (patches == null || patches.Count == 0)
-                    return;
-
-                foreach (var patch in patches)
-                {
-                    if (patch.Lines.Count == 0)
-                        continue;
-
-                    if (string.IsNullOrEmpty(patch.PatchName) || string.IsNullOrEmpty(patch.PatchFeature))
-                        continue;
-
-                    string featureName = patch.PatchFeature;
-                    string patchSection = patch.isGecko ? "Gecko" : "OnFrame";
-                    string enableSection = patch.isGecko ? "Gecko_Enabled" : "OnFrame_Enabled";
-
-                    // Add patch to file if it does not exist
-                    if (!ini.EnumerateKeys(patchSection).Contains(patch.PatchName, StringComparer.InvariantCultureIgnoreCase))
-                    {
-                        ini.AppendRawLine(patchSection, patch.PatchName);
-                        foreach (var line in patch.Lines)
-                        {
-                            ini.AppendRawLine(patchSection, line);
-                        }
-                    }
-
-                    // Disable patch if not enabled in features
-                    if ((SystemConfig.isOptSet(featureName) && !SystemConfig.getOptBoolean(featureName)) || !SystemConfig.isOptSet(featureName))
-                    {
-                        ini.Remove(enableSection, patch.PatchName);
-                        SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} has been disabled for game {gameID}");
-                    }
-                    else if (SystemConfig.getOptBoolean(featureName))
-                    {
-                        var keys = ini.EnumerateKeys(enableSection);
-
-                        if (!keys.Contains(patch.PatchName))
-                        {
-                            ini.AppendRawLine(enableSection, patch.PatchName);
-                            SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} has been enabled for game {gameID}");
-                        }
-                        else
-                            SimpleLogger.Instance.Info($"[INFO] Patch {patch.PatchName} already enabled for game {gameID}");
-                    }
-                }
-            }
-            catch { SimpleLogger.Instance.Error($"[ERROR] Failed to load patch file : {gameID}"); }
-        }
-
         private void ConfigureDolphin(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "dolphin")
@@ -2082,7 +2011,7 @@ namespace EmulatorLauncher.Libretro
 
                 using (var ini = new IniFile(gameIniFile, IniOptions.UseSpaces | IniOptions.AllowRawLines))
                 {
-                    ApplyDolphinPatches(ini, Path.GetFileNameWithoutExtension(gameIniFile));
+                    DolphinGenerator.ApplyTriforcePatches(ini, gameID, false);
                 }
             }
 
@@ -5770,18 +5699,26 @@ namespace EmulatorLauncher.Libretro
             // System options
             BindFeature(coreSettings, "puae_model", "model", "auto");
 
-            // 'Automatic' model: default machine per media type, matching the system
-            string modelFloppy = "A500", modelHd = "A1200", modelCd = "CD32";
-            if (system == "amiga1200")
-                modelFloppy = "A1200";
-            else if (system == "amiga4000")
-                modelFloppy = modelHd = "A4040";
-            else if (system == "amigacdtv")
-                modelCd = "CDTV";
+            // "auto" picks the machine by media type (floppy, hard drive, CD) unless the path contains a tag:
+            // force the matching machine for each system (shared core options file, so always written)
+            switch (system)
+            {
+                case "amiga1200":
+                    coreSettings["puae_model_fd"] = "A1200OG";
+                    coreSettings["puae_model_hd"] = "A1200";
+                    break;
+                case "amiga4000":
+                    coreSettings["puae_model_fd"] = "A4040";
+                    coreSettings["puae_model_hd"] = "A4040";
+                    break;
+                default:
+                    coreSettings["puae_model_fd"] = "A500";
+                    coreSettings["puae_model_hd"] = "A1200";
+                    break;
+            }
 
-            coreSettings["puae_model_fd"] = modelFloppy;
-            coreSettings["puae_model_hd"] = modelHd;
-            coreSettings["puae_model_cd"] = modelCd;
+            // CDs boot as CD32 unless told otherwise
+            coreSettings["puae_model_cd"] = system == "amigacdtv" ? "CDTV" : "CD32";
 
             BindFeature(coreSettings, "puae_cpu_compatibility", "cpu_compatibility", "exact");
             BindFeature(coreSettings, "puae_cpu_multiplier", "cpu_multiplier", "0");

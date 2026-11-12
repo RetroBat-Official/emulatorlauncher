@@ -1,8 +1,4 @@
-﻿// Used to get user specific remap files from inputmapping yml file
-// Used to managed Retroarch remaps and align controls between several cores (Retrobat default remaps)
-// Used for options to invert buttons, etc.
-
-using EmulatorLauncher.Common;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
 using EmulatorLauncher.Common.FileFormats;
 using Newtonsoft.Json;
@@ -359,7 +355,10 @@ namespace EmulatorLauncher.Libretro
                 #endregion
 
                 #region megadrive
-                if (systemMegadrive.Contains(system) && !megadrive3ButtonsList.Contains(Program.SystemConfig["genesis_plus_gx_controller"]))
+                // 3 button pads keep the default layout (GPGX controller type, PicoDrive 3 button option)
+                bool md3Buttons = core == "picodrive" ? Program.SystemConfig.getOptBoolean("md_3buttons") : megadrive3ButtonsList.Contains(Program.SystemConfig["genesis_plus_gx_controller"]);
+
+                if (systemMegadrive.Contains(system) && !md3Buttons)
                 {
                     switch (core)
                     {
@@ -846,7 +845,104 @@ namespace EmulatorLauncher.Libretro
             if (core == null || system == null || romName == null || mameAuto)
                 return false;
 
-            YmlContainer game = null;
+            // mame2003_plus shares lr-mame mapping file, only when the core controller types are left on auto (RetroPad)
+            bool mame2003plus = core == "mame2003_plus";
+            if (mame2003plus && (!string.IsNullOrEmpty(Program.SystemConfig["mame_controller1"]) || !string.IsNullOrEmpty(Program.SystemConfig["mame_controller2"])))
+                return false;
+
+            // Mapping files by priority: mame2003_plus own file only holds exceptions, other games are read from lr-mame file
+            YmlFile lrMameFile = mame2003plus ? LoadCoreMappingFile("mame", system) : null;
+
+            var ymlFiles = new List<YmlFile>() { LoadCoreMappingFile(core, system) };
+            if (lrMameFile != null)
+                ymlFiles.Add(lrMameFile);
+
+            string controLayout = GetMameControllerLayout();
+
+            // Loop through yml elements, example for mame sf2 with modern8 layout:
+            // 1) sf2_modern8
+            // 2) sf2
+            // 3) parent set (cloneof in arcaderoms.xml): <parent>_modern8, then <parent>
+            // 4) default_modern8
+            // 5) default
+            YmlFile source;
+            YmlContainer game = FindGameMapping(ymlFiles, romName, controLayout, out source);
+
+            // Clone without its own entry: use the parent set entry (arcade cores only)
+            if (game == null && (core == "mame" || mame2003plus || mameArcade.Contains(system) || system == "naomi" || system == "naomi2" || system == "atomiswave"))
+                game = FindGameMapping(ymlFiles, GetMameParentRom(romName), controLayout, out source);
+
+            // "use: default" entry (mame2003_plus exceptions): no per-game mapping for this game
+            if (game != null && game["use"] == "default")
+                game = null;
+
+            string orgdefsearch = "default";
+            string defsearch = null;
+
+            // search default only for arcade systems, not for all MESS systems
+            if (messSystem != null && messSystem.Name != null && !mameArcade.Contains(messSystem.Name))
+                orgdefsearch = messSystem.Name;
+
+            if (!string.IsNullOrEmpty(controLayout))
+                defsearch = orgdefsearch + "_" + controLayout;
+
+            // Default entries are read from the last file (lr-mame file for mame2003_plus)
+            if (game == null)
+            {
+                source = ymlFiles.Last();
+
+                if (!string.IsNullOrEmpty(defsearch))
+                    game = source.Elements.Where(c => c.Name == defsearch).FirstOrDefault() as YmlContainer;
+
+                if (game == null)
+                    game = source.Elements.Where(c => c.Name == orgdefsearch).FirstOrDefault() as YmlContainer;
+            }
+
+            if (game == null)
+                return false;
+
+            // lr-mame reads buttons 7 and 8 on L3/R3 (14, 15), mame2003_plus reads them on L2/R2 (12, 13)
+            bool lrMameEntry = mame2003plus && source == lrMameFile;
+
+            var buttonMap = new Dictionary<string, string>();
+
+            foreach (var buttonEntry in game.Elements)
+            {
+                var button = buttonEntry as YmlElement;
+                if (button == null)
+                    continue;
+
+                string value = button.Value;
+
+                if (lrMameEntry && button.Name.StartsWith("btn_"))
+                {
+                    if (value == "14")
+                        value = "12";
+                    else if (value == "15")
+                        value = "13";
+                }
+
+                buttonMap.Add(button.Name, value);
+            }
+
+            if (buttonMap.Count == 0)
+                return false;
+
+            for (int i = 1; i <= _playerCount; i++)
+            {
+                foreach (var button in buttonMap)
+                    inputremap["input_player" + i + "_" + button.Key] = button.Value;
+                
+            }
+            _gameRemapName = romName;
+            SimpleLogger.Instance.Info("[CORE REMAP] Generated controller configuration based on inputmapping file.");
+
+            return true;
+        }
+
+        // First existing mapping file of a core (user folder, then RetroBat), empty if there is none
+        private static YmlFile LoadCoreMappingFile(string core, string system)
+        {
             string coreMapping = null;
 
             foreach (var path in mappingPaths)
@@ -863,98 +959,30 @@ namespace EmulatorLauncher.Libretro
                     break;
             }
 
-            if (coreMapping == null)
-                return false;
+            return YmlFile.Load(coreMapping);
+        }
 
-            YmlFile ymlFile = YmlFile.Load(coreMapping);
+        // Entry of a game for the selected layout (<name>_<layout>, else <name>), from the first file that knows the game
+        private static YmlContainer FindGameMapping(List<YmlFile> ymlFiles, string name, string layout, out YmlFile source)
+        {
+            source = null;
 
-            if (ymlFile == null)
-                return false;
+            if (string.IsNullOrEmpty(name))
+                return null;
 
-            string controLayout = "";
-            if (Program.SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))
-                controLayout = Program.SystemConfig["controller_layout"];
-            if (controLayout == "classic8")
-                controLayout = "6alternative";
-
-            string searchYml = romName;
-
-            // Loop through yml elements, example for mame sf2 with modern8 layout:
-            // 1) sf2_modern8
-            // 2) sf2
-            // 3) parent set (cloneof in arcaderoms.xml): <parent>_modern8, then <parent>
-            // 4) default_modern8
-            // 5) default
-            YmlContainer gameLayout = null;
-            game = ymlFile.Elements.Where(c => c.Name == searchYml).FirstOrDefault() as YmlContainer;
-            if (game != null)
+            foreach (YmlFile ymlFile in ymlFiles)
             {
-                string searchYmlLayout = searchYml + "_" + controLayout;
-                gameLayout = ymlFile.Elements.Where(c => c.Name == searchYmlLayout).FirstOrDefault() as YmlContainer;
-                if (gameLayout != null)
-                    game = gameLayout;
+                var game = ymlFile.Elements.Where(c => c.Name == name).FirstOrDefault() as YmlContainer;
+                if (game == null)
+                    continue;
+
+                source = ymlFile;
+
+                var gameLayout = ymlFile.Elements.Where(c => c.Name == name + "_" + layout).FirstOrDefault() as YmlContainer;
+                return gameLayout ?? game;
             }
 
-            // Clone without its own entry: use the parent set entry (arcade cores only)
-            if (game == null && (core == "mame" || mameArcade.Contains(system) || system == "naomi" || system == "naomi2" || system == "atomiswave"))
-            {
-                string parent = GetMameParentRom(romName);
-                if (!string.IsNullOrEmpty(parent))
-                {
-                    game = ymlFile.Elements.Where(c => c.Name == parent).FirstOrDefault() as YmlContainer;
-                    if (game != null)
-                    {
-                        string searchYmlLayout = parent + "_" + controLayout;
-                        gameLayout = ymlFile.Elements.Where(c => c.Name == searchYmlLayout).FirstOrDefault() as YmlContainer;
-                        if (gameLayout != null)
-                            game = gameLayout;
-                    }
-                }
-            }
-
-            string orgdefsearch = "default";
-            string defsearch = null;
-
-            // search default only for arcade systems, not for all MESS systems
-            if (messSystem != null && messSystem.Name != null && !mameArcade.Contains(messSystem.Name))
-                orgdefsearch = messSystem.Name;
-
-            if (!string.IsNullOrEmpty(controLayout))
-                defsearch = orgdefsearch + "_" + controLayout;
-
-            if (game == null && !string.IsNullOrEmpty(defsearch))
-                game = ymlFile.Elements.Where(c => c.Name == defsearch).FirstOrDefault() as YmlContainer;
-
-            if (game == null)
-                game = ymlFile.Elements.Where(c => c.Name == orgdefsearch).FirstOrDefault() as YmlContainer;
-
-            if (game == null)
-                return false;
-
-            var buttonMap = new Dictionary<string, string>();
-
-            foreach (var buttonEntry in game.Elements)
-            {
-                var button = buttonEntry as YmlElement;
-                if (button != null)
-                {
-                    buttonMap.Add(button.Name, button.Value);
-                }
-            }
-
-            if (buttonMap.Count == 0)
-                return false;
-
-            for (int i = 1; i <= _playerCount; i++)
-            {
-                foreach (var button in buttonMap)
-                    inputremap["input_player" + i + "_" + button.Key] = button.Value;
-                
-            }
-            _gameRemapName = romName;
-            SimpleLogger.Instance.Info("[CORE REMAP] Generated controller configuration based on inputmapping file.");
-
-            return true;
+            return null;
         }
 
         private void CreateInputRemap(string cleanSystemName, Action<ConfigFile> createRemap)

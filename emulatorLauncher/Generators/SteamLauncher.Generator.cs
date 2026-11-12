@@ -11,24 +11,30 @@ namespace EmulatorLauncher
 {
     partial class ExeLauncherGenerator : Generator
     {
-        
+
         class SteamGameLauncher : GameLauncher
         {
             private string _steamID;
             private Uri _uri;
+            private bool _isSteamApp;       // false for non-Steam shortcuts : unknown in appinfo.vdf and in Steam registry
 
             public SteamGameLauncher(Uri uri)
             {
-                string gameName = Path.GetFileNameWithoutExtension(Program.SystemConfig["rom"]);
-                // Call method to get Steam executable
                 _uri = uri;
+                LauncherExe = GetGameExecutableName();
+            }
+
+            private string GetGameExecutableName()
+            {
                 string steamInternalDBPath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "steamexecutables.json");
-                LauncherExe = SteamLibrary.GetSteamGameExecutableName(uri, steamInternalDBPath, gameName, out _steamID);
+                string exe = SteamLibrary.GetSteamGameExecutableName(_uri, steamInternalDBPath, out _steamID);
+
+                _isSteamApp = _steamID.ToInteger() > 0;
+                return exe;
             }
 
             public override int RunAndWait(System.Diagnostics.ProcessStartInfo path)
             {
-                string gameName = Path.GetFileNameWithoutExtension(path.FileName);
                 // Check if steam is already running
                 bool uiExists = Process.GetProcessesByName("steam").Any();
                 if (uiExists)
@@ -36,7 +42,7 @@ namespace EmulatorLauncher
                 else
                     SimpleLogger.Instance.Info("[INFO] Steam not yet running.");
 
-                if (!IsGameInstalled())
+                if (_isSteamApp && !IsGameInstalled())
                 {
                     SimpleLogger.Instance.Info("[INFO] Game is not installed. Triggering installation.");
 
@@ -53,8 +59,7 @@ namespace EmulatorLauncher
                     if (MonitorGameInstallation())
                     {
                         // Re-check for executable now that it's installed
-                        string steamInternalDBPath = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "tools", "steamexecutables.json");
-                        LauncherExe = SteamLibrary.GetSteamGameExecutableName(_uri, steamInternalDBPath, gameName, out _steamID);
+                        LauncherExe = GetGameExecutableName();
                     }
                     else
                     {
@@ -72,49 +77,55 @@ namespace EmulatorLauncher
 
                     // Kill game if already running
                     KillExistingLauncherExes();
+                }
 
-                    // Start game
-                    Process.Start(path);
+                // Start game
+                Process.Start(path);
 
-                    // Get running game process (30 seconds delay 30x1000)
-                    var steamGame = GetLauncherExeProcess();
+                bool monitored = false;
 
-                    if (steamGame != null)
-                    {
-                        Job.Current.AddProcess(steamGame);
-                        steamGame.WaitForExit();
-                        SimpleLogger.Instance.Info("[INFO] Steam game closed : " + LauncherExe);
-
-                        // Kill steam if it was not running previously or if option is set in RetroBat
-                        KillSteam(uiExists);
-                    }
-                    return 0;
+                // First method : wait for the game executable (30 seconds by default)
+                var steamGame = LauncherExe != null ? GetLauncherExeProcess() : null;
+                if (steamGame != null)
+                {
+                    AttachGameProcess(steamGame);
+                    steamGame.WaitForExit();
+                    SimpleLogger.Instance.Info("[INFO] Steam game closed : " + LauncherExe);
+                    monitored = true;
                 }
                 else
                 {
-                    // Start game
-                    Process.Start(path);
+                    if (LauncherExe != null)
+                        SimpleLogger.Instance.Info("[INFO] Process " + LauncherExe + " not found, checking in Steam registry if the game is running.");
 
-                    if (MonitorGameByRegistry(uiExists))
-                        return 0;
+                    // Second method : Steam flags the running games in the registry
+                    // When the executable has already been waited for, the game should be flagged already
+                    monitored = MonitorGameByRegistry(LauncherExe != null ? 5 : 60);
 
-                    SimpleLogger.Instance.Info("[INFO] Registry monitoring failed. Falling back to window focus detection.");
-                    var gameProcess = FindGameProcessByWindowFocus();
-                    if (gameProcess != null)
+                    // Third method, only when the executable is unknown : fullscreen window in foreground
+                    if (!monitored && LauncherExe == null)
                     {
-                        SimpleLogger.Instance.Info("[INFO] Game process '" + gameProcess.ProcessName + "' identified by window focus. Monitoring process.");
-                        Job.Current.AddProcess(gameProcess);
-                        gameProcess.WaitForExit();
-                        SimpleLogger.Instance.Info("[INFO] Game process has exited.");
-
-                        // Kill steam if it was not running previously or if option is set in RetroBat
-                        KillSteam(uiExists);
+                        SimpleLogger.Instance.Info("[INFO] Registry monitoring failed. Falling back to window focus detection.");
+                        var gameProcess = FindGameProcessByWindowFocus();
+                        if (gameProcess != null)
+                        {
+                            SimpleLogger.Instance.Info("[INFO] Game process '" + gameProcess.ProcessName + "' identified by window focus. Monitoring process.");
+                            AttachGameProcess(gameProcess);
+                            gameProcess.WaitForExit();
+                            SimpleLogger.Instance.Info("[INFO] Game process has exited.");
+                            monitored = true;
+                        }
                     }
-                    else
-                        SimpleLogger.Instance.Info("[INFO] All fallback methods failed. Unable to monitor game process.");
 
-                    return 0;
+                    if (!monitored)
+                        SimpleLogger.Instance.Info("[INFO] Unable to monitor game process.");
                 }
+
+                // Kill steam if it was not running previously or if option is set in RetroBat
+                if (monitored)
+                    KillSteam(uiExists);
+
+                return 0;
             }
 
             private void KillSteam(bool uiExists)
@@ -150,63 +161,106 @@ namespace EmulatorLauncher
                 }
             }
 
-            private bool MonitorGameByRegistry(bool uiExists = false)
+            private bool IsGameRunningInRegistry()
             {
-                if (string.IsNullOrEmpty(_steamID))
+                try
+                {
+                    using (var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Valve\\Steam\\Apps\\" + _steamID))
+                    {
+                        if (key == null)
+                            return false;
+
+                        var running = key.GetValue("Running");
+                        return running is int && (int)running == 1;
+                    }
+                }
+                catch { return false; }
+            }
+
+            /// <summary>
+            /// Wait for the game to start and to exit, based on the 'Running' flag set by Steam in the registry
+            /// </summary>
+            /// <param name="startTimeout">Seconds to wait for the game to be flagged as running</param>
+            private bool MonitorGameByRegistry(int startTimeout)
+            {
+                if (!_isSteamApp)
                     return false;
 
                 SimpleLogger.Instance.Info("[INFO] Monitoring registry for game start (AppID: " + _steamID + ").");
 
-                // Wait for the game to be marked as running, with a 60-second timeout
+                // Wait for the game to be marked as running
                 bool gameStarted = false;
-                for (int i = 0; i < 60; i++)
+                for (int i = 0; i <= startTimeout; i++)
                 {
-                    try
+                    if (IsGameRunningInRegistry())
                     {
-                        using (var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Valve\\Steam\\Apps\\" + _steamID))
-                        {
-                            if (key != null && key.GetValue("Running") != null && (int)key.GetValue("Running") == 1)
-                            {
-                                gameStarted = true;
-                                break;
-                            }
-                        }
+                        gameStarted = true;
+                        break;
                     }
-                    catch { }
                     System.Threading.Thread.Sleep(1000);
                 }
 
                 if (!gameStarted)
                 {
                     SimpleLogger.Instance.Info("[INFO] Timeout: Game did not appear as 'Running' in the registry.");
-                    // Kill steam if it was not running previously or if option is set in RetroBat
-                    KillSteam(uiExists);
                     return false;
                 }
 
                 SimpleLogger.Instance.Info("[INFO] Game detected as running. Monitoring registry for exit.");
 
-                // Wait for the game to exit
-                while (true)
+                string gameFolder = GetGameFolder();
+                bool processSeen = false;
+                int secondsWithoutProcess = 0;
+
+                // Wait for the game to exit (only Steam resets the flag : stop waiting if Steam is closed)
+                while (IsGameRunningInRegistry() && Process.GetProcessesByName("steam").Any())
                 {
-                    try
+                    // Safety : Steam may keep the flag while the game is closed (third party launcher left open...)
+                    // Stop waiting when the processes of the game folder have been seen and are gone for 10 seconds
+                    if (gameFolder != null)
                     {
-                        using (var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Valve\\Steam\\Apps\\" + _steamID))
+                        if (IsGameProcessRunning(gameFolder))
                         {
-                            if (key == null || (key.GetValue("Running") != null && (int)key.GetValue("Running") == 0))
-                                break;
+                            processSeen = true;
+                            secondsWithoutProcess = 0;
+                        }
+                        else if (processSeen && ++secondsWithoutProcess >= 10)
+                        {
+                            SimpleLogger.Instance.Info("[INFO] No more process running from the game folder, stop waiting for Steam.");
+                            break;
                         }
                     }
-                    catch { }
+
                     System.Threading.Thread.Sleep(1000);
                 }
 
                 SimpleLogger.Instance.Info("[INFO] Game has exited.");
-
-                // Kill steam if it was not running previously or if option is set in RetroBat
-                KillSteam(uiExists);
-
                 return true;
+            }
+
+            /// <summary>
+            /// Game folder with a trailing backslash, null if unknown
+            /// </summary>
+            private string GetGameFolder()
+            {
+                try
+                {
+                    string installDir = SteamLibrary.GetGameInstallDirectory(_steamID.ToInteger());
+                    if (!string.IsNullOrEmpty(installDir))
+                        return Path.GetFullPath(installDir).TrimEnd('\\') + "\\";
+                }
+                catch { }
+
+                return null;
+            }
+
+            private static bool IsGameProcessRunning(string gameFolder)
+            {
+                return Process.GetProcesses().Any(p =>
+                {
+                    string exePath = p.GetProcessPath();
+                    return exePath != null && exePath.StartsWith(gameFolder, StringComparison.OrdinalIgnoreCase);
+                });
             }
 
             private bool IsGameInstalled()

@@ -70,6 +70,8 @@ namespace EmulatorLauncher
                 Id = "A500", Chipset = "ocs", ChipsetCompatible = "A500",
                 CpuModel = 68000, ChipMem = 1, BogoMem = 2, Floppies = 1,
                 Kickstart = new[] { "kick34005.A500", "kick34005.A500.rom", "amiga-os-130.rom",
+                    "Kickstart v1.3 r34.005 (1987-12)(Commodore)(A500-A1000-A2000-CDTV)[!].rom",
+                    "Kickstart v1.3 r34.005 (1987-12)(Commodore)(A500-A1000-A2000-CDTV)[o].rom",
                     "Kickstart v1.3 rev 34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[!].rom",
                     "Kickstart v1.3 rev 34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV).rom" } } },
 
@@ -99,6 +101,8 @@ namespace EmulatorLauncher
                 CpuModel = 68020, ChipMem = 4, BogoMem = 0, FastMem = 0, Floppies = 1,
                 Address24Bit = true, CpuSpeed = "real",
                 Kickstart = new[] { "kick40068.A1200", "kick40068.A1200.rom", "amiga-os-310-a1200.rom",
+                    "Kickstart v3.1 r40.068 (1993-12)(Commodore)(A1200)[!].rom",
+                    "Kickstart - 391774-01 (USA, Europe) (v3.1 Rev 40.068) (A1200).rom",
                     "Kickstart v3.1 rev 40.68 (1993)(Commodore)(A1200)[!].rom",
                     "Kickstart v3.1 rev 40.68 (1993)(Commodore)(A1200).rom" } } },
 
@@ -107,6 +111,8 @@ namespace EmulatorLauncher
                 CpuModel = 68020, ChipMem = 4, BogoMem = 0, FastMem = 8, Floppies = 1,
                 Address24Bit = true, CpuSpeed = "real",
                 Kickstart = new[] { "kick40068.A1200", "kick40068.A1200.rom", "amiga-os-310-a1200.rom",
+                    "Kickstart v3.1 r40.068 (1993-12)(Commodore)(A1200)[!].rom",
+                    "Kickstart - 391774-01 (USA, Europe) (v3.1 Rev 40.068) (A1200).rom",
                     "Kickstart v3.1 rev 40.68 (1993)(Commodore)(A1200)[!].rom",
                     "Kickstart v3.1 rev 40.68 (1993)(Commodore)(A1200).rom" } } },
 
@@ -116,6 +122,7 @@ namespace EmulatorLauncher
                 ChipMem = 4, BogoMem = 0, MotherboardMem = 8, JitCache = 16384,
                 Address24Bit = false, Floppies = 1,
                 Kickstart = new[] { "kick40068.A4000", "kick40068.A4000.rom", "amiga-os-310-a4000.rom",
+                    "Kickstart v3.1 r40.068 (1993-12)(Commodore)(A4000)[!].rom",
                     "Kickstart v3.1 rev 40.68 (1993)(Commodore)(A4000).rom" } } },
 
             { "A4040", new AmigaModel {
@@ -124,6 +131,7 @@ namespace EmulatorLauncher
                 ChipMem = 4, BogoMem = 0, MotherboardMem = 8, JitCache = 16384,
                 Address24Bit = false, Floppies = 1,
                 Kickstart = new[] { "kick40068.A4000", "kick40068.A4000.rom", "amiga-os-310-a4000.rom",
+                    "Kickstart v3.1 r40.068 (1993-12)(Commodore)(A4000)[!].rom",
                     "Kickstart v3.1 rev 40.68 (1993)(Commodore)(A4000).rom" } } },
 
             { "CD32", new AmigaModel {
@@ -131,8 +139,11 @@ namespace EmulatorLauncher
                 CpuModel = 68020, ChipMem = 4, BogoMem = 0, Floppies = 0,
                 Address24Bit = true, IsCd = true, IsCd32 = true,
                 Kickstart = new[] { "kick40060.CD32", "kick40060.CD32.rom", "amiga-os-310-cd32.rom",
+                    "Kickstart v3.1 r40.060 (1993-05)(Commodore)(CD32)[!].rom",
+                    "Kickstart v3.1 r40.60 (1993)(Commodore)(CD32).rom",
                     "Kickstart v3.1 rev 40.60 (1993)(Commodore)(CD32).rom" },
                 KickstartExt = new[] { "kick40060.CD32.ext", "kick40060.CD32.ext.rom", "amiga-os-310-cd32-ext.rom",
+                    "CD32 Extended-ROM r40.60 (1993)(Commodore)(CD32).rom",
                     "CD32 Extended-ROM rev 40.60 (1993)(Commodore)(CD32).rom" } } },
 
             { "CD32FR", new AmigaModel {
@@ -140,14 +151,19 @@ namespace EmulatorLauncher
                 CpuModel = 68020, ChipMem = 4, BogoMem = 0, FastMem = 8, Floppies = 0,
                 Address24Bit = true, IsCd = true, IsCd32 = true,
                 Kickstart = new[] { "kick40060.CD32", "kick40060.CD32.rom", "amiga-os-310-cd32.rom",
+                    "Kickstart v3.1 r40.060 (1993-05)(Commodore)(CD32)[!].rom",
+                    "Kickstart v3.1 r40.60 (1993)(Commodore)(CD32).rom",
                     "Kickstart v3.1 rev 40.60 (1993)(Commodore)(CD32).rom" },
                 KickstartExt = new[] { "kick40060.CD32.ext", "kick40060.CD32.ext.rom", "amiga-os-310-cd32-ext.rom",
+                    "CD32 Extended-ROM r40.60 (1993)(Commodore)(CD32).rom",
                     "CD32 Extended-ROM rev 40.60 (1993)(Commodore)(CD32).rom" } } },
 
             { "CDTV", new AmigaModel {
                 Id = "CDTV", Chipset = "ecs_agnus", ChipsetCompatible = "CDTV",
                 CpuModel = 68000, ChipMem = 2, BogoMem = 0, Floppies = 0, IsCd = true,
                 Kickstart = new[] { "kick34005.A500", "kick34005.A500.rom", "amiga-os-130.rom",
+                    "Kickstart v1.3 r34.005 (1987-12)(Commodore)(A500-A1000-A2000-CDTV)[!].rom",
+                    "Kickstart v1.3 r34.005 (1987-12)(Commodore)(A500-A1000-A2000-CDTV)[o].rom",
                     "Kickstart v1.3 rev 34.5 (1987)(Commodore)(A500-A1000-A2000-CDTV)[!].rom" },
                 KickstartExt = new[] { "kick34005.CDTV", "kick34005.CDTV.rom", "amiga-os-130-cdtv-ext.rom",
                     "CDTV Extended-ROM v1.0 (1991)(Commodore)(CDTV)[!].rom",
@@ -706,10 +722,14 @@ namespace EmulatorLauncher
         {
             string ext = Path.GetExtension(rom).ToLowerInvariant();
 
-            // CD based systems
-            if (HasExtension(rom, _cdExtensions))
+            // CD based systems (a .m3u of CD images boots its first disc)
+            string cdImage = rom;
+            if (ext == ".m3u")
+                cdImage = MultiDiskImageFile.FromFile(rom).Files.FirstOrDefault(File.Exists) ?? rom;
+
+            if (HasExtension(cdImage, _cdExtensions))
             {
-                Set("cdimage0", rom + ",image");
+                Set("cdimage0", cdImage + ",image");
                 Set("nr_floppies", "0");
                 Set("floppy0type", "-1");
                 Set("floppy1type", "-1");

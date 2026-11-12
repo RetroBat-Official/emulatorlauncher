@@ -189,6 +189,7 @@ namespace EmulatorLauncher
         static List<string> nesSystems = new List<string>() { "fds", "nes", "famicom" };
         static List<string> pceSystems = new List<string>() { "pcengine", "pcenginecd", "turbografx", "turbografxcd" };
         static List<string> snesSystems = new List<string>() { "satellaview", "snes", "snes-msu1", "sgb", "sgb-msu1", "sufami", "sfc", "superfamicom", "supernintendo" };
+        static List<string> amigaSystems = new List<string>() { "amiga500", "amiga1200", "amiga4000", "amigacdtv" };
         static List<string> md3buttonsLibretro = new List<string>() { "257", "1025", "1537", "773", "2" };
 
         /// <summary>
@@ -222,6 +223,8 @@ namespace EmulatorLauncher
                 system = "psx";
             else if (arcadeSystems.Contains(system))
                 system = "arcade";
+            else if (amigaSystems.Contains(system))
+                system = "amiga";
 
             string ret = system;
             bool invertButtons = Program.SystemConfig.getOptBoolean("buttonsInvert");
@@ -521,7 +524,7 @@ namespace EmulatorLauncher
                     case "bizhawk":
                     case "jgenesis":
                         {
-                            bool buttons3 = Program.SystemConfig.getOptBoolean("md_3buttons");
+                            bool buttons3 = Program.SystemConfig.getOptBoolean("md_3buttons") && core != "MegaCD32X";
                             if (buttons3)
                                 ret = "megadrive_3buttons";
                             else if (!buttons3 && Program.SystemConfig.isOptSet("megadrive_control_layout"))

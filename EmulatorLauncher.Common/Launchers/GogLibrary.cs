@@ -51,7 +51,7 @@ namespace EmulatorLauncher.Common.Launchers
                         {
                             Id = app.productId.ToString(),
                             Name = app.title,
-                            InstallDirectory = exeExists ? exePath : Path.GetFullPath(app.installationPath),
+                            InstallDirectory = Path.GetFullPath(app.installationPath),
                             LauncherUrl = galaxyClientPath,
                             ExecutableName = Path.GetFileName(galaxyClientPath),
                             Parameters = $"/command=runGame /gameId={app.productId}",
@@ -74,6 +74,9 @@ namespace EmulatorLauncher.Common.Launchers
 
         public static string GetGOGGameById(string productId)
         {
+            if (!IsInstalled)
+                return null;
+
             using (var db = new SQLiteConnection("Data Source = " + GetDatabasePath()))
             {
                 db.Open();
@@ -174,7 +177,12 @@ namespace EmulatorLauncher.Common.Launchers
             if (product == null || product.PlayTasks == null)
                 return null;
 
-            return product.PlayTasks.Where(p => p.Category == "game").FirstOrDefault();
+            var tasks = product.PlayTasks.Where(p => !string.IsNullOrEmpty(p.Path)).ToList();
+
+            // Task run by GOG Galaxy (primary), among the tasks of the 'game' category first
+            return tasks.FirstOrDefault(p => p.IsPrimary && p.Category == "game")
+                ?? tasks.FirstOrDefault(p => p.Category == "game")
+                ?? tasks.FirstOrDefault(p => p.IsPrimary);
         }
     }
 }

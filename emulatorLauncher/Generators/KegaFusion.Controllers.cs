@@ -405,36 +405,19 @@ namespace EmulatorLauncher
                 AddKeyboardMapping(InputKey.left);
                 AddKeyboardMapping(InputKey.right);
 
-                if (SystemConfig.isOptSet("megadrive_control_layout") && SystemConfig["megadrive_control_layout"] == "lr_yz")
+                // Fusion order: A, B, C, Start, X, Y, Z - same layouts as the pads, X/Z by default
+                InputKey[] order;
+                switch (SystemConfig["megadrive_control_layout"])
                 {
-                    AddKeyboardMapping(InputKey.y);
-                    AddKeyboardMapping(InputKey.a);
-                    AddKeyboardMapping(InputKey.b);
-                    AddKeyboardMapping(InputKey.start);
-                    AddKeyboardMapping(InputKey.x);
-                    AddKeyboardMapping(InputKey.pageup);
-                    AddKeyboardMapping(InputKey.pagedown);
+                    case "lr_yz": order = new[] { InputKey.y, InputKey.a, InputKey.b, InputKey.start, InputKey.x, InputKey.pageup, InputKey.pagedown }; break;
+                    case "lr_zc": order = new[] { InputKey.a, InputKey.b, InputKey.pagedown, InputKey.start, InputKey.y, InputKey.x, InputKey.pageup }; break;
+                    case "lr_yb": order = new[] { InputKey.a, InputKey.pagedown, InputKey.b, InputKey.start, InputKey.y, InputKey.pageup, InputKey.x }; break;
+                    case "lr_by": order = new[] { InputKey.a, InputKey.pageup, InputKey.b, InputKey.start, InputKey.y, InputKey.pagedown, InputKey.x }; break;
+                    default: order = new[] { InputKey.y, InputKey.a, InputKey.b, InputKey.start, InputKey.pageup, InputKey.x, InputKey.pagedown }; break;
                 }
-                else if (SystemConfig.isOptSet("megadrive_control_layout") && SystemConfig["megadrive_control_layout"] == "lr_xz")
-                {
-                    AddKeyboardMapping(InputKey.y);
-                    AddKeyboardMapping(InputKey.a);
-                    AddKeyboardMapping(InputKey.b);
-                    AddKeyboardMapping(InputKey.start);
-                    AddKeyboardMapping(InputKey.pageup);
-                    AddKeyboardMapping(InputKey.x);
-                    AddKeyboardMapping(InputKey.pagedown);
-                }
-                else
-                {
-                    AddKeyboardMapping(InputKey.a);
-                    AddKeyboardMapping(InputKey.b);
-                    AddKeyboardMapping(InputKey.pagedown);
-                    AddKeyboardMapping(InputKey.start);
-                    AddKeyboardMapping(InputKey.y);
-                    AddKeyboardMapping(InputKey.x);
-                    AddKeyboardMapping(InputKey.pageup);
-                }
+
+                foreach (var key in order)
+                    AddKeyboardMapping(key);
 
                 AddKeyboardMapping(InputKey.select);
 

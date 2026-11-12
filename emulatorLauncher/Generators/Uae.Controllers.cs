@@ -37,7 +37,9 @@ namespace EmulatorLauncher
             WriteJoyport(sb, joystickPort, pad1, mode);
 
             var pad2 = pads.Skip(1).FirstOrDefault();
-            bool secondPortIsJoystick = pad2 != null && SystemConfig.isOptSet("winuae_port1") && SystemConfig["winuae_port1"] == "joystick";
+
+            // CD32: a second pad is player 2 by default (no mouse on the console)
+            bool secondPortIsJoystick = pad2 != null && (SystemConfig.isOptSet("winuae_port1") ? SystemConfig["winuae_port1"] == "joystick" : system == "amigacd32");
 
             if (secondPortIsJoystick)
             {

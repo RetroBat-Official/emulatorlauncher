@@ -645,7 +645,9 @@ namespace EmulatorLauncher.Libretro
                     }
 
                     var compatibleCores = MameVersionDetector.FindCompatibleMameCores(rom, supportedCores).Select(c => c.Name.Replace("-", "_")).ToList();
-                    var bestCore = compatibleCores.FirstOrDefault();
+
+                    // Keep the requested core when the romset is compatible with it
+                    var bestCore = compatibleCores.Contains(core) ? core : compatibleCores.FirstOrDefault();
                     if (!string.IsNullOrEmpty(bestCore))
                     {
                         newCore = bestCore;
@@ -825,7 +827,7 @@ namespace EmulatorLauncher.Libretro
             if (string.IsNullOrEmpty(SystemConfig["netplaymode"]))
                 return;
 
-            if (coreNoRunahead.Contains(core))
+            if (coreNoNetplay.Contains(core))
             {
                 SimpleLogger.Instance.Warning("[WARNING] Core '" + core + "' does not support netplay (savestate level < deterministic)");
                 return;
@@ -1903,7 +1905,7 @@ namespace EmulatorLauncher.Libretro
         {
             BindBoolFeature(retroarchConfig, "content_show_netplay", "netplay", "true", "false");
 
-            if (coreNoRunahead.Contains(core))
+            if (coreNoNetplay.Contains(core))
             {
                 retroarchConfig["netplay_mode"] = "false";
                 return;
@@ -2754,18 +2756,21 @@ namespace EmulatorLauncher.Libretro
             { "zc255", 4 }                      // ~34 MB state, capturing every frame is too slow
         };
 
-        // Level < DETERMINISTIC - no run-ahead, no preemptive frames, no netplay (core_info.c:3098-3107)
-        static List<string> coreNoRunahead = new List<string>() { "81", "anybor", "applewin", "arduous", "azahar", "b2", "bennugd", "blastem", "bluemsx", "boom3", "boom3_xp", "bsnes", "bsnes-jg", 
+        // Level < DETERMINISTIC - no run-ahead, no preemptive frames
+        static List<string> coreNoRunahead = new List<string>() { "81", "amiberry", "anybor", "applewin", "arduous", "azahar", "b2", "bennugd", "blastem", "bluemsx", "boom3", "boom3_xp", "bsnes", "bsnes-jg", 
             "bsnes2014_accuracy", "bsnes2014_balanced", "bsnes2014_performance", "bsnes_hd_beta", "bsnes_mercury_accuracy", "bsnes_mercury_balanced", "cannonball", "cap32", "cemu", "citra", 
-            "crocods", "desmume", "desmume2015", "dice", "dinothawr", "dolphin", "dosbox_pure", "doukutsu_rs", "duckstation", "easyrpg", "ecwolf", "emux_gb", "emux_nes", "emux_sms", "ep128emu_core", 
-            "fake08", "fbalpha", "fbalpha2012", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "fbalpha2012_neogeo", "flycast", "freej2me", "frodo", "gw", "handy", "hatari", "hatari2014", "hatarib", 
+            "crocods", "desmume", "desmume2015", "dice", "dinothawr", "dolphin", "dosbox_pure", "doukutsu_rs", "duckstation", "easyrpg", "ecwolf", "emuscv", "emux_gb", "emux_nes", "emux_sms", "ep128emu_core", 
+            "fake08", "fbalpha", "fbalpha2012", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "fbalpha2012_neogeo", "flycast", "freej2me", "frodo", "gw", "handy", 
             "holani", "kronos", "lowresnx", "lutro", "m2000", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", "mame2010", "mame2014", "mame2016", "mednafen_snes", "melondsds", 
             "mupen64plus_next", "mupen64plus_next_gles3", "nekop2", "noods", "np2kai", "nxengine", "o2em", "openlara", "opera", "parallel_n64", "pcsx2", "pd777", "play", "pocketcdg", "ppsspp", 
-            "prboom", "prosystem", "puae", "race", "reminiscence", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", "supermodel", "swanstation", "theodore", "tic80", "tyrquake", "uzem", 
+            "prboom", "prosystem", "puae", "race", "reminiscence", "retro8", "sameduck", "scummvm", "sm2", "superbroswar", "supermodel", "swanstation", "theodore", "tic80", "tyrquake", "uzem", 
             "vecx", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", 
             "yabasanshiro", "yabause", "zc255" };
-        // Netplay shares the same requirement as run-ahead (core_info.c:3098-3107)
-        static List<string> coreNoNetplay { get { return coreNoRunahead; } }
+
+        // No savestate support - netplay unavailable (lockstep needs at least basic savestates)
+        static List<string> coreNoNetplay = new List<string>() { "arduous", "b2", "bennugd", "cannonball", "cemu", "dice", "dinothawr", "doukutsu_rs", "easyrpg", "emux_gb",
+            "emux_nes", "emux_sms", "freej2me", "frodo", "gw", "lowresnx", "mame2010", "mame2016", "nxengine", "openlara", "pd777", "pocketcdg", "retro8", "scummvm", "superbroswar",
+            "tyrquake", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "zc255" };
 
         // Hardware-rendered cores: a duplicated instance cannot get a second GPU context
         static List<string> coreNoSecondInstance = new List<string>() { "mednafen_psx_hw", "melonds", "vircon32" };
