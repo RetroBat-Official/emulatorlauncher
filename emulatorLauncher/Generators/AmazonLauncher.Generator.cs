@@ -36,32 +36,10 @@ namespace EmulatorLauncher
             {
                 LauncherExe = AmazonLibrary.GetAmazonGameExecutableName(uri);
             }
-           
+
             public override int RunAndWait(ProcessStartInfo path)
             {
-                bool uiExists = Process.GetProcessesByName("Amazon Games UI").Any();
-                SimpleLogger.Instance.Info("[INFO] Executable name : " + LauncherExe);
-                KillExistingLauncherExes();
-
-                Process.Start(path);
-
-                var amazonGame = GetLauncherExeProcess();
-                if (amazonGame != null)
-                {
-                    Job.Current.AddProcess(amazonGame);
-                    amazonGame.WaitForExit();
-
-                    if ((!uiExists && Program.SystemConfig["killsteam"] != "0") || (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam")))
-                    {
-                        foreach (var ui in Process.GetProcessesByName("Amazon Games UI"))
-                        {
-                            try { ui.Kill(); }
-                            catch { }
-                        }
-                    }                
-                }
-
-                return 0;
+                return RunAndWaitForGame(path, "Amazon Games UI");
             }
         }
     }

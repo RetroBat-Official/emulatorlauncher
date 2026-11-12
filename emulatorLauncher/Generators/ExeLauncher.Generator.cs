@@ -351,7 +351,7 @@ namespace EmulatorLauncher
         }
         #endregion
 
-        readonly string[] launcherProcessNames = { "Amazon Games UI", "EADesktop", "EpicGamesLauncher", "steam", "GalaxyClient" };
+        static readonly string[] launcherProcessNames = { "Amazon Games UI", "EADesktop", "EpicGamesLauncher", "steam", "GalaxyClient" };
 
         public override int RunAndWait(ProcessStartInfo path)
         {
@@ -397,6 +397,7 @@ namespace EmulatorLauncher
                     if (_gameLauncher != null)
                     {
                         path.UseShellExecute = true;
+                        _gameLauncher.GameProcessFound = ApplyScreenPlacement;
                         return _gameLauncher.RunAndWait(path);
                     }
 
@@ -442,6 +443,15 @@ namespace EmulatorLauncher
             catch { return null; }
 
             SimpleLogger.Instance.Info("[INFO] Final process candidate: " + finalProcess.ProcessName);
+
+            // Never wait for EmulationStation, emulatorLauncher or a store client : it is not the game
+            if (finalProcess.Id == Process.GetCurrentProcess().Id
+                || finalProcess.ProcessName.Equals("emulationstation", StringComparison.OrdinalIgnoreCase)
+                || launcherProcessNames.Any(n => finalProcess.ProcessName.Equals(n, StringComparison.OrdinalIgnoreCase)))
+            {
+                SimpleLogger.Instance.Info("[INFO] Final process is not a game. Detection by focus failed.");
+                return null;
+            }
 
             // Check if the final process is fullscreen
             User32.GetWindowRect(hWnd, out RECT windowRect);
@@ -869,8 +879,8 @@ namespace EmulatorLauncher
                 }
             }
 
-            // Get executable name from icon path
-            if (string.IsNullOrEmpty(result.ExeName))
+            // Get executable name from icon path, only when the store launcher did not find the game executable
+            if (string.IsNullOrEmpty(result.ExeName) && (result.Launcher == null || string.IsNullOrEmpty(result.Launcher.LauncherExe)))
             {
                 var iconLine = urlLines.FirstOrDefault(l => l.StartsWith("IconFile", StringComparison.OrdinalIgnoreCase));
                 if (!string.IsNullOrEmpty(iconLine))
@@ -1041,6 +1051,9 @@ namespace EmulatorLauncher
         {
             public string LauncherExe { get; protected set; }
 
+            // Called as soon as the game process is found (screen placement)
+            public Action<Process> GameProcessFound { get; set; }
+
             public abstract int RunAndWait(ProcessStartInfo path);
 
             public virtual PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
@@ -1077,6 +1090,71 @@ namespace EmulatorLauncher
                 }
 
                 return launcherprocess;
+            }
+
+            protected void AttachGameProcess(Process game)
+            {
+                Job.Current.AddProcess(game);
+
+                if (GameProcessFound != null)
+                    GameProcessFound(game);
+            }
+
+            /// <summary>
+            /// Start the game with its store client and wait for the game to exit
+            /// </summary>
+            /// <param name="clientProcessName">Process name of the store client, closed afterwards if it was started with the game</param>
+            protected int RunAndWaitForGame(ProcessStartInfo path, string clientProcessName)
+            {
+                bool uiExists = Process.GetProcessesByName(clientProcessName).Any();
+                Process game = null;
+
+                if (!string.IsNullOrEmpty(LauncherExe))
+                {
+                    SimpleLogger.Instance.Info("[INFO] Executable name : " + LauncherExe);
+
+                    // Kill game if already running
+                    KillExistingLauncherExes();
+                }
+
+                // Start game
+                Process.Start(path);
+
+                // First method : wait for the game executable (30 seconds by default)
+                if (!string.IsNullOrEmpty(LauncherExe))
+                    game = GetLauncherExeProcess();
+
+                if (game != null)
+                    SimpleLogger.Instance.Info("[INFO] Process found running: " + LauncherExe + ", waiting to exit.");
+                else
+                {
+                    // Second method : fullscreen window in foreground
+                    SimpleLogger.Instance.Info("[INFO] Game process not found, falling back to window focus detection.");
+                    game = FindGameProcessByWindowFocus();
+                }
+
+                if (game == null)
+                {
+                    SimpleLogger.Instance.Info("[INFO] Unable to monitor game process.");
+                    return 0;
+                }
+
+                AttachGameProcess(game);
+                game.WaitForExit();
+                SimpleLogger.Instance.Info("[INFO] Game process has exited.");
+
+                // Kill the store client if it was not running previously or if option is set in RetroBat
+                if ((!uiExists && Program.SystemConfig["killsteam"] != "0") || (Program.SystemConfig.isOptSet("killsteam") && Program.SystemConfig.getOptBoolean("killsteam")))
+                {
+                    foreach (var ui in Process.GetProcessesByName(clientProcessName))
+                    {
+                        try { ui.Kill(); }
+                        catch { }
+                        SimpleLogger.Instance.Info("[INFO] Killed " + clientProcessName + ".");
+                    }
+                }
+
+                return 0;
             }
         }
     }

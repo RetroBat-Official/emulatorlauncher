@@ -41,27 +41,36 @@ namespace EmulatorLauncher.Common.Launchers
                 {
                     Parallel.ForEach(list, app =>
                     {
-                        if (string.IsNullOrEmpty(app.InstallDirectory) || !Directory.Exists(app.InstallDirectory))
-                            return;
-
-                        var exeName = GetAmazonGameExecutable(app.InstallDirectory);
-                        var installDir = Path.GetFullPath(app.InstallDirectory);
-                        var exePath = Path.Combine(installDir, exeName);
-
-                        var game = new LauncherGameInfo()
+                        try
                         {
-                            Id = app.Id,
-                            Name = app.ProductTitle,
-                            InstallDirectory = installDir,
-                            LauncherUrl = string.Format(GameLaunchUrl, app.Id),
-                            ExecutableName = exeName,
-                            Launcher = GameLauncherType.Amazon,
-                            IconPath = File.Exists(exePath) ? exePath : null
-                        };
+                            if (string.IsNullOrEmpty(app.InstallDirectory) || !Directory.Exists(app.InstallDirectory))
+                                return;
 
-                        lock (games)
+                            // Executable can be unknown (no fuel.json) : the game is still imported, without icon
+                            var exeName = GetAmazonGameExecutable(app.InstallDirectory);
+                            var installDir = Path.GetFullPath(app.InstallDirectory);
+                            var exePath = string.IsNullOrEmpty(exeName) ? null : Path.Combine(installDir, exeName);
+
+                            var game = new LauncherGameInfo()
+                            {
+                                Id = app.Id,
+                                Name = app.ProductTitle,
+                                InstallDirectory = installDir,
+                                LauncherUrl = string.Format(GameLaunchUrl, app.Id),
+                                ExecutableName = exeName,
+                                Launcher = GameLauncherType.Amazon,
+                                IconPath = exePath != null && File.Exists(exePath) ? exePath : null
+                            };
+
+                            lock (games)
+                            {
+                                games.Add(game);
+                            }
+                        }
+                        catch (Exception ex)
                         {
-                            games.Add(game);
+                            // One game in error must not stop the import of the others
+                            SimpleLogger.Instance.Warning("[Amazon] Unable to import " + app.ProductTitle + " : " + ex.Message);
                         }
                     });
                 }
@@ -96,65 +105,66 @@ namespace EmulatorLauncher.Common.Launchers
                 return null;
 
             string shorturl = uri.AbsolutePath.Substring(1);
+            string gameInstallPath = null;
 
-            string amazonDB = GetDatabasePath();
-            if (File.Exists(amazonDB))
+            using (var db = new SQLiteConnection("Data Source = " + GetDatabasePath()))
             {
-                string gameInstallPath = null;
+                db.Open();
 
-                using (var db = new SQLiteConnection("Data Source = " + amazonDB))
+                var cmd = db.CreateCommand();
+                cmd.CommandText = "SELECT installDirectory FROM DbSet WHERE Id = @id";
+                cmd.Parameters.AddWithValue("@id", shorturl);
+
+                var reader = cmd.ExecuteReader();
+
+                while (reader.Read())
                 {
-                    db.Open();
-
-                    var cmd = db.CreateCommand();
-                    cmd.CommandText = "SELECT installDirectory FROM DbSet where Id = '" + shorturl + "'";
-
-                    var reader = cmd.ExecuteReader();
-
-                    if (!reader.HasRows)
-                    {
-                        db.Close();
-                        throw new ApplicationException("There is a problem: the Game is not installed in Amazon Launcher");
-                    }
-
-                    while (reader.Read())
+                    if (!reader.IsDBNull(0))
                         gameInstallPath = reader.GetString(0);
-
-                    db.Close();
                 }
 
-                var exe = GetAmazonGameExecutable(gameInstallPath);
-                if (string.IsNullOrEmpty(exe))
-                    throw new ApplicationException("There is a problem: Game is not installed");
-
-                return Path.GetFileNameWithoutExtension(exe);
+                db.Close();
             }
 
-            throw new ApplicationException("There is a problem: Amazon Launcher is not installed or the Game is not installed");
+            if (string.IsNullOrEmpty(gameInstallPath) || !Directory.Exists(gameInstallPath))
+                throw new ApplicationException("There is a problem: the Game is not installed in Amazon Launcher");
+
+            // Executable can be unknown (no fuel.json) : the game is still launched, without process name
+            var exe = GetAmazonGameExecutable(gameInstallPath);
+            if (string.IsNullOrEmpty(exe))
+            {
+                SimpleLogger.Instance.Warning("[Amazon] Game executable not found in fuel.json.");
+                return null;
+            }
+
+            return Path.GetFileNameWithoutExtension(exe);
         }
 
+        /// <summary>
+        /// Get the game executable from the fuel.json file of the game folder, null if unknown
+        /// </summary>
         private static string GetAmazonGameExecutable(string path)
         {
-            string fuelFile = Path.Combine(path, "fuel.json");
-            string gameexe = null;
+            try
+            {
+                string fuelFile = Path.Combine(path, "fuel.json");
+                if (!File.Exists(fuelFile))
+                    return null;
 
-            if (!File.Exists(fuelFile))
-                throw new ApplicationException("There is a problem: game executable cannot be found");
+                var json = DynamicJson.Load(fuelFile);
 
-            var json = DynamicJson.Load(fuelFile);
+                var jsonMain = json.GetObject("Main");
+                if (jsonMain == null)
+                    return null;
 
-            var jsonMain = json.GetObject("Main");
-            if (jsonMain == null)
-                return null;
-
-            gameexe = jsonMain["Command"];
-
-            if (!string.IsNullOrEmpty(gameexe))
-                return gameexe;
+                string gameexe = jsonMain["Command"];
+                if (!string.IsNullOrEmpty(gameexe))
+                    return gameexe;
+            }
+            catch { }
 
             return null;
         }
-
     }
 }
 

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Management;
 using System.Linq;
+using System.Management;
+using System.Text;
 
 namespace EmulatorLauncher.Common
 {
@@ -62,6 +63,38 @@ namespace EmulatorLauncher.Common
             catch
             {
 
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Get the full path of the executable of a process (also works on a 64-bit process from a 32-bit application)
+        /// </summary>
+        public static string GetProcessPath(this Process process)
+        {
+            if (process == null)
+                return null;
+
+            IntPtr handle = IntPtr.Zero;
+
+            try
+            {
+                handle = Kernel32.OpenProcess(ProcessAccessFlags.QueryLimitedInformation, false, (uint)process.Id);
+                if (handle == IntPtr.Zero)
+                    return null;
+
+                int size = 1024;
+                var path = new StringBuilder(size);
+
+                if (Kernel32.QueryFullProcessImageName(handle, 0, path, ref size))
+                    return path.ToString();
+            }
+            catch { }
+            finally
+            {
+                if (handle != IntPtr.Zero)
+                    Kernel32.CloseHandle(handle);
             }
 
             return null;
