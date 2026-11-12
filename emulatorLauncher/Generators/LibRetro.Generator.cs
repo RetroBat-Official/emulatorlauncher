@@ -645,7 +645,9 @@ namespace EmulatorLauncher.Libretro
                     }
 
                     var compatibleCores = MameVersionDetector.FindCompatibleMameCores(rom, supportedCores).Select(c => c.Name.Replace("-", "_")).ToList();
-                    var bestCore = compatibleCores.FirstOrDefault();
+
+                    // Keep the requested core when the romset is compatible with it
+                    var bestCore = compatibleCores.Contains(core) ? core : compatibleCores.FirstOrDefault();
                     if (!string.IsNullOrEmpty(bestCore))
                     {
                         newCore = bestCore;
