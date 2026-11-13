@@ -46,6 +46,7 @@ namespace EmulatorLauncher
         {
             { "arcadeduck", "ArcadeDuck" },
             { "ares", "ares" },
+            { "azahar", "azahar" },
             { "bigpemu", "BigPEmu" },
             { "bizhawk", "EmuHawk" },
             { "blastem", "blastem" },
@@ -134,6 +135,19 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_pause_toggle", "PauseEmulation", "0x1/0/50;;"),               // p
                     new EmulatorHotkeyInfo("input_exit_emulator", "QuitEmulator", "0x1/0/0;;"),                 // escape
 
+                }),
+
+            new EmulatorHotkey("azahar", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "Fullscreen", "F1"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "Turbo%20Mode%20%28Hold%29", ""),
+                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "Toggle%20Turbo%20Mode", ""),
+                    new EmulatorHotkeyInfo("input_screenshot", "Capture%20Screenshot", "F8"),
+                    new EmulatorHotkeyInfo("input_save_state", "Quick%20Save", "F2"),
+                    new EmulatorHotkeyInfo("input_load_state", "Quick%20Load", "F4"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "Continue\\Pause%20Emulation", "P"),
+                    new EmulatorHotkeyInfo("input_audio_mute", "Audio%20Mute\\Unmute", "Ctrl+M"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "Exit%20Azahar", "Esc")
                 }),
 
             new EmulatorHotkey("bigpemu", new EmulatorHotkeyInfo[]

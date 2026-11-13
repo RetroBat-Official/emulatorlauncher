@@ -1,11 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Diagnostics;
-using EmulatorLauncher.Common;
-using EmulatorLauncher.Common.Joysticks;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.FileFormats;
+using EmulatorLauncher.Common.Joysticks;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Windows.Forms;
+using EmulatorLauncher.PadToKeyboard;
 
 namespace EmulatorLauncher
 {
@@ -20,6 +23,12 @@ namespace EmulatorLauncher
         private SdlVersion _sdlVersion = SdlVersion.SDL2_30;
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
+        private SaveStatesWatcher _saveStatesWatcher;
+        private bool _loadState;
+        private string _quickLoadShortcut = "F4";
+
+        // Delay between the game window and the Quick Load shortcut, when a save state is launched from ES
+        private const int QuickLoadDelay = 2000;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -41,6 +50,9 @@ namespace EmulatorLauncher
             if (File.Exists(sdl2))
                 _sdlVersion = SdlJoystickGuidManager.GetSdlVersion(sdl2);
 
+            // ES rom path, used to name the save states
+            string esRom = rom;
+
             string[] extensions = new string[] { ".3ds", ".3dsx", ".elf", ".axf", ".cci", ".cxi", ".app", ".z3dsx", ".zcia", ".zcxi", ".zcci" };
             if (Path.GetExtension(rom).ToLowerInvariant() == ".zip" || Path.GetExtension(rom).ToLowerInvariant() == ".7z" || Path.GetExtension(rom).ToLowerInvariant() == ".squashfs")
             {
@@ -54,6 +66,7 @@ namespace EmulatorLauncher
             }
 
             SetupConfigurationAzahar(path, rom, fullscreen);
+            SetupSaveStates(system, emulator, core, path, esRom);
 
             if (fullscreen)
             {
@@ -479,12 +492,67 @@ namespace EmulatorLauncher
             return 1;
         }
 
+        private void SetupSaveStates(string system, string emulator, string core, string path, string rom)
+        {
+            if (!Program.HasEsSaveStates || !Program.EsSaveStates.IsEmulatorSupported(emulator))
+                return;
+
+            string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
+            string emulatorPath = Path.Combine(path, "user", "states");
+            string icon = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "savestateicon.png");
+
+            // Copied to the quick save slot before the watcher starts, so it is not imported back as a new state
+            string stateFile = SystemConfig["state_file"];
+            if (!string.IsNullOrEmpty(stateFile) && File.Exists(stateFile))
+            {
+                string titleId = AzaharSaveStatesMonitor.GetTitleId(localPath, rom);
+                if (titleId == null)
+                    SimpleLogger.Instance.Warning("[AzaharGenerator] Unknown title id, unable to load save state " + stateFile);
+                else
+                {
+                    try
+                    {
+                        FileTools.TryCreateDirectory(emulatorPath);
+                        File.Copy(stateFile, AzaharSaveStatesMonitor.GetEmulatorStateFile(emulatorPath, titleId, 0), true);
+                        _loadState = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        SimpleLogger.Instance.Warning("[AzaharGenerator] Unable to prepare save state " + stateFile + " : " + ex.Message);
+                    }
+                }
+            }
+
+            _saveStatesWatcher = new AzaharSaveStatesMonitor(rom, emulatorPath, localPath, icon);
+            SimpleLogger.Instance.Info("[INFO] SavesStatesWatcher enabled.");
+        }
+
+        public override void Cleanup()
+        {
+            if (_saveStatesWatcher != null)
+            {
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
+            }
+
+            base.Cleanup();
+        }
+
         public override int RunAndWait(ProcessStartInfo path)
         {
             FakeBezelFrm bezel = null;
 
             if (_bezelFileInfo != null)
                 bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            if (_loadState)
+            {
+                Keys quickLoadKey = QtKeyToKeys(_quickLoadShortcut);
+                if (quickLoadKey == Keys.None)
+                    SimpleLogger.Instance.Warning("[AzaharGenerator] Quick Load shortcut '" + _quickLoadShortcut + "' cannot be sent, load the save state manually.");
+                else
+                    StartQuickLoad(Path.GetFileNameWithoutExtension(path.FileName), quickLoadKey);
+            }
 
             int ret = base.RunAndWait(path);
 
@@ -494,6 +562,91 @@ namespace EmulatorLauncher
                 return 0;
 
             return ret;
+        }
+
+        /// <summary>
+        /// Windows key of a Qt key name (single keys only, Keys.None otherwise)
+        /// </summary>
+        private static Keys QtKeyToKeys(string qtKey)
+        {
+            if (string.IsNullOrEmpty(qtKey) || qtKey.Contains("+"))
+                return Keys.None;
+
+            if (qtKey.Length == 1 && qtKey[0] >= '0' && qtKey[0] <= '9')
+                return Keys.D0 + (qtKey[0] - '0');
+
+            if (qtKey.Length == 1 && qtKey[0] >= 'A' && qtKey[0] <= 'Z')
+                return (Keys)qtKey[0];
+
+            switch (qtKey)
+            {
+                case "Esc": return Keys.Escape;
+                case "Backspace": return Keys.Back;
+                case "Ins": return Keys.Insert;
+                case "Del": return Keys.Delete;
+                case "PgUp": return Keys.PageUp;
+                case "PgDown": return Keys.PageDown;
+                case "Print": return Keys.PrintScreen;
+                case "ScrollLock": return Keys.Scroll;
+            }
+
+            // F1-F12, Space, Tab, Return, Home, End, Pause, arrows, CapsLock : same name
+            if (qtKey.Length > 1 && Enum.TryParse(qtKey, out Keys key))
+                return key;
+
+            return Keys.None;
+        }
+
+        /// <summary>
+        /// Azahar cannot load a state from the command line: the Quick Load shortcut is sent once the game is loaded.
+        /// </summary>
+        private static void StartQuickLoad(string processName, Keys quickLoadKey)
+        {
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    DateTime start = DateTime.UtcNow;
+
+                    while (DateTime.UtcNow - start < TimeSpan.FromSeconds(60))
+                    {
+                        Thread.Sleep(250);
+
+                        var process = Process.GetProcessesByName(processName).FirstOrDefault();
+                        if (process == null)
+                            continue;
+
+                        // Title is "Azahar <version> | <game>" once the game is loaded (UpdateWindowTitle, src/citra_qt/citra_qt.cpp)
+                        IntPtr hWnd = User32.FindHwnds(process.Id).FirstOrDefault(h =>
+                        {
+                            string title = User32.GetWindowText(h);
+                            return title != null && title.StartsWith("Azahar") && title.Contains(" | ");
+                        });
+
+                        if (hWnd == IntPtr.Zero)
+                            continue;
+
+                        Thread.Sleep(QuickLoadDelay);
+
+                        User32.SetForegroundWindow(hWnd);
+                        SendKey.Send(quickLoadKey, true);
+                        Thread.Sleep(50);
+                        SendKey.Send(quickLoadKey, false);
+
+                        SimpleLogger.Instance.Info("[AzaharGenerator] Quick Load sent to load the save state.");
+                        return;
+                    }
+
+                    SimpleLogger.Instance.Warning("[AzaharGenerator] Game window not found, save state not loaded.");
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Warning("[AzaharGenerator] Unable to load save state : " + ex.Message);
+                }
+            });
+
+            thread.IsBackground = true;
+            thread.Start();
         }
     }
 }
