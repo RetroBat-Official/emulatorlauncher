@@ -109,7 +109,7 @@ namespace EmulatorLauncher
 
             else
             {
-                path = Path.GetFullPath(rom);
+                path = Path.GetDirectoryName(Path.GetFullPath(rom));
                 exe = rom;
             }
 
