@@ -843,11 +843,23 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "amiberry_input_log", "amiberry_input_log", "enabled", "disabled");
         }
 
-        // obor_engine values, "Auto" is the core default
+        // Engine profiles offered in ES (core option labels), "Auto" lets the core detect the engine
         static readonly string[] anyborEngineProfiles = new string[] { "v3.0 3400", "v3.0 3741", "v3.0 3780", "v3.0 3783", "v3.0 3789", "v3.0 3793",
             "v3.0 3797", "v3.0 3805", "v3.0 3814", "v3.0 3818", "v3.0 3822", "v3.0 3824", "v3.0 3829", "v3.0 3831", "v3.0 3837", "v3.0 3839", "v3.0 3842",
             "v3.0 4086", "v3.0 4088-dev", "v3.0 4107", "v3.0 4111", "v3.0 4129", "v3.0 4153", "v3.0 4432", "v3.0 4453", "v3.0 6330", "v3.0 6391",
             "v3.0 6391-mod", "v3.0 6392-dev", "v3.0 6412-dev", "v3.0 6510-dev", "v3.0 7086-dev", "v3.0 7123-dev", "v4.0 7142-alpha", "v4.0 7533", "v4.0 8023-dev" };
+
+        // Core engine range options (anybor_engine_<range>), each one lists the profiles of its builds
+        static readonly string[] anyborEngineRanges = new string[] { "3000_3499", "3500_3749", "3750_3999", "4000_4999", "5000_plus" };
+
+        private static string GetAnyborEngineRange(int build)
+        {
+            if (build < 3500) return "3000_3499";
+            if (build < 3750) return "3500_3749";
+            if (build < 4000) return "3750_3999";
+            if (build < 5000) return "4000_4999";
+            return "5000_plus";
+        }
 
         private void ConfigureAnybor(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
@@ -876,15 +888,22 @@ namespace EmulatorLauncher.Libretro
                         SimpleLogger.Instance.Info("[INFO] anybor: no engine profile for build tag [" + build + "], using Auto");
                 }
             }
-            coreSettings["obor_engine"] = engine;
 
-            BindBoolFeature(coreSettings, "obor_crt_tv", "anybor_crt_tv", "On", "Off");
-            BindBoolFeatureOn(coreSettings, "obor_analog", "anybor_analog", "On", "Off");
-            BindBoolFeatureOn(coreSettings, "obor_macros", "anybor_macros", "On", "Off");
-            BindBoolFeatureOn(coreSettings, "obor_rumble", "anybor_rumble", "On", "Off");
+            // anybor_engine On = core detection. Off = the profile set in its range option, the other ranges are cleared (the last set range wins)
+            int engineBuild = engine == "Auto" ? 0 : Regex.Match(engine, @"\d{4}").Value.ToInteger();
+            string engineRange = engineBuild > 0 ? GetAnyborEngineRange(engineBuild) : null;
+
+            coreSettings["anybor_engine"] = engineRange != null ? "Off" : "On";
+            foreach (string range in anyborEngineRanges)
+                coreSettings["anybor_engine_" + range] = range == engineRange ? engine : "None";
+
+            BindBoolFeature(coreSettings, "anybor_crt_tv", "anybor_crt_tv", "On", "Off");
+            BindBoolFeatureOn(coreSettings, "anybor_analog", "anybor_analog", "On", "Off");
+            BindBoolFeatureOn(coreSettings, "anybor_macros", "anybor_macros", "On", "Off");
+            BindBoolFeatureOn(coreSettings, "anybor_rumble", "anybor_rumble", "On", "Off");
 
             // Never leave a pending "delete saved data" request in the global core options file
-            coreSettings["obor_clear_local_data"] = "Off";
+            coreSettings["anybor_clear_local_data"] = "Off";
         }
 
         private void ConfigureApplewin(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -6414,6 +6433,7 @@ namespace EmulatorLauncher.Libretro
             // Common Vice features
             coreSettings["vice_audio_options_display"] = "enabled";
             BindBoolFeatureOn(coreSettings, "vice_warp_boost", "warp_boost", "enabled", "disabled");
+            BindBoolFeature(coreSettings, "vice_autoloadwarp", "vice_autoloadwarp", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "vice_drive_true_emulation", "vice_drive_true_emulation", "enabled", "disabled");
             BindFeature(coreSettings, "vice_aspect_ratio", "vice_aspect_ratio", "auto");
             BindFeature(coreSettings, "vice_crop", "vice_crop", "auto");
@@ -6423,7 +6443,8 @@ namespace EmulatorLauncher.Libretro
             // vice_x64 specific features
             if (core == "vice_x64" || core == "vice_x64sc")
             {
-                BindFeature(coreSettings, "vice_c64_model", "c64_model", "C64 NTSC auto");
+                // PAL by default: most C64 software is European, 'auto' switches to NTSC with (USA), (Japan) or NTSC file name tags
+                BindFeature(coreSettings, "vice_c64_model", "c64_model", "C64 PAL auto");
                 BindFeature(coreSettings, "vice_ram_expansion_unit", "vice_ram_expansion_unit", "none");
                 BindFeature(coreSettings, "vice_external_palette", "vice_external_palette", "colodore");
             }
@@ -6431,23 +6452,28 @@ namespace EmulatorLauncher.Libretro
             // vice_xvic specific features
             else if (core == "vice_xvic")
             {
-                BindFeature(coreSettings, "vice_vic20_model", "vic20_model", "VIC20 NTSC auto");
-                BindFeature(coreSettings, "vice_vic20_memory_expansions", "vic20_memexpansion", "none");
+                // Automatic memory expansion: from PRG size or (8k) style file name tags
+                BindFeature(coreSettings, "vice_vic20_model", "vic20_model", "VIC20 PAL auto");
+                BindFeature(coreSettings, "vice_vic20_memory_expansions", "vic20_memexpansion", "auto");
                 BindFeature(coreSettings, "vice_vic20_external_palette", "vic20_palette", "colodore_vic");
             }
 
             // vice_xplus4 specific features
             else if (core == "vice_xplus4")
             {
+                // PAL by default: most C16 / Plus/4 software is European
                 bool c16 = system == "c16";
-                BindFeature(coreSettings, "vice_plus4_model", "vice_plus4_model", c16 ? "C16 NTSC" : "PLUS4 NTSC");
+                BindFeature(coreSettings, "vice_plus4_model", "vice_plus4_model", c16 ? "C16 PAL" : "PLUS4 PAL");
                 BindFeature(coreSettings, "vice_plus4_external_palette", "vice_plus4_external_palette", "colodore_ted");
+                BindBoolFeature(coreSettings, "vice_autoloadwarp", "vice_autoloadwarp", "enabled", "disabled");
             }
 
             // vice_x128 specific features
             else if (core == "vice_x128")
             {
-                BindFeature(coreSettings, "vice_c128_model", "vice_c128_model", "C128 NTSC");
+                BindFeature(coreSettings, "vice_c128_model", "vice_c128_model", "C128 PAL auto");
+                BindBoolFeature(coreSettings, "vice_c128_go64", "vice_c128_go64", "enabled", "disabled");
+                BindFeature(coreSettings, "vice_c128_video_output", "vice_c128_video_output", "VICII");
                 BindFeature(coreSettings, "vice_c128_ram_expansion_unit", "vice_c128_ram_expansion_unit", "none");
                 BindFeature(coreSettings, "vice_external_palette", "vice_external_palette", "colodore");
             }
@@ -6466,19 +6492,18 @@ namespace EmulatorLauncher.Libretro
             BindFeature(retroarchConfig, "input_libretro_device_p2", "vice_controller2", "1");
             BindFeature(coreSettings, "vice_joyport_type", "vice_joyport_type", "1");
 
-            if (SystemConfig.getOptBoolean("use_guns"))
+            // Light pens and light guns only work in control port 1 (C64, C128) or the single VIC-20 port, Plus/4 and PET have none
+            if (SystemConfig.getOptBoolean("use_guns") && core != "vice_xplus4" && core != "vice_xpet")
             {
                 string devType = "1";
                 if (SystemConfig.isOptSet("vice_controller1") && !string.IsNullOrEmpty(SystemConfig["vice_controller1"]))
                     devType = SystemConfig["vice_controller1"];
 
-                int port = 2;
-                if (SystemConfig.isOptSet("vice_joyport") && SystemConfig["vice_joyport"] == "1")
-                    port = 1;
-                
-                SetupLightGuns(retroarchConfig, devType, core, port);
+                // VICE reads the light pen from the player 1 pointer
+                coreSettings["vice_joyport"] = "1";
+                SetupLightGuns(retroarchConfig, devType, core, 1);
 
-                if (SystemConfig.isOptSet("vice_joyport_type") && !viceGuns.Contains(SystemConfig["vice_joyport_type"]))
+                if (!SystemConfig.isOptSet("vice_joyport_type") || !viceGuns.Contains(SystemConfig["vice_joyport_type"]))
                     coreSettings["vice_joyport_type"] = "11";
             }
         }
