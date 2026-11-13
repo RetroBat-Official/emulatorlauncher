@@ -1234,6 +1234,17 @@
     ]
   },
 
+  "jaguarcd": {
+    "name": "Jaguar CD",
+    "biosFiles": [
+      {
+        "md5": "77cd95c7ad06a39f4c59995094aa10f9",
+        "file": "bios/[BIOS] Atari Jaguar CD (World).j64",
+        "optional": true
+      }
+    ]
+  },
+
   "laseractive": {
     "name": "Pioneer Laseractive",
     "biosFiles": [

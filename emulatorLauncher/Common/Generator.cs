@@ -224,6 +224,7 @@ namespace EmulatorLauncher
             string[] snesMSUExtensions = new string[] { ".sfc", ".smc" };
             string[] sgbMSUExtensions = new string[] { ".gb", ".gbc" };
             string[] zc255Extensions = new string[] { ".qst" };
+            string[] jaguarCDExtensions = new string[] { ".cue", ".cdi" };
             string[] extensions = new string[] { };
             bool tryMount = false;
             bool silent = false;
@@ -266,6 +267,11 @@ namespace EmulatorLauncher
             else if (core == "zc255")
             {
                 extensions = zc255Extensions;
+            }
+            else if (system == "jaguarcd")
+            {
+                extensions = jaguarCDExtensions;
+                tryMount = true;
             }
 
             else

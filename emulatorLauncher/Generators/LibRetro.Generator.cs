@@ -2778,7 +2778,7 @@ namespace EmulatorLauncher.Libretro
         
         static readonly List<string> CoreSaveSort = new List<string>() { "dolphin" };
         static readonly List<string> CoreNoZip = new List<string>() { "mednafen_pce", "mednafen_pce_fast", "mednafen_psx_hw", "mednafen_psx", "mednafen_saturn", "swanstation", 
-            "pcsx_rearmed", "pcsx2", "zc255" };
+            "pcsx_rearmed", "pcsx2", "virtualjaguar", "zc255" };
         static readonly Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "fuse", "513" } };
         static readonly Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
         static readonly Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>()
