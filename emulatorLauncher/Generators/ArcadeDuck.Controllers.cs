@@ -23,7 +23,7 @@ namespace EmulatorLauncher
         // Layout aliases resolved by ArcadeDuck (arcade_control_registry.cpp, s_layout_aliases)
         static readonly Dictionary<string, string> _layoutAliases = new Dictionary<string, string>()
         {
-            { "glpracr2", "glpracr" }, { "tekken3", "tekken" }, { "tektagt", "tekken" }, { "sfex2", "sfex" },
+            { "glpracr2", "glpracr" }, { "sfex2", "sfex" },
             { "fgtlayer", "sfex" }, { "soulclbr", "souledge" }, { "hypbbc2p", "hyperbbc" },
         };
 
@@ -38,6 +38,8 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
                 return;
             }
+
+            DisableGameInputSettings();
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for ArcadeDuck");
 
@@ -106,6 +108,29 @@ namespace EmulatorLauncher
             // Operator panel (test / service)
             ini.AppendValue("ArcadeOperator", "Test", "Keyboard/0");
             ini.AppendValue("ArcadeOperator", "Service", "Keyboard/9");
+        }
+
+        /// <summary>
+        /// ArcadeDuck 0.7 creates 'gamesettings\<set>.ini' at the first launch of a set, with a copy of the controller ports
+        /// (UseGameSettingsForArcadeInput = true) : the next launches would ignore the ports written in settings.ini.
+        /// The per-game input is turned off and its ports removed, the other per-game settings are kept.
+        /// </summary>
+        private void DisableGameInputSettings()
+        {
+            if (_game == null || string.IsNullOrEmpty(_game.Id))
+                return;
+
+            string gameSettingsPath = Path.Combine(_path, "gamesettings");
+            FileTools.TryCreateDirectory(gameSettingsPath);
+
+            using (var gameIni = new IniFile(Path.Combine(gameSettingsPath, _game.Id + ".ini"), IniOptions.UseSpaces | IniOptions.AllowDuplicateValues))
+            {
+                for (int i = 1; i <= MaxPorts; i++)
+                    gameIni.ClearSection("ArcadeControllerPort" + i);
+
+                gameIni.WriteValue("ArcadeProfiles", "UseGameSettingsForArcadeInput", "false");
+                gameIni.WriteValue("ArcadeProfiles", "GameSettingsInitialized", "true");
+            }
         }
 
         #region SDL player slots
