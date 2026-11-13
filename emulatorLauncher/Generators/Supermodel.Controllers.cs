@@ -389,6 +389,10 @@ namespace EmulatorLauncher
             if (Program.SystemConfig.isOptSet("controller_layout") && !string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))
                 controLayout = Program.SystemConfig["controller_layout"];
 
+            // classic8 shares the 6 buttons mapping
+            if (controLayout == "classic8")
+                controLayout = "6alternative";
+
             if (File.Exists(m3Mapping))
             {
                 YmlFile ctrlYmlFile = YmlFile.Load(m3Mapping);

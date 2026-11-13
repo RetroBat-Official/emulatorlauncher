@@ -125,7 +125,10 @@ namespace EmulatorLauncher
 
                     if (gameLayout != null)
                     {
-                        _gamename = gameMapping.Name != null ? gameMapping.Name : null;
+                        // Written to <system name> in the ctrlr file: only a MAME short name is valid
+                        string mappingName = gameMapping.Name?.Trim();
+                        if (!string.IsNullOrEmpty(mappingName) && mappingName.All(c => (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_'))
+                            _gamename = mappingName;
                         _gameMapping = gameMapping;
                         _gameLayout = gameLayout;
                     }
