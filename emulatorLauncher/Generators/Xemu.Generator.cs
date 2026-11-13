@@ -144,7 +144,7 @@ namespace EmulatorLauncher
             string args = string.Join(" ", commandArray);
 
             // Disable bezel if is widescreen
-            if (!SystemConfig.isOptSet("bezel") && SystemConfig["scale"] == "stretch")
+            if (!SystemConfig.isOptSet("bezel") && SystemConfig["xemu_scale"] == "stretch")
             {
                 SystemConfig["forceNoBezel"] = "1";
                 ReshadeManager.Setup(_reshadeType, ReshadePlatform.x64, system, rom, path, resolution, emulator);

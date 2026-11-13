@@ -176,8 +176,9 @@ namespace EmulatorLauncher
                 ini.WriteValue(profileSection, "B", GetInputKeyName(ctrl, InputKey.b, isXinput));
                 ini.WriteValue(profileSection, "X", GetInputKeyName(ctrl, InputKey.y, isXinput));
                 ini.WriteValue(profileSection, "Y", GetInputKeyName(ctrl, InputKey.x, isXinput));
-                ini.WriteValue(profileSection, "Black", GetInputKeyName(ctrl, InputKey.pageup, isXinput));
-                ini.WriteValue(profileSection, "White", GetInputKeyName(ctrl, InputKey.pagedown, isXinput));
+                // Xbox layout: White on L1, Black on R1 (same as xemu)
+                ini.WriteValue(profileSection, "Black", GetInputKeyName(ctrl, InputKey.pagedown, isXinput));
+                ini.WriteValue(profileSection, "White", GetInputKeyName(ctrl, InputKey.pageup, isXinput));
                 ini.WriteValue(profileSection, "L Trigger", GetInputKeyName(ctrl, InputKey.l2, isXinput));
                 ini.WriteValue(profileSection, "R Trigger", GetInputKeyName(ctrl, InputKey.r2, isXinput));
                 ini.WriteValue(profileSection, "Left Axis X+", GetInputKeyName(ctrl, InputKey.leftanalogright, isXinput));
