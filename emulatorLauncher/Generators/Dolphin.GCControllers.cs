@@ -176,8 +176,8 @@ namespace EmulatorLauncher
                             padMapping[InputKey.y] = tempMapX;
                     }
 
-                    // Microphone
-                    if (Program.SystemConfig.isOptSet("dolphin_gcpad_microphone") && Program.SystemConfig.getOptBoolean("dolphin_gcpad_microphone") && pad.PlayerIndex == 2)
+                    // Microphone in slot B reads its button on player 2 pad (Pad::GetMicButton)
+                    if (Program.SystemConfig.getOptBoolean("dolphin_microphone") && pad.PlayerIndex == 2)
                     {
                         if (ReferenceEquals(padMapping, anyMapping))
                             padMapping = new InputKeyMapping(anyMapping);

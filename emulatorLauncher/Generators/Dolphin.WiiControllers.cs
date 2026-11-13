@@ -505,8 +505,7 @@ namespace EmulatorLauncher
 
             // Set hotkeys
             string hotkeyini = Path.Combine(path, "User", "Config", "Hotkeys.ini");
-            if (File.Exists(hotkeyini))
-                SetWiimoteHotkeys(hotkeyini);
+            SetWiimoteHotkeys(hotkeyini);
         }
 
         private static void GenerateControllerConfig_wii(string path, InputKeyMapping anyMapping, Dictionary<string, string> anyReverseAxes, Dictionary<string, string> extraOptions = null, Dictionary<string, InputKey> extramapping = null)

@@ -484,6 +484,10 @@ namespace EmulatorLauncher
 
                     string cleaned = string.Join(".", resultParts.Take(4));
 
+                    // Release without hotfix letter(e.g. 2609): System.Version needs at least 2 components
+                    if (resultParts.Count == 1)
+                        cleaned += ".0";
+
                     Version ver;
                     if (Version.TryParse(cleaned, out ver))
                         return ver.ToString();

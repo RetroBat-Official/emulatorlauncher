@@ -113,7 +113,7 @@ namespace EmulatorLauncher
             if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
                 rom = rom.Replace("\\", "/");
 
-            string[] extensions = new string[] { ".m3u", ".gcz", ".iso", ".ciso", ".wbfs", ".wad", ".rvz", ".wia" };
+            string[] extensions = new string[] { ".m3u", ".gcz", ".iso", ".gcm", ".tgc", ".ciso", ".wbfs", ".wad", ".rvz", ".wia" };
             if (Path.GetExtension(rom).ToLowerInvariant() == ".zip" || Path.GetExtension(rom).ToLowerInvariant() == ".7z" || Path.GetExtension(rom).ToLowerInvariant() == ".squashfs")
             {
                 string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
@@ -563,6 +563,7 @@ namespace EmulatorLauncher
                     // Interface
                     BindBoolIniFeatureOn(ini, "Interface", "OnScreenDisplayMessages", "OnScreenDisplayMessages", "True", "False");
                     ini.WriteValue("Interface", "ConfirmStop", "False");
+                    ini.WriteValue("Interface", "UsePanicHandlers", "False");
                     ini.WriteValue("Interface", "PauseOnFocusLost", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "False" : "True");
                     BindIniFeature(ini, "Interface", "CursorVisibility", "dolphin_mouse_cursor", "2");
 
@@ -571,6 +572,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("Analytics", "Enabled", "False");
 
                     ini.WriteValue("Display", "KeepWindowOnTop", "False");
+                    // Inputs while the render window is unfocused, only when emulation is not paused on lost focus
+                    ini.WriteValue("Input", "BackgroundInput", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "True" : "False");
 
                     // language (for gamecube at least)
                     if (Features.IsSupported("gamecube_language") && SystemConfig.isOptSet("gamecube_language"))
@@ -603,6 +606,7 @@ namespace EmulatorLauncher
 
                     // Fast Disc Speed - Default Off
                     BindBoolIniFeature(ini, "Core", "FastDiscSpeed", "enable_fastdisc", "True", "False");
+                    ini.WriteValue("Core", "AutoDiscChange", "True");
 
                     // Enable MMU - Default On
                     BindBoolIniFeature(ini, "Core", "MMU", "enable_mmu", "True", "False");
@@ -722,10 +726,8 @@ namespace EmulatorLauncher
                     // Add rom path to isopath
                     AddPathToIsoPath(Path.GetFullPath(Path.GetDirectoryName(rom)), ini);
 
-                    // Disable auto updates
-                    string updateTrack = ini.GetValue("AutoUpdate", "UpdateTrack");
-                    if (updateTrack != "")
-                        ini.WriteValue("AutoUpdate", "UpdateTrack", "''");
+                    // Disable auto updates (empty track = no update check)
+                    ini.WriteValue("AutoUpdate", "UpdateTrack", "");
 
                     // Set defaultISO when running the Wii Menu
                     if (SystemConfig.isOptSet("dolphin_defaultISO") && !string.IsNullOrEmpty(SystemConfig["dolphin_defaultISO"]))
@@ -777,7 +779,6 @@ namespace EmulatorLauncher
                         ini.WriteValue("Core", "SIDevice1", "11");                      // AM Baseboard player 2
                         ini.WriteValue("Core", "SIDevice2", "0");
                         ini.WriteValue("Core", "SIDevice3", "0");
-                        ini.WriteValue("Interface", "UsePanicHandlers", "False");       // Disable panic handlers
                         ini.WriteValue("Core", "EnableCheats", "True");                 // Cheats must be enabled
 
                         if (!_crediar)
