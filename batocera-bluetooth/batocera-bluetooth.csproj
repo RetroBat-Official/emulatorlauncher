@@ -10,8 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>batocera_bluetooth</RootNamespace>
     <AssemblyName>batocera-bluetooth</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -77,12 +76,23 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Runtime" />
+    <Reference Include="System.Runtime.InteropServices.WindowsRuntime" />
+    <Reference Include="Windows.Foundation">
+      <HintPath>$(windir)\System32\WinMetadata\Windows.Foundation.winmd</HintPath>
+      <IsWinMDFile>True</IsWinMDFile>
+    </Reference>
+    <Reference Include="Windows.Devices">
+      <HintPath>$(windir)\System32\WinMetadata\Windows.Devices.winmd</HintPath>
+      <IsWinMDFile>True</IsWinMDFile>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Lib\BLUETOOTH_DEVICE_INFO.cs" />
     <Compile Include="Lib\BLUETOOTH_DEVICE_SEARCH_PARAMS.cs" />
     <Compile Include="Lib\NativeMethods.cs" />
     <Compile Include="Lib\SYSTEMTIME.cs" />
+    <Compile Include="LowEnergy.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
