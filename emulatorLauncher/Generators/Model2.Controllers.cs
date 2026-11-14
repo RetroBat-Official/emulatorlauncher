@@ -166,10 +166,9 @@ namespace EmulatorLauncher
                     wheeltype = wheel.Type.ToString();
                     SimpleLogger.Instance.Info("[WHEELS] Wheeltype identified : " + wheeltype);
 
-                    // Get mapping in yml file
-                    
-                    string model2WheelMapping = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "model2_wheels.yml");
-                    if (File.Exists(model2WheelMapping))
+                    // Get mapping in yml file: user\inputmapping\model2_wheels.yml first, then the RetroBat file
+                    string model2WheelMapping = Controller.GetSystemYmlMappingFile("m2emulator", "", "model2", model2WheelMappingPaths);
+                    if (model2WheelMapping != null)
                     {
                         ymlFile = YmlFile.Load(model2WheelMapping);
                         string searchGameType = wheeltype + "_" + parentRom;
@@ -1659,6 +1658,12 @@ namespace EmulatorLauncher
         {
             "{userpath}\\inputmapping\\model2.yml",
             "{systempath}\\resources\\inputmapping\\model2.yml",
+        };
+
+        static readonly string[] model2WheelMappingPaths =
+        {
+            "{userpath}\\inputmapping\\model2_wheels.yml",
+            "{systempath}\\resources\\inputmapping\\wheels\\model2_wheels.yml",
         };
 
         // Returns game actions => button names from model2.yml (layout container first), null if not found

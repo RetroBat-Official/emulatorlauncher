@@ -196,6 +196,7 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("No XInput controllers found, switching to DirectInput");
                 ini.WriteValue("Input", "XInput", "0");
+                _dinput = true;
             }
 
             if (!SystemConfig.getOptBoolean("use_guns") && Program.SystemConfig.isOptSet("m2_joystick_autoconfig") && Program.SystemConfig["m2_joystick_autoconfig"] == "template")
@@ -215,11 +216,11 @@ namespace EmulatorLauncher
 
                 string targetInputCfgFile = Path.Combine(inputCFGpath, game + ".input");
 
-                if (File.Exists(targetInputCfgFile))
-                    File.Delete(targetInputCfgFile);
-
+                // Without a template, the game keeps its current input file
                 if (File.Exists(sourceInputCfgFile))
-                    File.Copy(sourceInputCfgFile, targetInputCfgFile);
+                    File.Copy(sourceInputCfgFile, targetInputCfgFile, true);
+                else
+                    SimpleLogger.Instance.Info("[INFO] Model2: no template for " + parentGame + ", input file not modified.");
             }
             else
             {
