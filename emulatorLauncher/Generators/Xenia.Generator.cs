@@ -532,7 +532,7 @@ namespace EmulatorLauncher
                         string profileFolder = SystemConfig[profileHint];
                         string profile = Path.GetFileNameWithoutExtension(profileFolder);
 
-                        if (!profileFolder.Contains(contentPath.Replace("\\", "/")))
+                        if (string.IsNullOrEmpty(profile) || !Directory.Exists(Path.Combine(contentPath, profile)))
                         {
                             SimpleLogger.Instance.Info("[Warning] Profile " + profile + " selected for Player " + i + " not in content path: " + contentPath);
                             continue;
@@ -753,7 +753,7 @@ namespace EmulatorLauncher
                         string profileFolder = SystemConfig[profileHint];
                         string profile = Path.GetFileNameWithoutExtension(profileFolder);
 
-                        if (!profileFolder.Contains(contentPath.Replace("\\", "/")))
+                        if (string.IsNullOrEmpty(profile) || !Directory.Exists(Path.Combine(contentPath, profile)))
                         {
                             SimpleLogger.Instance.Info("[Warning] Profile " + profile + " selected for Player " + i + " not in content path: " + contentPath);
                             continue;
