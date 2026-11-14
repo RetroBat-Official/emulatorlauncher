@@ -703,7 +703,7 @@ namespace EmulatorLauncher
             }
             else if (mesenSystem == "Sms")
             {
-                if (SystemConfig.getOptBoolean("mesen_sms_guncontroller") && SystemConfig["mesen_zapper"] == "Port1")
+                if (SystemConfig.getOptBoolean("mesen_sms_guncontroller") && GetGunPort("mesen_zapper", "Port1") == "Port1")
                 {
                     switch (playerIndex)
                     {
