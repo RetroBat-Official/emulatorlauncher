@@ -14,10 +14,24 @@ namespace batocera_bluetooth
     {
         static void Main(string[] args)
         {
-            if(args.Length==0)args=new[]{"list"};
-            if(args[0]=="list" || args[0]=="scanlist") LowEnergy.List();
-            if(args.Length==2 && args[1]!="input" && (args[0]=="trust" || args[0]=="connect" || args[0]=="remove") && LowEnergy.Handle(args[0],args[1]))return;
-            if(args[0]=="forgetBT") foreach(var d in LowEnergy.Paired()) LowEnergy.Handle("remove",Convert.ToString(d.Properties["System.Devices.Aep.DeviceAddress"]));
+            if (args.Length == 0) args = new[] { "list" };
+            try
+            {
+                if (args[0] == "list" || args[0] == "scanlist")
+                    LowEnergy.List();
+                if (args.Length == 2 && args[1] != "input" &&
+                    (args[0] == "trust" || args[0] == "connect" || args[0] == "remove") &&
+                    LowEnergy.Handle(args[0], args[1]))
+                    return;
+                if (args[0] == "forgetBT")
+                    foreach (var d in LowEnergy.Paired())
+                        LowEnergy.Handle("remove", Convert.ToString(d.Properties["System.Devices.Aep.DeviceAddress"]));
+            }
+            catch (Exception e)
+            {
+                // A missing/disabled LE radio must not break classic Bluetooth.
+                Console.Error.WriteLine("Bluetooth LE: " + e.Message);
+            }
             if (args.Length > 0 && args[0] == "forgetBT")
             {
                 ForgetBluetoothControllers();
@@ -218,7 +232,10 @@ namespace batocera_bluetooth
 
         static void GetLiveDevices(Func<BluetoothDevice, bool> deviceFoundEvent = null)
         {
-            var watcher=LowEnergy.Watch(deviceFoundEvent!=null); int time = Environment.TickCount;
+            Windows.Devices.Enumeration.DeviceWatcher watcher = null;
+            try { watcher = LowEnergy.Watch(deviceFoundEvent != null); }
+            catch (Exception e) { Console.Error.WriteLine("Bluetooth LE scanning: " + e.Message); }
+            int time = Environment.TickCount;
 
             BLUETOOTH_DEVICE_SEARCH_PARAMS search = BLUETOOTH_DEVICE_SEARCH_PARAMS.Create();
             search.cTimeoutMultiplier = 1;
@@ -230,58 +247,69 @@ namespace batocera_bluetooth
 
             List<BluetoothDevice> connectedDevices = null;
 
-            while (true)
+            try
             {
-                var devices = new List<BluetoothDevice>();
-
-                BLUETOOTH_DEVICE_INFO device = BLUETOOTH_DEVICE_INFO.Create();
-                IntPtr searchHandle = NativeMethods.BluetoothFindFirstDevice(ref search, ref device);
-                if (searchHandle != IntPtr.Zero)
+                while (true)
                 {
-                    while (true)
+                    var devices = new List<BluetoothDevice>();
+    
+                    BLUETOOTH_DEVICE_INFO device = BLUETOOTH_DEVICE_INFO.Create();
+                    IntPtr searchHandle = NativeMethods.BluetoothFindFirstDevice(ref search, ref device);
+                    if (searchHandle != IntPtr.Zero)
                     {
-                        if (device.IsGamePad)
-                            devices.Add(new BluetoothDevice(device));
-                        
-                        if (!NativeMethods.BluetoothFindNextDevice(searchHandle, ref device))
-                            break;
-                    }
-
-                    NativeMethods.BluetoothFindDeviceClose(searchHandle);
-                }
-
-                if (deviceFoundEvent == null && connectedDevices != null)
-                {
-                    foreach (var dev in connectedDevices)
-                    {
-                        if (!devices.Any(e => e.Address == dev.Address))
-                            Console.WriteLine("<device id=\"" + ToMacAddress(dev.Address) + "\" name=\"" + dev.Name + "\" type=\"" + dev.Type + "\" status=\"removed\"/>");
-                    }
-                }
-
-                foreach (var dev in devices)
-                {
-                    if (connectedDevices == null || !connectedDevices.Any(e => e.Address == dev.Address))
-                    {
-                        if (deviceFoundEvent != null)
+                        while (true)
                         {
-                            if (dev.Type == "joystick")
-                            {
-                                Console.WriteLine("Found \"" + dev.Name + ", " + ToMacAddress(dev.Address) + "\"");
-                                if (deviceFoundEvent(dev))
-                                    return;
-                            }
+                            if (device.IsGamePad)
+                                devices.Add(new BluetoothDevice(device));
+                            
+                            if (!NativeMethods.BluetoothFindNextDevice(searchHandle, ref device))
+                                break;
                         }
-                        else
-                            Console.WriteLine("<device id=\"" + ToMacAddress(dev.Address) + "\" name=\"" + dev.Name + "\" type=\"" + dev.Type + "\" status=\"added\"/>");
+    
+                        NativeMethods.BluetoothFindDeviceClose(searchHandle);
                     }
+    
+                    if (deviceFoundEvent == null && connectedDevices != null)
+                    {
+                        foreach (var dev in connectedDevices)
+                        {
+                            if (!devices.Any(e => e.Address == dev.Address))
+                                Console.WriteLine("<device id=\"" + ToMacAddress(dev.Address) + "\" name=\"" + dev.Name + "\" type=\"" + dev.Type + "\" status=\"removed\"/>");
+                        }
+                    }
+    
+                    foreach (var dev in devices)
+                    {
+                        if (connectedDevices == null || !connectedDevices.Any(e => e.Address == dev.Address))
+                        {
+                            if (deviceFoundEvent != null)
+                            {
+                                if (dev.Type == "joystick")
+                                {
+                                    Console.WriteLine("Found \"" + dev.Name + ", " + ToMacAddress(dev.Address) + "\"");
+                                    if (deviceFoundEvent(dev))
+                                        return;
+                                }
+                            }
+                            else
+                                Console.WriteLine("<device id=\"" + ToMacAddress(dev.Address) + "\" name=\"" + dev.Name + "\" type=\"" + dev.Type + "\" status=\"added\"/>");
+                        }
+                    }
+    
+                    if (deviceFoundEvent != null && Environment.TickCount - time > 60 * 1000) // 1 minute
+                        break;
+    
+                    search.cTimeoutMultiplier = (byte) Math.Min(4, search.cTimeoutMultiplier + 2);
+                    connectedDevices = devices;
                 }
-
-                if (deviceFoundEvent != null && Environment.TickCount - time > 60 * 1000) // 1 minute
-                    break;
-
-                search.cTimeoutMultiplier = (byte) Math.Min(4, search.cTimeoutMultiplier + 2);
-                GC.KeepAlive(watcher); connectedDevices = devices;
+            }
+            finally
+            {
+                if (watcher != null)
+                {
+                    try { watcher.Stop(); }
+                    catch (Exception e) { Console.Error.WriteLine("Bluetooth LE stop: " + e.Message); }
+                }
             }
         }
 
