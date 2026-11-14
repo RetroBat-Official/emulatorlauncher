@@ -35,7 +35,7 @@ namespace batocera_bluetooth {
             return op.GetResults();
         }
         static string Line(DeviceInformation d,string state) {
-            return "<device id=\""+Mac(d)+"\" name=\""+SecurityElement.Escape(d.Name+(state=="added" && d.Pairing.IsPaired?" (bereits gekoppelt)":""))+"\" type=\""+(IsPad(d)?"joystick":"unknown")+"\""+(state==null?"":" status=\""+state+"\"")+"/>";
+            return "<device id=\""+Mac(d)+"\" name=\""+SecurityElement.Escape(d.Name ?? String.Empty)+"\" type=\""+(IsPad(d)?"joystick":"unknown")+"\""+(state==null?"":" status=\""+state+"\"")+"/>";
         }
         internal static DeviceInformation[] Paired() {
             var selector=BluetoothLEDevice.GetDeviceSelectorFromPairingState(true);
@@ -52,7 +52,8 @@ namespace batocera_bluetooth {
                 try{d=Wait(DeviceInformation.CreateFromIdAsync(System.IO.File.ReadAllText(cache),Fields,DeviceInformationKind.AssociationEndpoint));}catch{}
                 if(d!=null && !Mac(d).Equals(address,StringComparison.OrdinalIgnoreCase))d=null;
             }
-            if(d==null && !System.IO.File.Exists(cache))return false;
+            // The temporary ID cache can be cleared between discovery and pairing.
+            // Fall back to discovering by Bluetooth address regardless of cache state.
             if(d==null)d=Wait(DeviceInformation.FindAllAsync(selector,Fields,DeviceInformationKind.AssociationEndpoint)).FirstOrDefault();
             if(d==null)return false;
             if(command=="remove"){if(d.Pairing.IsPaired && Wait(d.Pairing.UnpairAsync()).Status!=DeviceUnpairingResultStatus.Unpaired) Environment.ExitCode=1;}
@@ -74,22 +75,47 @@ namespace batocera_bluetooth {
             var w=DeviceInformation.CreateWatcher(BluetoothLEDevice.GetDeviceSelectorFromPairingState(false),Fields,DeviceInformationKind.AssociationEndpoint);
             var seen=new Dictionary<string,DeviceInformation>();
             var shown=new HashSet<string>();
-            int pairing=0;
+            var pending=new Queue<DeviceInformation>();
+            bool workerRunning=false;
+
+            // Called under lock(seen). Keep one worker active so a second controller
+            // discovered during an in-progress pairing attempt is not lost.
+            Action startWorker=()=>{
+                if(workerRunning)return;
+                workerRunning=true;
+                ThreadPool.QueueUserWorkItem(o=>{
+                    while(true){
+                        DeviceInformation candidate;
+                        lock(seen){
+                            if(pending.Count==0){workerRunning=false;return;}
+                            candidate=pending.Dequeue();
+                            if(!seen.ContainsKey(candidate.Id))continue;
+                        }
+                        try{
+                            if(Pair(candidate)){
+                                Console.WriteLine("Found \"" + candidate.Name + ", " + Mac(candidate) + "\"");
+                                Console.Out.Flush();
+                                Environment.Exit(0);
+                            }
+                        }catch(Exception e){Console.Error.WriteLine("Bluetooth LE pairing: "+e.Message);}
+                    }
+                });
+            };
             Action<DeviceInformation> publish=d=>{
                 if(Mac(d)=="" || d.Pairing.IsPaired || String.IsNullOrWhiteSpace(d.Name))return;
                 if(automatic ? !IsPad(d) : (!IsPad(d) && !d.Pairing.CanPair))return;
                 if(!shown.Add(d.Id))return;
-                System.IO.File.WriteAllText(Cache(Mac(d)),d.Id);
+                try{System.IO.File.WriteAllText(Cache(Mac(d)),d.Id);}
+                catch(Exception e){Console.Error.WriteLine("Bluetooth LE cache: "+e.Message);}
                 if(!automatic){Console.WriteLine(Line(d,"added"));return;}
-                if(Interlocked.CompareExchange(ref pairing,1,0)==0)ThreadPool.QueueUserWorkItem(o=>{
-                    try{if(Pair(d)){Console.WriteLine("Found \""+d.Name+", "+Mac(d)+"\"");Environment.Exit(0);}}catch(Exception e){Console.Error.WriteLine(e.Message);}finally{Interlocked.Exchange(ref pairing,0);}
-                });
+                pending.Enqueue(d);
+                startWorker();
             };
             w.Added+=(s,d)=>{lock(seen){seen[d.Id]=d;publish(d);}};
             w.Updated+=(s,u)=>{lock(seen){DeviceInformation d;if(seen.TryGetValue(u.Id,out d)){d.Update(u);publish(d);}}};
             w.Removed+=(s,u)=>{lock(seen){DeviceInformation d;if(seen.TryGetValue(u.Id,out d)&&shown.Remove(u.Id)&&!automatic)Console.WriteLine(Line(d,"removed"));seen.Remove(u.Id);}};
             w.Start();
-            if(!automatic) foreach(var d in Paired())Console.WriteLine(Line(d,"added"));
+            if(!automatic)foreach(var d in Paired())Console.WriteLine(Line(d,"added"));
             return w;
         }
     }
