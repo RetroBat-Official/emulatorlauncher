@@ -39,10 +39,11 @@ namespace EmulatorLauncher
             if (usableWheels.Count < 1)
                 return;
 
-            string pcsx2WheelMapping = _isArcade ? Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "pcsx2x6_wheels.yml") : Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "pcsx2_wheels.yml");
-            if (!File.Exists(pcsx2WheelMapping))
+            string pcsx2WheelFile = _isArcade ? "pcsx2x6_wheels.yml" : "pcsx2_wheels.yml";
+            string pcsx2WheelMapping = Wheel.GetMappingFile(pcsx2WheelFile);
+            if (pcsx2WheelMapping == null)
             {
-                SimpleLogger.Instance.Info("[WHEELS] Mapping file " + pcsx2WheelMapping + " does not exist.");
+                SimpleLogger.Instance.Info("[WHEELS] Mapping file " + pcsx2WheelFile + " does not exist.");
                 return;
             }
 
