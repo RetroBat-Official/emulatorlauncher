@@ -315,17 +315,7 @@ namespace EmulatorLauncher
                         ini.AppendValue("Memory", "protect_zero", "true");
 
                     // Storage section
-                    string contentPath = Path.Combine(AppConfig.GetFullPath("saves"), "xbox360", "xenia", "content");
-                    if (Directory.Exists(contentPath))
-                    {
-                        ini.AppendValue("Storage", "content_root", StringExtensions.QuoteString(contentPath.Replace("\\", "/"), true));
-                        SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
-                    }
-                    else
-                    {
-                        contentPath = Path.Combine(path, "content");
-                        SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
-                    }
+                    string contentPath = SetupContentPath(ini, path);
 
                     if (SystemConfig.isOptSet("mount_cache") && SystemConfig.getOptBoolean("mount_cache"))
                         ini.AppendValue("Storage", "mount_cache", "true");
@@ -520,17 +510,7 @@ namespace EmulatorLauncher
                         ini.AppendValue("Memory", "protect_zero", "true");
 
                     // Storage section
-                    string contentPath = Path.Combine(AppConfig.GetFullPath("saves"), "xbox360", "xenia", "content");
-                    if (Directory.Exists(contentPath))
-                    {
-                        ini.AppendValue("Storage", "content_root", StringExtensions.QuoteString(contentPath.Replace("\\", "/"), true));
-                        SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
-                    }
-                    else
-                    {
-                        contentPath = Path.Combine(path, "content");
-                        SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
-                    }
+                    string contentPath = SetupContentPath(ini, path);
 
                     if (SystemConfig.isOptSet("mount_cache") && SystemConfig.getOptBoolean("mount_cache"))
                         ini.AppendValue("Storage", "mount_cache", "true");
@@ -715,11 +695,6 @@ namespace EmulatorLauncher
                     else
                         ini.AppendValue("GPU", "async_shader_compilation", "true");
 
-                    if (SystemConfig.isOptSet("xenia_clear_memory_page_state") && SystemConfig.getOptBoolean("xenia_clear_memory_page_state"))
-                        ini.AppendValue("GPU", "clear_memory_page_state", "true");
-                    else if (Features.IsSupported("xenia_clear_memory_page_state"))
-                        ini.AppendValue("GPU", "clear_memory_page_state", "false");
-
                     // Video section
                     if (SystemConfig.isOptSet("xenia_video_standard") && !string.IsNullOrEmpty(SystemConfig["xenia_video_standard"]))
                         ini.AppendValue("Console", "video_standard", SystemConfig["xenia_video_standard"]);
@@ -753,17 +728,7 @@ namespace EmulatorLauncher
                         ini.AppendValue("Memory", "protect_zero", "true");
 
                     // Storage section
-                    string contentPath = Path.Combine(AppConfig.GetFullPath("saves"), "xbox360", "xenia", "content");
-                    if (Directory.Exists(contentPath))
-                    {
-                        ini.AppendValue("Storage", "content_root", StringExtensions.QuoteString(contentPath.Replace("\\", "/"), true));
-                        SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
-                    }
-                    else
-                    {
-                        contentPath = Path.Combine(path, "content");
-                        SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
-                    }
+                    string contentPath = SetupContentPath(ini, path);
 
                     if (SystemConfig.isOptSet("mount_cache") && SystemConfig.getOptBoolean("mount_cache"))
                         ini.AppendValue("Storage", "mount_cache", "true");
@@ -855,6 +820,42 @@ namespace EmulatorLauncher
                 RestoreEdgeGameConfigs(_edgeGameConfigsHidden);
 
             base.Cleanup();
+        }
+
+        /// <summary>
+        /// Xbox 360 content (saves, profiles, title updates, DLC) is shared by all Xenia versions in saves\xbox360\xenia\content.
+        /// The first time, the content folder of the launched emulator is moved there so that existing saves are kept.
+        /// </summary>
+        private string SetupContentPath(IniFile ini, string path)
+        {
+            string contentPath = Path.Combine(AppConfig.GetFullPath("saves"), "xbox360", "xenia", "content");
+            string emulatorContent = Path.Combine(path, "content");
+
+            try
+            {
+                if (!Directory.Exists(contentPath))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(contentPath));
+
+                    if (Directory.Exists(emulatorContent) && Directory.EnumerateFileSystemEntries(emulatorContent).Any())
+                    {
+                        Directory.Move(emulatorContent, contentPath);
+                        SimpleLogger.Instance.Info("[Generator] Xenia content moved from '" + emulatorContent + "' to '" + contentPath + "'");
+                    }
+                    else
+                        Directory.CreateDirectory(contentPath);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Content kept in the emulator folder (move not possible, e.g. saves on another drive)
+                SimpleLogger.Instance.Warning("[Generator] Unable to use '" + contentPath + "' for Xenia content: " + ex.Message);
+                return emulatorContent;
+            }
+
+            ini.AppendValue("Storage", "content_root", StringExtensions.QuoteString(contentPath.Replace("\\", "/"), true));
+            SimpleLogger.Instance.Info("[Generator] Setting '" + contentPath + "' as content path for the emulator");
+            return contentPath;
         }
 
         private string GetXboxLangFromEnvironment()
@@ -1003,7 +1004,7 @@ namespace EmulatorLauncher
             WriteUInt32BE(data, UserBase + 0x15C, resolution); // Composite/HDMI
             WriteUInt32BE(data, UserBase + 0x160, resolution); // Component
 
-            // --- Langue ---
+            // --- Language ---
             int language = GetXboxLangFromEnvironment().ToInteger();
             if (SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
                 language = SystemConfig["xenia_lang"].ToInteger();
@@ -1024,7 +1025,7 @@ namespace EmulatorLauncher
         private uint GetXConfigResolution()
         {
             if (!SystemConfig.isOptSet("xenia_internal_display_resolution"))
-                return 0x050002D0u; // 1280x720 par défaut
+                return 0x050002D0u; // 1280x720 (default)
 
             switch (SystemConfig["xenia_internal_display_resolution"].ToInteger())
             {
@@ -1045,7 +1046,7 @@ namespace EmulatorLauncher
                 case 14: return 0x0690041Au; // 1680x1050
                 case 15: return 0x0780021Cu; // 1920x540
                 case 16: return 0x07800438u; // 1920x1080
-                default: return 0x050002D0u; // 1280x720 par défaut
+                default: return 0x050002D0u; // 1280x720 (default)
             }
         }
 
@@ -1070,7 +1071,7 @@ namespace EmulatorLauncher
             // User: AudioFlags = DolbyDigital | DolbyProLogic
             WriteUInt32BE(data, UserBase + 0x034, 0x00010001u);
 
-            // User: résolutions par défaut 1280x720
+            // User: default resolutions 1280x720
             WriteUInt32BE(data, UserBase + 0x15C, 0x050002D0u);
             WriteUInt32BE(data, UserBase + 0x160, 0x050002D0u);
 
