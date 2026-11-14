@@ -139,11 +139,9 @@ namespace EmulatorLauncher
 
             while (process != null)
             {
+                // Phoenix already closed: keep the process to read its exit code below
                 if (process.WaitForExit(50))
-                {
-                    process = null;
                     break;
-                }
 
 
                 //get emulator window and press the power button (ALT > DOWN > RIGHT > ENTER)

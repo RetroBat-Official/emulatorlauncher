@@ -9,7 +9,7 @@ using EmulatorLauncher.Common.FileFormats;
 namespace EmulatorLauncher
 {
     /// <summary>
-    /// POM2 - Apple II family emulator (habib256/pom2), audited against v1.0.0.
+    /// POM2 - Apple II family emulator (habib256/pom2)
     ///
     ///  - POM2 has no portable mode : ResourcePaths.cpp userConfigDir() reads %APPDATA% first, then
     ///    %LOCALAPPDATA%, with no override hook. APPDATA is redirected on the child process so
@@ -98,6 +98,7 @@ namespace EmulatorLauncher
                 catch (Exception ex) { SimpleLogger.Instance.Warning("[Generator] Cannot create " + configPath + " : " + ex.Message); }
             }
 
+            SetupRoms(path, SystemConfig.isOptSet("pom2_machine") && !string.IsNullOrEmpty(SystemConfig["pom2_machine"]) ? SystemConfig["pom2_machine"] : "iie");
             SetupConfiguration(configPath);
 
             var commandArray = new List<string>();
@@ -131,6 +132,68 @@ namespace EmulatorLauncher
                 ret.EnvironmentVariables["POM2_MEDIA_WRITE_DEFAULT"] = "protected";
 
             return ret;
+        }
+
+        // ROMs searched by POM2 for each machine, machine then character ROM, the first file found is used (SystemProfile.cpp)
+        private static readonly Dictionary<string, string[][]> _machineRoms = new Dictionary<string, string[][]>()
+        {
+            { "ii",    new[] { new[] { "apple2o.rom", "apple2.rom" }, new[] { "apple2_char.rom" } } },
+            { "ii+",   new[] { new[] { "apple2p.rom", "apple2.rom" }, new[] { "apple2_char.rom" } } },
+            { "iie",   new[] { new[] { "apple2e.rom" }, new[] { "apple2e_char.rom", "apple2_char.rom" } } },
+            { "iie-u", new[] { new[] { "apple2e_unenh.rom", "342-0135-b.64.rom", "apple2e.rom" }, new[] { "apple2e_char_2k.rom", "342-0133-a.chr.rom", "apple2_char.rom" } } },
+            { "iic",   new[] { new[] { "apple2c-32Kv0.rom", "apple2c-16K.rom", "3420033a.256" }, new[] { "apple2e_char.rom", "apple2_char.rom" } } },
+            { "iic+",  new[] { new[] { "apple2cp.rom", "apple2c-plus.rom", "apple2c-32Kv0.rom" }, new[] { "apple2e_char.rom", "apple2_char.rom" } } },
+        };
+
+        /// <summary>
+        /// POM2 packages ship no Apple ROM since 1.1.0 : the ROMs of 'bios\pom2' are copied to the 'roms' folder beside POM2.exe
+        /// (searched after %LOCALAPPDATA%\POM2\roms, ResourcePaths.cpp). A missing machine or Disk II ROM stops the launch with a message,
+        /// in kiosk mode POM2 would only show a blank screen.
+        /// </summary>
+        private void SetupRoms(string path, string machine)
+        {
+            string biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "pom2");
+            string romsPath = Path.Combine(path, "roms");
+            FileTools.TryCreateDirectory(romsPath);
+
+            if (Directory.Exists(biosPath))
+            {
+                foreach (string file in Directory.GetFiles(biosPath))
+                {
+                    string target = Path.Combine(romsPath, Path.GetFileName(file));
+                    if (File.Exists(target))
+                        continue;
+
+                    try { File.Copy(file, target); }
+                    catch (Exception ex) { SimpleLogger.Instance.Warning("[Generator] Cannot copy POM2 ROM " + file + " : " + ex.Message); }
+                }
+            }
+
+            // PAL machines use the ROMs of the NTSC machine
+            string baseMachine = machine.EndsWith("-pal") ? machine.Substring(0, machine.Length - 4) : machine;
+            string[][] machineRoms;
+            if (!_machineRoms.TryGetValue(baseMachine, out machineRoms))
+                return;
+
+            // Disk II sequencer on every machine, Disk II boot PROM except on the //c (in its system ROM)
+            var required = machineRoms.ToList();
+            required.Add(new[] { "diskii_p6.rom" });
+            if (!baseMachine.StartsWith("iic"))
+                required.Add(new[] { "disk2.rom" });
+
+            var missing = required.Where(group => !group.Any(file => RomExists(path, file))).Select(group => group[0]).ToList();
+            if (missing.Count > 0)
+                throw new ApplicationException("Missing POM2 ROM in bios\\pom2 : " + string.Join(", ", missing));
+        }
+
+        // POM2 searches %LOCALAPPDATA%\POM2\roms first (ROMs downloaded by POM2 itself), then the emulator folder
+        private static bool RomExists(string path, string file)
+        {
+            string localAppData = Environment.GetEnvironmentVariable("LOCALAPPDATA");
+            if (!string.IsNullOrEmpty(localAppData) && File.Exists(Path.Combine(localAppData, "POM2", "roms", file)))
+                return true;
+
+            return File.Exists(Path.Combine(path, "roms", file));
         }
 
         /// <summary>

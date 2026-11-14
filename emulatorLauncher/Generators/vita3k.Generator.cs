@@ -96,8 +96,6 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[Generator] Setting '" + _prefPath + "' as content path for the emulator");
 
-            CheckFirmware();
-
             /*
              * .m3u      : title ID of a game already installed in Vita3K
              * .psvita   : game folder, installed the first time it is launched
@@ -153,6 +151,10 @@ namespace EmulatorLauncher
             SetupConfiguration(configfile);
             SetupGUIConfiguration(configPath);
             SetupCustomConfig(configPath, gameID);
+
+            // config.yml is written: Vita3K installs the firmware in its pref-path
+            InstallFirmware(exe, path);
+            CheckFirmware();
 
             return new ProcessStartInfo()
             {
@@ -517,21 +519,78 @@ namespace EmulatorLauncher
         #endregion
 
         #region Game and firmware detection
-        /// <summary>
-        /// Log missing firmware components (Vita3K checks vs0 and sa0 the same way: folder exists and is not empty)
-        /// </summary>
-        private void CheckFirmware()
+        // Vita3K considers a firmware component installed when its folder exists and is not empty
+        private bool IsFirmwareInstalled(string folder)
         {
             try
             {
-                foreach (var folder in new string[] { "vs0", "sa0" })
+                string fwPath = Path.Combine(_prefPath, folder);
+                return Directory.Exists(fwPath) && Directory.EnumerateFileSystemEntries(fwPath).Any();
+            }
+            catch { return false; }
+        }
+
+        /// <summary>
+        /// Log missing firmware components (vs0 = firmware, sa0 = fonts)
+        /// </summary>
+        private void CheckFirmware()
+        {
+            foreach (var folder in new string[] { "vs0", "sa0" })
+            {
+                if (!IsFirmwareInstalled(folder))
+                    SimpleLogger.Instance.Warning("[WARNING] Vita3K firmware component '" + folder + "' is not installed in '" + _prefPath + "', some games may not boot or display text correctly.");
+            }
+        }
+
+        /// <summary>
+        /// Install the firmware packages of bios\vita3k missing in the pref-path (names of the libretro core)
+        /// Vita3K installs them with --firmware in the pref-path of its default config.yml, then exits
+        /// </summary>
+        private void InstallFirmware(string exe, string path)
+        {
+            string biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "vita3k");
+            if (!Directory.Exists(biosPath))
+                return;
+
+            // Vita FS folder filled by the package, accepted file names
+            var packages = new List<KeyValuePair<string, string[]>>()
+            {
+                new KeyValuePair<string, string[]>("vs0", new string[] { "PSP2UPDAT.PUP" }),
+                new KeyValuePair<string, string[]>("sa0", new string[] { "PSP2UPDAT_FONT.PUP", "font_fresh.pup" }),
+                new KeyValuePair<string, string[]>("pd0", new string[] { "PSP2UPDAT_PREINST.PUP", "preinst_fresh.pup" })
+            };
+
+            foreach (var package in packages)
+            {
+                if (IsFirmwareInstalled(package.Key))
+                    continue;
+
+                string pup = package.Value.Select(f => Path.Combine(biosPath, f)).FirstOrDefault(File.Exists);
+                if (pup == null)
+                    continue;
+
+                SimpleLogger.Instance.Info("[Generator] Installing Vita3K firmware package '" + pup + "'.");
+
+                try
                 {
-                    string fwPath = Path.Combine(_prefPath, folder);
-                    if (!Directory.Exists(fwPath) || !Directory.EnumerateFileSystemEntries(fwPath).Any())
-                        SimpleLogger.Instance.Warning("[WARNING] Vita3K firmware component '" + folder + "' is not installed in '" + _prefPath + "', some games may not boot or display text correctly.");
+                    using (new InstallProgressWindow(Properties.Resources.Installing + "\r\n" + Path.GetFileName(pup), true, () => 0))
+                    using (var px = Process.Start(new ProcessStartInfo()
+                    {
+                        FileName = exe,
+                        WorkingDirectory = path,
+                        Arguments = "--firmware \"" + pup + "\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }))
+                    {
+                        px?.WaitForExit();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SimpleLogger.Instance.Warning("[WARNING] Unable to install Vita3K firmware package '" + pup + "': " + ex.Message);
                 }
             }
-            catch { }
         }
 
         /// <summary>

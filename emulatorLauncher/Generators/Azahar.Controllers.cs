@@ -1,10 +1,11 @@
-﻿using System.Linq;
-using System.IO;
-using EmulatorLauncher.Common.FileFormats;
+﻿using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.Common.FileFormats;
 using EmulatorLauncher.Common.Joysticks;
-using EmulatorLauncher.Common;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -381,33 +382,49 @@ namespace EmulatorLauncher
 
         private void ConfigureShortcuts(IniFile ini, Controller controller = null, string azaharGuid = null)
         {
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Capture%20Screenshot\\KeySeq", "F8");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Continue\\Pause%20Emulation\\KeySeq", "P");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Azahar\\KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Azahar\\KeySeq", "Esc");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Fullscreen\\KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Exit%20Fullscreen\\KeySeq", "Tab");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Fullscreen\\KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Fullscreen\\KeySeq", "F1");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Load%20Amiibo\\KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Load%20Amiibo\\KeySeq", "Ctrl+F2");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Remove%20Amiibo\\KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Remove%20Amiibo\\KeySeq", "Ctrl+F3");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Quick%20Save\\KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Quick%20Save\\KeySeq", "F2");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Quick%20Load\\KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Quick%20Load\\KeySeq", "F4");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Restart%20Emulation\\KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Restart%20Emulation\\KeySeq", "Ctrl+F6");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Rotate%20Screens%20Upright\\KeySeq\\default", "false");
-            ini.WriteValue("UI", "Shortcuts\\Main%20Window\\Rotate%20Screens%20Upright\\KeySeq", "Ctrl+F8");
+            // Keyboard shortcuts: RetroBat defaults, overwritten by kb_hotkeys.yml
+            var kbShortcuts = new Dictionary<string, string>(KeyboardShortcuts);
+
+            if (Hotkeys.GetHotKeysFromFile("azahar", "", out Dictionary<string, HotkeyResult> custoHotkeys))
+            {
+                foreach (var hotkey in custoHotkeys.Values)
+                    kbShortcuts[hotkey.EmulatorKey] = hotkey.EmulatorValue;
+            }
+
+            foreach (var shortcut in kbShortcuts)
+            {
+                string key = "Shortcuts\\Main%20Window\\" + shortcut.Key + "\\KeySeq";
+                ini.WriteValue("UI", key + "\\default", "false");
+                ini.WriteValue("UI", key, shortcut.Value);
+            }
+
+            // Key sent to load a save state launched from ES
+            _quickLoadShortcut = kbShortcuts["Quick%20Load"];
 
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
                 return;
 
-            // Controller shortcuts
+            // Controller shortcuts: RetroBat defaults, replaced by controller_hotkeys.yml
+            var padShortcuts = ControllerShortcuts.Concat(ScreenShortcuts).ToDictionary(s => s.Key, s => s.Value);
+
+            if (Hotkeys.GetPadHKFromFile("azahar", "", out Dictionary<string, string> padHKDic))
+            {
+                padShortcuts = padHKDic;
+
+                // Screen shortcuts have no RetroArch equivalent: kept when their button is free
+                foreach (var screen in ScreenShortcuts)
+                {
+                    if (!padShortcuts.ContainsValue(screen.Value))
+                        padShortcuts[screen.Key] = screen.Value;
+                }
+            }
+
+            if (SystemConfig.getOptBoolean("fastforward_toggle") && padShortcuts.ContainsKey(TurboHold))
+            {
+                padShortcuts[TurboToggle] = padShortcuts[TurboHold];
+                padShortcuts.Remove(TurboHold);
+            }
+
             string hotkeyValue = null;
 
             if (controller != null && controller.Config != null && !string.IsNullOrEmpty(azaharGuid))
@@ -417,13 +434,18 @@ namespace EmulatorLauncher
                     hotkeyValue = "api:controller," + FromInput(controller, hotkeyInput, azaharGuid, true);
             }
 
-            foreach (var shortcut in ControllerShortcuts)
+            // Every shortcut managed by RetroBat is written, so a combo removed from the yml does not persist
+            foreach (string action in KeyboardShortcuts.Keys.Union(ScreenShortcuts.Keys))
             {
-                string key = "Shortcuts\\Main%20Window\\" + shortcut.Key + "\\controller_keyseq";
+                string key = "Shortcuts\\Main%20Window\\" + action + "\\controller_keyseq";
                 string buttonValue = null;
 
-                if (!string.IsNullOrEmpty(hotkeyValue))
-                    buttonValue = "api:controller," + FromInput(controller, controller.Config[shortcut.Value], azaharGuid, true);
+                if (!string.IsNullOrEmpty(hotkeyValue) && padShortcuts.TryGetValue(action, out string button) && Enum.TryParse<InputKey>(button, true, out var inputKey))
+                {
+                    string input = FromInput(controller, controller.Config[inputKey], azaharGuid, true);
+                    if (!string.IsNullOrEmpty(input))
+                        buttonValue = "api:controller," + input;
+                }
 
                 if (!string.IsNullOrEmpty(buttonValue))
                 {
@@ -461,18 +483,47 @@ namespace EmulatorLauncher
             { InputKey.r2,               "button_zr" },
         };
 
-        // Controller shortcuts: each entry is combined with the "hotkey" button.
+        private const string TurboHold = "Turbo%20Mode%20%28Hold%29";
+        private const string TurboToggle = "Toggle%20Turbo%20Mode";
+
+        // Keyboard shortcuts written by RetroBat (Qt key names, ini names as written by QSettings).
+        // RetroArch hotkeys of kb_hotkeys.yml replace them (azahar entry in HotkeysDictionaries.cs)
+        static readonly Dictionary<string, string> KeyboardShortcuts = new Dictionary<string, string>()
+        {
+            { "Audio%20Mute\\Unmute",           "Ctrl+M" },
+            { "Capture%20Screenshot",           "F8" },
+            { "Continue\\Pause%20Emulation",    "P" },
+            { "Exit%20Azahar",                  "Esc" },
+            { "Exit%20Fullscreen",              "Tab" },
+            { "Fullscreen",                     "F1" },
+            { "Load%20Amiibo",                  "Ctrl+F2" },
+            { "Quick%20Load",                   "F4" },
+            { "Quick%20Save",                   "F2" },
+            { "Remove%20Amiibo",                "Ctrl+F3" },
+            { "Restart%20Emulation",            "Ctrl+F6" },
+            { "Rotate%20Screens%20Upright",     "Ctrl+F8" },
+            { TurboToggle,                      "" },
+            { TurboHold,                        "" }
+        };
+
+        // Controller shortcuts: each entry is combined with the "hotkey" button (yml names: a = SOUTH, x = NORTH, y = WEST).
         // Azahar evaluates the two bindings as an AND combo (both held at once), see
         // ControllerHotkeyMonitor::checkAllButtons in src/citra_qt/hotkey_monitor.cpp
-        static readonly Dictionary<string, InputKey> ControllerShortcuts = new Dictionary<string, InputKey>()
+        static readonly Dictionary<string, string> ControllerShortcuts = new Dictionary<string, string>()
         {
-            { "Exit%20Azahar",                  InputKey.start },
-            { "Quick%20Save",                   InputKey.y },
-            { "Quick%20Load",                   InputKey.x },
-            { "Capture%20Screenshot",           InputKey.r3 },
-            { "Continue\\Pause%20Emulation",    InputKey.a },
-            { "Swap%20Screens",                 InputKey.pageup },
-            { "Toggle%20Screen%20Layout",       InputKey.pagedown }
+            { "Exit%20Azahar",                  "start" },
+            { "Quick%20Save",                   "y" },
+            { "Quick%20Load",                   "x" },
+            { "Capture%20Screenshot",           "r3" },
+            { "Continue\\Pause%20Emulation",    "a" },
+            { TurboHold,                        "right" }
+        };
+
+        // No RetroArch equivalent: not part of controller_hotkeys.yml
+        static readonly Dictionary<string, string> ScreenShortcuts = new Dictionary<string, string>()
+        {
+            { "Swap%20Screens",                 "pageup" },
+            { "Toggle%20Screen%20Layout",       "pagedown" }
         };
     }
 }

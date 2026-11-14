@@ -125,12 +125,19 @@ namespace EmulatorLauncher
 
                     if (gameLayout != null)
                     {
-                        _gamename = gameMapping.Name != null ? gameMapping.Name : null;
+                        // Written to <system name> in the ctrlr file: only a MAME short name is valid
+                        string mappingName = gameMapping.Name?.Trim();
+                        if (!string.IsNullOrEmpty(mappingName) && mappingName.All(c => (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_'))
+                            _gamename = mappingName;
                         _gameMapping = gameMapping;
                         _gameLayout = gameLayout;
                     }
                 }
             }
+
+            // Without a game mapping, 8alternative shares the 6 buttons default (same as lr-mame default_8alternative)
+            if (_gameLayout == null && layout == "8alternative")
+                layout = "6alternative";
 
             // Delete existing config file if any
             string inputConfig = Path.Combine(path, "retrobat_auto.cfg");

@@ -374,6 +374,11 @@ namespace EmulatorLauncher
                 return null;
 
             string layout = SystemConfig["controller_layout"];
+
+            // classic8 shares the 6 buttons mapping
+            if (layout == "classic8")
+                layout = "6alternative";
+
             var containers = yml.Elements.OfType<YmlContainer>().ToList();
 
             Func<string, YmlContainer> find = name => containers.FirstOrDefault(c => c.Name == name);

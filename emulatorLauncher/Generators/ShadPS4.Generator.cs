@@ -475,7 +475,7 @@ namespace EmulatorLauncher
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error parsing versions.json: {ex.Message}");
+                    SimpleLogger.Instance.Warning("[WARNING] Error parsing versions.json: " + ex.Message);
                 }
             }
             

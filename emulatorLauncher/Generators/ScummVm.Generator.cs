@@ -34,7 +34,7 @@ namespace EmulatorLauncher
             
             if (Directory.Exists(rom))
             {
-                romFile = Directory.GetFiles(rom, "*.scummvm").FirstOrDefault();
+                romFile = Directory.GetFiles(rom, "*.scummvm", SearchOption.AllDirectories).FirstOrDefault();
                 if (string.IsNullOrEmpty(romFile))
                 {
                     autodetect = true;

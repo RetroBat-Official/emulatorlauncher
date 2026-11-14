@@ -222,6 +222,10 @@ namespace EmulatorLauncher
             if (emulator == "hypseus")
                 CreateControllerConfiguration(emulatorPath, (singeFile != null && File.Exists(singeFile)) || useAlt || zipHypseus);
 
+            // Hypseus only saves screenshots (F12) in an existing "screenshots" folder next to its executable
+            if (_executableName == "hypseus")
+                try { Directory.CreateDirectory(Path.Combine(emulatorPath, "screenshots")); } catch { }
+
             List<string> commandArray = new List<string>();
 
             // extension used .daphne and the file to start the game is in the folder .daphne with the extension .txt
@@ -547,9 +551,9 @@ namespace EmulatorLauncher
 
             try
             {
-                string ram = Path.Combine(_daphneHomedir, "ram");
+                /*string ram = Path.Combine(_daphneHomedir, "ram");
                 if (Directory.Exists(ram))
-                    new DirectoryInfo(ram).Delete(true);
+                    new DirectoryInfo(ram).Delete(true);*/
 
                 string frameFile = Path.Combine(_daphneHomedir, "framefile");
                 if (Directory.Exists(frameFile))

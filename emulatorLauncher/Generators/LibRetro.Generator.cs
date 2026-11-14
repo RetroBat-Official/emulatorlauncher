@@ -529,7 +529,8 @@ namespace EmulatorLauncher.Libretro
 
             // Unzipping part
             // Manage 7z and squashfs for some cores
-            if (rom != null && core != null && (Path.GetExtension(rom).ToLower() == ".7z" || Path.GetExtension(rom).ToLower().Contains("squashfs")))
+            // scummvm: a game is a folder, RetroArch only extracts the .scummvm file of a zip and does not read rar
+            if (rom != null && core != null && (Path.GetExtension(rom).ToLower() == ".7z" || Path.GetExtension(rom).ToLower().Contains("squashfs") || (core == "scummvm" && Zip.IsCompressedFile(rom))))
             {
                 string newRom = GetUnzippedRomForSystem(rom, core, system);
 
@@ -2769,7 +2770,7 @@ namespace EmulatorLauncher.Libretro
 
         // No savestate support - netplay unavailable (lockstep needs at least basic savestates)
         static List<string> coreNoNetplay = new List<string>() { "arduous", "b2", "bennugd", "cannonball", "cemu", "dice", "dinothawr", "doukutsu_rs", "easyrpg", "emux_gb",
-            "emux_nes", "emux_sms", "freej2me", "frodo", "gw", "lowresnx", "mame2010", "mame2016", "nxengine", "openlara", "pd777", "pocketcdg", "retro8", "scummvm", "superbroswar",
+            "emux_nes", "emux_sms", "freej2me", "frodo", "gw", "lowresnx", "nxengine", "openlara", "pd777", "pocketcdg", "retro8", "scummvm", "superbroswar",
             "tyrquake", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "zc255" };
 
         // Hardware-rendered cores: a duplicated instance cannot get a second GPU context
@@ -2777,7 +2778,7 @@ namespace EmulatorLauncher.Libretro
         
         static readonly List<string> CoreSaveSort = new List<string>() { "dolphin" };
         static readonly List<string> CoreNoZip = new List<string>() { "mednafen_pce", "mednafen_pce_fast", "mednafen_psx_hw", "mednafen_psx", "mednafen_saturn", "swanstation", 
-            "pcsx_rearmed", "pcsx2", "zc255" };
+            "pcsx_rearmed", "pcsx2", "virtualjaguar", "zc255" };
         static readonly Dictionary<string, string> coreToP1Device = new Dictionary<string, string>() { { "atari800", "513" }, { "cap32", "513" }, { "fuse", "513" } };
         static readonly Dictionary<string, string> coreToP2Device = new Dictionary<string, string>() { { "atari800", "513" }, { "fuse", "513" } };
         static readonly Dictionary<string, string> defaultVideoDriver = new Dictionary<string, string>()

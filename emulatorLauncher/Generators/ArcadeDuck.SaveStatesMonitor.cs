@@ -14,6 +14,7 @@ namespace EmulatorLauncher
     class ArcadeDuckSaveStatesMonitor : SaveStatesWatcher
     {
         private const uint SAVE_STATE_MAGIC = 0x43435544;
+        private const uint ARCADE_SAVE_STATE_MAGIC = 0x53414441;
 
         private const uint COMPRESSION_NONE = 0;
         private const uint COMPRESSION_DEFLATE = 1;
@@ -36,7 +37,7 @@ namespace EmulatorLauncher
                 try { header = (SAVE_STATE_HEADER)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(SAVE_STATE_HEADER)); }
                 finally { handle.Free(); }
 
-                if (header.magic != SAVE_STATE_MAGIC)
+                if (header.magic != SAVE_STATE_MAGIC && header.magic != ARCADE_SAVE_STATE_MAGIC)
                     return;
 
                 int width = (int)header.screenshot_width;

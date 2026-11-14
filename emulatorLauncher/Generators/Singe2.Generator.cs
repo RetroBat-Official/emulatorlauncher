@@ -277,7 +277,7 @@ namespace EmulatorLauncher
             bool foundScript = false;
             bool foundVideo = false;
             string path = Path.GetDirectoryName(rom);
-            string gameInfoFile = originalRom.Replace(".singe", ".gameinfo");
+            string gameInfoFile = originalRom.Replace(".singe", ".gameinfo").Replace(".hypseus", ".gameinfo");
 
             if (!File.Exists(gameInfoFile))
             {

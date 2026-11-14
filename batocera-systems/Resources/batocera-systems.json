@@ -321,83 +321,188 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "bios/apple2.zip"
+        "file": "bios/apple2e.zip",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/apple2e.zip"
+        "file": "bios/apple2ee.zip",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/apple2ee.zip"
+        "file": "bios/apple2.zip",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/apple2p.zip"
+        "file": "bios/apple2p.zip",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/a2diskiing.zip"
+        "file": "bios/a2diskiing.zip",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/votrsc01a.zip"
+        "file": "bios/d2fdc.zip",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/votrsc01.zip"
+        "file": "bios/votrsc01a.zip",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/d2fdc.zip"
+        "file": "bios/a2cffa2.zip",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/AppleIIe_DiskII.rom"
+        "file": "bios/apple2-asoft-auto.rom",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/AppleIIe.rom"
+        "file": "bios/apple2-int-auto.rom",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/apple2-int-auto.rom"
+        "file": "bios/disk2-16boot.rom",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/apple2-asoft-auto.rom"
+        "file": "bios/disk2-16seq.rom",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/disk2-13boot.rom"
+        "file": "bios/disk2-13boot.rom",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/disk2-13seq.rom"
+        "file": "bios/disk2-13seq.rom",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/disk2-16boot.rom"
+        "file": "bios/AppleIIe.rom",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/disk2-16seq.rom"
+        "file": "bios/AppleIIe_DiskII.rom",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/mame/hash/apple2_cass.xml"
+        "file": "bios/pom2/apple2e.rom",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/mame/hash/apple2_flop_clcracked.xml"
+        "file": "bios/pom2/apple2e_char.rom",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/mame/hash/apple2_flop_misc.xml"
+        "file": "bios/pom2/disk2.rom",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/mame/hash/apple2_flop_orig.xml"
+        "file": "bios/pom2/diskii_p6.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pom2/apple2o.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pom2/apple2.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pom2/apple2p.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pom2/apple2_char.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pom2/apple2e_unenh.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pom2/342-0135-b.64.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pom2/apple2e_char_2k.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pom2/342-0133-a.chr.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pom2/apple2c-32Kv0.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pom2/apple2c-16K.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pom2/3420033a.256",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pom2/apple2cp.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pom2/apple2c-plus.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/apple2_cass.xml",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/apple2_flop_clcracked.xml",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/apple2_flop_misc.xml",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/apple2_flop_orig.xml",
+        "optional": true
       }
     ]
   },
@@ -411,19 +516,28 @@
       },
       {
         "md5": "",
-        "file": "bios/apple2gs.zip"
+        "file": "bios/apple2gs.zip",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/mame/hash/apple2gs_flop_clcracked.xml"
+        "file": "bios/votrsc01a.zip",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/mame/hash/apple2gs_flop_misc.xml"
+        "file": "bios/mame/hash/apple2gs_flop_clcracked.xml",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/mame/hash/apple2gs_flop_orig.xml"
+        "file": "bios/mame/hash/apple2gs_flop_misc.xml",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/mame/hash/apple2gs_flop_orig.xml",
+        "optional": true
       }
     ]
   },
@@ -1228,7 +1342,19 @@
     "biosFiles": [
       {
         "md5": "bcfe348c565d9dedb173822ee6850dea",
-        "file": "bios/[BIOS] Atari Jaguar (World).j64"
+        "file": "bios/[BIOS] Atari Jaguar (World).j64",
+        "optional": true
+      }
+    ]
+  },
+
+  "jaguarcd": {
+    "name": "Jaguar CD",
+    "biosFiles": [
+      {
+        "md5": "77cd95c7ad06a39f4c59995094aa10f9",
+        "file": "bios/[BIOS] Atari Jaguar CD (World).j64",
+        "optional": true
       }
     ]
   },
@@ -1909,12 +2035,65 @@
     ]
   },
 
+  "ps3": {
+    "name": "Playstation 3",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/PS3UPDAT.PUP",
+        "optional": true
+      }
+    ]
+  },
+
+  "psvita": {
+    "name": "PlayStation Vita",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/vita3k/PSP2UPDAT.PUP",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/vita3k/PSP2UPDAT_FONT.PUP",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/vita3k/PSP2UPDAT_PREINST.PUP",
+        "optional": true
+      }
+    ]
+  },
+
   "psx": {
-    "name": "PSX",
+    "name": "Playstation",
     "biosFiles": [
       {
         "md5": "c53ca5908936d412331790f4426c6c33",
-        "file": "bios/psxonpsp660.bin"
+        "file": "bios/psxonpsp660.bin",
+        "group": "psx"
+      },
+      {
+        "md5": "81bbe60ba7a3d1cea1d48c14cbcc647b",
+        "file": "bios/ps1_rom.bin",
+        "group": "psx"
+      },
+      {
+        "md5": "8dd7d5296a650fac7319bce665a6a53c",
+        "file": "bios/scph5500.bin",
+        "group": "psx"
+      },
+      {
+        "md5": "490f666e1afb15b7362b406ed1cea246",
+        "file": "bios/scph5501.bin",
+        "group": "psx"
+      },
+      {
+        "md5": "32736f17079d0b2b7024407c39bd3050",
+        "file": "bios/scph5502.bin",
+        "group": "psx"
       }
     ]
   },
@@ -1980,11 +2159,13 @@
     "biosFiles": [
       {
         "md5": "5626206284b22c2734f3e9efefcd2675",
-        "file": "bios/scummvm/extra/MT32_CONTROL.ROM"
+        "file": "bios/scummvm/extra/MT32_CONTROL.ROM",
+        "optional": true
       },
       {
         "md5": "89e42e386e82e0cacb4a2704a03706ca",
-        "file": "bios/scummvm/extra/MT32_PCM.ROM"
+        "file": "bios/scummvm/extra/MT32_PCM.ROM",
+        "optional": true
       }
     ]
   },
@@ -2312,6 +2493,16 @@
       {
         "md5": "39cee882148a87f93cb440b99dde3ceb",
         "file": "bios/Complex_4627.bin"
+      },
+      {
+        "md5": "",
+        "file": "bios/Cerbios.bin",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/Complex_4627v1.03.bin",
+        "optional": true
       }
     ]
   },

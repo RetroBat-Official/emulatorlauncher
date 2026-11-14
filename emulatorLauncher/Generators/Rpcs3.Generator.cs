@@ -167,7 +167,7 @@ namespace EmulatorLauncher
                 string gameConfigPath = Path.Combine(path, "config", "custom_configs");
                 string targetConfigPath = Path.Combine(path, "config", "custom_configs_backup");
 
-                if (Directory.Exists(targetConfigPath))
+                if (Directory.Exists(gameConfigPath) && Directory.Exists(targetConfigPath))
                 {
                     try { Directory.Delete(targetConfigPath, true); }
                     catch (Exception ex) { SimpleLogger.Instance.Error("[GENERATOR] Error deleting custom_configs_backup: " + ex.Message); }
@@ -197,8 +197,8 @@ namespace EmulatorLauncher
             string biosPs3 = Path.Combine(biosPath, "PS3UPDAT.PUP");
 
             if (!File.Exists(firmware) && !File.Exists(biosPs3))
-                throw new ApplicationException("PS3 firmware is not installed in rpcs3 emulator, either place it in \\bios folder, or launch the emulator and install the firware.");
-            
+                throw new ApplicationException("PS3 firmware is not installed in rpcs3 emulator, either place it in \\bios folder, or launch the emulator and install the firmware.");
+
             else if (!File.Exists(firmware) && File.Exists(biosPs3))
             {
                 SimpleLogger.Instance.Info("[INFO] Firmware not installed, launching RPCS3 with 'installfirmware' command.");
