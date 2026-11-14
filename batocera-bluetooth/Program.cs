@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
@@ -14,6 +14,10 @@ namespace batocera_bluetooth
     {
         static void Main(string[] args)
         {
+            if(args.Length==0)args=new[]{"list"};
+            if(args[0]=="list" || args[0]=="scanlist") LowEnergy.List();
+            if(args.Length==2 && args[1]!="input" && (args[0]=="trust" || args[0]=="connect" || args[0]=="remove") && LowEnergy.Handle(args[0],args[1]))return;
+            if(args[0]=="forgetBT") foreach(var d in LowEnergy.Paired()) LowEnergy.Handle("remove",Convert.ToString(d.Properties["System.Devices.Aep.DeviceAddress"]));
             if (args.Length > 0 && args[0] == "forgetBT")
             {
                 ForgetBluetoothControllers();
@@ -214,7 +218,7 @@ namespace batocera_bluetooth
 
         static void GetLiveDevices(Func<BluetoothDevice, bool> deviceFoundEvent = null)
         {
-            int time = Environment.TickCount;
+            var watcher=LowEnergy.Watch(deviceFoundEvent!=null); int time = Environment.TickCount;
 
             BLUETOOTH_DEVICE_SEARCH_PARAMS search = BLUETOOTH_DEVICE_SEARCH_PARAMS.Create();
             search.cTimeoutMultiplier = 1;
@@ -277,7 +281,7 @@ namespace batocera_bluetooth
                     break;
 
                 search.cTimeoutMultiplier = (byte) Math.Min(4, search.cTimeoutMultiplier + 2);
-                connectedDevices = devices;
+                GC.KeepAlive(watcher); connectedDevices = devices;
             }
         }
 
