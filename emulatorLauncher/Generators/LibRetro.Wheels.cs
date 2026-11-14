@@ -37,16 +37,10 @@ namespace EmulatorLauncher.Libretro
 
                 Dictionary<string, string> wheelbuttonMap = new Dictionary<string, string>();
 
-                string coreWheelMapping = Path.Combine(
-                    AppConfig.GetFullPath("retrobat"),
-                    "system",
-                    "resources",
-                    "inputmapping",
-                    "wheels",
-                    "libretro_" + core + "_wheels.yml"
-                );
+                // User file first (libretro_<core>_wheels.yml in user\inputmapping)
+                string coreWheelMapping = Wheel.GetMappingFile("libretro_" + core + "_wheels.yml");
 
-                if (!File.Exists(coreWheelMapping))
+                if (coreWheelMapping == null)
                 {
                     SimpleLogger.Instance.Info("[WHEELS] No wheel mapping file found for core libretro_" + core);
                     continue;

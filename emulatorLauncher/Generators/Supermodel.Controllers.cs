@@ -219,10 +219,9 @@ namespace EmulatorLauncher
                     wheeltype = wheel.Type.ToString();
                     SimpleLogger.Instance.Info("[WHEELS] Wheeltype identified : " + wheeltype);
 
-                    // Get mapping in yml file
-                    
-                    string model3WheelMapping = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "model3_wheels.yml");
-                    if (File.Exists(model3WheelMapping))
+                    // Get mapping in yml file (user file first)
+                    string model3WheelMapping = Wheel.GetMappingFile("model3_wheels.yml");
+                    if (model3WheelMapping != null)
                     {
                         ymlFile = YmlFile.Load(model3WheelMapping);
 

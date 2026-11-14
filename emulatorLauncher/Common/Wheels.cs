@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 
 namespace EmulatorLauncher
 {
@@ -173,6 +174,20 @@ namespace EmulatorLauncher
 
             SimpleLogger.Instance.Info("[WHEELS] Found " + usableWheels.Count + " usable wheels.");
             return usableWheels;
+        }
+
+        /// <summary>
+        /// Wheel mapping file: user\inputmapping first (kept on updates), then system\resources\inputmapping\wheels. Null if none exists.
+        /// </summary>
+        public static string GetMappingFile(string fileName)
+        {
+            string retrobat = Program.AppConfig.GetFullPath("retrobat");
+            string userFile = Path.Combine(retrobat, "user", "inputmapping", fileName);
+            if (File.Exists(userFile))
+                return userFile;
+
+            string systemFile = Path.Combine(retrobat, "system", "resources", "inputmapping", "wheels", fileName);
+            return File.Exists(systemFile) ? systemFile : null;
         }
 
         #region DirectInput axes in SDL

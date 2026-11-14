@@ -48,16 +48,16 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[WHEELS] Wheel 1, wheeltype identified : " + wheeltype1);
             SimpleLogger.Instance.Info("[WHEELS] Wheel 1 index : " + wheelIndex1);
 
-            // Get mapping from yml file in retrobat\system\resources\inputmapping\wheels and retrieve mapping
+            // Get mapping from yml file (user\inputmapping first, then system\resources\inputmapping\wheels)
             YmlFile ymlFile = null;
             YmlContainer wheel1Mapping = null;
             Dictionary<string, string> wheel1buttonMap = new Dictionary<string, string>();
-            string flycastWheelMapping = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "flycast_wheels.yml");
-            if (racingController && File.Exists(Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "flycast_racing_wheels.yml")))
-                flycastWheelMapping = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "flycast_racing_wheels.yml");
-            if (_isArcade && File.Exists(Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "flycast_arcade_wheels.yml")))
-                flycastWheelMapping = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "flycast_arcade_wheels.yml");
-            
+            string flycastWheelMapping = Wheel.GetMappingFile("flycast_wheels.yml");
+            if (racingController && Wheel.GetMappingFile("flycast_racing_wheels.yml") != null)
+                flycastWheelMapping = Wheel.GetMappingFile("flycast_racing_wheels.yml");
+            if (_isArcade && Wheel.GetMappingFile("flycast_arcade_wheels.yml") != null)
+                flycastWheelMapping = Wheel.GetMappingFile("flycast_arcade_wheels.yml");
+
             if (File.Exists(flycastWheelMapping))
             {
                 ymlFile = YmlFile.Load(flycastWheelMapping);

@@ -246,9 +246,9 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[WHEELS] Wheel controller index: " + w1.ControllerIndex);
             SimpleLogger.Instance.Info("[WHEELS] Wheel DirectInput index: " + w1.DinputIndex);
 
-            // Load wheel mapping from teknoparrot_wheels.yml
-            string wheelMappingFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "wheels", "teknoparrot_wheels.yml");
-            if (!File.Exists(wheelMappingFile))
+            // Load wheel mapping from teknoparrot_wheels.yml (user file first)
+            string wheelMappingFile = Wheel.GetMappingFile("teknoparrot_wheels.yml");
+            if (wheelMappingFile == null)
             {
                 SimpleLogger.Instance.Warning("[WHEELS] teknoparrot_wheels.yml not found.");
                 return false;
