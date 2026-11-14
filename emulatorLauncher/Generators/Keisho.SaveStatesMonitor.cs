@@ -7,13 +7,13 @@ using EmulatorLauncher.Common;
 namespace EmulatorLauncher
 {
     /// <summary>
-    /// sm2-emu writes <set>.<slot>.sm2state in <nvram_dir>\states (slots "quick", 1 to 4), in place (fopen / fwrite):
+    /// Keisho writes <set>.<slot>.kstate in <nvram_dir>\states (slots "quick", 1 to 4), in place (fopen / fwrite):
     /// Windows reports several changes for one save, only the first one is imported.
     /// The files have no screenshot: the RetroBat save state icon is used.
     /// </summary>
-    class Sm2EmuSaveStatesMonitor : SaveStatesWatcher
+    class KeishoSaveStatesMonitor : SaveStatesWatcher
     {
-        private static readonly Regex _sm2StateRegex = new Regex(@"^(.+)\.(quick|[0-9]+)\.sm2state$", RegexOptions.IgnoreCase);
+        private static readonly Regex _keishoStateRegex = new Regex(@"^(.+)\.(quick|[0-9]+)\.kstate$", RegexOptions.IgnoreCase);
 
         // Changes of the same file reported within this delay belong to the same save
         private static readonly TimeSpan _duplicateDelay = TimeSpan.FromSeconds(2);
@@ -25,7 +25,7 @@ namespace EmulatorLauncher
         private string _lastChangePath;
         private DateTime _lastChangeTime;
 
-        public Sm2EmuSaveStatesMonitor(string romfile, string emulatorPath, string sharedPath, string iconPath)
+        public KeishoSaveStatesMonitor(string romfile, string emulatorPath, string sharedPath, string iconPath)
             : base(romfile, emulatorPath, sharedPath, SaveStatesWatcherMethod.Changed)
         {
             _iconPath = iconPath;
@@ -37,12 +37,12 @@ namespace EmulatorLauncher
             if (string.IsNullOrEmpty(filename))
                 return null;
 
-            // Emulator side : <set>.quick.sm2state / <set>.<n>.sm2state
-            var match = _sm2StateRegex.Match(Path.GetFileName(filename));
+            // Emulator side : <set>.quick.kstate / <set>.<n>.kstate
+            var match = _keishoStateRegex.Match(Path.GetFileName(filename));
             if (match.Success && filename.StartsWith(EmulatorPath, StringComparison.InvariantCultureIgnoreCase))
             {
                 // One save gives several change notifications (write, close): keep the first one,
-                // the base class imports it 100 ms later, once sm2-emu has closed the file
+                // the base class imports it 100 ms later, once Keisho has closed the file
                 lock (_lastChangeLock)
                 {
                     DateTime now = DateTime.UtcNow;
@@ -76,7 +76,7 @@ namespace EmulatorLauncher
                 if (!File.Exists(_iconPath))
                     return;
 
-                var latest = new DirectoryInfo(SaveStatesPath).GetFiles(_romStem + ".*.sm2state")
+                var latest = new DirectoryInfo(SaveStatesPath).GetFiles(_romStem + ".*.kstate")
                     .OrderByDescending(f => f.LastWriteTimeUtc)
                     .FirstOrDefault();
 

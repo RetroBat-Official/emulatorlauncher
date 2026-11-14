@@ -532,61 +532,57 @@ namespace EmulatorLauncher
                     return false;
                 }
 
-                if (gcGamepad.ControllerInfo != null)
+                // ControllerInfo is optional, it only holds the activation switch
+                if (gcGamepad.ControllerInfo != null && gcGamepad.ControllerInfo.ContainsKey("needActivationSwitch") && gcGamepad.ControllerInfo["needActivationSwitch"] == "true")
+                    needGCActivationSwitch = true;
+
+                if (needGCActivationSwitch && !gc_pad)
                 {
-                    if (gcGamepad.ControllerInfo.ContainsKey("needActivationSwitch") && gcGamepad.ControllerInfo["needActivationSwitch"] == "true")
-                        needGCActivationSwitch = true;
-
-                    if (needGCActivationSwitch && !gc_pad)
-                    {
-                        SimpleLogger.Instance.Info("[Controller] Specific Gamecube mapping needs to be activated for this controller.");
-                        return false;
-                    }
-
-                    SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + gcGamepad.Name);
-
-                    if (gcGamepad.Mapping == null)
-                    {
-                        SimpleLogger.Instance.Info("[Controller] Mapping empty for " + gcGamepad.Name);
-                        return false;
-                    }
-
-                    ini.WriteValue(gcpad, "Main Stick/Modifier/Range", "50.");
-                    ini.WriteValue(gcpad, "C-Stick/Modifier/Range", "50.");
-
-                    string deviceName = gcGamepad.Name;
-
-                    if (deviceName == null)
-                    {
-                        SimpleLogger.Instance.Info("[Controller] Name missing for " + gcGamepad.Name);
-                        return false;
-                    }
-
-                    string tech = "SDL";
-
-                    if (gcGamepad.Driver != null)
-                        tech = gcGamepad.Driver;
-
-                    int padIndex = Program.Controllers.Where(g => g.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant() == guid).OrderBy(o => o.DeviceIndex).ToList().IndexOf(pad);
-
-                    string device = tech + "/" + padIndex + "/" + deviceName;
-                    ini.WriteValue(gcpad, "Device", device);
-
-                    foreach (var button in gcGamepad.Mapping)
-                        ini.WriteValue(gcpad, button.Key, button.Value);
-
-                    if (gcpad.EndsWith("1") && gcGamepad.HotKeyMapping != null)
-                    {
-                        specialHK = gcGamepad.HotKeyMapping;
-                        specialHK.Add("Device", device);
-                    }
-
-                    return true;
+                    SimpleLogger.Instance.Info("[Controller] Specific Gamecube mapping needs to be activated for this controller.");
+                    return false;
                 }
+
+                SimpleLogger.Instance.Info("[Controller] Performing specific mapping for " + gcGamepad.Name);
+
+                if (gcGamepad.Mapping == null)
+                {
+                    SimpleLogger.Instance.Info("[Controller] Mapping empty for " + gcGamepad.Name);
+                    return false;
+                }
+
+                ini.WriteValue(gcpad, "Main Stick/Modifier/Range", "50.");
+                ini.WriteValue(gcpad, "C-Stick/Modifier/Range", "50.");
+
+                string deviceName = gcGamepad.Name;
+
+                if (deviceName == null)
+                {
+                    SimpleLogger.Instance.Info("[Controller] Name missing for " + gcGamepad.Name);
+                    return false;
+                }
+
+                string tech = "SDL";
+
+                if (gcGamepad.Driver != null)
+                    tech = gcGamepad.Driver;
+
+                int padIndex = Program.Controllers.Where(g => g.GetSdlGuid(SdlVersion.SDL2_0_X).ToLowerInvariant() == guid).OrderBy(o => o.DeviceIndex).ToList().IndexOf(pad);
+
+                string device = tech + "/" + padIndex + "/" + deviceName;
+                ini.WriteValue(gcpad, "Device", device);
+
+                foreach (var button in gcGamepad.Mapping)
+                    ini.WriteValue(gcpad, button.Key, button.Value);
+
+                if (gcpad.EndsWith("1") && gcGamepad.HotKeyMapping != null)
+                {
+                    specialHK = gcGamepad.HotKeyMapping;
+                    specialHK.Add("Device", device);
+                }
+
+                return true;
             }
             catch { return false; }
-
-            return false;
         }
     }
 }

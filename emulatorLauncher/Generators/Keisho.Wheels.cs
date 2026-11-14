@@ -6,10 +6,10 @@ using System.Linq;
 
 namespace EmulatorLauncher
 {
-    partial class Sm2EmuGenerator
+    partial class KeishoGenerator
     {
-        // sm2emu_wheels.yml controls to sm2-emu settings (config.cpp, wheel_button_*)
-        private static readonly Dictionary<string, string> _sm2WheelRoles = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
+        // keisho_wheels.yml controls to Keisho settings (config.cpp, wheel_button_*)
+        private static readonly Dictionary<string, string> _keishoWheelRoles = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
         {
             { "Start", "wheel_button_start" }, { "Coin", "wheel_button_coin" },
             { "Button1", "wheel_button_1" }, { "Button2", "wheel_button_2" }, { "Button3", "wheel_button_3" }, { "Button4", "wheel_button_4" },
@@ -19,16 +19,16 @@ namespace EmulatorLauncher
             { "GearNeutral", "wheel_button_gear_neutral" }
         };
 
-        private static readonly string[] _sm2ShifterRoles = new string[] { "Gear1", "Gear2", "Gear3", "Gear4", "GearNeutral" };
+        private static readonly string[] _keishoShifterRoles = new string[] { "Gear1", "Gear2", "Gear3", "Gear4", "GearNeutral" };
 
         static readonly string[] wheelMappingPaths =
         {
-            "{userpath}\\inputmapping\\sm2emu_wheels.yml",
-            "{systempath}\\resources\\inputmapping\\wheels\\sm2emu_wheels.yml"
+            "{userpath}\\inputmapping\\keisho_wheels.yml",
+            "{systempath}\\resources\\inputmapping\\wheels\\keisho_wheels.yml"
         };
 
         /// <summary>
-        /// sm2-emu uses one wheel (the first SDL3 joystick typed as a wheel). Only the buttons are written,
+        /// Keisho uses one wheel (the first SDL3 joystick typed as a wheel). Only the buttons are written,
         /// the steering and pedal axes are detected by the emulator.
         /// </summary>
         private void SetupWheel(IniFile ini)
@@ -36,8 +36,8 @@ namespace EmulatorLauncher
             if (!SystemConfig.getOptBoolean("use_wheel"))
                 return;
 
-            BindBoolIniFeatureOn(ini, "wheel", "wheel_ffb", "sm2emu_wheel_ffb", "true", "false");
-            BindIniFeatureSlider(ini, "wheel", "wheel_ffb_strength", "sm2emu_wheel_ffb_strength", "30");
+            BindBoolIniFeatureOn(ini, "wheel", "wheel_ffb", "keisho_wheel_ffb", "true", "false");
+            BindIniFeatureSlider(ini, "wheel", "wheel_ffb_strength", "keisho_wheel_ffb_strength", "30");
 
             var wheels = Wheel.GetConnectedWheels(Controllers);
             if (wheels.Count < 1)
@@ -49,10 +49,10 @@ namespace EmulatorLauncher
             string wheelType = wheels[0].Type.ToString();
             SimpleLogger.Instance.Info("[WHEELS] Wheel type identified : " + wheelType);
 
-            string ymlFile = Controller.GetSystemYmlMappingFile("sm2-emu", "", "model2", wheelMappingPaths);
+            string ymlFile = Controller.GetSystemYmlMappingFile("keisho", "", "model2", wheelMappingPaths);
             if (ymlFile == null)
             {
-                SimpleLogger.Instance.Info("[WHEELS] sm2emu_wheels.yml not found, the sm2-emu wheel buttons are kept.");
+                SimpleLogger.Instance.Info("[WHEELS] keisho_wheels.yml not found, the Keisho wheel buttons are kept.");
                 return;
             }
 
@@ -66,7 +66,7 @@ namespace EmulatorLauncher
 
             if (wheelMapping == null)
             {
-                SimpleLogger.Instance.Info("[WHEELS] No mapping for " + wheelType + " in " + ymlFile + ", the sm2-emu wheel buttons are kept.");
+                SimpleLogger.Instance.Info("[WHEELS] No mapping for " + wheelType + " in " + ymlFile + ", the Keisho wheel buttons are kept.");
                 return;
             }
 
@@ -74,17 +74,17 @@ namespace EmulatorLauncher
             foreach (var element in wheelMapping.Elements.OfType<YmlElement>())
             {
                 int button;
-                if (_sm2WheelRoles.ContainsKey(element.Name) && int.TryParse(element.Value, out button))
+                if (_keishoWheelRoles.ContainsKey(element.Name) && int.TryParse(element.Value, out button))
                     buttons[element.Name] = button;
             }
 
             bool noShifter = SystemConfig.getOptBoolean("wheel_nogearstick");
 
             // Every control is written, so that a control missing in the container does not keep a button of another wheel
-            foreach (var role in _sm2WheelRoles)
+            foreach (var role in _keishoWheelRoles)
             {
                 int button;
-                if (!buttons.TryGetValue(role.Key, out button) || (noShifter && _sm2ShifterRoles.Contains(role.Key)))
+                if (!buttons.TryGetValue(role.Key, out button) || (noShifter && _keishoShifterRoles.Contains(role.Key)))
                     button = -1;
 
                 ini.WriteValue("wheel", role.Value, button.ToString());

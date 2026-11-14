@@ -18,8 +18,10 @@ namespace EmulatorLauncher
 
         private bool _canary = false;
         private bool _edge = false;
+        private string _canaryConfigFile = "xenia-canary.config.toml";
         private bool _xeniaManagerConfig = false;
         private string _xeniaManagerConfigFile = null;
+        private string _edgeGameConfigsHidden = null;
 
         /// <summary>
         /// Xenia has no screen setting : move its window to the chosen screen (only when MonitorIndex is set, fullscreen only).
@@ -79,6 +81,10 @@ namespace EmulatorLauncher
             _canary = exeName.StartsWith("xenia_canary");
             _edge = exeName == "xenia_edge.exe";
 
+            // Canary forks (Mousehook, Netplay) read their own file, e.g. xenia-canary-mousehook.config.toml
+            if (_canary)
+                _canaryConfigFile = Path.GetFileNameWithoutExtension(exeName).Replace('_', '-') + ".config.toml";
+
             // Create portable file if not exists
             string portableFile = Path.Combine(path, "portable.txt");
             if (!File.Exists(portableFile))
@@ -118,7 +124,7 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (useXeniaManagerConfig(AppConfig.GetFullPath(folderName), rom))
+            if (folderName == "xenia-manager" && useXeniaManagerConfig(AppConfig.GetFullPath(folderName), rom))
             {
                 _xeniaManagerConfig = true;
             }
@@ -140,12 +146,9 @@ namespace EmulatorLauncher
                 commandArray.Add(StringExtensions.QuoteString(_xeniaManagerConfigFile));
             }
 
-            if (_edge && SystemConfig.getOptBoolean("edge_ignore_optimized_settings"))
-            {
-                SimpleLogger.Instance.Info("[INFO] Ignoring optimized settings for Xenia Edge.");
-                commandArray.Add("--config");
-                commandArray.Add("\"xenia-edge.config.toml\"");
-            }
+            // Edge per-game configs (config\<TITLEID>.config.toml) override the global config: hide them for this session if requested
+            if (_edge)
+                SetupEdgeGameConfigs(path, SystemConfig.getOptBoolean("edge_ignore_optimized_settings"));
 
             commandArray.Add(StringExtensions.QuoteString(rom));
 
@@ -181,6 +184,10 @@ namespace EmulatorLauncher
 
                 using (IniFile ini = new IniFile(Path.Combine(path, iniFile), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
                 {
+                    // New config file: skip Xenia default value updates on first launch (Xenia then stores its own date)
+                    if (!ini.KeyExists("Config", "defaults_date"))
+                        ini.AppendValue("Config", "defaults_date", "2099123123");
+
                     //APU section
                     string audio_driver = StringExtensions.QuoteString(SystemConfig["apu"], true);
                     if (SystemConfig.isOptSet("apu") && !string.IsNullOrEmpty(SystemConfig["apu"]))
@@ -347,10 +354,14 @@ namespace EmulatorLauncher
 
             try
             {
-                string iniFile = "xenia-canary.config.toml";
+                string iniFile = _canaryConfigFile;
 
                 using (IniFile ini = new IniFile(Path.Combine(path, iniFile), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
                 {
+                    // New config file: skip Xenia default value updates on first launch (Xenia then stores its own date)
+                    if (!ini.KeyExists("Config", "defaults_date"))
+                        ini.AppendValue("Config", "defaults_date", "2099123123");
+
                     //APU section
                     string audio_driver = StringExtensions.QuoteString(SystemConfig["apu"], true);
                     if (SystemConfig.isOptSet("apu") && !string.IsNullOrEmpty(SystemConfig["apu"]))
@@ -533,7 +544,7 @@ namespace EmulatorLauncher
                         ini.AppendValue("HID", "hid", "\"sdl\"");
 
                     // Profiles
-                    for (int i = 1; i < 4; i++)
+                    for (int i = 1; i <= 4; i++)
                     {
                         string profileHint = "xenia_profile" + i;
                         if (!SystemConfig.isOptSet(profileHint) || string.IsNullOrEmpty(SystemConfig[profileHint]))
@@ -565,6 +576,10 @@ namespace EmulatorLauncher
 
                 using (IniFile ini = new IniFile(Path.Combine(path, iniFile), IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
                 {
+                    // New config file: skip Xenia default value updates on first launch (Xenia then stores its own date)
+                    if (!ini.KeyExists("Config", "defaults_date"))
+                        ini.AppendValue("Config", "defaults_date", "2099123123");
+
                     //APU section
                     string audio_driver = StringExtensions.QuoteString(SystemConfig["apu"], true);
                     if (SystemConfig.isOptSet("apu") && !string.IsNullOrEmpty(SystemConfig["apu"]))
@@ -601,10 +616,11 @@ namespace EmulatorLauncher
                         ini.AppendValue("Vulkan", "vulkan_allow_present_mode_immediate", "true");
                     }
 
-                    if (SystemConfig.isOptSet("readback_resolve") && !string.IsNullOrEmpty(SystemConfig["readback_resolve"]))
-                        ini.AppendValue("GPU", "readback_resolve", SystemConfig["readback_resolve"].QuoteString(true));
+                    // readback_resolve is a boolean in Edge (old "none" value means disabled)
+                    if (SystemConfig["readback_resolve"] == "false" || SystemConfig["readback_resolve"] == "none")
+                        ini.AppendValue("GPU", "readback_resolve", "false");
                     else if (Features.IsSupported("readback_resolve"))
-                        ini.AppendValue("GPU", "readback_resolve", "fast".QuoteString(true));
+                        ini.AppendValue("GPU", "readback_resolve", "true");
 
                     if (SystemConfig.isOptSet("xenia_queue_priority") && !string.IsNullOrEmpty(SystemConfig["xenia_queue_priority"]))
                         ini.AppendValue("D3D12", "d3d12_queue_priority", SystemConfig["xenia_queue_priority"]);
@@ -689,6 +705,11 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("xenia_framerate_limit"))
                         ini.AppendValue("GPU", "framerate_limit", "60");
 
+                    if (SystemConfig.isOptSet("xenia_anisotropic_override") && !string.IsNullOrEmpty(SystemConfig["xenia_anisotropic_override"]))
+                        ini.AppendValue("GPU", "anisotropic_override", SystemConfig["xenia_anisotropic_override"]);
+                    else if (Features.IsSupported("xenia_anisotropic_override"))
+                        ini.AppendValue("GPU", "anisotropic_override", "-1");
+
                     if (SystemConfig.isOptSet("xenia_async_shader_compilation") && !SystemConfig.getOptBoolean("xenia_async_shader_compilation"))
                         ini.AppendValue("GPU", "async_shader_compilation", "false");
                     else
@@ -749,11 +770,8 @@ namespace EmulatorLauncher
                     else if (Features.IsSupported("mount_cache"))
                         ini.AppendValue("Storage", "mount_cache", "false");
 
-                    // Controllers section (HID)
-                    if (SystemConfig.isOptSet("xenia_hid") && !string.IsNullOrEmpty(SystemConfig["xenia_hid"]))
-                        ini.AppendValue("HID", "hid", StringExtensions.QuoteString(SystemConfig["xenia_hid"], true));
-                    else if (Features.IsSupported("xenia_hid"))
-                        ini.AppendValue("HID", "hid", "\"sdl\"");
+                    // Controllers section (HID) - Edge only has the sdl driver, keyboard is always loaded
+                    ini.AppendValue("HID", "hid", "\"sdl\"");
 
                     // Console language
                     if (SystemConfig.isOptSet("xenia_lang") && !string.IsNullOrEmpty(SystemConfig["xenia_lang"]))
@@ -762,7 +780,7 @@ namespace EmulatorLauncher
                         ini.AppendValue("Console", "user_language", GetXboxLangFromEnvironment());
 
                     // Profiles
-                    for (int i = 1; i < 4; i++)
+                    for (int i = 1; i <= 4; i++)
                     {
                         string profileHint = "xenia_profile" + i;
                         if (!SystemConfig.isOptSet(profileHint) || string.IsNullOrEmpty(SystemConfig[profileHint]))
@@ -784,6 +802,59 @@ namespace EmulatorLauncher
                 }
             }
             catch { }
+        }
+
+        // Moves Edge per-game configs aside during the session (restores them first if a previous session did not end properly)
+        private void SetupEdgeGameConfigs(string path, bool hide)
+        {
+            RestoreEdgeGameConfigs(path);
+
+            if (!hide)
+                return;
+
+            string configDir = Path.Combine(path, "config");
+            if (!Directory.Exists(configDir))
+                return;
+
+            try
+            {
+                Directory.Move(configDir, Path.Combine(path, "config.retrobat"));
+                _edgeGameConfigsHidden = path;
+                SimpleLogger.Instance.Info("[INFO] Xenia Edge per-game configs disabled for this session.");
+            }
+            catch (Exception ex) { SimpleLogger.Instance.Info("[WARNING] Unable to disable Xenia Edge per-game configs: " + ex.Message); }
+        }
+
+        private void RestoreEdgeGameConfigs(string path)
+        {
+            string configDir = Path.Combine(path, "config");
+            string backupDir = Path.Combine(path, "config.retrobat");
+            if (!Directory.Exists(backupDir))
+                return;
+
+            try
+            {
+                // Keep per-game configs saved in Edge during the session
+                if (Directory.Exists(configDir))
+                {
+                    foreach (var file in Directory.GetFiles(configDir))
+                        File.Copy(file, Path.Combine(backupDir, Path.GetFileName(file)), true);
+
+                    Directory.Delete(configDir, true);
+                }
+
+                Directory.Move(backupDir, configDir);
+                SimpleLogger.Instance.Info("[INFO] Xenia Edge per-game configs restored.");
+            }
+            catch (Exception ex) { SimpleLogger.Instance.Info("[WARNING] Unable to restore Xenia Edge per-game configs: " + ex.Message); }
+        }
+
+        public override void Cleanup()
+        {
+            if (_edgeGameConfigsHidden != null)
+                RestoreEdgeGameConfigs(_edgeGameConfigsHidden);
+
+            base.Cleanup();
         }
 
         private string GetXboxLangFromEnvironment()
@@ -823,25 +894,38 @@ namespace EmulatorLauncher
 
         private bool useXeniaManagerConfig(string path, string rom)
         {
-            string gameFile = Directory.GetFiles(path, "games.json", SearchOption.AllDirectories).FirstOrDefault();
-
+            // Xenia Manager 5.x keeps its library in Config\games.json
+            string gameFile = Path.Combine(path, "Config", "games.json");
             if (!File.Exists(gameFile))
+                gameFile = Directory.GetFiles(path, "games.json", SearchOption.AllDirectories).FirstOrDefault();
+
+            if (gameFile == null || !File.Exists(gameFile))
                 return false;
 
             SimpleLogger.Instance.Info("[INFO] Searching if game config file exists.");
 
-            string json = File.ReadAllText(gameFile);
-            List<XeniaManagerGame> games = JsonConvert.DeserializeObject<List<XeniaManagerGame>>(json);
+            List<XeniaManagerGame> games;
+            try
+            {
+                games = JsonConvert.DeserializeObject<List<XeniaManagerGame>>(File.ReadAllText(gameFile));
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Info("[WARNING] Unable to read Xenia Manager games.json: " + ex.Message);
+                return false;
+            }
+
             string searchLocation = Path.GetFileName(rom);
 
-            XeniaManagerGame foundGame = games.Find(game => game.FileLocations.GameLocation.EndsWith(searchLocation));
+            XeniaManagerGame foundGame = games?.Find(game => game.FileLocations != null && !string.IsNullOrEmpty(game.FileLocations.GameLocation) &&
+                string.Equals(Path.GetFileName(game.FileLocations.GameLocation), searchLocation, StringComparison.OrdinalIgnoreCase));
 
             if (foundGame == null)
                 return false;
 
             string cfgFile = foundGame.FileLocations.ConfigLocation;
 
-            if (cfgFile == null)
+            if (string.IsNullOrEmpty(cfgFile))
             {
                 SimpleLogger.Instance.Info("[WARNING] Config file reference not found in games.json.");
                 return false;

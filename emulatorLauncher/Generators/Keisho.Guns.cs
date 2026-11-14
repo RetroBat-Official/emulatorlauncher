@@ -6,22 +6,28 @@ using System.Linq;
 
 namespace EmulatorLauncher
 {
-    partial class Sm2EmuGenerator
+    partial class KeishoGenerator
     {
-        // Mouse buttons as sm2-emu reads them on Windows (evdev codes): left, right, middle
+        // Mouse buttons as Keisho reads them on Windows (evdev codes): left, right, middle
         private const int GUN_BUTTON_LEFT = 272;
         private const int GUN_BUTTON_RIGHT = 273;
 
         private static readonly string[] _gunRoles = new string[] { "trigger", "reload", "coin", "start", "hat_up", "hat_down", "hat_left", "hat_right" };
 
         /// <summary>
-        /// Light gun mode. sm2-emu reads the guns as Raw Input mice: trigger = left button, reload = right button.
+        /// Light gun mode. Keisho reads the guns as Raw Input mice: trigger = left button, reload = right button.
         /// Start and coin stay on the keyboard (1 / 5 for player 1, 2 / 6 for player 2), like the gun software defaults.
         /// </summary>
         private void SetupGuns(IniFile ini)
         {
             bool useGuns = SystemConfig.getOptBoolean("use_guns");
-            ini.WriteValue("lightgun", "lightgun", useGuns ? "true" : "false");
+
+            // Gun mode: "auto" shows the crosshair in the gun games only (aim with the mouse or a gamepad), "on" also hides the cursor in the other games
+            ini.WriteValue("lightgun", "lightgun", useGuns ? "on" : "auto");
+
+            // Crosshair and shot flash also apply without light guns (mouse or gamepad aiming in the gun games)
+            BindBoolIniFeatureOn(ini, "lightgun", "lightgun_crosshair", "keisho_crosshair", "true", "false");
+            BindBoolIniFeature(ini, "lightgun", "lightgun_hide_flash", "keisho_hide_flash", "true", "false");
 
             if (!useGuns)
             {
@@ -31,12 +37,10 @@ namespace EmulatorLauncher
                 return;
             }
 
-            SimpleLogger.Instance.Info("[GUNS] Configuring light guns for sm2-emu.");
+            SimpleLogger.Instance.Info("[GUNS] Configuring light guns for Keisho.");
 
-            BindBoolIniFeatureOn(ini, "lightgun", "lightgun_crosshair", "sm2emu_crosshair", "true", "false");
-            BindBoolIniFeature(ini, "lightgun", "lightgun_hide_flash", "sm2emu_hide_flash", "true", "false");
-            BindBoolIniFeatureOn(ini, "lightgun", "lightgun_recoil", "sm2emu_gun_recoil", "true", "false");
-            BindIniFeatureSlider(ini, "lightgun", "lightgun_recoil_strength", "sm2emu_gun_recoil_strength", "60");
+            BindBoolIniFeatureOn(ini, "lightgun", "lightgun_recoil", "keisho_gun_recoil", "true", "false");
+            BindIniFeatureSlider(ini, "lightgun", "lightgun_recoil_strength", "keisho_gun_recoil_strength", "60");
 
             var guns = RawLightgun.GetRawLightguns();
 
@@ -47,7 +51,7 @@ namespace EmulatorLauncher
 
             ini.WriteValue("lightgun", "sinden_border", sinden ? "true" : "false");
             if (sinden)
-                ini.WriteValue("lightgun", "sinden_border_thickness", SystemConfig.GetValueOrDefault("sm2emu_sinden_border", "12"));
+                ini.WriteValue("lightgun", "sinden_border_thickness", SystemConfig.GetValueOrDefault("keisho_sinden_border", "12"));
 
             bool invert = SystemConfig.getOptBoolean("gun_invert");
             for (int player = 1; player <= 2; player++)
@@ -69,12 +73,12 @@ namespace EmulatorLauncher
         }
 
         /// <summary>
-        /// gun1_device / gun2_device : the RetroBat player 1 and 2 guns. sm2-emu uses a pinned device as a gun
+        /// gun1_device / gun2_device : the RetroBat player 1 and 2 guns. Keisho uses a pinned device as a gun
         /// even when its product name does not contain "gun" (DolphinBar, Blamcon...).
         /// </summary>
         private void WriteGunDevices(IniFile ini, RawLightgun[] guns)
         {
-            // Plain mice are not pinned: without a gun, sm2-emu aims with the system mouse
+            // Plain mice are not pinned: without a gun, Keisho aims with the system mouse
             //var realGuns = guns.Where(g => g.Type != RawLighGunType.Mouse && !string.IsNullOrEmpty(g.DevicePath)).ToList();
 
             int count = SystemConfig.getOptBoolean("one_gun") ? 1 : 2;
@@ -94,7 +98,7 @@ namespace EmulatorLauncher
 
         /// <summary>
         /// \\?\HID#VID_16C0&PID_0F38&MI_00#8&2a8f...&0&0000#{378de44c-...} gives HID#VID_16C0&PID_0F38&MI_00#8&2a8f...&0&0000,
-        /// a part of the Raw Input path unique to the device (sm2-emu searches it in the path, ignoring case).
+        /// a part of the Raw Input path unique to the device (Keisho searches it in the path, ignoring case).
         /// </summary>
         private static string GetGunDeviceId(string devicePath)
         {

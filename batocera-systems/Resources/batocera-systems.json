@@ -880,6 +880,63 @@
     ]
   },
 
+  "c64": {
+    "name": "Commodore 64",
+    "biosFiles": [
+      {
+        "md5": "be09394f0576cf81fa8bacf634daf9a2",
+        "file": "bios/vice/JiffyDOS_C64.bin",
+        "optional": true
+      },
+      {
+        "md5": "1b1e985ea5325a1f46eb7fd9681707bf",
+        "file": "bios/vice/JiffyDOS_1541-II.bin",
+        "optional": true
+      },
+      {
+        "md5": "41c6cc528e9515ffd0ed9b180f8467c0",
+        "file": "bios/vice/JiffyDOS_1571_repl310654.bin",
+        "optional": true
+      },
+      {
+        "md5": "20b6885c6dc2d42c38754a365b043d71",
+        "file": "bios/vice/JiffyDOS_1581.bin",
+        "optional": true
+      }
+    ]
+  },
+
+  "c128": {
+    "name": "Commodore 128",
+    "biosFiles": [
+      {
+        "md5": "cbbd1bbcb5e4fd8046b6030ab71fc021",
+        "file": "bios/vice/JiffyDOS_C128.bin",
+        "optional": true
+      },
+      {
+        "md5": "be09394f0576cf81fa8bacf634daf9a2",
+        "file": "bios/vice/JiffyDOS_C64.bin",
+        "optional": true
+      },
+      {
+        "md5": "1b1e985ea5325a1f46eb7fd9681707bf",
+        "file": "bios/vice/JiffyDOS_1541-II.bin",
+        "optional": true
+      },
+      {
+        "md5": "41c6cc528e9515ffd0ed9b180f8467c0",
+        "file": "bios/vice/JiffyDOS_1571_repl310654.bin",
+        "optional": true
+      },
+      {
+        "md5": "20b6885c6dc2d42c38754a365b043d71",
+        "file": "bios/vice/JiffyDOS_1581.bin",
+        "optional": true
+      }
+    ]
+  },
+
   "cdi": {
     "name": "Philips CD-I",
     "biosFiles": [
@@ -1455,6 +1512,33 @@
       {
         "md5": "",
         "file": "bios/[BIOS] Sega Master System (Japan) (v2.1).sms"
+      }
+    ]
+  },
+
+  "model1": {
+    "name": "Sega Model 1",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "roms/model1/model1io.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "roms/model1/model1io2.zip",
+        "optional": true
+      }
+    ]
+  },
+
+  "model2": {
+    "name": "Sega Model 2",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/sm2-emu/games.xml",
+        "optional": true
       }
     ]
   },

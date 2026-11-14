@@ -51,7 +51,7 @@ namespace EmulatorLauncher
             {
                 int index_1 = SystemConfig["m2_rawinput_p1"].ToInteger();
                 ini.WriteValue("Input", "RawDevP1", index_1.ToString());
-                if (guns[index_1] != null)
+                if (index_1 < guns.Length)
                     gun1 = guns[index_1];
             }
             else
@@ -66,7 +66,7 @@ namespace EmulatorLauncher
                 {
                     int index_2 = SystemConfig["m2_rawinput_p2"].ToInteger();
                     ini.WriteValue("Input", "RawDevP2", index_2.ToString());
-                    if (guns[index_2] != null)
+                    if (index_2 < guns.Length)
                         gun2 = guns[index_2];
                 }
                 else

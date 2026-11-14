@@ -353,6 +353,10 @@ namespace EmulatorLauncher
             BindFeature(section, "Region", "mesen_region", "Auto");
         }
 
+        /// <summary>
+        /// Light guns: use_guns enables the gun, mesen_zapper / mesen_superscope only choose its port.
+        /// NES Zapper and SNES Super Scope in port 2 by default, SMS Light Phaser in port 1.
+        /// </summary>
         private void SetupGuns(JObject section, string mesenSystem)
         {
             var guns = RawLightgun.GetRawLightguns();
@@ -370,34 +374,10 @@ namespace EmulatorLauncher
 
             if (mesenSystem == "Nes")
             {
-                if (SystemConfig.isOptSet("mesen_zapper") && !string.IsNullOrEmpty(SystemConfig["mesen_zapper"]) && SystemConfig["mesen_zapper"] != "none")
-                {
-                    var portSection = GetOrCreateContainer(section, SystemConfig["mesen_zapper"]);
-                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
-                    List<int> mouseID = new List<int>
-                    {
-                        512,
-                        513
-                    };
-                    mapping["ZapperButtons"] = new JArray(mouseID);
-
-                    portSection["Type"] = "NesZapper";
-                }
-                else if (SystemConfig.getOptBoolean("use_guns"))
-                {
-                    var portSection = GetOrCreateContainer(section, "Port2");
-                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
-                    List<int> mouseID = new List<int>
-                    {
-                        512,
-                        513
-                    };
-                    mapping["ZapperButtons"] = new JArray(mouseID);
-
-                    portSection["Type"] = "NesZapper";
-                }
+                string gunPort = GetGunPort("mesen_zapper", "Port2");
+                if (gunPort != null)
+                    SetGunPort(section, gunPort, "NesZapper", "ZapperButtons", new List<int> { 512, 513 });
             }
-
             else if (mesenSystem == "Sms")
             {
                 foreach (var port in smsPorts)
@@ -406,36 +386,11 @@ namespace EmulatorLauncher
                     var mapping = GetOrCreateContainer(portSection, "Mapping1");
                     mapping["LightPhaserButtons"] = JValue.CreateNull();
                 }
-                
-                if (SystemConfig.isOptSet("mesen_zapper") && !string.IsNullOrEmpty(SystemConfig["mesen_zapper"]) && SystemConfig["mesen_zapper"] != "none")
-                {
-                    var portSection = GetOrCreateContainer(section, SystemConfig["mesen_zapper"]);
-                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
-                    List<int> mouseID = new List<int>
-                    {
-                        512,
-                        513
-                    };
-                    mapping["LightPhaserButtons"] = new JArray(mouseID);
 
-                    portSection["Type"] = "SmsLightPhaser";
-                }
-
-                else if (SystemConfig.getOptBoolean("use_guns"))
-                {
-                    var portSection = GetOrCreateContainer(section, "Port1");
-                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
-                    List<int> mouseID = new List<int>
-                    {
-                        512,
-                        513
-                    };
-                    mapping["LightPhaserButtons"] = new JArray(mouseID);
-
-                    portSection["Type"] = "SmsLightPhaser";
-                }
+                string gunPort = GetGunPort("mesen_zapper", "Port1");
+                if (gunPort != null)
+                    SetGunPort(section, gunPort, "SmsLightPhaser", "LightPhaserButtons", new List<int> { 512, 513 });
             }
-
             else if (mesenSystem == "Snes")
             {
                 foreach (var port in snesPorts)
@@ -445,38 +400,30 @@ namespace EmulatorLauncher
                     mapping["SuperScopeButtons"] = JValue.CreateNull();
                 }
 
-                if (SystemConfig.isOptSet("mesen_superscope") && !string.IsNullOrEmpty(SystemConfig["mesen_superscope"]) && SystemConfig["mesen_superscope"] != "none")
-                {
-                    var portSection = GetOrCreateContainer(section, SystemConfig["mesen_superscope"]);
-                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
-                    List<int> mouseID = new List<int>
-                    {
-                        512,
-                        513,
-                        514,
-                        6
-                    };
-                    mapping["SuperScopeButtons"] = new JArray(mouseID);
-
-                    portSection["Type"] = "SuperScope";
-                }
-
-                else if (SystemConfig.getOptBoolean("use_guns"))
-                {
-                    var portSection = GetOrCreateContainer(section, "Port2");
-                    var mapping = GetOrCreateContainer(portSection, "Mapping1");
-                    List<int> mouseID = new List<int>
-                    {
-                        512,
-                        513,
-                        514,
-                        6
-                    };
-                    mapping["SuperScopeButtons"] = new JArray(mouseID);
-
-                    portSection["Type"] = "SuperScope";
-                }
+                string gunPort = GetGunPort("mesen_superscope", "Port2");
+                if (gunPort != null)
+                    SetGunPort(section, gunPort, "SuperScope", "SuperScopeButtons", new List<int> { 512, 513, 514, 6 });
             }
+        }
+
+        /// <summary>
+        /// Port of the gun, null when the guns are not enabled. Old "none" values fall back to the default port.
+        /// </summary>
+        private string GetGunPort(string feature, string defaultPort)
+        {
+            if (!SystemConfig.getOptBoolean("use_guns"))
+                return null;
+
+            string port = SystemConfig[feature];
+            return port == "Port1" || port == "Port2" ? port : defaultPort;
+        }
+
+        private void SetGunPort(JObject section, string port, string type, string buttonsKey, List<int> mouseButtons)
+        {
+            var portSection = GetOrCreateContainer(section, port);
+            var mapping = GetOrCreateContainer(portSection, "Mapping1");
+            mapping[buttonsKey] = new JArray(mouseButtons);
+            portSection["Type"] = type;
         }
 
         private string GetMesenSystem(string System)

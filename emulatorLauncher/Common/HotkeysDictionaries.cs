@@ -57,6 +57,7 @@ namespace EmulatorLauncher
             { "fbneo", "fbneo64" },
             { "flycast", "flycast" },
             { "jgenesis", "jgenesis-gui" },
+            { "keisho", "keisho" },
             { "mednafen", "mednafen" },
             { "melonds", "melonDS" },
             { "mesen", "Mesen" },
@@ -67,7 +68,6 @@ namespace EmulatorLauncher
             { "project64", "Project64" },
             { "raine", "raine" },
             { "retroarch", "retroarch" },
-            { "sm2-emu", "sm2-emu" },
             { "snes9x", "snes9x-x64" },
         };
         #endregion
@@ -285,6 +285,19 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_rewind", "rewind", "Backspace")
                 }),
 
+            new EmulatorHotkey("keisho", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_menu_toggle", "key_overlay", "F1"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "key_fullscreen", "F"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "key_fast_forward", "L"),
+                    new EmulatorHotkeyInfo("input_rewind", "key_rewind", "BACKSPACE"),
+                    new EmulatorHotkeyInfo("input_screenshot", "key_screenshot", "F8"),
+                    new EmulatorHotkeyInfo("input_save_state", "key_quick_save", "F2"),
+                    new EmulatorHotkeyInfo("input_load_state", "key_quick_load", "F4"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "key_pause", "P"),
+                    new EmulatorHotkeyInfo("input_exit_emulator", "key_quit", "Escape")
+                }),
+
             new EmulatorHotkey("mednafen", new EmulatorHotkeyInfo[]
                 {
                     new EmulatorHotkeyInfo("input_save_state", "save_state", "59"),
@@ -429,19 +442,6 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_disk_prev", "input_disk_prev", "f9"),
                     new EmulatorHotkeyInfo("input_disk_next", "input_disk_next", "f10"),
                     new EmulatorHotkeyInfo("input_disk_eject_toggle", "input_disk_eject_toggle", "f11")
-                }),
-
-            new EmulatorHotkey("sm2-emu", new EmulatorHotkeyInfo[]
-                {
-                    new EmulatorHotkeyInfo("input_menu_toggle", "key_overlay", "F1"),
-                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "key_fullscreen", "F"),
-                    new EmulatorHotkeyInfo("input_hold_fast_forward", "key_fast_forward", "L"),
-                    new EmulatorHotkeyInfo("input_rewind", "key_rewind", "BACKSPACE"),
-                    new EmulatorHotkeyInfo("input_screenshot", "key_screenshot", "F8"),
-                    new EmulatorHotkeyInfo("input_save_state", "key_quick_save", "F2"),
-                    new EmulatorHotkeyInfo("input_load_state", "key_quick_load", "F4"),
-                    new EmulatorHotkeyInfo("input_pause_toggle", "key_pause", "P"),
-                    new EmulatorHotkeyInfo("input_exit_emulator", "key_quit", "Escape")
                 }),
 
             new EmulatorHotkey("snes9x", new EmulatorHotkeyInfo[]

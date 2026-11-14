@@ -69,14 +69,21 @@ namespace EmulatorLauncher
             if (parentRoms.TryGetValue(Path.GetFileNameWithoutExtension(rom).ToLowerInvariant(), out string parentRom))
             {
                 parentRom = Path.Combine(Path.GetDirectoryName(rom), parentRom + ".zip");
-                _destParent = Path.Combine(pakDir, Path.GetFileName(parentRom));
 
-                if (!File.Exists(_destParent))
+                // Missing parent: the emulator reports the missing files itself
+                if (!File.Exists(parentRom))
+                    SimpleLogger.Instance.Warning("[Model2] Parent rom not found: " + parentRom);
+                else
                 {
-                    File.Copy(parentRom, _destParent);
+                    _destParent = Path.Combine(pakDir, Path.GetFileName(parentRom));
 
-                    try { new FileInfo(_destParent).Attributes &= ~FileAttributes.ReadOnly; }
-                    catch { }
+                    if (!File.Exists(_destParent))
+                    {
+                        File.Copy(parentRom, _destParent);
+
+                        try { new FileInfo(_destParent).Attributes &= ~FileAttributes.ReadOnly; }
+                        catch { }
+                    }
                 }
             }
 
@@ -175,6 +182,12 @@ namespace EmulatorLauncher
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
             {
+                // Guns are still configured (ini, DemulShooter, crosshairs), the .input file is kept
+                string game = Path.GetFileNameWithoutExtension(rom).ToLowerInvariant();
+                string parent = parentRoms.ContainsKey(game) ? parentRoms[game] : game;
+                if (SystemConfig.getOptBoolean("use_guns") && shooters.Contains(parent))
+                    ConfigureModel2Guns(ini, null, parent, true);
+
                 SimpleLogger.Instance.Info("Controller autoconfiguration disabled.");
                 return;
             }
@@ -183,6 +196,7 @@ namespace EmulatorLauncher
             {
                 SimpleLogger.Instance.Info("No XInput controllers found, switching to DirectInput");
                 ini.WriteValue("Input", "XInput", "0");
+                _dinput = true;
             }
 
             if (!SystemConfig.getOptBoolean("use_guns") && Program.SystemConfig.isOptSet("m2_joystick_autoconfig") && Program.SystemConfig["m2_joystick_autoconfig"] == "template")
@@ -202,11 +216,11 @@ namespace EmulatorLauncher
 
                 string targetInputCfgFile = Path.Combine(inputCFGpath, game + ".input");
 
-                if (File.Exists(targetInputCfgFile))
-                    File.Delete(targetInputCfgFile);
-
+                // Without a template, the game keeps its current input file
                 if (File.Exists(sourceInputCfgFile))
-                    File.Copy(sourceInputCfgFile, targetInputCfgFile);
+                    File.Copy(sourceInputCfgFile, targetInputCfgFile, true);
+                else
+                    SimpleLogger.Instance.Info("[INFO] Model2: no template for " + parentGame + ", input file not modified.");
             }
             else
             {

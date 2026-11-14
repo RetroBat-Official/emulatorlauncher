@@ -167,11 +167,9 @@ namespace EmulatorLauncher
                 string gameConfigPath = Path.Combine(path, "config", "custom_configs");
                 string targetConfigPath = Path.Combine(path, "config", "custom_configs_backup");
 
+                // Keep a backup left by a session that did not end properly: Cleanup restores it
                 if (Directory.Exists(gameConfigPath) && Directory.Exists(targetConfigPath))
-                {
-                    try { Directory.Delete(targetConfigPath, true); }
-                    catch (Exception ex) { SimpleLogger.Instance.Error("[GENERATOR] Error deleting custom_configs_backup: " + ex.Message); }
-                }
+                    MergeIntoBackup(gameConfigPath, targetConfigPath);
 
                 if (!Directory.Exists(targetConfigPath))
                 {
@@ -628,18 +626,30 @@ namespace EmulatorLauncher
                 string gameConfigPath = Path.Combine(_path, "config", "custom_configs");
                 string targetConfigPath = Path.Combine(_path, "config", "custom_configs_backup");
 
+                // Configs created during the session are kept, unless the backup has one for the same game
+                if (Directory.Exists(gameConfigPath) && Directory.Exists(targetConfigPath))
+                    MergeIntoBackup(gameConfigPath, targetConfigPath);
+
                 if (!Directory.Exists(gameConfigPath) && Directory.Exists(targetConfigPath))
                 {
                     try { Directory.Move(targetConfigPath, gameConfigPath); }
                     catch { }
                 }
-
-                if (Directory.Exists(targetConfigPath))
-                {
-                    try { Directory.Delete(targetConfigPath, true); }
-                    catch { }
-                }
             }
+        }
+
+        // Moves the custom_configs files into the backup (backup files win), then removes custom_configs
+        private static void MergeIntoBackup(string gameConfigPath, string targetConfigPath)
+        {
+            foreach (var file in Directory.GetFiles(gameConfigPath))
+            {
+                string target = Path.Combine(targetConfigPath, Path.GetFileName(file));
+                if (!File.Exists(target))
+                    try { File.Move(file, target); } catch { }
+            }
+
+            try { Directory.Delete(gameConfigPath, true); }
+            catch (Exception ex) { SimpleLogger.Instance.Error("[GENERATOR] Error deleting custom_configs: " + ex.Message); }
         }
 
         private string GetDefaultEnterButton()

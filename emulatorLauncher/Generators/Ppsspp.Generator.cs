@@ -124,6 +124,9 @@ namespace EmulatorLauncher
 
                     BindBoolIniFeature(ini, "General", "EnableCheats", "ppsspp_cheats", "True", "False");
 
+                    // Rewind: one snapshot per second, needed by the Rewind hotkey
+                    ini.WriteValue("General", "RewindSnapshotInterval", SystemConfig.getOptBoolean("rewind") ? "1" : "0");
+
                     // Make it complex for the user to run another game using the UI ( related to the way the savestates monitor works )
                     ini.WriteValue("General", "CurrentDirectory", Path.Combine(AppConfig.GetFullPath("roms"), "psp").Replace("\\", "/"));
                     ini.ClearSection("Recent");
@@ -324,8 +327,8 @@ namespace EmulatorLauncher
                         ini.WriteValue("General", "DiscordRichPresence", "False");
 
                     // Shader Set
-                    string shaderFile = Path.Combine(Path.GetFullPath(rom), Path.GetFileNameWithoutExtension(rom) + ".shaderlist");
-                    if (File.Exists(shaderFile))
+                    string shaderFile = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(rom)), Path.GetFileNameWithoutExtension(rom) + ".shaderlist");
+                    if (File.Exists(shaderFile))    
                     {
                         string[] shaders = File.ReadAllLines(shaderFile);
                         if (shaders.Length > 0)

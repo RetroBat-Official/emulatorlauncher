@@ -10,9 +10,9 @@ using System.Security.Cryptography;
 
 namespace EmulatorLauncher
 {
-    partial class Sm2EmuGenerator
+    partial class KeishoGenerator
     {
-        // Controller positions (yml keys) to SDL_GamepadButton values read by sm2-emu.
+        // Controller positions (yml keys) to SDL_GamepadButton values read by Keisho.
         // Triggers are "100 + SDL_GamepadAxis": the trigger pulled past half travel (LeftTrigger axis 4, RightTrigger axis 5).
         private static readonly Dictionary<string, int> _sdlPadButtons = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase)
         {
@@ -22,27 +22,27 @@ namespace EmulatorLauncher
             { "l2", 104 }, { "r2", 105 }
         };
 
-        // yml values to sm2-emu pad roles (config.cpp, kPadRoleNames), in the emulator order
-        private static readonly Dictionary<string, string> _sm2PadRoles = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
+        // yml values to Keisho pad roles (config.cpp, kPadRoleNames), in the emulator order
+        private static readonly Dictionary<string, string> _keishoPadRoles = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
         {
             { "Button1", "button1" }, { "Button2", "button2" }, { "Button3", "button3" }, { "Button4", "button4" },
             { "Up", "up" }, { "Down", "down" }, { "Left", "left" }, { "Right", "right" },
             { "Start", "start" }, { "Coin", "coin" }, { "GearUp", "gear_up" }, { "GearDown", "gear_down" }
         };
 
-        // Analog roles (config.cpp, kPadAxisNames): -1 keeps the sm2-emu default (aim/steering on the left stick,
+        // Analog roles (config.cpp, kPadAxisNames): -1 keeps the Keisho default (aim/steering on the left stick,
         // accelerator on the right trigger, brake on the left trigger, Virtual On right lever on the right stick)
-        private static readonly string[] _sm2AxisRoles = new string[] { "aim_x", "aim_y", "accel", "brake", "lever_x", "lever_y" };
+        private static readonly string[] _keishoAxisRoles = new string[] { "aim_x", "aim_y", "accel", "brake", "lever_x", "lever_y" };
 
         static readonly string[] mappingPaths =
         {
-            "{userpath}\\inputmapping\\sm2emu.yml",
-            "{systempath}\\resources\\inputmapping\\sm2emu.yml"
+            "{userpath}\\inputmapping\\keisho.yml",
+            "{systempath}\\resources\\inputmapping\\keisho.yml"
         };
 
         /// <summary>
-        /// sm2-emu reads the gamepads through SDL3 by position (south/east/west/north...), the player 1 pad is the first one enumerated by SDL3.
-        /// The same layout is written for both players in [gamepad], from sm2emu.yml (see GetButtonMapping).
+        /// Keisho reads the gamepads through SDL3 by position (south/east/west/north...), the player 1 pad is the first one enumerated by SDL3.
+        /// The same layout is written for both players in [gamepad], from keisho.yml (see GetButtonMapping).
         /// </summary>
         private void CreateControllerConfiguration(IniFile ini)
         {
@@ -52,11 +52,11 @@ namespace EmulatorLauncher
                 return;
             }
 
-            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for sm2-emu");
+            SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Keisho");
 
             string[] iniSections = { "video", "audio", "paths", "wheel", "lightgun", "network", "system", "gamepad", "ROOT" };
 
-            // Per-game layouts saved from the sm2-emu menu ([<family>] sections) would replace the RetroBat mapping
+            // Per-game layouts saved from the Keisho menu ([<family>] sections) would replace the RetroBat mapping
             foreach (string section in ini.EnumerateSections())
             {
                 if (string.IsNullOrEmpty(section) || iniSections.Contains(section))
@@ -77,13 +77,13 @@ namespace EmulatorLauncher
             {
                 string prefix = "pad" + player + "_";
 
-                foreach (string role in _sm2PadRoles.Values)
+                foreach (string role in _keishoPadRoles.Values)
                 {
                     int button;
                     ini.WriteValue("gamepad", prefix + "button_" + role, roles.TryGetValue(role, out button) ? button.ToString() : "-1");
                 }
 
-                foreach (string axis in _sm2AxisRoles)
+                foreach (string axis in _keishoAxisRoles)
                 {
                     ini.WriteValue("gamepad", prefix + "axis_" + axis, "-1");
 
@@ -95,16 +95,16 @@ namespace EmulatorLauncher
                 }
             }
 
-            BindIniFeatureSlider(ini, "gamepad", "pad_stick_deadzone", "sm2emu_stickdeadzone", "5");
-            BindBoolIniFeatureOn(ini, "gamepad", "pad_rumble", "sm2emu_pad_rumble", "true", "false");
-            BindIniFeatureSlider(ini, "gamepad", "pad_rumble_strength", "sm2emu_pad_rumble_strength", "60");
-            BindBoolIniFeature(ini, "wheel", "wheel_rumble", "sm2emu_wheel_rumble", "true", "false");
+            BindIniFeatureSlider(ini, "gamepad", "pad_stick_deadzone", "keisho_stickdeadzone", "5");
+            BindBoolIniFeatureOn(ini, "gamepad", "pad_rumble", "keisho_pad_rumble", "true", "false");
+            BindIniFeatureSlider(ini, "gamepad", "pad_rumble_strength", "keisho_pad_rumble_strength", "60");
+            BindBoolIniFeature(ini, "wheel", "wheel_rumble", "keisho_wheel_rumble", "true", "false");
         }
 
         /// <summary>
-        /// Returns the SDL button of each sm2-emu role.
+        /// Returns the SDL button of each Keisho role.
         /// Directions, Start (start), Coin (select) and the gears (L1 down / R1 up) are always mapped, the yml can change them.
-        /// Containers of sm2emu.yml are searched in this order (the first one found is used) :
+        /// Containers of keisho.yml are searched in this order (the first one found is used) :
         ///   with a CONTROLLER LAYOUT option : <set>_<layout>, <family>_<layout>, default_<layout>
         ///   then : <set>, <family>, default
         /// Without yml file, the RetroBat default (same as the m2emulator fighting games) is used.
@@ -141,15 +141,15 @@ namespace EmulatorLauncher
                 foreach (string value in entry.Value)
                 {
                     string role;
-                    if (!_sm2PadRoles.TryGetValue(value, out role))
+                    if (!_keishoPadRoles.TryGetValue(value, out role))
                     {
-                        SimpleLogger.Instance.Warning("[Sm2Emu] Unknown control '" + value + "' in sm2emu.yml");
+                        SimpleLogger.Instance.Warning("[Keisho] Unknown control '" + value + "' in keisho.yml");
                         continue;
                     }
 
                     if (setByYml.Contains(role))
                     {
-                        SimpleLogger.Instance.Warning("[Sm2Emu] '" + value + "' is mapped twice in sm2emu.yml, '" + entry.Key + "' is ignored for this control");
+                        SimpleLogger.Instance.Warning("[Keisho] '" + value + "' is mapped twice in keisho.yml, '" + entry.Key + "' is ignored for this control");
                         continue;
                     }
 
@@ -163,7 +163,7 @@ namespace EmulatorLauncher
 
         private Dictionary<string, List<string>> LoadYmlButtonMapping()
         {
-            string ymlFile = Controller.GetSystemYmlMappingFile("sm2-emu", "", "model2", mappingPaths);
+            string ymlFile = Controller.GetSystemYmlMappingFile("keisho", "", "model2", mappingPaths);
             if (string.IsNullOrEmpty(ymlFile))
                 return null;
 
@@ -171,7 +171,7 @@ namespace EmulatorLauncher
             try { yml = YmlFile.Load(ymlFile); }
             catch (Exception ex)
             {
-                SimpleLogger.Instance.Warning("[Sm2Emu] Unable to read " + ymlFile + " : " + ex.Message);
+                SimpleLogger.Instance.Warning("[Keisho] Unable to read " + ymlFile + " : " + ex.Message);
                 return null;
             }
 
@@ -212,7 +212,7 @@ namespace EmulatorLauncher
                     ret[element.Name] = element.Value.Split(',').Select(v => v.Trim()).Where(v => v.Length > 0).ToList();
                 }
 
-                SimpleLogger.Instance.Info("[Sm2Emu] Button mapping '" + name + "' loaded from " + ymlFile);
+                SimpleLogger.Instance.Info("[Keisho] Button mapping '" + name + "' loaded from " + ymlFile);
                 return ret;
             }
 
@@ -256,7 +256,7 @@ namespace EmulatorLauncher
             ini.WriteValue("system", "key_exit", "");
 
             // RetroBat defaults, the keys sent by the controller hotkeys of es_padtokey.cfg.
-            // F1..F5 shift gears on the keyboard in some driving games: the sm2-emu keys are kept there.
+            // F1..F5 shift gears on the keyboard in some driving games: the Keisho keys are kept there.
             ini.WriteValue("system", "key_quit", "Escape");
             ini.WriteValue("system", "key_overlay", _keyboardGears ? "F10" : "F1");
             ini.WriteValue("system", "key_fullscreen", "F");
@@ -268,8 +268,8 @@ namespace EmulatorLauncher
             ini.WriteValue("system", "key_fast_forward", "L");
             ini.WriteValue("system", "key_rewind", "Backspace");
 
-            // User keyboard hotkeys from sm2-emu_kb_hotkeys.yml / kb_hotkeys.yml, the controller hotkeys follow them (padToKey.xml)
-            if (Hotkeys.GetHotKeysFromFile("sm2-emu", "", out Dictionary<string, HotkeyResult> custoHotkeys) && custoHotkeys.Count > 0)
+            // User keyboard hotkeys from keisho_kb_hotkeys.yml / kb_hotkeys.yml, the controller hotkeys follow them (padToKey.xml)
+            if (Hotkeys.GetHotKeysFromFile("keisho", "", out Dictionary<string, HotkeyResult> custoHotkeys) && custoHotkeys.Count > 0)
             {
                 foreach (var hotkey in custoHotkeys)
                     ini.WriteValue("system", hotkey.Value.EmulatorKey, hotkey.Value.EmulatorValue);
