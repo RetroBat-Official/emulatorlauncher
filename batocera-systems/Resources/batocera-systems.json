@@ -4,15 +4,43 @@
     "biosFiles": [
       {
         "md5": "f47264dd47fe30f73ab3c010015c155b",
-        "file": "bios/panafz1.bin"
+        "file": "bios/panafz1.bin",
+        "group": "3do"
+      },
+      {
+        "md5": "a496cfdded3da562759be3561317b605",
+        "file": "bios/panafz1j.bin",
+        "group": "3do"
+      },
+      {
+        "md5": "f6c71de7470d16abe4f71b1444883dc8",
+        "file": "bios/panafz1j-norsa.bin",
+        "group": "3do"
       },
       {
         "md5": "51f2f43ae2f3508a14d9f56597e2d3ce",
-        "file": "bios/panafz10.bin"
+        "file": "bios/panafz10.bin",
+        "group": "3do"
+      },
+      {
+        "md5": "1477bda80dc33731a65468c1f5bcbee9",
+        "file": "bios/panafz10-norsa.bin",
+        "group": "3do"
+      },
+      {
+        "md5": "a48e6746bd7edec0f40cff078f0bb19f",
+        "file": "bios/panafz10e-anvil.bin",
+        "group": "3do"
       },
       {
         "md5": "8639fd5e549bd6238cfee79e3e749114",
-        "file": "bios/goldstar.bin"
+        "file": "bios/goldstar.bin",
+        "group": "3do"
+      },
+      {
+        "md5": "8970fc987ab89a7f64da9f8a8c4333ff",
+        "file": "bios/3do_arcade_saot.bin",
+        "group": "3do"
       }
     ]
   },
@@ -623,19 +651,23 @@
     "biosFiles": [
       {
         "md5": "06daac977823773a3eea3422fd26a703",
-        "file": "bios/ATARIXL.ROM"
+        "file": "bios/ATARIXL.ROM",
+        "optional": true
       },
       {
         "md5": "0bac0c6a50104045d902df4503a4c30b",
-        "file": "bios/ATARIBAS.ROM"
+        "file": "bios/ATARIBAS.ROM",
+        "optional": true
       },
       {
         "md5": "eb1f32f5d9f382db1bbfb8d7f9cb343a",
-        "file": "bios/ATARIOSA.ROM"
+        "file": "bios/ATARIOSA.ROM",
+        "optional": true
       },
       {
         "md5": "a3e8d617c95d08031fe1b20d541434b2",
-        "file": "bios/ATARIOSB.ROM"
+        "file": "bios/ATARIOSB.ROM",
+        "optional": true
       }
     ]
   },
@@ -677,47 +709,33 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "bios/tos.img"
+        "file": "bios/tos.img",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/hatari/tos/emutos.img"
+        "file": "bios/hatari/tos/emutos.img",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/hatari/tos/tos102.img"
+        "file": "bios/hatari/tos/tos102.img",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/hatari/tos/tos106.img"
+        "file": "bios/hatari/tos/tos106.img",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/hatari/tos/tos104.img"
+        "file": "bios/hatari/tos/tos104.img",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/hatari/tos/tos206.img"
-      },
-      {
-        "md5": "",
-        "file": "bios/hatarib/emutos.img"
-      },
-      {
-        "md5": "",
-        "file": "bios/hatarib/tos102.img"
-      },
-      {
-        "md5": "",
-        "file": "bios/hatarib/tos106.img"
-      },
-      {
-        "md5": "",
-        "file": "bios/hatarib/tos104.img"
-      },
-      {
-        "md5": "",
-        "file": "bios/hatarib/tos206.img"
+        "file": "bios/hatari/tos/tos206.img",
+        "optional": true
       }
     ]
   },
@@ -952,7 +970,8 @@
       },
       {
         "md5": "",
-        "file": "bios/mame/hash/cdi.xml"
+        "file": "bios/mame/hash/cdi.xml",
+        "optional": true
       },
       {
         "md5": "2969341396aa61e0143dc2351aaa6ef6",
@@ -1066,15 +1085,17 @@
     "biosFiles": [
       {
         "md5": "2c66f5911e5b42b8ebe113403548eee7",
-        "file": "bios/coleco.rom"
-      },
-      {
-        "md5": "2c66f5911e5b42b8ebe113403548eee7",
         "file": "bios/colecovision.rom"
       },
       {
         "md5": "2c66f5911e5b42b8ebe113403548eee7",
-        "file": "bios/openMSX/share/systemroms/coleco.rom"
+        "file": "bios/coleco.rom",
+        "optional": true
+      },
+      {
+        "md5": "2c66f5911e5b42b8ebe113403548eee7",
+        "file": "bios/openMSX/share/systemroms/coleco.rom",
+        "optional": true
       }
     ]
   },
@@ -1219,19 +1240,39 @@
     "biosFiles": [
       {
         "md5": "34847786d7de94b5d1133c956ab1d75d",
-        "file": "bios/fmtowns/FMT_DIC.ROM"
+        "file": "bios/geartowns/FMT_DIC.ROM"
       },
       {
         "md5": "0585b19930d4a7f4c71bcc8a33746588",
-        "file": "bios/fmtowns/FMT_DOS.ROM"
+        "file": "bios/geartowns/FMT_DOS.ROM"
       },
       {
         "md5": "eb44f2093f51eb7159f03e170b13af76",
-        "file": "bios/fmtowns/FMT_FNT.ROM"
+        "file": "bios/geartowns/FMT_FNT.ROM"
       },
       {
         "md5": "feaf8c5675151e00cfe3ad27673bff29",
-        "file": "bios/fmtowns/FMT_SYS.ROM"
+        "file": "bios/geartowns/FMT_SYS.ROM"
+      },
+      {
+        "md5": "34847786d7de94b5d1133c956ab1d75d",
+        "file": "bios/fmtowns/FMT_DIC.ROM",
+        "optional": true
+      },
+      {
+        "md5": "0585b19930d4a7f4c71bcc8a33746588",
+        "file": "bios/fmtowns/FMT_DOS.ROM",
+        "optional": true
+      },
+      {
+        "md5": "eb44f2093f51eb7159f03e170b13af76",
+        "file": "bios/fmtowns/FMT_FNT.ROM",
+        "optional": true
+      },
+      {
+        "md5": "feaf8c5675151e00cfe3ad27673bff29",
+        "file": "bios/fmtowns/FMT_SYS.ROM",
+        "optional": true
       }
     ]
   },
@@ -1285,6 +1326,17 @@
     ]
   },
 
+  "gamegear": {
+    "name": "Game Gear",
+    "biosFiles": [
+      {
+        "md5": "672e104c3be3a238301aceffc3b23fd6",
+        "file": "bios/bios.gg",
+        "optional": true
+      }
+    ]
+  },
+
   "gamepock": {
     "name": "Game Pocket",
     "biosFiles": [
@@ -1304,7 +1356,8 @@
     "biosFiles": [
       {
         "md5": "32fbbd84168d3482956eb3c5051637f5",
-        "file": "bios/gb_bios.bin"
+        "file": "bios/gb_bios.bin",
+        "optional": true
       }
     ]
   },
@@ -1314,7 +1367,8 @@
     "biosFiles": [
       {
         "md5": "a860e8c0b6d573d191e4ec7db1b1e4f6",
-        "file": "bios/gba_bios.bin"
+        "file": "bios/gba_bios.bin",
+        "optional": true
       }
     ]
   },
@@ -1324,7 +1378,8 @@
     "biosFiles": [
       {
         "md5": "dbfce9db9deaa2567f6a84fde55f9680",
-        "file": "bios/gbc_bios.bin"
+        "file": "bios/gbc_bios.bin",
+        "optional": true
       }
     ]
   },
@@ -1422,23 +1477,28 @@
     "biosFiles": [
       {
         "md5": "f69f173b251d8bf7649b10a9167a10bf",
-        "file": "bios/laseractive/[BIOS] LaserActive PAC-N1 (Japan) (v1.02).bin"
+        "file": "bios/laseractive/[BIOS] LaserActive PAC-N1 (Japan) (v1.02).bin",
+        "group": "laseractive"
       },
       {
         "md5": "f0fb8a4605ac7eefbafd4f2d5a793cc8",
-        "file": "bios/laseractive/[BIOS] LaserActive PAC-N10 (US) (v1.02).bin"
+        "file": "bios/laseractive/[BIOS] LaserActive PAC-N10 (US) (v1.02).bin",
+        "group": "laseractive"
       },
       {
         "md5": "761fea207d0eafd4cfd78da7c44cac88",
-        "file": "bios/laseractive/[BIOS] LaserActive PCE-LP1 (Japan) (v1.02).bin"
+        "file": "bios/laseractive/[BIOS] LaserActive PCE-LP1 (Japan) (v1.02).bin",
+        "group": "laseractive"
       },
       {
         "md5": "",
-        "file": "bios/laseractive/[BIOS] LaserActive PAC-S10 (US) (v1.04).bin"
+        "file": "bios/laseractive/[BIOS] LaserActive PAC-S10 (US) (v1.04).bin",
+        "group": "laseractive"
       },
       {
         "md5": "",
-        "file": "bios/laseractive/[BIOS] LaserActive PAC-S1 (Japan) (v1.05).bin"
+        "file": "bios/laseractive/[BIOS] LaserActive PAC-S1 (Japan) (v1.05).bin",
+        "group": "laseractive"
       }
     ]
   },
@@ -1507,12 +1567,34 @@
     "name": "Master System",
     "biosFiles": [
       {
-        "md5": "",
-        "file": "bios/[BIOS] Sega Master System (USA, Europe) (v1.3).sms"
+        "md5": "840481177270d5642a14ca71ee72844c",
+        "file": "bios/[BIOS] Sega Master System (USA, Europe) (v1.3).sms",
+        "optional": true
       },
       {
-        "md5": "",
-        "file": "bios/[BIOS] Sega Master System (Japan) (v2.1).sms"
+        "md5": "24a519c53f67b00640d0048ef7089105",
+        "file": "bios/[BIOS] Sega Master System (Japan) (v2.1).sms",
+        "optional": true
+      },
+      {
+        "md5": "840481177270d5642a14ca71ee72844c",
+        "file": "bios/bios_E.sms",
+        "optional": true
+      },
+      {
+        "md5": "840481177270d5642a14ca71ee72844c",
+        "file": "bios/bios_U.sms",
+        "optional": true
+      },
+      {
+        "md5": "24a519c53f67b00640d0048ef7089105",
+        "file": "bios/bios_J.sms",
+        "optional": true
+      },
+      {
+        "md5": "840481177270d5642a14ca71ee72844c",
+        "file": "bios/bios.sms",
+        "optional": true
       }
     ]
   },
@@ -1776,6 +1858,26 @@
       {
         "md5": "",
         "file": "bios/dc/naomi.zip"
+      },
+      {
+        "md5": "",
+        "file": "bios/dc/airlbios.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/dc/f355bios.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/dc/f355dlx.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/dc/hod2bios.zip",
+        "optional": true
       }
     ]
   },
@@ -1795,27 +1897,38 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "bios/firmware.bin"
+        "file": "bios/firmware.bin",
+        "optional": true
       },
       {
         "md5": "df692a80a5b1bc90728bc3dfc76cd948",
-        "file": "bios/bios7.bin"
+        "file": "bios/bios7.bin",
+        "optional": true
       },
       {
         "md5": "a392174eb3e572fed6447e956bde4b25",
-        "file": "bios/bios9.bin"
+        "file": "bios/bios9.bin",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/dsi_bios9.bin"
+        "file": "bios/dsi_bios9.bin",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/dsi_bios7.bin"
+        "file": "bios/dsi_bios7.bin",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/dsi_firmware.bin"
+        "file": "bios/dsi_firmware.bin",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/dsi_nand.bin",
+        "optional": true
       }
     ]
   },
@@ -1825,7 +1938,13 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "bios/neogeo.zip"
+        "file": "bios/neogeo.zip",
+        "group": "neogeo"
+      },
+      {
+        "md5": "",
+        "file": "roms/neogeo/neogeo.zip",
+        "group": "neogeo"
       }
     ]
   },
@@ -1845,51 +1964,68 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "bios/neogeo.zip"
+        "file": "bios/neocd/neocd_f.rom",
+        "group": "neocd"
       },
       {
         "md5": "",
-        "file": "bios/neocdz.zip"
+        "file": "bios/neocd/neocd_sf.rom",
+        "group": "neocd"
       },
       {
         "md5": "",
-        "file": "bios/neocd/neocd_f.rom"
+        "file": "bios/neocd/neocd_t.rom",
+        "group": "neocd"
       },
       {
         "md5": "",
-        "file": "bios/neocd/neocd_sf.rom"
+        "file": "bios/neocd/neocd_st.rom",
+        "group": "neocd"
       },
       {
         "md5": "",
-        "file": "bios/neocd/neocd_t.rom"
+        "file": "bios/neocd/neocd_z.rom",
+        "group": "neocd"
       },
       {
         "md5": "",
-        "file": "bios/neocd/neocd_st.rom"
+        "file": "bios/neocd/neocd_sz.rom",
+        "group": "neocd"
       },
       {
         "md5": "",
-        "file": "bios/neocd/neocd_z.rom"
+        "file": "bios/neocd/front-sp1.bin",
+        "group": "neocd"
       },
       {
         "md5": "",
-        "file": "bios/neocd/neocd_sz.rom"
+        "file": "bios/neocd/top-sp1.bin",
+        "group": "neocd"
       },
       {
         "md5": "",
-        "file": "bios/neocd/front-sp1.bin"
+        "file": "bios/neocd/neocd.bin",
+        "group": "neocd"
       },
       {
         "md5": "",
-        "file": "bios/neocd/top-sp1.bin"
+        "file": "bios/neocd/uni-bioscd.rom",
+        "group": "neocd"
       },
       {
         "md5": "",
-        "file": "bios/neocd/neocd.bin"
+        "file": "bios/neocdz.zip",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/neocd/uni-bioscd.rom"
+        "file": "bios/neocd.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/neogeo.zip",
+        "optional": true
       }
     ]
   },
@@ -2006,22 +2142,17 @@
     ]
   },
 
-  "pcengine": {
-    "name": "PC Engine",
-    "biosFiles": [
-      {
-        "md5": "38179df8f4ac870017db21ebcbf53114",
-        "file": "bios/syscard3.pce"
-      }
-    ]
-  },
-
   "pcenginecd": {
     "name": "PC Engine CD",
     "biosFiles": [
       {
         "md5": "38179df8f4ac870017db21ebcbf53114",
         "file": "bios/syscard3.pce"
+      },
+      {
+        "md5": "",
+        "file": "bios/gexpress.pce",
+        "optional": true
       }
     ]
   },
@@ -2372,7 +2503,13 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "bios/kronos/stvbios.zip"
+        "file": "bios/kronos/stvbios.zip",
+        "group": "stvbios"
+      },
+      {
+        "md5": "",
+        "file": "bios/stvbios.zip",
+        "group": "stvbios"
       }
     ]
   },
@@ -2382,19 +2519,23 @@
     "biosFiles": [
       {
         "md5": "d574d4f9c12f305074798f54c091a8b4",
-        "file": "bios/sgb_boot.bin"
+        "file": "bios/sgb_boot.bin",
+        "optional": true
       },
       {
         "md5": "e0430bca9925fb9882148fd2dc2418c1",
-        "file": "bios/sgb2_boot.bin"
+        "file": "bios/sgb2_boot.bin",
+        "optional": true
       },
       {
         "md5": "b15ddb15721c657d82c5bab6db982ee9",
-        "file": "bios/SGB1.sfc"
+        "file": "bios/SGB1.sfc",
+        "optional": true
       },
       {
         "md5": "8ecd73eb4edf7ed7e81aef1be80031d5",
-        "file": "bios/SGB2.sfc"
+        "file": "bios/SGB2.sfc",
+        "optional": true
       }
     ]
   },
@@ -2597,11 +2738,13 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "bios/xegs.zip"
+        "file": "bios/xegs.zip",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/mame/hash/xegs.xml"
+        "file": "bios/mame/hash/xegs.xml",
+        "optional": true
       }
     ]
   }

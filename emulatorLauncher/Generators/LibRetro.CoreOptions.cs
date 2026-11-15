@@ -5225,7 +5225,17 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "opera_dsp_threaded", "opera_dsp_threaded", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "opera_high_resolution", "high_resolution", "enabled", "disabled");
             BindFeature(coreSettings, "opera_cpu_overclock", "cpu_overclock", "1.0x (12.50Mhz)");
-            BindFeature(coreSettings, "opera_bios", "opera_bios", "panafz1.bin");
+
+            // BIOS: panafz1.bin by default, else the first BIOS found, else the built-in Opera Boot (recent cores)
+            if (SystemConfig.isOptSet("opera_bios") && !string.IsNullOrEmpty(SystemConfig["opera_bios"]))
+                coreSettings["opera_bios"] = SystemConfig["opera_bios"];
+            else
+            {
+                string biosPath = AppConfig.GetFullPath("bios");
+                string[] operaBios = { "panafz1.bin", "panafz10.bin", "panafz1j.bin", "panafz10e-anvil.bin", "goldstar.bin", "panafz10-norsa.bin", "panafz1j-norsa.bin", "3do_arcade_saot.bin" };
+                coreSettings["opera_bios"] = operaBios.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, b))) ?? "opera-boot-internal";
+            }
+
             BindFeature(coreSettings, "opera_region", "opera_region", "ntsc");
             BindFeature(coreSettings, "opera_madam_matrix_engine", "opera_madam_matrix_engine", "hardware");
 
