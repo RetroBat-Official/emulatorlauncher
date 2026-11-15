@@ -44,6 +44,10 @@ namespace EmulatorLauncher
                 return null;
             }
 
+            // Phoenix always boots the 3DO with the FZ-10 BIOS
+            if (system == "3do" && !File.Exists(biosfile3do))
+                throw new ApplicationException("Missing 3DO BIOS 'panafz10.bin' in the bios folder.");
+
             //unzip .zip and .7z and define rom as unzipped file
             if ((Path.GetExtension(rom).ToLower() == ".zip") || (Path.GetExtension(rom).ToLower() == ".7z"))
             {
