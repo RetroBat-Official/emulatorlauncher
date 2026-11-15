@@ -5225,19 +5225,24 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "opera_dsp_threaded", "opera_dsp_threaded", "enabled", "disabled");
             BindBoolFeatureOn(coreSettings, "opera_high_resolution", "high_resolution", "enabled", "disabled");
             BindFeature(coreSettings, "opera_cpu_overclock", "cpu_overclock", "1.0x (12.50Mhz)");
-            BindFeature(coreSettings, "opera_bios", "opera_bios", "panafz1.bin");
+            BindFeature(coreSettings, "opera_cd_speed", "opera_cd_speed", "2x");
+            BindBoolFeature(coreSettings, "opera_swi_hle", "opera_swi_hle", "enabled", "disabled");
+
+            // BIOS: panafz1.bin by default, else the first BIOS found, else the built-in Opera Boot
+            string bios = SystemConfig["opera_bios"];
+            if (string.IsNullOrEmpty(bios))
+            {
+                string biosPath = AppConfig.GetFullPath("bios");
+                string[] operaBios = { "panafz1.bin", "panafz10.bin", "panafz1j.bin", "panafz10e-anvil.bin", "goldstar.bin", "sanyotry.bin", "panafz10-norsa.bin", "panafz1j-norsa.bin", "panafz10e-anvil-norsa.bin", "3do_arcade_saot.bin" };
+                bios = operaBios.FirstOrDefault(b => File.Exists(Path.Combine(biosPath, b))) ?? "opera-boot-internal";
+            }
+            coreSettings["opera_bios"] = bios;
+
+            // Kanji font ROM, required by some Japanese games
+            BindFeature(coreSettings, "opera_font", "opera_font", "disabled");
+
             BindFeature(coreSettings, "opera_region", "opera_region", "ntsc");
             BindFeature(coreSettings, "opera_madam_matrix_engine", "opera_madam_matrix_engine", "hardware");
-
-            // Game hacks
-            string rom = SystemConfig["rom"].AsIndexedRomName();
-            foreach (var hackName in operaHacks.Select(h => h.Value).Distinct())
-                coreSettings["opera_" + hackName] = operaHacks.Any(h => h.Value == hackName && rom.Contains(h.Key)) ? "enabled" : "disabled";
-            if (SystemConfig.isOptSet("opera_hack") && !string.IsNullOrEmpty(SystemConfig["opera_hack"]))
-            {
-                string hack = "opera_" + SystemConfig["opera_hack"];
-                coreSettings[hack] = "enabled";
-            }
 
             // If ROM includes the word 'Disc', assume it's a multi disc game, and enable shared nvram if the option isn't set.
             if (Features.IsSupported("opera_nvram_storage"))
@@ -5259,8 +5264,9 @@ namespace EmulatorLauncher.Libretro
             if (SystemConfig["opera_controller2"] == "2")
                 retroarchConfig["input_player2_mouse_index"] = "0";
 
-            // Lightgun
-            SetupLightGuns(retroarchConfig, "260", core);
+            // Lightgun: 3DO lightgun (4), arcade lightgun (260) with the arcade BIOS only
+            SetupLightGuns(retroarchConfig, bios == "3do_arcade_saot.bin" ? "260" : "4", core);
+            BindBoolFeatureOn(coreSettings, "opera_hide_lightgun_crosshairs", "opera_lightgun_crosshair", "disabled", "enabled");
         }
 
         private void ConfigureParallelN64(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

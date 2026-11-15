@@ -175,6 +175,10 @@ namespace EmulatorLauncher
                 ini.Remove("config", "Dreamcast.VMUPath");
                 ini.WriteValue("config", "Dreamcast.VMUPath", vmuPath);
 
+                // Custom textures shared with the libretro core (system\dc\textures\<game ID>)
+                ini.Remove("config", "Dreamcast.TexturePath");
+                ini.WriteValue("config", "Dreamcast.TexturePath", Path.Combine(biosPath, "textures"));
+
                 ini.WriteValue("config", "Dreamcast.MappingsPath", null);
 
                 if (system == "dreamcast" || system == "dc")

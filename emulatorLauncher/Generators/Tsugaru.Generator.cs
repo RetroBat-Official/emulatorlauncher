@@ -34,24 +34,25 @@ namespace EmulatorLauncher
 
             List<string> commandArray = new List<string>();
 
-            string biosPath = null;
+            // BIOS folder: bios\fmtowns, bios\fmtownsux, bios\geartowns (shared with libretro-geartowns), then the emulator folders
+            string biosRoot = AppConfig.GetFullPath("bios");
+            string biosPath = new string[]
+            {
+                Path.Combine(biosRoot, "fmtowns"),
+                Path.Combine(biosRoot, "fmtownsux"),
+                Path.Combine(biosRoot, "geartowns"),
+                Path.Combine(path, "roms"),
+                Path.Combine(path, "fmtownsux")
+            }.FirstOrDefault(p => File.Exists(Path.Combine(p, "FMT_SYS.ROM")));
 
-            if (Directory.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "fmtowns")))
-                biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "fmtowns");
-            if (!File.Exists(Path.Combine(biosPath, "FMT_SYS.ROM")))
-                biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "fmtownsux");
-            if (!File.Exists(Path.Combine(biosPath, "FMT_SYS.ROM")))
-                biosPath = Path.Combine(path, "roms");
-            if (!File.Exists(Path.Combine(biosPath, "FMT_SYS.ROM")))
-                biosPath = Path.Combine(path, "fmtownsux");
-            if (!File.Exists(Path.Combine(biosPath, "FMT_SYS.ROM")))
+            if (biosPath == null)
             {
                 SimpleLogger.Instance.Info("[TsugaruGenerator] Bios path not found");
                 return null;
             }
 
             commandArray.Add(biosPath);
-                    
+
             commandArray.Add("-CMOS");
             commandArray.Add(Path.Combine(biosPath, "CMOS.DAT"));
 
