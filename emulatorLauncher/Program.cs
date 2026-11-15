@@ -197,6 +197,7 @@ namespace EmulatorLauncher
             { "windows", () => new ExeLauncherGenerator() },
             { "winuae", () => new UaeGenerator() },
             { "xash3d", () => new Xash3DGenerator() },
+            { "xbased", () => new XbasedGenerator() },
             { "xbox", () => new CxbxGenerator() },
             { "xemu", () => new XEmuGenerator() },
             { "xemu-chihiro", () => new XEmuGenerator() },
