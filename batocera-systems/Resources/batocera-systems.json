@@ -5,42 +5,67 @@
       {
         "md5": "f47264dd47fe30f73ab3c010015c155b",
         "file": "bios/panafz1.bin",
-        "group": "3do"
+        "optional": true
       },
       {
         "md5": "a496cfdded3da562759be3561317b605",
         "file": "bios/panafz1j.bin",
-        "group": "3do"
+        "optional": true
       },
       {
         "md5": "f6c71de7470d16abe4f71b1444883dc8",
         "file": "bios/panafz1j-norsa.bin",
-        "group": "3do"
+        "optional": true
       },
       {
         "md5": "51f2f43ae2f3508a14d9f56597e2d3ce",
         "file": "bios/panafz10.bin",
-        "group": "3do"
+        "optional": true
       },
       {
         "md5": "1477bda80dc33731a65468c1f5bcbee9",
         "file": "bios/panafz10-norsa.bin",
-        "group": "3do"
+        "optional": true
       },
       {
         "md5": "a48e6746bd7edec0f40cff078f0bb19f",
         "file": "bios/panafz10e-anvil.bin",
-        "group": "3do"
+        "optional": true
+      },
+      {
+        "md5": "cf11bbb5a16d7af9875cca9de9a15e09",
+        "file": "bios/panafz10e-anvil-norsa.bin",
+        "optional": true
       },
       {
         "md5": "8639fd5e549bd6238cfee79e3e749114",
         "file": "bios/goldstar.bin",
-        "group": "3do"
+        "optional": true
+      },
+      {
+        "md5": "35fa1a1ebaaeea286dc5cd15487c13ea",
+        "file": "bios/sanyotry.bin",
+        "optional": true
       },
       {
         "md5": "8970fc987ab89a7f64da9f8a8c4333ff",
         "file": "bios/3do_arcade_saot.bin",
-        "group": "3do"
+        "optional": true
+      },
+      {
+        "md5": "b8dc97f778a6245c58e064b0312e8281",
+        "file": "bios/panafz1-kanji.bin",
+        "optional": true
+      },
+      {
+        "md5": "c23fb5d5e6bb1c240d02cf968972be37",
+        "file": "bios/panafz1j-kanji.bin",
+        "optional": true
+      },
+      {
+        "md5": "428577250f43edc902ea239c50d2240d",
+        "file": "bios/panafz10ja-anvil-kanji.bin",
+        "optional": true
       }
     ]
   },
