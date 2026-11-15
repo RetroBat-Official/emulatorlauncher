@@ -583,6 +583,9 @@
     <Compile Include="Generators\Play.Controllers.cs">
       <DependentUpon>Play.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\Play.SaveStatesMonitor.cs">
+      <DependentUpon>Play.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Pom2.Generator.cs" />
     <Compile Include="Generators\PortsLauncher.Generator.cs" />
     <Compile Include="Generators\PortsLauncher.Configuration.cs">
@@ -698,6 +701,13 @@
       <DependentUpon>VPinball.Generator.cs</DependentUpon>
     </Compile>
     <Compile Include="Generators\WinArcadia.Generator.cs" />
+    <Compile Include="Generators\Xbased.Generator.cs" />
+    <Compile Include="Generators\Xbased.Controllers.cs">
+      <DependentUpon>Xbased.Generator.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Generators\Xbased.SaveStatesMonitor.cs">
+      <DependentUpon>Xbased.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\Xemu.Generator.cs" />
     <Compile Include="Generators\Xemu.Controllers.cs">
       <DependentUpon>Xemu.Generator.cs</DependentUpon>

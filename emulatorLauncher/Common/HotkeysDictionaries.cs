@@ -69,6 +69,7 @@ namespace EmulatorLauncher
             { "raine", "raine" },
             { "retroarch", "retroarch" },
             { "snes9x", "snes9x-x64" },
+            { "xbased", "xbased" },
         };
         #endregion
 
@@ -456,6 +457,17 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_state_slot_decrease", "SlotMinus", "F6"),
                     new EmulatorHotkeyInfo("input_state_slot_increase", "SlotPlus", "F7"),
                     new EmulatorHotkeyInfo("input_pause_toggle", "Pause", "P")
+                }),
+
+            new EmulatorHotkey("xbased", new EmulatorHotkeyInfo[]
+                {
+                    new EmulatorHotkeyInfo("input_menu_toggle", "menu", "F1"),
+                    new EmulatorHotkeyInfo("input_toggle_fullscreen", "full", "F"),
+                    new EmulatorHotkeyInfo("input_hold_fast_forward", "turbo", "L"),
+                    new EmulatorHotkeyInfo("input_screenshot", "shot", "F8"),
+                    new EmulatorHotkeyInfo("input_save_state", "save", "F2"),
+                    new EmulatorHotkeyInfo("input_load_state", "load", "F4"),
+                    new EmulatorHotkeyInfo("input_pause_toggle", "pause", "P")
                 }),
         };
         #endregion

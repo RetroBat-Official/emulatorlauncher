@@ -19,6 +19,9 @@ namespace EmulatorLauncher.Common
         protected virtual int FirstSlot { get { return _infos == null ? 0 : _infos.FirstSlot; } }
         protected virtual int LastSlot { get { return _infos == null ? 999999 : _infos.LastSlot; } }
 
+        // States in a sub folder of the emulator path (a folder per game)
+        protected virtual bool IncludeSubdirectories { get { return false; } }
+
         public bool IncrementalMode { get; private set; }
         public int Slot { get; private set; }
 
@@ -62,6 +65,7 @@ namespace EmulatorLauncher.Common
 #endif
 
             _fsw = new FileSystemWatcher(_emulatorPath);
+            _fsw.IncludeSubdirectories = IncludeSubdirectories;
 
             if (_method == SaveStatesWatcherMethod.Changed)
                 _fsw.Changed += OnChanged;

@@ -4725,7 +4725,6 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["mupen64plus-EnableCopyColorToRDRAM"] = "Off";
                 coreSettings["mupen64plus-EnableCopyDepthToRDRAM"] = "Off";
                 coreSettings["mupen64plus-EnableFBEmulation"] = "False";
-                coreSettings["mupen64plus-ThreadedRenderer"] = "False";
                 coreSettings["mupen64plus-HybridFilter"] = "False";
                 coreSettings["mupen64plus-BackgroundMode"] = "OnePiece";
                 coreSettings["mupen64plus-EnableLegacyBlending"] = "True";
@@ -4736,7 +4735,6 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["mupen64plus-EnableCopyColorToRDRAM"] = "TripleBuffer";
                 coreSettings["mupen64plus-EnableCopyDepthToRDRAM"] = "Software";
                 coreSettings["mupen64plus-EnableFBEmulation"] = "True";
-                coreSettings["mupen64plus-ThreadedRenderer"] = "True";
                 coreSettings["mupen64plus-HybridFilter"] = "True";
                 coreSettings["mupen64plus-BackgroundMode"] = "Stripped";
                 coreSettings["mupen64plus-EnableLegacyBlending"] = "False";
@@ -4746,8 +4744,10 @@ namespace EmulatorLauncher.Libretro
             if (SystemConfig.isOptSet("mupen64plus_EnableCopyColorToRDRAM") && !string.IsNullOrEmpty(SystemConfig["mupen64plus_EnableCopyColorToRDRAM"]))
                 coreSettings["mupen64plus-EnableCopyColorToRDRAM"] = SystemConfig["mupen64plus_EnableCopyColorToRDRAM"];
 
-            if (SystemConfig.isOptSet("mupen64plus_ThreadedRenderer") && !string.IsNullOrEmpty(SystemConfig["mupen64plus_ThreadedRenderer"]))
-                coreSettings["mupen64plus-ThreadedRenderer"] = !SystemConfig.getOptBoolean("mupen64plus_ThreadedRenderer") ? "False" : "True";
+            if (SystemConfig.getOptBoolean("mupen64plus_ThreadedRenderer"))
+                coreSettings["mupen64plus-ThreadedRenderer"] = "True";
+            else
+                coreSettings["mupen64plus-ThreadedRenderer"] = "False";
 
             // Hi Res textures methods
             string texturePack = SystemConfig.isOptSet("TexturesPack") ? SystemConfig["TexturesPack"] : "disabled";

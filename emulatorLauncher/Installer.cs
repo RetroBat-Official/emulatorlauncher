@@ -156,6 +156,7 @@ namespace EmulatorLauncher
             { new Installer("winarcadia", "winarcadia", "WinArcadia.exe") },
             { new Installer("winuae", "winuae", "winuae64.exe") },
             { new Installer("xash3d", "xash3d", "xash3d.exe") },
+            { new Installer("xbased", "xbased", "xbased.exe") },
             { new Installer("xbox", new string[] { "cxbx-reloaded", "cxbx-r" }, "cxbx.exe") },
             { new Installer("xemu", "xemu", "xemu.exe") },
             { new Installer("xemu-chihiro", "xemu-chihiro", "xemu.exe") },
@@ -175,7 +176,7 @@ namespace EmulatorLauncher
         };
 
         // Some emulators do not set correctly version in executable and require specific treatment !
-        static readonly List<string> noVersionExe = new List<string> { "dhewm3", "eduke32", "fbneo", "fbneo64", "flycast", "melonds", "N64RecompLauncher", "openjazz", "play", "raze", "rmg", "xash3d" };
+        static readonly List<string> noVersionExe = new List<string> { "dhewm3", "eduke32", "fbneo", "fbneo64", "flycast", "melonds", "N64RecompLauncher", "openjazz", "play", "raze", "rmg", "xash3d", "xbased" };
 
         #region Properties
         public string Emulator { get; private set; }

@@ -40,7 +40,7 @@ namespace EmulatorLauncher
             if (Features.IsSupported("cputype"))
             {
                 commandArray.Add("-model");
-                commandArray.Add(SystemConfig.GetValueOrDefault("cputype", "apple2e"));
+                commandArray.Add(SystemConfig.GetValueOrDefault("cputype", "apple2ee"));
             }
 
             BindAppleWinFeature("Video Emulation", "screentype", "1");

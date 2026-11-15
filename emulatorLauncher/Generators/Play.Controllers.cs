@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Xml.Linq;
+using Newtonsoft.Json.Linq;
 using EmulatorLauncher.Common;
 using EmulatorLauncher.Common.Joysticks;
 using EmulatorLauncher.Common.EmulationStation;
@@ -11,10 +13,29 @@ namespace EmulatorLauncher
 {
     partial class PlayGenerator : Generator
     {
+        // Play! input provider ids ('xinp', 'dinp', 'QtMo', 'QtKy')
+        private const string ProviderXInput = "2020175472";
+        private const string ProviderDInput = "1684631152";
+        private const string ProviderMouse = "1366576495";
+        private const string ProviderKeyboard = "1366575993";
+
+        private const string NoDevice = "0:0:0:0:0:0";
+
         /// <summary>
-        /// Configure emulator features (config.xml)
+        /// Binding target of Play! (one input of a device)
         /// </summary>
-        /// <param name="path"></param>
+        private class PlayTarget
+        {
+            public string DeviceId;
+            public string KeyId;
+            public string KeyType;      // 0 = button, 1 = axis, 2 = pov hat
+            public string ProviderId;
+            public string HatRef = "-1"; // pov hat direction (0 = up, 2 = right, 4 = down, 6 = left)
+        }
+
+        /// <summary>
+        /// Create the RetroBat input profile (inputprofiles\Retrobat.xml)
+        /// </summary>
         private void ConfigureControllers(string path)
         {
             if (Program.SystemConfig.isOptSet("disableautocontrollers") && Program.SystemConfig["disableautocontrollers"] == "1")
@@ -26,487 +47,446 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Play!");
 
             string controllerFile = Path.Combine(path, "Play Data Files", "inputprofiles", "Retrobat.xml");
-            string templateControllerFile = Path.Combine(AppConfig.GetFullPath("templates"), "play", "inputprofiles", "Retrobat.xml");
+            string templateControllerFile = Path.Combine(AppConfig.GetFullPath("templates"), "play", "Play Data Files", "inputprofiles", "Retrobat.xml");
 
-            if (!File.Exists(controllerFile) && !File.Exists(templateControllerFile))
-            {
-                SimpleLogger.Instance.Info("[ERROR]: Controller file does not exist for autoconfiguration.");
-                return;
-            }
+            if (!File.Exists(controllerFile) && File.Exists(templateControllerFile))
+                FileTools.TryCopyFile(templateControllerFile, controllerFile);
 
-            else if (!File.Exists(controllerFile) && File.Exists(templateControllerFile))
-                File.Copy(templateControllerFile, controllerFile);
-
-            var controllers = Controllers.Where(c => !c.IsKeyboard).OrderBy(i => i.PlayerIndex).ToList();
-            Controller c1 = null;
-            Controller c2 = null;
-
+            var controllers = Controllers.Where(c => !c.IsKeyboard && c.Config != null).OrderBy(i => i.PlayerIndex).Take(2).ToList();
             if (controllers.Count == 0)
                 return;
 
-            c1 = controllers[0];
-
-            if (controllers.Count > 1)
-                c2 = controllers[1];
-
             try
             {
-                XDocument controllerConfigfile = XDocument.Load(controllerFile);
+                XDocument cfg = File.Exists(controllerFile) ? XDocument.Load(controllerFile) : new XDocument(new XElement("Config"));
 
-                CleanupControllerConfig(controllerConfigfile);
-                ConfigureControllers(controllerConfigfile, c1, c1.IsXInputDevice);
+                for (int pad = 1; pad <= 2; pad++)
+                    CleanupPad(cfg, pad);
 
-                if (c2 != null)
-                    ConfigureControllers(controllerConfigfile, c2, c2.IsXInputDevice);
+                var arcade = _isArcade ? GetArcadeMapping(path) : null;
 
-                //save file
-                controllerConfigfile.Save(controllerFile);
+                for (int i = 0; i < controllers.Count; i++)
+                    ConfigurePad(cfg, controllers[i], i + 1, arcade);
+
+                // Light guns: mouse and keyboard keys of the gun for player 1
+                if (arcade != null && arcade.Gun.Count > 0)
+                    ConfigureGun(cfg, arcade.Gun);
+
+                cfg.Save(controllerFile);
             }
-
-            catch { SimpleLogger.Instance.Info("ERROR: An error happened when saving the controller configuration file."); }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[Play] Unable to write the controller configuration : " + ex.Message);
+            }
         }
 
-        private void ConfigureControllers(XDocument cfg, Controller ctrl, bool isXinput)
+        private void ConfigurePad(XDocument cfg, Controller ctrl, int pad, ArcadeMapping arcade)
         {
-            if (ctrl == null || ctrl.Config == null)
-                return;
+            bool isXinput = ctrl.IsXInputDevice && ctrl.XInput != null;
+            string pref = "input.pad" + pad + ".";
 
-            string guid = (ctrl.Guid.ToString()).Substring(0, 24) + "00000000";
-            SdlToDirectInput dinputCtrl = null;
-            string inputPad = "input.pad" + (ctrl.PlayerIndex).ToString() + ".";
-            string gamecontrollerDB = Path.Combine(AppConfig.GetFullPath("tools"), "gamecontrollerdb.txt");
-            bool rumble = (!SystemConfig.isOptSet("play_rumble") || !SystemConfig.getOptBoolean("play_rumble"));
+            // PS2 button -> controller input (gamecontrollerdb names)
+            var map = new Dictionary<string, List<string>>();
+            foreach (var entry in ps2DefaultMapping)
+                map[entry.Key] = new List<string>() { entry.Value };
 
-            if (!isXinput && !File.Exists(gamecontrollerDB))
+            string gas = null;
+            string brake = null;
+
+            if (arcade != null)
             {
-                SimpleLogger.Instance.Info("[INFO] gamecontrollerdb.txt file not found in tools folder. Controller mapping will not be available.");
-                gamecontrollerDB = null;
-                return;
-            }
-
-            if (!isXinput && gamecontrollerDB != null)
-            {
-                SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". Fetching gamecontrollerdb.txt file with guid : " + guid);
-                dinputCtrl = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid);
-
-                if (dinputCtrl == null)
+                if (arcade.Buttons.Count > 0)
                 {
-                    SimpleLogger.Instance.Info("[INFO] Player " + ctrl.PlayerIndex + ". No controller found in gamecontrollerdb.txt file for guid : " + guid);
-                    return;
-                }
-            }
+                    foreach (var key in arcadeResetKeys)
+                        map[key] = new List<string>();
 
-            // Get mapping from yml file
-            bool specialMapping = false;
-            var buttonMap = new Dictionary<string, string>();
-            if (_isArcade)
-            {
-                SimpleLogger.Instance.Info("[INPUT] Looking for specific mapping in yml file.");
-                YmlContainer game = null;
-                string namcoMapping = null;
-
-                foreach (var path in mappingPaths)
-                {
-                    string result = path
-                        .Replace("{systempath}", "system")
-                        .Replace("{userpath}", "user");
-
-                    namcoMapping = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), result);
-
-                    if (File.Exists(namcoMapping))
-                        break;
-                }
-
-                if (File.Exists(namcoMapping))
-                {
-                    YmlFile ymlFile = YmlFile.Load(namcoMapping);
-
-                    game = ymlFile.Elements.Where(c => c.Name == _romName).FirstOrDefault() as YmlContainer;
-
-                    if (game == null)
-                        game = ymlFile.Elements.Where(g => g.Name == "default").FirstOrDefault() as YmlContainer;
-
-                    if (game != null)
+                    foreach (var entry in arcade.Buttons)
                     {
-                        var gameName = game.Name;
-                        
-                        foreach (var buttonEntry in game.Elements)
+                        foreach (var target in entry.Value)
                         {
-                            if (buttonEntry is YmlElement button)
-                            {
-                                buttonMap.Add(button.Name, button.Value);
-                            }
-                        }
-
-                        if (buttonMap.Count > 0)
-                        {
-                            specialMapping = true;
-                            SimpleLogger.Instance.Info("[INPUT] Specific mapping found in yml file.");
+                            if (target == "gas") gas = entry.Key;
+                            else if (target == "brake") brake = entry.Key;
+                            else map[target].Add(entry.Key);
                         }
                     }
                 }
+
+                // Test = L3 + R3 in Play! : both on the R3 button when the game does not use them
+                if (map["l3"].Count == 0 || map["l3"].SequenceEqual(new[] { "leftstick" }))
+                    map["l3"] = new List<string>() { "rightstick" };
+                if (map["r3"].Count == 0)
+                    map["r3"] = new List<string>() { "rightstick" };
             }
 
-            XElement analogsensitivity = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog.sensitivity").FirstOrDefault();
-            analogsensitivity.SetAttributeValue("Value", "1.000000");
+            SetPreference(cfg, pref + "analog.sensitivity", "float", "1.000000");
 
-            // Left analog horizontal
-            XElement leftx1DeviceID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_x.bindingtarget1.deviceId").FirstOrDefault();
-            leftx1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
-
-            XElement leftx1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_x.bindingtarget1.keyId").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("analog_left_x"))
-                leftx1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["analog_left_x"], isXinput));
-            else
-                leftx1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "leftx", isXinput));
-
-            XElement leftx1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_x.bindingtarget1.keyType").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("analog_left_x"))
-                leftx1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["analog_left_x"], isXinput));
-            else
-                leftx1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "leftx", isXinput));
-
-            XElement leftx1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_x.bindingtarget1.providerId").FirstOrDefault();
-            leftx1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
-
-            // Left analog vertical
-            XElement lefty1DeviceID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_y.bindingtarget1.deviceId").FirstOrDefault();
-            lefty1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
-
-            XElement lefty1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_y.bindingtarget1.keyId").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("analog_left_y"))
-                lefty1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["analog_left_y"], isXinput));
-            else
-                lefty1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "lefty", isXinput));
-
-            XElement lefty1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_y.bindingtarget1.keyType").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("analog_left_y"))
-                lefty1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["analog_left_y"], isXinput));
-            else
-                lefty1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "lefty", isXinput));
-
-            XElement lefty1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_left_y.bindingtarget1.providerId").FirstOrDefault();
-            lefty1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
-
-            // Right analog horizontal
-            XElement rightx1DeviceID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_x.bindingtarget1.deviceId").FirstOrDefault();
-            rightx1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
-
-            XElement rightx1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_x.bindingtarget1.keyId").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("analog_right_x"))
-                rightx1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["analog_right_x"], isXinput));
-            else
-                rightx1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "rightx", isXinput));
-
-            XElement rightx1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_x.bindingtarget1.keyType").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("analog_right_x"))
-                rightx1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["analog_right_x"], isXinput));
-            else
-                rightx1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "rightx", isXinput));
-
-            XElement rightx1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_x.bindingtarget1.providerId").FirstOrDefault();
-            rightx1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
-
-            // Right analog vertical
-            XElement righty1DeviceID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_y.bindingtarget1.deviceId").FirstOrDefault();
-            righty1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
-
-            XElement righty1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_y.bindingtarget1.keyId").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("analog_right_y"))
-                righty1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["analog_right_y"], isXinput));
-            else
-                righty1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "righty", isXinput));
-
-            XElement righty1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_y.bindingtarget1.keyType").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("analog_right_y"))
-                righty1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["analog_right_y"], isXinput));
-            else
-                righty1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "righty", isXinput));
-
-            XElement righty1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "analog_right_y.bindingtarget1.providerId").FirstOrDefault();
-            righty1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
-
-            // Other for analog axis
-            foreach (string key in inputBindings2Keys)
+            foreach (var entry in map)
             {
-                foreach (string inputBinding in inputBindings2)
+                // Play! binds one input per PS2 button: the first one is used
+                var target = entry.Value.Select(v => GetTarget(ctrl, v, isXinput)).FirstOrDefault(t => t != null);
+                WriteBinding(cfg, pref + entry.Key, target);
+            }
+
+            // Driving games : pedals on buttons (left stick Y up = gas, right stick X right = brake)
+            if (gas != null)
+                WriteSimulatedAxis(cfg, pref + "analog_left_y", GetPedalTarget(ctrl, gas, isXinput), null);
+            if (brake != null)
+                WriteSimulatedAxis(cfg, pref + "analog_right_x", null, GetPedalTarget(ctrl, brake, isXinput));
+
+            // Rumble
+            bool rumble = !SystemConfig.getOptBoolean("play_rumble");
+            SetPreference(cfg, pref + "motor.bindingtarget1.deviceId", "string", rumble ? GetDeviceID(ctrl, isXinput) : NoDevice);
+            SetPreference(cfg, pref + "motor.bindingtarget1.keyId", "integer", rumble ? "-1" : "0");
+            SetPreference(cfg, pref + "motor.bindingtarget1.keyType", "integer", rumble ? "3" : "0");
+            SetPreference(cfg, pref + "motor.bindingtarget1.providerId", "integer", rumble ? (isXinput ? ProviderXInput : ProviderDInput) : "0");
+
+            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + pad);
+        }
+
+        private void ConfigureGun(XDocument cfg, Dictionary<string, List<string>> gun)
+        {
+            SimpleLogger.Instance.Info("[GUNS] Configuring light gun buttons for Play!");
+
+            foreach (var entry in gun)
+            {
+                PlayTarget target = null;
+
+                if (entry.Key == "mouseleft" || entry.Key == "mouseright")
+                    target = new PlayTarget() { DeviceId = NoDevice, KeyId = entry.Key == "mouseleft" ? "1" : "2", KeyType = "0", ProviderId = ProviderMouse };
+                else if (entry.Key.StartsWith("kb_") && entry.Key.Length == 4 && char.IsDigit(entry.Key[3]))
+                    target = new PlayTarget() { DeviceId = NoDevice, KeyId = ((int)entry.Key[3]).ToString(), KeyType = "0", ProviderId = ProviderKeyboard };    // Qt key code of a digit is its ASCII code
+
+                if (target == null)
+                    continue;
+
+                foreach (var ps2Key in entry.Value.Where(v => ps2DefaultMapping.ContainsKey(v)))
+                    WriteBinding(cfg, "input.pad1." + ps2Key, target);
+            }
+        }
+
+        #region bindings
+        private static void WriteTargetPrefs(XDocument cfg, string prefix, PlayTarget target)
+        {
+            SetPreference(cfg, prefix + ".deviceId", "string", target == null ? NoDevice : target.DeviceId);
+            SetPreference(cfg, prefix + ".keyId", "integer", target == null ? "0" : target.KeyId);
+            SetPreference(cfg, prefix + ".keyType", "integer", target == null ? "0" : target.KeyType);
+            SetPreference(cfg, prefix + ".providerId", "integer", target == null ? "0" : target.ProviderId);
+        }
+
+        private static void WriteBinding(XDocument cfg, string key, PlayTarget target)
+        {
+            // Binding type : 0 = unbound, 1 = simple, 3 = pov hat
+            string bindingType = target == null ? "0" : (target.KeyType == "2" ? "3" : "1");
+
+            SetPreference(cfg, key + ".bindingtype", "integer", bindingType);
+            SetPreference(cfg, key + ".povhatbinding.refvalue", "integer", target == null ? "-1" : target.HatRef);
+            WriteTargetPrefs(cfg, key + ".bindingtarget1", target);
+        }
+
+        private static void WriteSimulatedAxis(XDocument cfg, string key, PlayTarget toMin, PlayTarget toMax)
+        {
+            // Binding type 2 : bindingtarget1 pushes the axis to 0, bindingtarget2 to 255
+            SetPreference(cfg, key + ".bindingtype", "integer", "2");
+            SetPreference(cfg, key + ".povhatbinding.refvalue", "integer", "-1");
+            WriteTargetPrefs(cfg, key + ".bindingtarget1", toMin);
+            WriteTargetPrefs(cfg, key + ".bindingtarget2", toMax);
+        }
+
+        private static void CleanupPad(XDocument cfg, int pad)
+        {
+            string pref = "input.pad" + pad + ".";
+
+            foreach (var key in ps2DefaultMapping.Keys)
+            {
+                SetPreference(cfg, pref + key + ".bindingtype", "integer", "0");
+                SetPreference(cfg, pref + key + ".povhatbinding.refvalue", "integer", "-1");
+                WriteTargetPrefs(cfg, pref + key + ".bindingtarget1", null);
+
+                if (key.StartsWith("analog_"))
+                    WriteTargetPrefs(cfg, pref + key + ".bindingtarget2", null);
+            }
+
+            WriteTargetPrefs(cfg, pref + "motor.bindingtarget1", null);
+        }
+        #endregion
+
+        #region device inputs
+        private PlayTarget GetTarget(Controller ctrl, string input, bool isXinput)
+        {
+            if (string.IsNullOrEmpty(input))
+                return null;
+
+            if (isXinput)
+            {
+                if (!xinputKeyID.TryGetValue(input, out string keyId))
+                    return null;
+
+                return new PlayTarget() { DeviceId = GetDeviceID(ctrl, true), KeyId = keyId, KeyType = xinputKeyType[input], ProviderId = ProviderXInput };
+            }
+
+            // DirectInput : gamecontrollerdb mapping, or RetroBat HID mapping when the controller is not in gamecontrollerdb
+            var inputKey = SdlToDirectInput.SdlToGameControllerDB.Where(k => k.Value == input && k.Key != InputKey.hotkey).Select(k => (InputKey?)k.Key).FirstOrDefault();
+            if (inputKey == null)
+                return null;
+
+            var dinput = ctrl.GetDirectInputMapping(inputKey.Value);
+            if (dinput == null)
+            {
+                SimpleLogger.Instance.Info("[INFO] No DirectInput mapping for " + input);
+                return null;
+            }
+
+            var target = new PlayTarget() { DeviceId = GetDeviceID(ctrl, false), ProviderId = ProviderDInput };
+
+            switch (dinput.Type)
+            {
+                case "button":
+                    target.KeyType = "0";
+                    target.KeyId = (48 + dinput.Id).ToString();     // DIJOFS_BUTTON0
+                    break;
+                case "hat":
+                    target.KeyType = "2";
+                    target.KeyId = (32 + 4 * dinput.Id).ToString(); // DIJOFS_POV(n)
+                    target.HatRef = hatDirections.TryGetValue((int)dinput.Value, out string dir) ? dir : "-1";
+                    break;
+                case "axis":
+                    target.KeyType = "1";
+                    target.KeyId = GetAxisOffset(ctrl, (int)dinput.Id).ToString();
+                    break;
+                default:
+                    return null;
+            }
+
+            return target;
+        }
+
+        /// <summary>
+        /// Pedals use simulated axes : any non-zero value presses them.
+        /// A full range trigger axis rests at 0 and can be used, a half axis (both triggers on one axis) rests at its center :
+        /// the shoulder button of the same side is used instead.
+        /// </summary>
+        private PlayTarget GetPedalTarget(Controller ctrl, string input, bool isXinput)
+        {
+            if (!isXinput && IsHalfTriggerAxis(ctrl, input))
+            {
+                string shoulder = input == "lefttrigger" ? "leftshoulder" : "rightshoulder";
+                SimpleLogger.Instance.Info("[INFO] Pedal on half axis replaced by " + shoulder);
+                return GetTarget(ctrl, shoulder, false);
+            }
+
+            return GetTarget(ctrl, input, isXinput);
+        }
+
+        private static bool IsHalfTriggerAxis(Controller ctrl, string input)
+        {
+            if (input != "lefttrigger" && input != "righttrigger")
+                return false;
+
+            var trigger = ctrl.GetDirectInputMapping(input == "lefttrigger" ? InputKey.l2 : InputKey.r2);
+            if (trigger == null || trigger.Type != "axis")
+                return false;
+
+            var other = ctrl.GetDirectInputMapping(input == "lefttrigger" ? InputKey.r2 : InputKey.l2);
+            return trigger.Value == 1 || (other != null && other.Type == "axis" && other.Id == trigger.Id);
+        }
+
+        /// <summary>
+        /// SDL numbers the DirectInput axes the device has (X, Y, Z, Rx, Ry, Rz, sliders), Play! uses their offset in DIJOYSTATE
+        /// </summary>
+        private static int GetAxisOffset(Controller ctrl, int axisIndex)
+        {
+            try
+            {
+                if (ctrl.DirectInput != null)
                 {
-                    XElement analog2clean = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + key + inputBinding).FirstOrDefault();
-                    analog2clean.SetAttributeValue("Value", "0");
-                }
+                    var slots = ctrl.DirectInput.GetAxisSlots();
+                    int n = 0;
+                    for (int slot = 0; slot < slots.Length; slot++)
+                    {
+                        if (!slots[slot])
+                            continue;
 
-                XElement stickBindType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + key + ".bindingtype").FirstOrDefault();
-                stickBindType.SetAttributeValue("Value", "1");
+                        if (n == axisIndex)
+                            return slot * 4;
 
-                XElement povHat = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + key + ".povhatbinding.refvalue").FirstOrDefault();
-                povHat.SetAttributeValue("Value", "-1");
-            }
-
-            // D-Pad down
-            XElement dpdown1DeviceID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_down.bindingtarget1.deviceId").FirstOrDefault();
-            dpdown1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
-
-            XElement dpdown1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_down.bindingtarget1.keyId").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("dpad_down"))
-                dpdown1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["dpad_down"], isXinput));
-            else
-                dpdown1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "dpdown", isXinput));
-
-            XElement dpdown1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_down.bindingtarget1.keyType").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("dpad_down"))
-                dpdown1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["dpad_down"], isXinput));
-            else
-                dpdown1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "dpdown", isXinput));
-
-            XElement dpdown1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_down.bindingtarget1.providerId").FirstOrDefault();
-            dpdown1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
-
-            // D-Pad left
-            XElement dpleft1DeviceID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_left.bindingtarget1.deviceId").FirstOrDefault();
-            dpleft1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
-
-            XElement dpleft1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_left.bindingtarget1.keyId").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("dpad_left"))
-                dpleft1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["dpad_left"], isXinput));
-            else
-                dpleft1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "dpleft", isXinput));
-
-            XElement dpleft1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_left.bindingtarget1.keyType").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("dpad_left"))
-                dpleft1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["dpad_left"], isXinput));
-            else
-                dpleft1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "dpleft", isXinput));
-
-            XElement dpleft1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_left.bindingtarget1.providerId").FirstOrDefault();
-            dpleft1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
-
-            // D-Pad right
-            XElement dpright1DeviceID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_right.bindingtarget1.deviceId").FirstOrDefault();
-            dpright1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
-
-            XElement dpright1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_right.bindingtarget1.keyId").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("dpad_right"))
-                dpright1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["dpad_right"], isXinput));
-            else
-                dpright1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "dpright", isXinput));
-
-            XElement dpright1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_right.bindingtarget1.keyType").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("dpad_right"))
-                dpright1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["dpad_right"], isXinput));
-            else
-                dpright1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "dpright", isXinput));
-
-            XElement dpright1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_right.bindingtarget1.providerId").FirstOrDefault();
-            dpright1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
-
-            // D-Pad up
-            XElement dpup1DeviceID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_up.bindingtarget1.deviceId").FirstOrDefault();
-            dpup1DeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
-
-            XElement dpup1KeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_up.bindingtarget1.keyId").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("dpad_up"))
-                dpup1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap["dpad_up"], isXinput));
-            else
-                dpup1KeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, "dpup", isXinput));
-
-            XElement dpup1KeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_up.bindingtarget1.keyType").FirstOrDefault();
-            if (specialMapping && buttonMap.ContainsKey("dpad_up"))
-                dpup1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap["dpad_up"], isXinput));
-            else
-                dpup1KeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, "dpup", isXinput));
-
-            XElement dpup1ProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "dpad_up.bindingtarget1.providerId").FirstOrDefault();
-            dpup1ProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
-
-            // Other for dpad
-            foreach (string key in dpadKeys)
-            {
-                XElement dpadBindType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + key + ".bindingtype").FirstOrDefault();
-                dpadBindType.SetAttributeValue("Value", isXinput ? "1" : "3");
-
-                foreach (KeyValuePair<string, string> entry in povHatDpad)
-                {
-                    XElement povHat = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + entry.Key + ".povhatbinding.refvalue").FirstOrDefault();
-                    povHat.SetAttributeValue("Value", isXinput ? "-1" : entry.Value);
+                        n++;
+                    }
                 }
             }
+            catch { }
 
-            // Buttons
-            foreach (KeyValuePair<string, string> button in ps2buttons)
-            {
-                XElement buttonDeviceID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + button.Key + ".bindingtarget1.deviceId").FirstOrDefault();
-                buttonDeviceID.SetAttributeValue("Value", GetDeviceID(ctrl, isXinput));
-
-                XElement buttonKeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + button.Key + ".bindingtarget1.keyId").FirstOrDefault();
-                if (specialMapping && buttonMap.ContainsKey(button.Key))
-                    buttonKeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, buttonMap[button.Key], isXinput));
-                else
-                    buttonKeyID.SetAttributeValue("Value", GetKeyID(ctrl, dinputCtrl, button.Value, isXinput));
-
-                XElement buttonKeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + button.Key + ".bindingtarget1.keyType").FirstOrDefault();
-                if (specialMapping && buttonMap.ContainsKey(button.Key))
-                    buttonKeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, buttonMap[button.Key], isXinput));
-                else
-                    buttonKeyType.SetAttributeValue("Value", GetDeviceKeyType(ctrl, dinputCtrl, button.Value, isXinput));
-
-                XElement buttonProvID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + button.Key + ".bindingtarget1.providerId").FirstOrDefault();
-                buttonProvID.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
-
-                XElement buttonBindType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + button.Key + ".bindingtype").FirstOrDefault();
-                buttonBindType.SetAttributeValue("Value", "1");
-
-                XElement buttonPovHat = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + button.Key + ".povhatbinding.refvalue").FirstOrDefault();
-                buttonPovHat.SetAttributeValue("Value", "-1");
-            }
-
-            // Motor
-            XElement rumbleDevID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "motor.bindingtarget1.deviceId").FirstOrDefault();
-            rumbleDevID.SetAttributeValue("Value", rumble ? GetDeviceID(ctrl, isXinput) : "0:0:0:0:0:0");
-
-            XElement rumbleKeyID = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "motor.bindingtarget1.keyId").FirstOrDefault();
-            rumbleKeyID.SetAttributeValue("Value", rumble ? "-1" : "0");
-
-            XElement rumbleKeyType = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "motor.bindingtarget1.keyType").FirstOrDefault();
-            rumbleKeyType.SetAttributeValue("Value", rumble ? "3" : "0");
-
-            if (rumble)
-            {
-                XElement rumbleProvider = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "motor.bindingtarget1.providerId").FirstOrDefault();
-                rumbleProvider.SetAttributeValue("Value", isXinput ? "2020175472" : "1684631152");
-            }
-            else
-            {
-                XElement rumbleProvider = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == inputPad + "motor.bindingtarget1.providerId").FirstOrDefault();
-                rumbleProvider.SetAttributeValue("Value", "0");
-            }
-
-            SimpleLogger.Instance.Info("[INFO] Assigned controller " + ctrl.DevicePath + " to player : " + ctrl.PlayerIndex.ToString());
+            return axisIndex * 4;
         }
 
         private string GetDeviceID(Controller ctrl, bool isXinput)
         {
-            // dinput
-            // Retrobat :   fc6f3e60-8fa8-11ed-8002-444553540000
-            // Play :       fc6f3e60:11ed8fa8:45440280:5453:0:0
-
             if (isXinput)
                 return ctrl.XInput.DeviceIndex + ":0:0:0:0:0";
-            else
-            {
-                string instanceID = ctrl.DirectInput.InstanceGuid.ToString();
-                string[] parts = instanceID.Split('-');
-                string targetPart1 = parts[0];
-                string targetPart2 = parts[2] + parts[1];
-                string targetPart3 = parts[4].Substring(2, 2) + parts[4].Substring(0, 2) + parts[3].Substring(2, 2) + parts[3].Substring(0, 2);
-                string targetPart4 = parts[4].Substring(6, 2) + parts[4].Substring(4, 2);
-                string target = targetPart1 + ":" + targetPart2 + ":" + targetPart3 + ":" + targetPart4 + ":0:0";
-                return target;
-            }
-        }
 
-        private string GetDeviceKeyType(Controller ctrl, SdlToDirectInput dinputCtrl, string buttonkey, bool isXinput)
+            if (ctrl.DirectInput == null)
+                return NoDevice;
+
+            // Play! stores the instance GUID bytes as 4 little endian uint32 (hexadecimal)
+            byte[] b = ctrl.DirectInput.InstanceGuid.ToByteArray();
+            return string.Format("{0:x}:{1:x}:{2:x}:{3:x}:0:0", BitConverter.ToUInt32(b, 0), BitConverter.ToUInt32(b, 4), BitConverter.ToUInt32(b, 8), BitConverter.ToUInt32(b, 12));
+        }
+        #endregion
+
+        #region arcade
+        private class ArcadeMapping
         {
-            if (ctrl == null)
-                return "0";
-
-            if (!isXinput)
-            {
-                if (dinputCtrl == null)
-                    return "0";
-
-                if (dinputCtrl.ButtonMappings == null)
-                {
-                    SimpleLogger.Instance.Info("[INFO] No mapping found in gamecontrollerdb for the controller.");
-                    return "0";
-                }
-
-                if (!dinputCtrl.ButtonMappings.ContainsKey(buttonkey))
-                {
-                    SimpleLogger.Instance.Info("[INFO] No mapping found for " + buttonkey + " in gamecontrollerdb file");
-                    return "0";
-                }
-
-                string button = dinputCtrl.ButtonMappings[buttonkey];
-
-                if (button.StartsWith("b"))
-                    return "0";
-
-                if (button.StartsWith("a") || button.StartsWith("-a") || button.StartsWith("+a"))
-                    return "1";
-
-                if (button.StartsWith("h"))
-                    return "2";
-            }
-
-            else
-                return xinputKeyType[buttonkey];
-
-            return "0";
+            public Dictionary<string, List<string>> Buttons = new Dictionary<string, List<string>>();
+            public Dictionary<string, List<string>> Gun = new Dictionary<string, List<string>>();
         }
 
-        private string GetKeyID(Controller ctrl, SdlToDirectInput dinputCtrl, string buttonkey, bool isXinput)
+        /// <summary>
+        /// Read play.yml : &lt;rom&gt;_&lt;layout&gt;, &lt;rom&gt;, &lt;parent&gt;_&lt;layout&gt;, &lt;parent&gt;, default_&lt;layout&gt;, default
+        /// </summary>
+        private ArcadeMapping GetArcadeMapping(string path)
         {
-            if (ctrl == null)
-                return "0";
+            var ret = new ArcadeMapping();
 
-            if (!isXinput)
+            string ymlPath = mappingPaths
+                .Select(p => Path.Combine(Program.AppConfig.GetFullPath("retrobat"), p.Replace("{systempath}", "system").Replace("{userpath}", "user")))
+                .FirstOrDefault(File.Exists);
+
+            if (ymlPath == null)
+                return ret;
+
+            YmlFile yml = YmlFile.Load(ymlPath);
+            if (yml == null)
+                return ret;
+
+            string parent = null;
+            string inputMode = "default";
+            try
             {
-                if (dinputCtrl == null)
-                    return "0";
-
-                if (dinputCtrl.ButtonMappings == null)
+                string arcadeDef = Path.Combine(path, "arcadedefs", _romName + ".arcadedef");
+                if (File.Exists(arcadeDef))
                 {
-                    SimpleLogger.Instance.Info("[INFO] No mapping found in gamecontrollerdb for the controller.");
-                    return "0";
+                    var def = JObject.Parse(File.ReadAllText(arcadeDef));
+                    parent = (string)def["parent"];
+                    inputMode = (string)def["inputMode"] ?? "default";
                 }
+            }
+            catch { }
 
-                if (!dinputCtrl.ButtonMappings.ContainsKey(buttonkey))
-                {
-                    SimpleLogger.Instance.Info("[INFO] No mapping found for " + buttonkey + " in gamecontrollerdb file");
-                    return "0";
-                }
+            string layout = SystemConfig["controller_layout"];
+            if (layout == "classic8")
+                layout = "6alternative";
 
-                string button = dinputCtrl.ButtonMappings[buttonkey];
-
-                if (button.StartsWith("b"))
-                {
-                    int buttonID = (button.Substring(1).ToInteger());
-                    return (buttonID + 48).ToString();
-                }
-
-                if (button.StartsWith("a") || button.StartsWith("-a") || button.StartsWith("+a"))
-                {
-                    int axisID = button.Substring(1).ToInteger();
-
-                    if (button.StartsWith("-a") || button.StartsWith("+a"))
-                        axisID = button.Substring(2).ToInteger();
-
-                    switch (axisID)
-                    {
-                        case 0:
-                            return "0";
-                        case 1:
-                            return "4";
-                        case 2:
-                            return "8";
-                        case 3:
-                            return "12";
-                        case 4:
-                            return "16";
-                        case 5:
-                            return "20";
-                    }
-                }
-
-                if (button.StartsWith("h"))
-                    return "32";
+            var names = new List<string>();
+            foreach (var name in new[] { _romName, parent, "default" }.Where(n => !string.IsNullOrEmpty(n)))
+            {
+                if (!string.IsNullOrEmpty(layout))
+                    names.Add(name + "_" + layout);
+                names.Add(name);
             }
 
-            else
-                return xinputKeyID[buttonkey];
+            var game = names.Select(n => yml.Elements.OfType<YmlContainer>().FirstOrDefault(c => c.Name == n)).FirstOrDefault(c => c != null);
+            if (game != null)
+            {
+                SimpleLogger.Instance.Info("[INPUT] Play! arcade mapping : " + game.Name);
+                ret.Buttons = ReadYmlMapping(game);
+            }
 
-            return "0";
+            // Light guns
+            if (inputMode == "lightgun" && SystemConfig.getOptBoolean("use_guns"))
+            {
+                var gun = new[] { _romName + "_gun", parent + "_gun", "lightgun_gun" }.Select(n => yml.Elements.OfType<YmlContainer>().FirstOrDefault(c => c.Name == n)).FirstOrDefault(c => c != null);
+                if (gun != null)
+                    ret.Gun = ReadYmlMapping(gun);
+            }
+
+            return ret;
         }
+
+        private static Dictionary<string, List<string>> ReadYmlMapping(YmlContainer container)
+        {
+            var ret = new Dictionary<string, List<string>>();
+
+            foreach (var element in container.Elements.OfType<YmlElement>())
+            {
+                string input;
+                if (!ymlInputs.TryGetValue(element.Name, out input))
+                    input = element.Name;   // gun containers : mouseleft, mouseright, kb_x
+
+                var targets = new List<string>();
+                foreach (var value in element.Value.Split(',').Select(v => v.Trim().ToLowerInvariant()).Where(v => v.Length > 0))
+                {
+                    if (jvsButtons.TryGetValue(value, out string ps2))
+                        targets.Add(ps2);
+                    else if (ps2DefaultMapping.ContainsKey(value) || value == "gas" || value == "brake")
+                        targets.Add(value);
+                    else
+                        SimpleLogger.Instance.Warning("[INPUT] Unknown Play! arcade control : " + value);
+                }
+
+                ret[input] = targets;
+            }
+
+            return ret;
+        }
+
+        // JVS buttons of the Namco System 246 / 256 and the PS2 button that drives them in Play!
+        static private readonly Dictionary<string, string> jvsButtons = new Dictionary<string, string>()
+        {
+            { "button1", "cross" }, { "button2", "circle" }, { "button3", "triangle" }, { "button4", "square" }, { "button5", "r3" },
+            { "button6", "r2" }, { "button7", "r1" }, { "button8", "l3" }, { "button9", "l2" }, { "button10", "l1" },
+        };
+
+        // play.yml controller buttons -> gamecontrollerdb names
+        static private readonly Dictionary<string, string> ymlInputs = new Dictionary<string, string>()
+        {
+            { "south", "a" }, { "east", "b" }, { "west", "x" }, { "north", "y" },
+            { "l1", "leftshoulder" }, { "r1", "rightshoulder" }, { "l2", "lefttrigger" }, { "r2", "righttrigger" },
+            { "l3", "leftstick" }, { "r3", "rightstick" }, { "select", "back" }, { "start", "start" },
+            { "up", "dpup" }, { "down", "dpdown" }, { "left", "dpleft" }, { "right", "dpright" },
+        };
+
+        // PS2 buttons remapped by play.yml (directions, sticks, select and start keep their default input)
+        static private readonly string[] arcadeResetKeys = { "cross", "circle", "triangle", "square", "l1", "l2", "l3", "r1", "r2", "r3" };
+
+        static readonly string[] mappingPaths =
+        {
+            // User specific
+            "{userpath}\\inputmapping\\play.yml",
+
+            // RetroBat Default
+            "{systempath}\\resources\\inputmapping\\play.yml",
+        };
+        #endregion
+
+        // PS2 button -> controller input (gamecontrollerdb names)
+        static private readonly Dictionary<string, string> ps2DefaultMapping = new Dictionary<string, string>()
+        {
+            { "analog_left_x", "leftx" },
+            { "analog_left_y", "lefty" },
+            { "analog_right_x", "rightx" },
+            { "analog_right_y", "righty" },
+            { "dpad_up", "dpup" },
+            { "dpad_down", "dpdown" },
+            { "dpad_left", "dpleft" },
+            { "dpad_right", "dpright" },
+            { "select", "back" },
+            { "start", "start" },
+            { "square", "x" },
+            { "triangle", "y" },
+            { "circle", "b" },
+            { "cross", "a" },
+            { "l1", "leftshoulder" },
+            { "l2", "lefttrigger" },
+            { "l3", "leftstick" },
+            { "r1", "rightshoulder" },
+            { "r2", "righttrigger" },
+            { "r3", "rightstick" },
+        };
+
+        // DirectInput hat value -> Play! pov hat direction
+        static private readonly Dictionary<int, string> hatDirections = new Dictionary<int, string>()
+        {
+            { 1, "0" }, { 2, "2" }, { 4, "4" }, { 8, "6" },
+        };
 
         static private readonly Dictionary<string, string> xinputKeyID = new Dictionary<string, string>()
         {
@@ -554,142 +534,6 @@ namespace EmulatorLauncher
             { "x", "0" },
             { "start", "0" },
             { "y", "0" },
-        };
-
-        static private readonly List<string> inputBindings2Keys = new List<string>()
-        {
-            { "analog_left_x" },
-            { "analog_left_y" },
-            { "analog_right_x" },
-            { "analog_right_y" },
-        };
-
-        static private readonly List<string> inputBindings2 = new List<string>()
-        {
-            { ".bindingtarget2.deviceId" },
-            { ".bindingtarget2.keyId" },
-            { ".bindingtarget2.keyType" },
-            { ".bindingtarget2.providerId" },
-        };
-
-        static private readonly List<string> inputBindings1 = new List<string>()
-        {
-            { ".bindingtarget1.deviceId" },
-            { ".bindingtarget1.keyId" },
-            { ".bindingtarget1.keyType" },
-            { ".bindingtarget1.providerId" },
-        };
-
-        static private readonly List<string> inputBindingsSpecial = new List<string>()
-        {
-            { ".bindingtype" },
-            { ".povhatbinding.refvalue" },
-        };
-
-        static private readonly List<string> dpadKeys = new List<string>()
-        {
-            { "dpad_down" },
-            { "dpad_left" },
-            { "dpad_right" },
-            { "dpad_up" },
-        };
-
-        static private readonly Dictionary<string, string> povHatDpad = new Dictionary<string, string>()
-        {
-            { "dpad_down", "4"},
-            { "dpad_left", "6" },
-            { "dpad_right", "2" },
-            { "dpad_up", "0" },
-        };
-
-        static private readonly Dictionary<string, string> ps2buttons = new Dictionary<string, string>()
-        {
-            { "circle", "b" },
-            { "cross", "a" },
-            { "l1", "leftshoulder" },
-            { "l2", "lefttrigger" },
-            { "l3", "leftstick" },
-            { "r1", "rightshoulder" },
-            { "r2", "righttrigger" },
-            { "r3", "rightstick" },
-            { "select", "back" },
-            { "square", "x" },
-            { "start", "start" },
-            { "triangle", "y" },
-        };
-
-        private void CleanupControllerConfig(XDocument cfg)
-        {
-            for (int i = 1; i < 3; i++)
-            {
-                string pad = "input.pad" + i + ".";
-
-                foreach (string key in inputBindings2Keys)
-                {
-                    foreach (string binding in inputBindings1)
-                    {
-                        XElement toDelete = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == pad + key + binding).FirstOrDefault();
-                        toDelete.SetAttributeValue("Value", "0");
-                    }
-
-                    foreach (string binding in inputBindings2)
-                    {
-                        XElement toDelete = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == pad + key + binding).FirstOrDefault();
-                        toDelete.SetAttributeValue("Value", "0");
-                    }
-
-                    foreach (string binding in inputBindingsSpecial)
-                    {
-                        XElement toDelete = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == pad + key + binding).FirstOrDefault();
-                        toDelete.SetAttributeValue("Value", "0");
-                    }
-                }
-
-                foreach (KeyValuePair<string, string> button in ps2buttons)
-                {
-                    foreach (string binding in inputBindings1)
-                    {
-                        XElement toDelete = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == pad + button.Key + binding).FirstOrDefault();
-                        toDelete.SetAttributeValue("Value", "0");
-                    }
-
-                    foreach (string binding in inputBindingsSpecial)
-                    {
-                        XElement toDelete = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == pad + button.Key + binding).FirstOrDefault();
-                        toDelete.SetAttributeValue("Value", "0");
-                    }
-                }
-
-                foreach (string key in dpadKeys)
-                {
-                    foreach (string binding in inputBindings1)
-                    {
-                        XElement toDelete = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == pad + key + binding).FirstOrDefault();
-                        toDelete.SetAttributeValue("Value", "0");
-                    }
-
-                    foreach (string binding in inputBindingsSpecial)
-                    {
-                        XElement toDelete = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == pad + key + binding).FirstOrDefault();
-                        toDelete.SetAttributeValue("Value", "0");
-                    }
-                }
-
-                foreach (string binding in inputBindings1)
-                {
-                    XElement toDelete = cfg.Descendants("Preference").Where(x => (string)x.Attribute("Name") == pad + "motor" + binding).FirstOrDefault();
-                    toDelete.SetAttributeValue("Value", "0");
-                }
-            }
-        }
-
-        static readonly string[] mappingPaths =
-        {            
-            // User specific
-            "{userpath}\\inputmapping\\play_Arcade.yml",
-
-            // RetroBat Default
-            "{systempath}\\resources\\inputmapping\\play_Arcade.yml",
         };
     }
 }
