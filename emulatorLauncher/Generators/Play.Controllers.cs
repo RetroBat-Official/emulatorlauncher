@@ -26,7 +26,7 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Play!");
 
             string controllerFile = Path.Combine(path, "Play Data Files", "inputprofiles", "Retrobat.xml");
-            string templateControllerFile = Path.Combine(AppConfig.GetFullPath("templates"), "play", "inputprofiles", "Retrobat.xml");
+            string templateControllerFile = Path.Combine(AppConfig.GetFullPath("templates"), "play", "Play Data Files", "inputprofiles", "Retrobat.xml");
 
             if (!File.Exists(controllerFile) && !File.Exists(templateControllerFile))
             {

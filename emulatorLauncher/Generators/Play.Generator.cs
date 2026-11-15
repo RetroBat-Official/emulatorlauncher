@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
 using System.Xml.Linq;
 using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.EmulationStation;
+using EmulatorLauncher.PadToKeyboard;
 
 namespace EmulatorLauncher
 {
@@ -18,6 +21,7 @@ namespace EmulatorLauncher
         private BezelFiles _bezelFileInfo;
         private ScreenResolution _resolution;
         private string _romName;
+        private SaveStatesWatcher _saveStatesWatcher;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
@@ -38,10 +42,44 @@ namespace EmulatorLauncher
 
             _isArcade = system == "namco2x6";
             bool fullscreen = ShouldRunFullscreen();
+
+            // Archives: extract the game (formats read by Play!)
+            string romExt = Path.GetExtension(rom).ToLowerInvariant();
+            if (!_isArcade && (romExt == ".zip" || romExt == ".7z" || romExt == ".squashfs"))
+            {
+                string[] extensions = new string[] { ".m3u", ".chd", ".cue", ".mds", ".iso", ".isz", ".cso", ".bin" };
+
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+                if (Directory.Exists(uncompressedRomPath))
+                {
+                    string[] romFiles = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories).OrderBy(file => Array.IndexOf(extensions, Path.GetExtension(file).ToLowerInvariant())).ToArray();
+                    rom = romFiles.FirstOrDefault(file => extensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
+                    ValidateUncompressedGame();
+                }
+            }
+
+            // Play! cannot read m3u files: boot the first disc
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".m3u")
+            {
+                string firstDisc = FileTools.ReadFirstValidLine(rom);
+                if (!string.IsNullOrEmpty(firstDisc))
+                    rom = Path.Combine(Path.GetDirectoryName(rom), firstDisc.TrimStart('\\', '/'));
+            }
+
             _romName = Path.GetFileNameWithoutExtension(rom);
 
+            // Save states
+            if (Program.HasEsSaveStates && Program.EsSaveStates.IsEmulatorSupported(emulator))
+            {
+                string localPath = Program.EsSaveStates.GetSavePath(system, emulator, core);
+                string emulatorPath = Path.Combine(path, "Play Data Files", "states");
+
+                _saveStatesWatcher = new PlaySaveStatesMonitor(rom, emulatorPath, localPath);
+                _saveStatesWatcher.PrepareEmulatorRepository();
+            }
+
             //settings
-            SetupConfiguration(path, rom);
+            SetupConfiguration(path, rom, system);
             ConfigureControllers(path);
 
             //Applying bezels
@@ -49,7 +87,7 @@ namespace EmulatorLauncher
             {
                 SystemConfig["forceNoBezel"] = "1"; // Force no bezel in windowed mode
             }
-            
+
             if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
@@ -70,7 +108,14 @@ namespace EmulatorLauncher
             }
 
             if (fullscreen)
-             commandArray.Add("--fullscreen");
+                commandArray.Add("--fullscreen");
+
+            // Load the state selected in EmulationStation
+            if (_saveStatesWatcher != null && !string.IsNullOrEmpty(SystemConfig["state_file"]) && File.Exists(SystemConfig["state_file"]))
+            {
+                commandArray.Add("--state");
+                commandArray.Add(_saveStatesWatcher.Slot.ToString());
+            }
 
             string args = string.Join(" ", commandArray);
 
@@ -85,128 +130,142 @@ namespace EmulatorLauncher
         /// <summary>
         /// Configure emulator features (config.xml)
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="rom"></param>
-        private void SetupConfiguration(string path, string rom)
+        private void SetupConfiguration(string path, string rom, string system)
         {
-            string settingsFile = Path.Combine(path, "Play Data Files", "config.xml");
-            string romPath = Path.GetDirectoryName(rom).Replace("\\", "/");
-            string templateConfigFile = Path.Combine(AppConfig.GetFullPath("templates"), "play", "config.xml");
+            string dataPath = Path.Combine(path, "Play Data Files");
+            FileTools.TryCreateDirectory(dataPath);
 
-            if (!File.Exists(settingsFile) && !File.Exists(templateConfigFile))
-            {
-                SimpleLogger.Instance.Info("ERROR: settings file does not exist");
-                return;
-            }
+            string settingsFile = Path.Combine(dataPath, "config.xml");
+            string templateConfigFile = Path.Combine(AppConfig.GetFullPath("templates"), "play", "Play Data Files", "config.xml");
 
-            else if (!File.Exists(settingsFile) && File.Exists(templateConfigFile))
-                File.Copy(templateConfigFile, settingsFile);
+            if (!File.Exists(settingsFile) && File.Exists(templateConfigFile))
+                FileTools.TryCopyFile(templateConfigFile, settingsFile);
 
             try
             {
-                XDocument configfile = XDocument.Load(settingsFile);
+                XDocument configfile = File.Exists(settingsFile) ? XDocument.Load(settingsFile) : new XDocument(new XElement("Config"));
 
-                XElement exitConfirmation = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "ui.showexitconfirmation").FirstOrDefault();
-                exitConfirmation.SetAttributeValue("Value", "false");
+                SetPreference(configfile, "ui.showexitconfirmation", "boolean", "false");
+                SetPreference(configfile, "ui.pausewhenfocuslost", "boolean", SystemConfig.getOptBoolean("nopauseonlostfocus") ? "false" : "true");
 
                 // Write path to arcade roms
                 if (_isArcade)
-                {
-                    XElement arcadeRomPath = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "ps2.arcaderoms.directory").FirstOrDefault();
-                    arcadeRomPath.SetAttributeValue("Value", romPath);
-                }
+                    SetPreference(configfile, "ps2.arcaderoms.directory", "path", Path.GetDirectoryName(rom).Replace("\\", "/"));
 
-                // Focus lost
-                XElement pausewhenfocuslost = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "ui.pausewhenfocuslost").FirstOrDefault();
-
-                if (SystemConfig.getOptBoolean("nopauseonlostfocus"))
-                    pausewhenfocuslost.SetAttributeValue("Value", false);
-                else
-                    pausewhenfocuslost.SetAttributeValue("Value", true);
+                // Memory cards in the RetroBat saves folder
+                SetPreference(configfile, "ps2.mc0.directory.v2", "path", GetMemoryCardPath(dataPath, system, "mc0"));
+                SetPreference(configfile, "ps2.mc1.directory.v2", "path", GetMemoryCardPath(dataPath, system, "mc1"));
 
                 // Language
-                XElement language = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "system.language").FirstOrDefault();
-
+                string language = GetPS2LanguageFromEnvironment();
                 if (SystemConfig.isOptSet("play_language") && !string.IsNullOrEmpty(SystemConfig["play_language"]))
-                    language.SetAttributeValue("Value", SystemConfig["play_language"]);
-                else
-                    language.SetAttributeValue("Value", "1");
+                    language = SystemConfig["play_language"];
+                SetPreference(configfile, "system.language", "integer", language);
 
                 // Limit framerate
-                XElement limitframerate = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "ps2.limitframerate").FirstOrDefault();
-
-                if (SystemConfig.isOptSet("play_limitframerate") && !SystemConfig.getOptBoolean("play_limitframerate"))
-                    limitframerate.SetAttributeValue("Value", "false");
-                else
-                    limitframerate.SetAttributeValue("Value", "true");
+                SetPreference(configfile, "ps2.limitframerate", "boolean", SystemConfig.isOptSet("play_limitframerate") && !SystemConfig.getOptBoolean("play_limitframerate") ? "false" : "true");
 
                 // Resolution
-                XElement resolution = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "renderer.opengl.resfactor").FirstOrDefault();
-
-                if (SystemConfig.isOptSet("play_resolution") && !string.IsNullOrEmpty(SystemConfig["play_resolution"]))
-                    resolution.SetAttributeValue("Value", SystemConfig["play_resolution"]);
-                else
-                    resolution.SetAttributeValue("Value", "1");
+                SetPreference(configfile, "renderer.opengl.resfactor", "integer", SystemConfig.isOptSet("play_resolution") && !string.IsNullOrEmpty(SystemConfig["play_resolution"]) ? SystemConfig["play_resolution"] : "1");
 
                 // Aspect ratio
-                XElement aspect = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "renderer.presentationmode").FirstOrDefault();
-
-                if (SystemConfig.isOptSet("play_presentation") && !string.IsNullOrEmpty(SystemConfig["play_presentation"]))
-                    aspect.SetAttributeValue("Value", SystemConfig["play_presentation"]);
-                else
-                    aspect.SetAttributeValue("Value", "1");
+                SetPreference(configfile, "renderer.presentationmode", "integer", SystemConfig.isOptSet("play_presentation") && !string.IsNullOrEmpty(SystemConfig["play_presentation"]) ? SystemConfig["play_presentation"] : "1");
 
                 // Bilinear filtering
-                XElement forcebilineartextures = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "renderer.opengl.forcebilineartextures").FirstOrDefault();
+                SetPreference(configfile, "renderer.opengl.forcebilineartextures", "boolean", SystemConfig.getOptBoolean("smooth") ? "true" : "false");
 
-                if (SystemConfig.isOptSet("smooth") && SystemConfig.getOptBoolean("smooth"))
-                    forcebilineartextures.SetAttributeValue("Value", "true");
-                else
-                    forcebilineartextures.SetAttributeValue("Value", "false");
+                // GS RAM reads (on by default in Play!)
+                SetPreference(configfile, "renderer.ramreads.enabled", "boolean", SystemConfig.isOptSet("play_ramreads") && !SystemConfig.getOptBoolean("play_ramreads") ? "false" : "true");
 
                 // Video driver
-                XElement videodriver = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "video.gshandler").FirstOrDefault();
-
-                if (SystemConfig.isOptSet("play_renderer") && !string.IsNullOrEmpty(SystemConfig["play_renderer"]))
-                    videodriver.SetAttributeValue("Value", SystemConfig["play_renderer"]);
-                else
-                    videodriver.SetAttributeValue("Value", "0");
+                SetPreference(configfile, "video.gshandler", "integer", SystemConfig.isOptSet("play_renderer") && !string.IsNullOrEmpty(SystemConfig["play_renderer"]) ? SystemConfig["play_renderer"] : "0");
 
                 // Widescreen
-                XElement widescreen = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "renderer.widescreen").FirstOrDefault();
-
-                if (SystemConfig.isOptSet("play_widescreen") && SystemConfig.getOptBoolean("play_widescreen"))
-                    widescreen.SetAttributeValue("Value", "true");
-                else
-                    widescreen.SetAttributeValue("Value", "false");
+                SetPreference(configfile, "renderer.widescreen", "boolean", SystemConfig.getOptBoolean("play_widescreen") ? "true" : "false");
 
                 // Manage Input profiles
-                XElement padProfile = configfile.Descendants("Preference").Where(x => (string)x.Attribute("Name") == "input.pad1.profile").FirstOrDefault();
-                string inputProfilePath = Path.Combine(path, "Play Data Files", "inputprofiles");
-                if (!Directory.Exists(inputProfilePath)) try { Directory.CreateDirectory(inputProfilePath); }
-                    catch { }
+                string inputProfilePath = Path.Combine(dataPath, "inputprofiles");
+                FileTools.TryCreateDirectory(inputProfilePath);
 
-                if (!SystemConfig.isOptSet("disableautocontrollers") || SystemConfig["disableautocontrollers"] != "1")
-                {
-                    padProfile.SetAttributeValue("Value", "Retrobat");
-                }
+                string padProfile = "Retrobat";
+                if (SystemConfig.isOptSet("disableautocontrollers") && SystemConfig["disableautocontrollers"] == "1")
+                    padProfile = File.Exists(Path.Combine(inputProfilePath, _romName + ".xml")) ? _romName : "default";
 
-                else
-                {
-                    string romName = Path.GetFileNameWithoutExtension(rom);
-                    string inputProfile = Path.Combine(inputProfilePath, romName + ".xml");
+                SetPreference(configfile, "input.pad1.profile", "string", padProfile);
 
-                    if (File.Exists(inputProfile))
-                        padProfile.SetAttributeValue("Value", romName);
-                    else
-                        padProfile.SetAttributeValue("Value", "default");
-                }
-                
                 //save file
                 configfile.Save(settingsFile);
             }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Error("[Play] Unable to write config.xml : " + ex.Message);
+            }
+        }
 
+        /// <summary>
+        /// Updates a preference of config.xml, the preference is created when Play! has not written it yet
+        /// </summary>
+        private static void SetPreference(XDocument cfg, string name, string type, string value)
+        {
+            var pref = cfg.Descendants("Preference").FirstOrDefault(x => (string)x.Attribute("Name") == name);
+            if (pref == null)
+            {
+                pref = new XElement("Preference", new XAttribute("Name", name), new XAttribute("Type", type));
+                cfg.Root.Add(pref);
+            }
+
+            pref.SetAttributeValue("Value", value);
+        }
+
+        /// <summary>
+        /// Memory card folder in saves\[system]\play, existing cards of the emulator folder are copied the first time
+        /// </summary>
+        private string GetMemoryCardPath(string dataPath, string system, string card)
+        {
+            string target = Path.Combine(AppConfig.GetFullPath("saves"), system == "namco2x6" ? "ps2" : system, "play", card);
+            string oldPath = Path.Combine(dataPath, "vfs", card);
+
+            try
+            {
+                if (!Directory.Exists(target) && Directory.Exists(oldPath) && Directory.EnumerateFileSystemEntries(oldPath).Any())
+                    FileTools.CopyDirectory(oldPath, target, true);
+
+                FileTools.TryCreateDirectory(target);
+            }
             catch { }
+
+            return target;
+        }
+
+        private string GetPS2LanguageFromEnvironment()
+        {
+            var availableLanguages = new Dictionary<string, string>()
+            {
+                { "ja", "0" }, { "jp", "0" }, { "en", "1" }, { "fr", "2" }, { "es", "3" }, { "de", "4" },
+                { "it", "5" }, { "nl", "6" }, { "pt", "7" }, { "ru", "8" }, { "ko", "9" }, { "zh", "11" }
+            };
+
+            if (SystemConfig["Language"] == "zh_TW")
+                return "10";
+
+            string lang = GetCurrentLanguage();
+            if (!string.IsNullOrEmpty(lang) && availableLanguages.TryGetValue(lang, out string ret))
+                return ret;
+
+            return "1";
+        }
+
+        public override PadToKey SetupCustomPadToKeyMapping(PadToKey mapping)
+        {
+            if (_saveStatesWatcher == null)
+                return mapping;
+
+            // Play! state shortcuts are fixed: Ctrl + Shift + slot (save), Ctrl + slot (load)
+            string slot = _saveStatesWatcher.Slot.ToString();
+            mapping = PadToKey.AddOrUpdateKeyMapping(mapping, "Play", InputKey.hotkey | InputKey.y, "(^+{" + slot + "})");
+            mapping = PadToKey.AddOrUpdateKeyMapping(mapping, "Play", InputKey.hotkey | InputKey.x, "(^{" + slot + "})");
+
+            return mapping;
         }
 
         public override int RunAndWait(ProcessStartInfo path)
@@ -224,6 +283,17 @@ namespace EmulatorLauncher
             ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
 
             return ret;
+        }
+
+        public override void Cleanup()
+        {
+            if (_saveStatesWatcher != null)
+            {
+                _saveStatesWatcher.Dispose();
+                _saveStatesWatcher = null;
+            }
+
+            base.Cleanup();
         }
     }
 }
