@@ -1128,7 +1128,8 @@
       },
       {
         "md5": "",
-        "file": "bios/dc/dc.zip"
+        "file": "bios/dc/dc.zip",
+        "optional": true
       }
     ]
   },
