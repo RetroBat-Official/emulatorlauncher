@@ -143,6 +143,7 @@ namespace EmulatorLauncher
             { "scummvm", new[] { Ini("scummvm.ini", "scummvm", "updates_check", "0") } },
             { "shadps4", new[] { Ini("launcher\\qt_ui.ini", "general_settings", "checkForUpdates", "false") } },
             { "vita3k", new[] { Other(ConfigFormat.Yml, "config.yml", null, "check-for-updates-mode", "0") } },     // UPDATE_STARTUP_OFF
+            { "xbased", new[] { Ini("xbased.ini", "", "update.check", "0", IniOptions.AllowDuplicateValues | IniOptions.AllowRawLines | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines) } },
             { "xemu", new[] { Other(ConfigFormat.Toml, "xemu.toml", "general.updates", "check", "false") } },
             { "xemu-chihiro", new[] { Other(ConfigFormat.Toml, "xemu.toml", "general.updates", "check", "false") } },
             // Also disables the update check of the Xenia builds (same option, MainWindow.Control_OnLoaded)

@@ -237,9 +237,9 @@ opera:
   aux_a_changereload: nul
   aux_b_changereload: nul
   aux_c_changereload: nul
-  start: 3
+  start: nul
   start_changereload: nul
-  select: nul
+  select: 3
 pcsx_rearmed:
   reload: nul
   aux_a: 2

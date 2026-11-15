@@ -135,7 +135,7 @@ namespace EmulatorLauncher
                     ini.WriteValue("plugins", "directory", @".\plugins\");
 
                     string gpu = "gpuDX11.dll";
-                    if (_oldVersion || core == "gaelco" || system == "galeco" || SystemConfig.getOptBoolean("demul_oldgpu"))
+                    if (_oldVersion || core == "gaelco" || system == "gaelco" || SystemConfig.getOptBoolean("demul_oldgpu"))
                     {
                         _videoDriverName = "gpuDX11old";
                         gpu = "gpuDX11old.dll";
