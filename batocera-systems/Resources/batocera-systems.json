@@ -565,7 +565,23 @@
     "biosFiles": [
       {
         "md5": "20a0334c447cb069a040ae5be1d938df",
-        "file": "bios/APPLE2GS.ROM"
+        "file": "bios/APPLE2GS.ROM",
+        "group": "gsplus"
+      },
+      {
+        "md5": "",
+        "file": "bios/ROM",
+        "group": "gsplus"
+      },
+      {
+        "md5": "",
+        "file": "bios/ROM.01",
+        "group": "gsplus"
+      },
+      {
+        "md5": "",
+        "file": "bios/ROM.03",
+        "group": "gsplus"
       },
       {
         "md5": "",
@@ -1442,11 +1458,38 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "bios/hikaru.zip"
+        "file": "bios/hikaru.zip",
+        "group": "hikaru"
       },
       {
         "md5": "",
-        "file": "bios/mie.zip"
+        "file": "roms/hikaru/hikaru.zip",
+        "group": "hikaru"
+      },
+      {
+        "md5": "",
+        "file": "bios/mie.zip",
+        "group": "mie"
+      },
+      {
+        "md5": "",
+        "file": "roms/hikaru/mie.zip",
+        "group": "mie"
+      },
+      {
+        "md5": "",
+        "file": "bios/jvs13551.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/18wheelr.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/srally2.zip",
+        "optional": true
       }
     ]
   },
