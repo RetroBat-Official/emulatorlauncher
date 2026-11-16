@@ -2637,13 +2637,22 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "bios/kronos/stvbios.zip",
-        "group": "stvbios"
+        "file": "bios/stvbios.zip"
       },
       {
         "md5": "",
-        "file": "bios/stvbios.zip",
-        "group": "stvbios"
+        "file": "bios/epr-20091.ic8",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/epr-17952a.ic8",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/epr-17954a.ic8",
+        "optional": true
       }
     ]
   },
