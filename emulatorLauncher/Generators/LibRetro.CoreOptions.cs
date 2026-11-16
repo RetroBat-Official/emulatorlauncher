@@ -178,6 +178,7 @@ namespace EmulatorLauncher.Libretro
                 { "mednafen_wswan", "Beetle WonderSwan" },
                 { "melonds", "melonDS" },
                 { "melondsds", "melonDS DS" },
+                { "melondsds_splitscreen", "melonDS DS Splitscreen" },
                 { "mesen-s", "Mesen-S" },
                 { "mesen", "Mesen" },
                 { "mess2015", "MESS 2015 (0.160)" },
@@ -450,6 +451,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDSds(retroarchConfig, coreSettings, system, core);
+            ConfigureMelonDSdsSplitscreen(retroarchConfig, coreSettings, system, core);
             ConfiguremGBA(retroarchConfig, coreSettings, system, core);
             ConfiguremGBASplit(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
@@ -4991,6 +4993,22 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "melonds_joystick_cursor_maxspeed", "melondsds_joystick_maxspeed", "3");
             BindFeature(coreSettings, "melonds_joystick_cursor_response", "melondsds_joystick_response", "200");
             BindFeature(coreSettings, "melonds_joystick_cursor_speedup", "melondsds_joystick_speedup", "200");
+        }
+
+        private void ConfigureMelonDSdsSplitscreen(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "melondsds_splitscreen")
+                return;
+
+            // Same option keys as melondsds: always write them so values from the nds system are not reused
+            // DS Download Play requires native BIOS and bootable firmware
+            BindBoolFeature(coreSettings, "melonds_sysfile_mode", "melondsds_bios", "builtin", "native");
+            coreSettings["melonds_firmware_nds_path"] = "firmware.bin";
+            BindFeature(coreSettings, "melonds_firmware_language", "melondsds_language", "auto");
+
+            // Audio
+            BindFeature(coreSettings, "melonds_audio_bitdepth", "melondsds_audio_depth", "auto");
+            BindFeature(coreSettings, "melonds_audio_interpolation", "melondsds_audio_interpolation", "disabled");
         }
 
         private void ConfiguremGBA(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
