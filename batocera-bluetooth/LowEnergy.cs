@@ -1,122 +1,437 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Security;
-using System.Threading;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
 using Windows.Foundation;
 
-namespace batocera_bluetooth {
-    internal static class LowEnergy {
-        const string Address = "System.Devices.Aep.DeviceAddress";
-        const string Appearance = "System.Devices.Aep.Bluetooth.Le.Appearance";
-        static readonly string[] Fields = { Address, Appearance };
-        static string Mac(DeviceInformation device) {
+namespace batocera_bluetooth
+{
+    // The public surface has no WinRT types, so classic Bluetooth can work
+    // on Windows versions where the Windows Runtime is not available.
+    internal interface IBluetoothLeScan : IDisposable
+    {
+        bool TryPairNext();
+    }
+
+    internal static class LowEnergy
+    {
+        private const string Address = "System.Devices.Aep.DeviceAddress";
+        private const string Appearance = "System.Devices.Aep.Bluetooth.Le.Appearance";
+        private static readonly string[] Fields = { Address, Appearance };
+
+        internal static bool Supported
+        {
+            get
+            {
+                Version version = Environment.OSVersion.Version;
+                return Environment.OSVersion.Platform == PlatformID.Win32NT &&
+                    (version.Major > 6 || (version.Major == 6 && version.Minor >= 2));
+            }
+        }
+
+        private static string Mac(DeviceInformation device)
+        {
             object value;
-            if(device.Properties.TryGetValue(Address,out value) && value!=null) return value.ToString().Replace('-',':').ToUpperInvariant();
-            var match=Regex.Match(device.Id,@"([0-9A-F]{2}:){5}[0-9A-F]{2}$",RegexOptions.IgnoreCase);
+            if (device.Properties.TryGetValue(Address, out value) && value != null)
+                return value.ToString().Replace('-', ':').ToUpperInvariant();
+
+            Match match = Regex.Match(device.Id,
+                @"([0-9A-F]{2}:){5}[0-9A-F]{2}$", RegexOptions.IgnoreCase);
             return match.Value.ToUpperInvariant();
         }
-        static string Cache(string mac){return System.IO.Path.Combine(System.IO.Path.GetTempPath(),"RetroBat-LE-"+mac.Replace(":","")+".id");}
-        static bool IsPad(DeviceInformation device) {
+
+        private static string CachePath(string address)
+        {
+            return Path.Combine(Path.GetTempPath(),
+                "RetroBat-LE-" + address.Replace(":", "").ToUpperInvariant() + ".id");
+        }
+
+        private static void PruneCache()
+        {
+            try
+            {
+                DateTime cutoff = DateTime.UtcNow.AddHours(-24);
+                foreach (string path in Directory.GetFiles(Path.GetTempPath(), "RetroBat-LE-*.id"))
+                {
+                    if (File.GetLastWriteTimeUtc(path) < cutoff)
+                        File.Delete(path);
+                }
+            }
+            catch
+            {
+                // Cache cleanup must not prevent Bluetooth discovery.
+            }
+        }
+
+        private static void SaveCache(DeviceInformation device)
+        {
+            try
+            {
+                File.WriteAllText(CachePath(Mac(device)), device.Id);
+            }
+            catch
+            {
+                // Discovery still works even if the temporary cache cannot be saved.
+            }
+        }
+
+        private static void DeleteCache(string address)
+        {
+            try
+            {
+                File.Delete(CachePath(address));
+            }
+            catch
+            {
+                // A locked or deleted cache entry is harmless.
+            }
+        }
+
+        private static bool IsPad(DeviceInformation device)
+        {
             object value;
             int appearance;
-            if(device.Properties.TryGetValue(Appearance,out value) && int.TryParse(Convert.ToString(value), out appearance) && (appearance==963 || appearance==964)) return true;
-            return Regex.IsMatch(device.Name ?? "", @"xbox|gamepad|wireless controller|dualsense|dualshock|8bitdo|pro controller",RegexOptions.IgnoreCase);
+            if (device.Properties.TryGetValue(Appearance, out value) &&
+                int.TryParse(Convert.ToString(value, CultureInfo.InvariantCulture), out appearance) &&
+                (appearance == 963 || appearance == 964))
+                return true;
+
+            return Regex.IsMatch(device.Name ?? String.Empty,
+                @"xbox|gamepad|wireless controller|dualsense|dualshock|8bitdo|pro controller",
+                RegexOptions.IgnoreCase);
         }
-        static T Wait<T>(IAsyncOperation<T> op) {
-            var timer=System.Diagnostics.Stopwatch.StartNew();
-            while(op.Status==AsyncStatus.Started) {
-                if(timer.ElapsedMilliseconds>45000){op.Cancel();throw new TimeoutException();}
+
+        private static T Wait<T>(IAsyncOperation<T> operation)
+        {
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            while (operation.Status == AsyncStatus.Started)
+            {
+                if (timer.ElapsedMilliseconds > 45000)
+                {
+                    operation.Cancel();
+                    throw new TimeoutException();
+                }
+
                 Thread.Sleep(50);
             }
-            return op.GetResults();
+
+            return operation.GetResults();
         }
-        static string Line(DeviceInformation d,string state) {
-            return "<device id=\""+Mac(d)+"\" name=\""+SecurityElement.Escape(d.Name ?? String.Empty)+"\" type=\""+(IsPad(d)?"joystick":"unknown")+"\""+(state==null?"":" status=\""+state+"\"")+"/>";
+
+        private static string DeviceLine(DeviceInformation device, string state)
+        {
+            return "<device id=\"" + Mac(device) + "\" name=\"" +
+                SecurityElement.Escape(device.Name ?? String.Empty) +
+                "\" type=\"joystick\"" +
+                (state == null ? String.Empty : " status=\"" + state + "\"") + "/>";
         }
-        internal static DeviceInformation[] Paired() {
-            var selector=BluetoothLEDevice.GetDeviceSelectorFromPairingState(true);
-            return Wait(DeviceInformation.FindAllAsync(selector,Fields,DeviceInformationKind.AssociationEndpoint)).Where(IsPad).ToArray();
+
+        private static DeviceInformation[] Paired()
+        {
+            return Wait(DeviceInformation.FindAllAsync(
+                BluetoothLEDevice.GetDeviceSelectorFromPairingState(true),
+                Fields, DeviceInformationKind.AssociationEndpoint)).Where(IsPad).ToArray();
         }
-        internal static void List() {foreach(var d in Paired()) Console.WriteLine(Line(d,null));}
-        internal static bool Handle(string command,string address) {
+
+        internal static void List()
+        {
+            if (!Supported)
+                return;
+
+            PruneCache();
+            foreach (DeviceInformation device in Paired())
+            {
+                SaveCache(device);
+                Console.WriteLine(DeviceLine(device, null));
+            }
+        }
+
+        // Return immediately for classic controllers; do not do any WinRT
+        // enumeration unless previous discovery identified the address as BLE.
+        internal static bool Handle(string command, string address)
+        {
+            if (!Supported || String.IsNullOrEmpty(address))
+                return false;
+
             ulong number;
-            if(!ulong.TryParse(address.Replace(":",""),System.Globalization.NumberStyles.HexNumber,null,out number))return false;
-            var selector=BluetoothLEDevice.GetDeviceSelectorFromBluetoothAddress(number);
-            var d=Paired().FirstOrDefault(row=>Mac(row).Equals(address,StringComparison.OrdinalIgnoreCase));
-            string cache=Cache(address);
-            if(d==null && System.IO.File.Exists(cache)){
-                try{d=Wait(DeviceInformation.CreateFromIdAsync(System.IO.File.ReadAllText(cache),Fields,DeviceInformationKind.AssociationEndpoint));}catch{}
-                if(d!=null && !Mac(d).Equals(address,StringComparison.OrdinalIgnoreCase))d=null;
+            if (!ulong.TryParse(address.Replace(":", ""), NumberStyles.HexNumber,
+                CultureInfo.InvariantCulture, out number))
+                return false;
+
+            PruneCache();
+            string cache = CachePath(address);
+            if (!File.Exists(cache))
+                return false;
+
+            DeviceInformation device = null;
+            try
+            {
+                string id = File.ReadAllText(cache);
+                device = Wait(DeviceInformation.CreateFromIdAsync(id,
+                    Fields, DeviceInformationKind.AssociationEndpoint));
             }
-            // The temporary ID cache can be cleared between discovery and pairing.
-            // Fall back to discovering by Bluetooth address regardless of cache state.
-            if(d==null)d=Wait(DeviceInformation.FindAllAsync(selector,Fields,DeviceInformationKind.AssociationEndpoint)).FirstOrDefault();
-            if(d==null)return false;
-            if(command=="remove"){if(d.Pairing.IsPaired && Wait(d.Pairing.UnpairAsync()).Status!=DeviceUnpairingResultStatus.Unpaired) Environment.ExitCode=1;}
-            else if(command=="trust" || command=="connect"){
-                if(!d.Pairing.IsPaired && !Pair(d)) Environment.ExitCode=1;
+            catch
+            {
+                // A stale DeviceInformation ID should fall back to classic Bluetooth.
             }
+
+            if (device == null || !String.Equals(Mac(device), address,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                DeleteCache(address);
+                return false;
+            }
+
+            if (command == "remove")
+            {
+                if (device.Pairing.IsPaired &&
+                    Wait(device.Pairing.UnpairAsync()).Status != DeviceUnpairingResultStatus.Unpaired)
+                    Environment.ExitCode = 1;
+
+                DeleteCache(address);
+            }
+            else if (command == "trust" || command == "connect")
+            {
+                if (!device.Pairing.IsPaired && !Pair(device))
+                    Environment.ExitCode = 1;
+            }
+
             return true;
         }
-        static bool Pair(DeviceInformation d){
-            var custom=d.Pairing.Custom;
-            Windows.Foundation.TypedEventHandler<DeviceInformationCustomPairing,DevicePairingRequestedEventArgs> confirm=(s,e)=>{if(e.PairingKind==DevicePairingKinds.ConfirmOnly)e.Accept();};
-            custom.PairingRequested+=confirm;
-            try{
-                var status=Wait(custom.PairAsync(DevicePairingKinds.ConfirmOnly)).Status;
-                return status==DevicePairingResultStatus.Paired || status==DevicePairingResultStatus.AlreadyPaired;
-            }finally{custom.PairingRequested-=confirm;}
-        }
-        internal static DeviceWatcher Watch(bool automatic){
-            var w=DeviceInformation.CreateWatcher(BluetoothLEDevice.GetDeviceSelectorFromPairingState(false),Fields,DeviceInformationKind.AssociationEndpoint);
-            var seen=new Dictionary<string,DeviceInformation>();
-            var shown=new HashSet<string>();
-            var pending=new Queue<DeviceInformation>();
-            bool workerRunning=false;
 
-            // Called under lock(seen). Keep one worker active so a second controller
-            // discovered during an in-progress pairing attempt is not lost.
-            Action startWorker=()=>{
-                if(workerRunning)return;
-                workerRunning=true;
-                ThreadPool.QueueUserWorkItem(o=>{
-                    while(true){
-                        DeviceInformation candidate;
-                        lock(seen){
-                            if(pending.Count==0){workerRunning=false;return;}
-                            candidate=pending.Dequeue();
-                            if(!seen.ContainsKey(candidate.Id))continue;
-                        }
-                        try{
-                            if(Pair(candidate)){
-                                Console.WriteLine("Found \"" + candidate.Name + ", " + Mac(candidate) + "\"");
-                                Console.Out.Flush();
-                                Environment.Exit(0);
-                            }
-                        }catch(Exception e){Console.Error.WriteLine("Bluetooth LE pairing: "+e.Message);}
+        internal static void Forget()
+        {
+            if (!Supported)
+                return;
+
+            PruneCache();
+            foreach (DeviceInformation device in Paired())
+            {
+                try
+                {
+                    if (device.Pairing.IsPaired &&
+                        Wait(device.Pairing.UnpairAsync()).Status != DeviceUnpairingResultStatus.Unpaired)
+                        Environment.ExitCode = 1;
+                }
+                catch
+                {
+                    Environment.ExitCode = 1;
+                }
+                finally
+                {
+                    DeleteCache(Mac(device));
+                }
+            }
+        }
+
+        private static bool Pair(DeviceInformation device)
+        {
+            DeviceInformationCustomPairing custom = device.Pairing.Custom;
+            TypedEventHandler<DeviceInformationCustomPairing, DevicePairingRequestedEventArgs> confirm =
+                (sender, args) =>
+                {
+                    if (args.PairingKind == DevicePairingKinds.ConfirmOnly)
+                        args.Accept();
+                };
+
+            custom.PairingRequested += confirm;
+            try
+            {
+                DevicePairingResultStatus status =
+                    Wait(custom.PairAsync(DevicePairingKinds.ConfirmOnly)).Status;
+                return status == DevicePairingResultStatus.Paired ||
+                    status == DevicePairingResultStatus.AlreadyPaired;
+            }
+            finally
+            {
+                custom.PairingRequested -= confirm;
+            }
+        }
+
+        internal static IBluetoothLeScan Watch(bool automatic)
+        {
+            if (!Supported)
+                return null;
+
+            PruneCache();
+            var scan = new Scan(automatic);
+            scan.Start();
+            return scan;
+        }
+
+        private sealed class Scan : IBluetoothLeScan
+        {
+            private readonly bool automatic;
+            private readonly DeviceWatcher watcher;
+            private readonly object sync = new object();
+            private readonly Dictionary<string, DeviceInformation> seen =
+                new Dictionary<string, DeviceInformation>();
+            private readonly HashSet<string> shown = new HashSet<string>();
+            private readonly Queue<string> pending = new Queue<string>();
+            private bool disposed;
+
+            internal Scan(bool automatic)
+            {
+                this.automatic = automatic;
+                watcher = DeviceInformation.CreateWatcher(
+                    BluetoothLEDevice.GetDeviceSelectorFromPairingState(false),
+                    Fields, DeviceInformationKind.AssociationEndpoint);
+                watcher.Added += OnAdded;
+                watcher.Updated += OnUpdated;
+                watcher.Removed += OnRemoved;
+            }
+
+            internal void Start()
+            {
+                watcher.Start();
+            }
+
+            private void Publish(DeviceInformation device)
+            {
+                string mac = Mac(device);
+                if (disposed || String.IsNullOrEmpty(mac) ||
+                    String.IsNullOrWhiteSpace(device.Name) || device.Pairing.IsPaired ||
+                    !device.Pairing.CanPair || !IsPad(device) || !shown.Add(device.Id))
+                    return;
+
+                SaveCache(device);
+
+                if (automatic)
+                    pending.Enqueue(device.Id);
+                else
+                    Console.WriteLine(DeviceLine(device, "added"));
+            }
+
+            private void OnAdded(DeviceWatcher sender, DeviceInformation device)
+            {
+                try
+                {
+                    lock (sync)
+                    {
+                        if (disposed)
+                            return;
+
+                        seen[device.Id] = device;
+                        Publish(device);
                     }
-                });
-            };
-            Action<DeviceInformation> publish=d=>{
-                if(Mac(d)=="" || d.Pairing.IsPaired || String.IsNullOrWhiteSpace(d.Name))return;
-                if(automatic ? !IsPad(d) : (!IsPad(d) && !d.Pairing.CanPair))return;
-                if(!shown.Add(d.Id))return;
-                try{System.IO.File.WriteAllText(Cache(Mac(d)),d.Id);}
-                catch(Exception e){Console.Error.WriteLine("Bluetooth LE cache: "+e.Message);}
-                if(!automatic){Console.WriteLine(Line(d,"added"));return;}
-                pending.Enqueue(d);
-                startWorker();
-            };
-            w.Added+=(s,d)=>{lock(seen){seen[d.Id]=d;publish(d);}};
-            w.Updated+=(s,u)=>{lock(seen){DeviceInformation d;if(seen.TryGetValue(u.Id,out d)){d.Update(u);publish(d);}}};
-            w.Removed+=(s,u)=>{lock(seen){DeviceInformation d;if(seen.TryGetValue(u.Id,out d)&&shown.Remove(u.Id)&&!automatic)Console.WriteLine(Line(d,"removed"));seen.Remove(u.Id);}};
-            w.Start();
-            if(!automatic)foreach(var d in Paired())Console.WriteLine(Line(d,"added"));
-            return w;
+                }
+                catch
+                {
+                    // Never print to stderr: EmulationStation parses all output as devices.
+                }
+            }
+
+            private void OnUpdated(DeviceWatcher sender, DeviceInformationUpdate update)
+            {
+                try
+                {
+                    lock (sync)
+                    {
+                        DeviceInformation device;
+                        if (!disposed && seen.TryGetValue(update.Id, out device))
+                        {
+                            device.Update(update);
+                            Publish(device);
+                        }
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            private void OnRemoved(DeviceWatcher sender, DeviceInformationUpdate update)
+            {
+                try
+                {
+                    lock (sync)
+                    {
+                        DeviceInformation device;
+                        if (disposed || !seen.TryGetValue(update.Id, out device))
+                            return;
+
+                        if (shown.Remove(update.Id))
+                        {
+                            if (!automatic)
+                                Console.WriteLine(DeviceLine(device, "removed"));
+                            DeleteCache(Mac(device));
+                        }
+
+                        seen.Remove(update.Id);
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            // The main thread runs all pairing operations, including classic BT.
+            // No worker can terminate the process during a classic pairing request.
+            public bool TryPairNext()
+            {
+                if (!automatic)
+                    return false;
+
+                DeviceInformation device = null;
+                lock (sync)
+                {
+                    while (!disposed && pending.Count > 0)
+                    {
+                        string id = pending.Dequeue();
+                        if (seen.TryGetValue(id, out device))
+                            break;
+                    }
+                }
+
+                if (device == null)
+                    return false;
+
+                try
+                {
+                    if (Pair(device))
+                    {
+                        Console.WriteLine("Found \"" + device.Name + ", " + Mac(device) + "\"");
+                        return true;
+                    }
+                }
+                catch
+                {
+                }
+
+                lock (sync)
+                {
+                    shown.Remove(device.Id);
+                }
+
+                return false;
+            }
+
+            public void Dispose()
+            {
+                lock (sync)
+                {
+                    disposed = true;
+                    pending.Clear();
+                }
+
+                try
+                {
+                    watcher.Stop();
+                }
+                catch
+                {
+                }
+
+                watcher.Added -= OnAdded;
+                watcher.Updated -= OnUpdated;
+                watcher.Removed -= OnRemoved;
+            }
         }
     }
 }
