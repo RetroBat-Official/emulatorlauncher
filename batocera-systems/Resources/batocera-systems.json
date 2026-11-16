@@ -2382,6 +2382,72 @@
     ]
   },
 
+  "psxarcade": {
+    "name": "PSX Arcade",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/coh1000c.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh3002c.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1000t.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1002m.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1001l.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1002e.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1002v.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1000a.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1000w.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh3002t.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/konamigv.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/sys573.zip",
+        "optional": true
+      }
+    ]
+  },
+
   "pv1000": {
     "name": "PV-1000",
     "biosFiles": [
