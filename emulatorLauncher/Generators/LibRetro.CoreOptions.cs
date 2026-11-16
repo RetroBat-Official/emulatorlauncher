@@ -217,6 +217,7 @@ namespace EmulatorLauncher.Libretro
                 { "pd777", "Pd777" },
                 { "picodrive", "PicoDrive" },
                 { "play", "Play!" },
+                { "playdiaemu", "PlaydiaEmu" },
                 { "pocketcdg", "pocketcdg" },
                 { "pokemini", "PokeMini" },
                 { "potator", "Potator" },
@@ -463,6 +464,7 @@ namespace EmulatorLauncher.Libretro
             ConfigurePcsxRearmed(retroarchConfig, coreSettings, system, core);
             ConfigurePd777(retroarchConfig, coreSettings, system, core);
             ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
+            ConfigurePlaydiaEmu(retroarchConfig, coreSettings, system, core);
             ConfigurePocketCDG(retroarchConfig, coreSettings, system, core);
             ConfigurePokeMini(retroarchConfig, coreSettings, system, core);
             ConfigurePotator(retroarchConfig, coreSettings, system, core);
@@ -3578,7 +3580,7 @@ namespace EmulatorLauncher.Libretro
             if (system == "segastv")
             {
                 BindFeature(coreSettings, "kronos_stv_favorite_region", "kronos_stv_favorite_region", "EU");
-                BindBoolFeature(coreSettings, "kronos_service_enabled", "kronos_service_enabled", "enabled", "disabled");
+                BindBoolFeatureOn(coreSettings, "kronos_service_enabled", "kronos_service_enabled", "enabled", "disabled");
             }
 
             // Controls
@@ -4406,6 +4408,9 @@ namespace EmulatorLauncher.Libretro
                 return;
 
             bool stv = system == "segastv";
+
+            if (stv)
+                MednafenGenerator.ExtractStvBios();
 
             coreSettings["beetle_saturn_autortc"] = "enabled";
 
@@ -5493,6 +5498,15 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["picodrive_lowpass_range"] = "60";
                 }
             }
+        }
+
+        private void ConfigurePlaydiaEmu(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "playdiaemu")
+                return;
+
+            BindBoolFeature(coreSettings, "playdiaemu_swap_ab", "playdiaemu_swap_ab", "enabled", "disabled");
+            coreSettings["playdiaemu_debug_logging"] = "disabled";
         }
 
         private void ConfigurePocketCDG(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

@@ -2733,7 +2733,7 @@ namespace EmulatorLauncher.Libretro
         // Level < SERIALIZED - no rewind (core_info.c:3092)
         static List<string> coreNoRewind = new List<string>() { "arduous", "azahar", "b2", "bennugd", "boom3", "boom3_xp", "cannonball", "cemu", "citra", "dice", "dinothawr", "dolphin", 
             "doukutsu_rs", "easyrpg", "ecwolf", "emux_gb", "emux_nes", "emux_sms", "freej2me", "frodo", "gw", "kronos", "lowresnx", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", 
-            "mame2010", "mame2014", "mame2016", "nxengine", "o2em", "openlara", "opera", "pcsx2", "pd777", "play", "pocketcdg", "prboom", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", 
+            "mame2010", "mame2014", "mame2016", "nxengine", "o2em", "openlara", "opera", "pcsx2", "pd777", "play", "playdiaemu", "pocketcdg", "prboom", "retro8", "same_cdi", "sameduck", "scummvm", "superbroswar", 
             "swanstation", "tic80", "tyrquake", "uzem", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", "yabasanshiro", "yabause" };
         
         // Rewind is supported but too costly for AUTO mode (large state serialized every frame, rewind_granularity = 1)
@@ -2763,7 +2763,7 @@ namespace EmulatorLauncher.Libretro
             "crocods", "desmume", "desmume2015", "dice", "dinothawr", "dolphin", "dosbox_pure", "doukutsu_rs", "duckstation", "easyrpg", "ecwolf", "emuscv", "emux_gb", "emux_nes", "emux_sms", "ep128emu_core", 
             "fake08", "fbalpha", "fbalpha2012", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "fbalpha2012_neogeo", "flycast", "freej2me", "frodo", "gw", "handy", 
             "holani", "kronos", "lowresnx", "lutro", "m2000", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", "mame2010", "mame2014", "mame2016", "mednafen_snes", "melondsds", 
-            "mupen64plus_next", "mupen64plus_next_gles3", "nekop2", "noods", "np2kai", "nxengine", "o2em", "openlara", "opera", "parallel_n64", "pcsx2", "pd777", "play", "pocketcdg", "ppsspp", 
+            "mupen64plus_next", "mupen64plus_next_gles3", "nekop2", "noods", "np2kai", "nxengine", "o2em", "openlara", "opera", "parallel_n64", "pcsx2", "pd777", "play", "playdiaemu", "pocketcdg", "ppsspp", 
             "prboom", "prosystem", "puae", "race", "reminiscence", "retro8", "sameduck", "scummvm", "sm2", "superbroswar", "supermodel", "swanstation", "theodore", "tic80", "tyrquake", "uzem", 
             "vecx", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", 
             "yabasanshiro", "yabause", "zc255" };
