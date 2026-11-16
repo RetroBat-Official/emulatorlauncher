@@ -69,6 +69,19 @@ namespace batocera_bluetooth
             }
         }
 
+        private static void ClearCache()
+        {
+            try
+            {
+                foreach (string path in Directory.GetFiles(Path.GetTempPath(), "RetroBat-LE-*.id"))
+                    File.Delete(path);
+            }
+            catch
+            {
+                // Cleanup must never block the classic Bluetooth forget command.
+            }
+        }
+
         private static void SaveCache(DeviceInformation device)
         {
             try
@@ -215,23 +228,26 @@ namespace batocera_bluetooth
             if (!Supported)
                 return;
 
-            PruneCache();
-            foreach (DeviceInformation device in Paired())
+            try
             {
-                try
+                foreach (DeviceInformation device in Paired())
                 {
-                    if (device.Pairing.IsPaired &&
-                        Wait(device.Pairing.UnpairAsync()).Status != DeviceUnpairingResultStatus.Unpaired)
+                    try
+                    {
+                        if (device.Pairing.IsPaired &&
+                            Wait(device.Pairing.UnpairAsync()).Status != DeviceUnpairingResultStatus.Unpaired)
+                            Environment.ExitCode = 1;
+                    }
+                    catch
+                    {
                         Environment.ExitCode = 1;
+                    }
                 }
-                catch
-                {
-                    Environment.ExitCode = 1;
-                }
-                finally
-                {
-                    DeleteCache(Mac(device));
-                }
+            }
+            finally
+            {
+                // Forget all saved discovery IDs, including unpaired devices.
+                ClearCache();
             }
         }
 
