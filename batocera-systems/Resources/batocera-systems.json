@@ -1044,6 +1044,16 @@
         "md5": "53ba3bf7443187a657baa272d01d3771",
         "file": "bios/vmpega.rom",
         "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/cdi490a.rom",
+        "optional": true
+      },
+      {
+        "md5": "05130da2e9fbb72d6e761534973d09fc",
+        "file": "bios/impega.rom",
+        "optional": true
       }
     ]
   },
