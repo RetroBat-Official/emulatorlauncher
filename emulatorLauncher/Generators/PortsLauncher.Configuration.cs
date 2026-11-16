@@ -1500,6 +1500,30 @@ namespace EmulatorLauncher
             commandArray.Add("--rom-file");
             commandArray.Add("\"" + romFile + "\"");
 
+            // Game save in retrobat\saves\pdark (older versions wrote eeprom.bin in the emulator folder)
+            string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "pdark");
+            string eepromFile = Path.Combine(savesPath, "eeprom.bin");
+            string oldEepromFile = Path.Combine(_path, "eeprom.bin");
+
+            try
+            {
+                if (!Directory.Exists(savesPath))
+                    Directory.CreateDirectory(savesPath);
+
+                if (!File.Exists(eepromFile) && File.Exists(oldEepromFile))
+                    File.Copy(oldEepromFile, eepromFile);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[WARNING] Perfect Dark: unable to prepare the saves folder : " + ex.Message);
+            }
+
+            if (Directory.Exists(savesPath))
+            {
+                commandArray.Add("--eeprom-file");
+                commandArray.Add("\"" + eepromFile + "\"");
+            }
+
             string cfgFile = Path.Combine(_path, "pd.ini");
             using (var ini = IniFile.FromFile(cfgFile))
             {
@@ -1864,6 +1888,9 @@ namespace EmulatorLauncher
             if (_emulator != "ghostship")
                 return;
 
+            // Bezels only with the native 4:3 ratio (set below)
+            _nobezels = true;
+
             // Game archive is sm64.o2r, generated in the emulator folder (portable mode)
             string gameArchive = Path.Combine(_path, "sm64.o2r");
 
@@ -1914,14 +1941,19 @@ namespace EmulatorLauncher
                 jsonObj = new JObject();
 
             // LUS saves empty objects as null, so containers must be type-checked, not only null-checked
+            // Ghostship 3.x stores the LUS settings under gSettings (CVAR_PREFIX_SETTING)
             JObject cvars = GetOrCreateJObject(jsonObj, "CVars");
-            JObject advancedRes = GetOrCreateJObject(cvars, "gAdvancedResolution");
-            JObject intScale = GetOrCreateJObject(advancedRes, "IntegerScale");
-            JObject controllers = GetOrCreateJObject(cvars, "gControllers");
             JObject settings = GetOrCreateJObject(cvars, "gSettings");
+            JObject advancedRes = GetOrCreateJObject(settings, "AdvancedResolution");
+            JObject intScale = GetOrCreateJObject(advancedRes, "IntegerScale");
+            JObject controllers = GetOrCreateJObject(settings, "Controllers");
             JObject window = GetOrCreateJObject(jsonObj, "Window");
             JObject backend = GetOrCreateJObject(window, "Backend");
             JObject fs = GetOrCreateJObject(window, "Fullscreen");
+
+            // Remove the root keys written by older RetroBat versions, not read by Ghostship 3.x
+            foreach (string oldKey in new[] { "gAdvancedResolution", "gControllers", "gControlNav", "gEnableMultiViewports", "gInternalResolution", "gMSAAValue", "gSdlWindowedFullscreen", "gTextureFilter", "gVsyncEnabled" })
+                cvars.Remove(oldKey);
 
             // Ensure config windows are not opened
             settings.Remove("Menu");
@@ -1940,6 +1972,7 @@ namespace EmulatorLauncher
                     case "native":
                         advancedRes["AspectRatioX"] = 4.0;
                         advancedRes["AspectRatioY"] = 3.0;
+                        _nobezels = false;
                         break;
                     case "widescreen":
                         advancedRes["AspectRatioX"] = 16.0;
@@ -1985,12 +2018,12 @@ namespace EmulatorLauncher
             BindFeatureInt(advancedRes, "VerticalPixelCount", "ghostship_resolution", "720");
 
             advancedRes["VerticalResolutionToggle"] = 1;
-            cvars["gControlNav"] = 1;
+            settings["ControlNav"] = 1;
 
             ConfigureShipControls(controllers);
 
-            cvars["gEnableMultiViewports"] = 1;
-            cvars["gInternalResolution"] = 1.0;
+            settings["EnableMultiViewports"] = 1;
+            settings["InternalResolution"] = 1.0;
 
             if (SystemConfig.isOptSet("ghostship_fps") && !string.IsNullOrEmpty(SystemConfig["ghostship_fps"]))
             {
@@ -2004,11 +2037,11 @@ namespace EmulatorLauncher
                 settings["MatchRefreshRate"] = 1;
             }
 
-            BindFeatureSliderInt(cvars, "gMSAAValue", "ghostship_msaa", "1");
+            BindFeatureSliderInt(settings, "MSAAValue", "ghostship_msaa", "1");
 
-            cvars["gSdlWindowedFullscreen"] = _exclusivefs ? 0 : 1;
-            BindFeatureInt(cvars, "gTextureFilter", "ghostship_texturefilter", "1");
-            BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "ghostship_vsync", "1", "0");
+            settings["SdlWindowedFullscreen"] = _exclusivefs ? 0 : 1;
+            BindFeatureInt(settings, "TextureFilter", "ghostship_texturefilter", "1");
+            BindBoolFeatureOnInt(settings, "VsyncEnabled", "ghostship_vsync", "1", "0");
             BindFeature(window, "AudioBackend", "ghostship_audioapi", "wasapi");
 
             // LUS window backend IDs (Ghostship 3.x): 1 = DirectX 11, 2 = OpenGL, 4 = Vulkan (0 is no longer valid)
@@ -2104,7 +2137,7 @@ namespace EmulatorLauncher
             advres["IntegerScale"] = intscale;
 
             JObject controllers = GetOrCreateJObject(gsettings, "Controllers");
-            JObject gwindows = GetOrCreateJObject(cvars, "gWindows");
+            JObject gwindows = GetOrCreateJObject(cvars, "gOpenWindows");
             JObject window = GetOrCreateJObject(jsonObj, "Window");
             JObject wbackend = GetOrCreateJObject(window, "Backend");
             JObject fs = GetOrCreateJObject(window, "Fullscreen");
@@ -2177,6 +2210,7 @@ namespace EmulatorLauncher
             BindBoolFeatureInt(cvars, "gMatchRefreshRate", "ship2_matchfps", "1", "0");
 
             gsettings["OpenMenuBar"] = 0;
+            gsettings["ControlNav"] = 1;
             gwindows["Menu"] = 0;
 
             BindFeature(window, "AudioBackend", "ship2_audiobackend", "wasapi");
@@ -2227,7 +2261,11 @@ namespace EmulatorLauncher
                 }
             }
 
-            if (!File.Exists(vanillaArchive) && !File.Exists(mqArchive))
+            // Master Quest ROMs are recognized by their name (No-Intro: "Master Quest"), SoH extracts them to oot-mq.o2r
+            bool romIsMQ = Path.GetFileNameWithoutExtension(rom).IndexOf("master quest", StringComparison.OrdinalIgnoreCase) >= 0;
+
+            // Extract when no archive exists, or when a Master Quest ROM is added next to the vanilla archive
+            if ((!File.Exists(vanillaArchive) && !File.Exists(mqArchive)) || (romIsMQ && !File.Exists(mqArchive)))
             {
                 // SoH extracts the ROM when its path is passed as argument (extension check is case-sensitive)
                 string romExt = Path.GetExtension(rom);
@@ -2360,13 +2398,13 @@ namespace EmulatorLauncher
 
                 else
                 {
-                    wbackend["Id"] = 0;
+                    wbackend["Id"] = 1;
                     wbackend["Name"] = "DirectX";
                 }
             }
             else
             {
-                wbackend["Id"] = 0;
+                wbackend["Id"] = 1;
                 wbackend["Name"] = "DirectX";
             }
 
@@ -2384,6 +2422,9 @@ namespace EmulatorLauncher
         {
             if (_emulator != "starship")
                 return;
+
+            // Bezels only with the native 4:3 ratio (set below)
+            _nobezels = true;
 
             var otrFiles = Directory.GetFiles(_path, "*.o2r");
             var gameOtrFiles = otrFiles.Where(file => !file.EndsWith("starship.o2r", StringComparison.OrdinalIgnoreCase));
@@ -2488,6 +2529,7 @@ namespace EmulatorLauncher
                     case "native":
                         advancedRes["AspectRatioX"] = 4.0;
                         advancedRes["AspectRatioY"] = 3.0;
+                        _nobezels = false;
                         break;
                     case "widescreen":
                         advancedRes["AspectRatioX"] = 16.0;
@@ -2559,6 +2601,7 @@ namespace EmulatorLauncher
             cvars["gSdlWindowedFullscreen"] = _exclusivefs ? 0 : 1;
             BindFeatureInt(cvars, "gTextureFilter", "starship_texturefilter", "1");
             BindBoolFeatureOnInt(cvars, "gVsyncEnabled", "starship_vsync", "1", "0");
+            BindBoolFeatureInt(cvars, "gInvertYAxis", "starship_inverty", "1", "0");
             BindFeature(window, "AudioBackend", "starship_audioapi", "wasapi");
 
             if (SystemConfig.isOptSet("starship_renderer") && !string.IsNullOrEmpty(SystemConfig["starship_renderer"]))
