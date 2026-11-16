@@ -52,7 +52,6 @@ namespace EmulatorLauncher.Libretro
                 { "bluemsx", "blueMSX" },
                 { "bnes", "bnes/higan" },
                 { "boom3", "boom3" },
-                { "boom3_xp", "boom3" },
                 { "bsnes2014_accuracy", "bsnes 2014 Accuracy" },
                 { "bsnes2014_balanced", "bsnes 2014 Balanced" },
                 { "bsnes2014_performance", "bsnes 2014 Performance" },
@@ -1350,12 +1349,13 @@ namespace EmulatorLauncher.Libretro
 
         private void ConfigureBoom3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
-            if (core != "boom3" && core != "boom3_xp")
+            if (core != "boom3")
                 return;
 
-            BindFeature(coreSettings, "doom_resolution", "boom3_resolution", "960x544");
+            BindFeature(coreSettings, "doom_resolution", "boom3_resolution", "1920x1080");
+            BindFeature(coreSettings, "doom_machine_spec", "boom3_quality", "auto");
+            BindFeature(coreSettings, "doom_framerate", "boom3_framerate", "auto");
             BindBoolFeatureOn(coreSettings, "doom_invert_y_axis", "boom3_invert_axis", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "doom_fps", "boom3_fps", "enabled", "disabled");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "Doom3ControllerP1", "1");
         }
 
