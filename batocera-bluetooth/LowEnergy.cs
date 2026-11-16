@@ -164,8 +164,13 @@ namespace batocera_bluetooth
                 CultureInfo.InvariantCulture, out number))
                 return false;
 
-            PruneCache();
+            // A classic address normally has no BLE cache. Avoid even enumerating
+            // the temp directory on this fast path.
             string cache = CachePath(address);
+            if (!File.Exists(cache))
+                return false;
+
+            PruneCache();
             if (!File.Exists(cache))
                 return false;
 
