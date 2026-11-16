@@ -358,7 +358,16 @@ namespace batocera_bluetooth
                         if (!disposed && seen.TryGetValue(update.Id, out device))
                         {
                             device.Update(update);
-                            Publish(device);
+                            if (device.Pairing.IsPaired && shown.Remove(update.Id))
+                            {
+                                if (!automatic)
+                                    Console.WriteLine(DeviceLine(device, "removed"));
+                                DeleteCache(Mac(device));
+                            }
+                            else
+                            {
+                                Publish(device);
+                            }
                         }
                     }
                 }
