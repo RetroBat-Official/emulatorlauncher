@@ -945,6 +945,11 @@ namespace EmulatorLauncher
                 else if (Program.SystemConfig.getOptBoolean("zc_swap_buttons"))
                     ret = "zeldaclassic_swap";
             }
+            else if (system == "playdia")
+            {
+                if (Program.SystemConfig.getOptBoolean("playdiaemu_swap_ab"))
+                    ret = "playdia_swap";
+            }
             else if (system == "arcade")
             {
                 if (!string.IsNullOrEmpty(Program.SystemConfig["controller_layout"]))

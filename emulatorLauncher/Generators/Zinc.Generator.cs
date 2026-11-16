@@ -51,35 +51,42 @@ namespace EmulatorLauncher
             commandArray.Add(cfgFile);
 
             // Add controller config path command line
-            string[] gameCtrlFiles = Directory.GetFiles(Path.Combine(path, "cfg"), "*.cfg");
-            string gameCtrlFile = gameCtrlFiles.FirstOrDefault(f => Path.GetFileName(f).StartsWith(romNumber.ToString()));
             string ControllerCfgFile = Path.Combine(path, "controller.cfg");
+            string controllerConfig = SystemConfig["zinc_controller_config"];
 
-            if (File.Exists(gameCtrlFile) && SystemConfig["zinc_controller_config"] != "none")
+            if (controllerConfig == "predefined")
             {
-                if (SystemConfig.isOptSet("zinc_controller_config") && SystemConfig["zinc_controller_config"] == "predefined")
+                // Pre-defined file of the game in 'cfg', named after the game number (the number must not be followed by another digit)
+                string cfgFolder = Path.Combine(path, "cfg");
+                string number = romNumber.ToString();
+                string gameCtrlFile = Directory.Exists(cfgFolder) ? Directory.GetFiles(cfgFolder, "*.cfg").FirstOrDefault(f =>
                 {
-                    if (File.Exists(ControllerCfgFile))
-                        File.Delete(ControllerCfgFile);
-                    if (File.Exists(gameCtrlFile))
-                        File.Copy(gameCtrlFile, ControllerCfgFile);
-                }
+                    string name = Path.GetFileName(f);
+                    return name.StartsWith(number) && (name.Length == number.Length || !char.IsDigit(name[number.Length]));
+                }) : null;
+
+                if (gameCtrlFile != null)
+                    File.Copy(gameCtrlFile, ControllerCfgFile, true);
                 else
-                {
-                    ConfigureControllers(ControllerCfgFile, path);
-                }
+                    SimpleLogger.Instance.Warning("[ZincGenerator] No pre-defined controller file for game " + number + " in " + cfgFolder);
             }
+            else if (controllerConfig != "none")
+                ConfigureControllers(ControllerCfgFile, path);
 
             commandArray.Add("--controller=.\\controller.znc");
             string controllerCfgCommand = "--use-controller-cfg-file=" + "\"" + ControllerCfgFile + "\"";
             commandArray.Add(controllerCfgCommand);
 
-            string outputFile = Path.Combine(path, "wberror.txt");
-            using (var ini = IniFile.FromFile(gameCtrlFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
+            // Error output (ConfigureControllers also writes it)
+            if (File.Exists(ControllerCfgFile))
             {
-                ini.WriteValue("General", "output", outputFile);
-                ini.WriteValue("General", "NOERROR", "1");
-                ini.Save();
+                string outputFile = Path.Combine(path, "wberror.txt");
+                using (var ini = IniFile.FromFile(ControllerCfgFile, IniOptions.UseSpaces | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
+                {
+                    ini.WriteValue("General", "output", outputFile);
+                    ini.WriteValue("General", "NOERROR", "1");
+                    ini.Save();
+                }
             }
 
             // Renderer choice

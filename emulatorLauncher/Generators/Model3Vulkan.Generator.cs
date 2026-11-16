@@ -142,10 +142,23 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, GlobalSection, "MultiThreaded", "m3_thread", "0", "1");
                     BindBoolIniFeatureOn(ini, GlobalSection, "PowerPCMode", "m3v_jit", "1", "0");
 
-                    // Steering feel, gamepad only : the filters are bypassed when the steering is bound to a wheel axis
-                    BindIniFeature(ini, GlobalSection, "GamepadSteeringSmoothing", "m3v_steeringsmooth", "3");
-                    BindIniFeatureSlider(ini, GlobalSection, "GamepadSteeringSensitivity", "m3v_steeringsens", "66");
+                    // Steering feel, gamepad only : the emulator detects wheels by name, so a RetroBat wheel always runs 1:1
+                    if (GetWheelController() != null)
+                    {
+                        ini.WriteValue(GlobalSection, "GamepadSteeringSmoothing", "0");
+                        ini.WriteValue(GlobalSection, "GamepadSteeringSensitivity", "100");
+                    }
+                    else
+                    {
+                        BindIniFeature(ini, GlobalSection, "GamepadSteeringSmoothing", "m3v_steeringsmooth", "3");
+                        BindIniFeatureSlider(ini, GlobalSection, "GamepadSteeringSensitivity", "m3v_steeringsens", "66");
+                    }
+
+                    // Chase camera of the driving games, whatever the controller
                     BindIniFeature(ini, GlobalSection, "ChaseCameraStabilizer", "m3v_chasecamera", "3");
+
+                    // Audio : 4 channels by default (the quad cabinets), folded to stereo by the system if needed
+                    BindIniFeature(ini, GlobalSection, "NbSoundChannels", "m3v_audiochannels", "4");
 
                     // Outputs for MameHooker (lamps, drive board, recoil)
                     if (SystemConfig.isOptSet("supermodel_output") && !string.IsNullOrEmpty(SystemConfig["supermodel_output"]))

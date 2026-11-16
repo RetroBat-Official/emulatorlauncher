@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
 
 namespace EmulatorLauncher
 {
@@ -203,24 +202,15 @@ namespace EmulatorLauncher
 
                     if (bootToDSINand)
                     {
+                        // Boot the DSi menu of the launched nand, used in place so that its changes are kept
                         ini.WriteValue("Emu", "DirectBoot", "false");
-                        ini.WriteValue("DSi", "FullBIOSBoot", "true");
-
-                        // Copy the loaded nand to the bios folder before loading, so that multiple nand files can be used.
-                        string nandTarget = Path.Combine(biosPath, "dsi_nand.bin");
-
-                        if (File.Exists(nandTarget))
-                            File.Delete(nandTarget);
-
-                        if (File.Exists(rom))
-                            File.Copy(rom, nandTarget);
-
-                        dsinand = nandTarget;
+                        dsinand = rom;
                     }
 
                     if (!File.Exists(dsifirmware) || !File.Exists(dsibios7) || !File.Exists(dsibios9) || !File.Exists(dsinand))
                         throw new ApplicationException("Cannot run dsi system, dsi bios files are missing");
-                    
+
+                    ini.WriteValue("DSi", "ExternalBIOSEnable", "true");
                     ini.WriteValue("DSi", "BIOS9Path", "\"" + dsibios9.Replace("\\", "/") + "\"");
                     ini.WriteValue("DSi", "BIOS7Path", "\"" + dsibios7.Replace("\\", "/") + "\"");
                     ini.WriteValue("DSi", "FirmwarePath", "\"" + dsifirmware.Replace("\\", "/") + "\"");

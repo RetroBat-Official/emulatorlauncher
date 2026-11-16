@@ -150,7 +150,7 @@ namespace EmulatorLauncher
 
             try
             {
-                using (var ini = IniFile.FromFile(configFile, IniOptions.KeepEmptyLines))
+                using (var ini = IniFile.FromFile(configFile, IniOptions.KeepEmptyLines | IniOptions.KeepEmptyValues | IniOptions.AllowDuplicateValues))
                 {
                     ini.WriteValue("IWADSearch.Directories", "Path", romPath.Replace("\\", "/"));
 
@@ -184,6 +184,13 @@ namespace EmulatorLauncher
                     BindIniFeature(ini, "GlobalSettings", "gl_ssao", "gzdoom_ssao", "0");
                     BindBoolIniFeature(ini, "GlobalSettings", "cl_capfps", "gzdoom_vanillafps", "true", "false");
                     BindBoolIniFeatureOn(ini, "GlobalSettings", "cl_run", "gzdoom_alwaysrun", "true", "false");
+
+                    // Updates are handled by RetroBat
+                    if (isUzdoom)
+                    {
+                        ini.WriteValue("GlobalSettings", "updater_check_updates", "false");
+                        ini.WriteValue("GlobalSettings", "updater_auto_updates", "false");
+                    }
 
                     // Per game cvars, not stored in GlobalSettings
                     if (Features.IsSupported("gzdoom_compatmode"))
@@ -350,13 +357,19 @@ namespace EmulatorLauncher
             else
                 return null;
 
-            string romDir = Path.GetDirectoryName(rom);
+            // Look next to the PWAD, then in the parent folders (one subfolder per mod)
+            string dir = Path.GetDirectoryName(rom);
 
-            foreach (var candidate in candidates)
+            for (int level = 0; level < 3 && !string.IsNullOrEmpty(dir); level++)
             {
-                string iwad = Path.Combine(romDir, candidate);
-                if (File.Exists(iwad))
-                    return iwad;
+                foreach (var candidate in candidates)
+                {
+                    string iwad = Path.Combine(dir, candidate);
+                    if (File.Exists(iwad))
+                        return iwad;
+                }
+
+                dir = Path.GetDirectoryName(dir);
             }
 
             return null;

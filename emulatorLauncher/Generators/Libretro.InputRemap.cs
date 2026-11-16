@@ -827,6 +827,17 @@ namespace EmulatorLauncher.Libretro
                 }
                 #endregion
 
+                #region segastv
+                // Kronos reads Test / Service on L2 / R2: moved to R3 / L3 like the other ST-V emulators
+                if (system == "segastv" && core == "kronos")
+                {
+                    inputremap["input_player" + i + "_btn_r3"] = "12";
+                    inputremap["input_player" + i + "_btn_l3"] = "13";
+                    inputremap["input_player" + i + "_btn_l2"] = "-1";
+                    inputremap["input_player" + i + "_btn_r2"] = "-1";
+                }
+                #endregion
+
                 #region supergrafx
                 if (system == "supergrafx")
                 {

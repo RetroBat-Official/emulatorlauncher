@@ -45,15 +45,15 @@ namespace EmulatorLauncher
             if (Path.GetExtension(rom).Equals(".xbe", StringComparison.OrdinalIgnoreCase) && !Path.GetFileName(rom).Equals("default.xbe", StringComparison.OrdinalIgnoreCase))
                 SimpleLogger.Instance.Warning("[Generator] xbased only boots extracted games from a file named default.xbe : " + rom);
 
-            SetupSettings(system);
-            SetupSaveStates(system, rom);
-
             bool widescreen = SystemConfig.getOptBoolean("xbased_widescreen");
             string ratio = SystemConfig.GetValueOrDefault("xbased_ratio", "auto");
 
             // Fake bezels for a 4:3 picture only
             if (fullscreen && !widescreen && (ratio == "auto" || ratio == "4:3"))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+
+            SetupSettings(system);
+            SetupSaveStates(system, rom);
 
             var commandArray = new List<string>();
             commandArray.Add("\"" + rom + "\"");
@@ -124,8 +124,9 @@ namespace EmulatorLauncher
             options.Add("aniso=" + SystemConfig.GetValueOrDefault("anisotropic_filtering", "0"));
             options.Add("crt=" + SystemConfig.GetValueOrDefault("xbased_crt", "0"));
             options.Add("overscan=" + SystemConfig.GetValueOrDefault("xbased_overscan", "0"));
-            options.Add("asyncpipe=" + (SystemConfig.getOptBoolean("xbased_asyncpipe") ? "1" : "0"));
-            options.Add("prebuild=" + (SystemConfig.getOptBoolean("xbased_prebuild") ? "1" : "0"));
+            options.Add("shaders=" + SystemConfig.GetValueOrDefault("xbased_shaders", "hybrid"));
+            options.Add("prebuild=" + (SystemConfig.getOptBoolean("xbased_prebuild") || !SystemConfig.isOptSet("xbased_prebuild") ? "1" : "0"));
+            options.Add("precision=" + SystemConfig.GetValueOrDefault("xbased_precision", "auto"));
             options.Add("showfps=" + (SystemConfig.getOptBoolean("xbased_showfps") ? "1" : "0"));
 
             // Console settings
@@ -206,6 +207,9 @@ namespace EmulatorLauncher
                 string[] uiLanguages = { "en", "es", "fr", "de", "it", "pt", "ru", "pl", "ja", "zh", "ko" };
                 string lang = GetCurrentLanguage();
                 ini.Set("ui.lang", uiLanguages.Contains(lang) ? lang : "auto");
+
+                // In-game menu inside the 4:3 picture when a RetroBat bezel covers the sides
+                ini.Set("ui.43", _bezelFileInfo != null ? "1" : "0");
 
                 // Hard disk (game saves) in the RetroBat saves folder
                 string hddPath = GetHddPath(system);

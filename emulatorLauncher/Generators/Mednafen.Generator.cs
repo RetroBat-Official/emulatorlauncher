@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Compression;
+using EmulatorLauncher.Common.FileFormats;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using EmulatorLauncher.Common;
-using System;
-using EmulatorLauncher.Common.FileFormats;
+using System.Linq;
 
 namespace EmulatorLauncher
 {
@@ -50,6 +51,9 @@ namespace EmulatorLauncher
             // which SetupConfig points at 'saves\<system>'.
             if (core == "apple2")
                 ResetDiskSaveFiles(Path.Combine(AppConfig.GetFullPath("saves"), system), rom, "*.afd.gz", "*.ahd.gz");
+
+            if (system == "segastv")
+                ExtractStvBios();
 
             // Configure cfg file
             SetupConfig(cfg, mednafenCore, system, rom);
@@ -515,6 +519,36 @@ namespace EmulatorLauncher
             cfg["ss.bios_stv_na"] = "epr-17952a.ic8";
             cfg["ss.cart.kof95_path"] = "mpr-18811-mx.ic1";
             cfg["ss.cart.ultraman_path"] = "mpr-19367-mx.ic1";
+        }
+
+        // ST-V: Mednafen reads loose BIOS files, extract them from stvbios.zip when missing
+        internal static void ExtractStvBios()
+        {
+            string biosPath = Program.AppConfig.GetFullPath("bios");
+            string[] stvBios = new string[] { "epr-17954a.ic8", "epr-20091.ic8", "epr-17952a.ic8" };
+
+            var missing = stvBios.Where(b => !File.Exists(Path.Combine(biosPath, b))).ToList();
+            if (missing.Count == 0)
+                return;
+
+            string zipFile = new string[] { Path.Combine(biosPath, "stvbios.zip"), Path.Combine(biosPath, "kronos", "stvbios.zip") }
+                .FirstOrDefault(f => File.Exists(f));
+
+            if (zipFile == null)
+                return;
+
+            try
+            {
+                using (var zip = Zip.Open(zipFile))
+                {
+                    if (zip == null)
+                        return;
+
+                    foreach (var bios in missing)
+                        zip.Extract(biosPath, bios);
+                }
+            }
+            catch { SimpleLogger.Instance.Warning("[Mednafen] Unable to extract ST-V BIOS from " + zipFile); }
         }
 
         private void ConfigureMednafenSnes(MednafenConfigFile cfg, string mednafenCore)

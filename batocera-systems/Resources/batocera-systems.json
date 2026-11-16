@@ -70,6 +70,22 @@
     ]
   },
 
+  "3ds": {
+    "name": "Nintendo 3DS",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/aes_keys.txt",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/seeddb.bin",
+        "optional": true
+      }
+    ]
+  },
+
   "adam": {
     "name": "Coleco Adam",
     "biosFiles": [
@@ -1028,6 +1044,16 @@
         "md5": "53ba3bf7443187a657baa272d01d3771",
         "file": "bios/vmpega.rom",
         "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/cdi490a.rom",
+        "optional": true
+      },
+      {
+        "md5": "05130da2e9fbb72d6e761534973d09fc",
+        "file": "bios/impega.rom",
+        "optional": true
       }
     ]
   },
@@ -1541,7 +1567,7 @@
   },
 
   "laseractive": {
-    "name": "Pioneer Laseractive",
+    "name": "Pioneer LaserActive",
     "biosFiles": [
       {
         "md5": "f69f173b251d8bf7649b10a9167a10bf",
@@ -1565,8 +1591,33 @@
       },
       {
         "md5": "",
+        "file": "bios/laseractive/[BIOS] LaserActive PAC-S10 (US) (v1.02).bin",
+        "group": "laseractive"
+      },
+      {
+        "md5": "",
         "file": "bios/laseractive/[BIOS] LaserActive PAC-S1 (Japan) (v1.05).bin",
         "group": "laseractive"
+      },
+      {
+        "md5": "",
+        "file": "bios/laseractive/[BIOS] LaserActive PAC-S1 (Japan) (v1.02).bin",
+        "group": "laseractive"
+      },
+      {
+        "md5": "",
+        "file": "bios/laseractive/[BIOS] LaserActive PAC-S1 (Japan) (v1.01).bin",
+        "group": "laseractive"
+      },
+      {
+        "md5": "",
+        "file": "bios/syscard1.pce",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/gexpress.pce",
+        "optional": true
       }
     ]
   },
@@ -2001,6 +2052,27 @@
     ]
   },
 
+  "ndsmultiplayer": {
+    "name": "Nintendo DS Multiplayer",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/firmware.bin",
+        "optional": true
+      },
+      {
+        "md5": "df692a80a5b1bc90728bc3dfc76cd948",
+        "file": "bios/bios7.bin",
+        "optional": true
+      },
+      {
+        "md5": "a392174eb3e572fed6447e956bde4b25",
+        "file": "bios/bios9.bin",
+        "optional": true
+      }
+    ]
+  },
+
   "neogeo": {
     "name": "NeoGeo",
     "biosFiles": [
@@ -2382,6 +2454,72 @@
     ]
   },
 
+  "psxarcade": {
+    "name": "PSX Arcade",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/coh1000c.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh3002c.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1000t.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1002m.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1001l.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1002e.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1002v.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1000a.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh1000w.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/coh3002t.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/konamigv.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/sys573.zip",
+        "optional": true
+      }
+    ]
+  },
+
   "pv1000": {
     "name": "PV-1000",
     "biosFiles": [
@@ -2571,13 +2709,22 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "bios/kronos/stvbios.zip",
-        "group": "stvbios"
+        "file": "bios/stvbios.zip"
       },
       {
         "md5": "",
-        "file": "bios/stvbios.zip",
-        "group": "stvbios"
+        "file": "bios/epr-20091.ic8",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/epr-17952a.ic8",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/epr-17954a.ic8",
+        "optional": true
       }
     ]
   },

@@ -52,7 +52,6 @@ namespace EmulatorLauncher.Libretro
                 { "bluemsx", "blueMSX" },
                 { "bnes", "bnes/higan" },
                 { "boom3", "boom3" },
-                { "boom3_xp", "boom3" },
                 { "bsnes2014_accuracy", "bsnes 2014 Accuracy" },
                 { "bsnes2014_balanced", "bsnes 2014 Balanced" },
                 { "bsnes2014_performance", "bsnes 2014 Performance" },
@@ -178,6 +177,7 @@ namespace EmulatorLauncher.Libretro
                 { "mednafen_wswan", "Beetle WonderSwan" },
                 { "melonds", "melonDS" },
                 { "melondsds", "melonDS DS" },
+                { "melondsds_splitscreen", "melonDS DS Splitscreen" },
                 { "mesen-s", "Mesen-S" },
                 { "mesen", "Mesen" },
                 { "mess2015", "MESS 2015 (0.160)" },
@@ -217,6 +217,7 @@ namespace EmulatorLauncher.Libretro
                 { "pd777", "Pd777" },
                 { "picodrive", "PicoDrive" },
                 { "play", "Play!" },
+                { "playdiaemu", "PlaydiaEmu" },
                 { "pocketcdg", "pocketcdg" },
                 { "pokemini", "PokeMini" },
                 { "potator", "Potator" },
@@ -449,6 +450,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureMupen64(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDS(retroarchConfig, coreSettings, system, core);
             ConfigureMelonDSds(retroarchConfig, coreSettings, system, core);
+            ConfigureMelonDSdsSplitscreen(retroarchConfig, coreSettings, system, core);
             ConfiguremGBA(retroarchConfig, coreSettings, system, core);
             ConfiguremGBASplit(retroarchConfig, coreSettings, system, core);
             ConfigureMrBoom(retroarchConfig, coreSettings, system, core);
@@ -463,6 +465,7 @@ namespace EmulatorLauncher.Libretro
             ConfigurePcsxRearmed(retroarchConfig, coreSettings, system, core);
             ConfigurePd777(retroarchConfig, coreSettings, system, core);
             ConfigurePicodrive(retroarchConfig, coreSettings, system, core);
+            ConfigurePlaydiaEmu(retroarchConfig, coreSettings, system, core);
             ConfigurePocketCDG(retroarchConfig, coreSettings, system, core);
             ConfigurePokeMini(retroarchConfig, coreSettings, system, core);
             ConfigurePotator(retroarchConfig, coreSettings, system, core);
@@ -1346,12 +1349,13 @@ namespace EmulatorLauncher.Libretro
 
         private void ConfigureBoom3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
-            if (core != "boom3" && core != "boom3_xp")
+            if (core != "boom3")
                 return;
 
-            BindFeature(coreSettings, "doom_resolution", "boom3_resolution", "960x544");
+            BindFeature(coreSettings, "doom_resolution", "boom3_resolution", "1920x1080");
+            BindFeature(coreSettings, "doom_machine_spec", "boom3_quality", "auto");
+            BindFeature(coreSettings, "doom_framerate", "boom3_framerate", "auto");
             BindBoolFeatureOn(coreSettings, "doom_invert_y_axis", "boom3_invert_axis", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "doom_fps", "boom3_fps", "enabled", "disabled");
             BindFeature(retroarchConfig, "input_libretro_device_p1", "Doom3ControllerP1", "1");
         }
 
@@ -2959,7 +2963,13 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(coreSettings, "geargrafx_console_type", "geargrafx_console_type", "Auto");
             BindFeature(coreSettings, "geargrafx_cdrom_type", "geargrafx_cdrom_type", "Auto");
-            BindFeature(coreSettings, "geargrafx_cdrom_bios", "geargrafx_cdrom_bios", "System Card 3");
+
+            // LD-ROM2 games that need a card expect System Card 1.0
+            string cdromBios = "System Card 3";
+            if (system == "laseractive" && File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "syscard1.pce")))
+                cdromBios = "System Card 1";
+
+            BindFeature(coreSettings, "geargrafx_cdrom_bios", "geargrafx_cdrom_bios", cdromBios);
 
             BindBoolFeature(coreSettings, "geargrafx_no_sprite_limit", "geargrafx_no_sprite_limit", "Enabled", "Disabled");
             BindBoolFeature(coreSettings, "geargrafx_cdrom_fast_forward", "geargrafx_cdrom_fast_forward", "Enabled", "Disabled");
@@ -3578,7 +3588,7 @@ namespace EmulatorLauncher.Libretro
             if (system == "segastv")
             {
                 BindFeature(coreSettings, "kronos_stv_favorite_region", "kronos_stv_favorite_region", "EU");
-                BindBoolFeature(coreSettings, "kronos_service_enabled", "kronos_service_enabled", "enabled", "disabled");
+                BindBoolFeatureOn(coreSettings, "kronos_service_enabled", "kronos_service_enabled", "enabled", "disabled");
             }
 
             // Controls
@@ -4407,6 +4417,9 @@ namespace EmulatorLauncher.Libretro
 
             bool stv = system == "segastv";
 
+            if (stv)
+                MednafenGenerator.ExtractStvBios();
+
             coreSettings["beetle_saturn_autortc"] = "enabled";
 
             // Core-managed .bkr saves: needed for previous saves, shared internal memory and Kronos "share save with mednafen"
@@ -4874,30 +4887,6 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
             BindFeature(coreSettings, "melonds_mic_input", "melonds_mic_input", "Blow Noise");
             BindFeatureSlider(coreSettings, "melonds_screen_gap", "melonds_screengap", "0");
-
-            // Boot to firmware directly if a .bin file is loaded
-            string rom = SystemConfig["rom"];
-
-            if (Path.GetExtension(rom) == ".bin")
-            {
-                coreSettings["melonds_boot_directly"] = "disabled";
-                coreSettings["melonds_console_mode"] = "DSi";
-
-                // Copy the loaded nand to the bios folder before loading, so that multiple nand files can be used.
-                string biosPath = Path.Combine(AppConfig.GetFullPath("bios"));
-                if (!string.IsNullOrEmpty(biosPath))
-                {
-                    string nandFileTarget = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_nand.bin");
-                    string nandFileSource = rom;
-
-                    if (File.Exists(nandFileTarget) && File.Exists(nandFileSource))
-                        File.Delete(nandFileTarget);
-
-                    if (File.Exists(nandFileSource))
-                        File.Copy(nandFileSource, nandFileTarget);
-
-                }
-            }
         }
 
         private void ConfigureMelonDSds(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -4986,6 +4975,29 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "melonds_joystick_cursor_maxspeed", "melondsds_joystick_maxspeed", "3");
             BindFeature(coreSettings, "melonds_joystick_cursor_response", "melondsds_joystick_response", "200");
             BindFeature(coreSettings, "melonds_joystick_cursor_speedup", "melondsds_joystick_speedup", "200");
+        }
+
+        private void ConfigureMelonDSdsSplitscreen(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "melondsds_splitscreen")
+                return;
+
+            // Preselection of the player selection screen shown at launch
+            BindFeature(coreSettings, "melonds_splitscreen_player_count", "melondsds_splitscreen_players", "2");
+            BindFeature(coreSettings, "melonds_splitscreen_link_mode", "melondsds_splitscreen_mode", "multicard");
+
+            // Same option keys as melondsds: always write them so values from the nds system are not reused
+            // DS Download Play requires native BIOS and bootable firmware
+            BindBoolFeature(coreSettings, "melonds_sysfile_mode", "melondsds_bios", "builtin", "native");
+            coreSettings["melonds_firmware_nds_path"] = "firmware.bin";
+            BindFeature(coreSettings, "melonds_firmware_language", "melondsds_language", "auto");
+
+            // JIT is experimental with several consoles: off by default (enabled by default for melondsds)
+            BindBoolFeature(coreSettings, "melonds_jit_enable", "melondsds_jit", "enabled", "disabled");
+
+            // Audio
+            BindFeature(coreSettings, "melonds_audio_bitdepth", "melondsds_audio_depth", "auto");
+            BindFeature(coreSettings, "melonds_audio_interpolation", "melondsds_audio_interpolation", "disabled");
         }
 
         private void ConfiguremGBA(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -5493,6 +5505,15 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["picodrive_lowpass_range"] = "60";
                 }
             }
+        }
+
+        private void ConfigurePlaydiaEmu(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "playdiaemu")
+                return;
+
+            BindBoolFeature(coreSettings, "playdiaemu_swap_ab", "playdiaemu_swap_ab", "enabled", "disabled");
+            coreSettings["playdiaemu_debug_logging"] = "disabled";
         }
 
         private void ConfigurePocketCDG(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
