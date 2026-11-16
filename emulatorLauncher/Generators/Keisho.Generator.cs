@@ -161,9 +161,10 @@ namespace EmulatorLauncher
                 FileTools.TryCreateDirectory(screenshotsPath);
                 ini.WriteValue("paths", "screenshot_dir", screenshotsPath);
 
-                // No rom_dir: without a game picker to return to, Escape quits the emulator
+                // No ROM folder: without a game picker to return to, Escape quits the emulator (rom_dir is the pre-0.9.63 name of model2_rom_dir)
                 ini.Remove("paths", "rom_dir");
                 ini.Remove("paths", "model1_rom_dir");
+                ini.Remove("paths", "model2_rom_dir");
                 ini.Remove("paths", "model3_rom_dir");
 
                 // Front-end behavior
@@ -175,7 +176,10 @@ namespace EmulatorLauncher
                 // Music volume of the games with an MPEG music board (Daytona USA, Sega Rally...)
                 BindIniFeatureSlider(ini, "audio", "music_volume", "keisho_musicvolume", "100");
 
-                // RetroBat manages the controller hotkeys (Guide + L3/R3 for Service/Test stay active, L3/R3 alone are sent by padtokey)
+                // Rear speakers of the four-speaker Model 3 cabinets (folded into the front pair when off)
+                BindIniFeature(ini, "audio", "surround", "keisho_surround", "false");
+
+                // RetroBat manages the controller hotkeys
                 ini.WriteValue("gamepad", "pad_shortcuts", "false");
 
                 // Video

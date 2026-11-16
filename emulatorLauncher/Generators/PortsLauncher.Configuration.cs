@@ -695,7 +695,7 @@ namespace EmulatorLauncher
             }
 
             string pakSubPath = pakFile[0];
-            string game = pakSubPath.Split('\\')[0];
+            string game = pakSubPath.Split('\\', '/')[0];
 
             // Resurrection of Evil and d3xp based mods (fs_game_base d3xp) use a different weapon slot layout
             bool isD3xp = pakFile.Any(l => l.IndexOf("d3xp", StringComparison.OrdinalIgnoreCase) >= 0);

@@ -22,8 +22,7 @@ namespace EmulatorLauncher
         // CRC32 of the Mono-I system ROMs in the MAME sets (cdi220b.rom, cdi200.rom)
         private static readonly string[] MonoOneBiosCrcs = { "279683ca", "40c4e6b9" };
 
-        // Digital Video Cartridge ROMs, loose or in a zip set (vmpega.rom)
-        private static readonly string[] DvcNames = { "vmpega.rom", "impega.rom" };
+        // MAME Mono-I sets holding the VMPEG cartridge ROM (vmpega.rom)
         private static readonly string[] DvcZipNames = { "cdimono1.zip", "cdibios.zip" };
         private const string VmpegaCrc = "db264e8b";
 
@@ -83,7 +82,7 @@ namespace EmulatorLauncher
             bool mouse = SystemConfig["opencdi_pointer"] == "mouse";
 
             string biosFile = GetBiosFile(path);
-            string dvcFile = dvcEnabled ? GetDvcFile(path) : null;
+            string dvcFile = dvcEnabled ? GetDvcFile(path, biosFile) : null;
 
             // The pointer device is saved in opencdi_controls.ini (F9) and used when --mouse is not given
             SetInputDevice(path, mouse);
@@ -265,36 +264,39 @@ namespace EmulatorLauncher
 
         /// <summary>
         /// Digital Video Cartridge ROM passed with --dvc (a .rom file or a zip set), only needed by the FMV games and Video CDs.
+        /// Each board takes its own cartridge: IMPEG on Mono-IV (cdi490a.rom BIOS), VMPEG on Mono-I.
         /// </summary>
-        private static string GetDvcFile(string path)
+        private static string GetDvcFile(string path, string biosFile)
         {
             var folders = GetBiosFolders();
+            bool monoFour = !string.IsNullOrEmpty(biosFile) && Path.GetFileName(biosFile).Equals("cdi490a.rom", StringComparison.OrdinalIgnoreCase);
+            string dvcName = monoFour ? "impega.rom" : "vmpega.rom";
 
-            foreach (string name in DvcNames)
+            foreach (string folder in folders)
             {
-                foreach (string folder in folders)
+                string file = Path.Combine(folder, dvcName);
+                if (File.Exists(file))
+                    return file;
+            }
+
+            // VMPEG is also in the MAME Mono-I sets
+            if (!monoFour)
+            {
+                foreach (string name in DvcZipNames)
                 {
-                    string file = Path.Combine(folder, name);
-                    if (File.Exists(file))
-                        return file;
+                    foreach (string folder in folders)
+                    {
+                        string file = Path.Combine(folder, name);
+                        if (File.Exists(file) && ZipContains(file, new[] { VmpegaCrc }, 0x40000))
+                            return file;
+                    }
                 }
             }
 
-            foreach (string name in DvcZipNames)
-            {
-                foreach (string folder in folders)
-                {
-                    string file = Path.Combine(folder, name);
-                    if (File.Exists(file) && ZipContains(file, new[] { VmpegaCrc }, 0x40000))
-                        return file;
-                }
-            }
-
-            bool inEmulatorFolder = DvcNames.Any(n =>
-                File.Exists(Path.Combine(path, "dvc", n)) || File.Exists(Path.Combine(path, "bios", n)) || File.Exists(Path.Combine(path, n)));
+            bool inEmulatorFolder = File.Exists(Path.Combine(path, "dvc", dvcName)) || File.Exists(Path.Combine(path, "bios", dvcName)) || File.Exists(Path.Combine(path, dvcName));
 
             if (!inEmulatorFolder)
-                SimpleLogger.Instance.Warning("[OpenCdiGenerator] DVC ROM (vmpega.rom) not found in the bios folder : FMV games and Video CDs will not work.");
+                SimpleLogger.Instance.Warning("[OpenCdiGenerator] DVC ROM (" + dvcName + ") not found in the bios folder : FMV games and Video CDs will not work.");
 
             return null;
         }

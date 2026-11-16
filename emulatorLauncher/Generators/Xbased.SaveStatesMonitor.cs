@@ -10,7 +10,7 @@ using EmulatorLauncher.Common;
 namespace EmulatorLauncher
 {
     /// <summary>
-    /// xbased writes states\<TITLEID>.<version>\slot<N>.hxs (a .tmp file renamed when complete), then slot<N>.bmp.
+    /// xbased writes states\<TITLEID>.<version>\slot<N>.hxs (a .tmp file renamed when complete), then slot<N>.jpg.
     /// A state needs the blob store next to it (blobs\<hash>.gz: the game's cache drives), so the blobs are copied
     /// to the RetroBat folder too: a state chosen in EmulationStation is loaded from there with loadstate=.
     /// </summary>
@@ -18,7 +18,7 @@ namespace EmulatorLauncher
     {
         private static readonly Regex _stateRegex = new Regex(@"^([0-9A-F]{8}\.[0-9]+)\\slot([0-9]+)\.hxs$", RegexOptions.IgnoreCase);
 
-        // slot<N>.bmp is written after the state
+        // slot<N>.jpg is written after the state
         private static readonly TimeSpan _pictureWait = TimeSpan.FromSeconds(5);
 
         private readonly string _romStem;
@@ -77,11 +77,11 @@ namespace EmulatorLauncher
                 if (info != null && !info.IsAutoSave)
                     destScreenShot = Path.Combine(SaveStatesPath, MakeFilename(_romStem, info.Slot, FileNameType.Image));
 
-                string bmp = Path.ChangeExtension(saveState, ".bmp");
-                if (!WaitForPicture(bmp, File.GetLastWriteTimeUtc(saveState)))
+                string picture = WaitForPicture(saveState, File.GetLastWriteTimeUtc(saveState));
+                if (picture == null)
                     return;
 
-                using (var source = Image.FromFile(bmp))
+                using (var source = Image.FromFile(picture))
                 {
                     // Thumbnail size, the console's picture is 640x480
                     int width = Math.Min(640, source.Width);
@@ -97,19 +97,23 @@ namespace EmulatorLauncher
             }
         }
 
-        private static bool WaitForPicture(string bmp, DateTime stateTime)
+        private static string WaitForPicture(string saveState, DateTime stateTime)
         {
             var limit = DateTime.UtcNow + _pictureWait;
+            string[] pictures = { Path.ChangeExtension(saveState, ".jpg"), Path.ChangeExtension(saveState, ".bmp") };
 
             while (DateTime.UtcNow < limit)
             {
-                if (File.Exists(bmp) && File.GetLastWriteTimeUtc(bmp) >= stateTime && !FileTools.IsFileLocked(bmp))
-                    return true;
+                foreach (string picture in pictures)
+                {
+                    if (File.Exists(picture) && File.GetLastWriteTimeUtc(picture) >= stateTime && !FileTools.IsFileLocked(picture))
+                        return picture;
+                }
 
                 Thread.Sleep(100);
             }
 
-            return false;
+            return null;
         }
 
         /// <summary>
