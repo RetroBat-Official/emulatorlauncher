@@ -81,7 +81,7 @@ namespace EmulatorLauncher
 
                 SetupGeneralConfig(json,system, core, rom, emulator, fullscreen);
                 SetupCoreOptions(json, system, core, rom);
-                SetupFirmwares(json, system);
+                SetupFirmwares(json, system, rom);
                 SetupRetroAchievements(json);
                 CreateControllerConfiguration(json, system, core);
 
@@ -411,7 +411,7 @@ namespace EmulatorLauncher
                 json["GbAsSgb"] = "false";
         }
 
-        private void SetupFirmwares(DynamicJson json, string system)
+        private void SetupFirmwares(DynamicJson json, string system, string rom)
         {
             var firmware = json.GetOrCreateContainer("FirmwareUserSpecifications");
 
@@ -556,17 +556,26 @@ namespace EmulatorLauncher
                 string dsiFirmware = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_firmware.bin");
                 if (File.Exists(dsiFirmware))
                     firmware["NDS+firmwarei"] = dsiFirmware;
-                
+
                 string biosPath = AppConfig.GetFullPath("bios");
                 var nandFiles = Directory.GetFiles(biosPath, "dsi_nand*.bin");
                 string dsiNand = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_nand.bin");
-                if (nandFiles.Length > 0)
+                bool bootToDSINand = Path.GetExtension(rom).ToLowerInvariant() == ".bin";
+                if (nandFiles.Length > 0 || bootToDSINand)
                 {
                     var regions = new[] { "EUR", "JPN", "USA", "AUS", "CHN", "KOR" };
 
                     foreach (var region in regions)
                     {
                         string key = $"NDS+NAND ({region})";
+
+                        // A launched nand file is used in place, whatever its region
+                        if (bootToDSINand)
+                        {
+                            firmware[key] = rom;
+                            continue;
+                        }
+
                         string match = nandFiles.FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).IndexOf(region, StringComparison.OrdinalIgnoreCase) >= 0);
                         firmware[key] = match ?? dsiNand;
                     }

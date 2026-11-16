@@ -686,24 +686,12 @@ namespace EmulatorLauncher
             if (dsi)
             {
                 melonDSSync["UseDSi"] = "true";
+
+                // The launched nand is set in SetupFirmwares
                 if (bootToDSINand)
                 {
                     melonDSSync["SkipFirmware"] = "false";
                     melonDSSync["UseRealBIOS"] = "false";
-
-                    // Copy the loaded nand to the bios folder before loading, so that multiple nand files can be used.
-                    string biosPath = AppConfig.GetFullPath("bios");
-                    if (!string.IsNullOrEmpty(biosPath))
-                    {
-                        string nandFileTarget = Path.Combine(biosPath, "dsi_nand.bin");
-                        string nandFileSource = rom;
-
-                        if (File.Exists(nandFileTarget) && File.Exists(nandFileSource))
-                            File.Delete(nandFileTarget);
-
-                        if (File.Exists(nandFileSource))
-                            File.Copy(nandFileSource, nandFileTarget);
-                    }
                 }
             }
             else

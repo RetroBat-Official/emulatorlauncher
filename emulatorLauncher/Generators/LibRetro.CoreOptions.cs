@@ -2963,7 +2963,13 @@ namespace EmulatorLauncher.Libretro
 
             BindFeature(coreSettings, "geargrafx_console_type", "geargrafx_console_type", "Auto");
             BindFeature(coreSettings, "geargrafx_cdrom_type", "geargrafx_cdrom_type", "Auto");
-            BindFeature(coreSettings, "geargrafx_cdrom_bios", "geargrafx_cdrom_bios", "System Card 3");
+
+            // LD-ROM2 games that need a card expect System Card 1.0
+            string cdromBios = "System Card 3";
+            if (system == "laseractive" && File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "syscard1.pce")))
+                cdromBios = "System Card 1";
+
+            BindFeature(coreSettings, "geargrafx_cdrom_bios", "geargrafx_cdrom_bios", cdromBios);
 
             BindBoolFeature(coreSettings, "geargrafx_no_sprite_limit", "geargrafx_no_sprite_limit", "Enabled", "Disabled");
             BindBoolFeature(coreSettings, "geargrafx_cdrom_fast_forward", "geargrafx_cdrom_fast_forward", "Enabled", "Disabled");
@@ -4881,30 +4887,6 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "melonds_touch_mode", "melonds_touch_mode", "Joystick");
             BindFeature(coreSettings, "melonds_mic_input", "melonds_mic_input", "Blow Noise");
             BindFeatureSlider(coreSettings, "melonds_screen_gap", "melonds_screengap", "0");
-
-            // Boot to firmware directly if a .bin file is loaded
-            string rom = SystemConfig["rom"];
-
-            if (Path.GetExtension(rom) == ".bin")
-            {
-                coreSettings["melonds_boot_directly"] = "disabled";
-                coreSettings["melonds_console_mode"] = "DSi";
-
-                // Copy the loaded nand to the bios folder before loading, so that multiple nand files can be used.
-                string biosPath = Path.Combine(AppConfig.GetFullPath("bios"));
-                if (!string.IsNullOrEmpty(biosPath))
-                {
-                    string nandFileTarget = Path.Combine(AppConfig.GetFullPath("bios"), "dsi_nand.bin");
-                    string nandFileSource = rom;
-
-                    if (File.Exists(nandFileTarget) && File.Exists(nandFileSource))
-                        File.Delete(nandFileTarget);
-
-                    if (File.Exists(nandFileSource))
-                        File.Copy(nandFileSource, nandFileTarget);
-
-                }
-            }
         }
 
         private void ConfigureMelonDSds(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -5000,11 +4982,18 @@ namespace EmulatorLauncher.Libretro
             if (core != "melondsds_splitscreen")
                 return;
 
+            // Preselection of the player selection screen shown at launch
+            BindFeature(coreSettings, "melonds_splitscreen_player_count", "melondsds_splitscreen_players", "2");
+            BindFeature(coreSettings, "melonds_splitscreen_link_mode", "melondsds_splitscreen_mode", "multicard");
+
             // Same option keys as melondsds: always write them so values from the nds system are not reused
             // DS Download Play requires native BIOS and bootable firmware
             BindBoolFeature(coreSettings, "melonds_sysfile_mode", "melondsds_bios", "builtin", "native");
             coreSettings["melonds_firmware_nds_path"] = "firmware.bin";
             BindFeature(coreSettings, "melonds_firmware_language", "melondsds_language", "auto");
+
+            // JIT is experimental with several consoles: off by default (enabled by default for melondsds)
+            BindBoolFeature(coreSettings, "melonds_jit_enable", "melondsds_jit", "enabled", "disabled");
 
             // Audio
             BindFeature(coreSettings, "melonds_audio_bitdepth", "melondsds_audio_depth", "auto");

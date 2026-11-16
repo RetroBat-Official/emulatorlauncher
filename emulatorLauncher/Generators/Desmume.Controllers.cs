@@ -105,7 +105,7 @@ namespace EmulatorLauncher
             try { controller = GameControllerDBParser.ParseByGuid(gamecontrollerDB, guid1); }
             catch { }
 
-            if (ctrl != null)
+            if (controller != null)
             {
                 if (SystemConfig.getOptBoolean("desmume_analog"))
                 {
@@ -152,8 +152,9 @@ namespace EmulatorLauncher
         {
             int ret = 27;
 
+            // Unmapped button
             if (!ctrl.ButtonMappings.ContainsKey(key))
-                ret = defaultButton[key];
+                return "0";
 
             string button = ctrl.ButtonMappings[key];
 
@@ -339,11 +340,6 @@ namespace EmulatorLauncher
             { "QuickScreenshot","119" }, // F8
             { "SaveScreenshotas","122" }, // F11
             { "FrameAdvance","75" }, // K
-        };
-
-        private static Dictionary<string, int> defaultButton = new Dictionary<string, int>()
-        {
-            { "QuickSave", 0 },
         };
     }
 }

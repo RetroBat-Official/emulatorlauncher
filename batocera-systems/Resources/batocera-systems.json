@@ -1557,7 +1557,7 @@
   },
 
   "laseractive": {
-    "name": "Pioneer Laseractive",
+    "name": "Pioneer LaserActive",
     "biosFiles": [
       {
         "md5": "f69f173b251d8bf7649b10a9167a10bf",
@@ -1581,8 +1581,33 @@
       },
       {
         "md5": "",
+        "file": "bios/laseractive/[BIOS] LaserActive PAC-S10 (US) (v1.02).bin",
+        "group": "laseractive"
+      },
+      {
+        "md5": "",
         "file": "bios/laseractive/[BIOS] LaserActive PAC-S1 (Japan) (v1.05).bin",
         "group": "laseractive"
+      },
+      {
+        "md5": "",
+        "file": "bios/laseractive/[BIOS] LaserActive PAC-S1 (Japan) (v1.02).bin",
+        "group": "laseractive"
+      },
+      {
+        "md5": "",
+        "file": "bios/laseractive/[BIOS] LaserActive PAC-S1 (Japan) (v1.01).bin",
+        "group": "laseractive"
+      },
+      {
+        "md5": "",
+        "file": "bios/syscard1.pce",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/gexpress.pce",
+        "optional": true
       }
     ]
   },

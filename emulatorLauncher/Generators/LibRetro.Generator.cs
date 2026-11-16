@@ -603,19 +603,6 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            // Run MelonDS firmware, use the first .nds file found in the folder as rom argument (the core does not have an argument to boot to firmware)
-            if (core == "melonds" && Path.GetExtension(rom) == ".bin")
-            {
-                string romPath = Path.GetDirectoryName(rom);
-                var romToLaunch = Directory.EnumerateFiles(romPath, "*.nds")
-                    .FirstOrDefault();
-
-                if (romToLaunch == null)
-                    throw new ApplicationException("Libretro:melonDS requires a '.nds' game file to load a nand file.");
-
-                rom = romToLaunch;
-            }
-
             return rom;
         }
 
