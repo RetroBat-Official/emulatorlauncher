@@ -19,16 +19,19 @@ namespace batocera_bluetooth
 
             try
             {
-                if (args[0] == "list" || args[0] == "scanlist")
-                    LowEnergy.List();
+                if (SupportsBluetoothLe())
+                {
+                    if (args[0] == "list" || args[0] == "scanlist")
+                        LowEnergy.List();
 
-                if (args.Length == 2 && args[1] != "input" &&
-                    (args[0] == "trust" || args[0] == "connect" || args[0] == "remove") &&
-                    LowEnergy.Handle(args[0], args[1]))
-                    return;
+                    if (args.Length == 2 && args[1] != "input" &&
+                        (args[0] == "trust" || args[0] == "connect" || args[0] == "remove") &&
+                        LowEnergy.Handle(args[0], args[1]))
+                        return;
 
-                if (args[0] == "forgetBT")
-                    LowEnergy.Forget();
+                    if (args[0] == "forgetBT")
+                        LowEnergy.Forget();
+                }
             }
             catch
             {
@@ -87,6 +90,15 @@ namespace batocera_bluetooth
             // "list" command
             if (args.Length == 0 || args[0] == "list" || args[0] == "scanlist")
                 GetPairedDevices();
+        }
+
+        private static bool SupportsBluetoothLe()
+        {
+            // Do not invoke WinRT-based code on Windows 7 or earlier.
+            // Windows 10 can report version 6.2 for applications without an OS manifest.
+            Version version = Environment.OSVersion.Version;
+            return Environment.OSVersion.Platform == PlatformID.Win32NT &&
+                (version.Major > 6 || (version.Major == 6 && version.Minor >= 2));
         }
 
         private static void TrustBluetoothDevice(string macAddress)
@@ -239,7 +251,8 @@ namespace batocera_bluetooth
             IBluetoothLeScan watcher = null;
             try
             {
-                watcher = LowEnergy.Watch(deviceFoundEvent != null);
+                if (SupportsBluetoothLe())
+                    watcher = LowEnergy.Watch(deviceFoundEvent != null);
             }
             catch
             {
