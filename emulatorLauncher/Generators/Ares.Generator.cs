@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 
 namespace EmulatorLauncher
 {
@@ -78,6 +79,22 @@ namespace EmulatorLauncher
 
             if (aresSystems.ContainsKey(core))
                 aresSystem = aresSystems[core];
+
+            // ares only reads .zip archives : .7z games are extracted (disc file first, else the largest file)
+            if (Path.GetExtension(rom).ToLowerInvariant() == ".7z")
+            {
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+                if (Directory.Exists(uncompressedRomPath))
+                {
+                    string[] romFiles = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories);
+                    string[] discExtensions = new string[] { ".m3u", ".cue", ".chd" };
+
+                    rom = romFiles.FirstOrDefault(file => discExtensions.Contains(Path.GetExtension(file).ToLowerInvariant()))
+                        ?? romFiles.OrderByDescending(file => new FileInfo(file).Length).FirstOrDefault();
+
+                    ValidateUncompressedGame();
+                }
+            }
 
             // m3u management in some cases
             if (Path.GetExtension(rom).ToLower() == ".m3u")
@@ -445,23 +462,19 @@ namespace EmulatorLauncher
                     firmware["BIOS.DEV"] = n64dd_dev.Replace("\\", "/");
             }
 
-            if (system == "ngp")
+            if (system == "ngp" || system == "ngpc")
             {
-                string ngpBios = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] SNK Neo Geo Pocket (Japan, Europe) (En,Ja).ngp");
-                if (File.Exists(ngpBios))
-                {
-                    var sys = bml.GetOrCreateContainer("NeoGeoPocket");
-                    var firmware = sys.GetOrCreateContainer("Firmware");
-                    firmware["BIOS.World"] = ngpBios.Replace("\\", "/");
-                }
-            }
+                // Each model uses its own BIOS, else the other one (the Color BIOS used to be stored under the monochrome name)
+                string monoBios = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] SNK Neo Geo Pocket (Japan, Europe) (En,Ja).ngp");
+                string colorBios = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] SNK Neo Geo Pocket Color (Japan, Europe) (En,Ja).ngp");
 
-            if (system == "ngpc")
-            {
-                string ngpBios = Path.Combine(AppConfig.GetFullPath("bios"), "[BIOS] SNK Neo Geo Pocket (Japan, Europe) (En,Ja).ngp");
+                string ngpBios = system == "ngp" ? monoBios : colorBios;
+                if (!File.Exists(ngpBios))
+                    ngpBios = system == "ngp" ? colorBios : monoBios;
+
                 if (File.Exists(ngpBios))
                 {
-                    var sys = bml.GetOrCreateContainer("NeoGeoPocketColor");
+                    var sys = bml.GetOrCreateContainer(system == "ngp" ? "NeoGeoPocket" : "NeoGeoPocketColor");
                     var firmware = sys.GetOrCreateContainer("Firmware");
                     firmware["BIOS.World"] = ngpBios.Replace("\\", "/");
                 }

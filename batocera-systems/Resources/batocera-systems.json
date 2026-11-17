@@ -2270,8 +2270,9 @@
     "name": "Neo Geo Pocket",
     "biosFiles": [
       {
-        "md5": "",
-        "file": "bios/[BIOS] SNK Neo Geo Pocket (Japan, Europe) (En,Ja).ngp"
+        "md5": "d87d876c4391935c9d48ef352a3ff02d",
+        "file": "bios/[BIOS] SNK Neo Geo Pocket (Japan, Europe) (En,Ja).ngp",
+        "optional": true
       }
     ]
   },
@@ -2280,8 +2281,9 @@
     "name": "Neo Geo Pocket Color",
     "biosFiles": [
       {
-        "md5": "",
-        "file": "bios/[BIOS] SNK Neo Geo Pocket (Japan, Europe) (En,Ja).ngp"
+        "md5": "3655aacebb43a963607d4cf821fc1301",
+        "file": "bios/[BIOS] SNK Neo Geo Pocket Color (Japan, Europe) (En,Ja).ngp",
+        "optional": true
       }
     ]
   },

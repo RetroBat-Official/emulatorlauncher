@@ -437,6 +437,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureMame2010(retroarchConfig, coreSettings, system, core);
             ConfigureMame2014(retroarchConfig, coreSettings, system, core);
             ConfigureMame2016(retroarchConfig, coreSettings, system, core);
+            ConfigureMednafenNgp(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPceFast(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPCFX(retroarchConfig, coreSettings, system, core);
@@ -4155,6 +4156,14 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "mame2016_mouse_enable", "mame2016_mouse_enable", "disabled", "enabled");
 
             SetupLightGuns(retroarchConfig, "1", core);
+        }
+
+        private void ConfigureMednafenNgp(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mednafen_ngp")
+                return;
+
+            BindFeature(coreSettings, "ngp_language", "mednafen_ngp_language", "english");
         }
 
         private void ConfigureMednafenPce(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
