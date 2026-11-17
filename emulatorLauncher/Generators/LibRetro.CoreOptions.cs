@@ -1434,6 +1434,10 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["bsnes_mode7_supersample"] = "2x";
             }
 
+            // Super Game Boy cartridge : SGB1.sfc, or SGB2.sfc when it is the only one present
+            string sgbPath = AppConfig.GetFullPath("bios");
+            coreSettings["bsnes_sgb_bios"] = !File.Exists(Path.Combine(sgbPath, "SGB1.sfc")) && File.Exists(Path.Combine(sgbPath, "SGB2.sfc")) ? "SGB2.sfc" : "SGB1.sfc";
+
             BindBoolFeature(coreSettings, "bsnes_blur_emulation", "bsnes_blur_emulation", "ON", "OFF");
             BindBoolFeature(coreSettings, "bsnes_hotfixes", "bsnes_hotfixes", "ON", "OFF");
             BindBoolFeature(coreSettings, "bsnes_cpu_fastmath", "bsnes_cpu_fastmath", "ON", "OFF");
@@ -4660,6 +4664,20 @@ namespace EmulatorLauncher.Libretro
             if (core != "mesen-s")
                 return;
 
+            // Game Boy model of the system (Auto runs Game Boy games as SGB or GBC)
+            if (system == "gb")
+                coreSettings["mesen-s_gbmodel"] = "Game Boy";
+            else if (system == "gbc")
+                coreSettings["mesen-s_gbmodel"] = "Game Boy Color";
+            else if (system == "sgb")
+            {
+                // SGB2 needs SGB2.sfc, SGB1 is used when only SGB1.sfc is present
+                string biosPath = AppConfig.GetFullPath("bios");
+                bool sgb2 = File.Exists(Path.Combine(biosPath, "SGB2.sfc")) || !File.Exists(Path.Combine(biosPath, "SGB1.sfc"));
+                coreSettings["mesen-s_gbmodel"] = "Super Game Boy";
+                coreSettings["mesen-s_sgb2"] = sgb2 ? "enabled" : "disabled";
+            }
+
             // Controls : multitap in port 2 from player 3, as with snes9x
             BindFeature(retroarchConfig, "input_libretro_device_p1", "mesen_controller1", "1");
             if (SystemConfig.isOptSet("mesen_controller2"))
@@ -5053,7 +5071,22 @@ namespace EmulatorLauncher.Libretro
             if (core != "mgba")
                 return;
 
-            BindFeature(coreSettings, "mgba_gb_model", "mgba_gb_model", "Autodetect");
+            // Super Game Boy for every game of the sgb system
+            BindFeature(coreSettings, "mgba_gb_model", "mgba_gb_model", system == "sgb" ? "Super Game Boy" : "Autodetect");
+
+            // SGB boot ROM : the core reads sgb_bios.bin, reuse sgb_boot.bin when only this one is present
+            string biosPath = AppConfig.GetFullPath("bios");
+            if (system == "sgb" && !string.IsNullOrEmpty(biosPath))
+            {
+                string target = Path.Combine(biosPath, "sgb_bios.bin");
+                string source = Path.Combine(biosPath, "sgb_boot.bin");
+                if (!File.Exists(target) && File.Exists(source))
+                {
+                    try { File.Copy(source, target); }
+                    catch (Exception ex) { SimpleLogger.Instance.Error("[mGBA] Failed to copy sgb_bios.bin: " + ex.Message); }
+                }
+            }
+
             BindBoolFeature(coreSettings, "mgba_skip_bios", "mgba_skip_bios", "ON", "OFF");
             BindBoolFeature(coreSettings, "mgba_force_gbp", "mgba_force_gbp", "ON", "OFF");
             BindFeature(coreSettings, "mgba_gb_colors", "mgba_gb_colors", "Grayscale");
@@ -5982,6 +6015,8 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["sameboy_model"] = "Game Boy";
             else if (system == "gbc2players")
                 coreSettings["sameboy_model"] = "Game Boy Color";
+            else if (system == "sgb")
+                coreSettings["sameboy_model"] = "Super Game Boy";
 
             if (SystemConfig.isOptSet("sameboy_model") && !string.IsNullOrEmpty(SystemConfig["sameboy_model"]))
                 coreSettings["sameboy_model"] = SystemConfig["sameboy_model"];
