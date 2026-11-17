@@ -461,28 +461,26 @@ namespace EmulatorLauncher
             }
 
             // Specifics
-            if (system == "atari2600" || system == "atari7800")
+            // Console switches : player 1 only. SELECT is the hotkey button : console Select on EST (2600) or L2 (7800, EST is the 2nd button)
+            if ((system == "atari2600" || system == "atari7800") && controller.PlayerIndex == 1)
             {
+                string prefix = (isDInput ? "J" : "X") + index + " ";
+                Func<InputKey, string> padKey = k => prefix + (isDInput ? GetDInputKeyName(controller, k) : GetXInputKeyName(controller, k));
+
                 controllerConfig["Power"] = "";
-                
-                if (isDInput)
-                    controllerConfig["Reset"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.select);
-                else
-                    controllerConfig["Reset"] = "X" + index + " " + GetXInputKeyName(controller, InputKey.select);
-                
-                if (isDInput)
-                    controllerConfig["Select"] = "J" + index + " " + GetDInputKeyName(controller, InputKey.start);
-                else
-                    controllerConfig["Select"] = "X" + index + " " + GetXInputKeyName(controller, InputKey.start);
-                
+                controllerConfig["Select"] = padKey(system == "atari7800" ? InputKey.l2 : InputKey.b);
                 controllerConfig["Toggle Left Difficulty"] = "";
                 controllerConfig["Toggle Right Difficulty"] = "";
 
                 if (system == "atari7800")
                 {
+                    // Same layout as ProSystem : START = Pause, NORD = Reset
+                    controllerConfig["Pause"] = padKey(InputKey.start);
+                    controllerConfig["Reset"] = padKey(InputKey.x);
                     controllerConfig["BW"] = "";
-                    controllerConfig["Pause"] = "";
                 }
+                else
+                    controllerConfig["Reset"] = padKey(InputKey.start);   // starts the game
             }
 
             if (system == "channelf")
@@ -564,19 +562,22 @@ namespace EmulatorLauncher
 
             if (system == "pcfx")
             {
+                // Mode switches of each player on the right stick
+                string mode = "P" + playerIndex + " Mode ";
+
                 if (isDInput)
                 {
-                    controllerConfig["P1 Mode 1: Set A"] = "J" + index + " Y AxisLeft";
-                    controllerConfig["P1 Mode 1: Set B"] = "J" + index + " Y AxisRight";
-                    controllerConfig["P1 Mode 2: Set A"] = "J" + index + " Y AxisUp";
-                    controllerConfig["P1 Mode 2: Set B"] = "J" + index + " Y AxisDown";
+                    controllerConfig[mode + "1: Set A"] = "J" + index + " Y AxisLeft";
+                    controllerConfig[mode + "1: Set B"] = "J" + index + " Y AxisRight";
+                    controllerConfig[mode + "2: Set A"] = "J" + index + " Y AxisUp";
+                    controllerConfig[mode + "2: Set B"] = "J" + index + " Y AxisDown";
                 }
                 else
                 {
-                    controllerConfig["P1 Mode 1: Set A"] = "X" + index + " RStickLeft";
-                    controllerConfig["P1 Mode 1: Set B"] = "X" + index + " RStickRight";
-                    controllerConfig["P1 Mode 2: Set A"] = "X" + index + " RStickUp";
-                    controllerConfig["P1 Mode 2: Set B"] = "X" + index + " RStickDown";
+                    controllerConfig[mode + "1: Set A"] = "X" + index + " RStickLeft";
+                    controllerConfig[mode + "1: Set B"] = "X" + index + " RStickRight";
+                    controllerConfig[mode + "2: Set A"] = "X" + index + " RStickUp";
+                    controllerConfig[mode + "2: Set B"] = "X" + index + " RStickDown";
                 }
             }
 
@@ -1227,6 +1228,17 @@ namespace EmulatorLauncher
             { InputKey.left,            "Left" },
             { InputKey.right,           "Right"},
             { InputKey.a,               "Button" }
+        };
+
+        // Atari 7800 ProLine joystick : two buttons, same layout as ProSystem
+        private static readonly InputKeyMapping a7800Mapping = new InputKeyMapping()
+        {
+            { InputKey.up,              "Up"},
+            { InputKey.down,            "Down"},
+            { InputKey.left,            "Left" },
+            { InputKey.right,           "Right"},
+            { InputKey.a,               "Trigger" },
+            { InputKey.b,               "Trigger 2" }
         };
 
         private static readonly InputKeyMapping channelfMapping = new InputKeyMapping()
@@ -1883,19 +1895,20 @@ namespace EmulatorLauncher
             { InputKey.y,               "Button 4" }
         };
 
+        // Horizontal layout (P1), same as the libretro core : A = EAST, B = SOUTH, Y pad on shoulders and triggers
         private static readonly InputKeyMapping wswanMapping = new InputKeyMapping()
         {
             { InputKey.up,              "X1"},
             { InputKey.down,            "X3"},
             { InputKey.left,            "X4" },
             { InputKey.right,           "X2"},
-            { InputKey.x,               "Y1" },
-            { InputKey.a,               "Y3" },
-            { InputKey.y,               "Y4" },
-            { InputKey.b,               "Y2" },
+            { InputKey.r2,              "Y1" },
+            { InputKey.pagedown,        "Y2" },
+            { InputKey.l2,              "Y3" },
+            { InputKey.pageup,          "Y4" },
             { InputKey.start,           "Start" },
-            { InputKey.pagedown,        "B" },
-            { InputKey.pageup,          "A" }
+            { InputKey.b,               "A" },
+            { InputKey.a,               "B" }
         };
 
         private static readonly InputKeyMapping zxMapping = new InputKeyMapping()
@@ -2236,7 +2249,7 @@ namespace EmulatorLauncher
             { "3ds", "3DS Controller" },
             { "apple2", "Apple IIe Keyboard" },
             { "atari2600", "Atari 2600 Basic Controller" },
-            { "atari7800", "Atari 7800 Basic Controller" },
+            { "atari7800", "Atari 7800 ProLine Joystick Controller" },
             { "c64", "Commodore 64 Controller" },
             { "channelf", "ChannelF Controller" },
             { "colecovision", "ColecoVision Basic Controller" },
@@ -2287,7 +2300,7 @@ namespace EmulatorLauncher
         {
             { "3ds", n3dsMapping },
             { "atari2600", atariMapping },
-            { "atari7800", atariMapping },
+            { "atari7800", a7800Mapping },
             { "channelf", channelfMapping },
             { "colecovision", colecoMapping },
             { "famicom", nesMapping },

@@ -841,8 +841,22 @@ namespace EmulatorLauncher.Libretro
         {
             newRom = rom;
 
+            // bsnes-jg : Sufami Turbo games are loaded with the sufami subsystem (game, then STBIOS.bin)
+            if (core == "bsnes-jg" && system == "sufami")
+            {
+                string stBios = Path.Combine(AppConfig.GetFullPath("bios"), "STBIOS.bin");
+                if (!File.Exists(stBios))
+                    throw new ApplicationException("Sufami Turbo BIOS is missing (STBIOS.bin)");
+
+                commandArray.Add("--subsystem");
+                commandArray.Add("sufami");
+                commandArray.Add("\"" + stBios + "\"");
+                return true;
+            }
+
             // sameboy and gearboy share the gb_link_2p subsystem
             if (core == "sameboy" || core == "gearboy")
+                if (core == "sameboy" || core == "gearboy")
             {
                 bool multiplayer = (system == "gb2players" || system == "gbc2players");
                 if (!multiplayer)
@@ -2749,8 +2763,8 @@ namespace EmulatorLauncher.Libretro
             "fake08", "fbalpha", "fbalpha2012", "fbalpha2012_cps1", "fbalpha2012_cps2", "fbalpha2012_cps3", "fbalpha2012_neogeo", "flycast", "freej2me", "frodo", "gw", "handy", 
             "holani", "kronos", "lowresnx", "lutro", "m2000", "mame2000", "mame2003", "mame2003_midway", "mame2003_plus", "mame2010", "mame2014", "mame2016", "mednafen_snes", "melondsds",
             "melondsds_splitscreen", "mupen64plus_next", "mupen64plus_next_gles3", "nekop2", "noods", "np2kai", "nxengine", "o2em", "openlara", "opera", "parallel_n64", "pcsx2", "pd777", "play", "playdiaemu", "pocketcdg", "ppsspp", 
-            "prboom", "prosystem", "puae", "race", "reminiscence", "retro8", "sameduck", "scummvm", "sm2", "superbroswar", "supermodel", "swanstation", "theodore", "tic80", "tyrquake", "uzem", 
-            "vecx", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", 
+            "prboom", "prosystem", "puae", "race", "reminiscence", "retro8", "sameduck", "scummvm", "sm2", "superbroswar", "supermodel", "swanstation", "theodore", "tic80", "tyrquake", "uzem",
+            "v_bear", "vecx", "vice_x128", "vice_x64", "vice_x64sc", "vice_xpet", "vice_xplus4", "vice_xvic", "vitaquake2", "vitaquake2-rogue", "vitaquake2-xatrix", "vitaquake2-zaero", 
             "yabasanshiro", "yabause", "zc255" };
 
         // No savestate support - netplay unavailable (lockstep needs at least basic savestates)

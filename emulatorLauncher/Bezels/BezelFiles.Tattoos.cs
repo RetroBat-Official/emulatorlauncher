@@ -791,13 +791,19 @@ namespace EmulatorLauncher
                             case "fbneo":
                                 ret = "pcengine_simple";
                                 break;
+                            case "geargrafx":
+                                if (Program.SystemConfig.isOptSet("geargrafx_controller") && Program.SystemConfig["geargrafx_controller"] == "769")
+                                    ret = "pcengine_simple_6buttons";
+                                else
+                                    ret = "pcengine_simple";
+                                break;
                         }
                         break;
                     case "mednafen":
                         ret = "pcengine_6buttons";
                         break;
                     case "mesen":
-                        if (Program.SystemConfig["mesen_controller1"] == "PceAvenuePad6")
+                        if (Program.SystemConfig["mesen_controllertype1"] == "PceAvenuePad6")
                             ret = "pcengine_simple_6buttons";
                         else
                             ret = "pcengine_simple";
@@ -922,7 +928,7 @@ namespace EmulatorLauncher
                         ret = "pcengine_6buttons";
                         break;
                     case "mesen":
-                        if (Program.SystemConfig["mesen_controller1"] == "PceAvenuePad6")
+                        if (Program.SystemConfig["mesen_controllertype1"] == "PceAvenuePad6")
                             ret = "pcengine_simple_6buttons";
                         else
                             ret = "pcengine_simple";

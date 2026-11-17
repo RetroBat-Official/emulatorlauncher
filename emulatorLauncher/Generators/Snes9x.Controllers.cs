@@ -70,12 +70,9 @@ namespace EmulatorLauncher
                         break;
                 }
             }
-            else if (SystemConfig.isOptSet("snes9x_mouse"))
+            else if (SystemConfig["snes9x_mouse"] == "port1" || SystemConfig["snes9x_mouse"] == "port2")
             {
-                if (SystemConfig["snes9x_mouse"] == "port1")
-                    _commandArray.Add("-port1");
-                else if (SystemConfig["snes9x_mouse"] == "port2")
-                    _commandArray.Add("-port2");
+                _commandArray.Add(SystemConfig["snes9x_mouse"] == "port1" ? "-port1" : "-port2");
                 _commandArray.Add("mouse1");
             }
             else if (padCount > 4)

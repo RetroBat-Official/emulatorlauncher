@@ -144,8 +144,8 @@ namespace EmulatorLauncher
 
             var a7800Sync = coreSyncSettings.GetOrCreateContainer("BizHawk.Emulation.Cores.Atari.A7800Hawk.A7800Hawk");
             a7800Sync["$type"] = "BizHawk.Emulation.Cores.Atari.A7800Hawk.A7800Hawk+A7800SyncSettings, BizHawk.Emulation.Cores";
-            a7800Sync["_port1"] = "Joystick Controller";
-            a7800Sync["_port2"] = "Joystick Controller";
+            a7800Sync["_port1"] = "ProLine Controller";
+            a7800Sync["_port2"] = "ProLine Controller";
         }
 
         private void ConfigureJaguar(DynamicJson coreSyncSettings, string core)

@@ -734,7 +734,8 @@
     "biosFiles": [
       {
         "md5": "281f20ea4320404ec820fb7ec0693b38",
-        "file": "bios/5200.rom"
+        "file": "bios/5200.rom",
+        "optional": true
       }
     ]
   },
@@ -744,19 +745,18 @@
     "biosFiles": [
       {
         "md5": "397bb566584be7b9764e7a68974c4263",
-        "file": "bios/7800 BIOS (E).rom"
+        "file": "bios/7800 BIOS (E).rom",
+        "optional": true
       },
       {
         "md5": "0763f1ffb006ddbe32e52d497ee848ae",
-        "file": "bios/7800 BIOS (U).rom"
-      },
-      {
-        "md5": "ce6a86574d0c9de9075705f14e99d090",
-        "file": "bios/ProSystem.dat"
+        "file": "bios/7800 BIOS (U).rom",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/A78_highscore.bin"
+        "file": "bios/A78_highscore.bin",
+        "optional": true
       }
     ]
   },
@@ -1361,60 +1361,103 @@
       },
       {
         "md5": "",
-        "file": "bios/fm77av.zip"
+        "file": "bios/fm77av.zip",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/mame/hash/fm7_cass.xml"
+        "file": "bios/mame/hash/fm7_cass.xml",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/mame/hash/fm7_disk.xml"
+        "file": "bios/mame/hash/fm7_disk.xml",
+        "optional": true
       },
       {
         "md5": "",
-        "file": "bios/mame/hash/fm77av.xml"
+        "file": "bios/mame/hash/fm77av.xml",
+        "optional": true
       }
     ]
   },
 
   "fmtowns": {
-    "name": "FMTowns",
+    "name": "FM Towns",
     "biosFiles": [
       {
-        "md5": "34847786d7de94b5d1133c956ab1d75d",
-        "file": "bios/geartowns/FMT_DIC.ROM"
-      },
-      {
-        "md5": "0585b19930d4a7f4c71bcc8a33746588",
-        "file": "bios/geartowns/FMT_DOS.ROM"
-      },
-      {
-        "md5": "eb44f2093f51eb7159f03e170b13af76",
-        "file": "bios/geartowns/FMT_FNT.ROM"
-      },
-      {
         "md5": "feaf8c5675151e00cfe3ad27673bff29",
-        "file": "bios/geartowns/FMT_SYS.ROM"
-      },
-      {
-        "md5": "34847786d7de94b5d1133c956ab1d75d",
-        "file": "bios/fmtowns/FMT_DIC.ROM",
-        "optional": true
-      },
-      {
-        "md5": "0585b19930d4a7f4c71bcc8a33746588",
-        "file": "bios/fmtowns/FMT_DOS.ROM",
-        "optional": true
-      },
-      {
-        "md5": "eb44f2093f51eb7159f03e170b13af76",
-        "file": "bios/fmtowns/FMT_FNT.ROM",
-        "optional": true
+        "file": "bios/geartowns/FMT_SYS.ROM",
+        "group": "fmt_sys"
       },
       {
         "md5": "feaf8c5675151e00cfe3ad27673bff29",
         "file": "bios/fmtowns/FMT_SYS.ROM",
+        "group": "fmt_sys"
+      },
+      {
+        "md5": "",
+        "file": "bios/fmtowns.zip",
+        "group": "fmt_sys"
+      },
+      {
+        "md5": "0585b19930d4a7f4c71bcc8a33746588",
+        "file": "bios/geartowns/FMT_DOS.ROM",
+        "group": "fmt_dos"
+      },
+      {
+        "md5": "0585b19930d4a7f4c71bcc8a33746588",
+        "file": "bios/fmtowns/FMT_DOS.ROM",
+        "group": "fmt_dos"
+      },
+      {
+        "md5": "",
+        "file": "bios/fmtowns.zip",
+        "group": "fmt_dos"
+      },
+      {
+        "md5": "eb44f2093f51eb7159f03e170b13af76",
+        "file": "bios/geartowns/FMT_FNT.ROM",
+        "group": "fmt_fnt"
+      },
+      {
+        "md5": "eb44f2093f51eb7159f03e170b13af76",
+        "file": "bios/fmtowns/FMT_FNT.ROM",
+        "group": "fmt_fnt"
+      },
+      {
+        "md5": "",
+        "file": "bios/fmtowns.zip",
+        "group": "fmt_fnt"
+      },
+      {
+        "md5": "34847786d7de94b5d1133c956ab1d75d",
+        "file": "bios/geartowns/FMT_DIC.ROM",
+        "group": "fmt_dic"
+      },
+      {
+        "md5": "34847786d7de94b5d1133c956ab1d75d",
+        "file": "bios/fmtowns/FMT_DIC.ROM",
+        "group": "fmt_dic"
+      },
+      {
+        "md5": "",
+        "file": "bios/fmtowns.zip",
+        "group": "fmt_dic"
+      },
+      {
+        "md5": "",
+        "file": "bios/fmtownsux.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/fmtownshr.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/fmtmarty.zip",
         "optional": true
       }
     ]
@@ -2379,6 +2422,21 @@
       },
       {
         "md5": "",
+        "file": "bios/syscard1.pce",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/syscard2.pce",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pce_scdsys.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
         "file": "bios/gexpress.pce",
         "optional": true
       }
@@ -2394,7 +2452,8 @@
       },
       {
         "md5": "",
-        "file": "bios/fx-scsi.rom"
+        "file": "bios/fx-scsi.rom",
+        "optional": true
       }
     ]
   },
@@ -2843,22 +2902,58 @@
     ]
   },
 
+  "snes": {
+    "name": "Super Nintendo",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/dsp1.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/dsp1b.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/dsp2.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/dsp3.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/dsp4.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/st010.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/st011.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/st018.rom",
+        "optional": true
+      }
+    ]
+  },
+
   "sufami": {
     "name": "Sufami",
     "biosFiles": [
       {
         "md5": "d3a44ba7d42a74d3ac58cb9c14c6a5ca",
         "file": "bios/STBIOS.bin"
-      }
-    ]
-  },
-
-  "supergrafx": {
-    "name": "Supergrafx",
-    "biosFiles": [
-      {
-        "md5": "38179df8f4ac870017db21ebcbf53114",
-        "file": "bios/syscard3.pce"
       }
     ]
   },
@@ -3039,6 +3134,21 @@
   "xegs": {
     "name": "Atari XEGS",
     "biosFiles": [
+      {
+        "md5": "06daac977823773a3eea3422fd26a703",
+        "file": "bios/ATARIXL.ROM",
+        "optional": true
+      },
+      {
+        "md5": "b7a2a04677d34f069eeb643d5238bf86",
+        "file": "bios/BB01R4_OS.ROM",
+        "optional": true
+      },
+      {
+        "md5": "d7eb37aec6960cba36bc500e0e5d00bc",
+        "file": "bios/XEGAME.ROM",
+        "optional": true
+      },
       {
         "md5": "",
         "file": "bios/xegs.zip",

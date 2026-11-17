@@ -1027,6 +1027,10 @@ namespace EmulatorLauncher
             if (system == "ti99" && rom.EndsWith(".rpk"))
                 UseFileNameWithoutExtension = false;
 
+            // xegs software list only holds cartridges : disks are passed with their full path
+            if (system == "xegs" && this.GetRomType(rom) != "cart")
+                UseFileNameWithoutExtension = false;
+
             if (SystemConfig.getOptBoolean("mame_use_fullpath"))
                 UseFileNameWithoutExtension = false;
 
