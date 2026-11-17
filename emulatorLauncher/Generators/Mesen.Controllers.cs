@@ -658,7 +658,7 @@ namespace EmulatorLauncher
             }
             else if (mesenSystem == "PcEngine")
             {
-                if (SystemConfig.isOptSet("mesen_pce_multitap") && SystemConfig.getOptBoolean("mesen_pce_multitap"))
+                if (UsePceTurboTap())
                 {
                     switch (playerIndex)
                     {
@@ -759,7 +759,7 @@ namespace EmulatorLauncher
             }
             else if (mesenSystem == "PcEngine")
             {
-                if (SystemConfig.isOptSet("mesen_pce_multitap") && SystemConfig.getOptBoolean("mesen_pce_multitap"))
+                if (UsePceTurboTap())
                     return "Port1A";
                 else
                     return "Port1";
@@ -772,6 +772,15 @@ namespace EmulatorLauncher
                 return "Port1";
 
             return null;
+        }
+
+        // PC Engine has a single controller port: the TurboTap is needed from the second player
+        private bool UsePceTurboTap()
+        {
+            if (SystemConfig.isOptSet("mesen_pce_multitap"))
+                return SystemConfig.getOptBoolean("mesen_pce_multitap");
+
+            return this.Controllers.Count(c => c.Config != null && !c.IsKeyboard) > 1;
         }
 
         private void ConfigureMultitap(JObject systemSection, string mesenSystem)
@@ -810,7 +819,7 @@ namespace EmulatorLauncher
 
             else if (mesenSystem == "PcEngine")
             {
-                if (SystemConfig.isOptSet("mesen_pce_multitap") && SystemConfig.getOptBoolean("mesen_pce_multitap"))
+                if (UsePceTurboTap())
                 {
                     var port1 = GetOrCreateContainer(systemSection, "Port1");
                     port1["Type"] = "PceTurboTap";

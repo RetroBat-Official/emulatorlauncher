@@ -278,6 +278,7 @@ namespace EmulatorLauncher.Libretro
                 { "uae4arm", "UAE4ARM" },
                 { "ume2015", "UME 2015 (0.160)" },
                 { "uzem", "Uzem" },
+                { "v_bear", "Funtech Super A'Can" },
                 { "vaporspec", "VaporSpec" },
                 { "vbam", "VBA-M" },
                 { "vba_next", "VBA Next" },
@@ -1157,7 +1158,6 @@ namespace EmulatorLauncher.Libretro
             {
                 var romExt = Path.GetExtension(Program.SystemConfig["rom"]).ToLower();
 
-                coreSettings["atari800_internalbasic"] = (romExt == ".bas" ? "enabled" : "disabled");
                 coreSettings["atari800_cassboot"] = (romExt == ".cas" ? "enabled" : "disabled");
                 coreSettings["atari800_opt1"] = "disabled"; // detect card type
 
@@ -1408,7 +1408,7 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["bsnes_mode7_scale"] = SystemConfig["bsnes_mode7_scale"].ToIntegerString() + "x";
             }
             else
-                coreSettings["bsnes_mode7_scale"] = "1x";
+                coreSettings["bsnes_mode7_scale"] = core == "bsnes_hd_beta" ? "2x" : "1x";
 
             //bsnes only
             if (core == "bsnes")
@@ -1464,9 +1464,12 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["bsnes_cpu_sfx_overclock"] = "100";
             }
 
-            // Controls
+            // Controls : multitap in port 2 from player 3, as with snes9x
             BindFeature(retroarchConfig, "input_libretro_device_p1", "SnesControllerP1", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "SnesControllerP2", "1");
+            if (SystemConfig.isOptSet("SnesControllerP2"))
+                BindFeature(retroarchConfig, "input_libretro_device_p2", "SnesControllerP2", "1");
+            else
+                retroarchConfig["input_libretro_device_p2"] = this.Controllers.Count > 2 ? "257" : "1";
             if (SystemConfig["SnesControllerP2"] == "2")
                 retroarchConfig["input_player2_mouse_index"] = "0";
 
@@ -1498,9 +1501,12 @@ namespace EmulatorLauncher.Libretro
             BindFeatureSlider(coreSettings, "bsnes_jg_runahead", "bsnes_jg_runahead", "0");
             BindBoolFeature(coreSettings, "bsnes_jg_hotfixes", "bsnes_jg_hotfixes", "on", "off");
 
-            // Controls
+            // Controls : multitap in port 2 from player 3, as with snes9x
             BindFeature(retroarchConfig, "input_libretro_device_p1", "SnesControllerP1", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "SnesControllerP2", "1");
+            if (SystemConfig.isOptSet("SnesControllerP2"))
+                BindFeature(retroarchConfig, "input_libretro_device_p2", "SnesControllerP2", "1");
+            else
+                retroarchConfig["input_libretro_device_p2"] = this.Controllers.Count > 2 ? "257" : "1";
             if (SystemConfig["SnesControllerP2"] == "2")
                 retroarchConfig["input_player2_mouse_index"] = "0";
 
@@ -2293,6 +2299,8 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "fbneo-hiscores", "fba2012_hiscore", "enabled", "disabled");
             BindFeature(coreSettings, "fbneo-samplerate", "fba2012_samplerate", "44100");
 
+            CopyFbaHiscoreDat(Path.Combine(AppConfig.GetFullPath("saves"), system));
+
             // Dip Switches
             if (SystemConfig.isOptSet("fbalpha2012_freeplay") && SystemConfig.getOptBoolean("fbalpha2012_freeplay"))
                 coreSettings["fbalpha2012_dipswitch_" + gameName + "_Free_play"] = "On";
@@ -2395,8 +2403,12 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeatureOn(coreSettings, "fba2012cps1_auto_rotate", "fba2012cps1_auto_rotate", "enabled", "disabled");
             BindFeatureSlider(coreSettings, "fba2012cps1_cpu_speed_adjust", "fba2012cps1_cpu_speed_adjust", "100");
             BindBoolFeatureOn(coreSettings, "fba2012cps1_hiscores", "fba2012cps1_hiscores", "enabled", "disabled");
-            BindBoolFeature(coreSettings, "fba2012cps1_diagnostics", "fba2012cps1_diagnostics", "enabled", "disabled");
             BindBoolFeature(coreSettings, "fba2012cps1_frameskip", "fba2012cps1_frameskip", "auto", "disabled");
+
+            // Only read while playing (opens the service menu when switched on) : always off at launch
+            coreSettings["fba2012cps1_diagnostics"] = "disabled";
+
+            CopyFbaHiscoreDat(Path.Combine(AppConfig.GetFullPath("bios"), "fbalpha2012"));
 
             // Low Pass Filter
             if (Features.IsSupported("fba2012cps1_lowpass_range"))
@@ -2442,6 +2454,8 @@ namespace EmulatorLauncher.Libretro
             }
 
             BindFeature(coreSettings, "fba2012cps2_controls", "fba2012cps2_controls", "gamepad");
+
+            CopyFbaHiscoreDat(Path.Combine(AppConfig.GetFullPath("bios"), "fbalpha2012"));
         }
 
         private void ConfigureFbalphaCPS3(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2460,6 +2474,25 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "fbalpha2012_cps3_diagnostic_input", "fbalpha2012_cps3_diagnostic_input", "None");
             BindFeatureSlider(coreSettings, "fbalpha2012_cps3_frameskip", "fbalpha2012_cps3_frameskip", "0");
             BindFeature(coreSettings, "fbalpha2012_cps3_samplerate", "fbalpha2012_cps3_samplerate", "44100");
+
+            CopyFbaHiscoreDat(Path.Combine(AppConfig.GetFullPath("saves"), system));
+        }
+
+        // FB Alpha 2012 cores read hiscore.dat from their own folder : copy the one shipped in bios\fba
+        private void CopyFbaHiscoreDat(string targetFolder)
+        {
+            string hiscoreDat = Path.Combine(AppConfig.GetFullPath("bios"), "fba", "hiscore.dat");
+            string hiscoreTarget = Path.Combine(targetFolder, "hiscore.dat");
+
+            if (!File.Exists(hiscoreDat) || (File.Exists(hiscoreTarget) && File.GetLastWriteTimeUtc(hiscoreDat) <= File.GetLastWriteTimeUtc(hiscoreTarget)))
+                return;
+
+            try
+            {
+                Directory.CreateDirectory(targetFolder);
+                File.Copy(hiscoreDat, hiscoreTarget, true);
+            }
+            catch { }
         }
 
         private void ConfigureFbneo(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -4201,8 +4234,12 @@ namespace EmulatorLauncher.Libretro
             BindFeatureSlider(coreSettings, "pce_cddavolume", "pcecddavolume", "100");
             BindFeatureSlider(coreSettings, "pce_cdpsgvolume", "pcecdpsvolume", "100");
 
-            // Controls
-            BindBoolFeature(coreSettings, "pce_multitap", "pce_multitap", "enabled", "disabled");
+            // Controls : multitap needed from player 2, but breaks a few games (Cho Aniki)
+            if (SystemConfig.isOptSet("pce_multitap"))
+                BindBoolFeature(coreSettings, "pce_multitap", "pce_multitap", "enabled", "disabled");
+            else
+                coreSettings["pce_multitap"] = this.Controllers.Any(c => c.PlayerIndex == 2) ? "enabled" : "disabled";
+
             BindFeature(retroarchConfig, "input_libretro_device_p1", "pce_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "pce_controller2", "1");
             if (SystemConfig["pce_controller2"] == "2")
@@ -4229,6 +4266,7 @@ namespace EmulatorLauncher.Libretro
             if (core != "mednafen_pce_fast")
                 return;
 
+            BindFeature(coreSettings, "pce_fast_cdbios", "pce_cdbios", "System Card 3");
             BindBoolFeature(coreSettings, "pce_fast_nospritelimit", "pce_fast_nospritelimit", "enabled", "disabled");
             BindFeatureSlider(coreSettings, "pce_fast_adpcmvolume", "pceadpcvolume", "100");
             BindFeatureSlider(coreSettings, "pce_fast_cddavolume", "pcecddavolume", "100");
@@ -4501,10 +4539,6 @@ namespace EmulatorLauncher.Libretro
             if (core != "mednafen_supergrafx")
                 return;
 
-            BindFeatureSlider(coreSettings, "sgx_adpcmvolume", "sgxadpcvolume", "100");
-            BindFeatureSlider(coreSettings, "sgx_cddavolume", "sgxcddavolume", "100");
-            BindFeatureSlider(coreSettings, "sgx_cdpsgvolume", "sgxcdpsvolume", "100");
-
             BindFeature(retroarchConfig, "input_libretro_device_p1", "supergrafx_controller1", "1");
             BindFeature(retroarchConfig, "input_libretro_device_p2", "supergrafx_controller2", "1");
             if (SystemConfig["supergrafx_controller2"] == "2")
@@ -4531,6 +4565,8 @@ namespace EmulatorLauncher.Libretro
             if (core != "mednafen_wswan")
                 return;
 
+            BindFeature(coreSettings, "wswan_language", "mednafen_wswan_language", "english");
+            BindFeature(coreSettings, "wswan_mono_palette", "mednafen_wswan_palette", "default");
             BindFeature(coreSettings, "wswan_rotate_display", "mednafen_wswan_rotate", "manual");
 
             if (!SystemConfig.isOptSet("mednafen_wswan_rotatekeymap"))
@@ -4624,9 +4660,12 @@ namespace EmulatorLauncher.Libretro
             if (core != "mesen-s")
                 return;
 
-            // Controls
+            // Controls : multitap in port 2 from player 3, as with snes9x
             BindFeature(retroarchConfig, "input_libretro_device_p1", "mesen_controller1", "1");
-            BindFeature(retroarchConfig, "input_libretro_device_p2", "mesen_controller2", "1");
+            if (SystemConfig.isOptSet("mesen_controller2"))
+                BindFeature(retroarchConfig, "input_libretro_device_p2", "mesen_controller2", "1");
+            else
+                retroarchConfig["input_libretro_device_p2"] = this.Controllers.Count > 2 ? "513" : "1";
             if (SystemConfig["mesen_controller2"] == "770")
                 retroarchConfig["input_player2_mouse_index"] = "0";
 
@@ -5741,7 +5780,7 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            BindBoolFeature(coreSettings, "prosystem_gamepad_dual_stick_hack", "dual_stick_hack", "disabled", "enabled");
+            BindBoolFeature(coreSettings, "prosystem_gamepad_dual_stick_hack", "dual_stick_hack", "enabled", "disabled");
         }
 
         private void ConfigurePuae(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -6125,16 +6164,20 @@ namespace EmulatorLauncher.Libretro
 
             coreSettings["snes9x_show_advanced_av_settings"] = "enabled";
 
-            BindFeature(coreSettings, "snes9x_blargg", "snes9x_blargg", "disabled"); // Emulated video signal
-            BindFeature(coreSettings, "snes9x_overscan", "snes9x_overscan", "auto"); // Overscan
-            BindFeature(coreSettings, "snes9x_region", "snes9x_region", "auto"); // Region
-            BindFeature(coreSettings, "snes9x_hires_blend", "snes9x_hires_blend", "disabled"); // Pixel blending
-            BindFeature(coreSettings, "snes9x_audio_interpolation", "snes9x_audio_interpolation", "none"); // Audio interpolation
-            BindFeature(coreSettings, "snes9x_overclock_superfx", "snes9x_overclock_superfx", "100%"); // SuperFX overclock
-            
+            BindFeature(coreSettings, "snes9x_blargg", "snes9x_blargg", "disabled");
+            BindFeature(coreSettings, "snes9x_overscan", "snes9x_overscan", "auto");
+            BindFeature(coreSettings, "snes9x_region", "snes9x_region", "auto");
+            BindFeature(coreSettings, "snes9x_hires_blend", "snes9x_hires_blend", "disabled");
+            BindFeature(coreSettings, "snes9x_audio_interpolation", "snes9x_audio_interpolation", "gaussian");
+            BindFeature(coreSettings, "snes9x_overclock_superfx", "snes9x_overclock_superfx", "100%");
 
-            // Unsafe hacks (config must be done in Core options)
-            if (SystemConfig.isOptSet("Snes9x_UnsafeHacks") && SystemConfig.getOptBoolean("Snes9x_UnsafeHacks"))
+
+            BindFeature(coreSettings, "snes9x_overclock_cycles", "snes9x_overclock_cycles", "disabled");
+            BindBoolFeature(coreSettings, "snes9x_echo_buffer_hack", "snes9x_echo_buffer_hack", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "snes9x_block_invalid_vram_access", "snes9x_block_invalid_vram_access", "enabled", "disabled");
+
+            // Unsafe hacks override the two options above
+            if (SystemConfig.getOptBoolean("Snes9x_UnsafeHacks"))
             {
                 coreSettings["snes9x_echo_buffer_hack"] = "enabled";
                 coreSettings["snes9x_randomize_memory"] = "enabled";
@@ -6143,15 +6186,9 @@ namespace EmulatorLauncher.Libretro
             }
             else
             {
-                coreSettings["snes9x_echo_buffer_hack"] = "disabled";
                 coreSettings["snes9x_randomize_memory"] = "disabled";
                 coreSettings["snes9x_reduce_sprite_flicker"] = "disabled";
-                coreSettings["snes9x_block_invalid_vram_access"] = "enabled";
             }
-
-            BindFeature(coreSettings, "snes9x_overclock_cycles", "snes9x_overclock_cycles", "disabled");
-            BindBoolFeature(coreSettings, "snes9x_echo_buffer_hack", "snes9x_echo_buffer_hack", "enabled", "disabled");
-            BindBoolFeatureOn(coreSettings, "snes9x_block_invalid_vram_access", "snes9x_block_invalid_vram_access", "enabled", "disabled");
 
             // Advanced video options (config must be done in Core options menu)
             if (SystemConfig.isOptSet("SnesAdvancedVideoOptions") && SystemConfig["SnesAdvancedVideoOptions"] == "config")

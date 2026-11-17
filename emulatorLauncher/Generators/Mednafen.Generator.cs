@@ -77,9 +77,16 @@ namespace EmulatorLauncher
 
 			commandArray.Add("-video.disable_composition 1");
             commandArray.Add("-video.driver opengl");
-            
+
             if (mednafenCore == "pce" && system == "pcenginecd")
+            {
                 commandArray.Add("-pce.cdbios \"" + Path.Combine(AppConfig.GetFullPath("bios"), "syscard3.pce") + "\"");
+
+                // Games Express discs: Mednafen looks for gecard.pce by default
+                string geBios = Path.Combine(AppConfig.GetFullPath("bios"), "gexpress.pce");
+                if (File.Exists(geBios))
+                    commandArray.Add("-pce.gecdbios \"" + geBios + "\"");
+            }
 
             commandArray.Add("-" + mednafenCore + ".xres 0");
             commandArray.Add("-" + mednafenCore + ".yres 0");
@@ -354,7 +361,12 @@ namespace EmulatorLauncher
             BindMednafenFeatureSlider(cfg, "pceadpcvolume", "pce.adpcmvolume", "100");
             BindMednafenFeatureSlider(cfg, "pcecddavolume", "pce.cddavolume", "100");
             BindMednafenFeatureSlider(cfg, "pcecdpsvolume", "pce.cdpsgvolume", "100");
-            BindMednafenBoolFeature(cfg, "mednafen_pce_multitap", mednafenCore + ".input.multitap", "1", "0");
+
+            // Multitap needed from player 2, but breaks a few games (Cho Aniki)
+            if (SystemConfig.isOptSet("mednafen_pce_multitap"))
+                BindMednafenBoolFeature(cfg, "mednafen_pce_multitap", mednafenCore + ".input.multitap", "1", "0");
+            else
+                cfg[mednafenCore + ".input.multitap"] = this.Controllers.Any(c => c.PlayerIndex == 2) ? "1" : "0";
         }
 
         private void ConfigureMednafenPCFX(MednafenConfigFile cfg, string mednafenCore)

@@ -130,6 +130,16 @@ namespace EmulatorLauncher
                 }
             }
 
+            // Satellaview and Sufami Turbo : ares loads the base cartridge first, the game goes in its slot
+            if (system == "satellaview" || system == "sufami")
+            {
+                string baseCartridge = Path.Combine(AppConfig.GetFullPath("bios"), system == "satellaview" ? "BS-X.bin" : "STBIOS.bin");
+                if (!File.Exists(baseCartridge))
+                    throw new ApplicationException("Base cartridge is missing in bios folder (" + Path.GetFileName(baseCartridge) + ")");
+
+                commandArray.Add("\"" + baseCartridge + "\"");
+            }
+
             commandArray.Add("\"" + rom + "\"");
 
             if (system == "n64dd" && Path.GetExtension(rom) != ".ndd")

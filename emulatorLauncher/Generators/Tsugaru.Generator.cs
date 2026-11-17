@@ -34,13 +34,15 @@ namespace EmulatorLauncher
 
             List<string> commandArray = new List<string>();
 
-            // BIOS folder: bios\fmtowns, bios\fmtownsux, bios\geartowns (shared with libretro-geartowns), then the emulator folders
+            // BIOS folder: bios\fmtowns, bios\fmtownsux, bios\geartowns and its set subfolders (shared with libretro-geartowns), then the emulator folders
             string biosRoot = AppConfig.GetFullPath("bios");
             string biosPath = new string[]
             {
                 Path.Combine(biosRoot, "fmtowns"),
                 Path.Combine(biosRoot, "fmtownsux"),
                 Path.Combine(biosRoot, "geartowns"),
+                Path.Combine(biosRoot, "geartowns", "fmtowns"),
+                Path.Combine(biosRoot, "geartowns", "fmtownsux"),
                 Path.Combine(path, "roms"),
                 Path.Combine(path, "fmtownsux")
             }.FirstOrDefault(p => File.Exists(Path.Combine(p, "FMT_SYS.ROM")));

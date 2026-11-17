@@ -330,9 +330,10 @@ namespace EmulatorLauncher
             new AltirraProfile { Machine = "XL", ProfileCode = "964089481", ProfileSectionCode = "3976D689", Name = "XL/XE Computer", InternalKernel = "internal:00000003" }
         };
 
+        // Same default machines as the atari800 libretro core (800XL for the Atari 800 system)
         static readonly Dictionary<string, string> atariProfileMap = new Dictionary<string, string>
         {
-            { "atari800", "800" },
+            { "atari800", "XL" },
             { "atari5200", "5200" },
             { "xegs", "XEGS" }
         };

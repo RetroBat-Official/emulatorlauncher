@@ -89,7 +89,7 @@ namespace EmulatorLauncher
             ConfigureNes(systemSection, mesenSystem, system);
             ConfigureSMS(systemSection, mesenSystem, system);
             ConfigurePCEngine(systemSection, mesenSystem, system, path);
-            ConfigureSnes(systemSection, mesenSystem, system);
+            ConfigureSnes(systemSection, mesenSystem, system, path);
             ConfigureGameboy(systemSection, mesenSystem, system, path);
             ConfigureGba(systemSection, mesenSystem, system, path);
             ConfigureColeco(systemSection, mesenSystem, system, path);
@@ -257,10 +257,16 @@ namespace EmulatorLauncher
                 string targetFirmwarePath = Path.Combine(path, "Firmware");
                 if (!Directory.Exists(targetFirmwarePath)) try { Directory.CreateDirectory(targetFirmwarePath); }
                     catch { }
+                
                 string targetFirmware1 = Path.Combine(targetFirmwarePath, "[BIOS] Super CD-ROM System (Japan) (v3.0).pce");
-
                 string sourceFirmware1 = Path.Combine(AppConfig.GetFullPath("bios"), "syscard3.pce");
 
+                // Games Express discs need their own card
+                string targetFirmwareGE = Path.Combine(targetFirmwarePath, "[BIOS] Games Express CD Card (Japan).pce");
+                string sourceFirmwareGE = Path.Combine(AppConfig.GetFullPath("bios"), "gexpress.pce");
+
+                if (File.Exists(sourceFirmwareGE) && !File.Exists(targetFirmwareGE) && Directory.Exists(targetFirmwarePath))
+                    File.Copy(sourceFirmwareGE, targetFirmwareGE);
                 if (File.Exists(sourceFirmware1) && !File.Exists(targetFirmware1) && Directory.Exists(targetFirmwarePath))
                     File.Copy(sourceFirmware1, targetFirmware1);
 
@@ -345,12 +351,25 @@ namespace EmulatorLauncher
                 throw new ApplicationException("Colecovision firmware is missing (colecovision.rom)");
         }
 
-        private void ConfigureSnes(JObject section, string mesenSystem, string system)
+        private void ConfigureSnes(JObject section, string mesenSystem, string system, string path)
         {
             if (mesenSystem != "Snes")
                 return;
 
             BindFeature(section, "Region", "mesen_region", "Auto");
+
+            // Coprocessor firmwares (DSP, ST01x) are read in the emulator folder : copy the ones found in bios
+            string targetFirmwarePath = Path.Combine(path, "Firmware");
+            if (!Directory.Exists(targetFirmwarePath)) try { Directory.CreateDirectory(targetFirmwarePath); }
+                catch { }
+
+            foreach (string firmware in new string[] { "dsp1.rom", "dsp1b.rom", "dsp2.rom", "dsp3.rom", "dsp4.rom", "st010.rom", "st011.rom", "st018.rom" })
+            {
+                string sourceFirmware = Path.Combine(AppConfig.GetFullPath("bios"), firmware);
+                string targetFirmware = Path.Combine(targetFirmwarePath, firmware);
+                if (File.Exists(sourceFirmware) && !File.Exists(targetFirmware) && Directory.Exists(targetFirmwarePath))
+                    try { File.Copy(sourceFirmware, targetFirmware); } catch { }
+            }
         }
 
         /// <summary>

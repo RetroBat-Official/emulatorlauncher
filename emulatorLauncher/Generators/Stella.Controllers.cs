@@ -82,8 +82,9 @@ namespace EmulatorLauncher
             rightDiff["event"] = "ConsoleRightDiffToggle";
             kCommonMode.Add(rightDiff);
 
+            // SELECT is the hotkey button : console Select on EST, START = Reset (starts the game, as in the libretro cores)
             var consoleSelect = new DynamicJson();
-            consoleSelect["button"] = GetInputKeyName(c, InputKey.start);
+            consoleSelect["button"] = GetInputKeyName(c, InputKey.b);
             consoleSelect["event"] = "ConsoleSelect";
             kCommonMode.Add(consoleSelect);
 
@@ -93,7 +94,7 @@ namespace EmulatorLauncher
             kCommonMode.Add(colorToggle);
 
             var reset = new DynamicJson();
-            reset["button"] = GetInputKeyName(c, InputKey.r3);
+            reset["button"] = GetInputKeyName(c, InputKey.start);
             reset["event"] = "ConsoleReset";
             kCommonMode.Add(reset);
 
