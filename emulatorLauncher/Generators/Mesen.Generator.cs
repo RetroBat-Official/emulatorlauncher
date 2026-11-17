@@ -287,7 +287,13 @@ namespace EmulatorLauncher
             else if (system == "sgb")
             {
                 section["Model"] = "SuperGameboy";
-                BindBoolFeatureOn(section, "UseSgb2", "mesen_sgb2");
+                
+                // SGB2 needs SGB2.sfc, SGB1 is used when only SGB1.sfc is present
+                if (SystemConfig.isOptSet("mesen_sgb2"))
+                    BindBoolFeatureOn(section, "UseSgb2", "mesen_sgb2");
+                else
+                    section["UseSgb2"] = File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "SGB2.sfc")) || !File.Exists(Path.Combine(AppConfig.GetFullPath("bios"), "SGB1.sfc"));
+
                 BindBoolFeature(section, "HideSgbBorders", "mesen_hidesgbborders");
 
                 // Firmwares for sgb need to be copied to emulator folder

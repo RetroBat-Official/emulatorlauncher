@@ -114,6 +114,8 @@ namespace EmulatorLauncher
                     ini.WriteValue("ports.qt", "gb.bios", gbBIOS.Replace("\\", "/"));
 
                 string sgbBIOS = Path.Combine(AppConfig.GetFullPath("bios"), "sgb2_boot.bin");
+                if (!File.Exists(sgbBIOS))
+                    sgbBIOS = Path.Combine(AppConfig.GetFullPath("bios"), "sgb_boot.bin");
                 if (File.Exists(sgbBIOS))
                     ini.WriteValue("ports.qt", "sgb.bios", sgbBIOS.Replace("\\", "/"));
 

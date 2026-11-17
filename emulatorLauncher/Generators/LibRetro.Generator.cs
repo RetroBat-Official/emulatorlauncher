@@ -854,9 +854,9 @@ namespace EmulatorLauncher.Libretro
                 return true;
             }
 
-            // sameboy and gearboy share the gb_link_2p subsystem
-            if (core == "sameboy" || core == "gearboy")
-                if (core == "sameboy" || core == "gearboy")
+            // gb_link_2p subsystem : sameboy and gearboy for every game, tgbdual and DoubleCherryGB for 2 different games (m3u)
+            bool gbLinkM3u = (core == "tgbdual" || core == "DoubleCherryGB") && Path.GetExtension(rom).ToLower() == ".m3u";
+            if (core == "sameboy" || core == "gearboy" || gbLinkM3u)
             {
                 bool multiplayer = (system == "gb2players" || system == "gbc2players");
                 if (!multiplayer)
