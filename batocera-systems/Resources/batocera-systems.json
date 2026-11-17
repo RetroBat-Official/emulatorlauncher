@@ -1256,6 +1256,82 @@
     ]
   },
 
+  "fbneo": {
+    "name": "FinalBurn Neo",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/neogeo.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/pgm.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/skns.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/decocass.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/isgsm.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/atarisy1.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/bubsys.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/cchip.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/midssio.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/namcoc69.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/namcoc70.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/namcoc75.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/nmk004.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/ym2608.zip",
+        "optional": true
+      }
+    ]
+  },
+
   "fds": {
     "name": "Nintendo Family Computer Disk System",
     "biosFiles": [
@@ -2085,6 +2161,16 @@
         "md5": "",
         "file": "roms/neogeo/neogeo.zip",
         "group": "neogeo"
+      },
+      {
+        "md5": "",
+        "file": "bios/aes.zip",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/irrmaze.zip",
+        "optional": true
       }
     ]
   },

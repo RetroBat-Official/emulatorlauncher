@@ -2469,12 +2469,15 @@ namespace EmulatorLauncher.Libretro
             string rom = SystemConfig["rom"];
             string gameName = Path.GetFileNameWithoutExtension(rom);
 
+            // RetroAchievements hardcore refuses the Universe BIOS, patched romsets and an underclocked CPU
+            bool hardcore = Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && SystemConfig.getOptBoolean("retroachievements.hardcore");
+
             coreSettings["fbneo-allow-depth-32"] = "enabled";
             coreSettings["fbneo-memcard-mode"] = "per-game";
             coreSettings["fbneo-fm-interpolation"] = "4-point 3rd order";
             coreSettings["fbneo-sample-interpolation"] = "4-point 3rd order";
 
-            BindFeature(coreSettings, "fbneo-neogeo-mode", "fbneo_neogeo_mode", "UNIBIOS");
+            BindFeature(coreSettings, "fbneo-neogeo-mode", "fbneo_neogeo_mode", hardcore ? "DIPSWITCH" : "UNIBIOS");
             BindFeature(coreSettings, "fbneo-vertical-mode", "fbneo-vertical-mode", "disabled");
             BindFeature(coreSettings, "fbneo-diagnostic-input", "fbneo_diagkey", "Start + L + R");
 
@@ -2506,10 +2509,7 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["fbneo-frameskip-type"] = "disabled";
 
             // Retroachievements
-            if (Features.IsSupported("cheevos") && SystemConfig.getOptBoolean("retroachievements") && SystemConfig.getOptBoolean("retroachievements.hardcore"))
-                coreSettings["fbneo-allow-patched-romsets"] = "disabled";
-            else
-                coreSettings["fbneo-allow-patched-romsets"] = "enabled";
+            coreSettings["fbneo-allow-patched-romsets"] = hardcore ? "disabled" : "enabled";
 
             // Dispwitches
             if (SystemConfig.isOptSet("fbneo_freeplay") && SystemConfig.getOptBoolean("fbneo_freeplay"))
@@ -5065,6 +5065,8 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "neocd_cdspeedhack", "neocd_cdspeedhack", "On", "Off");
             BindBoolFeatureOn(coreSettings, "neocd_loadskip", "neocd_loadskip", "On", "Off");
             BindFeature(coreSettings, "neocd_region", "neocd_region", "USA");
+            BindFeature(coreSettings, "neocd_cpu_overclock", "neocd_cpu_overclock", "100%");
+            BindFeature(coreSettings, "neocd_aspect_ratio", "neocd_aspect_ratio", "1:1 PAR");
         }
 
         private void ConfigureNestopia(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

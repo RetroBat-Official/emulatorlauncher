@@ -36,10 +36,10 @@ namespace EmulatorLauncher
 
             string romPath = Path.GetDirectoryName(rom);
 
-            if (Path.GetExtension(rom).ToLowerInvariant() == ".zip")
-            {
+            // Raine opens any .zip / .7z path as a Neo Geo CD image : cartridge and arcade romsets are passed by name
+            string romExt = Path.GetExtension(rom).ToLowerInvariant();
+            if (system != "neogeocd" && (romExt == ".zip" || romExt == ".7z"))
                 rom = Path.GetFileNameWithoutExtension(rom);
-            }
 
             bool fullscreen = ShouldRunFullscreen();
 
@@ -125,14 +125,14 @@ namespace EmulatorLauncher
                     BindBoolIniFeature(ini, "General", "ShowFPS", "raine_showfps", "1", "0");
 
                     ini.WriteValue("Display", "video_mode", "0");
-                    ini.WriteValue("Display", "ogl_render", "1");
                     ini.WriteValue("Display", "fullscreen", fullscreen ? "1" : "0");
                     ini.WriteValue("Display", "use_bld", "1");
                     BindIniFeature(ini, "Display", "fix_aspect_ratio", "raine_ratio", "1");
                     BindIniFeature(ini, "Display", "rotate", "raine_rotate", "0");
                     BindIniFeature(ini, "Display", "integer_scaling", "integerscale", "0");
-                    BindIniFeature(ini, "Display", "ogl_render", "raine_render", "0");
-                    BindIniFeature(ini, "Display", "ogl_filter", "raine_filter", "0");
+                    // Raine defaults : texture rendering, GL_NEAREST filter (9728)
+                    BindIniFeature(ini, "Display", "ogl_render", "raine_render", "1");
+                    BindIniFeature(ini, "Display", "ogl_filter", "raine_filter", "9728");
                     BindIniFeature(ini, "Display", "ogl_dbuf", "raine_doublebuffer", "0");
                     BindBoolIniFeatureOn(ini, "Display", "keep_ratio", "raine_keep_ratio", "1", "0");
 
