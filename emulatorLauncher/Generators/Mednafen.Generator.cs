@@ -40,6 +40,11 @@ namespace EmulatorLauncher
                 {
                     string[] romFiles = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories).OrderBy(file => Array.IndexOf(romExtensions, Path.GetExtension(file).ToLowerInvariant())).ToArray();
                     rom = romFiles.FirstOrDefault(file => romExtensions.Any(ext => Path.GetExtension(file).Equals(ext, StringComparison.OrdinalIgnoreCase)));
+
+                    // Cartridge games (.ngp, .gb, .nes...) : largest file of the archive
+                    if (rom == null)
+                        rom = romFiles.OrderByDescending(file => new FileInfo(file).Length).FirstOrDefault();
+
                     ValidateUncompressedGame();
                 }
             }

@@ -145,6 +145,12 @@ namespace EmulatorLauncher
                 cfg["szAppEEPROMPath"] = eepromPath + "\\";
                 cfg["szAppHiscorePath"] = eepromPath + "\\";
 
+                // FBNeo reads hiscore.dat from the hiscore path: use the one shipped in bios\fbneo (also used by the libretro core)
+                string hiscoreDat = Path.Combine(fbneoBiosPath, "hiscore.dat");
+                string hiscoreTarget = Path.Combine(eepromPath, "hiscore.dat");
+                if (File.Exists(hiscoreDat) && (!File.Exists(hiscoreTarget) || File.GetLastWriteTimeUtc(hiscoreDat) > File.GetLastWriteTimeUtc(hiscoreTarget)))
+                    try { File.Copy(hiscoreDat, hiscoreTarget, true); } catch { }
+
                 string blendPath = Path.Combine(eepromPath, "blend");
                 if (!Directory.Exists(blendPath)) try { Directory.CreateDirectory(blendPath); }
                     catch { }

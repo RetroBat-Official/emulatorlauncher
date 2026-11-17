@@ -238,7 +238,7 @@ namespace EmulatorLauncher
             { "dhewm3", "reshade"},
             { "dusklight", "no"},
             { "ghostship", "yes"},
-            { "pdark", "yes"},
+            { "pdark", "no"},
             { "rtcw", "no"},
             { "sonic3air", "no"},
             { "sonicmania", "no"},

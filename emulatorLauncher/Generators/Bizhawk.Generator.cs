@@ -822,6 +822,7 @@ namespace EmulatorLauncher
             { "nes", "NES" },
             { "nds", "NDS" },
             { "ngp", "NGP" },
+            { "ngpc", "NGP" },
             { "odyssey2", "O2" },
             { "pcengine", "PCE_PCECD_SGX_SGXCD" },
             { "pcenginecd", "PCE_PCECD_SGX_SGXCD" },
