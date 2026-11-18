@@ -194,7 +194,7 @@ namespace EmulatorLauncher.Libretro
 
         BypassStickMapping:
             // Specific mapping for N64 like controllers
-            if (system == "n64")
+            if (system == "n64" || system == "n64dd")
             {
                 bool needActivationSwitch = false;
                 bool n64_pad = Program.SystemConfig.getOptBoolean("n64_pad");

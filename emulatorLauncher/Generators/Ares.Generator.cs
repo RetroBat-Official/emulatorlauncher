@@ -116,7 +116,7 @@ namespace EmulatorLauncher
             };
 
             // if running a n64dd game, both roms need to be specified with the ndd rom last
-            if (system == "n64dd" && Path.GetExtension(rom) == ".ndd")
+            if (system == "n64dd" && Path.GetExtension(rom).ToLowerInvariant() == ".ndd")
             {
                 string n64Rom = rom.Remove(rom.Length - 4);
 
@@ -142,7 +142,7 @@ namespace EmulatorLauncher
 
             commandArray.Add("\"" + rom + "\"");
 
-            if (system == "n64dd" && Path.GetExtension(rom) != ".ndd")
+            if (system == "n64dd" && Path.GetExtension(rom).ToLowerInvariant() != ".ndd")
             {
                 string nddRom = rom + ".ndd";
                 aresSystem = "Nintendo 64";

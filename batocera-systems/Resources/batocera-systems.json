@@ -1342,6 +1342,17 @@
     ]
   },
 
+  "nes": {
+    "name": "Nintendo Entertainment System",
+    "biosFiles": [
+      {
+        "md5": "ca30b50f880eb660a320674ed365ef7a",
+        "file": "bios/disksys.rom",
+        "optional": true
+      }
+    ]
+  },
+
   "ecwolf": {
     "name": "ECWolf",
     "biosFiles": [
@@ -2065,11 +2076,13 @@
       },
       {
         "md5": "37c36e4286d36892a9fc70eafe4104be",
-        "file": "bios/Mupen64plus/IPL_USA.n64"
+        "file": "bios/Mupen64plus/IPL_USA.n64",
+        "optional": true
       },
       {
         "md5": "aad37b1492886b892f1821f37fd3ae34",
-        "file": "bios/Mupen64plus/IPL_DEV.n64"
+        "file": "bios/Mupen64plus/IPL_DEV.n64",
+        "optional": true
       }
     ]
   },

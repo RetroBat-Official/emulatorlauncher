@@ -24,7 +24,7 @@ namespace EmulatorLauncher.Libretro
         static readonly List<string> systemButtonInvert = new List<string>()
             { "gb", "gb2players", "gba", "gbc", "gbc2players", "sgb", "sgb-msu", "sgb-msu1", "gb-msu", "gb-msu1",
             "snes", "snes-msu", "snes-msu1", "superfamicom", "satellaview", "sufami", "sgb", "sgb-msu1", "sfc" };
-        static readonly List<string> systemButtonRotate = new List<string>() { "famicom", "nes", "fds", "mastersystem" };
+        static readonly List<string> systemButtonRotate = new List<string>() { "famicom", "nes", "fds", "mastersystem", "gamegear", "sg1000" };
         static readonly List<string> systemMegadrive = new List<string>() { "genesis", "genesis-msu", "megadrive", "megacd", "megadrive-msu", "sega32x", "segacd" };
         static readonly List<string> systemNES = new List<string>() { "nes", "fds", "famicom" };
         static readonly List<string> systemN64 = new List<string>() { "n64", "n64dd" };
@@ -340,8 +340,8 @@ namespace EmulatorLauncher.Libretro
                 }
                 #endregion
 
-                #region mastersystem
-                if (system == "mastersystem" && rotateButtons)
+                #region mastersystem, gamegear, sg1000
+                if ((system == "mastersystem" || system == "gamegear" || system == "sg1000") && rotateButtons)
                 {
                     if (core == "fbneo")
                     {
@@ -848,6 +848,17 @@ namespace EmulatorLauncher.Libretro
                         inputremap["input_player" + i + "_btn_r"] = "13";
                         inputremap["input_player" + i + "_btn_r2"] = "-1";
                     }
+                }
+                #endregion
+
+                #region supracan
+                // V-Bear reads the RetroPad with the Super Nintendo layout, the Super A'Can pad has A south and X west
+                if (core == "v_bear")
+                {
+                    inputremap["input_player" + i + "_btn_a"] = "0";
+                    inputremap["input_player" + i + "_btn_b"] = "8";
+                    inputremap["input_player" + i + "_btn_x"] = "1";
+                    inputremap["input_player" + i + "_btn_y"] = "9";
                 }
                 #endregion
             }
