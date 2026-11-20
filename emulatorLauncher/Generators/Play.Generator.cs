@@ -140,10 +140,6 @@ namespace EmulatorLauncher
             FileTools.TryCreateDirectory(dataPath);
 
             string settingsFile = Path.Combine(dataPath, "config.xml");
-            string templateConfigFile = Path.Combine(AppConfig.GetFullPath("templates"), "play", "Play Data Files", "config.xml");
-
-            if (!File.Exists(settingsFile) && File.Exists(templateConfigFile))
-                FileTools.TryCopyFile(templateConfigFile, settingsFile);
 
             try
             {

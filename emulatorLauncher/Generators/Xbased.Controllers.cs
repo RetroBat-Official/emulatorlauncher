@@ -48,6 +48,10 @@ namespace EmulatorLauncher
             // Stick dead zone and rumble
             ini.Set("deadzone", SystemConfig.GetValueOrDefault("xbased_deadzone", "10"));
             ini.Set("rumble", SystemConfig.isOptSet("xbased_rumble") && !SystemConfig.getOptBoolean("xbased_rumble") ? "0" : "1");
+
+            // Inverted stick axes: off, x, y, xy
+            ini.Set("stick.linvert", SystemConfig.GetValueOrDefault("xbased_invert_left", "off"));
+            ini.Set("stick.rinvert", SystemConfig.GetValueOrDefault("xbased_invert_right", "off"));
         }
 
         private static string GetPadDevice(int player, List<Controller> pads, List<Sdl3GameController> xbasedOrder)

@@ -1795,7 +1795,7 @@ namespace EmulatorLauncher
             string cfgFile = Path.Combine(_romPath, "realrtcwconfig.cfg");
             if (!File.Exists(cfgFile))
             {
-                string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "rtcw", "realrtcwconfig.cfg");
+                string templateFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "rtcw", "Main", "realrtcwconfig.cfg");
                 if (File.Exists(templateFile))
                     try { File.Copy(templateFile, cfgFile); } catch { }
             }
