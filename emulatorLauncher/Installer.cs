@@ -152,7 +152,7 @@ namespace EmulatorLauncher
             { new Installer("vita3k", "vita3k", "Vita3K.exe") },
             { new Installer("vkquake", "vkquake", "vkQuake.exe") },
             { new Installer("vkquake2", "vkquake2", "quake2.exe") },
-            { new Installer("vpinball", new string[] {"vpinball" }, new string[] { "VPinballX.exe", "vpinballx.exe", "VPinballX64.exe" })},
+            { new Installer("vpinball", new string[] {"vpinball" }, new string[] { "VPinballX.exe", "vpinballx.exe", "VPinballX64.exe", "VPinballX_BGFX64.exe" })},
             { new Installer("winarcadia", "winarcadia", "WinArcadia.exe") },
             { new Installer("winuae", "winuae", "winuae64.exe") },
             { new Installer("xash3d", "xash3d", "xash3d.exe") },

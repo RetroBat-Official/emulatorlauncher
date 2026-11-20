@@ -17,7 +17,8 @@ namespace EmulatorLauncher.Common.FileFormats
         KeepEmptyLines = 8,
         UseDoubleEqual = 16,  // nosgba inifile uses double equals as separator !
         ManageKeysWithQuotes = 32,   // manage ini files where key are between quotes
-        AllowRawLines = 64
+        AllowRawLines = 64,
+        NoInlineComments = 128       // values can contain ';' (Visual Pinball 10.9 input mappings)
     }
 
     public class IniFile : IDisposable
@@ -114,7 +115,7 @@ namespace EmulatorLauncher.Common.FileFormats
                                 {
                                     namesInSection.Add(key.Name);
 
-                                    var commentIdx = keyPair[1].IndexOf(";");
+                                    var commentIdx = _options.HasFlag(IniOptions.NoInlineComments) ? -1 : keyPair[1].IndexOf(";");
                                     if (commentIdx > 0)
                                     {
                                         key.Comment = keyPair[1].Substring(commentIdx);

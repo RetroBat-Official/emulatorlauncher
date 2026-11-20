@@ -575,6 +575,11 @@ namespace EmulatorLauncher.Common.Joysticks
             try
             {
                 string dll = Path.Combine(Path.GetDirectoryName(exe), "SDL3.dll");
+
+                // Visual Pinball x64 ships it as SDL364.dll
+                if (!File.Exists(dll))
+                    dll = Path.Combine(Path.GetDirectoryName(exe), "SDL364.dll");
+
                 if (File.Exists(dll))
                 {
                     var info = FileVersionInfo.GetVersionInfo(dll);

@@ -50,8 +50,8 @@ namespace EmulatorLauncher
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
         {
-            if (Path.GetExtension(rom).ToLower() == ".wsquashfs")
-                _gameExeFile = GetProcessFromFile(rom);
+            // Process to monitor given in a .gameexe file next to the game (all formats)
+            _gameExeFile = GetProcessFromFile(rom);
 
             _systemName = system.ToLowerInvariant();
 

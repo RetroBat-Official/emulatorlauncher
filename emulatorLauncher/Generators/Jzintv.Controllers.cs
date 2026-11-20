@@ -71,7 +71,7 @@ namespace EmulatorLauncher
                         finalControllerList.Add(index2, c2);
                     }
                 }
-                else if (Program.Controllers.Count == 1)
+                else if (controllersSorted.Count == 1)
                 {
                     c1 = controllersSorted.FirstOrDefault(c => c.PlayerIndex == 1);
                     if (c1 != null)

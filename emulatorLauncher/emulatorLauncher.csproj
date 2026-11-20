@@ -691,6 +691,9 @@
     <Compile Include="Generators\VPinball.PreX8.cs">
       <DependentUpon>VPinball.Generator.cs</DependentUpon>
     </Compile>
+    <Compile Include="Generators\VPinball.X9.cs">
+      <DependentUpon>VPinball.Generator.cs</DependentUpon>
+    </Compile>
     <Compile Include="Generators\VPinball.Registration.cs">
       <DependentUpon>VPinball.Generator.cs</DependentUpon>
     </Compile>

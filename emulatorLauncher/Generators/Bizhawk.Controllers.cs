@@ -511,6 +511,25 @@ namespace EmulatorLauncher
                 }
             }
 
+            // Virtual Boy: left D-pad also on the left stick
+            if (system == "virtualboy")
+            {
+                var leftStick = new Dictionary<InputKey, string>()
+                {
+                    { InputKey.leftanalogup, "L_Up" },
+                    { InputKey.leftanalogdown, "L_Down" },
+                    { InputKey.leftanalogleft, "L_Left" },
+                    { InputKey.leftanalogright, "L_Right" }
+                };
+
+                foreach (var dir in leftStick)
+                {
+                    string keyName = isDInput ? GetDInputKeyName(controller, dir.Key) : GetXInputKeyName(controller, dir.Key);
+                    if (!string.IsNullOrEmpty(keyName))
+                        controllerConfig["P" + playerIndex + " " + dir.Value] += ", " + (isDInput ? "J" : "X") + index + " " + keyName;
+                }
+            }
+
             if (system == "colecovision")
             {
                 for (int i = 1; i < 3; i++)
@@ -1849,16 +1868,16 @@ namespace EmulatorLauncher
 
         private static readonly InputKeyMapping vbMapping = new InputKeyMapping()
         {
-            { InputKey.leftanalogup,        "L_Up"},
-            { InputKey.leftanalogdown,      "L_Down"},
-            { InputKey.leftanalogleft,      "L_Left" },
-            { InputKey.leftanalogright,     "L_Right"},
+            { InputKey.up,                  "L_Up"},
+            { InputKey.down,                "L_Down"},
+            { InputKey.left,                "L_Left" },
+            { InputKey.right,               "L_Right"},
             { InputKey.rightanalogup,       "R_Up"},
             { InputKey.rightanalogdown,     "R_Down"},
             { InputKey.rightanalogleft,     "R_Left" },
             { InputKey.rightanalogright,    "R_Right"},
-            { InputKey.y,                   "B" },
-            { InputKey.a,                   "A" },
+            { InputKey.a,                   "B" },
+            { InputKey.b,                   "A" },
             { InputKey.pagedown,            "R" },
             { InputKey.pageup,              "L" },
             { InputKey.select,              "Select" },

@@ -1666,6 +1666,11 @@
       {
         "md5": "0cd5946c6473e42e8e4c2137785e427f",
         "file": "bios/grom.bin"
+      },
+      {
+        "md5": "",
+        "file": "bios/ecs.bin",
+        "optional": true
       }
     ]
   },
@@ -2295,7 +2300,7 @@
     "biosFiles": [
       {
         "md5": "",
-        "file": "bios/neogeo.zip"
+        "file": "bios/hng64.zip"
       }
     ]
   },
@@ -2549,7 +2554,8 @@
     "biosFiles": [
       {
         "md5": "1e4fb124a3a886865acb574f388c803d",
-        "file": "bios/bios.min"
+        "file": "bios/bios.min",
+        "optional": true
       }
     ]
   },

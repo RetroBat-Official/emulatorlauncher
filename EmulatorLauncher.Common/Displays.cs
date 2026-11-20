@@ -89,6 +89,172 @@ namespace EmulatorLauncher.Common
             return null;
         }
 
+        #region SDL display name
+        private const uint QDC_ONLY_ACTIVE_PATHS = 2;
+        private const uint DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME = 1;
+        private const uint DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME = 2;
+        private const int ERROR_INSUFFICIENT_BUFFER = 122;
+        private const int DISPLAYCONFIG_MODE_INFO_SIZE = 64;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct LUID
+        {
+            public uint LowPart;
+            public int HighPart;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct DISPLAYCONFIG_PATH_SOURCE_INFO
+        {
+            public LUID adapterId;
+            public uint id;
+            public uint modeInfoIdx;
+            public uint statusFlags;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct DISPLAYCONFIG_PATH_TARGET_INFO
+        {
+            public LUID adapterId;
+            public uint id;
+            public uint modeInfoIdx;
+            public uint outputTechnology;
+            public uint rotation;
+            public uint scaling;
+            public uint refreshRateNumerator;
+            public uint refreshRateDenominator;
+            public uint scanLineOrdering;
+            public int targetAvailable;
+            public uint statusFlags;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct DISPLAYCONFIG_PATH_INFO
+        {
+            public DISPLAYCONFIG_PATH_SOURCE_INFO sourceInfo;
+            public DISPLAYCONFIG_PATH_TARGET_INFO targetInfo;
+            public uint flags;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct DISPLAYCONFIG_DEVICE_INFO_HEADER
+        {
+            public uint type;
+            public uint size;
+            public LUID adapterId;
+            public uint id;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private struct DISPLAYCONFIG_SOURCE_DEVICE_NAME
+        {
+            public DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string viewGdiDeviceName;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private struct DISPLAYCONFIG_TARGET_DEVICE_NAME
+        {
+            public DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+            public uint flags;
+            public uint outputTechnology;
+            public ushort edidManufactureId;
+            public ushort edidProductCodeId;
+            public uint connectorInstance;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
+            public string monitorFriendlyDeviceName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string monitorDevicePath;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern int GetDisplayConfigBufferSizes(uint flags, out uint numPathArrayElements, out uint numModeInfoArrayElements);
+
+        [DllImport("user32.dll")]
+        private static extern int QueryDisplayConfig(uint flags, ref uint numPathArrayElements, [Out] DISPLAYCONFIG_PATH_INFO[] pathArray, ref uint numModeInfoArrayElements, IntPtr modeInfoArray, IntPtr currentTopologyId);
+
+        [DllImport("user32.dll")]
+        private static extern int DisplayConfigGetDeviceInfo(ref DISPLAYCONFIG_SOURCE_DEVICE_NAME requestPacket);
+
+        [DllImport("user32.dll")]
+        private static extern int DisplayConfigGetDeviceInfo(ref DISPLAYCONFIG_TARGET_DEVICE_NAME requestPacket);
+
+        /// <summary>
+        /// Display name as returned by SDL_GetDisplayName (SDL_windowsmodes.c / WIN_AddDisplay) :
+        /// monitor friendly name (e.g. "DELL U2720Q"), else the EnumDisplayDevices name (e.g. "Generic PnP Monitor"). Null if not found.
+        /// </summary>
+        public static string GetSdlDisplayName(Screen screen)
+        {
+            if (screen == null)
+                return null;
+
+            string name = GetMonitorFriendlyName(screen.DeviceName);
+            return string.IsNullOrEmpty(name) ? GetMonitorName(screen) : name;
+        }
+
+        private static string GetMonitorFriendlyName(string deviceName)
+        {
+            IntPtr modes = IntPtr.Zero;
+
+            try
+            {
+                DISPLAYCONFIG_PATH_INFO[] paths;
+                uint pathCount, modeCount;
+                int rc;
+
+                do
+                {
+                    if (GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, out pathCount, out modeCount) != 0)
+                        return null;
+
+                    if (modes != IntPtr.Zero)
+                        Marshal.FreeHGlobal(modes);
+
+                    paths = new DISPLAYCONFIG_PATH_INFO[pathCount];
+                    modes = Marshal.AllocHGlobal((int)Math.Max(1, modeCount) * DISPLAYCONFIG_MODE_INFO_SIZE);
+
+                    rc = QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, ref pathCount, paths, ref modeCount, modes, IntPtr.Zero);
+                }
+                while (rc == ERROR_INSUFFICIENT_BUFFER);
+
+                if (rc != 0)
+                    return null;
+
+                for (int i = 0; i < pathCount; i++)
+                {
+                    var source = new DISPLAYCONFIG_SOURCE_DEVICE_NAME();
+                    source.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME;
+                    source.header.size = (uint)Marshal.SizeOf(typeof(DISPLAYCONFIG_SOURCE_DEVICE_NAME));
+                    source.header.adapterId = paths[i].targetInfo.adapterId;
+                    source.header.id = paths[i].sourceInfo.id;
+
+                    if (DisplayConfigGetDeviceInfo(ref source) != 0)
+                        return null;
+
+                    if (source.viewGdiDeviceName != deviceName)
+                        continue;
+
+                    var target = new DISPLAYCONFIG_TARGET_DEVICE_NAME();
+                    target.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
+                    target.header.size = (uint)Marshal.SizeOf(typeof(DISPLAYCONFIG_TARGET_DEVICE_NAME));
+                    target.header.adapterId = paths[i].targetInfo.adapterId;
+                    target.header.id = paths[i].targetInfo.id;
+
+                    return DisplayConfigGetDeviceInfo(ref target) == 0 ? target.monitorFriendlyDeviceName : null;
+                }
+            }
+            catch { }
+            finally
+            {
+                if (modes != IntPtr.Zero)
+                    Marshal.FreeHGlobal(modes);
+            }
+
+            return null;
+        }
+        #endregion
+
         public static int IndexOf(Screen screen, MonitorOrder order)
         {
             if (screen == null)
