@@ -109,7 +109,7 @@ namespace EmulatorLauncher
                             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                         break;
                     case "0":
-                        ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, path);
+                        ReshadeManager.UninstallReshader(ReshadeBezelType.d3d11, path);
                         if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
                             _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                         break;
@@ -761,12 +761,12 @@ namespace EmulatorLauncher
             if (ret == 1)
             {
                 ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
-                ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, _path);
+                ReshadeManager.UninstallReshader(ReshadeBezelType.d3d11, _path);
                 return 0;
             }
 
             ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, _path);
-            ReshadeManager.UninstallReshader(ReshadeBezelType.d3d9, _path);
+            ReshadeManager.UninstallReshader(ReshadeBezelType.d3d11, _path);
             return ret;
         }
 

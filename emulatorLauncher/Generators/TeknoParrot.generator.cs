@@ -105,7 +105,6 @@ namespace EmulatorLauncher
             { "LGI",                             @"Sega Lets Go Island\LGI_RingW_F_safe.exe" },
             { "LGI3D",                           @"Sega Lets Go Island 3D\LGI.exe" },
             { "LGJ",                             @"lets go jungle\disk0\lgj1920" },
-            { "LGJS - Copie",                    @"Lets Go Jungle Special\lgjsp_app" },
             { "LGJS",                            @"Lets Go Jungle Special\lgjsp_app" },
             { "LGS",                             @"Let's Go Safari\GameSampR_RingWide.exe" },
             { "LuigisMansion",                   @"Luigi's Mansion Arcade\exe\x64\VACUUM.exe" },
@@ -200,12 +199,39 @@ namespace EmulatorLauncher
             else if (core == "chihiro")
                 _chihiro = true;
 
+            // Namco 357/369: TeknoParrot RPCS3 needs the PS3 firmware, install it from bios folder if missing
+            if (_namco3xx)
+            {
+                string rpcs3Exe = Path.Combine(path, "RPCS3", "rpcs3.exe");
+                string firmware = Path.Combine(path, "RPCS3", "dev_flash", "vsh", "etc", "version.txt");
+                string biosPs3 = Path.Combine(AppConfig.GetFullPath("bios"), "PS3UPDAT.PUP");
+
+                if (!File.Exists(rpcs3Exe))
+                    return new ProcessStartInfo() { FileName = "WARNING", Arguments = "TeknoParrot RPCS3 is not installed.\r\nPlease start TeknoParrot and install the RPCS3 component from the updates." };
+
+                if (!File.Exists(firmware))
+                {
+                    if (!File.Exists(biosPs3))
+                        return new ProcessStartInfo() { FileName = "WARNING", Arguments = "PS3 firmware is not installed in TeknoParrot RPCS3.\r\nPlease place PS3UPDAT.PUP in the bios folder." };
+
+                    SimpleLogger.Instance.Info("[INFO] TeknoParrot RPCS3 firmware not installed, installing it from bios folder.");
+                    return new ProcessStartInfo()
+                    {
+                        FileName = rpcs3Exe,
+                        WorkingDirectory = Path.GetDirectoryName(rpcs3Exe),
+                        Arguments = "--installfw " + StringExtensions.QuoteString(biosPs3),
+                    };
+                }
+            }
+
+            // Game name from the rom: a mounted archive becomes a drive letter
+            string gameName = Path.GetFileNameWithoutExtension(rom);
+
             if (!_namco2x6)
                 rom = this.TryUnZipGameIfNeeded(system, rom);
 
             bool fullscreen = ShouldRunFullscreen();
 
-            string gameName = Path.GetFileNameWithoutExtension(rom);
             SimpleLogger.Instance.Info("[INFO] Game name : " + gameName);
 
             GameProfile profile = FindGameProfile(path, rom, gameName, _triforce, _namco2x6, _namco3xx, _chihiro);
@@ -514,8 +540,8 @@ namespace EmulatorLauncher
                     apm3id.FieldValue = rbapm3id;
             }
 
-            // Other options
-            var hideCursor = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "HideCursor");
+            // Other options (field is named "Hide Cursor" in some profiles, RPCS3 games included)
+            var hideCursor = userProfile.ConfigValues.FirstOrDefault(c => c.FieldName == "HideCursor" || c.FieldName == "Hide Cursor");
             if (hideCursor != null)
             {
                 if (SystemConfig.isOptSet("tp_display_cursor") && SystemConfig.getOptBoolean("tp_display_cursor"))
@@ -685,11 +711,9 @@ namespace EmulatorLauncher
             {
                 ParrotData data = new ParrotData();
 
-                if (!data.SilentMode || data.ConfirmExit)
-                {
-                    data.SilentMode = true;
-                    data.ConfirmExit = false;
-                }
+                // Same values as when ParrotData.xml exists
+                data.SilentMode = !Program.SystemConfig.getOptBoolean("tp_notsilent");
+                data.ConfirmExit = false;
 
                 if (Program.SystemConfig.isOptSet("tp_stooz") && !string.IsNullOrEmpty(Program.SystemConfig["tp_stooz"]))
                 {
@@ -900,7 +924,8 @@ namespace EmulatorLauncher
 
         private static GameProfile FindGameProfile(string path, string romPath, string gameName, bool triforce = false, bool namco2x6 = false, bool namco3xx = false, bool chihiro = false)
         {
-            string currentFolderName = Path.GetFileNameWithoutExtension(romPath);
+            // Name of the game folder or archive (romPath can be the drive letter of a mounted archive)
+            string currentFolderName = gameName;
 
             if (GetProfileFromYml(gameName, out string ymlProfileName))
             {

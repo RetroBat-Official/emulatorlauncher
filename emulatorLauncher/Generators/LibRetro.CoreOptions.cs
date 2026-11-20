@@ -2186,9 +2186,29 @@ namespace EmulatorLauncher.Libretro
                 }
             }
             else
+            {
+                // Core default for moving, slower turning
+                coreSettings["ecwolf-analog-move-sensitivity"] = "20";
                 coreSettings["ecwolf-analog-turn-sensitivity"] = "10";
+            }
+
+            // Mouse turn sensitivity (Off, 1 to 20, core default 10)
+            if (SystemConfig.isOptSet("ecwolf_mouse_sensitivity") && !string.IsNullOrEmpty(SystemConfig["ecwolf_mouse_sensitivity"]))
+            {
+                string mouse = SystemConfig["ecwolf_mouse_sensitivity"].ToIntegerString();
+                coreSettings["ecwolf-mouse-turn-sensitivity"] = mouse == "0" ? "Off" : mouse;
+            }
+            else
+                coreSettings["ecwolf-mouse-turn-sensitivity"] = "10";
 
             BindBoolFeature(coreSettings, "ecwolf-alwaysrun", "ecwolf_run", "enabled", "disabled");
+
+            // Keyboard + mouse: give the whole keyboard to the core (Scroll Lock toggles the hotkeys back) and grab the mouse, the gamepad still works
+            if (SystemConfig.getOptBoolean("ecwolf_kbmouse"))
+            {
+                retroarchConfig["input_auto_game_focus"] = "1";
+                retroarchConfig["input_auto_mouse_grab"] = "true";
+            }
         }
 
         private void ConfigureEmuscv(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -4745,7 +4765,7 @@ namespace EmulatorLauncher.Libretro
             // RSP : LLE for ParaLLEl-RDP, HLE for GLideN64 and Angrylion
             coreSettings["mupen64plus-rsp-plugin"] = (rdpPlugin == "parallel") ? "parallel" : "hle";
 
-            BindFeature(coreSettings, "mupen64plus-cpucore", "mupen64plus-cpucore", "pure_interpreter");
+            BindFeature(coreSettings, "mupen64plus-cpucore", "mupen64plus-cpucore", "dynamic_recompiler");
             BindBoolFeature(coreSettings, "mupen64plus-Framerate", "mupen64plus_framerate", "Fullspeed", "Original");
             
             BindFeature(coreSettings, "mupen64plus-CountPerOp", "mupen64plus-CountPerOp", "0");
@@ -6720,8 +6740,8 @@ namespace EmulatorLauncher.Libretro
             // user interface
             BindBoolFeature(coreSettings, "vitaquakeii_fps", "vitaquakeii_fps", "enabled", "disabled");
 
-            // Controls
-            BindBoolFeatureOn(coreSettings, "vitaquakeii_invert_y_axis", "vitaquakeii_invert_y_axis", "enabled", "disabled");
+            // Controls (the core inverts the Y axis when vitaquakeii_invert_y_axis is disabled)
+            BindBoolFeature(coreSettings, "vitaquakeii_invert_y_axis", "vitaquakeii_invert_y_axis", "disabled", "enabled");
             BindFeatureSlider(coreSettings, "vitaquakeii_analog_deadzone", "vitaquakeii_analog_deadzone", "15");
             BindBoolFeature(coreSettings, "vitaquakeii_rumble", "vitaquakeii_rumble", "enabled", "disabled");
             BindBoolFeature(coreSettings, "vitaquakeii_aimfix", "vitaquakeii_aimfix", "enabled","disabled");
@@ -6745,6 +6765,9 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "X1_RESOLUTE", "x1_resolute", "LOW");
             BindFeature(coreSettings, "X1_ROMTYPE", "x1_romtype", "X1");
             BindFeature(coreSettings, "X1_KEY_MODE", "x1_keymode", "Keyboard");
+
+            // Joystick button 1 (main fire) is read on RetroPad A (east): "Joy Reverse" puts it on south, like px68k and XM6
+            coreSettings["X1_BTN_MODE"] = "ON";
         }
 
         private void ConfigureYabause(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

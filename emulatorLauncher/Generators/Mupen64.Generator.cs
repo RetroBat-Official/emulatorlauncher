@@ -79,7 +79,11 @@ namespace EmulatorLauncher
 
             if (fullscreen)
             {
-                if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                // ReShade must match the video plugin: parallel presents with Vulkan, GLideN64 and angrylion with OpenGL
+                bool useVulkan = SystemConfig["gfxplugin"] == "parallel";
+                ReshadeManager.UninstallReshader(useVulkan ? ReshadeBezelType.opengl : ReshadeBezelType.vulkan, path);
+
+                if (!ReshadeManager.Setup(useVulkan ? ReshadeBezelType.vulkan : ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
                     _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             }
 
@@ -606,6 +610,7 @@ namespace EmulatorLauncher
             bezel?.Dispose();
 
             ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
+            ReshadeManager.UninstallReshader(ReshadeBezelType.vulkan, path.WorkingDirectory);
 
             return ret;
         }

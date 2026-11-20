@@ -26,8 +26,12 @@ namespace EmulatorLauncher
             if (!File.Exists(exe))
                 return null;
 
-            //Applying bezels
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+            //Applying bezels: ReShade needs the OpenGL display driver
+            bool softwareVideo = SystemConfig.isOptSet("mgba_renderer") && SystemConfig.getOptBoolean("mgba_renderer");
+            if (softwareVideo)
+                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
+
+            if (softwareVideo || !ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             _resolution = resolution;
@@ -145,11 +149,13 @@ namespace EmulatorLauncher
 
                 BindBoolIniFeature(ini, "ports.qt", "skipBios", "mgba_skipbios", "1", "0");
 
-                // Drivers
-                if (SystemConfig.isOptSet("mgba_renderer") && SystemConfig.getOptBoolean("mgba_renderer"))
-                    ini.WriteValue("ports.qt", "hwaccelVideo", "0");
-                else
-                    ini.WriteValue("ports.qt", "hwaccelVideo", "1");
+                // Drivers: OPENGL = OpenGL display + hardware renderer, SOFTWARE = Qt display + software renderer
+                bool softwareVideo = SystemConfig.isOptSet("mgba_renderer") && SystemConfig.getOptBoolean("mgba_renderer");
+                ini.WriteValue("ports.qt", "hwaccelVideo", softwareVideo ? "0" : "1");
+
+                // The display driver is stored in qt.ini (0 = Qt software, 1 = OpenGL)
+                using (var qtIni = new IniFile(Path.Combine(path, "qt.ini")))
+                    qtIni.WriteValue("General", "displayDriver", softwareVideo ? "0" : "1");
 
                 // Internal resolution
                 BindIniFeature(ini, "ports.qt", "videoScale", "internal_resolution", "4");

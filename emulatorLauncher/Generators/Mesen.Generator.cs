@@ -43,13 +43,13 @@ namespace EmulatorLauncher
                 }
             }
 
-            // settings (xml configuration)
-            SetupJsonConfiguration(path, system, rom);
-
             if (fullscreen)
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             _resolution = resolution;
-            
+
+            // settings (xml configuration)
+            SetupJsonConfiguration(path, system, rom);
+
 
             // command line parameters
             var commandArray = new List<string>
@@ -192,7 +192,8 @@ namespace EmulatorLauncher
             BindBoolFeatureOn(video, "VerticalSync", "mesen_vsync");
             BindFeatureSliderInt(video, "ScanlineIntensity", "mesen_scanlines", "0");
             BindBoolFeature(video, "FullscreenForceIntegerScale", "integerscale");
-            if (SystemConfig.getOptBoolean("exclusivefs"))
+            // The overlay bezel cannot be displayed over an exclusive fullscreen
+            if (SystemConfig.getOptBoolean("exclusivefs") && _bezelFileInfo == null)
                 video["UseExclusiveFullscreen"] = true;
             else
                 video["UseExclusiveFullscreen"] = false;

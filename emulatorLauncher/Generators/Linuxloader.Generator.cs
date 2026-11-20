@@ -186,34 +186,39 @@ namespace EmulatorLauncher
         {
             if (File.Exists(rom))
                 return Path.GetDirectoryName(rom);
-            
-            else if (Directory.Exists(rom))
-            {
-                string gamesConfig = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "tools", "linuxloaderconfig.yml");
-                if (File.Exists(gamesConfig))
-                {
-                    try 
-                    {
-                        var knownGames = ParseLauncherPaths(gamesConfig);
-                        string gameName = Path.GetFileNameWithoutExtension(rom);
-                        string launcherPath = knownGames.TryGetValue(gameName, out var p) ? p : null;
 
-                        if (string.IsNullOrEmpty(launcherPath))
-                            return Path.Combine(rom, "disk0");
-                        else
-                            return Path.Combine(rom, "disk0", launcherPath);
-                    }
-                    catch 
-                    { 
-                        SimpleLogger.Instance.Error("[ERROR] Unable to parse linuxloaderconfig.yml file.");
-                        return Path.Combine(rom, "disk0");
-                    }
-                }
-                else
-                    return Path.Combine(rom, "disk0");
-            }
-            else
+            if (!Directory.Exists(rom))
                 return string.Empty;
+
+            string launcherPath = null;
+            string gamesConfig = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "tools", "linuxloaderconfig.yml");
+            if (File.Exists(gamesConfig))
+            {
+                try
+                {
+                    var knownGames = ParseLauncherPaths(gamesConfig);
+                    knownGames.TryGetValue(Path.GetFileNameWithoutExtension(rom), out launcherPath);
+                }
+                catch { SimpleLogger.Instance.Error("[ERROR] Unable to parse linuxloaderconfig.yml file."); }
+            }
+
+            // Standard dump (disk0\<launcher path>) first, then game files directly in the .game folder
+            var candidates = new List<string>();
+            string disk0 = Path.Combine(rom, "disk0");
+
+            if (!string.IsNullOrEmpty(launcherPath))
+            {
+                candidates.Add(Path.Combine(disk0, launcherPath));
+                candidates.Add(Path.Combine(rom, launcherPath));
+            }
+
+            candidates.Add(disk0);
+            candidates.Add(rom);
+
+            string gamePath = candidates.First(Directory.Exists);
+            SimpleLogger.Instance.Info("[Generator] Game path: " + gamePath);
+
+            return gamePath;
         }
 
         private void SetupConfiguration(string conf, List<string> commandArray, string gamePath, bool fullscreen)

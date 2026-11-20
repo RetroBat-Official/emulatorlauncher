@@ -26,8 +26,8 @@ namespace EmulatorLauncher
             // Get mod to apply if any (must be put in rom file first line)
             string mod = null;
             var lines = File.ReadAllLines(rom);
-            if (lines.Length > 0)
-                mod = lines[0];
+            if (lines.Length > 0 && !string.IsNullOrWhiteSpace(lines[0]))
+                mod = lines[0].Trim();
 
             SetupForceEngine(rom, path);
 

@@ -67,7 +67,7 @@ namespace EmulatorLauncher
                 using (var ini = new IniFile(configPath, IniOptions.KeepEmptyLines | IniOptions.UseSpaces))
                 {
                     BindIniFeature(ini, "", "machine", "oricutron_machine", "atmos");
-                    BindIniFeature(ini, "", "rendermode", "oricutron_rendermode", "atmos");
+                    BindIniFeature(ini, "", "rendermode", "oricutron_rendermode", "soft");
                     BindBoolIniFeature(ini, "", "aratio", "oricutron_aratio", "yes", "no");
                     BindBoolIniFeature(ini, "", "scanlines", "oricutron_scanlines", "yes", "no");
                     BindBoolIniFeature(ini, "", "hstretch", "oricutron_hstretch", "yes", "no");

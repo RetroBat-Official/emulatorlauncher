@@ -38,8 +38,8 @@ namespace EmulatorLauncher
                 kbHotkeyFile = Path.Combine(Program.AppConfig.GetFullPath("retrobat"), "system", "resources", "inputmapping", "kb_hotkeys.yml");
             if (!File.Exists(kbHotkeyFile))
                 return false;
-            
-            string dicPath = Path.Combine(Program.AppConfig.GetFullPath("emulationstation"), "resources");
+
+            string dicPath = Path.Combine(Program.LocalPath, "resources");
             bool emuDicExists = GetEmulatorDic(dicPath, emulator, out var hotkeyDic);
 
             if (emulator != "retroarch" && !emuDicExists)

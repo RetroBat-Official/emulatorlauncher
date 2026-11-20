@@ -26,6 +26,7 @@ namespace EmulatorLauncher.Libretro
             "snes", "snes-msu", "snes-msu1", "superfamicom", "satellaview", "sufami", "sgb", "sgb-msu1", "sfc" };
         static readonly List<string> systemButtonRotate = new List<string>() { "famicom", "nes", "fds", "mastersystem", "gamegear", "sg1000" };
         static readonly List<string> systemMegadrive = new List<string>() { "genesis", "genesis-msu", "megadrive", "megacd", "megadrive-msu", "sega32x", "segacd" };
+        static readonly List<string> systemMSX = new List<string>() { "msx1", "msx2", "msx2+", "msxturbor" };
         static readonly List<string> systemNES = new List<string>() { "nes", "fds", "famicom" };
         static readonly List<string> systemN64 = new List<string>() { "n64", "n64dd" };
         static readonly List<string> systemFBneo = new List<string>() { "cave", "cps1", "cps2", "cps3", "fbneo", "neogeo" };
@@ -859,6 +860,15 @@ namespace EmulatorLauncher.Libretro
                     inputremap["input_player" + i + "_btn_b"] = "8";
                     inputremap["input_player" + i + "_btn_x"] = "1";
                     inputremap["input_player" + i + "_btn_y"] = "9";
+                }
+                #endregion
+
+                #region msx
+                // blueMSX reads trigger A on RetroPad A: put it on south like openMSX (not for the keyboard map mode of player 1)
+                if (core == "bluemsx" && systemMSX.Contains(system) && !(i == 1 && Program.SystemConfig["bluemsx_controller1"] == "513"))
+                {
+                    inputremap["input_player" + i + "_btn_a"] = "0";
+                    inputremap["input_player" + i + "_btn_b"] = "8";
                 }
                 #endregion
             }

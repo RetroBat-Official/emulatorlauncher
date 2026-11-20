@@ -115,8 +115,8 @@ namespace EmulatorLauncher
             if (inputAPI != null && inputAPI.FieldValue == "XInput" && c1.IsXInputDevice)
                 SimpleLogger.Instance.Info("[INFO] Controller for player 1 has XInput index " + c1.XInput.DeviceIndex.ToString());
 
-            // Default mapping must follow the API actually written in the profile (forced driver included)
-            bool useXInput = (inputAPI == null || inputAPI.FieldValue == "MergedInput") ? xInput : inputAPI.FieldValue == "XInput";
+            // Mapping must follow the API used by TeknoParrot: DirectInput when the profile has no "Input API" field, both APIs for MergedInput
+            bool useXInput = inputAPI == null ? false : inputAPI.FieldValue == "MergedInput" ? xInput : inputAPI.FieldValue == "XInput";
 
             // Look for number of players based on string search in userprofile file (Px, Player x)
             playerNumber = GetNumberOfPlayers(userProfile);
@@ -251,25 +251,22 @@ namespace EmulatorLauncher
                                     }
                             }
 
-                            if (inputAPI != null && ymlButtonMapping.ContainsKey(value))
+                            // Same API as the default mapping (useXInput)
+                            if (enumExists && ymlButtonMapping.ContainsKey(value))
                             {
-                                if (inputAPI.FieldValue == "DirectInput")
-                                {
-                                    ymlButtonMapping["north"] = InputKey.y;
-                                    ymlButtonMapping["west"] = InputKey.x;
-                                }
                                 input = ymlButtonMapping[value];
-                                if (enumExists)
+
+                                if (useXInput)
+                                    ImportXInputButton(userProfile, c, input, "no", inputEnum);
+                                else
                                 {
-                                    switch (inputAPI.FieldValue)
-                                    {
-                                        case "XInput":
-                                            ImportXInputButton(userProfile, c, input, "no", inputEnum);
-                                            break;
-                                        case "DirectInput":
-                                            ImportDirectInputButton(userProfile, c, input, inputEnum);
-                                            break;
-                                    }
+                                    // North and west are swapped in DirectInput
+                                    if (input == InputKey.x)
+                                        input = InputKey.y;
+                                    else if (input == InputKey.y)
+                                        input = InputKey.x;
+
+                                    ImportDirectInputButton(userProfile, c, input, inputEnum);
                                 }
                             }
                         }

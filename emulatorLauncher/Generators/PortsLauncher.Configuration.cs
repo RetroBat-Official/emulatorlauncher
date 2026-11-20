@@ -283,6 +283,16 @@ namespace EmulatorLauncher
 
             if (SystemConfig.isOptSet("bsyndrome_aspect") && !string.IsNullOrEmpty(SystemConfig["bsyndrome_aspect"]))
                 commandArray.Add("--widescreen=" + SystemConfig["bsyndrome_aspect"]);
+
+            // bs.exe reads gamecontrollerdb.txt from its working folder: copy the EmulationStation one
+            string esControllerDb = Path.Combine(Program.LocalPath, "gamecontrollerdb.txt");
+            string controllerDb = Path.Combine(_path, "gamecontrollerdb.txt");
+
+            if (File.Exists(esControllerDb) && (!File.Exists(controllerDb) || File.GetLastWriteTimeUtc(esControllerDb) > File.GetLastWriteTimeUtc(controllerDb)))
+            {
+                try { File.Copy(esControllerDb, controllerDb, true); }
+                catch { SimpleLogger.Instance.Warning("[WARNING] Unable to copy gamecontrollerdb.txt to " + _path); }
+            }
         }
         #endregion
 
@@ -623,6 +633,15 @@ namespace EmulatorLauncher
                 try
                 {
                     iniHk.WriteValue("", "global_exitApp", "{[[alt]],[[f4]]}");
+
+                    // Gamepad mapping (system\padtokey\corsixth.keys) uses keypad keys, independent from the keyboard layout
+                    // L1 / R1 zoom, L2 held transparent walls, R2 held speed up. Game defaults are restored without auto configuration
+                    bool padKeys = !SystemConfig.getOptBoolean("disableautocontrollers");
+                    iniHk.WriteValue("", "ingame_zoom_out", padKeys ? "[[keypad -]]" : "[[-]]");
+                    iniHk.WriteValue("", "ingame_zoom_in", padKeys ? "[[keypad +]]" : "[[=]]");
+                    iniHk.WriteValue("", "ingame_setTransparent", padKeys ? "[[keypad /]]" : "[[x]]");
+                    iniHk.WriteValue("", "ingame_gamespeed_speedup", padKeys ? "[[keypad *]]" : "[[z]]");
+
                     iniHk.Save();
                 }
                 catch
@@ -2682,42 +2701,8 @@ namespace EmulatorLauncher
 
             string romPath = Path.GetDirectoryName(rom);
 
-            // Put the 2 emulator files in the rom folder (check versions)
-            string sourceGameExe = Path.Combine(_path, _exeName);
-            string targetGameExe = Path.Combine(romPath, _exeName);
-            string sourceDLL = Path.Combine(_path, "game.dll");
-            string targetDLL = Path.Combine(romPath, "game.dll");
-
-            if (!File.Exists(targetGameExe) || !File.Exists(targetDLL))
-            {
-                try
-                {
-                    File.Copy(sourceGameExe, targetGameExe, true);
-                    File.Copy(sourceDLL, targetDLL, true);
-                }
-                catch { }
-            }
-
-            // check versions
-            if (File.Exists(targetGameExe))
-            {
-                var sourceVersionInfo = FileVersionInfo.GetVersionInfo(sourceGameExe);
-                var targetVersionInfo = FileVersionInfo.GetVersionInfo(targetGameExe);
-                string sourceVersion = sourceVersionInfo.FileMajorPart + "." + sourceVersionInfo.FileMinorPart + "." + sourceVersionInfo.FileBuildPart + "." + sourceVersionInfo.FilePrivatePart;
-                string targetVersion = targetVersionInfo.FileMajorPart + "." + targetVersionInfo.FileMinorPart + "." + targetVersionInfo.FileBuildPart + "." + targetVersionInfo.FilePrivatePart;
-
-                if (sourceVersion != targetVersion)
-                {
-                    try
-                    {
-                        File.Copy(sourceGameExe, targetGameExe, true);
-                        File.Copy(sourceDLL, targetDLL, true);
-                    }
-                    catch { }
-                }
-            }
+            // RSDK reads Data.rsdk, Settings.ini and saves from the working directory: the game folder (game.dll is found next to the exe)
             _path = romPath;
-            exe = targetGameExe;
 
             // Settings
             string settingsFile = Path.Combine(romPath, "Settings.ini");
@@ -2777,6 +2762,8 @@ namespace EmulatorLauncher
 
                 ini.Save();
             }
+
+            ConfigureRsdkMods(romPath, "sonicmania_mods");
         }
 
         private void ConfigureSonicRetro(string rom, string exe)
@@ -2784,91 +2771,11 @@ namespace EmulatorLauncher
             if (_emulator != "sonicretro" && _emulator != "sonicretrocd")
                 return;
 
-            string[] rsdkv4Files = new string[] { "glew32.dll", "ogg.dll", "SDL2.dll", "vorbis.dll" };
-            string[] rsdkv3Files = new string[] { "glew32.dll", "ogg.dll", "SDL2.dll" };
             bool sonicCD = _emulator == "sonicretrocd";
             string romPath = Path.GetDirectoryName(rom);
 
-            // Put the emulator files in the rom folder (check versions)
-            string sourceGameExe = Path.Combine(_path, _exeName);
-            string targetGameExe = Path.Combine(romPath, _exeName);
-
-            if (!File.Exists(targetGameExe))
-            {
-                switch (_emulator)
-                {
-                    case "sonicretro":
-                        try
-                        {
-                            File.Copy(sourceGameExe, targetGameExe, true);
-                            foreach (string file in rsdkv4Files)
-                            {
-                                string sourceFile = Path.Combine(_path, file);
-                                string targetFile = Path.Combine(romPath, file);
-                                File.Copy(sourceFile, targetFile, true);
-                            }
-                        }
-                        catch { }
-                        break;
-                    case "sonicretrocd":
-                        try
-                        {
-                            File.Copy(sourceGameExe, targetGameExe, true);
-                            foreach (string file in rsdkv3Files)
-                            {
-                                string sourceFile = Path.Combine(_path, file);
-                                string targetFile = Path.Combine(romPath, file);
-                                File.Copy(sourceFile, targetFile, true);
-                            }
-                        }
-                        catch { }
-                        break;
-                }
-            }
-
-            // check versions
-            if (File.Exists(targetGameExe))
-            {
-                var sourceVersionInfo = FileVersionInfo.GetVersionInfo(sourceGameExe);
-                var targetVersionInfo = FileVersionInfo.GetVersionInfo(targetGameExe);
-                string sourceVersion = sourceVersionInfo.FileMajorPart + "." + sourceVersionInfo.FileMinorPart + "." + sourceVersionInfo.FileBuildPart + "." + sourceVersionInfo.FilePrivatePart;
-                string targetVersion = targetVersionInfo.FileMajorPart + "." + targetVersionInfo.FileMinorPart + "." + targetVersionInfo.FileBuildPart + "." + targetVersionInfo.FilePrivatePart;
-
-                if (sourceVersion != targetVersion)
-                {
-                    switch (_emulator)
-                    {
-                        case "sonicretro":
-                            try
-                            {
-                                File.Copy(sourceGameExe, targetGameExe, true);
-                                foreach (string file in rsdkv4Files)
-                                {
-                                    string sourceFile = Path.Combine(_path, file);
-                                    string targetFile = Path.Combine(romPath, file);
-                                    File.Copy(sourceFile, targetFile, true);
-                                }
-                            }
-                            catch { }
-                            break;
-                        case "sonicretrocd":
-                            try
-                            {
-                                File.Copy(sourceGameExe, targetGameExe, true);
-                                foreach (string file in rsdkv3Files)
-                                {
-                                    string sourceFile = Path.Combine(_path, file);
-                                    string targetFile = Path.Combine(romPath, file);
-                                    File.Copy(sourceFile, targetFile, true);
-                                }
-                            }
-                            catch { }
-                            break;
-                    }
-                }
-            }
+            // RSDK reads Data.rsdk, Settings.ini and saves from the working directory: the game folder
             _path = romPath;
-            exe = targetGameExe;
 
             var res = ScreenResolution.CurrentResolution;
 
@@ -2911,6 +2818,37 @@ namespace EmulatorLauncher
 
                 if (sonicCD)
                     ini.WriteValue("Game", "Platform", "0");
+
+                ini.Save();
+            }
+
+            ConfigureRsdkMods(romPath, "sonicretro_mods");
+        }
+
+        // RSDK mod loader (Sonic Retro, Sonic CD, Sonic Mania): mods are folders with a mod.ini in <game folder>\mods, enabled in mods\modconfig.ini
+        // ENABLE MODS (default on) enables every mod found, off disables them all; the existing load order is kept, new mods are added at the end
+        private void ConfigureRsdkMods(string gamePath, string feature)
+        {
+            string modsPath = Path.Combine(gamePath, "mods");
+            if (!Directory.Exists(modsPath))
+                return;
+
+            var mods = Directory.GetDirectories(modsPath)
+                .Where(d => File.Exists(Path.Combine(d, "mod.ini")))
+                .Select(d => Path.GetFileName(d))
+                .OrderBy(d => d, StringComparer.InvariantCultureIgnoreCase)
+                .ToList();
+
+            if (mods.Count == 0)
+                return;
+
+            bool enableMods = !SystemConfig.isOptSet(feature) || SystemConfig.getOptBoolean(feature);
+
+            using (var ini = IniFile.FromFile(Path.Combine(modsPath, "modconfig.ini")))
+            {
+                // Lower case section: RSDKv3 and RSDKv4 compare it exactly, RSDKv5 ignores the case
+                foreach (string mod in mods)
+                    ini.WriteValue("mods", mod, enableMods ? "true" : "false");
 
                 ini.Save();
             }
@@ -3142,64 +3080,6 @@ namespace EmulatorLauncher
             }
         }
 
-        // Quake engines: the base folder is the one holding the base game folder (id1, baseq2), searched from the rom path
-        private static string GetQuakeBaseDir(string rom, string baseGame, string systemFolder)
-        {
-            try
-            {
-                string dir = Path.GetDirectoryName(Path.GetFullPath(rom));
-                while (!string.IsNullOrEmpty(dir))
-                {
-                    if (Directory.Exists(Path.Combine(dir, baseGame)))
-                        return dir;
-
-                    dir = Path.GetDirectoryName(dir);
-                }
-            }
-            catch { }
-
-            return Path.Combine(Program.AppConfig.GetFullPath("roms"), systemFolder);
-        }
-
-        // Quake engines: the game folder is the first folder of the rom path below the base folder.
-        // A game file placed in the base folder (.quake, .quake2) gives the folder on its first line, otherwise its file name is used.
-        // Returns null for the base game.
-        private static string GetQuakeGameDir(string rom, string baseDir, string baseGame)
-        {
-            string game = null;
-
-            try
-            {
-                string romDir = Path.GetDirectoryName(Path.GetFullPath(rom)).TrimEnd('\\') + "\\";
-                string root = Path.GetFullPath(baseDir).TrimEnd('\\') + "\\";
-
-                if (romDir.StartsWith(root, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (romDir.Length > root.Length)
-                        game = romDir.Substring(root.Length).Split('\\')[0];
-                    else if (!Path.GetExtension(rom).Equals(".pak", StringComparison.OrdinalIgnoreCase))
-                    {
-                        string line = null;
-                        if (new FileInfo(rom).Length < 4096)
-                            line = File.ReadAllLines(rom).Select(l => l.Trim()).FirstOrDefault(l => l.Length > 0);
-
-                        string fileName = Path.GetFileNameWithoutExtension(rom);
-
-                        if (!string.IsNullOrEmpty(line) && line.IndexOfAny(Path.GetInvalidFileNameChars()) < 0 && Directory.Exists(Path.Combine(root, line)))
-                            game = line;
-                        else if (Directory.Exists(Path.Combine(root, fileName)))
-                            game = fileName;
-                    }
-                }
-            }
-            catch { }
-
-            if (string.IsNullOrEmpty(game) || game.Equals(baseGame, StringComparison.OrdinalIgnoreCase))
-                return null;
-
-            return game;
-        }
-
         // Quake engines: "+cvar value" on the command line
         private static void AddQuakeCvar(List<string> commandArray, string cvar, string value)
         {
@@ -3221,9 +3101,17 @@ namespace EmulatorLauncher
             // Copy emulator to roms folder
             CopyFolderContent(_path, rompath);
 
-            // Set environment variable for xash3d base directory
-            Environment.SetEnvironmentVariable("XASH3D_BASEDIR", rompath, EnvironmentVariableTarget.User);
-            
+            // Base directory passed to the game process only
+            _environmentVariables["XASH3D_BASEDIR"] = rompath;
+
+            // Remove the User-level variable written by previous RetroBat versions
+            try
+            {
+                if (Environment.GetEnvironmentVariable("XASH3D_BASEDIR", EnvironmentVariableTarget.User) != null)
+                    Environment.SetEnvironmentVariable("XASH3D_BASEDIR", null, EnvironmentVariableTarget.User);
+            }
+            catch { }
+
             if (_fullscreen && _exclusivefs)
                 commandArray.Add("-fullscreen");
             else if (_fullscreen)
@@ -3231,7 +3119,12 @@ namespace EmulatorLauncher
             else
                 commandArray.Add("-windowed");
 
+            // Game folder = name of the .game file, a "Half-Life" name starts the base game (valve folder)
             string game = Path.GetFileNameWithoutExtension(rom);
+            string gameLower = game.ToLowerInvariant();
+            if (gameLower.Contains("half") && gameLower.Contains("life"))
+                game = "valve";
+
             commandArray.Add("-game");
             commandArray.Add(game);
 
@@ -3239,10 +3132,7 @@ namespace EmulatorLauncher
             var width = _resolution == null ? ScreenResolution.CurrentResolution.Width : _resolution.Width;
 
             // Config file
-            string cfgSubPath = Path.Combine(rompath, "valve");
-
-            if (!game.ToLowerInvariant().Contains("life") || !game.ToLowerInvariant().Contains("half"))
-                cfgSubPath = Path.Combine(rompath, game);
+            string cfgSubPath = Path.Combine(rompath, game);
 
             string videoConf = Path.Combine(cfgSubPath, "video.cfg");
             var vcfg = new QuakeConfig(videoConf);
@@ -3293,10 +3183,8 @@ namespace EmulatorLauncher
             string oglConf = Path.Combine(cfgSubPath, "opengl.cfg");
             var glcfg = new QuakeConfig(oglConf);
 
-            if (SystemConfig.getOptBoolean("smooth"))
-                glcfg["gl_texture_nearest"] = "1";
-            else
-                glcfg["gl_texture_nearest"] = "0";
+            // gl_texture_nearest disables the texture filter
+            glcfg["gl_texture_nearest"] = SystemConfig.isOptSet("smooth") && !SystemConfig.getOptBoolean("smooth") ? "1" : "0";
 
             glcfg.Save();
         }

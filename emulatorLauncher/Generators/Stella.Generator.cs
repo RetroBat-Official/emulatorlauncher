@@ -46,10 +46,9 @@ namespace EmulatorLauncher
 
             if (!stretch)
             {
-                if (SystemConfig["stella_renderer"] != "opengl")
+                // ReShade for OpenGL, overlay bezel for the other renderers or when ReShade is not available
+                if (SystemConfig["stella_renderer"] != "opengl" || !ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
                     _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-                else
-                    ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator);
             }
             else
                 SystemConfig["forceNoBezel"] = "1";

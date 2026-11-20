@@ -38,12 +38,14 @@ namespace EmulatorLauncher
             { "pinballfx3", "442120" },
             { "pinballm",   "2337640" }
         };
+        // Exe names (current Steam name first, then older names and other stores) and Unreal Engine game process.
+        // Case does not matter (File.Exists, Process.GetProcessesByName).
         private static readonly Dictionary<string, List<string>> _fallbackExeNames = new Dictionary<string, List<string>>()
         {
-            { "pinballfx",  new List<string> { "PinballFX", "Pinball FX", "pinballFX", "pinballfx", "Pinball Fx", "Pinball_FX", "PinballFX-Win64-Shipping" } },
+            { "pinballfx",  new List<string> { "PinballFX", "Pinball FX", "Pinball_FX", "PinballFX-Win64-Shipping" } },
             { "pinballfx2", new List<string> { "Pinball FX2", "PinballFX2", "Pinball_FX2" } },
-            { "pinballfx3", new List<string> { "Pinball FX3", "PinballFX3", "Pinball_FX3", "Pinball FX Classic" } },
-            { "pinballm",   new List<string> { "PinballM", "Pinball M", "Pinball FX Midnight", "PinballM-Win64-Shipping" } }
+            { "pinballfx3", new List<string> { "Pinball FX Classic", "Pinball FX3", "PinballFX3", "Pinball_FX3" } },
+            { "pinballm",   new List<string> { "Pinball FX Midnight", "Pinball M", "PinballM", "PinballM-Win64-Shipping" } }
         };
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -72,22 +74,16 @@ namespace EmulatorLauncher
                 commandArray.Add("-silent");
                 commandArray.Add("-applaunch");
 
-                if (system == "pinballfx")
-                    commandArray.Add("2328760");
-
-                if (system == "pinballfx2")
-                    commandArray.Add("226980");
-
-                if (system == "pinballfx3")
-                    commandArray.Add("442120");
-
-                if (system == "pinballm")
-                    commandArray.Add("2337640");
+                if (_steamAppIds.TryGetValue(system, out string appId))
+                    commandArray.Add(appId);
             }
 
             if (core == "hack" || core == "nonsteam")
             {
+                // Game folder: <system> key of emulatorLauncher.cfg if any, otherwise emulators\<system>
                 path = AppConfig.GetFullPath(system);
+                if (string.IsNullOrEmpty(path))
+                    path = Path.Combine(AppConfig.GetFullPath("retrobat"), "emulators", system);
                 exe = _exenames
                     .Select(name => Path.Combine(path, name + ".exe"))
                     .FirstOrDefault(File.Exists) ?? Path.Combine(path, _exename + ".exe");
@@ -100,12 +96,11 @@ namespace EmulatorLauncher
                 if (!File.Exists(rom) || Path.GetExtension(rom).ToLower() != ".table")
                     return null;
 
-                string[] lines = File.ReadAllLines(rom);
-                if (lines.Length == 0)
-                    return null;
-
-                rom = lines[0];
-                int tableId = rom.ToInteger();
+                // First non-empty line of the .table file = table number
+                string firstLine = File.ReadAllLines(rom).Select(l => l.Trim()).FirstOrDefault(l => l.Length > 0);
+                int tableId;
+                if (firstLine == null || !int.TryParse(firstLine, out tableId) || tableId <= 0)
+                    throw new ApplicationException("'" + Path.GetFileName(rom) + "' must contain the table number on its first line.");
 
                 commandArray.Add("-Table" + " " + tableId);
 
@@ -148,10 +143,15 @@ namespace EmulatorLauncher
                 commandArray.Add("-table_" + Path.GetFileNameWithoutExtension(rom));
             }
 
-            string args = string.Join(" ", commandArray);           
+            string args = string.Join(" ", commandArray);
 
             if (!File.Exists(exe) || !pinballfxsystems.Contains(system))
-                throw new ApplicationException("There is a problem: The Game is not installed");
+            {
+                if (core == "steam")
+                    throw new ApplicationException("Steam is not installed.");
+
+                throw new ApplicationException("Game not found: copy it in '" + path + "' (" + Path.GetFileName(exe) + ").");
+            }
 
             return new ProcessStartInfo()
             {

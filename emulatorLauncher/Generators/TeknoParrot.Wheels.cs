@@ -808,9 +808,10 @@ namespace EmulatorLauncher
                 Controller p1Controller = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1 && !c.IsKeyboard && c.DeviceIndex != w1.ControllerIndex);
                 if (p1Controller != null)
                 {
-                    ImportDirectInputButton(userProfile, p1Controller, InputKey.l3, InputMapping.Test, InputMapping.JvsTwoTest);
-                    ImportDirectInputButton(userProfile, p1Controller, InputKey.r3, InputMapping.Service1, InputMapping.JvsTwoService1);
-                    SimpleLogger.Instance.Info("[WHEELS] Mapped Test/Service to P1 Controller L3/R3");
+                    // RetroBat standard: Test on R3, Service on L3
+                    ImportDirectInputButton(userProfile, p1Controller, InputKey.r3, InputMapping.Test, InputMapping.JvsTwoTest);
+                    ImportDirectInputButton(userProfile, p1Controller, InputKey.l3, InputMapping.Service1, InputMapping.JvsTwoService1);
+                    SimpleLogger.Instance.Info("[WHEELS] Mapped Test/Service to P1 Controller R3/L3");
                 }
             }
 
