@@ -1,4 +1,5 @@
 ﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Compression;
 using EmulatorLauncher.Common.FileFormats;
 using System;
 using System.Collections.Generic;
@@ -77,10 +78,30 @@ namespace EmulatorLauncher
             //setting up command line parameters
             var commandArray = new List<string>();
 
+            // openMSX cannot detect the media type inside an archive: extract the game first
+            string romFile = rom;
+            if (Zip.IsCompressedFile(rom))
+            {
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, true, false);
+                if (Directory.Exists(uncompressedRomPath))
+                {
+                    var romExtensions = msxMedias.SelectMany(m => m.Value).Concat(new string[] { ".col" }).ToList();
+                    string uncompressedRom = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories)
+                        .FirstOrDefault(f => romExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()));
+
+                    if (!string.IsNullOrEmpty(uncompressedRom))
+                    {
+                        romFile = uncompressedRom;
+                        ValidateUncompressedGame();
+                    }
+                }
+            }
+
             // Define type of rom
-            var romExtension = Path.GetExtension(rom);
-            
+            var romExtension = Path.GetExtension(romFile).ToLowerInvariant();
+
             string romtype = msxMedias.FirstOrDefault(x => x.Value.Contains(romExtension)).Key;
+            
             if (SystemConfig.isOptSet("altromtype") && !string.IsNullOrEmpty(SystemConfig["altromtype"]) && system != "colecovision")
                 romtype = "-" + SystemConfig["altromtype"];
 
@@ -237,8 +258,8 @@ namespace EmulatorLauncher
             // Add media type
             if (romtype != null)
             commandArray.Add(romtype);
-            
-            commandArray.Add("\"" + rom + "\"");
+
+            commandArray.Add("\"" + romFile + "\"");
 
             // Setup configuration and controllers (using tcl scripts)
             SetupConfiguration(sharePath, scriptspath, commandArray);

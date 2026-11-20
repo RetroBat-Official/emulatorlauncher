@@ -24,25 +24,38 @@ namespace EmulatorLauncher
                 IsProgIdRegistered("FlexDMD.FlexDMDObject");
         }
 
-        private static void EnsureDMDRegistered(string path)
+        private void EnsureDMDRegistered(string path)
         {
             try
             {
                 SimpleLogger.Instance.Info("[Generator] Ensuring DMD COM server is registered.");
 
-                if (IsAnyDmdRegistered())
-                    return;
-
                 string registerDMD = Path.Combine(path, "VPinMAME", "register_flex.bat");
-                if (!File.Exists(registerDMD))
-                    registerDMD = Path.Combine(path, "UltraDMD", "UltraDMD.exe");
-                if (!File.Exists(registerDMD))
-                    registerDMD = Path.Combine(path, "XDMD", "regUltraDMD.bat");
-                if (!File.Exists(registerDMD))
-                    registerDMD = Path.Combine(path, "XDMD", "UltraDMD.exe");
+                if (File.Exists(registerDMD))
+                {
+                    // FlexDMD and its UltraDMD replacement must be registered from this folder, for the VPX architecture
+                    var view = Kernel32.IsX64(_exe) ? RegistryViewEx.Registry64 : RegistryViewEx.Registry32;
 
-                if (!File.Exists(registerDMD))
-                    return;
+                    if (!ShouldRegisterDmdAssembly("FlexDMD.FlexDMD", Path.Combine(path, "VPinMAME", "FlexDMD.dll"), view) &&
+                        !ShouldRegisterDmdAssembly("UltraDMD.DMDObject", Path.Combine(path, "VPinMAME", "FlexUDMD.dll"), view))
+                        return;
+                }
+                else
+                {
+                    // Legacy UltraDMD : only when no DMD is registered at all
+                    if (IsAnyDmdRegistered())
+                        return;
+
+                    registerDMD = Path.Combine(path, "UltraDMD", "UltraDMD.exe");
+                    if (!File.Exists(registerDMD))
+                        registerDMD = Path.Combine(path, "XDMD", "regUltraDMD.bat");
+                    if (!File.Exists(registerDMD))
+                        registerDMD = Path.Combine(path, "XDMD", "UltraDMD.exe");
+                    if (!File.Exists(registerDMD))
+                        return;
+                }
+
+                SimpleLogger.Instance.Info("[Generator] Registering DMD with " + registerDMD);
 
                 var px = new Process();
                 px.StartInfo.Verb = "runas";
@@ -52,7 +65,8 @@ namespace EmulatorLauncher
                 if (Path.GetExtension(registerDMD).Equals(".bat", StringComparison.OrdinalIgnoreCase))
                 {
                     px.StartInfo.FileName = "cmd.exe";
-                    px.StartInfo.Arguments = $"/c \"{registerDMD}\"";
+                    // cmd removes the outer quotes : paths with spaces and ( ) & keep working
+                    px.StartInfo.Arguments = $"/c \"\"{registerDMD}\"\"";
                 }
                 else
                 {
@@ -63,7 +77,43 @@ namespace EmulatorLauncher
                 px.Start();
                 px.WaitForExit();
             }
-            catch { }
+            catch (Exception ex)
+            {
+                SimpleLogger.Instance.Warning("[Generator] DMD registration failed : " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// True when the COM class is not registered from this dll : not registered, other folder or other version.
+        /// </summary>
+        private static bool ShouldRegisterDmdAssembly(string progId, string dllPath, RegistryViewEx view)
+        {
+            try
+            {
+                // Nothing to register
+                if (!File.Exists(dllPath))
+                    return false;
+
+                var clsid = ReadRegistryValue(RegistryKeyEx.ClassesRoot, progId + @"\CLSID", null);
+                if (string.IsNullOrEmpty(clsid))
+                    return true;
+
+                var codeBase = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"CLSID\" + clsid + @"\InprocServer32", "CodeBase", view);
+                if (string.IsNullOrEmpty(codeBase))
+                    return true;
+
+                // Registered from another folder ?
+                if (!new Uri(codeBase).LocalPath.Equals(dllPath, StringComparison.InvariantCultureIgnoreCase))
+                    return true;
+
+                // Registered with another version ?
+                var assembly = ReadRegistryValue(RegistryKeyEx.ClassesRoot, @"CLSID\" + clsid + @"\InprocServer32", "Assembly", view);
+                return assembly != System.Reflection.AssemblyName.GetAssemblyName(dllPath).FullName;
+            }
+            catch
+            {
+                return true;
+            }
         }
 
         private bool ShouldRegisterBackglassServer(string path, RegistryViewEx view)

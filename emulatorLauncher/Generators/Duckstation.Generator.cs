@@ -72,7 +72,7 @@ namespace EmulatorLauncher
             }
 
             //Applying bezels
-            string renderer = "OpenGL";
+            string renderer = "Automatic";
             if (SystemConfig.isOptSet("gfxbackend") && !string.IsNullOrEmpty(SystemConfig["gfxbackend"]))
                 renderer = SystemConfig["gfxbackend"];
 
@@ -97,12 +97,22 @@ namespace EmulatorLauncher
                         }
                         break;
                     case "Vulkan":
+                        ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path);
+                        ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
+                        if (!ReshadeManager.Setup(ReshadeBezelType.vulkan, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+                        {
+                            _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+                            _useReshade = false;
+                        }
+                        break;
                     case "Software":
                         ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path);
                         ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
+                        ReshadeManager.UninstallReshader(ReshadeBezelType.vulkan, path);
                         _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
                         _useReshade = false;
                         break;
+                    case "Automatic": // D3D11 on Windows
                     case "D3D11":
                     case "D3D12":
                         ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
@@ -657,6 +667,7 @@ namespace EmulatorLauncher
 
             ReshadeManager.UninstallReshader(ReshadeBezelType.dxgi, path.WorkingDirectory);
             ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
+            ReshadeManager.UninstallReshader(ReshadeBezelType.vulkan, path.WorkingDirectory);
 
             return ret;
         }

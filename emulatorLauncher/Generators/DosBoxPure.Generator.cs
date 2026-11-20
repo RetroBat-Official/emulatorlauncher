@@ -58,6 +58,19 @@ namespace EmulatorLauncher
 
                 root["screen_fullscreen"] = fullscreen ? "true" : "false";
 
+                // Saves and save states in RetroBat saves folder (path_saves read since 1.0 Preview 6)
+                string savesPath = Path.Combine(AppConfig.GetFullPath("saves"), "dos", "dosbox-pure");
+                if (!Directory.Exists(savesPath))
+                {
+                    FileTools.TryCreateDirectory(savesPath);
+
+                    // First launch: copy existing saves from the emulator folder
+                    string oldSavesPath = Path.Combine(path, "saves");
+                    if (Directory.Exists(oldSavesPath))
+                        try { FileTools.CopyDirectory(oldSavesPath, savesPath, true, false); } catch { }
+                }
+                root["path_saves"] = savesPath;
+
                 // EMULATION
                 SetOrRemove(root, "dosbox_pure_conf", "dosbox_pure_conf", "false", "false");
                 SetOrRemove(root, "dosbox_pure_cycles", "dosbox_pure_cycles", "", "");
@@ -80,7 +93,12 @@ namespace EmulatorLauncher
                 SetOrRemove(root, "dosbox_pure_mouse_input", "dosbox_pure_mouse_input", "", "");
                 SetOrRemove(root, "dosbox_pure_keyboard_layout", "dosbox_pure_keyboard_layout", "us", "us");
                 SetOrRemove(root, "dosbox_pure_auto_mapping", "dosbox_pure_auto_mapping", "true", "true");
-                SetOrRemove(root, "dosbox_pure_interface_lockmouse", "interface_lockmouse", "false", "false");
+
+                // Lock the mouse to the window (switch option: 1 / 0)
+                if (SystemConfig.getOptBoolean("dosbox_pure_interface_lockmouse"))
+                    root["interface_lockmouse"] = "true";
+                else
+                    root.Remove("interface_lockmouse");
 
                 // VIDEO
                 SetOrRemove(root, "dosbox_pure_machine", "dosbox_pure_machine", "svga", "svga");

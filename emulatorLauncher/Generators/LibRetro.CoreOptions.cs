@@ -2186,9 +2186,29 @@ namespace EmulatorLauncher.Libretro
                 }
             }
             else
+            {
+                // Core default for moving, slower turning
+                coreSettings["ecwolf-analog-move-sensitivity"] = "20";
                 coreSettings["ecwolf-analog-turn-sensitivity"] = "10";
+            }
+
+            // Mouse turn sensitivity (Off, 1 to 20, core default 10)
+            if (SystemConfig.isOptSet("ecwolf_mouse_sensitivity") && !string.IsNullOrEmpty(SystemConfig["ecwolf_mouse_sensitivity"]))
+            {
+                string mouse = SystemConfig["ecwolf_mouse_sensitivity"].ToIntegerString();
+                coreSettings["ecwolf-mouse-turn-sensitivity"] = mouse == "0" ? "Off" : mouse;
+            }
+            else
+                coreSettings["ecwolf-mouse-turn-sensitivity"] = "10";
 
             BindBoolFeature(coreSettings, "ecwolf-alwaysrun", "ecwolf_run", "enabled", "disabled");
+
+            // Keyboard + mouse: give the whole keyboard to the core (Scroll Lock toggles the hotkeys back) and grab the mouse, the gamepad still works
+            if (SystemConfig.getOptBoolean("ecwolf_kbmouse"))
+            {
+                retroarchConfig["input_auto_game_focus"] = "1";
+                retroarchConfig["input_auto_mouse_grab"] = "true";
+            }
         }
 
         private void ConfigureEmuscv(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -2643,6 +2663,7 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "fceumm_swapduty", "fceumm_swapduty", "enabled", "disabled");
             BindFeature(coreSettings, "fceumm_sndrate_hint", "fceumm_sndrate_hint", "Auto");
 
+            // Controls
             BindFeature(coreSettings, "fceumm_turbo_delay", "fceumm_turbo_delay", "3");
             BindBoolFeature(coreSettings, "fceumm_show_crosshair", "fceumm_show_crosshair", "enabled", "disabled");
             BindFeature(coreSettings, "fceumm_zapper_mode", "gun_input", "clightgun");
@@ -2650,12 +2671,15 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "fceumm_zapper_trigger", "fceumm_zapper_trigger", "enabled", "disabled");
             BindBoolFeature(coreSettings, "fceumm_zapper_sensor", "fceumm_zapper_sensor", "enabled", "disabled");
 
-            // MULTI-TAP for 4 players
-            if (SystemConfig.isOptSet("fceumm_multitap") && SystemConfig.getOptBoolean("fceumm_multitap"))
+            // MULTI-TAP for 4 players: Four Score (ntsc, or legacy "on") or Famicom 4-player adapter
+            // The Famicom adapter (769) disables the Four Score in the core, so only set it when asked
+            string fceummAdapter = SystemConfig["fceumm_multitap"];
+            if (fceummAdapter == "ntsc" || fceummAdapter == "famicom" || SystemConfig.getOptBoolean("fceumm_multitap"))
             {
                 retroarchConfig["input_libretro_device_p3"] = "513";
                 retroarchConfig["input_libretro_device_p4"] = "513";
-                retroarchConfig["input_libretro_device_p5"] = "769";
+                if (fceummAdapter == "famicom")
+                    retroarchConfig["input_libretro_device_p5"] = "769";
                 retroarchConfig["input_max_users"] = "8";
             }
 
@@ -4602,7 +4626,7 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "mesen_fake_stereo", "fake_stereo", "enabled", "disabled");
             BindBoolFeature(coreSettings, "mesen_nospritelimit", "mesen_nospritelimit", "enabled", "disabled");
             BindFeature(coreSettings, "mesen_overclock", "mesen_overclock", "None");
-            BindBoolFeature(coreSettings, "mesen_fdsautoinsertdisk", "mesen_fdsautoinsertdisk", "enabled", "disabled");
+            BindBoolFeatureOn(coreSettings, "mesen_fdsautoinsertdisk", "mesen_fdsautoinsertdisk", "enabled", "disabled");
             BindBoolFeature(coreSettings, "mesen_fdsfastforwardload", "mesen_fdsfastforwardload", "enabled", "disabled");
             BindFeature(coreSettings, "mesen_controllerturbospeed", "mesen_nes_turbo", "Disabled");
 
@@ -4697,22 +4721,15 @@ namespace EmulatorLauncher.Libretro
 
             if (system == "n64dd")
             {
-                // Nintendo 64DD IPL bios selection workaround
-                // mupen64plus doesn't allow multiple bios selection and looks only for a IPL.n64 file in bios\mupen64plus
+                // mupen64plus only reads bios\Mupen64plus\IPL.n64 : copy the selected IPL (Japanese by default, region of all retail disks)
                 string biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus");
-                if (!string.IsNullOrEmpty(biosPath))
+                string biosFileSource = Path.Combine(biosPath, SystemConfig.GetValueOrDefault("ipl_bios", "IPL_JAP.n64"));
+                string biosFileTarget = Path.Combine(biosPath, "IPL.n64");
+
+                if (File.Exists(biosFileSource))
                 {
-                    string biosFileTarget = Path.Combine(biosPath, "IPL.n64");
-                    string biosFileSource = Path.Combine(biosPath, SystemConfig["ipl_bios"]);
-
-                    if (Features.IsSupported("ipl_bios") && SystemConfig.isOptSet("ipl_bios"))
-                    {
-                        if (File.Exists(biosFileTarget))
-                            File.Delete(biosFileTarget);
-
-                        if (File.Exists(biosFileSource))
-                            File.Copy(biosFileSource, biosFileTarget);
-                    }
+                    try { File.Copy(biosFileSource, biosFileTarget, true); }
+                    catch { }
                 }
             }
 
@@ -4748,7 +4765,7 @@ namespace EmulatorLauncher.Libretro
             // RSP : LLE for ParaLLEl-RDP, HLE for GLideN64 and Angrylion
             coreSettings["mupen64plus-rsp-plugin"] = (rdpPlugin == "parallel") ? "parallel" : "hle";
 
-            BindFeature(coreSettings, "mupen64plus-cpucore", "mupen64plus-cpucore", "pure_interpreter");
+            BindFeature(coreSettings, "mupen64plus-cpucore", "mupen64plus-cpucore", "dynamic_recompiler");
             BindBoolFeature(coreSettings, "mupen64plus-Framerate", "mupen64plus_framerate", "Fullspeed", "Original");
             
             BindFeature(coreSettings, "mupen64plus-CountPerOp", "mupen64plus-CountPerOp", "0");
@@ -5123,6 +5140,8 @@ namespace EmulatorLauncher.Libretro
             BindBoolFeature(coreSettings, "splitscreen_fs_assist", "splitscreen_fs_assist", "on", "off");
             BindBoolFeatureOn(coreSettings, "splitscreen_overlays", "splitscreen_overlays", "on", "off");
             BindFeature(coreSettings, "splitscreen_layout", "splitscreen_layout", "auto");
+            BindBoolFeatureOn(coreSettings, "splitscreen_audio_low_pass", "splitscreen_audio_low_pass", "on", "off");
+            BindBoolFeatureOn(coreSettings, "splitscreen_audio_limiter", "splitscreen_audio_limiter", "on", "off");
         }
 
         private void ConfigureMrBoom(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
@@ -5373,22 +5392,14 @@ namespace EmulatorLauncher.Libretro
             {
                 coreSettings["parallel-n64-64dd-hardware"] = "enabled";
 
-                // Nintendo 64DD IPL bios selection workaround
-                // Parallel core doesn't allow multiple bios selection and looks only for a 64DD_IPL.bin file in \bios folder
-                string biosPath = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus");
-                if (!string.IsNullOrEmpty(biosPath))
+                // The core only reads bios\64DD_IPL.bin : copy the selected IPL (Japanese by default, region of all retail disks)
+                string biosFileSource = Path.Combine(AppConfig.GetFullPath("bios"), "Mupen64plus", SystemConfig.GetValueOrDefault("ipl_bios", "IPL_JAP.n64"));
+                string biosFileTarget = Path.Combine(AppConfig.GetFullPath("bios"), "64DD_IPL.bin");
+
+                if (File.Exists(biosFileSource))
                 {
-                    string biosFileTarget = Path.Combine(AppConfig.GetFullPath("bios"), "64DD_IPL.bin");
-                    string biosFileSource = Path.Combine(biosPath, SystemConfig["ipl_bios"]);
-
-                    if (Features.IsSupported("ipl_bios") && SystemConfig.isOptSet("ipl_bios"))
-                    {
-                        if (File.Exists(biosFileTarget))
-                            File.Delete(biosFileTarget);
-
-                        if (File.Exists(biosFileSource))
-                            File.Copy(biosFileSource, biosFileTarget);
-                    }
+                    try { File.Copy(biosFileSource, biosFileTarget, true); }
+                    catch { }
                 }
             }
             else
@@ -5571,6 +5582,8 @@ namespace EmulatorLauncher.Libretro
                 coreSettings["picodrive_smstype"] = "Master System";
             else if (system == "gamegear")
                 coreSettings["picodrive_smstype"] = "Game Gear";
+            else if (system == "sg1000")
+                coreSettings["picodrive_smstype"] = "SG-1000";
             else
                 coreSettings["picodrive_smstype"] = "Auto";
 
@@ -6727,8 +6740,8 @@ namespace EmulatorLauncher.Libretro
             // user interface
             BindBoolFeature(coreSettings, "vitaquakeii_fps", "vitaquakeii_fps", "enabled", "disabled");
 
-            // Controls
-            BindBoolFeatureOn(coreSettings, "vitaquakeii_invert_y_axis", "vitaquakeii_invert_y_axis", "enabled", "disabled");
+            // Controls (the core inverts the Y axis when vitaquakeii_invert_y_axis is disabled)
+            BindBoolFeature(coreSettings, "vitaquakeii_invert_y_axis", "vitaquakeii_invert_y_axis", "disabled", "enabled");
             BindFeatureSlider(coreSettings, "vitaquakeii_analog_deadzone", "vitaquakeii_analog_deadzone", "15");
             BindBoolFeature(coreSettings, "vitaquakeii_rumble", "vitaquakeii_rumble", "enabled", "disabled");
             BindBoolFeature(coreSettings, "vitaquakeii_aimfix", "vitaquakeii_aimfix", "enabled","disabled");
@@ -6752,6 +6765,9 @@ namespace EmulatorLauncher.Libretro
             BindFeature(coreSettings, "X1_RESOLUTE", "x1_resolute", "LOW");
             BindFeature(coreSettings, "X1_ROMTYPE", "x1_romtype", "X1");
             BindFeature(coreSettings, "X1_KEY_MODE", "x1_keymode", "Keyboard");
+
+            // Joystick button 1 (main fire) is read on RetroPad A (east): "Joy Reverse" puts it on south, like px68k and XM6
+            coreSettings["X1_BTN_MODE"] = "ON";
         }
 
         private void ConfigureYabause(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

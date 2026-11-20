@@ -18,8 +18,10 @@ namespace EmulatorLauncher
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.ShowInTaskbar = false;
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.Load += OnLoaded;
         }
+
+        // Never take the focus from the emulator
+        protected override bool ShowWithoutActivation { get { return true; } }
 
         protected override void Dispose(bool disposing)
         {
@@ -34,12 +36,7 @@ namespace EmulatorLauncher
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         [Browsable(false)]
-        public FakeBezelBackgroundFrm FakeBackground { get; set; }        
-
-        void OnLoaded(object sender, EventArgs e)
-        {
-            this.TopMost = true;
-        }
+        public FakeBezelBackgroundFrm FakeBackground { get; set; }
 
         protected override CreateParams CreateParams
         {

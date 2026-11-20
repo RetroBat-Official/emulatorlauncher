@@ -10,6 +10,7 @@ namespace EmulatorLauncher
     partial class MagicEngineGenerator : Generator
     {
         private ScreenResolution _resolution;
+        private BezelFiles _bezelFileInfo;
         private bool _fullscreen;
 
         public MagicEngineGenerator()
@@ -40,9 +41,11 @@ namespace EmulatorLauncher
             SetupConfig(path, system);
             SetupControllers(path);
 
-            //Applying bezels
-            if (_fullscreen && SystemConfig["magicengine_renderer"] != "0")
-                ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x86, system, rom, path, resolution, emulator);
+            // Bezels: overlay window (ReShade is no longer used, remove the one installed by previous versions)
+            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path);
+
+            if (_fullscreen)
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             return new ProcessStartInfo()
             {
@@ -112,17 +115,15 @@ namespace EmulatorLauncher
         {
             FakeBezelFrm bezel = null;
 
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
             int ret = base.RunAndWait(path);
 
             bezel?.Dispose();
 
             if (ret == 1)
-            {
-                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
                 return 0;
-            }
-
-            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
 
             return ret;
         }

@@ -35,16 +35,18 @@ namespace EmulatorLauncher
                 {
                     CleanupExistingMappings(ctrlIni);
 
+                    // Keyboard Test (0) / Service (9), replaced by player 1 R3 / L3 on arcade systems
+                    ctrlIni.WriteValue("GLOBAL0", "TEST", "11");
+                    ctrlIni.WriteValue("GLOBAL0", "SERVICE", "10");
+
                     foreach (var controller in this.Controllers.OrderBy(i => i.PlayerIndex).Take(4))
-                        ConfigureInput(controller, ctrlIni, ini, system);
+                        ConfigureInput(controller, ini, ctrlIni, system);
 
                     // Hotkeys
                     ctrlIni.WriteValue("GLOBAL0", "SAVESTATE", "60");
                     ctrlIni.WriteValue("GLOBAL0", "LOADSTATE", "62");
                     ctrlIni.WriteValue("GLOBAL0", "NEXTSTATE", "65");
                     ctrlIni.WriteValue("GLOBAL0", "PREVSTATE", "64");
-                    ctrlIni.WriteValue("GLOBAL0", "TEST", "11");
-                    ctrlIni.WriteValue("GLOBAL0", "SERVICE", "10");
                 }
                 catch { }
             }
@@ -62,7 +64,7 @@ namespace EmulatorLauncher
                 return;
             }
             else
-                ConfigureJoystick(controller, ctrlIni, ini, system);
+                ConfigureJoystick(controller, ini, ctrlIni, system);
         }
 
         private void ConfigureJoystick(Controller controller, IniFile ini, IniFile ctrlIni, string system)
@@ -180,8 +182,12 @@ namespace EmulatorLauncher
                 ctrlIni.WriteValue(iniSection, "ANALOGLEFT2", isXInput ? GetXInputCode(controller, InputKey.joystick2left, index) : GetDInputCode(controller, InputKey.joystick2left, sdlCtrl, index));
                 ctrlIni.WriteValue(iniSection, "ANALOGRIGHT2", isXInput ? GetXInputCode(controller, InputKey.joystick2right, index) : GetDInputCode(controller, InputKey.joystick2right, sdlCtrl, index));
 
-                ctrlIni.WriteValue("GLOBAL0", "TEST", isXInput ? GetXInputCode(controller, InputKey.r3, index) : GetDInputCode(controller, InputKey.r3, sdlCtrl, index));
-                ctrlIni.WriteValue("GLOBAL0", "SERVICE", isXInput ? GetXInputCode(controller, InputKey.l3, index) : GetDInputCode(controller, InputKey.l3, sdlCtrl, index));
+                // Test / Service on player 1 R3 / L3 (one code per key, replaces the keyboard 0 / 9)
+                if (controller.PlayerIndex == 1)
+                {
+                    ctrlIni.WriteValue("GLOBAL0", "TEST", isXInput ? GetXInputCode(controller, InputKey.r3, index) : GetDInputCode(controller, InputKey.r3, sdlCtrl, index));
+                    ctrlIni.WriteValue("GLOBAL0", "SERVICE", isXInput ? GetXInputCode(controller, InputKey.l3, index) : GetDInputCode(controller, InputKey.l3, sdlCtrl, index));
+                }
             }
 
             else

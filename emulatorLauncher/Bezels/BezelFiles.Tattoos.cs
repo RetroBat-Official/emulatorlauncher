@@ -181,7 +181,7 @@ namespace EmulatorLauncher
         static List<string> arcadeSystems = new List<string>() { "mame", "fbneo", "atomiswave", "model3", "naomi", "naomi2" };
         static List<string> gbSystems = new List<string>() { "gb", "gbc", "gb2players", "gbc2players", "gameboy", "gameboycolor" };
         static List<string> psxSystems = new List<string>() { "psx", "ps1", "playstation" };
-        static List<string> msggSystems = new List<string>() { "gamegear", "gg", "mastersystem", "ms" };
+        static List<string> msggSystems = new List<string>() { "gamegear", "gg", "mastersystem", "ms", "sg1000" };
         static List<string> ngpSystems = new List<string>() { "ngp", "ngpc", "neogeopocket" };
         static List<string> jaguarSystems = new List<string>() { "jaguar", "jaguarcd", "atarijaguar", "atarijaguarcd" };
         static List<string> megadriveSystems = new List<string>() { "genesis", "genesis-msu", "megacd", "mega-cd", "megadrive", "megadrive-msu", "sega32x", "segacd", "sega-cd" };
@@ -576,6 +576,8 @@ namespace EmulatorLauncher
                                 ret = "n64-standalone_face_zr";
                             else if (profile == "xbox")
                                 ret = "n64_xbox";
+                            else
+                                ret = "n64-standalone";
                             break;
                         }
                         else
@@ -734,7 +736,7 @@ namespace EmulatorLauncher
                                     ret = "nes_turbo";
                                 break;
                             case "mesen":
-                                bool turbo = Program.SystemConfig["mesen_nes_turbo"] != "Disabled" || !Program.SystemConfig.isOptSet("mesen_nes_turbo");
+                                bool turbo = Program.SystemConfig.isOptSet("mesen_nes_turbo") && Program.SystemConfig["mesen_nes_turbo"] != "Disabled";
                                 if (Program.SystemConfig.getOptBoolean("xbox_layout") && turbo)
                                     ret = "nes_xbox_turbo";
                                 else if (Program.SystemConfig.getOptBoolean("xbox_layout") && !turbo)

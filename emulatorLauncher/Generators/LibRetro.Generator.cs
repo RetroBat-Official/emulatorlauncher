@@ -521,6 +521,14 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
+            // mupen64plus_next only loads a 64DD disk next to the launched cartridge (<cartridge>.ndd): launch the cartridge instead of the disk
+            if (rom != null && system == "n64dd" && core.StartsWith("mupen64plus_next") && Path.GetExtension(rom).ToLowerInvariant() == ".ndd")
+            {
+                string cartridge = Path.Combine(Path.GetDirectoryName(rom), Path.GetFileNameWithoutExtension(rom));
+                if (File.Exists(cartridge))
+                    rom = cartridge;
+            }
+
             // Unzipping part
             // Manage 7z and squashfs for some cores
             // scummvm: a game is a folder, RetroArch only extracts the .scummvm file of a zip and does not read rar
@@ -902,6 +910,41 @@ namespace EmulatorLauncher.Libretro
 
                     return true;
                 }
+            }
+
+            // mgba_splitscreen : 2 to 4 different games (m3u) are loaded with the gba_link_<n>p subsystem, player 1 first
+            if (core == "mgba_splitscreen" && Path.GetExtension(rom).ToLower() == ".m3u")
+            {
+                string m3uPath = Path.GetDirectoryName(rom);
+                List<string> games = new List<string>();
+
+                foreach (var line in File.ReadAllLines(rom))
+                {
+                    if (string.IsNullOrWhiteSpace(line))
+                        continue;
+
+                    string game = Path.Combine(m3uPath, line.Trim());
+                    if (!File.Exists(game))
+                        throw new ApplicationException("File '" + game + "' does not exist");
+
+                    games.Add(game);
+                }
+
+                if (games.Count == 0)
+                    return false;
+
+                newRom = games[0];
+
+                if (games.Count > 1)
+                {
+                    int players = Math.Min(games.Count, 4);
+                    commandArray.Add("--subsystem");
+                    commandArray.Add("gba_link_" + players + "p");
+                    foreach (string game in games.Skip(1).Take(players - 1))
+                        commandArray.Add("\"" + game + "\"");
+                }
+
+                return true;
             }
 
             return false;

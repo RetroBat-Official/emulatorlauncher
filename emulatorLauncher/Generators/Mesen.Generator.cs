@@ -43,13 +43,13 @@ namespace EmulatorLauncher
                 }
             }
 
-            // settings (xml configuration)
-            SetupJsonConfiguration(path, system, rom);
-
             if (fullscreen)
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             _resolution = resolution;
-            
+
+            // settings (xml configuration)
+            SetupJsonConfiguration(path, system, rom);
+
 
             // command line parameters
             var commandArray = new List<string>
@@ -86,7 +86,7 @@ namespace EmulatorLauncher
 
             // System preferences
             var systemSection = GetOrCreateContainer(json, mesenSystem);
-            ConfigureNes(systemSection, mesenSystem, system);
+            ConfigureNes(systemSection, mesenSystem, system, path);
             ConfigureSMS(systemSection, mesenSystem, system);
             ConfigurePCEngine(systemSection, mesenSystem, system, path);
             ConfigureSnes(systemSection, mesenSystem, system, path);
@@ -192,7 +192,8 @@ namespace EmulatorLauncher
             BindBoolFeatureOn(video, "VerticalSync", "mesen_vsync");
             BindFeatureSliderInt(video, "ScanlineIntensity", "mesen_scanlines", "0");
             BindBoolFeature(video, "FullscreenForceIntegerScale", "integerscale");
-            if (SystemConfig.getOptBoolean("exclusivefs"))
+            // The overlay bezel cannot be displayed over an exclusive fullscreen
+            if (SystemConfig.getOptBoolean("exclusivefs") && _bezelFileInfo == null)
                 video["UseExclusiveFullscreen"] = true;
             else
                 video["UseExclusiveFullscreen"] = false;
@@ -216,7 +217,7 @@ namespace EmulatorLauncher
             File.WriteAllText(settingsFile, json.ToString(Formatting.Indented));
         }
 
-        private void ConfigureNes(JObject section, string mesenSystem, string system)
+        private void ConfigureNes(JObject section, string mesenSystem, string system, string path)
         {
             if (mesenSystem != "Nes")
                 return;
@@ -227,10 +228,20 @@ namespace EmulatorLauncher
 
             if (system == "fds")
             {
-                BindBoolFeature(section, "FdsAutoInsertDisk", "mesen_fdsautoinsertdisk");
+                BindBoolFeatureOn(section, "FdsAutoInsertDisk", "mesen_fdsautoinsertdisk");
                 BindBoolFeature(section, "FdsFastForwardOnLoad", "mesen_fdsfastforwardload");
                 section["FdsAutoLoadDisk"] = true;
             }
+
+            // FDS BIOS is read from the emulator Firmware folder (.fds games are also accepted in the nes system)
+            string targetFirmwarePath = Path.Combine(path, "Firmware");
+            if (!Directory.Exists(targetFirmwarePath)) try { Directory.CreateDirectory(targetFirmwarePath); }
+                catch { }
+            string targetFirmware = Path.Combine(targetFirmwarePath, "disksys.rom");
+            string sourceFirmware = Path.Combine(AppConfig.GetFullPath("bios"), "disksys.rom");
+
+            if (File.Exists(sourceFirmware) && !File.Exists(targetFirmware) && Directory.Exists(targetFirmwarePath))
+                File.Copy(sourceFirmware, targetFirmware);
         }
 
         private void ConfigureSMS(JObject section, string mesenSystem, string system)

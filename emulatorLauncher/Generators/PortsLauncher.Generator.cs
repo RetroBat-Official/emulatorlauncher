@@ -91,7 +91,8 @@ namespace EmulatorLauncher
             _nobezels = false;
 
             // Specific cases to override emulator
-            if (rom.Contains("soniccd") || SystemConfig.getOptBoolean("sonicretro_sonicCD"))
+            // Sonic CD runs on RSDKv3: game folder named "soniccd" (any case, spaces ignored) or option forced
+            if (emulator == "sonicretro" && (rom.ToLowerInvariant().Replace(" ", "").Contains("soniccd") || SystemConfig.getOptBoolean("sonicretro_sonicCD")))
                 emulator = "sonicretrocd";
 
             _emulator = emulator;
@@ -450,27 +451,23 @@ namespace EmulatorLauncher
 
                 else if (_emulator == "sonic3air")
                 {
-                    string emulatorSaveFile = Path.Combine(_path, "savedata", "persistentdata.bin");
-                    string emulatorSramFile = Path.Combine(_path, "savedata", "sram.bin");
+                    string emulatorSaveFolder = Path.Combine(_path, "savedata");
                     string rbSavePath = Path.Combine(savesPath, "sonic3air");
                     if (!Directory.Exists(rbSavePath))
                         try { Directory.CreateDirectory(rbSavePath); } catch { }
 
-                    if (File.Exists(emulatorSaveFile) && Directory.Exists(rbSavePath))
+                    // Since v26.03.28 the progress is saved in the "storage" folder (several .bin files)
+                    string emulatorStorage = Path.Combine(emulatorSaveFolder, "storage");
+                    if (Directory.Exists(emulatorStorage))
+                        try { FileTools.CopyDirectory(emulatorStorage, Path.Combine(rbSavePath, "storage"), true, true); } catch { }
+
+                    // Older versions: persistentdata.bin and sram.bin
+                    foreach (string file in new string[] { "persistentdata.bin", "sram.bin" })
                     {
-                        string rbSaveFile = Path.Combine(rbSavePath, "persistentdata.bin");
-                        if (!File.Exists(rbSaveFile))
-                            try { File.Copy(emulatorSaveFile, rbSaveFile, true); } catch { }
-                        else if (File.GetLastWriteTime(emulatorSaveFile) > File.GetLastWriteTime(rbSaveFile))
-                            try { File.Copy(emulatorSaveFile, rbSaveFile, true); } catch { }
-                    }
-                    if (File.Exists(emulatorSramFile) && Directory.Exists(rbSavePath))
-                    {
-                        string rbAchievementsFile = Path.Combine(rbSavePath, "sram.bin");
-                        if (!File.Exists(rbAchievementsFile))
-                            try { File.Copy(emulatorSramFile, rbAchievementsFile, true); } catch { }
-                        else if (File.GetLastWriteTime(emulatorSramFile) > File.GetLastWriteTime(rbAchievementsFile))
-                            try { File.Copy(emulatorSramFile, rbAchievementsFile, true); } catch { }
+                        string emulatorFile = Path.Combine(emulatorSaveFolder, file);
+                        string rbFile = Path.Combine(rbSavePath, file);
+                        if (File.Exists(emulatorFile) && (!File.Exists(rbFile) || File.GetLastWriteTime(emulatorFile) > File.GetLastWriteTime(rbFile)))
+                            try { File.Copy(emulatorFile, rbFile, true); } catch { }
                     }
                 }
             }
@@ -521,7 +518,7 @@ namespace EmulatorLauncher
                 }
 
                 string rbAchievementsFile = Path.Combine(rbSavePath, "Achievements.bin");
-                if (File.Exists(rbSavesFile))
+                if (File.Exists(rbAchievementsFile))
                 {
                     string emulatorAchievementFile = Path.Combine(_romPath, "Achievements.bin");
 
@@ -563,26 +560,23 @@ namespace EmulatorLauncher
                     return;
                 }
 
-                string rbSavesFile = Path.Combine(rbSavePath, "persistentdata.bin");
-                if (File.Exists(rbSavesFile))
-                {
-                    string emulatorSavesFile = Path.Combine(_path, "savedata", "persistentdata.bin");
+                string emulatorSaveFolder = Path.Combine(_path, "savedata");
 
-                    if (!File.Exists(emulatorSavesFile))
-                        try { File.Copy(rbSavesFile, emulatorSavesFile, true); } catch { }
-                    else if (File.GetLastWriteTime(rbSavesFile) > File.GetLastWriteTime(emulatorSavesFile))
-                        try { File.Copy(rbSavesFile, emulatorSavesFile, true); } catch { }
+                // Since v26.03.28 the progress is saved in the "storage" folder (several .bin files)
+                string rbStorage = Path.Combine(rbSavePath, "storage");
+                if (Directory.Exists(rbStorage))
+                {
+                    try { FileTools.CopyDirectory(rbStorage, Path.Combine(emulatorSaveFolder, "storage"), true, true); } catch { }
+                    return;
                 }
 
-                string rbSramFile = Path.Combine(rbSavePath, "sram.bin");
-                if (File.Exists(rbSavesFile))
+                // Older versions: persistentdata.bin and sram.bin (migrated to "storage" by the game on first launch)
+                foreach (string file in new string[] { "persistentdata.bin", "sram.bin" })
                 {
-                    string emulatorSramFile = Path.Combine(_path, "savedata", "sram.bin");
-
-                    if (!File.Exists(emulatorSramFile))
-                        try { File.Copy(rbSramFile, emulatorSramFile, true); } catch { }
-                    else if (File.GetLastWriteTime(rbSramFile) > File.GetLastWriteTime(emulatorSramFile))
-                        try { File.Copy(rbSramFile, emulatorSramFile, true); } catch { }
+                    string rbFile = Path.Combine(rbSavePath, file);
+                    string emulatorFile = Path.Combine(emulatorSaveFolder, file);
+                    if (File.Exists(rbFile) && (!File.Exists(emulatorFile) || File.GetLastWriteTime(rbFile) > File.GetLastWriteTime(emulatorFile)))
+                        try { File.Copy(rbFile, emulatorFile, true); } catch { }
                 }
             }
 

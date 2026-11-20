@@ -14,7 +14,8 @@ namespace EmulatorLauncher
         protected override bool UseGenericScreenPlacement { get { return true; } }
         private BezelFiles _bezelFileInfo;
 		private ScreenResolution _resolution;
-		private List<string> _commandArray = new List<string>();
+        private static readonly ReshadeBezelType[] _reshadeTypes = new ReshadeBezelType[] { ReshadeBezelType.opengl, ReshadeBezelType.d3d9, ReshadeBezelType.vulkan };
+        private List<string> _commandArray = new List<string>();
 		private bool _pad2Keyoverride = false;
 
         public override System.Diagnostics.ProcessStartInfo Generate(string system, string emulator, string core, string rom, string playersControllers, ScreenResolution resolution)
@@ -33,11 +34,31 @@ namespace EmulatorLauncher
 
             //Applying bezels
             if (!fullscreen)
-				SystemConfig["forceNoBezel"] = "true";
+                SystemConfig["forceNoBezel"] = "true";
 
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
-				_bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-			_resolution = resolution;
+            // ReShade must match the video driver (OutputMethod: 0 DirectDraw, 1 Direct3D 9, 2 OpenGL, 3 Vulkan)
+            ReshadeBezelType? reshadeType = ReshadeBezelType.d3d9;
+            switch (SystemConfig["snes9x_renderer"])
+            {
+                case "0": // DirectDraw: not supported by ReShade
+                case "3": // Vulkan: ReShade layer not validated with Snes9x
+                    reshadeType = null;
+                    break;
+                case "2":
+                    reshadeType = ReshadeBezelType.opengl;
+                    break;
+            }
+
+            // Remove the ReShade of the other video drivers
+            foreach (var type in _reshadeTypes)
+            {
+                if (type != reshadeType)
+                    ReshadeManager.UninstallReshader(type, path);
+            }
+
+            if (reshadeType == null || !ReshadeManager.Setup(reshadeType.Value, ReshadeManager.GetPlatformFromFile(exe), system, rom, path, resolution, emulator))
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+            _resolution = resolution;
 
             SetupConfiguration(path, rom, system, fullscreen);
 
@@ -54,26 +75,26 @@ namespace EmulatorLauncher
 			
         }
 
-		public override int RunAndWait(ProcessStartInfo path)
-		{
-			FakeBezelFrm bezel = null;
+        public override int RunAndWait(ProcessStartInfo path)
+        {
+            FakeBezelFrm bezel = null;
 
-			if (_bezelFileInfo != null)
-				bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
 
-			int ret = base.RunAndWait(path);
+            int ret = base.RunAndWait(path);
 
-			if (bezel != null)
-				bezel.Dispose();
+            if (bezel != null)
+                bezel.Dispose();
 
-			if (ret == 1)
-			{
-				ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
-				return 0;
-			}
-            ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
+            foreach (var type in _reshadeTypes)
+                ReshadeManager.UninstallReshader(type, path.WorkingDirectory);
+
+            if (ret == 1)
+                return 0;
+
             return ret;
-		}
+        }
 
         static string EncodeToFakeCJK(string input)
         {
@@ -213,7 +234,7 @@ namespace EmulatorLauncher
                 }
 
 				// Video drivers
-				BindIniFeature(ini, @"Display\Win", "OutputMethod", "snes9x_renderer", "2");
+				BindIniFeature(ini, @"Display\Win", "OutputMethod", "snes9x_renderer", "1");
 
 				// Filters and stuff
                 BindIniFeature(ini, @"Display\Win", "FilterType", "snes9x_ntsc_filters", "0");

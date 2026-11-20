@@ -41,21 +41,21 @@ namespace EmulatorLauncher
             string autoboot = "";
             if ((Path.GetExtension(rom).ToLowerInvariant() == ".7z" || Path.GetExtension(rom).ToLowerInvariant() == ".squashfs") || Path.GetExtension(rom).ToLowerInvariant() == ".zip")
             {
-                string[] romExtensions = new string[] { ".dbp" };
                 string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
                 if (Directory.Exists(uncompressedRomPath))
                 {
                     rom = uncompressedRomPath;
-                    string[] romFiles = Directory.GetFiles(uncompressedRomPath, "*.*").OrderBy(file => Array.IndexOf(romExtensions, Path.GetExtension(file).ToLowerInvariant())).ToArray();
-                    if (romFiles.Length > 0)
+
+                    // Autostart command: first line of a .dbp file at the root of the archive
+                    string autobootFile = Directory.GetFiles(uncompressedRomPath, "*.dbp").FirstOrDefault();
+                    if (autobootFile != null)
                     {
-                        string autobootFile = romFiles[0];
                         autoboot = FileTools.ReadFirstValidLine(autobootFile);
                         zip_autoboot = true;
                     }
                     else
                         SimpleLogger.Instance.Info("[DosBoxStaging] No autostart file found after uncompressing the archive.");
-                    
+
                     ValidateUncompressedGame();
                 }
             }
@@ -304,7 +304,7 @@ namespace EmulatorLauncher
                     // joystick section
                     BindIniFeature(ini, "joystick", "joysticktype", "dbs_joysticktype", "auto");
                     BindBoolIniFeatureOn(ini, "joystick", "timed", "dbs_timed", "true", "false");
-                    BindBoolIniFeature(ini, "reelmagic", "autofire", "dbs_autofire", "true", "false");
+                    BindBoolIniFeature(ini, "joystick", "autofire", "dbs_autofire", "true", "false");
                 }
             }
             catch (Exception ex)

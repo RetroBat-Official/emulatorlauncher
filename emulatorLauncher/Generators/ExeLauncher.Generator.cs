@@ -26,6 +26,8 @@ namespace EmulatorLauncher
         protected override bool UseGenericScreenPlacement { get { return true; } }
 
         private string _systemName;
+        private BezelFiles _bezelFileInfo;      // overlay bezel (Ikemen GO without ReShade)
+        private ScreenResolution _resolution;
         private string _exename = null;         // variable used for EL to track the game process
         private string _exename2 = null;        // variable used for EL to track the second / alternative game process
         private bool _isGameExePath = false;    // true if the target of a link or the the .game file points to an existing executable
@@ -223,19 +225,41 @@ namespace EmulatorLauncher
             if (resolution == null)
                 resolution = ScreenResolution.CurrentResolution;
 
+            // INTERNAL RESOLUTION: native resolution of the game (GameWidth / GameHeight), kept when not set
+            string gameWidth = null;
+            string gameHeight = null;
+
+            if (SystemConfig["resolution"] == "screen")
+            {
+                gameWidth = resolution.Width.ToString();
+                gameHeight = resolution.Height.ToString();
+            }
+            else if (SystemConfig.isOptSet("resolution") && SystemConfig["resolution"].Split('_').Length > 1)
+            {
+                gameWidth = SystemConfig["resolution"].Split('_')[0];
+                gameHeight = SystemConfig["resolution"].Split('_')[1];
+            }
+
             using (var ini = IniFile.FromFile(cfg, IniOptions.UseSpaces | IniOptions.AllowDuplicateValues | IniOptions.KeepEmptyValues | IniOptions.KeepEmptyLines))
             {
                 var inisections = ini.EnumerateSections().Where(s => !s.StartsWith("Sound") && !s.StartsWith("Input") && !s.StartsWith("P1") && !s.StartsWith("P2"));
 
                 foreach (var section in inisections)
                 {
-                    var height = ini.EnumerateKeys(section).Where(s => s.Contains("Height")).FirstOrDefault();
-                    var width = ini.EnumerateKeys(section).Where(s => s.Contains("Width")).FirstOrDefault();
+                    // Window or screen size (Width / Height), the game resolution is handled below
+                    var height = ini.EnumerateKeys(section).Where(s => s.Contains("Height") && !s.StartsWith("Game")).FirstOrDefault();
+                    var width = ini.EnumerateKeys(section).Where(s => s.Contains("Width") && !s.StartsWith("Game")).FirstOrDefault();
 
                     if (height != null)
                         ini.WriteValue(section, height, resolution.Height.ToString());
                     if (width != null)
                         ini.WriteValue(section, width, resolution.Width.ToString());
+
+                    if (gameWidth != null && ini.KeyExists(section, "GameWidth") && ini.KeyExists(section, "GameHeight"))
+                    {
+                        ini.WriteValue(section, "GameWidth", gameWidth);
+                        ini.WriteValue(section, "GameHeight", gameHeight);
+                    }
 
                     var vretrace = ini.EnumerateKeys(section).Where(s => s.Contains("VRetrace")).FirstOrDefault();
                     if (vretrace != null)
@@ -245,6 +269,29 @@ namespace EmulatorLauncher
                     if (fs != null)
                         ini.WriteValue(section, fs, fullscreen ? "1" : "0");
                 }
+
+                // Controllers: enable the joystick of players 1 and 2 (buttons and joystick order are left to the game)
+                if (Program.Controllers.Any(c => !c.IsKeyboard))
+                {
+                    if (ini.KeyExists("Input", "P1.Joystick.type"))
+                        ini.WriteValue("Input", "P1.Joystick.type", "1");
+                    if (ini.KeyExists("Input", "P2.Joystick.type"))
+                        ini.WriteValue("Input", "P2.Joystick.type", "1");
+                }
+            }
+        }
+
+        // The video driver can only be chosen when config.ini already holds one of the two values of recent Ikemen GO versions
+        private static bool IkemenHasRenderMode(string path)
+        {
+            string iniFile = Path.Combine(path, "save", "config.ini");
+            if (!File.Exists(iniFile))
+                return false;
+
+            using (var ini = IniFile.FromFile(iniFile, IniOptions.UseSpaces | IniOptions.KeepEmptyLines))
+            {
+                string renderMode = ini.GetValue("Video", "RenderMode");
+                return renderMode == "OpenGL 3.3" || renderMode == "Vulkan 1.3";
             }
         }
 
@@ -253,7 +300,14 @@ namespace EmulatorLauncher
             if (_systemName != "ikemen")
                 return;
 
-            ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator);
+            // ReShade must match the video driver, overlay bezel when ReShade is not available
+            bool useVulkan = SystemConfig["ikemen_renderer"] == "Vulkan 1.3" && IkemenHasRenderMode(path);
+            ReshadeManager.UninstallReshader(useVulkan ? ReshadeBezelType.opengl : ReshadeBezelType.vulkan, path);
+
+            if (!ReshadeManager.Setup(useVulkan ? ReshadeBezelType.vulkan : ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator) && fullscreen)
+                _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
+
+            _resolution = resolution;
 
             string jsonConfFile = Path.Combine(path, "save", "config.json");
             string iniFile = Path.Combine(path, "save", "config.ini");
@@ -285,17 +339,18 @@ namespace EmulatorLauncher
                 if (json.IsDefined("Fullscreen"))
                     json["Fullscreen"] = fullscreen ? "true" : "false";
 
+                // The overlay bezel cannot be displayed over an exclusive fullscreen
                 if (json.IsDefined("Borderless"))
-                    json["Borderless"] = SystemConfig.getOptBoolean("exclusivefs") ? "false" : "true";
+                    json["Borderless"] = SystemConfig.getOptBoolean("exclusivefs") && _bezelFileInfo == null ? "false" : "true";
 
                 if (json.IsDefined("GameWidth"))
                 {
-                    if (SystemConfig.isOptSet(SystemConfig["resolution"]) && SystemConfig["resolution"] == "screen")
+                    if (SystemConfig["resolution"] == "screen")
                     {
                         json["GameWidth"] = resolution.Width.ToString();
                         json["GameHeight"] = resolution.Height.ToString();
                     }
-                    else if (SystemConfig.isOptSet(SystemConfig["resolution"]))
+                    else if (SystemConfig.isOptSet("resolution"))
                     {
                         json["GameWidth"] = width;
                         json["GameHeight"] = height;
@@ -305,8 +360,9 @@ namespace EmulatorLauncher
                 if (json.IsDefined("VRetrace"))
                     BindBoolFeatureOn(json, "VRetrace", "VRetrace", "1", "0");
 
+                // Older versions: MSAA is on or off
                 if (json.IsDefined("MSAA"))
-                    BindBoolFeature(json, "MSAA", "ikemen_msaa", "true", "false");
+                    json["MSAA"] = SystemConfig.isOptSet("ikemen_msaa") && SystemConfig["ikemen_msaa"] != "0" ? "true" : "false";
 
                 json.Save();
 
@@ -324,17 +380,22 @@ namespace EmulatorLauncher
                     if (ini.KeyExists("Video", "Fullscreen"))
                         ini.WriteValue("Video", "Fullscreen", fullscreen ? "1" : "0");
 
+                    // The overlay bezel cannot be displayed over an exclusive fullscreen
                     if (ini.KeyExists("Video", "Borderless"))
-                        ini.WriteValue("Video", "Borderless", SystemConfig.getOptBoolean("exclusivefs") ? "0" : "1");
+                        ini.WriteValue("Video", "Borderless", SystemConfig.getOptBoolean("exclusivefs") && _bezelFileInfo == null ? "0" : "1");
+
+                    // Video driver, only for the Ikemen GO versions that know these values
+                    if (IkemenHasRenderMode(path))
+                        BindIniFeature(ini, "Video", "RenderMode", "ikemen_renderer", "OpenGL 3.3");
 
                     if (ini.KeyExists("Video", "GameWidth"))
                     {
-                        if (SystemConfig.isOptSet(SystemConfig["resolution"]) && SystemConfig["resolution"] == "screen")
+                        if (SystemConfig["resolution"] == "screen")
                         {
                             ini.WriteValue("Video", "GameWidth", resolution.Width.ToString());
                             ini.WriteValue("Video", "GameHeight", resolution.Height.ToString());
                         }
-                        else if (SystemConfig.isOptSet(SystemConfig["resolution"]))
+                        else if (SystemConfig.isOptSet("resolution"))
                         {
                             ini.WriteValue("Video", "GameWidth", width);
                             ini.WriteValue("Video", "GameHeight", height);
@@ -344,8 +405,15 @@ namespace EmulatorLauncher
                     if (ini.KeyExists("Video", "VSync"))
                         BindBoolIniFeatureOn(ini, "Video", "VSync", "VRetrace", "1", "0");
 
+                    // MSAA samples (Ikemen GO resets other values to 0), "1" comes from the former on/off option
                     if (ini.KeyExists("Video", "MSAA"))
-                        BindBoolIniFeature(ini, "Video", "MSAA", "ikemen_msaa", "1", "0");
+                    {
+                        string msaa = SystemConfig["ikemen_msaa"];
+                        if (msaa == "1")
+                            msaa = "4";
+
+                        ini.WriteValue("Video", "MSAA", string.IsNullOrEmpty(msaa) ? "0" : msaa);
+                    }
                 }
             }
         }
@@ -354,6 +422,27 @@ namespace EmulatorLauncher
         static readonly string[] launcherProcessNames = { "Amazon Games UI", "EADesktop", "EpicGamesLauncher", "steam", "GalaxyClient" };
 
         public override int RunAndWait(ProcessStartInfo path)
+        {
+            // Overlay bezel (Ikemen GO when ReShade is not available)
+            FakeBezelFrm bezel = null;
+            if (_bezelFileInfo != null)
+                bezel = _bezelFileInfo.ShowFakeBezel(_resolution);
+
+            int ret = RunGame(path);
+
+            bezel?.Dispose();
+
+            // Ikemen GO: do not leave ReShade in the game folder
+            if (_systemName == "ikemen")
+            {
+                ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
+                ReshadeManager.UninstallReshader(ReshadeBezelType.vulkan, path.WorkingDirectory);
+            }
+
+            return ret;
+        }
+
+        private int RunGame(ProcessStartInfo path)
         {
             if (_isGameExePath || _gameExeFile || _nonSteam)
             {

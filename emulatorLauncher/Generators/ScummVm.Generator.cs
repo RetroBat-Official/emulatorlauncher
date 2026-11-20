@@ -45,9 +45,11 @@ namespace EmulatorLauncher
             }
 
             var platform = ReshadeManager.GetPlatformFromFile(exe);
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, platform, system, rom, path, resolution, emulator))
+
+            // ReShade only hooks the OpenGL graphics mode: "surfacesdl" draws with the SDL renderer (Direct3D on Windows)
+            if (SystemConfig["gfx_mode"] == "surfacesdl" || !ReshadeManager.Setup(ReshadeBezelType.opengl, platform, system, rom, path, resolution, emulator))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
-            
+
             _resolution = resolution;
 
             bool fullscreen = ShouldRunFullscreen();

@@ -88,7 +88,11 @@ namespace EmulatorLauncher
                 SystemConfig["forceNoBezel"] = "1"; // Force no bezel in windowed mode
             }
 
-            if (!ReshadeManager.Setup(ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
+            // ReShade must match the video driver (video.gshandler: 0 OpenGL, 1 Vulkan)
+            bool useVulkan = SystemConfig["play_renderer"] == "1";
+            ReshadeManager.UninstallReshader(useVulkan ? ReshadeBezelType.opengl : ReshadeBezelType.vulkan, path);
+
+            if (!ReshadeManager.Setup(useVulkan ? ReshadeBezelType.vulkan : ReshadeBezelType.opengl, ReshadePlatform.x64, system, rom, path, resolution, emulator))
                 _bezelFileInfo = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
 
             _resolution = resolution;
@@ -281,6 +285,7 @@ namespace EmulatorLauncher
                 bezel.Dispose();
 
             ReshadeManager.UninstallReshader(ReshadeBezelType.opengl, path.WorkingDirectory);
+            ReshadeManager.UninstallReshader(ReshadeBezelType.vulkan, path.WorkingDirectory);
 
             return ret;
         }

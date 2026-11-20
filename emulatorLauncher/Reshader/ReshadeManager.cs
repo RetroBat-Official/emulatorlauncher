@@ -39,6 +39,14 @@ namespace EmulatorLauncher
                 return false;
             }
 
+            // Vulkan layer can't be loaded when RetroBat runs as administrator. Callers fall back to the overlay bezel.
+            if (type == ReshadeBezelType.vulkan && IsElevated())
+            {
+                SimpleLogger.Instance.Info("[ReShade] Vulkan layer not available in an elevated process.");
+                UninstallReshader(type, path);
+                return false;
+            }
+
             var bezel = BezelFiles.GetBezelFiles(system, rom, resolution, emulator);
             string shaderName = Program.SystemConfig["shader"] ?? "";
 
@@ -224,9 +232,64 @@ namespace EmulatorLauncher
             return ReshadePlatform.x86;
         }
 
+        // Vulkan has no dll to override: ReShade is declared as a Vulkan layer for the emulator process only (nothing written in the registry)
+        private static void EnableVulkanLayer(string path, string dllName)
+        {
+            // Same manifest as the one installed by ReShade setup
+            string manifest = @"{
+  ""file_format_version"": ""1.0.0"",
+  ""layer"": {
+    ""name"": ""VK_LAYER_reshade"",
+    ""type"": ""GLOBAL"",
+    ""library_path"": "".\\#DLL#"",
+    ""api_version"": ""1.3.204"",
+    ""implementation_version"": ""1"",
+    ""description"": ""crosire's ReShade post-processing injector"",
+    ""device_extensions"": [
+      {
+        ""name"": ""VK_EXT_tooling_info"",
+        ""spec_version"": ""1"",
+        ""entrypoints"": [ ""vkGetPhysicalDeviceToolPropertiesEXT"" ]
+      }
+    ],
+    ""disable_environment"": {
+      ""DISABLE_VK_LAYER_reshade_1"": ""1""
+    }
+  }
+}";
+            File.WriteAllText(Path.ChangeExtension(dllName, ".json"), manifest.Replace("#DLL#", Path.GetFileName(dllName)));
+
+            // Inherited by the emulator: folder of the layer manifest + layer forced on
+            AddToEnvironmentVariable("VK_LAYER_PATH", path);
+            AddToEnvironmentVariable("VK_INSTANCE_LAYERS", "VK_LAYER_reshade");
+        }
+
+        private static void AddToEnvironmentVariable(string name, string value)
+        {
+            string current = Environment.GetEnvironmentVariable(name);
+
+            if (string.IsNullOrEmpty(current))
+                Environment.SetEnvironmentVariable(name, value);
+            else if (!current.Split(';').Contains(value, StringComparer.OrdinalIgnoreCase))
+                Environment.SetEnvironmentVariable(name, value + ";" + current);
+        }
+
+        // The Vulkan loader ignores VK_LAYER_PATH in an elevated process
+        private static bool IsElevated()
+        {
+            try
+            {
+                using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
+                    return new System.Security.Principal.WindowsPrincipal(identity).IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+            }
+            catch { return false; }
+        }
+
         private static string InstallReshader(ReshadeBezelType type, ReshadePlatform platform, string path)
         {
             string dllName = Path.Combine(path, GetEnumDescription(type));
+            if (type == ReshadeBezelType.vulkan && platform == ReshadePlatform.x86)
+                dllName = Path.Combine(path, "ReShade32.dll");
 
             if (File.Exists(dllName))
             {
@@ -263,6 +326,9 @@ namespace EmulatorLauncher
                     FileTools.ExtractGZipBytes(Properties.Resources.reshader_x64_gz, Path.Combine(path, dllName));
             }
 
+            if (type == ReshadeBezelType.vulkan)
+                EnableVulkanLayer(path, dllName);
+
             if (!File.Exists(Path.Combine(path, "ReShade.ini")))
                 File.WriteAllText(Path.Combine(path, "ReShade.ini"), Properties.Resources.ReShadeIni);
 
@@ -282,8 +348,25 @@ namespace EmulatorLauncher
             if (File.Exists(dllName))
                 try { File.Delete(dllName); } catch { }
 
+            // Vulkan layer: also remove the x86 dll and the layer manifests
+            if (type == ReshadeBezelType.vulkan)
+            {
+                foreach (string file in new string[] { "ReShade64.json", "ReShade32.dll", "ReShade32.json" })
+                {
+                    if (File.Exists(Path.Combine(path, file)))
+                        try { File.Delete(Path.Combine(path, file)); } catch { }
+                }
+            }
+
             if (File.Exists(Path.Combine(path, "ReShade.ini")))
                 try { File.Delete(Path.Combine(path, "ReShade.ini")); } catch { }
+
+            // Config of additional runtimes (ReShade2.ini...): ReShade reuses an existing one instead of copying ReShade.ini
+            if (Directory.Exists(path))
+            {
+                foreach (string file in Directory.GetFiles(path, "ReShade?.ini"))
+                    try { File.Delete(file); } catch { }
+            }
 
             if (File.Exists(Path.Combine(path, "ReShadePreset.ini")))
                 try { File.Delete(Path.Combine(path, "ReShadePreset.ini")); } catch { }
@@ -350,7 +433,11 @@ namespace EmulatorLauncher
         [Description("opengl32.dll")]
         opengl,
         [Description("dxgi.dll")]
-        dxgi
+        dxgi,
+        
+        // No proxy dll with Vulkan: ReShade is loaded as a Vulkan layer (ReShade32.dll for x86)
+        [Description("ReShade64.dll")]
+        vulkan
     }
 
     enum ReshadePlatform

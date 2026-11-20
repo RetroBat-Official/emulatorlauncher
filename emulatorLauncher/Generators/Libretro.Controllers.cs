@@ -20,7 +20,7 @@ namespace EmulatorLauncher.Libretro
         private static bool _noHotkey = false;
         private static bool _singleButtonShortcuts = false;
         private static string _inputDriver = "sdl2";
-        private static readonly HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "3do", "n64", "dreamcast", "gamecube", "3ds" };
+        private static readonly HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "3do", "n64", "n64dd", "dreamcast", "gamecube", "3ds" };
         static readonly List<string> mdSystems = new List<string>() { "megadrive", "genesis", "megadrive-msu", "genesis-msu", "segacd", "megacd", "sega32x", "mega32x" };
         static readonly List<string> systemButtonInvert = new List<string>() { "snes", "snes-msu", "snes-msu1", "satellaview", "sufami", "sfc" };
         static readonly List<string> coreNoRemap = new List<string>() { "mednafen_snes" };
@@ -376,7 +376,7 @@ namespace EmulatorLauncher.Libretro
                 return specialConfig;
 
             // N64: Z is important, in case L2 (z) is not available for this pad, use L1
-            if (system == "n64")
+            if (system == "n64" || system == "n64dd")
             {
                 if (controller.Config != null && controller.Config.Input != null && !controller.Config.Input.Any(i => i.Name == InputKey.r2))
                 {

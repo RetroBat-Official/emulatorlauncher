@@ -37,6 +37,12 @@ namespace EmulatorLauncher
                 try { Directory.CreateDirectory(portablePath); }
                 catch { }
 
+            // Disc keys of encrypted games (.wud, .wux, disc .iso): bios\cemu\keys.txt is copied to the portable folder
+            string biosKeys = Path.Combine(AppConfig.GetFullPath("bios"), "cemu", "keys.txt");
+            string portableKeys = Path.Combine(portablePath, "keys.txt");
+            if (File.Exists(biosKeys) && (!File.Exists(portableKeys) || File.GetLastWriteTime(biosKeys) > File.GetLastWriteTime(portableKeys)))
+                try { File.Copy(biosKeys, portableKeys, true); } catch { }
+
             var versionInfo = FileVersionInfo.GetVersionInfo(exe);
 
             rom = TryUnZipGameIfNeeded(system, rom);

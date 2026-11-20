@@ -1185,6 +1185,22 @@
     ]
   },
 
+  "dos": {
+    "name": "DOS",
+    "biosFiles": [
+      {
+        "md5": "5626206284b22c2734f3e9efefcd2675",
+        "file": "bios/scummvm/extra/MT32_CONTROL.ROM",
+        "optional": true
+      },
+      {
+        "md5": "89e42e386e82e0cacb4a2704a03706ca",
+        "file": "bios/scummvm/extra/MT32_PCM.ROM",
+        "optional": true
+      }
+    ]
+  },
+
   "dragon32": {
     "name": "Dragon",
     "biosFiles": [
@@ -1342,12 +1358,13 @@
     ]
   },
 
-  "ecwolf": {
-    "name": "ECWolf",
+  "nes": {
+    "name": "Nintendo Entertainment System",
     "biosFiles": [
       {
-        "md5": "dbaa5c4e20a11000d1c4db3a2a28f374",
-        "file": "bios/ecwolf.pk3"
+        "md5": "ca30b50f880eb660a320674ed365ef7a",
+        "file": "bios/disksys.rom",
+        "optional": true
       }
     ]
   },
@@ -1864,60 +1881,58 @@
     ]
   },
 
-  "msx": {
+  "msx1": {
     "name": "MSX",
     "biosFiles": [
       {
-        "md5": "364a1a579fe5cb8dba54519bcfcdac0d",
-        "file": "bios/MSX.ROM"
-      },
-      {
-        "md5": "80dcd1ad1a4cf65d64b7ba10504e8190",
-        "file": "bios/DISK.ROM"
-      },
-      {
-        "md5": "6f69cc8b5ed761b03afd78000dfb0e19",
-        "file": "bios/FMPAC.ROM"
-      },
-      {
-        "md5": "6418d091cd6907bbcf940324339e43bb",
-        "file": "bios/MSXDOS2.ROM"
-      },
-      {
-        "md5": "403cdea1cbd2bb24fae506941f8f655e",
-        "file": "bios/PAINTER.ROM"
-      },
-      {
-        "md5": "febe8782b466d7c3b16de6d104826b34",
-        "file": "bios/KANJI.ROM"
-      },
-      {
-        "md5": "f873f1260b14f1468fa118778ae1c3d2",
-        "file": "bios/openMSX/share/systemroms/cf-3300_basic-bios1.rom"
-      },
-      {
-        "md5": "318b6aa76da71c54ccad7734356e1902",
-        "file": "bios/openMSX/share/systemroms/cf-3300_disk.rom"
-      },
-      {
         "md5": "a0452dbf5ace7d2e49d0a8029efed09a",
-        "file": "bios/openMSX/share/systemroms/vg8020_basic-bios1.rom"
+        "file": "bios/openMSX/share/systemroms/vg8020_basic-bios1.rom",
+        "optional": true
+      },
+      {
+        "md5": "af17a344bcc177b97a4888c4c559f3ae",
+        "file": "bios/openMSX/share/systemroms/fs-a1gt_firmware.rom",
+        "optional": true
+      },
+      {
+        "md5": "acf53887c2d2783dc059a9b442c86b90",
+        "file": "bios/openMSX/share/systemroms/fs-a1gt_kanjifont.rom",
+        "optional": true
       },
       {
         "md5": "9218f6dd89f7ba01e3090d44721b4260",
-        "file": "bios/openMSX/share/systemroms/px-7_basic-bios1.rom"
+        "file": "bios/openMSX/share/systemroms/px-7_basic-bios1.rom",
+        "optional": true
       },
       {
         "md5": "281809cafe63437fc4bffb3033fbd0db",
-        "file": "bios/openMSX/share/systemroms/px-7_pbasic.rom"
+        "file": "bios/openMSX/share/systemroms/px-7_pbasic.rom",
+        "optional": true
+      },
+      {
+        "md5": "f873f1260b14f1468fa118778ae1c3d2",
+        "file": "bios/openMSX/share/systemroms/cf-3300_basic-bios1.rom",
+        "optional": true
+      },
+      {
+        "md5": "318b6aa76da71c54ccad7734356e1902",
+        "file": "bios/openMSX/share/systemroms/cf-3300_disk.rom",
+        "optional": true
       },
       {
         "md5": "6f69cc8b5ed761b03afd78000dfb0e19",
-        "file": "bios/openMSX/share/systemroms/fmpac.rom"
+        "file": "bios/openMSX/share/systemroms/fmpac.rom",
+        "optional": true
       },
       {
         "md5": "42af93619160ef2116416f74a6cb12f2",
-        "file": "bios/openMSX/share/systemroms/yrw801.rom"
+        "file": "bios/openMSX/share/systemroms/yrw801.rom",
+        "optional": true
+      },
+      {
+        "md5": "",
+        "file": "bios/fbneo/msx.zip",
+        "optional": true
       }
     ]
   },
@@ -1927,59 +1942,63 @@
     "biosFiles": [
       {
         "md5": "ec3a01c91f24fbddcbcab0ad301bc9ef",
-        "file": "bios/MSX2.ROM"
-      },
-      {
-        "md5": "2183c2aff17cf4297bdb496de78c2e8a",
-        "file": "bios/MSX2EXT.ROM"
-      },
-      {
-        "md5": "5bf4fdfd3c3ffea3e573b386550cb3fa",
-        "file": "bios/openMSX/share/systemroms/fs-5500_basic-bios2.rom"
-      },
-      {
-        "md5": "86269da485e852d9f581ac27f4ba32ff",
-        "file": "bios/openMSX/share/systemroms/fs-5500_disk.rom"
-      },
-      {
-        "md5": "afbe6ba903453902540ae988cc89dc7b",
-        "file": "bios/openMSX/share/systemroms/fs-5500_kanjibasic.rom"
-      },
-      {
-        "md5": "090539674630c1338a90a1df943a93e2",
-        "file": "bios/openMSX/share/systemroms/fs-5500_kanjifont.rom"
-      },
-      {
-        "md5": "dcd5e2388115172f2fb48875b2089dbf",
-        "file": "bios/openMSX/share/systemroms/fs-5500_msx2sub.rom"
-      },
-      {
-        "md5": "7eb6ae0fbe9736b20dda8dcbd5064f67",
-        "file": "bios/openMSX/share/systemroms/fs-5500_superimp.rom"
-      },
-      {
-        "md5": "ec3a01c91f24fbddcbcab0ad301bc9ef",
-        "file": "bios/openMSX/share/systemroms/nms8245_basic-bios2.rom"
+        "file": "bios/openMSX/share/systemroms/nms8245_basic-bios2.rom",
+        "optional": true
       },
       {
         "md5": "3525ea046ddedc66991790eeae32acfd",
-        "file": "bios/openMSX/share/systemroms/nms8245_disk.rom"
+        "file": "bios/openMSX/share/systemroms/nms8245_disk.rom",
+        "optional": true
       },
       {
         "md5": "57509815f93e2817d3eb57e20286c7fb",
-        "file": "bios/openMSX/share/systemroms/nms8245_disk_1.06.rom"
+        "file": "bios/openMSX/share/systemroms/nms8245_disk_1.06.rom",
+        "optional": true
       },
       {
         "md5": "248514aba82a0ec7fe2a9106862b05cd",
-        "file": "bios/openMSX/share/systemroms/nms8245_msx2sub.rom"
+        "file": "bios/openMSX/share/systemroms/nms8245_msx2sub.rom",
+        "optional": true
+      },
+      {
+        "md5": "5bf4fdfd3c3ffea3e573b386550cb3fa",
+        "file": "bios/openMSX/share/systemroms/fs-5500_basic-bios2.rom",
+        "optional": true
+      },
+      {
+        "md5": "86269da485e852d9f581ac27f4ba32ff",
+        "file": "bios/openMSX/share/systemroms/fs-5500_disk.rom",
+        "optional": true
+      },
+      {
+        "md5": "afbe6ba903453902540ae988cc89dc7b",
+        "file": "bios/openMSX/share/systemroms/fs-5500_kanjibasic.rom",
+        "optional": true
+      },
+      {
+        "md5": "090539674630c1338a90a1df943a93e2",
+        "file": "bios/openMSX/share/systemroms/fs-5500_kanjifont.rom",
+        "optional": true
+      },
+      {
+        "md5": "dcd5e2388115172f2fb48875b2089dbf",
+        "file": "bios/openMSX/share/systemroms/fs-5500_msx2sub.rom",
+        "optional": true
+      },
+      {
+        "md5": "7eb6ae0fbe9736b20dda8dcbd5064f67",
+        "file": "bios/openMSX/share/systemroms/fs-5500_superimp.rom",
+        "optional": true
       },
       {
         "md5": "6f69cc8b5ed761b03afd78000dfb0e19",
-        "file": "bios/openMSX/share/systemroms/fmpac.rom"
+        "file": "bios/openMSX/share/systemroms/fmpac.rom",
+        "optional": true
       },
       {
         "md5": "42af93619160ef2116416f74a6cb12f2",
-        "file": "bios/openMSX/share/systemroms/yrw801.rom"
+        "file": "bios/openMSX/share/systemroms/yrw801.rom",
+        "optional": true
       }
     ]
   },
@@ -1988,48 +2007,49 @@
     "name": "MSX2+",
     "biosFiles": [
       {
-        "md5": "847cc025ffae665487940ff2639540e5",
-        "file": "bios/MSX2P.ROM"
-      },
-      {
-        "md5": "7c8243c71d8f143b2531f01afa6a05dc",
-        "file": "bios/MSX2PEXT.ROM"
-      },
-      {
         "md5": "c5c26c3e8bc6c485424818057f0507b9",
-        "file": "bios/openMSX/share/systemroms/fs-a1wsx_basic-bios2p.rom"
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_basic-bios2p.rom",
+        "optional": true
       },
       {
         "md5": "00aa02b6077de40a0b51d71a3c3e1d5f",
-        "file": "bios/openMSX/share/systemroms/fs-a1wsx_disk.rom"
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_disk.rom",
+        "optional": true
       },
       {
         "md5": "fa8e7d4b999af058fe2864a5f2e014ec",
-        "file": "bios/openMSX/share/systemroms/fs-a1wsx_firmware.rom"
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_firmware.rom",
+        "optional": true
       },
       {
         "md5": "0c40e7db1c1fcc2405e4d0cdd215adb4",
-        "file": "bios/openMSX/share/systemroms/fs-a1wsx_fmbasic.rom"
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_fmbasic.rom",
+        "optional": true
       },
       {
         "md5": "9dfdebfaa6b547222a40aab8bb2e29f8",
-        "file": "bios/openMSX/share/systemroms/fs-a1wsx_kanjibasic.rom"
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_kanjibasic.rom",
+        "optional": true
       },
       {
         "md5": "acf53887c2d2783dc059a9b442c86b90",
-        "file": "bios/openMSX/share/systemroms/fs-a1wsx_kanjifont.rom"
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_kanjifont.rom",
+        "optional": true
       },
       {
         "md5": "7c8243c71d8f143b2531f01afa6a05dc",
-        "file": "bios/openMSX/share/systemroms/fs-a1wsx_msx2psub.rom"
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_msx2psub.rom",
+        "optional": true
       },
       {
         "md5": "6f69cc8b5ed761b03afd78000dfb0e19",
-        "file": "bios/openMSX/share/systemroms/fmpac.rom"
+        "file": "bios/openMSX/share/systemroms/fmpac.rom",
+        "optional": true
       },
       {
         "md5": "42af93619160ef2116416f74a6cb12f2",
-        "file": "bios/openMSX/share/systemroms/yrw801.rom"
+        "file": "bios/openMSX/share/systemroms/yrw801.rom",
+        "optional": true
       }
     ]
   },
@@ -2039,19 +2059,58 @@
     "biosFiles": [
       {
         "md5": "af17a344bcc177b97a4888c4c559f3ae",
-        "file": "bios/openMSX/share/systemroms/fs-a1gt_firmware.rom"
+        "file": "bios/openMSX/share/systemroms/fs-a1gt_firmware.rom",
+        "optional": true
       },
       {
         "md5": "acf53887c2d2783dc059a9b442c86b90",
-        "file": "bios/openMSX/share/systemroms/fs-a1gt_kanjifont.rom"
+        "file": "bios/openMSX/share/systemroms/fs-a1gt_kanjifont.rom",
+        "optional": true
+      },
+      {
+        "md5": "c5c26c3e8bc6c485424818057f0507b9",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_basic-bios2p.rom",
+        "optional": true
+      },
+      {
+        "md5": "00aa02b6077de40a0b51d71a3c3e1d5f",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_disk.rom",
+        "optional": true
+      },
+      {
+        "md5": "fa8e7d4b999af058fe2864a5f2e014ec",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_firmware.rom",
+        "optional": true
+      },
+      {
+        "md5": "0c40e7db1c1fcc2405e4d0cdd215adb4",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_fmbasic.rom",
+        "optional": true
+      },
+      {
+        "md5": "9dfdebfaa6b547222a40aab8bb2e29f8",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_kanjibasic.rom",
+        "optional": true
+      },
+      {
+        "md5": "acf53887c2d2783dc059a9b442c86b90",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_kanjifont.rom",
+        "optional": true
+      },
+      {
+        "md5": "7c8243c71d8f143b2531f01afa6a05dc",
+        "file": "bios/openMSX/share/systemroms/fs-a1wsx_msx2psub.rom",
+        "optional": true
       },
       {
         "md5": "6f69cc8b5ed761b03afd78000dfb0e19",
-        "file": "bios/openMSX/share/systemroms/fmpac.rom"
+        "file": "bios/openMSX/share/systemroms/fmpac.rom",
+        "optional": true
       },
       {
         "md5": "42af93619160ef2116416f74a6cb12f2",
-        "file": "bios/openMSX/share/systemroms/yrw801.rom"
+        "file": "bios/openMSX/share/systemroms/yrw801.rom",
+        "optional": true
       }
     ]
   },
@@ -2065,11 +2124,13 @@
       },
       {
         "md5": "37c36e4286d36892a9fc70eafe4104be",
-        "file": "bios/Mupen64plus/IPL_USA.n64"
+        "file": "bios/Mupen64plus/IPL_USA.n64",
+        "optional": true
       },
       {
         "md5": "aad37b1492886b892f1821f37fd3ae34",
-        "file": "bios/Mupen64plus/IPL_DEV.n64"
+        "file": "bios/Mupen64plus/IPL_DEV.n64",
+        "optional": true
       }
     ]
   },
@@ -2086,6 +2147,17 @@
         "md5": "",
         "file": "bios/pcsx2/bios/r27v1602f.7d",
         "group": "namco2x6"
+      }
+    ]
+  },
+
+  "namco3xx": {
+    "name": "Namco 357/369",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/PS3UPDAT.PUP",
+        "optional": true
       }
     ]
   },
@@ -3079,6 +3151,17 @@
     ]
   },
 
+  "wiiu": {
+    "name": "Wii U",
+    "biosFiles": [
+      {
+        "md5": "",
+        "file": "bios/cemu/keys.txt",
+        "optional": true
+      }
+    ]
+  },
+
   "x1": {
     "name": "Sharp x1",
     "biosFiles": [
@@ -3088,7 +3171,8 @@
       },
       {
         "md5": "56c28adcf1f3a2f87cf3d57c378013f5",
-        "file": "bios/xmil/iplrom.x1t"
+        "file": "bios/xmil/IPLROM.X1T",
+        "optional": true
       }
     ]
   },
