@@ -100,7 +100,10 @@ namespace EmulatorLauncher
                 ini.WriteValue("Player", "JoyAddCreditKey", "7");       // select
                 ini.WriteValue("Player", "JoyStartGameKey", "8");       // start
                 ini.WriteValue("Player", "JoyPlungerKey", "1");         // SOUTH
-                ini.WriteValue("Player", "JoyPauseKey", "2");           // EAST
+                ini.WriteValue("Player", "JoyLockbarKey", "2");         // EAST (action button)
+                ini.WriteValue("Player", "JoyLMagnaSave", "3");         // WEST
+                ini.WriteValue("Player", "JoyRMagnaSave", "4");         // NORTH
+                ini.WriteValue("Player", "JoyPauseKey", "9");           // L3
                 ini.WriteValue("Player", "JoyLFlipKey", "5");           // L1
                 ini.WriteValue("Player", "JoyRFlipKey", "6");           // R1
             }
@@ -132,14 +135,17 @@ namespace EmulatorLauncher
                     ini.WriteValue("Player", "UDAxis", getDinputID(dinputController.ButtonMappings, "lefty", isXinput)); // Left stick vertical
                     ini.WriteValue("Player", "UDAxisFlip", "0");
                 }
-                ini.WriteValue("Player", "JoyCTiltKey", getDinputID(dinputController.ButtonMappings, "buttonup", isXinput));        // up
-                ini.WriteValue("Player", "JoyLTiltKey", getDinputID(dinputController.ButtonMappings, "buttonleft", isXinput));      // left
-                ini.WriteValue("Player", "JoyRTiltKey", getDinputID(dinputController.ButtonMappings, "buttonright", isXinput));     // right
-                ini.WriteValue("Player", "JoyMechTiltKey", getDinputID(dinputController.ButtonMappings, "buttondown", isXinput));   // down
+                ini.WriteValue("Player", "JoyCTiltKey", getDinputID(dinputController.ButtonMappings, "dpup", isXinput));            // up
+                ini.WriteValue("Player", "JoyLTiltKey", getDinputID(dinputController.ButtonMappings, "dpleft", isXinput));          // left
+                ini.WriteValue("Player", "JoyRTiltKey", getDinputID(dinputController.ButtonMappings, "dpright", isXinput));         // right
+                ini.WriteValue("Player", "JoyMechTiltKey", getDinputID(dinputController.ButtonMappings, "dpdown", isXinput));       // down
                 ini.WriteValue("Player", "JoyAddCreditKey", getDinputID(dinputController.ButtonMappings, "back", isXinput));        // select
                 ini.WriteValue("Player", "JoyStartGameKey", getDinputID(dinputController.ButtonMappings, "start", isXinput));       // start
                 ini.WriteValue("Player", "JoyPlungerKey", getDinputID(dinputController.ButtonMappings, "a", isXinput));             // SOUTH
-                ini.WriteValue("Player", "JoyPauseKey", getDinputID(dinputController.ButtonMappings, "b", isXinput));               // EAST
+                ini.WriteValue("Player", "JoyLockbarKey", getDinputID(dinputController.ButtonMappings, "b", isXinput));             // EAST (action button)
+                ini.WriteValue("Player", "JoyLMagnaSave", getDinputID(dinputController.ButtonMappings, "x", isXinput));             // WEST
+                ini.WriteValue("Player", "JoyRMagnaSave", getDinputID(dinputController.ButtonMappings, "y", isXinput));             // NORTH
+                ini.WriteValue("Player", "JoyPauseKey", getDinputID(dinputController.ButtonMappings, "leftstick", isXinput));       // L3
                 ini.WriteValue("Player", "JoyLFlipKey", getDinputID(dinputController.ButtonMappings, "leftshoulder", isXinput));    // L1
                 ini.WriteValue("Player", "JoyRFlipKey", getDinputID(dinputController.ButtonMappings, "rightshoulder", isXinput));   // R1
             }
@@ -178,7 +184,10 @@ namespace EmulatorLauncher
                 ini.WriteValue("Player", "JoyAddCreditKey", getButtonID(controller, InputKey.select, isXinput));
                 ini.WriteValue("Player", "JoyStartGameKey", getButtonID(controller, InputKey.start, isXinput));
                 ini.WriteValue("Player", "JoyPlungerKey", getButtonID(controller, InputKey.a, isXinput));
-                ini.WriteValue("Player", "JoyPauseKey", getButtonID(controller, InputKey.b, isXinput));
+                ini.WriteValue("Player", "JoyLockbarKey", getButtonID(controller, InputKey.b, isXinput));      // EAST (action button)
+                ini.WriteValue("Player", "JoyLMagnaSave", getButtonID(controller, InputKey.y, isXinput));      // WEST
+                ini.WriteValue("Player", "JoyRMagnaSave", getButtonID(controller, InputKey.x, isXinput));      // NORTH
+                ini.WriteValue("Player", "JoyPauseKey", getButtonID(controller, InputKey.l3, isXinput));       // L3
                 ini.WriteValue("Player", "JoyLFlipKey", getButtonID(controller, InputKey.pageup, isXinput));
                 ini.WriteValue("Player", "JoyRFlipKey", getButtonID(controller, InputKey.pagedown, isXinput));
             }

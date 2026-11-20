@@ -438,6 +438,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureMame2010(retroarchConfig, coreSettings, system, core);
             ConfigureMame2014(retroarchConfig, coreSettings, system, core);
             ConfigureMame2016(retroarchConfig, coreSettings, system, core);
+            ConfigureMednafenLynx(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenNgp(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPce(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenPceFast(retroarchConfig, coreSettings, system, core);
@@ -446,6 +447,7 @@ namespace EmulatorLauncher.Libretro
             ConfigureMednafenPsx(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenSaturn(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenSuperGrafx(retroarchConfig, coreSettings, system, core);
+            ConfigureMednafenVB(retroarchConfig, coreSettings, system, core);
             ConfigureMednafenWswan(retroarchConfig, coreSettings, system, core);
             ConfigureMesen(retroarchConfig, coreSettings, system, core);
             ConfigureMesenS(retroarchConfig, coreSettings, system, core);
@@ -3600,6 +3602,19 @@ namespace EmulatorLauncher.Libretro
             if (core != "jollycv")
                 return;
 
+            // JollyCV only reads bios\coleco.rom: reuse colecovision.rom (same file) when coleco.rom is missing
+            string biosPath = AppConfig.GetFullPath("bios");
+            if (!string.IsNullOrEmpty(biosPath))
+            {
+                string colecoRom = Path.Combine(biosPath, "coleco.rom");
+                string colecoVisionRom = Path.Combine(biosPath, "colecovision.rom");
+                if (!File.Exists(colecoRom) && File.Exists(colecoVisionRom))
+                {
+                    try { File.Copy(colecoVisionRom, colecoRom); }
+                    catch (Exception ex) { SimpleLogger.Instance.Warning("[Generator] Could not copy colecovision.rom to coleco.rom: " + ex.Message); }
+                }
+            }
+
             coreSettings["jollycv_autoreset"] = "on";
             BindFeature(coreSettings, "jollycv_aspect", "jollycv_aspect", "Auto");
             BindFeature(coreSettings, "jollycv_tmspalette", "jollycv_tmspalette", "TeaTime");
@@ -4219,6 +4234,15 @@ namespace EmulatorLauncher.Libretro
             SetupLightGuns(retroarchConfig, "1", core);
         }
 
+        private void ConfigureMednafenLynx(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mednafen_lynx")
+                return;
+
+            BindFeature(coreSettings, "lynx_rot_screen", "lynx_rot_screen", "auto");
+            BindBoolFeature(coreSettings, "lynx_force_60hz", "lynx_force_60hz", "enabled", "disabled");
+        }
+
         private void ConfigureMednafenNgp(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
         {
             if (core != "mednafen_ngp")
@@ -4586,6 +4610,29 @@ namespace EmulatorLauncher.Libretro
                     coreSettings["sgx_default_joypad_type_p" + i] = "2 Buttons";
                 }
             }
+        }
+
+        private void ConfigureMednafenVB(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)
+        {
+            if (core != "mednafen_vb")
+                return;
+
+            // 3D: anaglyph mode without preset shows the left eye only (2D)
+            string mode = SystemConfig["vb_3dmode"];
+            coreSettings["vb_3dmode"] = mode == "sidebyside" ? "side-by-side" : "anaglyph";
+
+            if (mode == "redblue")
+                coreSettings["vb_anaglyph_preset"] = "red & blue";
+            else if (mode == "redcyan")
+                coreSettings["vb_anaglyph_preset"] = "red & cyan";
+            else
+                coreSettings["vb_anaglyph_preset"] = "disabled";
+
+            // Palette: color of the lit pixels, on black
+            string color = SystemConfig.isOptSet("vb_color_mode") && !string.IsNullOrEmpty(SystemConfig["vb_color_mode"]) ? SystemConfig["vb_color_mode"] : "red";
+            coreSettings["vb_color_mode"] = "black & " + color;
+
+            BindBoolFeatureOn(coreSettings, "vb_right_analog_to_digital", "vb_right_analog_to_digital", "enabled", "disabled");
         }
 
         private void ConfigureMednafenWswan(ConfigFile retroarchConfig, ConfigFile coreSettings, string system, string core)

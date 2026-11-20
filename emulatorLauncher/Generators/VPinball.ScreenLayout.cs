@@ -73,12 +73,16 @@ namespace EmulatorLauncher
 
         private VPinballScreenLayout() { }
 
-        public static VPinballScreenLayout Build()
+        /// <param name="singleScreenIfNotSet">SCREEN SETUP not set : single screen instead of the legacy behavior (10.9+, SCREENRES values do not exist anymore).</param>
+        public static VPinballScreenLayout Build(bool singleScreenIfNotSet = false)
         {
             var config = Program.SystemConfig;
             var ret = new VPinballScreenLayout();
 
             string setup = config["vp_screensetup"];
+            if (string.IsNullOrEmpty(setup) && singleScreenIfNotSet)
+                setup = "1";
+
             if (string.IsNullOrEmpty(setup))
             {
                 ret.IsManual = true;

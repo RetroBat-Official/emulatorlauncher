@@ -79,7 +79,11 @@ namespace EmulatorLauncher
             }
             else
             {
-                string gameName = romName.Replace(".actionmax", "");
+                // Windows file names are not case sensitive: match the game whatever the case
+                string gameName = Path.GetFileNameWithoutExtension(romName).ToLowerInvariant();
+                if (!ActionMaxVideoFiles.ContainsKey(gameName))
+                    throw new Exception("Unknown ActionMax game '" + romName + "', expected: " + string.Join(", ", ActionMaxVideoFiles.Keys) + ".");
+
                 _videoFile = Path.Combine(AppConfig.GetFullPath(emulator), "ActionMax", ActionMaxVideoFiles[gameName]);
                 _singeFile = Path.Combine(AppConfig.GetFullPath(emulator), "ActionMax", ActionMaxScriptFiles[gameName]);
             }

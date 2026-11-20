@@ -48,10 +48,8 @@ namespace EmulatorLauncher
             if (path == null)
                 return null;
 
-            string exe = Path.Combine(path, Environment.Is64BitOperatingSystem ? "VPinballX64.exe" : "VPinballX.exe");
-            if (!File.Exists(exe) && Environment.Is64BitOperatingSystem)
-                exe = Path.Combine(path, "VPinballX.exe");
-            if (!File.Exists(exe))
+            string exe = FindExecutable(path);
+            if (exe == null)
                 return null;
 
             _exe = exe;
@@ -64,7 +62,12 @@ namespace EmulatorLauncher
             string versionString = versionInfo.FileMajorPart + "." + versionInfo.FileMinorPart + "." + versionInfo.FileBuildPart + "." + versionInfo.FilePrivatePart;
             Version.TryParse(versionString, out _version);
 
-            _exclusiveFullscreen = _version >= new Version(10, 8, 0, 0) && resolution != null && SystemConfig.getOptBoolean("vp_exclusivefullscreen");
+            // The core only selects the options displayed by EmulationStation, the executable decides
+            if ((core == "vpinball-10.9") != (_version >= X9Version))
+                SimpleLogger.Instance.Warning("[Generator] Core '" + core + "' does not match Visual Pinball " + _version + " : the displayed options are those of the other version.");
+
+            // 10.9+ (BGFX) : borderless fullscreen only
+            _exclusiveFullscreen = _version >= new Version(10, 8, 0, 0) && _version < X9Version && resolution != null && SystemConfig.getOptBoolean("vp_exclusivefullscreen");
             if (_exclusiveFullscreen)
                 DependsOnDesktopResolution = false;
 
@@ -82,19 +85,25 @@ namespace EmulatorLauncher
             if (_version >= new Version(10, 8, 0, 0))
             {
                 ApplyDisplayMode(resolution);
-                _layout = VPinballScreenLayout.Build();
+                _layout = VPinballScreenLayout.Build(_version >= X9Version);
             }
 
             _splash = ShowSplash(rom);
 
             ScreenResolution.SetHighDpiAware(exe);
-            EnsureDMDRegistered(path);
-            EnsureBackglassServerRegistered(path);
-            EnsureVPinMameRegistered(path);
-            EnsurePinupPlayerRegistered(path);
-            EnsurePinupDOFRegistered(path);
-            EnsurePupServerRegistered(path);
-            EnsurePupDMDControlRegistered(path);
+
+            // 10.9+ : built-in plugins, no COM component to register
+            bool x9 = _version >= X9Version;
+            if (!x9)
+            {
+                EnsureDMDRegistered(path);
+                EnsureBackglassServerRegistered(path);
+                EnsureVPinMameRegistered(path);
+                EnsurePinupPlayerRegistered(path);
+                EnsurePinupDOFRegistered(path);
+                EnsurePupServerRegistered(path);
+                EnsurePupDMDControlRegistered(path);
+            }
 
             string romPath = Path.Combine(Path.GetDirectoryName(rom), "roms");
             if (!Directory.Exists(romPath))
@@ -114,7 +123,10 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] using rompath: " + romPath);
 
 
-            if (!SystemConfig.getOptBoolean("noscreenres"))
+            // ScreenRes.txt is for the external B2S server
+            if (x9)
+                SimpleLogger.Instance.Info("[Generator] VPX 10.9+ : ScreenRes.txt not used.");
+            else if (!SystemConfig.getOptBoolean("noscreenres"))
             {
                 ScreenRes sr = ScreenRes.Load(Path.GetDirectoryName(rom));
 
@@ -154,24 +166,30 @@ namespace EmulatorLauncher
                 SimpleLogger.Instance.Info("[Generator] noscreenres set - ScreenRes.txt left untouched.");
 
             SetupOptions(path, romPath, rom, resolution);
-            SetupB2STableSettings(path);
 
             var commands = new List<string>();
 
-            if (_version >= new Version(10, 7, 0, 0))
-                commands.Add("-ExtMinimized");
-
-            if (SystemConfig.isOptSet("vp_minimized") && SystemConfig.getOptBoolean("vp_minimized"))
-                commands.Add("-minimized");
-
-            if (_version >= new Version(10, 8, 0, 0))
+            if (x9)
+                commands = GetCommandLineX9(path, rom);
+            else
             {
-                commands.Add("-Ini");
-                commands.Add(Path.Combine(path, "VPinballX.ini"));
+                SetupB2STableSettings(path);
 
+                if (_version >= new Version(10, 7, 0, 0))
+                    commands.Add("-ExtMinimized");
+
+                if (SystemConfig.isOptSet("vp_minimized") && SystemConfig.getOptBoolean("vp_minimized"))
+                    commands.Add("-minimized");
+
+                if (_version >= new Version(10, 8, 0, 0))
+                {
+                    commands.Add("-Ini");
+                    commands.Add(Path.Combine(path, "VPinballX.ini"));
+                }
+
+                commands.Add("-play");
+                commands.Add(rom);
             }
-            commands.Add("-play");
-            commands.Add(rom);
 
             string args = string.Join(" ", commands.Select(a => a.Contains(" ") ? "\"" + a + "\"" : a).ToArray());
 
@@ -179,7 +197,8 @@ namespace EmulatorLauncher
             {
                 FileName = exe,
                 Arguments = args,
-                WindowStyle = _splash != null ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal,
+                // 10.9+ : the game window is the first window of the process, it must not start minimized
+                WindowStyle = _splash != null && !x9 ? ProcessWindowStyle.Minimized : ProcessWindowStyle.Normal,
                 UseShellExecute = true
             };
         }
@@ -226,13 +245,19 @@ namespace EmulatorLauncher
 
         private void SetupOptions(string path, string romPath, string vpxFile, ScreenResolution resolution)
         {
-            if (_version >= new Version(10, 8, 0, 0))
+            if (_version >= X9Version)
+                SetupOptionsIniFileX9(path);
+            else if (_version >= new Version(10, 8, 0, 0))
                 SetupOptionsIniFile(path, resolution);
             else
                 SetupOptionsRegistry(resolution);
 
+            // 10.9+ : the PinMAME plugin reads the Visual PinMAME folders (roms, nvram...) from the registry
             SetupVPinMameOptions(path, romPath, vpxFile);
-            SetupDmdDevice(path);
+
+            // 10.9+ : the DMD is rendered by VPX
+            if (_version < X9Version)
+                SetupDmdDevice(path);
         }
 
         private void SetupOptionsIniFile(string path, ScreenResolution resolution)
@@ -345,18 +370,14 @@ namespace EmulatorLauncher
                 ini.WriteValue("Player", "PlayMusic", SystemConfig.getOptBoolean("vp_music_off") ? "0" : "1");
                 BindIniFeature(ini, "Player", "Sound3D", "vp_audiochannels", "0");
 
-                // Lighting
+                // Lighting : table lighting unless ENVIRONMENT LIGHTING is set
                 if (SystemConfig.isOptSet("vp_lighting") && !string.IsNullOrEmpty(SystemConfig["vp_lighting"]))
                 {
-                    string lighting = SystemConfig["vp_lighting"];
-                    ini.WriteValue("Player", "EmissionScale", lighting);
-                    ini.WriteValue("TableOverride", "OverrideEmissionScale", "1");
+                    ini.WriteValue("Player", "OverrideTableEmissionScale", "1");
+                    ini.WriteValue("Player", "EmissionScale", SystemConfig["vp_lighting"]);
                 }
                 else
-                {
-                    ini.WriteValue("Player", "EmissionScale", "0.500000");
-                    ini.WriteValue("TableOverride", "OverrideEmissionScale", "1");
-                }
+                    ini.WriteValue("Player", "OverrideTableEmissionScale", "0");
 
                 // Controls
                 ini.WriteValue("Player", "TweakKey", "68");

@@ -1,4 +1,5 @@
 ﻿using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Compression;
 using EmulatorLauncher.Common.FileFormats;
 using System;
 using System.Collections.Generic;
@@ -29,6 +30,24 @@ namespace EmulatorLauncher
 
             bool fullscreen = ShouldRunFullscreen();
 
+            // jzIntv does not read archives: extract the game first (the .cfg of a .bin game is extracted with it)
+            string romFile = rom;
+            if (Zip.IsCompressedFile(rom))
+            {
+                string uncompressedRomPath = this.TryUnZipGameIfNeeded(system, rom, false, false);
+                if (Directory.Exists(uncompressedRomPath))
+                {
+                    string[] romExtensions = new string[] { ".int", ".bin", ".rom" };
+                    romFile = Directory.GetFiles(uncompressedRomPath, "*.*", SearchOption.AllDirectories)
+                        .FirstOrDefault(f => romExtensions.Contains(Path.GetExtension(f).ToLowerInvariant()));
+
+                    if (string.IsNullOrEmpty(romFile))
+                        throw new ApplicationException("No Intellivision game (.int, .bin, .rom) found in " + Path.GetFileName(rom));
+
+                    ValidateUncompressedGame();
+                }
+            }
+
             List<string> commandArray = new List<string>();
 
             // exec.bin and grom.bin specifications
@@ -43,20 +62,18 @@ namespace EmulatorLauncher
             commandArray.Add("-g");
             commandArray.Add("\"" + gromPath + "\"");
 
-            // Command file management (overrides other commands)
-            string commandFile = rom.Replace(Path.GetExtension(rom), ".commands");
+            // Command file management (overrides other commands): jzIntv arguments, one or more per line
+            string commandFile = Path.ChangeExtension(rom, ".commands");
 
             if (!File.Exists(commandFile))
-                commandFile = Path.Combine(AppConfig.GetFullPath("roms"),"intellivision", "default.commands");
+                commandFile = Path.Combine(AppConfig.GetFullPath("roms"), "intellivision", "default.commands");
 
             if (File.Exists(commandFile))
             {
-                var lines = File.ReadAllLines(commandFile);
-
-                if (lines.Length > 0)
+                foreach (var line in File.ReadAllLines(commandFile))
                 {
-                    foreach (var line in lines)
-                        line.Trim();
+                    if (!string.IsNullOrWhiteSpace(line))
+                        commandArray.Add(line.Trim());
                 }
             }
             else
@@ -116,7 +133,7 @@ namespace EmulatorLauncher
                 commandArray.Add("-f0");
 
             // Controls configuration
-            if (SystemConfig.isOptSet("jzintv_inputfile") && !string.IsNullOrEmpty("jzintv_inputfile"))
+            if (SystemConfig.isOptSet("jzintv_inputfile") && !string.IsNullOrEmpty(SystemConfig["jzintv_inputfile"]))
             {
                 SimpleLogger.Instance.Info("[INFO] Using user KeyboardHack file.");
                 commandArray.Add("--kbdhackfile=\"" + SystemConfig["jzintv_inputfile"] + "\"");
@@ -127,7 +144,7 @@ namespace EmulatorLauncher
             }
 
             // rom
-            commandArray.Add("\"" + rom + "\"");
+            commandArray.Add("\"" + romFile + "\"");
 
             string args = string.Join(" ", commandArray);
 

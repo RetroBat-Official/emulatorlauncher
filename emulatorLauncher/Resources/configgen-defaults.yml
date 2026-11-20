@@ -257,3 +257,6 @@ daphne:
 lightgun:
   emulator: libretro
   core:     mame078plus
+vpinball:
+  emulator: vpinball
+  core:     vpinball
