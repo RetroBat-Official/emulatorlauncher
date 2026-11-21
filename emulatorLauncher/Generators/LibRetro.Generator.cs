@@ -1595,8 +1595,9 @@ namespace EmulatorLauncher.Libretro
                     _noCoreRemap = true;
             }
 
-            // If no hotkey if configured, add pad2key to exit retroarch
-            if (retroarchConfig["input_enable_hotkey"] == "nul" && retroarchConfig["input_enable_hotkey_btn"] == "nul" && retroarchConfig["input_enable_hotkey_axis"] == "nul" && retroarchConfig["input_enable_hotkey_mbtn"] == "nul")
+            // If no hotkey is configured, add pad2key to exit retroarch (not with single button shortcuts)
+            if (!LibretroControllers.SingleButtonShortcuts && retroarchConfig["input_enable_hotkey"] == "nul" && retroarchConfig["input_enable_hotkey_btn"] == "nul" 
+                && retroarchConfig["input_enable_hotkey_axis"] == "nul" && retroarchConfig["input_enable_hotkey_mbtn"] == "nul")
             {
                 if (Controllers.Any(c => !c.IsKeyboard))
                     _noHotkey = true;
