@@ -1322,6 +1322,14 @@ namespace EmulatorLauncher
 
                     Controllers.RemoveAll(c => c.Config == null);
 
+                    // EmulationStation always asks for A and B: without them the es_input.cfg entry is incomplete
+                    foreach (var pi in Controllers.Where(c => !c.IsKeyboard && c.Config.Input != null))
+                    {
+                        var missing = new[] { InputKey.a, InputKey.b, InputKey.x, InputKey.y }.Where(k => pi.Config[k] == null).ToList();
+                        if (missing.Contains(InputKey.a) || missing.Contains(InputKey.b))
+                            SimpleLogger.Instance.Warning("[Controller] Player " + pi.PlayerIndex + " : es_input.cfg entry of '" + pi.Name + "' has no input for " + string.Join(", ", missing) + ", these buttons will not be mapped. Reconfigure the controller in EmulationStation.");
+                    }
+
                     // Optionally give gamepads priority over arcade sticks (sticks become the last players)
                     MoveArcadeSticksLast();
 
