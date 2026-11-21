@@ -200,12 +200,6 @@ namespace EmulatorLauncher
             try
             {
                 string iniPath = Path.Combine(path, "Config", "Supermodel.ini");
-                if (!File.Exists(iniPath))
-                {
-                    string templateIniFile = Path.Combine(AppConfig.GetFullPath("retrobat"), "system", "templates", "supermodel", "Supermodel.ini");
-                    if (File.Exists(templateIniFile))
-                        try { File.Copy(templateIniFile, iniPath, true); } catch { }
-                }
 
                 using (IniFile ini = new IniFile(iniPath, IniOptions.UseSpaces))
                 {
@@ -231,6 +225,7 @@ namespace EmulatorLauncher
                     BindBoolIniFeatureOn(ini, " Global ", "New3DEngine", "new3Dengine", "1", "0");    //New3DEngine - setting to OFF will use legacy 3D engine, fixes OpenGL error on older GPUs
                     BindBoolIniFeature(ini, " Global ", "MultiThreaded", "m3_thread", "0", "1");
                     BindBoolIniFeatureOn(ini, " Global ", "HighLevelGeometrizer", "supermodel_hlgeometrizer", "1", "0");
+                    BindIniFeature(ini, " Global ", "Transparency", "supermodel_transparency", "0");    // Model 1/2 translucent polygons: 0 original, 1 moire, 2 blend
                     BindIniFeatureSlider(ini, " Global ", "PowerPCFrequency", "m3_ppc_frequency", "0");
                     BindBoolIniFeature(ini, " Global ", "ShowFrameRate", "m3_fps", "1", "0");
                     BindBoolIniFeature(ini, " Global ", "WideBackground", "widescreen", "1", "0");
@@ -243,7 +238,8 @@ namespace EmulatorLauncher
                         ini.Remove(" Global ", "Outputs");
 
                     // ROM folder of the GUI
-                    string rompath = Path.Combine(AppConfig.GetFullPath("roms"), "model3");
+                    string romSystem = SystemConfig["system"] == "model1" || SystemConfig["system"] == "model2" ? SystemConfig["system"] : "model3";
+                    string rompath = Path.Combine(AppConfig.GetFullPath("roms"), romSystem);
                     ini.WriteValue(" Global ", "ROMDirectory", rompath);
 
                     //Create controller configuration

@@ -17,8 +17,8 @@ namespace EmulatorLauncher.Libretro
         private static bool _specialController = false;
         private static bool _buttonTrigger = false;
         private static bool _specialControllerHotkey = false;
-        private static bool _noHotkey = false;
         private static bool _singleButtonShortcuts = false;
+        internal static bool SingleButtonShortcuts { get { return _singleButtonShortcuts; } }
         private static string _inputDriver = "sdl2";
         private static readonly HashSet<string> disabledAnalogModeSystems = new HashSet<string> { "3do", "n64", "n64dd", "dreamcast", "gamecube", "3ds" };
         static readonly List<string> mdSystems = new List<string>() { "megadrive", "genesis", "megadrive-msu", "genesis-msu", "segacd", "megacd", "sega32x", "mega32x" };
@@ -294,6 +294,9 @@ namespace EmulatorLauncher.Libretro
 
         private static void WriteHotKeyConfig(ConfigFile config)
         {
+            // Always reset the joypad hotkey button (a missing key is not read as "nul" by the generator)
+            config["input_enable_hotkey_btn"] = config["input_enable_hotkey_axis"] = config["input_enable_hotkey_mbtn"] = "nul";
+
             var c0 = Program.Controllers.FirstOrDefault(c => c.PlayerIndex == 1);
             if (c0 == null || c0.Config == null)
                 return;
@@ -319,13 +322,26 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            var hotKey = GetInputCode(c0, InputKey.hotkey);
-            if (hotKey != null && hotKey.Type != "key" && !_singleButtonShortcuts)                    
+            var hotKey = GetHotkeyInput(c0);
+            if (hotKey != null && hotKey.Type != "key" && !_singleButtonShortcuts)
                 config[string.Format("input_enable_hotkey_{0}", typetoname[hotKey.Type])] = GetConfigValue(hotKey);
+
+            // Single button shortcuts: no hotkey at all, keyboard included
             if (_singleButtonShortcuts)
-            {
-                config["input_enable_hotkey"] = config["input_enable_hotkey_axis"] = config["input_enable_hotkey_btn"] = config["input_enable_hotkey_mbtn"] = "nul";
-            }
+                config["input_enable_hotkey"] = "nul";
+        }
+
+        // Hotkey button of a controller, null when missing or disabled in EmulationStation (saved as a key on a pad)
+        private static Input GetHotkeyInput(Controller controller)
+        {
+            if (controller == null || controller.Config == null)
+                return null;
+
+            var esHotKey = controller.Config[InputKey.hotkey];
+            if (esHotKey == null || (!controller.IsKeyboard && esHotKey.Type == "key"))
+                return null;
+
+            return GetInputCode(controller, InputKey.hotkey);
         }
 
         private static string GetAnalogMode(Controller controller, string system)
@@ -476,14 +492,7 @@ namespace EmulatorLauncher.Libretro
                 }
             }
 
-            var hotKey = GetInputCode(controller, InputKey.hotkey);
-            if (hotKey == null)
-            {
-                SimpleLogger.Instance.Info("[GENERATOR] No hotkey configured, all retroarch shortcuts will be disabled.");
-                _noHotkey = true;
-            }
-            
-            if (controller.PlayerIndex == 1 && !_noHotkey)
+            if (controller.PlayerIndex == 1)
             {
                 if (Program.SystemConfig.getOptBoolean("fastforward_toggle"))
                     retroarchspecials[InputKey.right] = "toggle_fast_forward";
@@ -547,14 +556,20 @@ namespace EmulatorLauncher.Libretro
                     }
                 }
 
-                foreach (var specialkey in hotkeyList)
+                // Without hotkey button, shortcuts are only written for single button shortcuts (noHotkey: true)
+                if (GetHotkeyInput(controller) == null && !_singleButtonShortcuts)
+                    SimpleLogger.Instance.Info("[GENERATOR] No hotkey configured, all retroarch shortcuts will be disabled.");
+                else
                 {
-                    var input = GetInputCode(controller, specialkey.Key);
-                    if (input == null)
-                        continue;
+                    foreach (var specialkey in hotkeyList)
+                    {
+                        var input = GetInputCode(controller, specialkey.Key);
+                        if (input == null)
+                            continue;
 
-                    if (input.Type != "key")
-                        config[string.Format("input_{0}_{1}", specialkey.Value, typetoname[input.Type])] = GetConfigValue(input);
+                        if (input.Type != "key")
+                            config[string.Format("input_{0}_{1}", specialkey.Value, typetoname[input.Type])] = GetConfigValue(input);
+                    }
                 }
             }
 

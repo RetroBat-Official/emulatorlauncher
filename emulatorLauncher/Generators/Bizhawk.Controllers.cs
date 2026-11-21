@@ -796,7 +796,7 @@ namespace EmulatorLauncher
                 discy.SetObject("Mult", 1.0);
                 discy.SetObject("Deadzone", deadzone);
 
-                if (Program.SystemConfig.getOptBoolean("bizhawk_intv_swapcontrols"))
+                if (Program.SystemConfig.getOptBoolean("bizhawk_swapcontrols"))
                 {
                     var discx1 = analogConfig.GetOrCreateContainer("P1 Disc X");
                     var discy1 = analogConfig.GetOrCreateContainer("P1 Disc Y");

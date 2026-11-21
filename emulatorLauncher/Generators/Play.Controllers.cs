@@ -47,11 +47,7 @@ namespace EmulatorLauncher
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for Play!");
 
             string controllerFile = Path.Combine(path, "Play Data Files", "inputprofiles", "Retrobat.xml");
-            string templateControllerFile = Path.Combine(AppConfig.GetFullPath("templates"), "play", "Play Data Files", "inputprofiles", "Retrobat.xml");
-
-            if (!File.Exists(controllerFile) && File.Exists(templateControllerFile))
-                FileTools.TryCopyFile(templateControllerFile, controllerFile);
-
+            
             var controllers = Controllers.Where(c => !c.IsKeyboard && c.Config != null).OrderBy(i => i.PlayerIndex).Take(2).ToList();
             if (controllers.Count == 0)
                 return;
