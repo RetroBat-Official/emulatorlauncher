@@ -54,6 +54,8 @@ namespace EmulatorLauncher
             // Archives are identified by CRC and a merged archive can hold several revisions: select the set named like the archive
             ReadGameDatabase(path, Path.GetFileNameWithoutExtension(rom));
 
+            ConfigureMameHook(system, rom);
+
             bool fullscreen = ShouldRunFullscreen() && !SystemConfig.getOptBoolean("disable_fullscreen");
 
             // Keisho draws its bezel itself, in fullscreen and 4:3 only
@@ -94,6 +96,37 @@ namespace EmulatorLauncher
                 WorkingDirectory = path,
                 Arguments = string.Join(" ", commandArray),
             };
+        }
+
+        /// <summary>
+        /// Starts MameHooker for any game. The light gun COM ports are written in the MameHooker files of the supported Model 2 / Model 3 gun games.
+        /// </summary>
+        private void ConfigureMameHook(string system, string rom)
+        {
+            if (!SystemConfig.getOptBoolean("use_mamehooker"))
+            {
+                MameHooker.KillMameHooker();
+                return;
+            }
+
+            // MameHooker files are named after the set Keisho reports (games.xml name), not the archive
+            string romName = (_romSet ?? Path.GetFileNameWithoutExtension(rom)).ToLowerInvariant();
+
+            if (system == "model2")
+                MameHooker.Model2.ConfigureModel2(romName);
+            else if (system == "model3")
+                MameHooker.Supermodel.ConfigureSupermodel(romName);
+
+            Process mameHookProcess = MameHooker.StartMameHooker();
+            if (mameHookProcess == null)
+            {
+                SimpleLogger.Instance.Error("[ERROR] Failed to start MameHooker");
+                return;
+            }
+
+            // MameHooker must be listening before Keisho registers its outputs
+            mameHookProcess.WaitForInputIdle(2000);
+            System.Threading.Thread.Sleep(2000);
         }
 
         /// <summary>
@@ -213,8 +246,17 @@ namespace EmulatorLauncher
                 // Emulation
                 ini.WriteValue("system", "rewind", SystemConfig.getOptBoolean("rewind") ? "true" : "false");
 
-                // Lamps and drive board outputs for MAMEHooker-like tools
-                BindBoolIniFeature(ini, "network", "outputs_windows", "keisho_outputs", "true", "false");
+                // Lamps and drive board outputs: Windows messages (MAMEHooker) or network (outputs_network_port, 8000 by default)
+                string outputs = SystemConfig["keisho_outputs"];
+                if (outputs == "1" || outputs == "true")
+                    outputs = "win";
+
+                // MameHooker only reads the Windows messages
+                if (string.IsNullOrEmpty(outputs) && SystemConfig.getOptBoolean("use_mamehooker"))
+                    outputs = "win";
+
+                ini.WriteValue("network", "outputs_windows", outputs == "win" ? "true" : "false");
+                ini.WriteValue("network", "outputs_network", outputs == "net" ? "true" : "false");
 
                 // Hotkeys, Light guns, wheel and gamepads
                 WriteKeyboardHotkeys(ini);

@@ -431,7 +431,7 @@ namespace EmulatorLauncher
             {
                 var hotkeyInput = controller.Config[InputKey.hotkey] ?? controller.Config[InputKey.select];
                 if (hotkeyInput != null)
-                    hotkeyValue = "api:controller," + FromInput(controller, hotkeyInput, azaharGuid, true);
+                    hotkeyValue = FromInput(controller, hotkeyInput, azaharGuid, true);
             }
 
             // Every shortcut managed by RetroBat is written, so a combo removed from the yml does not persist
@@ -442,9 +442,8 @@ namespace EmulatorLauncher
 
                 if (!string.IsNullOrEmpty(hotkeyValue) && padShortcuts.TryGetValue(action, out string button) && Enum.TryParse<InputKey>(button, true, out var inputKey))
                 {
-                    string input = FromInput(controller, controller.Config[inputKey], azaharGuid, true);
-                    if (!string.IsNullOrEmpty(input))
-                        buttonValue = "api:controller," + input;
+                    // Joystick API, same button ids as the 3DS mapping
+                    buttonValue = FromInput(controller, controller.Config[inputKey], azaharGuid, true);
                 }
 
                 if (!string.IsNullOrEmpty(buttonValue))

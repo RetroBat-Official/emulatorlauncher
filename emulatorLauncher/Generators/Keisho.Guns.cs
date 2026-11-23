@@ -75,21 +75,22 @@ namespace EmulatorLauncher
         /// <summary>
         /// gun1_device / gun2_device : the RetroBat player 1 and 2 guns. Keisho uses a pinned device as a gun
         /// even when its product name does not contain "gun" (DolphinBar, Blamcon...).
+        /// Only real light guns are pinned: Keisho reads a pinned device as an absolute pointer and ignores relative motion.
         /// </summary>
         private void WriteGunDevices(IniFile ini, RawLightgun[] guns)
         {
-            // Plain mice are not pinned: without a gun, Keisho aims with the system mouse
-            //var realGuns = guns.Where(g => g.Type != RawLighGunType.Mouse && !string.IsNullOrEmpty(g.DevicePath)).ToList();
+            // Plain mice are not pinned: without a gun, Keisho aims with the system mouse (player 1)
+            var realGuns = guns.Where(g => g.Type != RawLighGunType.Mouse && !string.IsNullOrEmpty(g.DevicePath)).ToList();
 
             int count = SystemConfig.getOptBoolean("one_gun") ? 1 : 2;
 
             for (int player = 1; player <= 2; player++)
             {
                 string device = "";
-                if (player <= count && player <= guns.Length)
+                if (player <= count && player <= realGuns.Count)
                 {
-                    device = GetGunDeviceId(guns[player - 1].DevicePath);
-                    SimpleLogger.Instance.Info("[GUNS] Gun " + player + " : " + guns[player - 1].Name + " (" + guns[player - 1].Type + ")");
+                    device = GetGunDeviceId(realGuns[player - 1].DevicePath);
+                    SimpleLogger.Instance.Info("[GUNS] Gun " + player + " : " + realGuns[player - 1].Name + " (" + realGuns[player - 1].Type + ")");
                 }
 
                 ini.WriteValue("lightgun", "gun" + player + "_device", device);

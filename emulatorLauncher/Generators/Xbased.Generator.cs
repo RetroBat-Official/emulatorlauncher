@@ -126,7 +126,6 @@ namespace EmulatorLauncher
             options.Add("overscan=" + SystemConfig.GetValueOrDefault("xbased_overscan", "0"));
             options.Add("shaders=" + SystemConfig.GetValueOrDefault("xbased_shaders", "hybrid"));
             options.Add("prebuild=" + (SystemConfig.getOptBoolean("xbased_prebuild") || !SystemConfig.isOptSet("xbased_prebuild") ? "1" : "0"));
-            options.Add("precision=" + SystemConfig.GetValueOrDefault("xbased_precision", "auto"));
             options.Add("showfps=" + (SystemConfig.getOptBoolean("xbased_showfps") ? "1" : "0"));
 
             // Console settings
@@ -137,6 +136,7 @@ namespace EmulatorLauncher
             options.Add("ram=" + SystemConfig.GetValueOrDefault("system_memory", "64"));
             options.Add("devtime=" + (SystemConfig.getOptBoolean("xbased_fastdisc") ? "0" : "2"));
             options.Add("audio=" + SystemConfig.GetValueOrDefault("xbased_audio", "stereo"));
+            options.Add("hrtf=" + (SystemConfig.isOptSet("xbased_hrtf") && !SystemConfig.getOptBoolean("xbased_hrtf") ? "0" : "1"));
 
             return options;
         }
@@ -287,6 +287,7 @@ namespace EmulatorLauncher
                 { "save", "F2" },
                 { "load", "F4" },
                 { "turbo", "L" },
+                { "turbotoggle", "none" },
                 { "pause", "P" },
                 { "shot", "F8" },
                 { "full", "F" },
@@ -302,6 +303,15 @@ namespace EmulatorLauncher
                 }
 
                 _pad2Keyoverride = true;
+            }
+
+            // FAST FORWARD BEHAVIOR (global option): the fast forward key toggles instead of being held
+            if (SystemConfig.getOptBoolean("fastforward_toggle"))
+            {
+                if (keys["turbotoggle"] == "none")
+                    keys["turbotoggle"] = keys["turbo"];
+
+                keys["turbo"] = "none";
             }
 
             foreach (var key in keys)
@@ -382,10 +392,7 @@ namespace EmulatorLauncher
                     {
                         int pid = code & 0x3FFFFFFF;
                         process.Dispose();
-                        process = null;
-
-                        try { process = Process.GetProcessById(pid); }
-                        catch { }
+                        process = OpenRelaunchedProcess(pid);
 
                         SimpleLogger.Instance.Info("[Generator] xbased goes on in process " + pid + (process == null ? " (already gone)" : ""));
                         RawExitCode = 0;
@@ -414,6 +421,23 @@ namespace EmulatorLauncher
                 return 0;
 
             return ret;
+        }
+
+        /// <summary>
+        /// Process of a relaunch, its handle opened at once: without it, its exit code can't be read once it has exited.
+        /// </summary>
+        private static Process OpenRelaunchedProcess(int pid)
+        {
+            try
+            {
+                var process = Process.GetProcessById(pid);
+                var handle = process.Handle; // kept by Process: HasExited / ExitCode work after the exit
+                return process;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private void WaitForFrame()

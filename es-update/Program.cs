@@ -142,6 +142,9 @@ namespace RetrobatUpdater
                 // Extract zip archive
                 lastPercent = -1;
 
+                // Official es_systems.cfg of the installed version, read before it is replaced
+                var oldEsSystems = EsSystemsUpgrade.LoadOfficial(rootPath);
+
                 using (var archive = Zip.Open(file))
                 {
                     var entries = archive.Entries.ToList();
@@ -219,6 +222,9 @@ namespace RetrobatUpdater
                         idx++;
                     }
                 }
+
+                // Keep es_systems_*.cfg overrides in line with the new official emulator lists
+                EsSystemsUpgrade.Process(rootPath, oldEsSystems);
 
                 // Delete downloaded zip file (keep the user's local zip)
                 if (string.IsNullOrEmpty(localZipFile))
