@@ -37,20 +37,35 @@ namespace EmulatorLauncher
             else if (File.Exists(rom)) // rom is a file
             {
                 string line = FileTools.ReadFirstValidLine(rom);
-                var exeFiles = Directory.GetFiles(Path.GetDirectoryName(rom), "*.exe", SearchOption.TopDirectoryOnly).ToArray();
-                if (exeFiles.Length == 0)
-                    return null;
+                var exeFiles = Directory.GetFiles(path, "*.exe", SearchOption.TopDirectoryOnly).ToArray();
 
-                if (line == null)
+                if (line != null)
                 {
-                    exe = exeFiles[0];
-                }
-                else
-                {
-                    exe = exeFiles.FirstOrDefault(f => Path.GetFileNameWithoutExtension(f).Equals(line, StringComparison.InvariantCultureIgnoreCase));
+                    string target = line.Trim('"');
+
+                    // Executable name in the .decomp folder (with or without .exe)
+                    exe = exeFiles.FirstOrDefault(f =>
+                        Path.GetFileNameWithoutExtension(f).Equals(target, StringComparison.InvariantCultureIgnoreCase) ||
+                        Path.GetFileName(f).Equals(target, StringComparison.InvariantCultureIgnoreCase));
+
+                    // Path to an executable, started from its own folder
                     if (exe == null)
-                        exe = exeFiles[0];
+                    {
+                        exe = GetExecutableFromPath(target, path);
+                        if (exe != null)
+                            path = Path.GetDirectoryName(exe);
+                    }
+
+                    if (exe == null)
+                        SimpleLogger.Instance.Warning("[DECOMP] Executable not found: " + target);
                 }
+
+                // Fallback: first executable of the .decomp folder
+                if (exe == null && exeFiles.Length > 0)
+                    exe = exeFiles[0];
+
+                if (exe == null)
+                    return null;
             }
             else
                 return null;
@@ -136,6 +151,29 @@ namespace EmulatorLauncher
 
                 return true;
             }
+        }
+
+        // Resolves an executable path written in the .decomp file (absolute or relative to the .decomp folder)
+        private static string GetExecutableFromPath(string target, string baseDir)
+        {
+            if (target.StartsWith(".\\") || target.StartsWith("./"))
+                target = target.Substring(2);
+            else if ((target.StartsWith("\\") && !target.StartsWith("\\\\")) || target.StartsWith("/"))
+                target = target.Substring(1);
+
+            try
+            {
+                string fullPath = Path.GetFullPath(Path.Combine(baseDir, target));
+
+                if (!File.Exists(fullPath) && !fullPath.EndsWith(".exe", StringComparison.InvariantCultureIgnoreCase))
+                    fullPath += ".exe";
+
+                if (File.Exists(fullPath) && Path.GetExtension(fullPath).Equals(".exe", StringComparison.InvariantCultureIgnoreCase))
+                    return fullPath;
+            }
+            catch { } // Invalid path characters
+
+            return null;
         }
 
         private Process WaitForGameProcess(int waitSeconds, string exeName)
