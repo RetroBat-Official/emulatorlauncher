@@ -126,7 +126,6 @@ namespace EmulatorLauncher
             options.Add("overscan=" + SystemConfig.GetValueOrDefault("xbased_overscan", "0"));
             options.Add("shaders=" + SystemConfig.GetValueOrDefault("xbased_shaders", "hybrid"));
             options.Add("prebuild=" + (SystemConfig.getOptBoolean("xbased_prebuild") || !SystemConfig.isOptSet("xbased_prebuild") ? "1" : "0"));
-            options.Add("precision=" + SystemConfig.GetValueOrDefault("xbased_precision", "auto"));
             options.Add("showfps=" + (SystemConfig.getOptBoolean("xbased_showfps") ? "1" : "0"));
 
             // Console settings
