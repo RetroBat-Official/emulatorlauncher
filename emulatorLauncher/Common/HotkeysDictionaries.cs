@@ -464,6 +464,7 @@ namespace EmulatorLauncher
                     new EmulatorHotkeyInfo("input_menu_toggle", "menu", "F1"),
                     new EmulatorHotkeyInfo("input_toggle_fullscreen", "full", "F"),
                     new EmulatorHotkeyInfo("input_hold_fast_forward", "turbo", "L"),
+                    new EmulatorHotkeyInfo("input_toggle_fast_forward", "turbotoggle", ""),
                     new EmulatorHotkeyInfo("input_screenshot", "shot", "F8"),
                     new EmulatorHotkeyInfo("input_save_state", "save", "F2"),
                     new EmulatorHotkeyInfo("input_load_state", "load", "F4"),
