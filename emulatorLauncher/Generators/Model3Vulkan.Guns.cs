@@ -42,6 +42,9 @@ namespace EmulatorLauncher
                     _mouse1 = "MOUSE" + (_guns[0].Index + 1);
                     _mouse2 = "MOUSE" + (_guns[1].Index + 1);
                 }
+                // One light gun: bind its own mouse, MOUSE (any) only reads the first mouse in the SDL3 build
+                else if (realGuns && _guns.Length > 0)
+                    _mouse1 = "MOUSE" + (_guns[0].Index + 1);
 
                 // Forced mouse numbers
                 if (SystemConfig.isOptSet("supermodel_gun1") && !string.IsNullOrEmpty(SystemConfig["supermodel_gun1"]))

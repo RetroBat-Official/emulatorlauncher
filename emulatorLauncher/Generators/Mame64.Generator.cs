@@ -1,5 +1,6 @@
 ﻿using EmulatorLauncher;
 using EmulatorLauncher.Common;
+using EmulatorLauncher.Common.Lightguns;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -469,7 +470,8 @@ namespace EmulatorLauncher
                     _mouseGun = true;
                 }
             }
-            else if (SystemConfig.getOptBoolean("use_guns"))
+            // Real light gun only: plain mice send relative moves, ignored by the MAME rawinput lightgun (mouse mode below)
+            else if (SystemConfig.getOptBoolean("use_guns") && RawLightgun.GetRawLightguns().Any(g => g.Type != RawLighGunType.Mouse))
             {
                 retList.Add("-lightgun_device");
                 retList.Add("lightgun");

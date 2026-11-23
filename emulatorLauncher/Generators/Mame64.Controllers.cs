@@ -45,10 +45,19 @@ namespace EmulatorLauncher
 
         private bool ConfigureMameControllers(string path, bool hbmame, string rom, string esSystem, string messSystem)
         {
+            // Auto configuration disabled: only the light gun mapping is generated when guns are enabled
+            bool gunsOnly = false;
+
             if (Program.SystemConfig["disableautocontrollers"] == "1")
             {
-                SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
-                return false;
+                if (!SystemConfig.getOptBoolean("use_guns"))
+                {
+                    SimpleLogger.Instance.Info("[INFO] Auto controller configuration disabled.");
+                    return false;
+                }
+
+                gunsOnly = true;
+                SimpleLogger.Instance.Info("[GUNS] Auto controller configuration disabled: light gun mapping only.");
             }
 
             SimpleLogger.Instance.Info("[INFO] Creating controller configuration for MAME");
@@ -72,13 +81,13 @@ namespace EmulatorLauncher
 
             UpdateSdlControllersWithHints();
 
-            // Delete input that would be in cfg file
+            // Delete input that would be in cfg file (kept in guns only mode: user mapping has priority)
             string cfgFile = messFiles.ContainsKey(messSystem) ? GetMameCfgPath(messFiles[messSystem] + ".cfg") : GetMameCfgPath(Path.GetFileNameWithoutExtension(rom) + ".cfg");
-            if (File.Exists(cfgFile))
+            if (File.Exists(cfgFile) && !gunsOnly)
                 DeleteInputincfgFile(cfgFile);
-            
+
             string defaultcfgFile = GetMameCfgPath("default.cfg");
-            if (File.Exists(defaultcfgFile))
+            if (File.Exists(defaultcfgFile) && !gunsOnly)
                 DeleteInputincfgFile(defaultcfgFile);
 
             // Get specific mapping if it exists
@@ -113,6 +122,14 @@ namespace EmulatorLauncher
                     if (File.Exists(specificMappingPath))
                         SimpleLogger.Instance.Info("[INFO] MAME: using parent mapping " + parent + ".xml");
                 }
+            }
+
+            // Light gun game (-lightgun from ES) with guns enabled: the gun mapping has priority over the game mapping file
+            if (gunsOnly || (SystemConfig.getOptBoolean("use_guns") && Environment.GetCommandLineArgs().Any(a => a == "-lightgun")))
+            {
+                if (File.Exists(specificMappingPath))
+                    SimpleLogger.Instance.Info("[GUNS] MAME: light gun game, game mapping file ignored.");
+                specificMappingPath = null;
             }
 
             if (File.Exists(specificMappingPath))
